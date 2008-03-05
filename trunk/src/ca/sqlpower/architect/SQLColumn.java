@@ -38,7 +38,9 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -272,20 +274,18 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		throws SQLException, DuplicateColumnException, ArchitectException {
 		Connection con = null;
 		ResultSet rs = null;
+		ResultSet typeRs = null;
 		DatabaseMetaData dbmd = null;
+
 		try {
-			con = addTo.getParentDatabase().getConnection();
-			dbmd = con.getMetaData();
-		} finally {
-		    // close the connection before it makes the recursive call
-            // that could lead to opening more connections
-		    try {
-		        if (con != null) con.close();
-		    } catch (SQLException ex) {
-		        logger.error("Couldn't close connection", ex);
-		    }
-		}
-		try {
+		    con = addTo.getParentDatabase().getConnection();
+		    dbmd = con.getMetaData();
+		    typeRs = con.getMetaData().getTypeInfo();
+		    Map<Double, Double> typeToMaxPrecisionMap = new HashMap<Double, Double>();
+            while (typeRs.next()) {
+                typeToMaxPrecisionMap.put(new Double(typeRs.getDouble(2)), new Double(typeRs.getDouble(3)));
+            }
+		    
 			logger.debug("SQLColumn.addColumnsToTable: catalog="+catalog+"; schema="+schema+"; tableName="+tableName);
 			rs = dbmd.getColumns(catalog, schema, tableName, "%");
 			while (rs.next()) {
@@ -294,30 +294,13 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 				//Must check precision from the column against the database allowed precision
 				//as some jdbc drivers returns a display precision and not an allowed database
 				//precision.
-				ResultSet innerRs = null;
+				
 				int precision = rs.getInt(7);
-				try {
-		            con = addTo.getParentDatabase().getConnection();
-				    innerRs = con.getMetaData().getTypeInfo();
-				    while (innerRs.next()) {
-				        if (innerRs.getInt(2) == rs.getInt(5) && (rs.getInt(7) < 1 || rs.getInt(7) > innerRs.getInt(3))) { //equate across java.sql.Types
-				            precision = innerRs.getInt(3);
-				        }
-				    }
-				} finally {
-		            try {
-		                if (innerRs != null) innerRs.close();
-		            } catch (SQLException ex) {
-		                logger.error("Couldn't close result set", ex);
-		            }
-		            // close the connection before it makes the recursive call
-		            // that could lead to opening more connections
-		            try {
-		                if (con != null) con.close();
-		            } catch (SQLException ex) {
-		                logger.error("Couldn't close connection", ex);
-		            }
+				Double typePrecision = typeToMaxPrecisionMap.get(new Double(rs.getInt(5)));
+				if (typePrecision != null && (rs.getInt(7) < 1 || rs.getInt(7) > typePrecision.intValue())) { //equate across java.sql.Types
+				    precision = typePrecision.intValue();
 				}
+				
 				SQLColumn col = new SQLColumn(addTo,
 											  rs.getString(4),  // col name
 											  rs.getInt(5), // data type (from java.sql.Types)
@@ -357,10 +340,20 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 			}
 
 		} finally {
+		    try {
+                if (typeRs != null) typeRs.close();
+            } catch (SQLException ex) {
+                logger.error("Couldn't close result set", ex);
+            }
 			try {
 				if (rs != null) rs.close();
 			} catch (SQLException ex) {
 				logger.error("Couldn't close result set", ex);
+			}
+			try {
+			    if (con != null) con.close();
+			} catch (SQLException ex) {
+			    logger.error("Couldn't close connection", ex);
 			}
 		}
 	}
