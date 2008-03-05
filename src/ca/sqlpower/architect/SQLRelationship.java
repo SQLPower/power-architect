@@ -33,7 +33,6 @@ package ca.sqlpower.architect;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +42,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.sql.CachedRowSet;
 
 /**
  * The SQLRelationship class represents a foriegn key relationship between
@@ -363,11 +364,15 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			throw new ArchitectException("relationship.unpopulatedTargetDatabase");
 		}
 		Connection con = null;
-		ResultSet rs = null;
+		CachedRowSet crs = null;
 		DatabaseMetaData dbmd = null;
 		try {
 			con = db.getConnection();
 			dbmd = con.getMetaData();
+			crs = new CachedRowSet();
+	        crs.populate(dbmd.getImportedKeys(table.getCatalogName(),
+                     table.getSchemaName(),
+                     table.getName()));
 		} catch (SQLException e) {
 		    throw new ArchitectException("relationship.populate", e);
 		} finally {
@@ -388,13 +393,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 					table.getSchemaName()+"."+
 					table.getName());
 
-			rs = dbmd.getImportedKeys(table.getCatalogName(),
-									  table.getSchemaName(),
-									  table.getName());
 
 
-			while (rs.next()) {
-				currentKeySeq = rs.getInt(9);
+
+			while (crs.next()) {
+				currentKeySeq = crs.getInt(9);
 				if (currentKeySeq == 1) {
 					r = new SQLRelationship();
 					newKeys.add(r);
@@ -402,38 +405,38 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				ColumnMapping m = new ColumnMapping();
 				m.parent = r;
 				r.children.add(m);
-				r.pkTable = db.getTableByName(rs.getString(1),  // catalog
-											  rs.getString(2),  // schema
-											  rs.getString(3)); // table
+				r.pkTable = db.getTableByName(crs.getString(1),  // catalog
+											  crs.getString(2),  // schema
+											  crs.getString(3)); // table
 				if (r.pkTable == null) {
 				    logger.error("addImportedRelationshipsToTable: Couldn't find exporting table "
-				            +rs.getString(1)+"."+rs.getString(2)+"."+rs.getString(3)
+				            +crs.getString(1)+"."+crs.getString(2)+"."+crs.getString(3)
 				            +" in target database!");
 				    continue;
 				}
 
-				logger.debug("Looking for pk column '"+rs.getString(4)+"' in table '"+r.pkTable+"'");
-				m.pkColumn = r.pkTable.getColumnByName(rs.getString(4));
+				logger.debug("Looking for pk column '"+crs.getString(4)+"' in table '"+r.pkTable+"'");
+				m.pkColumn = r.pkTable.getColumnByName(crs.getString(4));
 				if (m.pkColumn == null) {
 					throw new ArchitectException("relationship.populate.nullPkColumn");
 				}
 
-				r.fkTable = db.getTableByName(rs.getString(5),  // catalog
-											  rs.getString(6),  // schema
-											  rs.getString(7)); // table
+				r.fkTable = db.getTableByName(crs.getString(5),  // catalog
+											  crs.getString(6),  // schema
+											  crs.getString(7)); // table
 				if (r.fkTable != table) {
 					throw new IllegalStateException("fkTable did not match requested table");
 				}
-				m.fkColumn = r.fkTable.getColumnByName(rs.getString(8));
+				m.fkColumn = r.fkTable.getColumnByName(crs.getString(8));
 				if (m.fkColumn == null) {
 					throw new ArchitectException("relationship.populate.nullFkColumn");
 				}
 				// column 9 (currentKeySeq) handled above
-				r.updateRule = rs.getInt(10);
-				r.deleteRule = rs.getInt(11);
-				r.setName(rs.getString(12));
+				r.updateRule = crs.getInt(10);
+				r.deleteRule = crs.getInt(11);
+				r.setName(crs.getString(12));
                 try {
-                    r.deferrability = Deferrability.ruleForCode(rs.getInt(14));
+                    r.deferrability = Deferrability.ruleForCode(crs.getInt(14));
                 } catch (IllegalArgumentException ex) {
                     logger.warn("Invalid code when reverse engineering" +
                             " relationship. Defaulting to NOT_DEFERRABLE.", ex);
@@ -453,7 +456,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			throw new ArchitectException("relationship.populate", e);
 		} finally {
 			try {
-				if (rs != null) rs.close();
+				if (crs != null) crs.close();
 			} catch (SQLException e) {
 				logger.warn("Couldn't close resultset", e);
 			}

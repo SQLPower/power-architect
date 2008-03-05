@@ -46,6 +46,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLIndex.Column;
+import ca.sqlpower.sql.CachedRowSet;
 
 public class SQLTable extends SQLObject {
 
@@ -901,12 +902,14 @@ public class SQLTable extends SQLObject {
 					parent.populateColumns();
 					parent.populateRelationships();
 				} else if (type == EXPORTED_KEYS) {
-					ResultSet rs = null;
+					CachedRowSet crs = null;
 					Connection con = null;
 					DatabaseMetaData dbmd = null;
 					try {
 						con = parent.getParentDatabase().getConnection();
 						dbmd = con.getMetaData();
+						crs = new CachedRowSet();
+						crs.populate(dbmd.getExportedKeys(parent.getCatalogName(), parent.getSchemaName(), parent.getName()));
 					} catch (SQLException ex) {
                         throw new ArchitectException("Couldn't locate related tables", ex);
                     } finally {
@@ -919,15 +922,14 @@ public class SQLTable extends SQLObject {
                         }
                     }
                     try {
-						rs = dbmd.getExportedKeys(parent.getCatalogName(), parent.getSchemaName(), parent.getName());
-						while (rs.next()) {
-							if (rs.getInt(9) != 1) {
+						while (crs.next()) {
+							if (crs.getInt(9) != 1) {
 								// just another column mapping in a relationship we've already handled
 								continue;
 							}
-							String cat = rs.getString(5);
-							String sch = rs.getString(6);
-							String tab = rs.getString(7);
+							String cat = crs.getString(5);
+							String sch = crs.getString(6);
+							String tab = crs.getString(7);
 							SQLTable fkTable = parent.getParentDatabase().getTableByName(cat, sch, tab);
 							fkTable.populateColumns();
 							fkTable.populateRelationships();
@@ -936,7 +938,7 @@ public class SQLTable extends SQLObject {
 						throw new ArchitectException("Couldn't locate related tables", ex);
 					} finally {
 						try {
-							if (rs != null) rs.close();
+							if (crs != null) crs.close();
 						} catch (SQLException ex) {
 							logger.warn("Couldn't close resultset", ex);
 						}
