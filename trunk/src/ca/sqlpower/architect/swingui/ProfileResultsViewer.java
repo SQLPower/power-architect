@@ -51,6 +51,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.JTableHeader;
 
 import org.apache.log4j.Logger;
@@ -70,6 +72,7 @@ import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.table.TableModelColumnAutofit;
 import ca.sqlpower.swingui.table.TableModelSearchDecorator;
 import ca.sqlpower.swingui.table.TableModelSortDecorator;
+import ca.sqlpower.swingui.table.TableUtils;
 
 /**
  * A class that manages a viewer component for a set of Profile Results.
@@ -211,6 +214,11 @@ public class ProfileResultsViewer {
             new ProfilePanelMouseListener();
         profilePanelMouseListener.setTabPane(tabPane);
         viewTable.addMouseListener( profilePanelMouseListener);
+        viewTable.getModel().addTableModelListener(new TableModelListener() {
+            public void tableChanged(TableModelEvent e) {
+                TableUtils.fitColumnWidths(viewTable, 2);
+            }
+        });
         JScrollPane editorScrollPane = new JScrollPane(viewTable);
         editorScrollPane.setVerticalScrollBarPolicy(
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
