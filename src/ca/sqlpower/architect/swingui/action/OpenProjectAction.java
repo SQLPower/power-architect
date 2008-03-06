@@ -201,6 +201,8 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 }
                 session.removeSwingWorker(this);
                 if (session.getContext().getSessions().size() > 1) {
+                    //Prevents the save dialog from being displayed if it contained an error
+                    session.getProject().setModified(false); 
                     session.close();
                 }
             } else {
