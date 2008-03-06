@@ -705,6 +705,10 @@ public class CoreProject {
             for (int i = 0; i < attributes.getLength(); i++) {
                 logger.debug("Attribute: \"" + attributes.getQName(i) + "\" Value:"+attributes.getValue(i));
             }
+            
+            if (attributes.getValue("ascendingOrDescending") != null) {
+                col.setAscendingOrDescending(SQLIndex.AscendDescend.valueOf(attributes.getValue("ascendingOrDescending")));
+            }
 
             return col;
         }
