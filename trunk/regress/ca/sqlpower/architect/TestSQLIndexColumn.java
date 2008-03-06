@@ -31,6 +31,7 @@
  */
 package ca.sqlpower.architect;
 
+import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 
 public class TestSQLIndexColumn extends SQLTestCase {
@@ -41,7 +42,7 @@ public class TestSQLIndexColumn extends SQLTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         SQLIndex index = new SQLIndex("Test Index",true,"",IndexType.HASHED,"");
-        indexColumn =index.new Column("Index1",true,true);
+        indexColumn =index.new Column("Index1",AscendDescend.UNSPECIFIED);
         
     }
     public TestSQLIndexColumn(String name) throws Exception {

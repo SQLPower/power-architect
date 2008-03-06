@@ -53,6 +53,7 @@ import junit.framework.TestSuite;
 
 import org.apache.commons.beanutils.BeanUtils;
 
+import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
@@ -413,10 +414,10 @@ public class TestSQLTable extends SQLTestCase {
         SQLTable t1 = new SQLTable(null,true);
         SQLColumn c1 = new SQLColumn(t1,"col1",1,0,0);
         SQLIndex i1 = new SQLIndex("name",true,null,IndexType.CLUSTERED,null);
-        i1.addIndexColumn(c1, true, true);
+        i1.addIndexColumn(c1, AscendDescend.UNSPECIFIED);
         t1.getIndicesFolder().addChild(i1);
         SQLIndex i2 = new SQLIndex("name 2",true,null,IndexType.CLUSTERED,null);
-        i2.addChild(i2.new Column("Index column string",false,false));
+        i2.addChild(i2.new Column("Index column string",AscendDescend.UNSPECIFIED));
         t1.getIndicesFolder().addChild(i2);
         
         assertNull(t1.getPrimaryKeyIndex());
@@ -432,9 +433,9 @@ public class TestSQLTable extends SQLTestCase {
         SQLTable t1 = new SQLTable(null,true);
         SQLColumn c1 = new SQLColumn(t1,"col1",1,0,0);
         SQLIndex i1 = new SQLIndex("name",true,null,IndexType.CLUSTERED,null);
-        i1.addIndexColumn(c1, true, true);
+        i1.addIndexColumn(c1, AscendDescend.UNSPECIFIED);
         SQLIndex i2 = new SQLIndex("name 2",true,null,IndexType.CLUSTERED,null);
-        i2.addChild(i2.new Column("Index column string",false,false));
+        i2.addChild(i2.new Column("Index column string",AscendDescend.UNSPECIFIED));
         t1.getIndicesFolder().addChild(i2);
         t1.getIndicesFolder().addChild(i1);
         i1.setPrimaryKeyIndex(true);

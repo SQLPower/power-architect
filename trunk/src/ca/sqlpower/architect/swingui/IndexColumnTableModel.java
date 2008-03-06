@@ -43,6 +43,7 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.swingui.table.CleanupTableModel;
 
@@ -169,9 +170,9 @@ public class IndexColumnTableModel extends AbstractTableModel implements Cleanup
         if ( tableColumnInfo == IndexColumnTableColumns.COLUMN) {
             return c.getColumn();
         } else if (tableColumnInfo == IndexColumnTableColumns.ASC) {
-            return c.isAscending();
+            return c.getAscendingOrDescending();
         } else if (tableColumnInfo == IndexColumnTableColumns.DESC) {
-            return c.isDescending();
+            return c.getAscendingOrDescending();
         } else if  (tableColumnInfo == IndexColumnTableColumns.NAME){ 
             return c.getName();
         }else {
@@ -191,9 +192,9 @@ public class IndexColumnTableModel extends AbstractTableModel implements Cleanup
         if ( tableColumnInfo == IndexColumnTableColumns.COLUMN) {
             c.setColumn((SQLColumn)aValue);
         } else if (tableColumnInfo == IndexColumnTableColumns.ASC) {
-            c.setAscending((Boolean)aValue);
+            c.setAscendingOrDescending(AscendDescend.ASCENDING);
         } else if (tableColumnInfo == IndexColumnTableColumns.DESC) {
-            c.setDescending((Boolean)aValue);
+            c.setAscendingOrDescending(AscendDescend.DESCENDING);
         } else if (tableColumnInfo == IndexColumnTableColumns.NAME){
             c.setName((String)aValue);
         } else {

@@ -810,8 +810,7 @@ public class SwingUIProject extends CoreProject {
             if (col.getColumn() != null) {
                 propNames.put("column-ref", objectIdMap.get(col.getColumn()));
             }
-            propNames.put("ascending", col.isAscending());
-            propNames.put("descending", col.isDescending());
+            propNames.put("ascendingOrDescending", col.getAscendingOrDescending().name());
         } else {
             throw new UnsupportedOperationException("Whoops, the SQLObject type "
                     +o.getClass().getName()+" is not supported!");

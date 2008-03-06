@@ -702,6 +702,9 @@ public class CoreProject {
                 SQLColumn column = (SQLColumn) objectIdMap.get(referencedColId);
                 col.setColumn(column);
             }
+            for (int i = 0; i < attributes.getLength(); i++) {
+                logger.debug("Attribute: \"" + attributes.getQName(i) + "\" Value:"+attributes.getValue(i));
+            }
 
             return col;
         }

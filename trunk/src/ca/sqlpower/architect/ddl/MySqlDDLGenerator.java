@@ -48,6 +48,7 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
 
@@ -452,8 +453,8 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
             if (!first) print(", ");
             print(c.getName());
-            print(c.isAscending() ? " ASC" : "");
-            print(c.isDescending() ? " DESC" : "");
+            print(c.getAscendingOrDescending() == AscendDescend.ASCENDING ? " ASC" : "");
+            print(c.getAscendingOrDescending() == AscendDescend.DESCENDING ? " DESC" : "");
             first = false;
         }
         print(" )");
