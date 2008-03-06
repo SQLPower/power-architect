@@ -62,26 +62,9 @@ public class SQLIndex extends SQLObject {
      * order, descending order, or it should be left undefined.
      */
     public static enum AscendDescend {
-        ASCENDING("ASCENDING"),
-        DESCENDING("DESCENDING"),
-        UNSPECIFIED("UNSPECIFIED");
-        
-        String type;
-        
-        AscendDescend(String type) {
-            this.type = type;
-        }
-        
-        public String getType() {
-            return type;
-        }
-        
-        public static AscendDescend findType(String type) {
-            if (type.equals(ASCENDING.getType())) return ASCENDING;
-            if (type.equals(DESCENDING.getType())) return DESCENDING;
-            if (type.equals(UNSPECIFIED.getType())) return UNSPECIFIED;
-            throw new IllegalArgumentException("Unknown ascending or descending type: " + type);
-        }
+        ASCENDING,
+        DESCENDING,
+        UNSPECIFIED;
     }
 
     /**
@@ -297,11 +280,27 @@ public class SQLIndex extends SQLObject {
             if (ad instanceof AscendDescend) { 
                 ascendingOrDescending = (AscendDescend) ad;
             } else if (ad instanceof String) {
-                ascendingOrDescending = AscendDescend.findType((String) ad);
+                ascendingOrDescending = AscendDescend.valueOf((String) ad);
             } else {
                 throw new IllegalStateException("Invalid ascending or descending object on an index column.");
             }
             fireDbObjectChanged("ascendingOrDescending", oldValue, ascendingOrDescending);
+        }
+
+        public void setAscending(boolean ascending) {
+            AscendDescend oldValue = this.ascendingOrDescending;
+            if (ascending) {
+                this.ascendingOrDescending = AscendDescend.ASCENDING;
+            }
+            fireDbObjectChanged("ascending", oldValue, ascendingOrDescending);
+        }
+
+        public void setDescending(boolean descending) {
+            AscendDescend oldValue = this.ascendingOrDescending;
+            if (descending) {
+                this.ascendingOrDescending = AscendDescend.DESCENDING;
+            }
+            fireDbObjectChanged("descending", oldValue, descending);
         }
 
         @Override

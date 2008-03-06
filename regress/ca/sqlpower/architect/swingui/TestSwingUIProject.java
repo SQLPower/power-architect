@@ -158,10 +158,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "   </folder>" +
         "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
         "    <index id=\"IDX1892\" populated=\"true\" index-type=\"CLUSTERED\" name=\"mm_project_pk\" physicalName=\"PL_MATCH_PK\" primaryKeyIndex=\"true\" unique=\"true\" >" +
-        "     <index-column id=\"IDC1893\" populated=\"true\" ascendingOrDescending=\"UNSPECIFIED\" column-ref=\"COL1832\" name=\"project_oid\" physicalName=\"MATCH_OID\" />" +
+        "     <index-column id=\"IDC1893\" populated=\"true\" ascending=\"false\" column-ref=\"COL1832\" descending=\"false\" name=\"project_oid\" physicalName=\"MATCH_OID\" />" +
         "    </index>" +
         "    <index id=\"IDX1894\" populated=\"true\" index-type=\"CLUSTERED\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
-        "     <index-column id=\"IDC1895\" populated=\"true\" ascendingOrDescending=\"UNSPECIFIED\" column-ref=\"COL1834\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
+        "     <index-column id=\"IDC1895\" populated=\"true\" ascending=\"false\" column-ref=\"COL1834\" descending=\"false\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
         "    </index>" +
         "   </folder>" +
         "  </table>" +
