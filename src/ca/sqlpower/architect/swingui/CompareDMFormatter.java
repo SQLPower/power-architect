@@ -249,9 +249,6 @@ public class CompareDMFormatter {
                     if(t.getObjectType().equals("TABLE")) {
                         gen.addTable(t);
                     }
-                    if (hasKey(t)) {
-                        gen.addPrimaryKey(t);
-                    }
                 }else if (chunk.getData() instanceof SQLColumn){
                     SQLColumn c = (SQLColumn) chunk.getData();
                     gen.addColumn(c);
