@@ -77,6 +77,7 @@ import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.StubSQLObject;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
+import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
@@ -157,10 +158,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "   </folder>" +
         "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
         "    <index id=\"IDX1892\" populated=\"true\" index-type=\"CLUSTERED\" name=\"mm_project_pk\" physicalName=\"PL_MATCH_PK\" primaryKeyIndex=\"true\" unique=\"true\" >" +
-        "     <index-column id=\"IDC1893\" populated=\"true\" ascending=\"false\" column-ref=\"COL1832\" descending=\"false\" name=\"project_oid\" physicalName=\"MATCH_OID\" />" +
+        "     <index-column id=\"IDC1893\" populated=\"true\" ascendingOrDescending=\"UNSPECIFIED\" column-ref=\"COL1832\" name=\"project_oid\" physicalName=\"MATCH_OID\" />" +
         "    </index>" +
         "    <index id=\"IDX1894\" populated=\"true\" index-type=\"CLUSTERED\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
-        "     <index-column id=\"IDC1895\" populated=\"true\" ascending=\"false\" column-ref=\"COL1834\" descending=\"false\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
+        "     <index-column id=\"IDC1895\" populated=\"true\" ascendingOrDescending=\"UNSPECIFIED\" column-ref=\"COL1834\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
         "    </index>" +
         "   </folder>" +
         "  </table>" +
@@ -807,7 +808,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLColumn col = new SQLColumn(table, "first", Types.VARCHAR, 10, 0);
         table.addColumn(col);
         SQLIndex target = new SQLIndex("testy index", false, null, null, null);
-        target.addChild(target.new Column(col, false, false));
+        target.addChild(target.new Column(col, AscendDescend.UNSPECIFIED));
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(target);
         col.setPrimaryKeySeq(0);
@@ -872,7 +873,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLTable table = new SQLTable(ppdb, true);
         table.setName(tableName);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
-        SQLIndex.Column indexCol = index.new Column("phogna bologna", false, true);
+        SQLIndex.Column indexCol = index.new Column("phogna bologna", AscendDescend.DESCENDING);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
         index.addChild(indexCol);
@@ -919,7 +920,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         table.setName(tableName);
         table.addColumn(col);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
-        SQLIndex.Column indexCol = index.new Column(col, false, true);
+        SQLIndex.Column indexCol = index.new Column(col, AscendDescend.DESCENDING);
         index.setPrimaryKeyIndex(true);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
@@ -981,7 +982,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         table.addColumn(col);
         table.setName(tableName);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
-        index.addIndexColumn(col, false, true);
+        index.addIndexColumn(col, AscendDescend.DESCENDING);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
         col.setPrimaryKeySeq(new Integer(0));
@@ -1037,7 +1038,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ppdb.addChild(table);
 
         SQLIndex origIndex1 = new SQLIndex("tasty index", false, null, IndexType.HASHED, null);
-        origIndex1.addIndexColumn(col, false, true);
+        origIndex1.addIndexColumn(col, AscendDescend.DESCENDING);
         table.getIndicesFolder().addChild(origIndex1);
         col.setPrimaryKeySeq(new Integer(0));
 
@@ -1045,7 +1046,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // origIndex1.getChild(0).equals(origIndex2.getChild(0)) even though
         // they are not the same object
         SQLIndex origIndex2 = new SQLIndex("nasty index", false, null, IndexType.HASHED, null);
-        origIndex2.addIndexColumn(col, false, true);
+        origIndex2.addIndexColumn(col, AscendDescend.DESCENDING);
         table.getIndicesFolder().addChild(origIndex2);
 
         ByteArrayOutputStream tempFile = new ByteArrayOutputStream();

@@ -56,6 +56,33 @@ import ca.sqlpower.architect.SQLTable.Folder;
 public class SQLIndex extends SQLObject {
 
     private static final Logger logger = Logger.getLogger(SQLIndex.class);
+    
+    /**
+     * An enumeration to define if a column in an index should be ordered in ascending
+     * order, descending order, or it should be left undefined.
+     */
+    public static enum AscendDescend {
+        ASCENDING("ASCENDING"),
+        DESCENDING("DESCENDING"),
+        UNSPECIFIED("UNSPECIFIED");
+        
+        String type;
+        
+        AscendDescend(String type) {
+            this.type = type;
+        }
+        
+        public String getType() {
+            return type;
+        }
+        
+        public static AscendDescend findType(String type) {
+            if (type.equals(ASCENDING.getType())) return ASCENDING;
+            if (type.equals(DESCENDING.getType())) return DESCENDING;
+            if (type.equals(UNSPECIFIED.getType())) return UNSPECIFIED;
+            throw new IllegalArgumentException("Unknown ascending or descending type: " + type);
+        }
+    }
 
     /**
      * An enumeration of the types of indices that JDBC recognises.
@@ -169,14 +196,9 @@ public class SQLIndex extends SQLObject {
         private SQLColumn column;
 
         /**
-         * Indicates if this index applies to ascending values.
+         * Specifies if the column is ascending, descending, or undefined.
          */
-        private boolean ascending;
-
-        /**
-         * Indicates if this index applies to descending values.
-         */
-        private boolean descending;
+        private AscendDescend ascendingOrDescending;
 
         /**
          * A proxy that refires certain events on the target column.
@@ -190,8 +212,8 @@ public class SQLIndex extends SQLObject {
         /**
          * Creates a Column object that corresponds to a particular SQLColumn.
          */
-        public Column(SQLColumn col, boolean ascending, boolean descending) {
-            this(col.getName(), ascending, descending);
+        public Column(SQLColumn col, AscendDescend ad) {
+            this(col.getName(), ad);
             setColumn(col);
         }
 
@@ -199,16 +221,15 @@ public class SQLIndex extends SQLObject {
          * Creates a Column object that does not correspond to a particular column
          * (such as an expression index).
          */
-        public Column(String name, boolean ascending, boolean descending) {
+        public Column(String name, AscendDescend ad) {
             children = Collections.emptyList();
             setName(name);
 
-            this.ascending = ascending;
-            this.descending = descending;
+            ascendingOrDescending = ad;
         }
 
         public Column() {
-            this((String) null, false, false);
+            this((String) null, AscendDescend.UNSPECIFIED);
         }
 
         @Override
@@ -264,24 +285,23 @@ public class SQLIndex extends SQLObject {
             fireDbObjectChanged("column", oldValue, column);
         }
 
-        public boolean isAscending() {
-            return ascending;
+        public AscendDescend getAscendingOrDescending() {
+            return ascendingOrDescending;
         }
 
-        public void setAscending(boolean ascending) {
-            boolean oldValue = this.ascending;
-            this.ascending = ascending;
-            fireDbObjectChanged("ascending", oldValue, ascending);
-        }
-
-        public boolean isDescending() {
-            return descending;
-        }
-
-        public void setDescending(boolean descending) {
-            boolean oldValue = this.descending;
-            this.descending = descending;
-            fireDbObjectChanged("descending", oldValue, descending);
+        /**
+         * This setter should be passed an enumerated item of type AscendDescend.
+         */
+        public void setAscendingOrDescending(Object ad) {
+            AscendDescend oldValue = ascendingOrDescending;
+            if (ad instanceof AscendDescend) { 
+                ascendingOrDescending = (AscendDescend) ad;
+            } else if (ad instanceof String) {
+                ascendingOrDescending = AscendDescend.findType((String) ad);
+            } else {
+                throw new IllegalStateException("Invalid ascending or descending object on an index column.");
+            }
+            fireDbObjectChanged("ascendingOrDescending", oldValue, ascendingOrDescending);
         }
 
         @Override
@@ -293,9 +313,9 @@ public class SQLIndex extends SQLObject {
         public int hashCode() {
             final int PRIME = 31;
             int result = 1;
-            result = PRIME * result + (ascending ? 1231 : 1237);
+            result = PRIME * result + (ascendingOrDescending == AscendDescend.ASCENDING ? 1231 : 1237);
             result = PRIME * result + ((column == null) ? 0 : column.hashCode());
-            result = PRIME * result + (descending ? 1231 : 1237);
+            result = PRIME * result + (ascendingOrDescending == AscendDescend.DESCENDING ? 1231 : 1237);
             return result;
         }
 
@@ -308,14 +328,14 @@ public class SQLIndex extends SQLObject {
             if (getClass() != obj.getClass())
                 return false;
             final Column other = (Column) obj;
-            if (ascending != other.ascending)
+            if (ascendingOrDescending != other.ascendingOrDescending)
                 return false;
             if (column == null) {
                 if (other.column != null)
                     return false;
             } else if (!column.equals(other.column))
                 return false;
-            if (descending != other.descending)
+            if (ascendingOrDescending != other.ascendingOrDescending)
                 return false;
             return true;
         }
@@ -385,8 +405,8 @@ public class SQLIndex extends SQLObject {
         for (Object c: oldIndex.getChildren()){
             Column oldCol = (Column) c;
             Column newCol = new Column();
-            newCol.setAscending(oldCol.ascending);
-            newCol.setDescending(oldCol.descending);
+            newCol.setAscendingOrDescending(oldCol.ascendingOrDescending);
+            newCol.setAscendingOrDescending(oldCol.ascendingOrDescending);
             newCol.column = oldCol.column;
             newCol.setName(oldCol.getName());
             addChild(newCol);
@@ -613,8 +633,12 @@ public class SQLIndex extends SQLObject {
                 int pos = rs.getInt(8);
                 String colName = rs.getString(9);
                 String ascDesc = rs.getString(10);
-                boolean ascending = (ascDesc != null && ascDesc.equals("A"));
-                boolean descending = (ascDesc != null && ascDesc.equals("D"));
+                AscendDescend aOrD = AscendDescend.UNSPECIFIED;
+                if (ascDesc != null && ascDesc.equals("A")) {
+                    aOrD = AscendDescend.ASCENDING;
+                } else if (ascDesc != null && ascDesc.equals("D")) {
+                    aOrD = AscendDescend.DESCENDING;
+                }
                 String filter = rs.getString(13);
 
                 if (pos == 0) {
@@ -633,9 +657,9 @@ public class SQLIndex extends SQLObject {
 
                 Column col;
                 if (addTo.getColumnByName(colName, false, true) != null) {
-                    col = idx.new Column(addTo.getColumnByName(colName, false, true), ascending, descending);
+                    col = idx.new Column(addTo.getColumnByName(colName, false, true), aOrD);
                 } else {
-                    col = idx.new Column(colName, ascending, descending);  // probably an expression like "col1+col2"
+                    col = idx.new Column(colName, aOrD);  // probably an expression like "col1+col2"
                 }
 
                 idx.children.add(col); // direct access avoids possible recursive SQLObjectEvents
@@ -702,8 +726,8 @@ public class SQLIndex extends SQLObject {
         return getName();
     }
 
-    public void addIndexColumn(SQLColumn col1, boolean ascending, boolean descending) throws ArchitectException {
-        Column col = new Column(col1,ascending,descending);
+    public void addIndexColumn(SQLColumn col1, AscendDescend aOrD) throws ArchitectException {
+        Column col = new Column(col1, aOrD);
         addChild(col);
     }
 
@@ -739,9 +763,9 @@ public class SQLIndex extends SQLObject {
                             column.getColumn().getName() + "is not found in parent table [" +
                             parentTable.getName() + "]");
                 }
-                newColumn = index.new Column(sqlColumn,column.isAscending(),column.isDescending());
+                newColumn = index.new Column(sqlColumn,column.getAscendingOrDescending());
             } else {
-                newColumn = index.new Column(column.getName(),column.isAscending(),column.isDescending());
+                newColumn = index.new Column(column.getName(),column.getAscendingOrDescending());
             }
             index.addChild(newColumn);
         }
@@ -764,7 +788,7 @@ public class SQLIndex extends SQLObject {
         }
         
         for (Column c : index.getChildren()) {
-            Column newCol = new Column(c.getName(),c.isAscending(),c.isDescending());
+            Column newCol = new Column(c.getName(),c.getAscendingOrDescending());
             newCol.setColumn(c.getColumn());
             addChild(newCol);
         }

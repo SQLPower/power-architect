@@ -51,6 +51,7 @@ import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLTable.Folder;
@@ -119,7 +120,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
 
             public void actionPerformed(ActionEvent e) {
                 try {
-                    indexCopy.addChild(indexCopy.new Column("New",false,false));
+                    indexCopy.addChild(indexCopy.new Column("New",AscendDescend.UNSPECIFIED));
                 } catch (ArchitectException e1) {
                     throw new ArchitectRuntimeException(e1);
                 }

@@ -45,6 +45,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.sql.CachedRowSet;
 
@@ -739,7 +740,7 @@ public class SQLTable extends SQLObject {
                 if (oldColumnInstances.get(col) != null) {
                     pkIndex.addChild(oldColumnInstances.get(col));
                 } else {
-                    pkIndex.addIndexColumn(col,false,false);
+                    pkIndex.addIndexColumn(col,AscendDescend.UNSPECIFIED);
                 }
             }
             if (pkIndex.getChildCount() == 0) {

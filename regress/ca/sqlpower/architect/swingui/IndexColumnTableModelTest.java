@@ -34,6 +34,7 @@ package ca.sqlpower.architect.swingui;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import junit.framework.TestCase;
@@ -49,8 +50,8 @@ public class IndexColumnTableModelTest extends TestCase {
         t.addColumn(col);
         SQLIndex i = new SQLIndex("name",true,"a",IndexType.CLUSTERED,"");
         t.getIndicesFolder().addChild(i);
-        i.addIndexColumn(col, true, false);
-        i.addChild(i.new Column("expression",true,false));
+        i.addIndexColumn(col, AscendDescend.DESCENDING);
+        i.addChild(i.new Column("expression",AscendDescend.DESCENDING));
         indexCol = i.getChild(0);
         tm = new IndexColumnTableModel(i,t);
         
@@ -81,8 +82,7 @@ public class IndexColumnTableModelTest extends TestCase {
     public void testGetValueAt() {
         assertEquals("col1", tm.getValueAt(0,0));
         assertEquals(indexCol.getColumn(), tm.getValueAt(0,1));
-        assertEquals(true,tm.getValueAt(0, 2));
-        assertEquals(false,tm.getValueAt(1, 3));
+        assertEquals(SQLIndex.AscendDescend.DESCENDING,tm.getValueAt(0, 2));
     }
 
 }
