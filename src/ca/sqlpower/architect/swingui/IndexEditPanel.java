@@ -43,7 +43,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -51,7 +50,6 @@ import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLTable.Folder;
@@ -59,7 +57,6 @@ import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.swingui.DataEntryPanel;
-import ca.sqlpower.swingui.table.EditableJTable;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -72,10 +69,9 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     protected SQLIndex indexCopy;
     JTextField name;
     JCheckBox unique;
+    JCheckBox primaryKey;
     JComboBox indexType;
-    JTextField qualifier;
-    JTextField filterCondition;
-    EditableJTable columnsList;
+    IndexColumnTable columnsList;
     
     public IndexEditPanel(SQLIndex index, ArchitectSwingSession session) throws ArchitectException{
         super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref","pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
@@ -94,42 +90,36 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         CellConstraints cc = new CellConstraints();
         pb.add(new JLabel("Index Name"),cc.xy(1, 1));
         pb.add(name = new JTextField("", 30),cc.xyw(3,1,4));
-        pb.add(new JLabel("Unique"),cc.xy(1,3));
-        unique = new JCheckBox();
+        unique = new JCheckBox("Unique");
         pb.add(unique,cc.xy(3, 3));
-        pb.add(new JLabel("Index Type"),cc.xy(1,5));
+        primaryKey = new JCheckBox("Primary Key");
+        primaryKey.setSelected(index.isPrimaryKeyIndex());
+        primaryKey.setEnabled(false);
+        pb.add(primaryKey,cc.xy(3, 5));
+        pb.add(new JLabel("Index Type"),cc.xy(1,7));
         indexType = new JComboBox(IndexType.values());
-        pb.add(indexType,cc.xyw(3, 5, 4));
-        pb.add(new JLabel("Qualifier"),cc.xy(1,7));
-        qualifier = new JTextField();
-        pb.add(qualifier,cc.xyw(3, 7, 4));
-        pb.add(new JLabel("Filter Condition"),cc.xy(1,9));
-        filterCondition = new JTextField();
-        pb.add(filterCondition,cc.xyw(3, 9, 4));
+        pb.add(indexType,cc.xyw(3, 7, 4));
+        
         
         editIndex(index);
-        columnsList = new EditableJTable();
-        columnsList.setModel(new IndexColumnTableModel(indexCopy,parent));
-        columnsList.setDefaultEditor(SQLColumn.class,new IndexColumnTableCellEditor());
-        columnsList.setAutoResizeMode(EditableJTable.AUTO_RESIZE_NEXT_COLUMN);
+        columnsList = new IndexColumnTable(parent, indexCopy);
         
-        pb.add(new JScrollPane(columnsList),cc.xyw(1,11,6));
+        
+        pb.add(columnsList.getScrollPanel(),cc.xyw(1,11,6));
+        
+        
         
         ButtonBarBuilder bb = new ButtonBarBuilder();
-        bb.addGridded(new JButton(new AbstractAction("Add"){
+        bb.addGridded(new JButton(new AbstractAction("Up"){
 
             public void actionPerformed(ActionEvent e) {
-                try {
-                    indexCopy.addChild(indexCopy.new Column("New",AscendDescend.UNSPECIFIED));
-                } catch (ArchitectException e1) {
-                    throw new ArchitectRuntimeException(e1);
-                }
+                columnsList.moveRow(true);
             }
             
         }));
-        bb.addGridded(new JButton(new AbstractAction("Delete"){
+        bb.addGridded(new JButton(new AbstractAction("Down"){
             public void actionPerformed(ActionEvent e) {
-                indexCopy.removeChild(columnsList.getSelectedRow());
+                columnsList.moveRow(false);
             }
         }));
         pb.add(bb.getPanel(),cc.xyw(1, 13, 6));
@@ -146,8 +136,6 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     private void loadIndexIntoPanel(){
         name.setText(index.getName());
         unique.setSelected(index.isUnique());
-        qualifier.setText(index.getQualifier());
-        filterCondition.setText(index.getFilterCondition());
         indexType.setSelectedItem(index.getType());
         name.selectAll();
     }
@@ -166,6 +154,9 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
      * returns true if saved, false otherwise
      */
     public boolean applyChanges() {
+        
+        columnsList.finalizeIndex();
+        
         startCompoundEdit("Index Properties Change");       
         try {   
             StringBuffer warnings = new StringBuffer();
@@ -215,8 +206,6 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 index.setName(name.getText());
                 index.setUnique(unique.isSelected());
                 index.setType((IndexType) indexType.getSelectedItem());
-                index.setQualifier(qualifier.getText());
-                index.setFilterCondition(filterCondition.getText());
                 Folder<SQLIndex> indicesFolder = parentTable.getIndicesFolder();
                 List children = indicesFolder.getChildren();
                 if (!children.contains(index)) {
