@@ -1353,6 +1353,22 @@ public class PlayPen extends JPanel
 		return tp;
 	}
 
+	/**
+     * Creates exported relationships if the importing tables exist in the
+     * PlayPen if isPrimaryKeyTableNew is set to true. Otherwise, it creates
+     * imported relationships if the exporting tables exist in the PlayPen if
+     * isPrimaryKeyTableNew is set to false.
+     * 
+     * @param source
+     *            SQLTable representation of the table in the source database
+     * @param newTable
+     *            Newly created SQLTable instance into where the relationships
+     *            are copied.
+     * @param isPrimaryKeyTableNew
+     *            Adds exported key relationships if true, imported keys if
+     *            false.
+     * @throws ArchitectException
+     */
     private void createRelationshipsFromPP(SQLTable source, SQLTable newTable, boolean isPrimaryKeyTableNew) throws ArchitectException {
         // create exported relationships if the importing tables exist in pp
 		Iterator sourceKeys = null;
@@ -1365,6 +1381,10 @@ public class PlayPen extends JPanel
 		    Object next = sourceKeys.next();
 		    if ( !(next instanceof SQLRelationship) ) continue;  // there could be SQLExceptionNodes here
 			SQLRelationship r = (SQLRelationship) next;
+			
+			// If relationship is self-referencing, then don't add it twice.
+			if (r.getFkTable().equals(r.getPkTable()) && !isPrimaryKeyTableNew) continue;
+			
 			if (logger.isInfoEnabled()) {
 				logger.info("Looking for fk table "+r.getFkTable().getName()+" in playpen");
 			}
@@ -1378,16 +1398,28 @@ public class PlayPen extends JPanel
 
 			if (tablePane != null) {
 				logger.info("FOUND IT!");
-				SQLTable oldTable = tablePane.getModel();
 
 				SQLRelationship newRel = new SQLRelationship();
 				newRel.setName(r.getName());
 				newRel.setIdentifying(true);
-                if (isPrimaryKeyTableNew) {
-                    newRel.attachRelationship(newTable,oldTable,false);
-                } else {
-                    newRel.attachRelationship(oldTable,newTable,false);
-                }
+				
+				SQLTable oldTable;
+				
+				if (r.getFkTable().equals(r.getPkTable())) {
+    			    // Prevents relationships from attaching to the wrong table
+                    // if a table with a self referencing relationship gets
+                    // imported twice.
+    			    oldTable = newTable;
+				} else {
+				    oldTable = tablePane.getModel();
+				}
+				
+				if (isPrimaryKeyTableNew) {
+				    newRel.attachRelationship(newTable,oldTable,false);
+				} else {
+				    newRel.attachRelationship(oldTable,newTable,false);
+				}
+				
 				addImpl(new Relationship(this, newRel),null,getPPComponentCount());
 
 				Iterator mappings = r.getChildren().iterator();
