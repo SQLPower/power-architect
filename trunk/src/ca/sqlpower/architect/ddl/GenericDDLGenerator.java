@@ -57,7 +57,6 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSequence;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
@@ -1117,7 +1116,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * table statistics (you can't create or drop them).
      */
     public void addIndex(SQLIndex index) throws ArchitectException {
-        if (index.getType() == IndexType.STATISTIC )
+        if (index.getType() == SQLIndex.STATISTIC )
             return;
 
         createPhysicalName(topLevelNames, index);

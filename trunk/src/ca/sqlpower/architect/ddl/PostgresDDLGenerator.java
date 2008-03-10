@@ -46,7 +46,6 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLSequence;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.sql.SQL;
 
@@ -355,7 +354,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
      */
     @Override
     public void addIndex(SQLIndex index) throws ArchitectException {
-        if (index.getType() == IndexType.STATISTIC )
+        if (index.getType() == SQLIndex.STATISTIC )
             return;
         createPhysicalName(topLevelNames, index);
         println("");
@@ -367,6 +366,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         print(index.getName());
         print("\n ON ");
         print(toQualifiedName(index.getParentTable()));
+        print(" USING "+ index.getType());
         print("\n ( ");
 
         boolean first = true;

@@ -36,12 +36,14 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLSequence;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
@@ -340,6 +342,38 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         print(" ADD ");
         print(columnDefinition(c,colNameMap));
         endStatement(DDLStatement.StatementType.CREATE, c);
+    }
+    
+    /**
+     * create index ddl in oracle syntax
+     */
+    @Override
+    public void addIndex(SQLIndex index) throws ArchitectException {
+        if (index.getType() == SQLIndex.STATISTIC )
+            return;
+        createPhysicalName(topLevelNames, index);
+        println("");
+        print("CREATE ");
+        if (index.isUnique()) {
+            print("UNIQUE ");
+        }
+        print("INDEX ");
+        print(index.getName());
+        print("\n ON ");
+        print(toQualifiedName(index.getParentTable()));
+        print("\n ( ");
+
+        boolean first = true;
+        for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
+            if (!first) print(", ");
+            print(c.getName());
+            //TODO: Note: Oracle does not seem to use ASC/DES similar to PostgreSQL
+            first = false;
+        }
+
+        print(" )");
+        print("\n INDEXTYPE IS "+index.getType());
+        endStatement(DDLStatement.StatementType.CREATE, index);
     }
     
     /**

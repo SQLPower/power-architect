@@ -45,7 +45,6 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
 
 
@@ -415,7 +414,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
             }
             logger.debug("Adding index: " + index + " (parent table " + parentTableName + ") (parentFolder " + parentFolder + ")");
         }
-        if (index.getType() == IndexType.STATISTIC )
+        if (index.getType() == SQLIndex.STATISTIC )
             return;
 
         createPhysicalName(topLevelNames, index);
@@ -424,7 +423,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
         if (index.isUnique()) {
             print("UNIQUE ");
         }
-
+        print(" "+ index.getType()+" ");
         print("INDEX ");
         print(DDLUtils.toQualifiedName(null,null,index.getName()));
         print("\n ON ");

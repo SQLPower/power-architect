@@ -41,7 +41,6 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.architect.SQLIndex.IndexType;
 
 public class TestSQLIndex extends SQLTestCase {
 
@@ -161,7 +160,7 @@ public class TestSQLIndex extends SQLTestCase {
 
     protected void setUp() throws Exception {
         super.setUp();
-        index = new SQLIndex("Test Index",true,"a",IndexType.HASHED,"b");
+        index = new SQLIndex("Test Index",true,"a",SQLIndex.HASHED,"b");
         table = new SQLTable(null,true);
         table.setName("Test Table");
         col1 = new SQLColumn();
@@ -174,7 +173,7 @@ public class TestSQLIndex extends SQLTestCase {
         index.addIndexColumn(col2, AscendDescend.DESCENDING);
         index.addIndexColumn(col3, AscendDescend.ASCENDING);
         table.addIndex(index);
-        index2 = new SQLIndex("Test Index 2",true,"a",IndexType.HASHED,"b");
+        index2 = new SQLIndex("Test Index 2",true,"a",SQLIndex.HASHED,"b");
         index2.addIndexColumn(col1, AscendDescend.UNSPECIFIED);
         index2.addIndexColumn(col3, AscendDescend.DESCENDING);
         table.addIndex(index2);
@@ -321,7 +320,7 @@ public class TestSQLIndex extends SQLTestCase {
     }
     
     public void testAddStringColumnToPKThrowsException() throws ArchitectException{
-        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
+        SQLIndex i = new SQLIndex("Index",true,"",SQLIndex.CLUSTERED,"");
         i.setPrimaryKeyIndex(true);
         try {
             i.addChild(i.new Column("index column",AscendDescend.UNSPECIFIED));
@@ -334,7 +333,7 @@ public class TestSQLIndex extends SQLTestCase {
     }
     
     public void testAddChangeIndexToPkWithStringColumn() throws ArchitectException{
-        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
+        SQLIndex i = new SQLIndex("Index",true,"",SQLIndex.CLUSTERED,"");
         i.addChild(i.new Column("index column",AscendDescend.UNSPECIFIED));
         try {
             i.setPrimaryKeyIndex(true);
@@ -346,21 +345,21 @@ public class TestSQLIndex extends SQLTestCase {
     }
     
     public void testMakeColumnsLikeOtherIndexWhichHasNoColumns() throws ArchitectException {
-        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
+        SQLIndex i = new SQLIndex("Index",true,"",SQLIndex.CLUSTERED,"");
         SQLColumn col = new SQLColumn();
         i.addChild(i.new Column("index column",AscendDescend.UNSPECIFIED));
         i.addChild(i.new Column(col,AscendDescend.UNSPECIFIED));
         
-        SQLIndex i2 = new SQLIndex("Index2",false,"",IndexType.HASHED,"asdfa");
+        SQLIndex i2 = new SQLIndex("Index2",false,"",SQLIndex.HASHED,"asdfa");
         i.makeColumnsLike(i2);
         assertEquals("Oh no some children are left!",0,i.getChildCount());
     }
     
     public void testMakeColumnsLikeOtherIndexWhichHasColumns() throws ArchitectException {
-        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
+        SQLIndex i = new SQLIndex("Index",true,"",SQLIndex.CLUSTERED,"");
         SQLColumn col = new SQLColumn();
         
-        SQLIndex i2 = new SQLIndex("Index2",false,"",IndexType.HASHED,"asdfa");
+        SQLIndex i2 = new SQLIndex("Index2",false,"",SQLIndex.HASHED,"asdfa");
         i2.addChild(i2.new Column("index column",AscendDescend.UNSPECIFIED));
         i2.addChild(i2.new Column(col,AscendDescend.UNSPECIFIED));
         i.makeColumnsLike(i2);
@@ -370,12 +369,12 @@ public class TestSQLIndex extends SQLTestCase {
     }
     
     public void testMakeColumnsLikeOtherIndexReordersColumns() throws ArchitectException {
-        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
+        SQLIndex i = new SQLIndex("Index",true,"",SQLIndex.CLUSTERED,"");
         SQLColumn col = new SQLColumn();
         i.addChild(i.new Column(col,AscendDescend.UNSPECIFIED));
         i.addChild(i.new Column("index column",AscendDescend.UNSPECIFIED));
 
-        SQLIndex i2 = new SQLIndex("Index2",false,"",IndexType.HASHED,"asdfa");
+        SQLIndex i2 = new SQLIndex("Index2",false,"",SQLIndex.HASHED,"asdfa");
         i2.addChild(i2.new Column("index column",AscendDescend.UNSPECIFIED));
         i2.addChild(i2.new Column(col,AscendDescend.UNSPECIFIED));
         i.makeColumnsLike(i2);

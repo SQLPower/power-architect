@@ -280,7 +280,7 @@ public class IndexColumnTable {
         };
 
         /*
-         * This makes sure that when the user clicks on a combo box, that the 
+         * This makes sure that when the user clicks on a combo box, that the
          * comboBox will gain focus right away, and will not have to be clicked again
          * so that it can get focus.
          */
@@ -290,14 +290,14 @@ public class IndexColumnTable {
             {
                 JTable table = (JTable)e.getComponent();
                 int row = table.getSelectionModel().getAnchorSelectionIndex();
-                int col = table.getColumnModel().
-                getSelectionModel().getAnchorSelectionIndex();
+                int col = table.getColumnModel().getSelectionModel().getAnchorSelectionIndex();
                 if ( col == table.getColumnModel().getColumnIndex(ORDER))
                 {
                     boolean ok = table.editCellAt(row, col);
                     Component comp = table.getEditorComponent();
                     if (ok && comp instanceof JComboBox){
                         ((JComboBox)comp).setPopupVisible(false);
+                        table.getCellEditor().stopCellEditing();
                     }
                 }
             }

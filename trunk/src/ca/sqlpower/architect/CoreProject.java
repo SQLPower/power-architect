@@ -675,7 +675,7 @@ public class CoreProject {
             for (int i = 0; i < attributes.getLength(); i++) {
                 logger.debug("Attribute: \"" + attributes.getQName(i) + "\" Value:"+attributes.getValue(i));
             }
-            index.setType(SQLIndex.IndexType.valueOf(attributes.getValue("index-type")));
+            index.setType(attributes.getValue("index-type"));
     
             currentIndex = index;
             return index;

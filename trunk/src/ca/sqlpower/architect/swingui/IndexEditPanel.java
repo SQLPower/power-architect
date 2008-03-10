@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007, SQL Power Group Inc.
- * 
+ *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
@@ -16,7 +16,7 @@
  *     * Neither the name of SQL Power Group Inc. nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -32,6 +32,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,11 +52,11 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
+import ca.sqlpower.sql.SPDataSourceType;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -72,14 +73,20 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     JCheckBox primaryKey;
     JComboBox indexType;
     IndexColumnTable columnsList;
-    
+    /**
+     * This session that contains this index panel.
+     */
+    ArchitectSwingSession session;
+   
     public IndexEditPanel(SQLIndex index, ArchitectSwingSession session) throws ArchitectException{
         super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref","pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
+        this.session = session;
         createGUI(index, index.getParentTable(), session);
     }
-    
+   
     public IndexEditPanel(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws ArchitectException {
         super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref","pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
+        this.session=session;
         createGUI(index, parent, session);
     }
 
@@ -97,25 +104,29 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         primaryKey.setEnabled(false);
         pb.add(primaryKey,cc.xy(3, 5));
         pb.add(new JLabel("Index Type"),cc.xy(1,7));
-        indexType = new JComboBox(IndexType.values());
+
+        indexType = new JComboBox();
+        for(String type : getIndexTypes()){
+            indexType.addItem(type);
+        }
         pb.add(indexType,cc.xyw(3, 7, 4));
-        
-        
+
+       
         editIndex(index);
         columnsList = new IndexColumnTable(parent, indexCopy);
-        
-        
+       
+       
         pb.add(columnsList.getScrollPanel(),cc.xyw(1,11,6));
-        
-        
-        
+       
+       
+       
         ButtonBarBuilder bb = new ButtonBarBuilder();
         bb.addGridded(new JButton(new AbstractAction("Up"){
 
             public void actionPerformed(ActionEvent e) {
                 columnsList.moveRow(true);
             }
-            
+           
         }));
         bb.addGridded(new JButton(new AbstractAction("Down"){
             public void actionPerformed(ActionEvent e) {
@@ -125,6 +136,25 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         pb.add(bb.getPanel(),cc.xyw(1, 13, 6));
         loadIndexIntoPanel();
     }
+   
+   /**
+	*This will return a list of Index Types that are found in the pl.ini file
+	*/
+    private List<String> getIndexTypes(){
+        List<String> indexTypes = new ArrayList<String>();
+        List<SPDataSourceType> dsTypes = this.session.getContext().getPlDotIni().getDataSourceTypes();
+        for(SPDataSourceType dsType : dsTypes){
+            for (int dataTypeCount = 0;; dataTypeCount += 1) {
+                String supportedType = dsType.getProperty(SQLIndex.INDEX_TYPE_DESCRIPTOR + "_" + dataTypeCount);
+                if (supportedType == null) break;
+                if(indexTypes.contains(supportedType)==false){
+                    indexTypes.add(supportedType);
+                }
+            }
+        } 
+        return indexTypes;
+    }
+
 
     public void editIndex(SQLIndex index) throws ArchitectException {
         this.index = index;
@@ -132,14 +162,14 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         indexCopy = new SQLIndex(index);
         indexCopy.setPrimaryKeyIndex(false);
     }
-    
+   
     private void loadIndexIntoPanel(){
         name.setText(index.getName());
         unique.setSelected(index.isUnique());
         indexType.setSelectedItem(index.getType());
         name.selectAll();
     }
-    
+   
     protected SQLIndex getIndexCopy(){
         return indexCopy;
     }
@@ -147,24 +177,24 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     // --------------------- ArchitectPanel interface ------------------
     /**
      * Applies the changes to the panel if the data is valid
-     * 
+     *
      * the data is valid if it has a name, an index type and all
      * of the columns contain primary keys
-     * 
+     *
      * returns true if saved, false otherwise
      */
     public boolean applyChanges() {
-        
+       
         columnsList.finalizeIndex();
-        
-        startCompoundEdit("Index Properties Change");       
-        try {   
+       
+        startCompoundEdit("Index Properties Change");      
+        try {  
             StringBuffer warnings = new StringBuffer();
             //We need to check if the index name and/or primary key name is empty or not
             //if they are, we need to warn the user since it will mess up the SQLScripts we create
             if (name.getText().trim().length() == 0) {
                 warnings.append("The index cannot be assigned a blank name \n");
-                
+               
             }
             if (index.isPrimaryKeyIndex()) {
                 for (Column c:(List<Column>) indexCopy.getChildren()){
@@ -174,11 +204,11 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                     }
                 }
             }
-            
+           
             if (indexType.getSelectedItem() == null) {
                 warnings.append("An index type must be selected\n");
             }
-            
+           
             if (warnings.toString().length() == 0){
                 //The operation is successful
                 index.makeColumnsLike(indexCopy);
@@ -205,7 +235,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 }
                 index.setName(name.getText());
                 index.setUnique(unique.isSelected());
-                index.setType((IndexType) indexType.getSelectedItem());
+                index.setType(indexType.getSelectedItem().toString());
                 Folder<SQLIndex> indicesFolder = parentTable.getIndicesFolder();
                 List children = indicesFolder.getChildren();
                 if (!children.contains(index)) {
@@ -216,7 +246,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 JOptionPane.showMessageDialog(this,warnings.toString());
                 //this is done so we can go back to this dialog after the error message
                 return false;
-            }            
+            }           
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         } finally {
@@ -226,14 +256,14 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
 
     public void discardChanges() {
     }
-    
+   
     /**
      * The list of SQLObject property change event listeners
      * used for undo
      */
     protected LinkedList<UndoCompoundEventListener> undoEventListeners = new LinkedList<UndoCompoundEventListener>();
 
-    
+   
     public void addUndoEventListener(UndoCompoundEventListener l) {
         undoEventListeners.add(l);
     }
@@ -241,10 +271,10 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     public void removeUndoEventListener(UndoCompoundEventListener l) {
         undoEventListeners.remove(l);
     }
-    
+   
     protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
         Iterator it = undoEventListeners.iterator();
-        
+       
         if (e.getType().isStartEvent()) {
             while (it.hasNext()) {
                 ((UndoCompoundEventListener) it.next()).compoundEditStart(e);
@@ -253,17 +283,17 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
             while (it.hasNext()) {
                 ((UndoCompoundEventListener) it.next()).compoundEditEnd(e);
             }
-        } 
+        }
     }
 
     public void startCompoundEdit(String message){
         fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START,message));
     }
-    
+   
     public void endCompoundEdit(String message){
         fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END,message));
     }
-    
+   
     public JPanel getPanel() {
         return this;
     }

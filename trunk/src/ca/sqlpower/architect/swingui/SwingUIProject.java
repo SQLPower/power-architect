@@ -800,7 +800,7 @@ public class SwingUIProject extends CoreProject {
             SQLIndex index = (SQLIndex) o;
             propNames.put("unique", index.isUnique());
             propNames.put("qualifier", index.getQualifier());
-            propNames.put("index-type", index.getType().name());
+            propNames.put("index-type", index.getType());
             propNames.put("primaryKeyIndex", index.isPrimaryKeyIndex());
             propNames.put("filterCondition", index.getFilterCondition());
         } else if (o instanceof SQLIndex.Column) {

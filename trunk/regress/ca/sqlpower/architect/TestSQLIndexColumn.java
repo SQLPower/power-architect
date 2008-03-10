@@ -34,7 +34,6 @@ package ca.sqlpower.architect;
 import java.io.ByteArrayInputStream;
 
 import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.SwingUIProject;
 import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
@@ -52,7 +51,7 @@ public class TestSQLIndexColumn extends SQLTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        SQLIndex index = new SQLIndex("Test Index",true,"",IndexType.HASHED,"");
+        SQLIndex index = new SQLIndex("Test Index",true,"",SQLIndex.HASHED,"");
         indexColumn =index.new Column("Index1",AscendDescend.UNSPECIFIED);
         context = new TestingArchitectSwingSessionContext();
         session = context.createSession(false);
