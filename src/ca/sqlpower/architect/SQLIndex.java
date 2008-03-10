@@ -66,56 +66,39 @@ public class SQLIndex extends SQLObject {
         DESCENDING,
         UNSPECIFIED;
     }
-
+    
     /**
-     * An enumeration of the types of indices that JDBC recognises.
+     * This is the property name in the PL.ini file that will indicate what Index types
+     * are supported for any specific database.
      */
-    public static enum IndexType {
-        /**
-         * Table statistics that are returned in conjuction with a table's index descriptions.
-         */
-        STATISTIC(DatabaseMetaData.tableIndexStatistic),
+    public static String INDEX_TYPE_DESCRIPTOR = SQLIndex.class.getName();
+    
+    /**
+     * This is the index type
+     */
+    public String type;
+    
+    /**
+     * Statistic index type
+     */
+    public static String STATISTIC= "STATISTIC";
+    /**
+     * Clustered index type
+     */
+    public static String CLUSTERED = "CLUSTERED";
+    /**
+     * Hashed index type
+     */
+    public static String HASHED = "HASHED";
 
-        /**
-         * A clustered index.
-         */
-        CLUSTERED(DatabaseMetaData.tableIndexClustered),
-
-        /**
-         * A hashed index.
-         */
-        HASHED(DatabaseMetaData.tableIndexHashed),
-
-        /**
-         * An index that is not clustered or hashed, or table statisics.
-         */
-        OTHER(DatabaseMetaData.tableIndexOther);
-
-        private short jdbcType;
-
-        IndexType(short jdbcType) {
-            this.jdbcType = jdbcType;
-        }
-
-        /**
-         * Returns this index type's JDBC code (one of
-         * DatabaseMetaData.tableIndexStatistic,
-         * DatabaseMetaData.tableIndexClustered,
-         * DatabaseMetaData.tableIndexHashed, or
-         * DatabaseMetaData.tableIndexOther).
-         */
-        public short getJdbcType() {
-            return jdbcType;
-        }
-
-        public static IndexType forJdbcType(short jdbcType) {
-            if (jdbcType == DatabaseMetaData.tableIndexStatistic) return STATISTIC;
-            if (jdbcType == DatabaseMetaData.tableIndexClustered) return CLUSTERED;
-            if (jdbcType == DatabaseMetaData.tableIndexHashed) return HASHED;
-            if (jdbcType == DatabaseMetaData.tableIndexOther) return OTHER;
-            throw new IllegalArgumentException("Unknown JDBC index type code: " + jdbcType);
-        }
+    public static String forJdbcType(short jdbcType) {
+        if (jdbcType == DatabaseMetaData.tableIndexStatistic) return STATISTIC;
+        if (jdbcType == DatabaseMetaData.tableIndexClustered) return CLUSTERED;
+        if (jdbcType == DatabaseMetaData.tableIndexHashed) return HASHED;
+        if (jdbcType == DatabaseMetaData.tableIndexOther) return "OTHER";
+        throw new IllegalArgumentException("Unknown JDBC index type code: " + jdbcType);
     }
+
 
     /**
      * A simple placeholder for a column.  We're not using real SQLColumn instances here so that the
@@ -359,10 +342,6 @@ public class SQLIndex extends SQLObject {
      */
     private String qualifier;
 
-    /**
-     * The type of this index.
-     */
-    private IndexType type;
 
     /**
      * The filter condition on this index, if any.  According to the ODBC programmer's reference,
@@ -373,7 +352,7 @@ public class SQLIndex extends SQLObject {
 
     private boolean primaryKeyIndex;
 
-    public SQLIndex(String name, boolean unique, String qualifier, IndexType type, String filter) {
+    public SQLIndex(String name, boolean unique, String qualifier, String type, String filter) {
         this();
         setName(name);
         this.unique = unique;
@@ -535,12 +514,12 @@ public class SQLIndex extends SQLObject {
         fireDbObjectChanged("qualifier", oldValue, qualifier);
     }
 
-    public IndexType getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(IndexType type) {
-        IndexType oldValue = this.type;
+    public void setType(String type) {
+        String oldValue = this.type;
         this.type = type;
         fireDbObjectChanged("type", oldValue, type);
     }
@@ -628,7 +607,7 @@ public class SQLIndex extends SQLObject {
                 boolean nonUnique = rs.getBoolean(4);
                 String qualifier = rs.getString(5);
                 String name = rs.getString(6);
-                IndexType type = IndexType.forJdbcType(rs.getShort(7));
+                String type = SQLIndex.forJdbcType(rs.getShort(7));
                 int pos = rs.getInt(8);
                 String colName = rs.getString(9);
                 String ascDesc = rs.getString(10);

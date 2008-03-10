@@ -44,7 +44,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import ca.sqlpower.ArchitectTestCase;
-import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.PlDotIni;
@@ -177,8 +176,8 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				newVal = new SQLTable();
             } else if ( property.getPropertyType() == SQLColumn.class){
                 newVal = new SQLColumn();
-			} else if ( property.getPropertyType() == IndexType.class){
-                newVal = IndexType.STATISTIC;
+			//} else if ( property.getPropertyType() == SQLIndex.INDEX_TYPE_DESCRIPTOR){
+            //    newVal = SQLIndex.STATISTIC;
             } else if ( property.getPropertyType() == SQLIndex.class){
                 newVal = new SQLIndex();
             } else if ( property.getPropertyType() == SQLRelationship.Deferrability.class){
@@ -299,8 +298,8 @@ public abstract class SQLTestCase extends ArchitectTestCase {
                 newVal = new SQLColumn();
             } else if (property.getPropertyType() == SQLIndex.class) {
                 newVal = new SQLIndex();
-			} else if ( property.getPropertyType() == IndexType.class){
-                newVal = IndexType.STATISTIC;
+			//} else if ( property.getPropertyType() == IndexType.class){
+            //    newVal = IndexType.STATISTIC;
             } else if ( property.getPropertyType() == SQLRelationship.Deferrability.class){
                 if (oldVal == SQLRelationship.Deferrability.INITIALLY_DEFERRED) {
                     newVal = SQLRelationship.Deferrability.NOT_DEFERRABLE;

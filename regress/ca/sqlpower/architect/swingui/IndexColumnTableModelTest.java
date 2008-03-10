@@ -31,13 +31,12 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import junit.framework.TestCase;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.architect.SQLIndex.IndexType;
-import junit.framework.TestCase;
 
 public class IndexColumnTableModelTest extends TestCase {
 
@@ -48,7 +47,7 @@ public class IndexColumnTableModelTest extends TestCase {
         SQLTable t = new SQLTable(null,true);
         SQLColumn col = new SQLColumn(t,"col1",1,0,0);
         t.addColumn(col);
-        SQLIndex i = new SQLIndex("name",true,"a",IndexType.CLUSTERED,"");
+        SQLIndex i = new SQLIndex("name",true,"a",SQLIndex.CLUSTERED,"");
         t.getIndicesFolder().addChild(i);
         i.addIndexColumn(col, AscendDescend.DESCENDING);
         i.addChild(i.new Column("expression",AscendDescend.DESCENDING));

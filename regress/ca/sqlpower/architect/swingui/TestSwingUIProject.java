@@ -65,7 +65,6 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.CoreProject;
-import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -77,8 +76,8 @@ import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.StubSQLObject;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
+import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.etl.kettle.RootRepositoryDirectoryChooser;
@@ -433,12 +432,6 @@ public class TestSwingUIProject extends ArchitectTestCase {
 				} else if (props[i].getPropertyType() == SQLColumn.class) {
 					newVal = new SQLColumn();
 					((SQLColumn) newVal).setName("testing!");
-                } else if (props[i].getPropertyType() == SQLIndex.IndexType.class) {
-                    if (oldVal != SQLIndex.IndexType.HASHED) {
-                        newVal = SQLIndex.IndexType.HASHED;
-                    } else {
-                        newVal = SQLIndex.IndexType.CLUSTERED;
-                    }
                 } else if (props[i].getPropertyType() == SQLIndex.class) {
                     newVal = new SQLIndex();
                     ((SQLIndex) newVal).setName("a new index");
@@ -1037,7 +1030,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         table.setName(tableName);
         ppdb.addChild(table);
 
-        SQLIndex origIndex1 = new SQLIndex("tasty index", false, null, IndexType.HASHED, null);
+        SQLIndex origIndex1 = new SQLIndex("tasty index", false, null, SQLIndex.HASHED, null);
         origIndex1.addIndexColumn(col, AscendDescend.DESCENDING);
         table.getIndicesFolder().addChild(origIndex1);
         col.setPrimaryKeySeq(new Integer(0));
@@ -1045,7 +1038,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // second index references same column as first index, so
         // origIndex1.getChild(0).equals(origIndex2.getChild(0)) even though
         // they are not the same object
-        SQLIndex origIndex2 = new SQLIndex("nasty index", false, null, IndexType.HASHED, null);
+        SQLIndex origIndex2 = new SQLIndex("nasty index", false, null, SQLIndex.HASHED, null);
         origIndex2.addIndexColumn(col, AscendDescend.DESCENDING);
         table.getIndicesFolder().addChild(origIndex2);
 

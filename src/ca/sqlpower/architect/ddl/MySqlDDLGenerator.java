@@ -49,7 +49,6 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
 
 public class MySqlDDLGenerator extends GenericDDLGenerator {
@@ -433,7 +432,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     
     @Override
     public void addIndex(SQLIndex index) throws ArchitectException {
-        if (index.getType() == IndexType.STATISTIC )
+        if (index.getType() == SQLIndex.STATISTIC )
             return;
 
         createPhysicalName(topLevelNames, index);
@@ -445,6 +444,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         }
         print("INDEX ");
         print(index.getName());
+        print(" USING "+ index.getType());
         print("\n ON ");
         print(toQualifiedName(index.getParentTable()));
         print("\n ( ");
