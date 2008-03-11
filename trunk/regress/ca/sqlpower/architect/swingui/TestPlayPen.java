@@ -33,6 +33,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
 import java.sql.Types;
+import java.util.List;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
@@ -144,4 +145,105 @@ public class TestPlayPen extends TestCase {
 		assertEquals("Incorrect reference count on imported child col",
 				3, importedChild.getModel().getColumn(0).getReferenceCount());
 	}
+	
+	/**
+	 * Test to ensure that the self-referencing table gets imported properly into the PlayPen.
+	 * @throws Exception
+	 */
+	public void testImportTableCopyOnSelfReferencingTable() throws Exception {
+	    SQLDatabase sourceDB = new SQLDatabase();
+
+        SQLTable table = new SQLTable(sourceDB, true);
+        table.setName("self_ref");
+        SQLColumn pkCol = new SQLColumn(table, "key", Types.INTEGER, 10, 0);
+        table.addColumn(pkCol);
+        table.getColumn(0).setPrimaryKeySeq(0);
+        SQLColumn fkCol = new SQLColumn(table, "self_ref_column", Types.INTEGER, 10, 0);
+        table.addColumn(fkCol);
+        
+        SQLRelationship rel = new SQLRelationship();
+        rel.attachRelationship(table, table, false);
+        rel.addMapping(pkCol, fkCol);
+        sourceDB.addChild(table);
+        
+        pp.importTableCopy(table, new Point(10, 10));
+        
+        int relCount = 0;
+        int tabCount = 0;
+        int otherCount = 0;
+        for (int i = 0; i < pp.getPlayPenContentPane().getComponentCount(); i++) {
+            PlayPenComponent ppc = pp.getPlayPenContentPane().getComponent(i);
+            if (ppc instanceof Relationship) {
+                relCount++;
+            } else if (ppc instanceof TablePane) {
+                tabCount++;
+            } else {
+                otherCount++;
+            }
+        }
+        assertEquals("Expected one table in pp", 1, tabCount);
+        assertEquals("Expected one relationship in pp", 1, relCount);
+        assertEquals("Found junk in playpen", 0, otherCount);
+	}
+	
+	/**
+	 * Test to ensure that when importing two copies of a self-referencing table, the
+	 * correct number of relationships get added, and furthermore, the relationships
+	 * all point to the correct table.
+	 * @throws Exception
+	 */
+	public void testImportTableCopyOnTwoCopiesOfSelfReferencingTable() throws Exception {
+        SQLDatabase sourceDB = new SQLDatabase();
+
+        SQLTable table = new SQLTable(sourceDB, true);
+        table.setName("self_ref");
+        SQLColumn pkCol = new SQLColumn(table, "key", Types.INTEGER, 10, 0);
+        table.addColumn(pkCol);
+        table.getColumn(0).setPrimaryKeySeq(0);
+        SQLColumn fkCol = new SQLColumn(table, "self_ref_column", Types.INTEGER, 10, 0);
+        table.addColumn(fkCol);
+        
+        SQLRelationship rel = new SQLRelationship();
+        rel.attachRelationship(table, table, false);
+        rel.addMapping(pkCol, fkCol);
+        sourceDB.addChild(table);
+        
+        pp.importTableCopy(table, new Point(10, 10));
+        pp.importTableCopy(table, new Point(30, 30));
+        
+        int relCount = 0;
+        int tabCount = 0;
+        int otherCount = 0;
+        for (int i = 0; i < pp.getPlayPenContentPane().getComponentCount(); i++) {
+            PlayPenComponent ppc = pp.getPlayPenContentPane().getComponent(i);
+            if (ppc instanceof Relationship) {
+                relCount++;
+            } else if (ppc instanceof TablePane) {
+                tabCount++;
+            } else {
+                otherCount++;
+            }
+        }
+        assertEquals("Expected one table in pp", 2, tabCount);
+        assertEquals("Expected one relationship in pp", 2, relCount);
+        assertEquals("Found junk in playpen", 0, otherCount);
+        
+        for (SQLTable t: pp.getTables()) {
+            List<SQLRelationship> exportedKeys = t.getExportedKeys();
+            List<SQLRelationship> importedKeys = t.getImportedKeys();
+            
+            assertEquals("Expected only one exported key in table", 1, exportedKeys.size());
+            assertEquals("Expected only one imported key in table", 1, importedKeys.size());
+            
+            SQLRelationship exportedKey = exportedKeys.get(0);
+            SQLRelationship importedKey = importedKeys.get(0);
+            
+            assertEquals("Expected exported key PK and FK tables to be the same", exportedKey.getFkTable(), 
+                    exportedKey.getPkTable());
+            assertEquals("Expected imported key PK and FK tables to be the same", importedKey.getFkTable(), 
+                    importedKey.getPkTable());
+            assertEquals("Expected exported key and imported key tables to be the same", exportedKey.getPkTable(),
+                    importedKey.getPkTable());
+        }
+    }
 }
