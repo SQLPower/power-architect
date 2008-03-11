@@ -224,8 +224,8 @@ public class TestPlayPen extends TestCase {
                 otherCount++;
             }
         }
-        assertEquals("Expected one table in pp", 2, tabCount);
-        assertEquals("Expected one relationship in pp", 2, relCount);
+        assertEquals("Expected two tables in pp", 2, tabCount);
+        assertEquals("Expected two relationships in pp", 2, relCount);
         assertEquals("Found junk in playpen", 0, otherCount);
         
         for (SQLTable t: pp.getTables()) {
