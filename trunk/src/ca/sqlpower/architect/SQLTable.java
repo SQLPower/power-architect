@@ -609,13 +609,31 @@ public class SQLTable extends SQLObject {
 	public void removeColumn(SQLColumn col) throws ArchitectException {
 		if (!isMagicEnabled()) {
             columnsFolder.removeChild(col);
+            removeColumnFromIndex(col); // also remove the column from indices
 		} else {
 		    // a column is only locked if it is an IMPORTed key--not if it is EXPORTed.
 		    for (SQLRelationship r : getImportedKeys()) {
 		        r.checkColumnLocked(col);
 		    }
 		    columnsFolder.removeChild(col);
+		    removeColumnFromIndex(col);
         }
+	}
+	
+	/**
+	 * This is used by the removeColumn method to make sure that once a column 
+	 * is removed from a table, it is also removed from all the indices of that table.
+	 */
+	private void removeColumnFromIndex(SQLColumn col) throws ArchitectException{
+	    for(int i=0;i<indicesFolder.getChildCount();i++){ //iterate through all indices
+	        SQLIndex currentIndex = (SQLIndex)indicesFolder.getChild(i); // get the current index
+	        for(int k=0; k<currentIndex.getChildren().size();k++){
+	            if(currentIndex.getChild(k).getColumn().equals(col)){
+	                //remove the SQLIndex.Column object associated with the SQLColumn object given 
+	                currentIndex.removeChild(k);
+	            }
+	        }
+	    }
 	}
 
 	/**
