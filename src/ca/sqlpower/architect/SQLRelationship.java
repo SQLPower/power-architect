@@ -200,6 +200,20 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
             ArchitectUtils.unlistenToHierarchy(fkColumnManager,fkTable);
 	}
 
+	/**
+     * Associates an {@link SQLRelationship} with the given {@link SQLTable}
+     * objects. Also automatically generates the PK to FK column mapping if
+     * autoGenerateMapping is set to true.
+     * 
+     * @param pkTable
+     *            The parent table in this relationship.
+     * @param fkTable
+     *            The child table in this relationship that contains the foreign
+     *            key.
+     * @param autoGenerateMapping
+     *            Automatically generates the PK to FK column mapping if true
+     * @throws ArchitectException
+     */
 	public void attachRelationship(SQLTable pkTable, SQLTable fkTable, boolean autoGenerateMapping) throws ArchitectException {
 		if(pkTable == null) throw new NullPointerException("Null pkTable not allowed");
 		if(fkTable == null) throw new NullPointerException("Null fkTable not allowed");
