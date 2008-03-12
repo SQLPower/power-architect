@@ -386,58 +386,6 @@ public class TestSQLTable extends SQLTestCase {
         assertNotNull("Should have thrown an exception", exc);
     }
     
-    /**
-     * This test case will drop a column from a table and make sure that it
-     *  is also dropped from the index of the table.
-     */
-    public void testDropColumnFromIndex()throws ArchitectException{
-        SQLTable table1;
-        SQLColumn col1;
-        SQLColumn col2;
-        
-        table1 = db.getTableByName("REGRESSION_TEST1");
-        col1 = table1.getColumn(0);
-        col2 = table1.getColumn(1);
-        assertEquals(2, table1.getColumns().size()); // we should have 2 columns at this point
-        SQLIndex i = new SQLIndex("Index",true,"",SQLIndex.CLUSTERED,""); 
-        i.addIndexColumn(col1, AscendDescend.ASCENDING); // add column to index
-        i.addIndexColumn(col2, AscendDescend.ASCENDING);
-        table1.addIndex(i);// add index to table.
-        assertEquals(2, i.getChildCount()); // index should have 2 children
-        table1.removeColumn(0); // remove 1 column
-        assertEquals(1, table1.getColumns().size()); // we should have 1 column left in the table
-        assertEquals(1, i.getChildCount()); // we should also have 1 column left in the table
-    }
-    
-    /**
-     * This is similar to testDropColumnFromIndex, but it will add the columns in different
-     * order in two separate indices and it will check that the proper column is removed.
-     */
-    public void testDropColumnFromIndex2() throws ArchitectException{
-        SQLTable table1;
-        SQLColumn col1;
-        SQLColumn col2;
-        
-        table1 = db.getTableByName("REGRESSION_TEST1");
-        col1 = table1.getColumn(0);
-        col2 = table1.getColumn(1);
-        assertEquals(2, table1.getColumns().size()); // we should have 2 columns at this point
-        SQLIndex i = new SQLIndex("Index",true,"",SQLIndex.CLUSTERED,""); 
-        i.addIndexColumn(col1, AscendDescend.ASCENDING); // add column to index
-        i.addIndexColumn(col2, AscendDescend.ASCENDING);
-        table1.addIndex(i);// add index to table.
-        SQLIndex i2 = new SQLIndex("Index",true,"",SQLIndex.CLUSTERED,""); 
-        i2.addIndexColumn(col2, AscendDescend.ASCENDING); // add column to index2 in different order
-        i2.addIndexColumn(col1, AscendDescend.ASCENDING);
-        table1.addIndex(i2);// add index to table.
-        table1.removeColumn(0); // remove 1 column (The columns is T1_C1)
-        assertEquals(1, table1.getColumns().size()); // we should have 1 column left in the table
-        assertEquals(1, i.getChildCount()); // we should also have 1 column left in the index
-        assertEquals(1, i2.getChildCount()); // / same for the second column
-        assertEquals("T1_C2", i.getChild(0).getName());
-        assertEquals("T1_C2", i2.getChild(0).getName());
-    }
-    
     public void testNormalizePrimaryKey() throws ArchitectException {
         SQLTable table1;
         SQLColumn col2;

@@ -414,8 +414,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
             }
             logger.debug("Adding index: " + index + " (parent table " + parentTableName + ") (parentFolder " + parentFolder + ")");
         }
-        if (index.getType() == SQLIndex.STATISTIC )
-            return;
+        if (index.getType() == SQLIndex.STATISTIC ) return;
 
         createPhysicalName(topLevelNames, index);
 

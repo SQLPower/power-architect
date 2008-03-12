@@ -1116,8 +1116,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * table statistics (you can't create or drop them).
      */
     public void addIndex(SQLIndex index) throws ArchitectException {
-        if (index.getType() == SQLIndex.STATISTIC )
-            return;
+        if (index.getType() == SQLIndex.STATISTIC ) return;
 
         createPhysicalName(topLevelNames, index);
 

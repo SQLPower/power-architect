@@ -176,15 +176,13 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				newVal = new SQLTable();
             } else if ( property.getPropertyType() == SQLColumn.class){
                 newVal = new SQLColumn();
-			//} else if ( property.getPropertyType() == SQLIndex.INDEX_TYPE_DESCRIPTOR){
-            //    newVal = SQLIndex.STATISTIC;
             } else if ( property.getPropertyType() == SQLIndex.class){
                 newVal = new SQLIndex();
             } else if ( property.getPropertyType() == SQLRelationship.Deferrability.class){
                 if (oldVal == SQLRelationship.Deferrability.INITIALLY_DEFERRED) {
-                    newVal = SQLRelationship.Deferrability.NOT_DEFERRABLE;
+                    newVal = SQLRelationship.Deferrability.NOT_DEFERRABLE.getCode();
                 } else {
-                    newVal = SQLRelationship.Deferrability.INITIALLY_DEFERRED;
+                    newVal = SQLRelationship.Deferrability.INITIALLY_DEFERRED.getCode();
                 }
             } else {
 				throw new RuntimeException("This test case lacks a value for "+
@@ -204,9 +202,15 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 					assertEquals("Property name mismatch for "+property.getName()+ " in "+so.getClass(),
 							property.getName(),
 							listener.getLastEvent().getPropertyName());
+					if(listener.getLastEvent().getNewValue() instanceof SQLRelationship.Deferrability){
 					assertEquals("New value for "+property.getName()+" was wrong",
 							newVal,
-							listener.getLastEvent().getNewValue());
+							((SQLRelationship.Deferrability)listener.getLastEvent().getNewValue()).getCode());
+					}else{
+					    assertEquals("New value for "+property.getName()+" was wrong",
+	                            newVal,
+	                            listener.getLastEvent().getNewValue());  
+					}
 				}
 			} catch (InvocationTargetException e) {
 				System.out.println("(non-fatal) Failed to write property '"+property.getName()+" to type "+so.getClass().getName());
@@ -298,13 +302,11 @@ public abstract class SQLTestCase extends ArchitectTestCase {
                 newVal = new SQLColumn();
             } else if (property.getPropertyType() == SQLIndex.class) {
                 newVal = new SQLIndex();
-			//} else if ( property.getPropertyType() == IndexType.class){
-            //    newVal = IndexType.STATISTIC;
             } else if ( property.getPropertyType() == SQLRelationship.Deferrability.class){
                 if (oldVal == SQLRelationship.Deferrability.INITIALLY_DEFERRED) {
-                    newVal = SQLRelationship.Deferrability.NOT_DEFERRABLE;
+                    newVal = SQLRelationship.Deferrability.NOT_DEFERRABLE.getCode();
                 } else {
-                    newVal = SQLRelationship.Deferrability.INITIALLY_DEFERRED;
+                    newVal = SQLRelationship.Deferrability.INITIALLY_DEFERRED.getCode();
                 }
 
             } else {

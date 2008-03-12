@@ -46,7 +46,10 @@ public class TestSQLIndex extends SQLTestCase {
 
     private SQLIndex index;
     private SQLIndex index2;
+    private SQLIndex index3;
     private SQLColumn col1;
+    private SQLColumn col2;
+    private SQLColumn col3;
     private SQLTable table;
     private SQLTable dbTable;
     
@@ -165,9 +168,9 @@ public class TestSQLIndex extends SQLTestCase {
         table.setName("Test Table");
         col1 = new SQLColumn();
         table.addColumn(col1);
-        SQLColumn col2 = new SQLColumn();
+        col2 = new SQLColumn();
         table.addColumn(col2);
-        SQLColumn col3 = new SQLColumn();
+        col3 = new SQLColumn();
         table.addColumn(col3);
         index.addIndexColumn(col1, AscendDescend.UNSPECIFIED);
         index.addIndexColumn(col2, AscendDescend.DESCENDING);
@@ -178,6 +181,12 @@ public class TestSQLIndex extends SQLTestCase {
         index2.addIndexColumn(col3, AscendDescend.DESCENDING);
         table.addIndex(index2);
         dbTable = db.getTableByName("SQL_COLUMN_TEST_3PK");
+
+        index3 = new SQLIndex("Test Index 3", true, "a", SQLIndex.HASHED, "b");
+        index3.addIndexColumn(col3, AscendDescend.ASCENDING);
+        index3.addIndexColumn(col2, AscendDescend.DESCENDING);
+        index3.addIndexColumn(col1, AscendDescend.UNSPECIFIED);
+        table.addIndex(index3);
     }
 
     protected void tearDown() throws Exception {
@@ -389,5 +398,47 @@ public class TestSQLIndex extends SQLTestCase {
         Column newColumn = index.new Column("lower((name)::text))",AscendDescend.UNSPECIFIED);
         index.addChild(newColumn);
         derivedIndex = SQLIndex.getDerivedInstance(index, table);
+    }
+    
+    /**
+     * This test case will drop a column from a table and make sure that it
+     *  is also dropped from the index of the table.
+     */
+    public void testDropColumnFromIndex()throws ArchitectException{
+
+        assertEquals(3, index.getChildCount());
+        assertEquals(3, table.getColumns().size());
+        assertEquals(2, index2.getChildCount());
+        table.removeColumn(0);
+        assertEquals(2, table.getColumns().size());
+        assertEquals(2, index.getChildCount());
+        assertEquals(1, index2.getChildCount());
+        assertEquals(2, index3.getChildCount());
+    }
+    
+    /**
+     * This is similar to testDropColumnFromIndex, but it will add the columns in different
+     * order in two separate indices and it will check that the proper column is removed.
+     */
+    public void testDropColumnFromIndex2() throws ArchitectException{
+        table.removeColumn(0); 
+        assertEquals(2, table.getColumns().size()); 
+        assertEquals(2, index.getChildCount()); 
+        assertEquals(2, index3.getChildCount());
+        assertEquals(col2, index.getChild(0).getColumn());
+        assertEquals(col3, index.getChild(1).getColumn());
+        assertEquals(col3, index3.getChild(0).getColumn());
+        assertEquals(col2, index3.getChild(1).getColumn());
+    }
+    
+    /**
+     * Tests if we remove all of the columns in an index from its table
+     * that the index is removed from the table as well.
+     */
+    public void testRemoveIndexWhenColsRemoved() throws Exception {
+        assertEquals(index2, table.getIndexByName("Test Index 2"));
+        table.removeColumn(2);
+        table.removeColumn(0);
+        assertEquals(null, table.getIndexByName("Test Index 2"));
     }
 }

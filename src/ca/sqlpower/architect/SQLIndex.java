@@ -71,7 +71,7 @@ public class SQLIndex extends SQLObject {
      * This is the property name in the PL.ini file that will indicate what Index types
      * are supported for any specific database.
      */
-    public static String INDEX_TYPE_DESCRIPTOR = SQLIndex.class.getName();
+    public static String INDEX_TYPE_DESCRIPTOR = SQLIndex.class.getName() + ".IndexType";
     
     /**
      * This is the index type
@@ -351,6 +351,13 @@ public class SQLIndex extends SQLObject {
     private String filterCondition;
 
     private boolean primaryKeyIndex;
+    
+    /**
+     * This is a listener that will listen for SQLColumns in the SQLTable's column folder
+     * and make sure that the SQLIndex will also remove its Column object associated
+     * with the SQLColumn removed.
+     */
+    private SQLObjectListener removeColumnListener;
 
     public SQLIndex(String name, boolean unique, String qualifier, String type, String filter) {
         this();
@@ -364,6 +371,19 @@ public class SQLIndex extends SQLObject {
     public SQLIndex() {
         children = new ArrayList();
         primaryKeyIndex = false;
+        removeColumnListener = new SQLObjectListener() {
+
+            public void dbStructureChanged(SQLObjectEvent e) {}
+
+            public void dbObjectChanged(SQLObjectEvent e) {}
+
+            public void dbChildrenRemoved(SQLObjectEvent e) {
+                removeColumnFromIndices(e);
+            }
+
+            public void dbChildrenInserted(SQLObjectEvent e) {}
+
+        };
     }
     
     /**
@@ -467,6 +487,35 @@ public class SQLIndex extends SQLObject {
     @Override
     protected void setParent(SQLObject parent) {
         this.parent = (Folder<SQLIndex>) parent;
+        if (this.parent != null && this.parent.getParent() != null) {
+            this.parent.getParent().getColumnsFolder().addSQLObjectListener(removeColumnListener);
+        }
+
+    }
+    
+    /**
+     * This is used by the removeColumn method to make sure that once a column 
+     * is removed from a table, it is also removed from all the indices of that table.
+     */
+    private void removeColumnFromIndices(SQLObjectEvent e) {
+        if (parent != null && parent.getParent() != null && parent.getParent().getColumnsFolder().isMagicEnabled()) {
+            try {
+                for(int i=0;i<e.getChildren().length;i++){
+                    for (int j = this.getChildCount() - 1; j >= 0 ; j--) {
+                        if(getChild(j).getColumn().equals(e.getChildren()[i])){
+                            removeChild(j);
+                        }
+                    }
+                }
+                if (getChildCount() == 0 && this.parent != null) {
+                    logger.debug("Removing " + getName() + " index from folder " + parent.getName());
+                    parent.getParent().getColumnsFolder().removeSQLObjectListener(removeColumnListener);
+                    parent.removeChild(this);
+                }
+            } catch (ArchitectException e1) {
+                throw new ArchitectRuntimeException(e1);
+            }
+        }
     }
 
     @Override
