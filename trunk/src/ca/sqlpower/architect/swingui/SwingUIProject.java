@@ -800,6 +800,12 @@ public class SwingUIProject extends CoreProject {
             SQLIndex index = (SQLIndex) o;
             propNames.put("unique", index.isUnique());
             propNames.put("qualifier", index.getQualifier());
+            /*
+             * Normally, hyphenated names are used to stop
+             * BeanUtils from auto-populating a field. However in this case,
+             * we are going to keep the hyphen (and break the normal scheme)
+             * in order to preserve backward compatibility.
+             */
             propNames.put("index-type", index.getType());
             propNames.put("primaryKeyIndex", index.isPrimaryKeyIndex());
             propNames.put("filterCondition", index.getFilterCondition());

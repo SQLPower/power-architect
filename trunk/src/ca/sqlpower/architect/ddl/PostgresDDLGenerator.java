@@ -354,8 +354,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
      */
     @Override
     public void addIndex(SQLIndex index) throws ArchitectException {
-        if (index.getType() == SQLIndex.STATISTIC )
-            return;
+        if (index.getType() == SQLIndex.STATISTIC ) return;
         createPhysicalName(topLevelNames, index);
         println("");
         print("CREATE ");
