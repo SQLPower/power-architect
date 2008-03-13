@@ -95,6 +95,31 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
 
         setPlDotIniPath(prefs.get(ArchitectSession.PREFS_PL_INI_PATH, null));
 
+        checkForValidPlDotIni();
+    }
+    
+    /**
+     * Similar to the default constructor, but we can specify a pl.ini path
+     * ourselves. (This has been created in order to fully automate the JUnit test).
+     */
+    public ArchitectSessionContextImpl(String PlDotIniPath) throws ArchitectException {
+        sessions = new HashSet<ArchitectSession>();
+        
+        ArchitectUtils.startup();
+
+        ArchitectUtils.configureLog4j();
+
+        setPlDotIniPath(PlDotIniPath);
+
+        checkForValidPlDotIni();
+    }
+    
+    /**
+     * This will check if the path of the PlDotIni file is valid. If it is not,
+     * it will display a message asking the user to either browse for the file
+     * or create a new file.
+     */
+    private void checkForValidPlDotIni() throws ArchitectException {
         while (!isPlDotIniPathValid()) {
             String message;
             String[] options = new String[] {"Browse", "Create"};

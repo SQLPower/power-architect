@@ -357,7 +357,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
             print("UNIQUE ");
         }
         print("INDEX ");
-        print(index.getName());
+        print(toQualifiedName(index.getName()));
         print("\n ON ");
         print(toQualifiedName(index.getParentTable()));
         print("\n ( ");

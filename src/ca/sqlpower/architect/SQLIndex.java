@@ -779,6 +779,7 @@ public class SQLIndex extends SQLObject {
         index.setFilterCondition(source.getFilterCondition());
         index.setQualifier(source.getQualifier());
         index.setPrimaryKeyIndex(source.isPrimaryKeyIndex());
+        index.setPhysicalName(source.getPhysicalName());
         
         for (Column column : source.getChildren()) {
             Column newColumn;
