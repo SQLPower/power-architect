@@ -362,7 +362,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
             print("UNIQUE ");
         }
         print("INDEX ");
-        print(index.getName());
+        print(toQualifiedName(index));
         print("\n ON ");
         print(toQualifiedName(index.getParentTable()));
         print(" USING "+ index.getType());

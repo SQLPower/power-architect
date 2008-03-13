@@ -744,6 +744,13 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public String toQualifiedName(SQLTable t) {
 		return toQualifiedName(t.getPhysicalName());
 	}
+	
+	/**
+	 * Creates a qualified name from the physical name of the SQLIndex
+	 */
+	public String toQualifiedName(SQLIndex i) {
+        return toQualifiedName(i.getPhysicalName());
+    }
 
     /**
      * Creates a fully-qualified table name from the given string (which

@@ -442,7 +442,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             print("UNIQUE ");
         }
         print("INDEX ");
-        print(index.getName());
+        print(toQualifiedName(index.getName()));
         print(" USING "+ index.getType());
         print("\n ON ");
         print(toQualifiedName(index.getParentTable()));

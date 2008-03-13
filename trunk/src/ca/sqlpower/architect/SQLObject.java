@@ -298,12 +298,17 @@ public abstract class SQLObject implements java.io.Serializable {
         boolean shouldProceed = fireDbChildPreRemove(index, (SQLObject) children.get(index));
 
         if (shouldProceed) {
-            SQLObject removedChild = (SQLObject) children.remove(index);
-            if (removedChild != null) {
-                removedChild.setParent(null);
-                fireDbChildRemoved(index, removedChild);
+            try {
+                startCompoundEdit("Remove child of " + getName());
+                SQLObject removedChild = (SQLObject) children.remove(index);
+                if (removedChild != null) {
+                    removedChild.setParent(null);
+                    fireDbChildRemoved(index, removedChild);
+                }
+                return removedChild;
+            } finally {
+                endCompoundEdit("Remove child of " + getName());
             }
-            return removedChild;
         } else {
             return null;
         }

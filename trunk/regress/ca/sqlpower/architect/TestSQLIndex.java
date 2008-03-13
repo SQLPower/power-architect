@@ -441,4 +441,20 @@ public class TestSQLIndex extends SQLTestCase {
         table.removeColumn(0);
         assertEquals(null, table.getIndexByName("Test Index 2"));
     }
+
+    /**
+     * Tests if we remove all of the columns in an index from its table
+     * that the index is removed from the table as well, and the whole operation
+     * is a single compound operation.
+     */
+    public void testRemoveIndexWhenColsRemovedSingleUndoEvent() throws Exception {
+        assertEquals(index2, table.getIndexByName("Test Index 2"));
+        CountingUndoCompoundEventListener l = new CountingUndoCompoundEventListener();
+        ArchitectUtils.listenToHierarchy(l, table);
+        ArchitectUtils.addUndoListenerToHierarchy(l, table);
+        table.removeColumn(2);
+        assertEquals(0, l.getEditsBeforeLastGroup());
+        table.removeColumn(0);
+        assertEquals(0, l.getEditsBeforeLastGroup());
+    }
 }

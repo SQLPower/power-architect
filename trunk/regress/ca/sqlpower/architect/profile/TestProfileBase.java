@@ -113,19 +113,17 @@ public abstract class TestProfileBase extends TestCase {
 
         DataSourceCollection plini = new PlDotIni();
         plini.read(new File("pl.regression.ini"));
-
         SPDataSource ds = plini.getDataSource("regression_test");
 
         mydb = new SQLDatabase(ds);
         Connection conn = null;
         Statement stmt = null;
         String lastSQL = null;
-
         /*
          * Setting up a clean db for each of the tests
          */
         try {
-            ArchitectSessionContext context = new ArchitectSessionContextImpl();
+            ArchitectSessionContext context = new ArchitectSessionContextImpl("pl.regression.ini");
             session = new ArchitectSessionImpl(context, "TestProfileBase");
             session.getRootObject().addChild(mydb);
             conn = mydb.getConnection();
