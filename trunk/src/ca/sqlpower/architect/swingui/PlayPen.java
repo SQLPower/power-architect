@@ -1401,7 +1401,7 @@ public class PlayPen extends JPanel
 
 				SQLRelationship newRel = new SQLRelationship();
 				newRel.setName(r.getName());
-				newRel.setIdentifying(true);
+				newRel.setIdentifying(r.determineIdentifyingStatus());
 				
 				SQLTable oldTable;
 				

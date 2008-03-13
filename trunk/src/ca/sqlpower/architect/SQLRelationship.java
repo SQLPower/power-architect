@@ -43,6 +43,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.sql.CachedRowSet;
 
 /**
@@ -144,6 +145,24 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	protected int pkCardinality;
 	protected int fkCardinality;
+	
+	/**
+     * Value should be true if this relationship is identifying, and false if
+     * otherwise.
+     * <p>
+     * Here is our definition of identifying relationships and non-identifying
+     * relationships (as discussed in the <a
+     * href="http://groups.google.com/group/architect-developers/browse_thread/thread/d70e3e3ee3353f1"/>
+     * Architect Developer's mailing list</a>).
+     * <p>
+     * An 'identifying' relationship is: A foreign key relationship in which the
+     * whole primary key of the parent table is entirely contained in the
+     * primary key of the child table.
+     * <p>
+     * A 'non-identifying' relationship is: A foreign key relationship in which
+     * the whole primary key of the parent table is NOT entirely contained in
+     * the primary key of the child table.
+     */
 	protected boolean identifying;
 
 
@@ -1198,5 +1217,40 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				throw new LockedColumnException(this,col);
 			}
 		}
+	}
+	
+	/**
+     * Some SQLRelationship objects may not have their {@link #identifying}
+     * property set properly which is particularly the case then creating
+     * SQLRelationships for source database objects and then reverse
+     * engineering, so this method will determine for certain if a relationship
+     * is identifying or non-identifying. This is currently primarily being used
+     * for determining the identifying status of reverse-engineered
+     * relationships.
+     * 
+     * @return True if this SQLRelationship is identifying. False if it is
+     *         non-identifying.
+     */
+	public boolean determineIdentifyingStatus() throws ArchitectException {
+	    
+	    if (getPkTable().getPkSize() > getFkTable().getPkSize()) return false;
+	    
+	    List<ColumnMapping> columnMappings = (List<ColumnMapping>)getChildren();
+	    SQLIndex pkTablePKIndex = getPkTable().getPrimaryKeyIndex();
+	    if (pkTablePKIndex == null) return false;
+	    List<Column> pkColumns = pkTablePKIndex.getChildren();
+	    
+	    for (Column col: pkColumns) {
+	        boolean colIsInFKTablePK = false;
+	        for (ColumnMapping mapping: columnMappings) {
+	            if (mapping.getPkColumn().equals(col.getColumn()) &&
+	                    mapping.getFkColumn().isPrimaryKey()) { 
+                    colIsInFKTablePK = true;
+                    break;
+                }
+	        }
+	        if (colIsInFKTablePK == false) return false;
+	    }
+	    return true;
 	}
 }
