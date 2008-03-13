@@ -17,6 +17,8 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  to a Derby instance and use it as a source database.  Forward engineering
  is not available yet.
 *Relationship connection points can now be moved along acceptable edges on tables.
+*Fixed a bug that caused non-identifying relationships to be reverse engineered
+as identifying relationships in the Playpen.
 
 0.9.9
 *Added support for explicitly named sequences in PostgreSQL and Oracle
