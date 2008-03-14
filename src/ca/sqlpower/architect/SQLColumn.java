@@ -44,6 +44,8 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.sql.SQL;
+
 public class SQLColumn extends SQLObject implements java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(SQLColumn.class);
@@ -293,6 +295,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		    
 			logger.debug("SQLColumn.addColumnsToTable: catalog="+catalog+"; schema="+schema+"; tableName="+tableName);
 			rs = dbmd.getColumns(catalog, schema, tableName, "%");
+			
+			int autoIncCol = SQL.findColumnIndex(rs, "is_autoincrement");
+			logger.debug("Auto-increment info column: " + autoIncCol);
+			
 			while (rs.next()) {
 				logger.debug("addColumnsToTable SQLColumn constructor invocation.");
 				
@@ -306,6 +312,13 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 				    precision = typePrecision.intValue();
 				}
 				
+				boolean autoIncrement;
+                if (autoIncCol > 0) {
+                    autoIncrement = "yes".equalsIgnoreCase(rs.getString(autoIncCol));
+                } else {
+                    autoIncrement = false;
+                }
+				
 				SQLColumn col = new SQLColumn(addTo,
 											  rs.getString(4),  // col name
 											  rs.getInt(5), // data type (from java.sql.Types)
@@ -316,7 +329,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 											  rs.getString(12) == null ? "" : rs.getString(12), // remarks
 											  rs.getString(13), // default value
 											  null, // primaryKeySeq
-											  false // isAutoIncrement
+											  autoIncrement // isAutoIncrement
 											  );
 				logger.debug("Precision for the column " + rs.getString(4) + " is " + rs.getInt(7));
 

@@ -48,6 +48,10 @@ import junit.framework.TestSuite;
 
 import org.apache.commons.beanutils.BeanUtils;
 
+import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.SPDataSourceType;
+
 
 public class TestSQLColumn extends SQLTestCase {
 
@@ -1087,5 +1091,31 @@ public class TestSQLColumn extends SQLTestCase {
         SQLColumn col = table1pk.getColumn(0);
         col.setAutoIncrementSequenceName(col.getAutoIncrementSequenceName());
         assertFalse(col.isAutoIncrementSequenceNameSet());
+    }
+    
+    public void testReverseEngineerAutoInc() throws Exception {
+        PlDotIni plini = new PlDotIni();
+
+        SPDataSourceType dst = new SPDataSourceType();
+        dst.setJdbcDriver("ca.sqlpower.testutil.MockJDBCDriver");
+        plini.addDataSourceType(dst);
+
+        SPDataSource ds = new SPDataSource(plini);
+        String url = "jdbc:mock:tables=table1" +
+        		"&columns.table1=pkcol,normalcol" +
+        		"&autoincrement_cols=table1.pkcol";
+        ds.setUrl(url);
+        ds.setParentType(dst);
+        ds.setUser("x");
+        ds.setPass("x");
+        plini.addDataSource(ds);
+        
+        SQLDatabase db = new SQLDatabase(ds);
+        SQLTable t = db.getTableByName("table1");
+        SQLColumn pkcol = t.getColumnByName("pkcol");
+        SQLColumn normalcol = t.getColumnByName("normalcol");
+        
+        assertTrue(pkcol.isAutoIncrement());
+        assertFalse(normalcol.isAutoIncrement());
     }
 }
