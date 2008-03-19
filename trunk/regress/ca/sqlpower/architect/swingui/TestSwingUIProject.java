@@ -156,10 +156,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
         "   </folder>" +
         "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
-        "    <index id=\"IDX1892\" populated=\"true\" index-type=\"CLUSTERED\" name=\"mm_project_pk\" physicalName=\"PL_MATCH_PK\" primaryKeyIndex=\"true\" unique=\"true\" >" +
+        "    <index id=\"IDX1892\" populated=\"true\" index-type=\"PLATFORM DEFAULT\" name=\"mm_project_pk\" physicalName=\"PL_MATCH_PK\" primaryKeyIndex=\"true\" unique=\"true\" >" +
         "     <index-column id=\"IDC1893\" populated=\"true\" ascending=\"false\" column-ref=\"COL1832\" descending=\"false\" name=\"project_oid\" physicalName=\"MATCH_OID\" />" +
         "    </index>" +
-        "    <index id=\"IDX1894\" populated=\"true\" index-type=\"CLUSTERED\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+        "    <index id=\"IDX1894\" populated=\"true\" index-type=\"PLATFORM DEFAULT\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
         "     <index-column id=\"IDC1895\" populated=\"true\" ascending=\"false\" column-ref=\"COL1834\" descending=\"false\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
         "    </index>" +
         "   </folder>" +
@@ -1030,7 +1030,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         table.setName(tableName);
         ppdb.addChild(table);
 
-        SQLIndex origIndex1 = new SQLIndex("tasty index", false, null, SQLIndex.HASHED, null);
+        SQLIndex origIndex1 = new SQLIndex("tasty index", false, null, "HASH", null);
         origIndex1.addIndexColumn(col, AscendDescend.DESCENDING);
         table.getIndicesFolder().addChild(origIndex1);
         col.setPrimaryKeySeq(new Integer(0));
@@ -1038,7 +1038,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // second index references same column as first index, so
         // origIndex1.getChild(0).equals(origIndex2.getChild(0)) even though
         // they are not the same object
-        SQLIndex origIndex2 = new SQLIndex("nasty index", false, null, SQLIndex.HASHED, null);
+        SQLIndex origIndex2 = new SQLIndex("nasty index", false, null, "HASH", null);
         origIndex2.addIndexColumn(col, AscendDescend.DESCENDING);
         table.getIndicesFolder().addChild(origIndex2);
 

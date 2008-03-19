@@ -47,7 +47,7 @@ public class IndexColumnTableModelTest extends TestCase {
         SQLTable t = new SQLTable(null,true);
         SQLColumn col = new SQLColumn(t,"col1",1,0,0);
         t.addColumn(col);
-        SQLIndex i = new SQLIndex("name",true,"a",SQLIndex.CLUSTERED,"");
+        SQLIndex i = new SQLIndex("name",true,"a", "BTREE","");
         t.getIndicesFolder().addChild(i);
         i.addIndexColumn(col, AscendDescend.DESCENDING);
         i.addChild(i.new Column("expression",AscendDescend.DESCENDING));

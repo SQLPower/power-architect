@@ -414,7 +414,6 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
             }
             logger.debug("Adding index: " + index + " (parent table " + parentTableName + ") (parentFolder " + parentFolder + ")");
         }
-        if (index.getType() == SQLIndex.STATISTIC ) return;
 
         createPhysicalName(topLevelNames, index);
 
@@ -422,7 +421,11 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
         if (index.isUnique()) {
             print("UNIQUE ");
         }
-        print(" "+ index.getType()+" ");
+        if(index.isClustered()) {
+            print(" CLUSTERED ");
+        } else {
+            print(" NONCLUSTERED ");
+        }
         print("INDEX ");
         print(DDLUtils.toQualifiedName(null,null,index.getName()));
         print("\n ON ");
