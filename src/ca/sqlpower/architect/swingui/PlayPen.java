@@ -91,6 +91,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -114,6 +115,7 @@ import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLExceptionNode;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
@@ -540,16 +542,34 @@ public class PlayPen extends JPanel
      * set the action command in its parent menu item so that the
      * action can figure out what the source of the Action was.
 	 */
-	void setupTablePanePopup() {
+	void setupTablePanePopup(SQLTable table) {
 		ArchitectFrame af = session.getArchitectFrame();
 		tablePanePopup = new JPopupMenu();
-
+		
 		JMenuItem mi;
         
         mi = new JMenuItem();
         mi.setAction(af.getInsertIndexAction());
         mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
+        try {
+            if (table != null && table.getIndicesFolder().getChildCount() > 0) {
+                JMenu menu = new JMenu("Index Properties");
+                try {
+                    for (int i = 0; i < table.getIndicesFolder().getChildCount(); i++) {
+                        JMenuItem menuItem = new JMenuItem();
+                        menuItem.setAction(af.getEditIndexAction((SQLIndex) table.getIndicesFolder().getChild(i)));
+                        menuItem.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+                        menu.add(menuItem);
+                    }
+                } catch (ArchitectException e) {
+                    throw new ArchitectRuntimeException(e);
+                }
+                tablePanePopup.add(menu);
+            }
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
 
         tablePanePopup.addSeparator();
         
@@ -2569,8 +2589,8 @@ public class PlayPen extends JPanel
 		 * Shows the playpen popup menu if appropriate.
 		 */
 		public boolean maybeShowPopup(MouseEvent evt) {
-
-			setupTablePanePopup();
+		    
+			setupTablePanePopup(null);
 			setupPlayPenPopup();
 
 			Point p = evt.getPoint();
@@ -2601,6 +2621,7 @@ public class PlayPen extends JPanel
 						return false;
 					}
 					logger.debug("about to show playpen tablepane popup...");
+					setupTablePanePopup(tp.getModel());
 					tp.showPopup(pp.tablePanePopup, p);
 					return true;
 				}

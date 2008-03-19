@@ -81,6 +81,12 @@ public class SQLIndex extends SQLObject {
      * Identifier for the default index type.
      */
     public static String DEFAULT_INDEX_TYPE = "PLATFORM DEFAULT";
+    
+    /**
+     * This is the name of the column that will be augmented by the custom 
+     * JDBC wrappers to represent index type;
+     */
+    public static String RS_INDEX_TYPE_COL = "SPG_INDEX_TYPE";
 
 
     /**
@@ -653,8 +659,8 @@ public class SQLIndex extends SQLObject {
                 String qualifier = rs.getString(5);
                 String name = rs.getString(6);
                 String type = DEFAULT_INDEX_TYPE;
-                if (SQL.findColumnIndex(rs, "INDEX_TYPE") > 0) {
-                    type = rs.getString("INDEX_TYPE");
+                if (SQL.findColumnIndex(rs, RS_INDEX_TYPE_COL) > 0) {
+                    type = rs.getString(RS_INDEX_TYPE_COL);
                 }
                 int pos = rs.getInt(8);
                 String colName = rs.getString(9);
