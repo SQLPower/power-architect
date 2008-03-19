@@ -47,7 +47,6 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLSequence;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
-import ca.sqlpower.sql.SQL;
 
 /**
  * DDL Generator for Postgres 8.x (does not support e.g., ALTER COLUMN operations 7.[34]).
@@ -308,16 +307,6 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 
     }
 
-    @Override
-    protected String columnDefinition(SQLColumn c, Map colNameMap) {
-        String nameAndType = super.columnDefinition(c, colNameMap);
-        
-        if (c.isAutoIncrement()) {
-            return nameAndType + " DEFAULT nextval(" + SQL.quote(c.getAutoIncrementSequenceName()) + ")";
-        } else {
-            return nameAndType;
-        }
-    }
     
 	/**
 	 * Returns null, even though Postgres calls this "Database."  The reason is,
@@ -354,7 +343,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
      */
     @Override
     public void addIndex(SQLIndex index) throws ArchitectException {
-        if (index.getType() == SQLIndex.STATISTIC ) return;
+        
         createPhysicalName(topLevelNames, index);
         println("");
         print("CREATE ");
@@ -362,10 +351,12 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
             print("UNIQUE ");
         }
         print("INDEX ");
-        print(toQualifiedName(index));
+        print(toIdentifier(index.getName()));
         print("\n ON ");
         print(toQualifiedName(index.getParentTable()));
-        print(" USING "+ index.getType());
+        if(!index.getType().equals(SQLIndex.DEFAULT_INDEX_TYPE)) {            
+            print(" USING "+ index.getType());
+        }
         print("\n ( ");
 
         boolean first = true;
@@ -378,6 +369,18 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         }
 
         print(" )");
+        endStatement(DDLStatement.StatementType.CREATE, index);
+        if(index.isClustered()) {
+            addCluster(index, toIdentifier(index.getName()), index.getParentTable().getName());
+        }
+    }
+    
+    /**
+     * This will create a clustered index on a given table.
+     */
+    private void addCluster(SQLIndex index, String indexName, String table) {
+        println("");
+        print("CLUSTER " + indexName + " ON " + table);
         endStatement(DDLStatement.StatementType.CREATE, index);
     }
     

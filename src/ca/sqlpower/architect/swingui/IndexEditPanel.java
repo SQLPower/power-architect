@@ -72,6 +72,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     JCheckBox unique;
     JCheckBox primaryKey;
     JComboBox indexType;
+    JCheckBox clustered;
     IndexColumnTable columnsList;
     /**
      * This session that contains this index panel.
@@ -79,13 +80,13 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     ArchitectSwingSession session;
    
     public IndexEditPanel(SQLIndex index, ArchitectSwingSession session) throws ArchitectException{
-        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref","pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
+        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref","pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
         this.session = session;
         createGUI(index, index.getParentTable(), session);
     }
    
     public IndexEditPanel(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws ArchitectException {
-        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref","pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
+        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref","pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
         this.session=session;
         createGUI(index, parent, session);
     }
@@ -100,23 +101,24 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         unique = new JCheckBox("Unique");
         pb.add(unique,cc.xy(3, 3));
         primaryKey = new JCheckBox("Primary Key");
-        primaryKey.setSelected(index.isPrimaryKeyIndex());
-        primaryKey.setEnabled(false);
         pb.add(primaryKey,cc.xy(3, 5));
-        pb.add(new JLabel("Index Type"),cc.xy(1,7));
+        clustered = new JCheckBox("Clustered");
+        clustered.setSelected(index.isClustered());
+        pb.add(clustered, cc.xy(3, 7));
+        pb.add(new JLabel("Index Type"),cc.xy(1,9));
 
         indexType = new JComboBox();
         for(String type : getIndexTypes()){
             indexType.addItem(type);
         }
-        pb.add(indexType,cc.xyw(3, 7, 4));
+        pb.add(indexType,cc.xyw(3, 9, 4));
 
        
         editIndex(index);
         columnsList = new IndexColumnTable(parent, indexCopy);
        
        
-        pb.add(columnsList.getScrollPanel(),cc.xyw(1,11,6));
+        pb.add(columnsList.getScrollPanel(),cc.xyw(1,13,6));
        
        
        
@@ -133,7 +135,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 columnsList.moveRow(false);
             }
         }));
-        pb.add(bb.getPanel(),cc.xyw(1, 13, 6));
+        pb.add(bb.getPanel(),cc.xyw(1, 15, 6));
         loadIndexIntoPanel();
     }
    
@@ -165,7 +167,10 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
    
     private void loadIndexIntoPanel(){
         name.setText(index.getName());
+        primaryKey.setSelected(index.isPrimaryKeyIndex());
+        primaryKey.setEnabled(false);
         unique.setSelected(index.isUnique());
+        clustered.setSelected(index.isClustered());
         indexType.setSelectedItem(index.getType());
         name.selectAll();
     }
@@ -235,6 +240,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 }
                 index.setName(name.getText());
                 index.setUnique(unique.isSelected());
+                index.setClustered(clustered.isSelected());
                 index.setType(indexType.getSelectedItem().toString());
                 Folder<SQLIndex> indicesFolder = parentTable.getIndicesFolder();
                 List children = indicesFolder.getChildren();

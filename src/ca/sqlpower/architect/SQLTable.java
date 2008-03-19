@@ -715,7 +715,7 @@ public class SQLTable extends SQLObject {
             // Phase 3 (see doc comment)
 
             if (getPrimaryKeyIndex() == null) {
-                SQLIndex pkIndex = new SQLIndex(getName()+"_pk", true, null, SQLIndex.CLUSTERED,null);
+                SQLIndex pkIndex = new SQLIndex(getName()+"_pk", true, null, SQLIndex.DEFAULT_INDEX_TYPE ,null);
                 pkIndex.setPrimaryKeyIndex(true);
                 addIndex(pkIndex);
                 logger.debug("new pkIndex.getChildCount()="+pkIndex.getChildCount());

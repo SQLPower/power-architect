@@ -411,10 +411,10 @@ public class TestSQLTable extends SQLTestCase {
     public void testGetPrimaryKey() throws ArchitectException {
         SQLTable t1 = new SQLTable(null,true);
         SQLColumn c1 = new SQLColumn(t1,"col1",1,0,0);
-        SQLIndex i1 = new SQLIndex("name",true,null,SQLIndex.CLUSTERED,null);
+        SQLIndex i1 = new SQLIndex("name",true,null, "BTREE",null);
         i1.addIndexColumn(c1, AscendDescend.UNSPECIFIED);
         t1.getIndicesFolder().addChild(i1);
-        SQLIndex i2 = new SQLIndex("name 2",true,null,SQLIndex.CLUSTERED,null);
+        SQLIndex i2 = new SQLIndex("name 2",true,null, "BTREE",null);
         i2.addChild(i2.new Column("Index column string",AscendDescend.UNSPECIFIED));
         t1.getIndicesFolder().addChild(i2);
         
@@ -430,9 +430,9 @@ public class TestSQLTable extends SQLTestCase {
     public void testGetPrimaryKeyWhenPrimarykeyNotFirstIndex() throws ArchitectException {
         SQLTable t1 = new SQLTable(null,true);
         SQLColumn c1 = new SQLColumn(t1,"col1",1,0,0);
-        SQLIndex i1 = new SQLIndex("name",true,null,SQLIndex.CLUSTERED,null);
+        SQLIndex i1 = new SQLIndex("name",true,null, "BTREE",null);
         i1.addIndexColumn(c1, AscendDescend.UNSPECIFIED);
-        SQLIndex i2 = new SQLIndex("name 2",true,null,SQLIndex.CLUSTERED,null);
+        SQLIndex i2 = new SQLIndex("name 2",true,null, "BTREE",null);
         i2.addChild(i2.new Column("Index column string",AscendDescend.UNSPECIFIED));
         t1.getIndicesFolder().addChild(i2);
         t1.getIndicesFolder().addChild(i1);

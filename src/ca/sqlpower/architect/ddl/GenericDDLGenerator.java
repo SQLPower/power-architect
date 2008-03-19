@@ -481,6 +481,20 @@ public class GenericDDLGenerator implements DDLGenerator {
         endStatement(DDLStatement.StatementType.DROP, t);
     }
 
+	/**
+	 * Creates a SQL DDL snippet which consists of the column name, data type,
+	 * default value, and nullability clauses.
+	 * 
+	 * @param c The column to generate the DDL snippet for.
+	 * @param colNameMap Dirty hack for coming up with unique physical names. 
+	 * The final physical name generated in the SQL snippet will be stored
+	 * in this map. If you don't care about producing unique column names, just
+	 * pass in a freshly-created map. See {@link #createPhysicalName(Map, SQLObject)}
+	 * for more information.
+	 * @return The SQL snippet that describes the given column. The returned string
+	 * is not delimited at the beginning or end: you're responsible for properly putting
+	 * it in the context of a valid SQL statement.
+	 */
 	protected String columnDefinition(SQLColumn c, Map colNameMap) {
         StringBuffer def = new StringBuffer();
 
@@ -491,7 +505,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         def.append(columnType(c));
         def.append(" ");
 
-        if (c.getDefaultValue() != null && !c.getDefaultValue().equals("")) {
+        if ( c.getDefaultValue() != null && !c.getDefaultValue().equals("")) {
             def.append("DEFAULT ");
             def.append(c.getDefaultValue());
             def.append(" ");
@@ -500,6 +514,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         // Column nullability
         def.append(columnNullability(c));
 
+        logger.debug("column definition "+ def.toString());
         return def.toString();
     }
 
@@ -1123,8 +1138,6 @@ public class GenericDDLGenerator implements DDLGenerator {
      * table statistics (you can't create or drop them).
      */
     public void addIndex(SQLIndex index) throws ArchitectException {
-        if (index.getType() == SQLIndex.STATISTIC ) return;
-
         createPhysicalName(topLevelNames, index);
 
         println("");

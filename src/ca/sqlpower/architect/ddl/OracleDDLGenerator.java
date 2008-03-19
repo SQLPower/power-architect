@@ -349,12 +349,14 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
      */
     @Override
     public void addIndex(SQLIndex index) throws ArchitectException {
-        if (index.getType() == SQLIndex.STATISTIC ) return;
         createPhysicalName(topLevelNames, index);
         println("");
         print("CREATE ");
         if (index.isUnique()) {
             print("UNIQUE ");
+        }
+        if(index.getType().equals("BITMAP")) {
+            print("BITMAP ");
         }
         print("INDEX ");
         print(toQualifiedName(index.getName()));
@@ -371,7 +373,9 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         }
 
         print(" )");
-        print("\n INDEXTYPE IS "+index.getType());
+        if(index.getType().equals("CTXCAT")) {            
+            print("\n INDEXTYPE IS "+index.getType());
+        }
         endStatement(DDLStatement.StatementType.CREATE, index);
     }
     
