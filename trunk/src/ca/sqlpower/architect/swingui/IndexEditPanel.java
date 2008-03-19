@@ -108,6 +108,8 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         pb.add(new JLabel("Index Type"),cc.xy(1,9));
 
         indexType = new JComboBox();
+        //add the platform default type
+        indexType.addItem(SQLIndex.DEFAULT_INDEX_TYPE); 
         for(String type : getIndexTypes()){
             indexType.addItem(type);
         }

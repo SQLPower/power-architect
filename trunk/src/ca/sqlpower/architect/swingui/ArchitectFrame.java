@@ -66,6 +66,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
@@ -689,6 +690,11 @@ public class ArchitectFrame extends JFrame {
     }
 
     public EditIndexAction getEditIndexAction() {
+        return editIndexAction;
+    }
+    
+    public EditIndexAction getEditIndexAction(SQLIndex index) {
+        editIndexAction = new EditIndexAction(session, index);
         return editIndexAction;
     }
 
