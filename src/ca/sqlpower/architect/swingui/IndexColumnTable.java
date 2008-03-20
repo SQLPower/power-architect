@@ -32,7 +32,6 @@
 
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -44,8 +43,8 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -156,12 +155,6 @@ public class IndexColumnTable {
 
         int start = table.getSelectedRows()[0];
         int end = table.getSelectedRows()[table.getSelectedRows().length-1];
-        for(int i =start; i<=end;i++){
-            if(!isRowEnabled(i)){
-                end = i-1;
-                break;
-            }
-        }
         int dest = start;
         if(direction){
             dest--; // move up
@@ -169,18 +162,13 @@ public class IndexColumnTable {
             dest++;//move down
         }
         int count = end - start;
-        if (count < 0 || !isRowEnabled(start)) {//just in case :S
+        if (count < 0) {
             return; 
         }
         if(dest >=0 && dest<=(table.getRowCount()-count-1)){
             model.moveRow(start, end, dest);
-            sortAllRowsBy(model,table.getColumnModel().getColumnIndex(IN_INDEX),false);
-            if(isRowEnabled(dest)){
-                table.getSelectionModel().removeSelectionInterval(0, table.getRowCount()-1);
-                table.getSelectionModel().addSelectionInterval(dest, dest+count);
-            }else{
-                table.getSelectionModel().addSelectionInterval(start, end);
-            }
+            table.getSelectionModel().removeSelectionInterval(0, table.getRowCount()-1);
+            table.getSelectionModel().addSelectionInterval(dest, dest+count);
         }
     }
 
@@ -256,6 +244,17 @@ public class IndexColumnTable {
     public JScrollPane getScrollPanel(){
         return this.scrollPane;
     }
+    
+    /**
+     * This method will tell us if a specific row index is currently selected
+     * in the table.
+     */
+    private boolean isRowInCurrentSelection(int row){
+        for (int i: table.getSelectedRows()) {
+            if (i == row)  return true;
+        }
+        return false;
+    }
 
     /**
      * This will be used to Override the JTable
@@ -268,13 +267,23 @@ public class IndexColumnTable {
                     int column) {
                 Component c = super.prepareRenderer(renderer, row, column);
                 String str = model.getValueAt(row, table.getColumnModel().getColumnIndex(IN_INDEX)).toString();
-                if (str.equals("false")) {
-                    c.setBackground(Color.GRAY);
-                    return c;
+                UIDefaults def = UIManager.getLookAndFeelDefaults();
+                
+                boolean isSelected = isRowInCurrentSelection(row);
+                if (str.equals("false") && isSelected) {
+                    c.setBackground(def.getColor("TextField.selectionBackground"));
+                    c.setForeground(def.getColor("TextField.inactiveForeground"));
+                } else if (str.equals("false") && !isSelected) {
+                    c.setForeground(def.getColor("TextField.inactiveForeground"));                    
+                    c.setBackground(def.getColor("TextField.inactiveBackground"));
+                } else if (isSelected){
+                    c.setBackground(def.getColor("TextField.selectionBackground"));
+                    c.setForeground(def.getColor("TextField.foreground"));
+                } else {
+                    c.setBackground(def.getColor("TextField.background"));
+                    c.setForeground(def.getColor("TextField.foreground"));
                 }
-                else
-                    c.setBackground(Color.WHITE);
-                return super.prepareRenderer(renderer, row, column);
+                return c;
             }
 
         };
@@ -336,43 +345,7 @@ public class IndexColumnTable {
         };
         
 
-        /* This will listen for changes to the table model */
-        model.addTableModelListener(new TableModelListener() {
-            public void tableChanged(TableModelEvent e) {
-                int row = e.getFirstRow();
-                int col = e.getColumn();
-                if(row>=0 && col >=0 && col == table.getColumnModel().getColumnIndex(IN_INDEX)){
-                    String str = table.getValueAt(row, col).toString();
-                    if(str.equals("true")){
-                        sendRowToTop(row);
-                    }else{
-                        sendRowToBottom(row);
-                    }
-                }
 
-            }
-
-        });
-    }
-
-
-    /**
-     * This method will move a row with a specific index to the bottom of 
-     * the table.
-     * @param row
-     */
-    public void sendRowToBottom(int row){
-        model.moveRow(row, row, table.getRowCount()-1);
-    }
-
-    /**
-     * This method will move a row with a specific index to the  top of the 
-     * table.
-     * @param row
-     */
-    public void sendRowToTop(int row){
-        if(row <= table.getRowCount()-1 && table.getRowCount() > 0)
-            model.moveRow(row, row, 0);
     }
 
 
