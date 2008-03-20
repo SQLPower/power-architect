@@ -1392,4 +1392,16 @@ public class SQLTable extends SQLObject {
             if (rs != null) rs.close();
         }
     }
+
+    /**
+     * Returns an unmodifiable list of all the indices of this table, in the
+     * same order they appear in the indices folder. If this table has no indices,
+     * the returned list will be empty (never null).
+     * 
+     * @throws ArchitectException If there is a problem populating the indices folder
+     */
+    public List<SQLIndex> getIndices() throws ArchitectException {
+        List<SQLIndex> indices = getIndicesFolder().getChildren();
+        return Collections.unmodifiableList(indices);
+    }
 }

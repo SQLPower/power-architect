@@ -31,98 +31,38 @@
  */
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.event.ActionEvent;
-import java.util.List;
-
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
-import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.IndexEditPanel;
-import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
-public class EditIndexAction extends AbstractArchitectAction {
+/**
+ * Abstract base class for the two different index edit actions.  The protected
+ * method {@link #makeDialog(SQLIndex)} gets used by subclasses once they've
+ * decided which index to edit.
+ */
+public abstract class EditIndexAction extends AbstractArchitectAction {
+    
     private static final Logger logger = Logger.getLogger(EditIndexAction.class);
 
+    protected EditIndexAction(ArchitectSwingSession session, String actionName, String actionDescription, String iconResourceName) {
+        super(session, actionName, actionDescription, iconResourceName);
+    }
+
     /**
-     * The DBTree instance that is associated with this Action.
+     * Creates and shows the index properties dialog for the given index.
      */
-    protected final DBTree dbt; 
-    
-    /**
-     * This is the index associated with this edit action
-     */
-    private SQLIndex index;
-
-    
-    public EditIndexAction(ArchitectSwingSession session) {
-        super(session, "Index Properties...", "Index Properties", "IndexProperties");
-        dbt = frame.getDbTree();
-    }
-    
-    public EditIndexAction(ArchitectSwingSession session, SQLIndex index){
-        super(session, index.getName(),index.getName());
-        this.index = index;
-        dbt = frame.getDbTree();
-    }
-
-    public void actionPerformed(ActionEvent evt) {
-        if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
-            TreePath [] selections = dbt.getSelectionPaths();
-            logger.debug("selections length is: " + selections.length);
-            if (selections.length != 1) {
-                JOptionPane.showMessageDialog(dbt, "To indicate which index you like edit, please select a single index header.");
-            } else {
-                TreePath tp = selections[0];
-                SQLObject so = (SQLObject) tp.getLastPathComponent();
-                SQLIndex si = null;
-
-                if (so instanceof SQLIndex) {
-                    logger.debug("user clicked on index, so we shall try to edit the index properties.");
-                    si = (SQLIndex) so;
-                    try {
-                        makeDialog(si);
-                    } catch (ArchitectException e) {
-                        throw new ArchitectRuntimeException(e);
-                    } 
-                } else {
-                    JOptionPane.showMessageDialog(dbt, "To indicate which index name you would like to edit, please select a single index header.");
-                }
-            }
-        } else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
-            List selection = playpen.getSelectedItems();
-            if (selection.size() < 1) {
-                JOptionPane.showMessageDialog(playpen, "Select a table (by clicking on it) and try again.");
-            } else if (selection.size() > 1) {
-                JOptionPane.showMessageDialog(playpen, "You have selected multiple items, but you can only edit one at a time.");
-            } else if (selection.get(0) instanceof TablePane) {
-                TablePane tp = (TablePane) selection.get(0);
-                try {
-                    makeDialog(index);
-                } catch (ArchitectException e) {
-                    throw new ArchitectRuntimeException(e);
-                } 
-            } else {
-                JOptionPane.showMessageDialog(playpen, "The selected item type is not recognised");
-            }
-        }   
-    }
-
-    
-    private void makeDialog(SQLIndex index) throws ArchitectException {
+    protected void makeDialog(SQLIndex index) throws ArchitectException {
         final JDialog d;
         final IndexEditPanel editPanel = new IndexEditPanel(index, session);
   
+        logger.debug("Showing index edit dialog for " + index);
+        
         d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 editPanel, frame,
                 "Index Properties", "OK");

@@ -66,7 +66,6 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
@@ -80,8 +79,9 @@ import ca.sqlpower.architect.swingui.action.DataMoverAction;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditColumnAction;
-import ca.sqlpower.architect.swingui.action.EditIndexAction;
 import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
+import ca.sqlpower.architect.swingui.action.EditSelectedIndexAction;
+import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.action.EditTableAction;
 import ca.sqlpower.architect.swingui.action.ExportCSVAction;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction;
@@ -153,7 +153,13 @@ public class ArchitectFrame extends JFrame {
     private InsertColumnAction insertColumnAction;
     private InsertIndexAction insertIndexAction;
     private EditTableAction editTableAction;
-    private EditIndexAction editIndexAction;
+    
+    /**
+     * Edits the index which is currently selected in the DBTree.
+     * For PlayPen purposes, see {@link EditSpecificIndexAction}.
+     */
+    private EditSelectedIndexAction editIndexAction;
+    
     private DeleteSelectedAction deleteSelectedAction;
     private CreateTableAction createTableAction;
     private CreateRelationshipAction createIdentifyingRelationshipAction;
@@ -336,7 +342,7 @@ public class ArchitectFrame extends JFrame {
         insertColumnAction = new InsertColumnAction(session);
         insertIndexAction = new InsertIndexAction(session);
         editTableAction = new EditTableAction(session);
-        editIndexAction = new EditIndexAction(session);
+        editIndexAction = new EditSelectedIndexAction(session);
         searchReplaceAction = new SearchReplaceAction(session);
         searchReplaceAction.putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_F, accelMask));
@@ -569,6 +575,7 @@ public class ArchitectFrame extends JFrame {
 	 * Creates an ArchitectFrame and sets it visible.  This method is
 	 * an acceptable way to launch the Architect application.
 	 */
+    @SuppressWarnings("deprecation")
 	public static void main(final String args[]) throws ArchitectException {
 		SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
@@ -689,15 +696,14 @@ public class ArchitectFrame extends JFrame {
         return insertColumnAction;
     }
 
-    public EditIndexAction getEditIndexAction() {
+    /**
+     * Returns the action that edits the index which is currently selected in
+     * the DBTree. For PlayPen purposes, see {@link EditSpecificIndexAction}.
+     */
+    public EditSelectedIndexAction getEditIndexAction() {
         return editIndexAction;
     }
     
-    public EditIndexAction getEditIndexAction(SQLIndex index) {
-        editIndexAction = new EditIndexAction(session, index);
-        return editIndexAction;
-    }
-
     public EditRelationshipAction getEditRelationshipAction() {
         return editRelationshipAction;
     }
