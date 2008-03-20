@@ -89,7 +89,7 @@ public class TestSQLIndexColumn extends SQLTestCase {
             "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
             "   </folder>" +
             "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
-            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"PLATFORM DEFAULT\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"BTREE\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
             "     <index-column id=\"IDC1895\" populated=\"true\" ascending=\"true\" column-ref=\"COL1834\" descending=\"false\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
             "    </index>" +
             "   </folder>" +
@@ -129,7 +129,7 @@ public class TestSQLIndexColumn extends SQLTestCase {
             "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
             "   </folder>" +
             "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
-            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"PLATFORM DEFAULT\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"BTREE\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
             "     <index-column id=\"IDC1895\" populated=\"true\" ascending=\"false\" column-ref=\"COL1834\" descending=\"true\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
             "    </index>" +
             "   </folder>" +
@@ -169,7 +169,7 @@ public class TestSQLIndexColumn extends SQLTestCase {
             "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
             "   </folder>" +
             "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
-            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"PLATFORM DEFAULT\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"BTREE\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
             "     <index-column id=\"IDC1895\" populated=\"true\" ascending=\"false\" column-ref=\"COL1834\" descending=\"false\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
             "    </index>" +
             "   </folder>" +
@@ -246,7 +246,7 @@ public class TestSQLIndexColumn extends SQLTestCase {
             "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
             "   </folder>" +
             "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
-            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"PLATFORM DEFAULT\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"BTREE\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
             "     <index-column id=\"IDC1895\" populated=\"true\" ascendingOrDescending=\"DESCENDING\" column-ref=\"COL1834\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
             "    </index>" +
             "   </folder>" +
@@ -284,7 +284,7 @@ public class TestSQLIndexColumn extends SQLTestCase {
             "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
             "   </folder>" +
             "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
-            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"PLATFORM DEFAULT\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"BTREE\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
             "     <index-column id=\"IDC1895\" populated=\"true\" ascendingOrDescending=\"UNSPECIFIED\" column-ref=\"COL1834\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
             "    </index>" +
             "   </folder>" +
