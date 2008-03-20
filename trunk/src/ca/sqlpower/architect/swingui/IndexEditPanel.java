@@ -31,6 +31,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -58,8 +59,8 @@ import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.sql.SPDataSourceType;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.SPSUtils;
 
-import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -123,21 +124,22 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         pb.add(columnsList.getScrollPanel(),cc.xyw(1,13,6));
        
        
-       
-        ButtonBarBuilder bb = new ButtonBarBuilder();
-        bb.addGridded(new JButton(new AbstractAction("Up"){
+        // we want the buttons at their natural sizes, and the buttonbarbuilder wasn't doing that
+        JPanel upDownPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        upDownPanel.add(new JButton(new AbstractAction(null, SPSUtils.createIcon("chevrons_up1", null)) {
 
             public void actionPerformed(ActionEvent e) {
                 columnsList.moveRow(true);
             }
            
         }));
-        bb.addGridded(new JButton(new AbstractAction("Down"){
+        upDownPanel.add(new JButton(new AbstractAction(null,  SPSUtils.createIcon("chevrons_down1", null)){
             public void actionPerformed(ActionEvent e) {
                 columnsList.moveRow(false);
             }
         }));
-        pb.add(bb.getPanel(),cc.xyw(1, 15, 6));
+
+        pb.add(upDownPanel, cc.xyw(1, 15, 6));
         loadIndexIntoPanel();
     }
    
