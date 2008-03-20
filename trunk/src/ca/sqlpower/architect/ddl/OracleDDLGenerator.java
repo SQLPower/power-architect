@@ -355,7 +355,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         if (index.isUnique()) {
             print("UNIQUE ");
         }
-        if(index.getType().equals("BITMAP")) {
+        if(index.getType() != null && index.getType().equals("BITMAP")) {
             print("BITMAP ");
         }
         print("INDEX ");
@@ -373,7 +373,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         }
 
         print(" )");
-        if(index.getType().equals("CTXCAT")) {            
+        if(index.getType() != null && index.getType().equals("CTXCAT")) {            
             print("\n INDEXTYPE IS "+index.getType());
         }
         endStatement(DDLStatement.StatementType.CREATE, index);
