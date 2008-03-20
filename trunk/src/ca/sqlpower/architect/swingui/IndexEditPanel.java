@@ -175,7 +175,11 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         primaryKey.setEnabled(false);
         unique.setSelected(index.isUnique());
         clustered.setSelected(index.isClustered());
-        indexType.setSelectedItem(index.getType());
+        if (index.getType() == null) {
+            indexType.setSelectedItem(SQLIndex.DEFAULT_INDEX_TYPE);
+        } else {
+            indexType.setSelectedItem(index.getType());
+        }
         name.selectAll();
     }
    
