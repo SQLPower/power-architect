@@ -192,7 +192,8 @@ public class IndexColumnTable {
             for(int i = 0; i<parent.getColumns().size();i++){
                 // add a new row to the table
                 Vector v = new Vector();
-                Column child = (Column)index.getChildByName(parent.getColumn(i).getName());
+                
+                Column child = getIndexColumn(parent.getColumn(i));
 
                 if(child != null){ 
                     v.add(true); // enable it if the column is contained by the index
@@ -211,8 +212,23 @@ public class IndexColumnTable {
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         }
+    }
 
-
+    /**
+     * Obtain the proper SQLIndex.Column object given a SQLColumn. Returns null
+     * if not found.
+     */
+    private Column getIndexColumn(SQLColumn col) {
+        try {
+            for (int i = 0; i < index.getChildCount(); i++) {
+                   if(index.getChild(i).getColumn().equals(col)){
+                       return index.getChild(i);
+                   }
+            }
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
+        return null;
     }
 
     /**
