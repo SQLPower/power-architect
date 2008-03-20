@@ -80,7 +80,7 @@ public class SQLIndex extends SQLObject {
     /**
      * Identifier for the default index type.
      */
-    public static String DEFAULT_INDEX_TYPE = "PLATFORM DEFAULT";
+    public static String DEFAULT_INDEX_TYPE = "<Platform Default>";
     
     /**
      * This is the name of the column that will be augmented by the custom 
