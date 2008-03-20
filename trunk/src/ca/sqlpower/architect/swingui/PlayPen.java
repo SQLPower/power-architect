@@ -555,15 +555,11 @@ public class PlayPen extends JPanel
         try {
             if (table != null && table.getIndicesFolder().getChildCount() > 0) {
                 JMenu menu = new JMenu("Index Properties");
-                try {
-                    for (int i = 0; i < table.getIndicesFolder().getChildCount(); i++) {
-                        JMenuItem menuItem = new JMenuItem();
-                        menuItem.setAction(af.getEditIndexAction((SQLIndex) table.getIndicesFolder().getChild(i)));
-                        menuItem.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-                        menu.add(menuItem);
-                    }
-                } catch (ArchitectException e) {
-                    throw new ArchitectRuntimeException(e);
+                for (int i = 0; i < table.getIndicesFolder().getChildCount(); i++) {
+                    JMenuItem menuItem = new JMenuItem();
+                    menuItem.setAction(af.getEditIndexAction((SQLIndex) table.getIndicesFolder().getChild(i)));
+                    menuItem.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+                    menu.add(menuItem);
                 }
                 tablePanePopup.add(menu);
             }
@@ -572,10 +568,10 @@ public class PlayPen extends JPanel
         }
 
         tablePanePopup.addSeparator();
-        
-		mi = new JMenuItem();
-		mi.setAction(af.getEditColumnAction());
-		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+
+        mi = new JMenuItem();
+        mi.setAction(af.getEditColumnAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
 		mi = new JMenuItem();
