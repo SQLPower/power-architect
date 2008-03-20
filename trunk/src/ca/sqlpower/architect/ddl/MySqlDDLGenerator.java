@@ -468,7 +468,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         }
         print("INDEX ");
         print(toIdentifier(index.getName()));
-        if(!index.getType().equals(SQLIndex.DEFAULT_INDEX_TYPE)) {            
+        if(index.getType() != null) {            
             print(" USING " + index.getType());
         }
         print("\n ON ");
