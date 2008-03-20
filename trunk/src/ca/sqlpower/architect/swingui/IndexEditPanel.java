@@ -45,6 +45,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -74,7 +75,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     JCheckBox primaryKey;
     JComboBox indexType;
     JCheckBox clustered;
-    IndexColumnTable columnsList;
+    IndexColumnTable columnsTable;
     /**
      * This session that contains this index panel.
      */
@@ -123,10 +124,10 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
 
        
         editIndex(index);
-        columnsList = new IndexColumnTable(parent, indexCopy);
+        columnsTable = new IndexColumnTable(parent, indexCopy);
        
        
-        pb.add(columnsList.getScrollPanel(),cc.xyw(1,13,6));
+        pb.add(new JScrollPane(columnsTable.getTable()),cc.xyw(1,13,6));
        
        
         // we want the buttons at their natural sizes, and the buttonbarbuilder wasn't doing that
@@ -134,13 +135,13 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         upDownPanel.add(new JButton(new AbstractAction(null, SPSUtils.createIcon("chevrons_up1", null)) {
 
             public void actionPerformed(ActionEvent e) {
-                columnsList.moveRow(true);
+                columnsTable.moveRow(true);
             }
            
         }));
         upDownPanel.add(new JButton(new AbstractAction(null,  SPSUtils.createIcon("chevrons_down1", null)){
             public void actionPerformed(ActionEvent e) {
-                columnsList.moveRow(false);
+                columnsTable.moveRow(false);
             }
         }));
 
@@ -248,7 +249,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
      */
     public boolean applyChanges() {
        
-        columnsList.finalizeIndex();
+        columnsTable.finalizeIndex();
        
         startCompoundEdit("Index Properties Change");      
         try {  
