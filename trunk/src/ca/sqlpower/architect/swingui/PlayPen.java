@@ -130,6 +130,7 @@ import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CancelAction;
+import ca.sqlpower.architect.swingui.action.IndexPropertiesAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
@@ -554,7 +555,7 @@ public class PlayPen extends JPanel
         tablePanePopup.add(mi);
         try {
             if (table != null && table.getIndicesFolder().getChildCount() > 0) {
-                JMenu menu = new JMenu("Index Properties");
+                JMenu menu = new JMenu(new IndexPropertiesAction(session));
                 for (int i = 0; i < table.getIndicesFolder().getChildCount(); i++) {
                     JMenuItem menuItem = new JMenuItem();
                     menuItem.setAction(af.getEditIndexAction((SQLIndex) table.getIndicesFolder().getChild(i)));
