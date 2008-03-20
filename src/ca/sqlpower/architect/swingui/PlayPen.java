@@ -130,7 +130,7 @@ import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CancelAction;
-import ca.sqlpower.architect.swingui.action.IndexPropertiesAction;
+import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
@@ -555,10 +555,10 @@ public class PlayPen extends JPanel
         tablePanePopup.add(mi);
         try {
             if (table != null && table.getIndicesFolder().getChildCount() > 0) {
-                JMenu menu = new JMenu(new IndexPropertiesAction(session));
-                for (int i = 0; i < table.getIndicesFolder().getChildCount(); i++) {
-                    JMenuItem menuItem = new JMenuItem();
-                    menuItem.setAction(af.getEditIndexAction((SQLIndex) table.getIndicesFolder().getChild(i)));
+                JMenu menu = new JMenu("Index Properties");
+                menu.setIcon(SPSUtils.createIcon("edit_index", "Edit Index", ArchitectSwingSessionContext.ICON_SIZE));
+                for (SQLIndex index : table.getIndices()) {
+                    JMenuItem menuItem = new JMenuItem(new EditSpecificIndexAction(session, index));
                     menuItem.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
                     menu.add(menuItem);
                 }

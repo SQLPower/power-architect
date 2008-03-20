@@ -34,25 +34,48 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
 
-import org.apache.log4j.Logger;
-
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
+import ca.sqlpower.architect.SQLIndex;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.DBTree;
 
-public class IndexPropertiesAction extends AbstractArchitectAction {
-    private static final Logger logger = Logger.getLogger(EditTableAction.class);
-    
+/**
+ * An action that, when invoked, pops up the IndexEditPanel for a certain
+ * pre-determined index.
+ */
+public class EditSpecificIndexAction extends EditIndexAction {
+
     /**
-     * The DBTree instance that is associated with this Action.
+     * This is the index associated with this edit action
      */
-    protected final DBTree dbt; 
-    
-    public IndexPropertiesAction(ArchitectSwingSession session) {
-        super(session, "Index Properties", "Index Properties", "edit_column");
-        dbt = frame.getDbTree();
+    private final SQLIndex index;
+
+    /**
+     * Creates a new instance of this action which will pop up an IndexEditPanel
+     * for the given index, regardless of the current selection. For a
+     * selection-sensitive index edit action, see
+     * {@link ArchitectFrame#getEditIndexAction()}.
+     * 
+     * @param session
+     *            The session to which this action belongs.
+     * @param index
+     *            The index this action instance will edit. Cannot be modified
+     *            once this action is constructed.
+     */
+    public EditSpecificIndexAction(ArchitectSwingSession session, SQLIndex index){
+        super(session, index.getName() + "...", index.getName(), null);
+        if (index == null) {
+            throw new NullPointerException("Null index not allowed");
+        }
+        this.index = index;
     }
-    
+
     public void actionPerformed(ActionEvent evt) {
-      // this will do nothing for now, but it may have to do something later on.   
+        try {
+            makeDialog(index);
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        } 
     }
 }
