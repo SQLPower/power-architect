@@ -77,10 +77,6 @@ public class SQLIndex extends SQLObject {
      */
     public String type;
 
-    /**
-     * Identifier for the default index type.
-     */
-    public static String DEFAULT_INDEX_TYPE = "<Platform Default>";
     
     /**
      * This is the name of the column that will be augmented by the custom 
@@ -658,7 +654,7 @@ public class SQLIndex extends SQLObject {
                 boolean isClustered = rs.getShort(7) == DatabaseMetaData.tableIndexClustered ? true : false;
                 String qualifier = rs.getString(5);
                 String name = rs.getString(6);
-                String type = DEFAULT_INDEX_TYPE;
+                String type = null;
                 if (SQL.findColumnIndex(rs, RS_INDEX_TYPE_COL) > 0) {
                     type = rs.getString(RS_INDEX_TYPE_COL);
                 }

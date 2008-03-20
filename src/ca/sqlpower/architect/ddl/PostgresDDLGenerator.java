@@ -354,7 +354,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         print(toIdentifier(index.getName()));
         print("\n ON ");
         print(toQualifiedName(index.getParentTable()));
-        if(!index.getType().equals(SQLIndex.DEFAULT_INDEX_TYPE)) {            
+        if(index.getType() != null) {            
             print(" USING "+ index.getType());
         }
         print("\n ( ");

@@ -79,6 +79,11 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
      * This session that contains this index panel.
      */
     ArchitectSwingSession session;
+    
+    /**
+     * Identifier for the default index type.
+     */
+    private static String DEFAULT_INDEX_TYPE = "<Platform Default>";
    
     public IndexEditPanel(SQLIndex index, ArchitectSwingSession session) throws ArchitectException{
         super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref","pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
@@ -110,7 +115,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
 
         indexType = new JComboBox();
         //add the platform default type
-        indexType.addItem(SQLIndex.DEFAULT_INDEX_TYPE); 
+        indexType.addItem(DEFAULT_INDEX_TYPE); 
         for(String type : getIndexTypes()){
             indexType.addItem(type);
         }
@@ -142,6 +147,47 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         pb.add(upDownPanel, cc.xyw(1, 15, 6));
         loadIndexIntoPanel();
     }
+    
+    /**
+     * Returns an unique index name;
+     */
+    private String getIndexName(){
+        int i = 0;
+        String name = null;
+        do{
+            name = generateName(i); 
+            i++;
+        } while (indexNameAlreadyExists(name));
+        return name;
+    }
+
+    /**
+     * This will check if an index name already exits on the table.
+     * @return True if index already exists, false otherwise
+     */
+    private boolean indexNameAlreadyExists(String name) {
+        try {
+            for (int i = 0; i < parent.getIndicesFolder().getChildCount(); i++) {
+                   if(name.equals(parent.getIndicesFolder().getChild(i).getName())) {
+                       return true;
+                   }
+            }
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
+        return false;
+    }
+
+    /**
+     * This will generate an index name if the format: $tablename_idx(#)
+     */
+    private String generateName(int number) {
+        if(number == 0){
+            return new String(parent.getName() + "_idx");
+        } else {
+            return new String (parent.getName() + "_idx" + Integer.toString(number));
+        }
+    }
    
    /**
 	*This will return a list of Index Types that are found in the pl.ini file
@@ -170,13 +216,17 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     }
    
     private void loadIndexIntoPanel(){
-        name.setText(index.getName());
+        if(index.getName() != null){
+            name.setText(index.getName());
+        } else {
+            name.setText(getIndexName());
+        }
         primaryKey.setSelected(index.isPrimaryKeyIndex());
         primaryKey.setEnabled(false);
         unique.setSelected(index.isUnique());
         clustered.setSelected(index.isClustered());
         if (index.getType() == null) {
-            indexType.setSelectedItem(SQLIndex.DEFAULT_INDEX_TYPE);
+            indexType.setSelectedItem(DEFAULT_INDEX_TYPE);
         } else {
             indexType.setSelectedItem(index.getType());
         }
@@ -249,7 +299,11 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 index.setName(name.getText());
                 index.setUnique(unique.isSelected());
                 index.setClustered(clustered.isSelected());
-                index.setType(indexType.getSelectedItem().toString());
+                if(indexType.getSelectedItem().toString().equals(DEFAULT_INDEX_TYPE)) {
+                    index.setType(null);
+                } else {
+                    index.setType(indexType.getSelectedItem().toString());
+                }
                 Folder<SQLIndex> indicesFolder = parentTable.getIndicesFolder();
                 List children = indicesFolder.getChildren();
                 if (!children.contains(index)) {
