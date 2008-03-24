@@ -69,6 +69,10 @@ public class IndexColumnTable {
 
     private class IndexColumnTableModel extends AbstractTableModel implements CleanupTableModel, SQLObjectListener {
 
+        /**
+         * This List contains all of the Row objects in the table. Refer to the
+         * Row object for more details
+         */
         private List<Row> rowList;
 
         /**
@@ -96,6 +100,13 @@ public class IndexColumnTable {
          */
         private final SQLIndex actualIndex;
 
+        /**
+         * This constructor will take in a SQLIndex (as a copy of the actual index
+         * such that modifications to the index are applied all at once), a SQLTable
+         * and the actual index in the SQLIndex folder of the table. The reason for this
+         * is because we would like to sync changes between the index copy and the
+         * actual index when the user makes changes in the PP.
+         */
         IndexColumnTableModel(SQLIndex index, SQLTable parent, SQLIndex actualIndex) {
             this.index = index;
             this.actualIndex = actualIndex;
@@ -126,26 +137,16 @@ public class IndexColumnTable {
         /**
          * This listener will listen to the actual index (not the copy), such
          * that if the user modifies the SQLIndex from the pp, the table will
-         * also be updated with the proper changes. 
+         * also be updated with the proper changes.
          */
         private class ActualIndexListener implements SQLObjectListener {
 
             public void dbChildrenInserted(SQLObjectEvent e) {
-                try {
-                    index.makeColumnsLike(actualIndex);
-                    repopulateModel();
-                } catch (ArchitectException ex) {
-                    throw new ArchitectRuntimeException(ex);
-                }
+                repopulateModel();
             }
 
             public void dbChildrenRemoved(SQLObjectEvent e) {
-                try {
-                    index.makeColumnsLike(actualIndex);
-                    repopulateModel();
-                } catch (ArchitectException ex) {
-                    throw new ArchitectRuntimeException(ex);
-                }
+                repopulateModel();
             }
 
             public void dbObjectChanged(SQLObjectEvent e) {
@@ -177,11 +178,16 @@ public class IndexColumnTable {
         }
 
         /**
-         * This method is used to re-populate all of the rows in the 
-         * table model. Normally used to sync changed between the actual SQLIndex
-         * and the columns in this table.
+         * This method is used to re-populate all of the rows in the table
+         * model. Normally used to sync changed between the actual SQLIndex and
+         * the columns in this table.
          */
         private void repopulateModel() {
+            try {
+                index.makeColumnsLike(actualIndex);
+            } catch (ArchitectException ex) {
+                throw new ArchitectRuntimeException(ex);
+            }
             for (int i = rowList.size() - 1; i >= 0; i--) {
                 rowList.remove(i);
             }
@@ -240,14 +246,10 @@ public class IndexColumnTable {
          * Returns the column names of this table
          */
         public String getColumnName(int col) {
-            if (col == 0)
-                return "In Index";
-            else if (col == 1)
-                return "Column";
-            else if (col == 2)
-                return "Asc/Des";
-            else
-                throw new ArchitectRuntimeException(new ArchitectException("This table has only 3 columns"));
+            if (col == 0) return "In Index";
+            else if (col == 1) return "Column";
+            else if (col == 2) return "Asc/Des";
+            else throw new ArchitectRuntimeException(new ArchitectException("This table has only 3 columns"));
         }
 
 
@@ -258,9 +260,7 @@ public class IndexColumnTable {
          */
         public boolean isCellEditable(int row, int col) {
             // do not edit the column that contains the SQLColumn
-            if (col == 1) {
-                return false;
-            }
+            if (col == 1) return false;
             return true;
         }
 
@@ -289,25 +289,17 @@ public class IndexColumnTable {
         }
 
         public Object getValueAt(int row, int col) {
-            if (col == 0)
-                return new Boolean(rowList.get(row).isEnabled());
-            else if (col == 1)
-                return rowList.get(row).getSQLColumn();
-            else if (col == 2)
-                return rowList.get(row).getOrder();
-            else
-                throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns."));
+            if (col == 0) return new Boolean(rowList.get(row).isEnabled());
+            else if (col == 1) return rowList.get(row).getSQLColumn();
+            else if (col == 2) return rowList.get(row).getOrder();
+            else throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns."));
         }
 
         public void setValueAt(Object value, int row, int col) {
-            if (col == 0)
-                rowList.get(row).setEnabled(((Boolean) value).booleanValue());
-            else if (col == 1)
-                rowList.get(row).setSQLColumn((SQLColumn) value);
-            else if (col == 2)
-                rowList.get(row).setOrder((AscendDescend) value);
-            else
-                throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns."));
+            if (col == 0) rowList.get(row).setEnabled(((Boolean) value).booleanValue());
+            else if (col == 1) rowList.get(row).setSQLColumn((SQLColumn) value);
+            else if (col == 2) rowList.get(row).setOrder((AscendDescend) value);
+            else throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns."));
             fireTableCellUpdated(row, col);
         }
 
@@ -535,32 +527,7 @@ public class IndexColumnTable {
     private JTable createCustomTable() {
         final JTable newTable;
 
-        /* Override the table here */
-        newTable = new EditableJTable(model) {
-            /*
-             * @Override public Component prepareRenderer(TableCellRenderer
-             * renderer, int row, int column) { Component c =
-             * super.prepareRenderer(renderer, row, column); String str =
-             * model.getValueAt(row,
-             * getColumnModel().getColumnIndex(IN_INDEX)).toString(); UIDefaults
-             * def = UIManager.getLookAndFeelDefaults();
-             * 
-             * boolean isSelected = isRowInCurrentSelection(row); if
-             * (str.equals("false") && isSelected) {
-             * c.setBackground(def.getColor("TextField.selectionBackground"));
-             * c.setForeground(def.getColor("TextField.inactiveForeground")); }
-             * else if (str.equals("false") && !isSelected) {
-             * c.setForeground(def.getColor("TextField.inactiveForeground"));
-             * c.setBackground(def.getColor("TextField.inactiveBackground")); }
-             * else if (isSelected) {
-             * c.setBackground(def.getColor("TextField.selectionBackground"));
-             * c.setForeground(def.getColor("TextField.foreground")); } else {
-             * c.setBackground(def.getColor("TextField.background"));
-             * c.setForeground(def.getColor("TextField.foreground")); } return
-             * c; }
-             */
-
-        };
+        newTable = new EditableJTable(model);
 
         /*
          * This makes sure that when the user clicks on a combo box, that the
