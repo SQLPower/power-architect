@@ -35,16 +35,13 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Component;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
-import javax.swing.UIDefaults;
-import javax.swing.UIManager;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
@@ -63,72 +60,265 @@ import ca.sqlpower.swingui.table.CleanupTableModel;
 import ca.sqlpower.swingui.table.EditableJTable;
 
 /**
- * This class will be used to display the columns that are contained in an 
+ * This class will be used to display the columns that are contained in an
  * index. This table will be used by the IndexEditPanel class.
+ * 
  * @author Octavian
  */
 public class IndexColumnTable {
 
-    /**
-     * Name for the In Index column
-     */
-    private final String IN_INDEX = "In Index";
-    /**
-     * Text for the Name column
-     */
-    private final String COL_NAME = "Column Name";
-    /**
-     * Text for the Order column
-     */
-    private final String ORDER = "Asc / Des";
+    private class IndexColumnTableModel extends AbstractTableModel implements CleanupTableModel, SQLObjectListener {
 
-    private class IndexColumnTableModel extends DefaultTableModel implements CleanupTableModel, SQLObjectListener {
-        
+        private List<Row> rowList;
+
         /**
-         * The index whose columns this table model is editing.  This table model
-         * listens to the index for child additions and removals, and adds and removes
-         * corresponding rows as appropriate.
+         * The index whose columns this table model is editing. This table model
+         * listens to the index for child additions and removals, and adds and
+         * removes corresponding rows as appropriate.
          */
         private final SQLIndex index;
+
+        /**
+         * The folder that contains all of the SQLColumns represented
+         * by this table.
+         */
         private final Folder<SQLColumn> columnsFolder;
-        
-        IndexColumnTableModel(SQLIndex index) {
+
+        /**
+         * A listener that will listen for changes to the actual SQLIndex
+         * and not the copy that we are modifing here.
+         */
+        private ActualIndexListener indexListener;
+
+        /**
+         * This is the actual SQLIndex in the SQLIndex folder contained by the
+         * parent SQLTable
+         */
+        private final SQLIndex actualIndex;
+
+        IndexColumnTableModel(SQLIndex index, SQLTable parent, SQLIndex actualIndex) {
             this.index = index;
-            columnsFolder = index.getParentTable().getColumnsFolder();
-            columnsFolder.addSQLObjectListener(this);
+            this.actualIndex = actualIndex;
+            this.rowList = new ArrayList<Row>();
+            columnsFolder = parent.getColumnsFolder();
+            indexListener = new ActualIndexListener();
+            setUpListeners();
+            populateModel();
         }
         
         /**
-         * This method will return the class type of the cell such that the table will
-         * know what kind of renderer to use for it.
+         * This method will set up all the listeners to the table model.
+         * This includes a listener to the actual SQLIndex, the SQLColumn 
+         * folder as well as all the SQLColumns in that folder
+         */
+        private void setUpListeners (){
+            columnsFolder.addSQLObjectListener(this);
+            this.actualIndex.addSQLObjectListener(indexListener);
+            try {
+                for (int i = 0; i < columnsFolder.getChildCount(); i++) {
+                    columnsFolder.getChild(i).addSQLObjectListener(this);
+                }
+            } catch (ArchitectException e) {
+                throw new ArchitectRuntimeException(e);
+            }
+        }
+
+        /**
+         * This listener will listen to the actual index (not the copy), such
+         * that if the user modifies the SQLIndex from the pp, the table will
+         * also be updated with the proper changes. 
+         */
+        private class ActualIndexListener implements SQLObjectListener {
+
+            public void dbChildrenInserted(SQLObjectEvent e) {
+                try {
+                    index.makeColumnsLike(actualIndex);
+                    repopulateModel();
+                } catch (ArchitectException ex) {
+                    throw new ArchitectRuntimeException(ex);
+                }
+            }
+
+            public void dbChildrenRemoved(SQLObjectEvent e) {
+                try {
+                    index.makeColumnsLike(actualIndex);
+                    repopulateModel();
+                } catch (ArchitectException ex) {
+                    throw new ArchitectRuntimeException(ex);
+                }
+            }
+
+            public void dbObjectChanged(SQLObjectEvent e) {
+            }
+
+            public void dbStructureChanged(SQLObjectEvent e) {
+            }
+        }
+        
+        /**
+         * This will move a set of Row objects between the start and end
+         * indexes to the destination index
+         * @param start The start index
+         * @param end The end index
+         * @param dest The destination index
+         */
+        public void moveRow(int start, int end, int dest) {
+            List<Row> removed = new ArrayList<Row>();
+            for (int i = end; i >= start; i--) {
+                removed.add(rowList.remove(i));
+            }
+
+            for (int i = 0; i <= end - start; i++) {
+                rowList.add(dest, removed.get(i));
+            }
+            int firstRow = Math.min(start, dest);
+            int lastRow = Math.max(end, dest + (end - start));
+            fireTableRowsUpdated(firstRow, lastRow);
+        }
+
+        /**
+         * This method is used to re-populate all of the rows in the 
+         * table model. Normally used to sync changed between the actual SQLIndex
+         * and the columns in this table.
+         */
+        private void repopulateModel() {
+            for (int i = rowList.size() - 1; i >= 0; i--) {
+                rowList.remove(i);
+            }
+            populateModel();
+            fireTableDataChanged();
+        }
+        
+        /**
+         * This populates the model will all the SQLColumns
+         */
+        private void populateModel() {
+            try {
+                for (Column indexCol : index.getChildren()) {
+                    rowList.add(new Row(true, indexCol.getColumn(), indexCol.getAscendingOrDescending()));
+                }
+                for (Object so : columnsFolder.getChildren()) {
+                    SQLColumn col = (SQLColumn) so;
+                    if (!containsColumn(col)) {
+                        rowList.add(new Row(false, col, AscendDescend.UNSPECIFIED));
+                    }
+                }
+            } catch (ArchitectException e) {
+                throw new ArchitectRuntimeException(e);
+            }
+        }
+
+        /**
+         * This method will indicate whether or not a SQLColumn is already 
+         * contained in our table model.
+         */
+        private boolean containsColumn(SQLColumn col) {
+            for (Row r : rowList) {
+                if (r.getSQLColumn() == col) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        public List<Row> getRowList() {
+            return this.rowList;
+        }
+
+        /**
+         * This method will return the class type of the cell such that the
+         * table will know what kind of renderer to use for it.
          */
         public Class getColumnClass(int col) {
-            if (col == table.getColumnModel().getColumnIndex(IN_INDEX)) {
+            // First column is the checkBox
+            if (col == 0)
                 return Boolean.class;
-            }
             return super.getColumnClass(col);
         }
 
+        /**
+         * Returns the column names of this table
+         */
+        public String getColumnName(int col) {
+            if (col == 0)
+                return "In Index";
+            else if (col == 1)
+                return "Column";
+            else if (col == 2)
+                return "Asc/Des";
+            else
+                throw new ArchitectRuntimeException(new ArchitectException("This table has only 3 columns"));
+        }
+
+
+        /**
+         * Indicates if a cell in the table is editable or not.
+         * In our case, we would want to stop editing on the column that contains
+         * the SQLColumn objects.
+         */
         public boolean isCellEditable(int row, int col) {
-            if (col == table.getColumnModel().getColumnIndex(COL_NAME)) {
+            // do not edit the column that contains the SQLColumn
+            if (col == 1) {
                 return false;
             }
             return true;
         }
 
+        /**
+         * This method is usually called when the Model is detached from the 
+         * actual JTable, such that all the listeners can be removed.
+         */
         public void cleanup() {
+            try {
+                for (int i = 0; i < columnsFolder.getChildCount(); i++) {
+                    columnsFolder.getChild(i).removeSQLObjectListener(this);
+                }
+            } catch (ArchitectException e) {
+                throw new ArchitectRuntimeException(e);
+            }
             columnsFolder.removeSQLObjectListener(this);
+            this.actualIndex.removeSQLObjectListener(indexListener);
+        }
+
+        public int getColumnCount() {
+            return 3;
+        }
+
+        public int getRowCount() {
+            return rowList.size();
+        }
+
+        public Object getValueAt(int row, int col) {
+            if (col == 0)
+                return new Boolean(rowList.get(row).isEnabled());
+            else if (col == 1)
+                return rowList.get(row).getSQLColumn();
+            else if (col == 2)
+                return rowList.get(row).getOrder();
+            else
+                throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns."));
+        }
+
+        public void setValueAt(Object value, int row, int col) {
+            if (col == 0)
+                rowList.get(row).setEnabled(((Boolean) value).booleanValue());
+            else if (col == 1)
+                rowList.get(row).setSQLColumn((SQLColumn) value);
+            else if (col == 2)
+                rowList.get(row).setOrder((AscendDescend) value);
+            else
+                throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns."));
+            fireTableCellUpdated(row, col);
         }
 
         public void dbChildrenInserted(SQLObjectEvent e) {
             for (SQLObject so : e.getChildren()) {
                 SQLColumn col = (SQLColumn) so;
-                try {
-                    addIndexColumnToTable(getIndexColumn(col));
-                } catch (ArchitectException ex) {
-                    throw new ArchitectRuntimeException(ex);
-                }
+                // Do not forget to add a listener to the newly added column.
+                col.addSQLObjectListener(this);
+                rowList.add(new Row(false, col, AscendDescend.UNSPECIFIED));
             }
+            fireTableDataChanged();
         }
 
         public void dbChildrenRemoved(SQLObjectEvent e) {
@@ -136,54 +326,98 @@ public class IndexColumnTable {
                 int rowToRemove = -1;
                 int i = 0;
                 SQLColumn removedCol = (SQLColumn) so;
-                for (Vector row : (Vector<Vector>) getDataVector()) {
-                    Column indexCol = (Column) row.get(1);
-                    if (indexCol.getColumn() == removedCol) {
+                // also removed the listner off the removed object.
+                removedCol.removeSQLObjectListener(this);
+                for (Row row : rowList) {
+                    SQLColumn currentCol = row.getSQLColumn();
+                    if (currentCol == removedCol) {
                         rowToRemove = i;
                         break;
                     }
                     i++;
                 }
-                
+
                 if (rowToRemove == -1) {
-                    throw new IllegalStateException(
-                            "SQLTable's column " + removedCol + " was just removed, but it " +
+                    throw new IllegalStateException("SQLTable's column " + removedCol + " was just removed, but it " +
                             "wasn't in the index table model. Creepy!");
                 }
-                
-                removeRow(rowToRemove);
+                rowList.remove(rowToRemove);
             }
+            fireTableDataChanged();
         }
 
         public void dbObjectChanged(SQLObjectEvent e) {
-            // don't care about property changes
+            fireTableDataChanged();
         }
 
         public void dbStructureChanged(SQLObjectEvent e) {
             throw new UnsupportedOperationException("Bad idea.. nothing can cope with dbstructurechanged events.");
         }
-        
-        /**
-         * Obtains the proper SQLIndex.Column object given a SQLColumn. If the
-         * requested column is not part of the index we're editing, returns a new
-         * instance of SQLIndex.Column which has no parent but is attached to the
-         * requested column.
-         */
-        private Column getIndexColumn(SQLColumn col) {
-            try {
-                for (int i = 0; i < index.getChildCount(); i++) {
-                       if(index.getChild(i).getColumn().equals(col)){
-                           return index.getChild(i);
-                       }
-                }
-            } catch (ArchitectException e) {
-                throw new ArchitectRuntimeException(e);
-            }
-            
-            return index.new Column(col, AscendDescend.UNSPECIFIED);
-        }
+
     }
-    
+
+    /**
+     * This is a row object that is contained by the table model of this table.
+     */
+    private class Row {
+
+        /**
+         * Indicates if a column is included in an index or not.
+         */
+        private boolean enabled;
+
+        /**
+         * This is the SQLCOlumn in the row
+         */
+        private SQLColumn column;
+
+        /**
+         * This is the order of the SQLColumn
+         */
+        private AscendDescend order;
+
+        public Row(boolean enabled, SQLColumn column, AscendDescend order) {
+            this.enabled = enabled;
+            this.column = column;
+            this.order = order;
+        }
+        
+        public String toString() {
+            return new String ("Enabled: " +enabled + " Col:  " + column.getName());
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public void setSQLColumn(SQLColumn column) {
+            this.column = column;
+        }
+
+        public void setOrder(AscendDescend order) {
+            this.order = order;
+        }
+
+        public boolean isEnabled() {
+            return this.enabled;
+        }
+
+        public SQLColumn getSQLColumn() {
+            return this.column;
+        }
+
+        public AscendDescend getOrder() {
+            return this.order;
+        }
+
+    }
+
+    public static String IN_INDEX = "In Index";
+
+    public static String COL_NAME = "Column";
+
+    public static String ORDER = "Asc/Des";
+
     /**
      * This is the table that will display the columns
      */
@@ -204,169 +438,93 @@ public class IndexColumnTable {
      */
     private final SQLIndex index;
 
-
     /**
      * Constructor of the Index Column table.
      */
-    public IndexColumnTable(SQLTable parent, SQLIndex index){
-        model = new IndexColumnTableModel(index);
+    public IndexColumnTable(SQLTable parent, SQLIndex index, SQLIndex actualIndex) {
+        model = new IndexColumnTableModel(index, parent, actualIndex);
         table = createCustomTable();
         this.parent = parent;
         this.index = index;
         table.getTableHeader().setReorderingAllowed(false);
-        prepareHeaders();
-        addSQLColumnsToTable();
     }
     
+    public void cleanUp(){
+        model.cleanup();
+    }
+
     /**
-     * This will re-add all the proper SQLColumns to the SQLIndex depending on the
-     * ordering that the user provided in the JTable.
+     * This will re-add all the proper SQLColumns to the SQLIndex depending on
+     * the ordering that the user provided in the JTable.
      */
     public void finalizeIndex() {
         try {
+            //First remove all the children of the index
             for (int i = index.getChildCount() - 1; i >= 0; i--) {
-                index.removeChild(i);//remove all current children
+                index.removeChild(i);// remove all current children
             }
-            
-            for (int i = 0; i < table.getRowCount(); i++) {
-                if (isRowEnabled(i)) {
-                    Column col = (Column) table.getValueAt(i, table.getColumnModel().getColumnIndex(COL_NAME));
-                    AscendDescend adSetting = AscendDescend.valueOf(table.getValueAt(i, 
-                            table.getColumnModel().getColumnIndex(ORDER)).toString());
-                    col.setAscendingOrDescending(adSetting);
-                    index.addChild(col);
+            for(Row r : model.getRowList()) {
+                if (r.isEnabled()){
+                    index.addIndexColumn(r.getSQLColumn(), r.getOrder());
                 }
             }
 
-         } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
-        }
-   }
-
-
-    /**
-     * This will move a row (or a set of rows) in the table from a start position index to the destinations index.
-     * The direction boolean: up = true, down = false
-     */
-    public void moveRow(boolean direction) {
-        if(table.getSelectedRows().length <=0){
-            return; // return on no selected rows
-        }
-
-        int start = table.getSelectedRows()[0];
-        int end = table.getSelectedRows()[table.getSelectedRows().length-1];
-        int dest = start;
-        if(direction){
-            dest--; // move up
-        }else{
-            dest++;//move down
-        }
-        int count = end - start;
-        if (count < 0) {
-            return; 
-        }
-        if (dest >= 0 && dest<=(table.getRowCount()-count-1)) {
-            model.moveRow(start, end, dest);
-            table.getSelectionModel().removeSelectionInterval(0, table.getRowCount()-1);
-            table.getSelectionModel().addSelectionInterval(dest, dest+count);
-        }
-    }
-
-    /**
-     * This returns true whenever the row that is provided is enabled in the JTable,
-     * otherwise returns false
-     */
-    private boolean isRowEnabled(int row){
-        if(table.getValueAt(row, table.getColumnModel().getColumnIndex(IN_INDEX)).toString().equals("true")){
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * This will add the columns contained by the SQLIndex to the JTable.
-     */
-    private void addSQLColumnsToTable() {
-        addComboBox();
-        try {
-            
-            Set<SQLColumn> addedCols = new HashSet<SQLColumn>();
-            for (Column idxCol : index.getChildren()) {
-                addIndexColumnToTable(idxCol);
-                addedCols.add(idxCol.getColumn());
-            }
-            
-            // These aren't in the index yet, so we make placeholder Column instances...
-            for (SQLColumn col : parent.getColumns()) {
-                if (addedCols.contains(col)) continue;
-                Column idxCol = index.new Column(col, AscendDescend.UNSPECIFIED);
-                addIndexColumnToTable(idxCol);
-            }
-            
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         }
     }
 
     /**
-     * Adds the given index column to the table model. If the column you want
-     * to add doesn't already belong to the index we're currently editing, its
-     * getParent() should return null.
-     * 
-     * @param idxCol The index column to add
+     * This will move a row (or a set of rows) in the table from a start
+     * position index to the destinations index. The direction boolean: up =
+     * true, down = false
      */
-    private void addIndexColumnToTable(Column idxCol) throws ArchitectException {
-        if (idxCol.getParent() != index) {
-            throw new IllegalArgumentException("The given index column doesn't belong to the current index");
+    
+      public void moveRow(boolean direction) {
+        if (table.getSelectedRows().length <= 0) {
+            return;
         }
-        
-        Vector v = new Vector();
 
-        // cell 0: in index?
-        if (idxCol.getParent().getChildren().contains(idxCol)) { 
-            v.add(true);
+        int start = table.getSelectedRows()[0];
+        int end = table.getSelectedRows()[table.getSelectedRows().length - 1];
+        int dest = start;
+        if (direction) {
+            dest--; // move up
         } else {
-            v.add(false);
+            dest++;// move down
         }
-        
-        // cell 1: which column
-        v.add(idxCol);
-        
-        // cell 2: asc/desc
-        v.add(idxCol.getAscendingOrDescending());
-        
-        model.addRow(v);
+
+        int count = end - start;
+        if (count < 0) {
+            return;
+        }
+        if (dest >= 0 && dest <= (table.getRowCount() - count - 1)) {
+            model.moveRow(start, end, dest);
+            table.getSelectionModel().removeSelectionInterval(0, table.getRowCount() - 1);
+            table.getSelectionModel().addSelectionInterval(dest, dest + count);
+        }
+    }
+     
+
+    /**
+     * This returns true whenever the row that is provided is enabled in the
+     * JTable, otherwise returns false
+     */
+    private boolean isRowEnabled(int row) {
+        if (table.getValueAt(row, table.getColumnModel().getColumnIndex(IN_INDEX)).toString().equals("true")) {
+            return true;
+        }
+        return false;
     }
 
     /**
-     * This will add a combo box to the table that contains all order types
+     * This method will tell us if a specific row index is currently selected in
+     * the table.
      */
-    private void addComboBox(){
-        TableColumn sportColumn = table.getColumn(ORDER);
-        JComboBox comboBox = new JComboBox();
-        comboBox.addItem(SQLIndex.AscendDescend.UNSPECIFIED.toString());
-        comboBox.addItem(SQLIndex.AscendDescend.ASCENDING.toString());
-        comboBox.addItem(SQLIndex.AscendDescend.DESCENDING.toString());
-        sportColumn.setCellEditor(new DefaultCellEditor(comboBox));
-    }
-
-
-    /**
-     * This will prepare all the headers in the table.
-     */
-    private void prepareHeaders(){
-        addData(IN_INDEX);
-        addData(COL_NAME);
-        addData(ORDER); 
-    }
-
-    /**
-     * This method will tell us if a specific row index is currently selected
-     * in the table.
-     */
-    private boolean isRowInCurrentSelection(int row){
-        for (int i: table.getSelectedRows()) {
-            if (i == row)  return true;
+    private boolean isRowInCurrentSelection(int row) {
+        for (int i : table.getSelectedRows()) {
+            if (i == row)
+                return true;
         }
         return false;
     }
@@ -374,70 +532,100 @@ public class IndexColumnTable {
     /**
      * This will be used to Override the JTable
      */
-    private JTable createCustomTable(){
+    private JTable createCustomTable() {
         final JTable newTable;
-        
+
         /* Override the table here */
         newTable = new EditableJTable(model) {
-            @Override
-            public Component prepareRenderer(TableCellRenderer renderer, int row,
-                    int column) {
-                Component c = super.prepareRenderer(renderer, row, column);
-                String str = model.getValueAt(row, getColumnModel().getColumnIndex(IN_INDEX)).toString();
-                UIDefaults def = UIManager.getLookAndFeelDefaults();
-                
-                boolean isSelected = isRowInCurrentSelection(row);
-                if (str.equals("false") && isSelected) {
-                    c.setBackground(def.getColor("TextField.selectionBackground"));
-                    c.setForeground(def.getColor("TextField.inactiveForeground"));
-                } else if (str.equals("false") && !isSelected) {
-                    c.setForeground(def.getColor("TextField.inactiveForeground"));                    
-                    c.setBackground(def.getColor("TextField.inactiveBackground"));
-                } else if (isSelected){
-                    c.setBackground(def.getColor("TextField.selectionBackground"));
-                    c.setForeground(def.getColor("TextField.foreground"));
-                } else {
-                    c.setBackground(def.getColor("TextField.background"));
-                    c.setForeground(def.getColor("TextField.foreground"));
-                }
-                return c;
-            }
+            /*
+             * @Override public Component prepareRenderer(TableCellRenderer
+             * renderer, int row, int column) { Component c =
+             * super.prepareRenderer(renderer, row, column); String str =
+             * model.getValueAt(row,
+             * getColumnModel().getColumnIndex(IN_INDEX)).toString(); UIDefaults
+             * def = UIManager.getLookAndFeelDefaults();
+             * 
+             * boolean isSelected = isRowInCurrentSelection(row); if
+             * (str.equals("false") && isSelected) {
+             * c.setBackground(def.getColor("TextField.selectionBackground"));
+             * c.setForeground(def.getColor("TextField.inactiveForeground")); }
+             * else if (str.equals("false") && !isSelected) {
+             * c.setForeground(def.getColor("TextField.inactiveForeground"));
+             * c.setBackground(def.getColor("TextField.inactiveBackground")); }
+             * else if (isSelected) {
+             * c.setBackground(def.getColor("TextField.selectionBackground"));
+             * c.setForeground(def.getColor("TextField.foreground")); } else {
+             * c.setBackground(def.getColor("TextField.background"));
+             * c.setForeground(def.getColor("TextField.foreground")); } return
+             * c; }
+             */
 
         };
 
         /*
          * This makes sure that when the user clicks on a combo box, that the
-         * comboBox will gain focus right away, and will not have to be clicked again
-         * so that it can get focus.
+         * comboBox will gain focus right away, and will not have to be clicked
+         * again so that it can get focus.
          */
         newTable.addFocusListener(new FocusListener() {
             public void focusGained(FocusEvent e) {
-                JTable table = (JTable)e.getComponent();
+                JTable table = (JTable) e.getComponent();
                 int row = table.getSelectionModel().getAnchorSelectionIndex();
                 int col = table.getColumnModel().getSelectionModel().getAnchorSelectionIndex();
                 if (col == table.getColumnModel().getColumnIndex(ORDER)) {
                     boolean ok = table.editCellAt(row, col);
                     Component comp = table.getEditorComponent();
-                    if (ok && comp instanceof JComboBox){
-                        ((JComboBox)comp).setPopupVisible(false);
+                    if (ok && comp instanceof JComboBox) {
+                        ((JComboBox) comp).setPopupVisible(false);
                         table.getCellEditor().stopCellEditing();
                     }
                 }
             }
 
-            public void focusLost(FocusEvent e) {}
+            public void focusLost(FocusEvent e) {
+            }
         });
+        AscendDescend[] values = new AscendDescend[] { AscendDescend.ASCENDING, AscendDescend.DESCENDING,
+                AscendDescend.UNSPECIFIED };
+        TableColumn col = newTable.getColumnModel().getColumn(2);
+        col.setCellEditor(new ComboBoxEditor(values));
+
+        col.setCellRenderer(new ComboBoxRenderer(values));
 
         return newTable;
     }
 
     /**
-     * This will add a new Column to the table and an arbitrary set of 
-     * Data that can be passed through a vector.
+     * This is a renderer for the JComboBox column used to pick a ascending 
+     * or descending order for a SQLColumn in the table
+     * @author octavian
+     *
      */
-    private void addData(Object columnName){
-        model.addColumn(columnName);
-        table.getColumnModel().getColumn(model.getColumnCount()-1).setIdentifier(columnName.toString());
+    private class ComboBoxRenderer extends JComboBox implements TableCellRenderer {
+        public ComboBoxRenderer(AscendDescend[] items) {
+            super(items);
+        }
+
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                boolean hasFocus, int row, int column) {
+            if (isSelected) {
+                setForeground(table.getSelectionForeground());
+                super.setBackground(table.getSelectionBackground());
+            } else {
+                setForeground(table.getForeground());
+                setBackground(table.getBackground());
+            }
+
+            // Select the current value
+            setSelectedItem(value);
+            return this;
+        }
+    }
+
+    private class ComboBoxEditor extends DefaultCellEditor {
+        public ComboBoxEditor(AscendDescend[] items) {
+            super(new JComboBox(items));
+        }
     }
 
     /**

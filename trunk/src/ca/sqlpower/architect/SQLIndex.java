@@ -77,13 +77,11 @@ public class SQLIndex extends SQLObject {
      */
     public String type;
 
-    
     /**
      * This is the name of the column that will be augmented by the custom 
      * JDBC wrappers to represent index type;
      */
     public static String RS_INDEX_TYPE_COL = "SPG_INDEX_TYPE";
-
 
     /**
      * A simple placeholder for a column.  We're not using real SQLColumn instances here so that the
@@ -333,11 +331,11 @@ public class SQLIndex extends SQLObject {
      * but it doesn't say that explicitly.  According to the JDBC spec, this could be anything at all.
      */
     private String filterCondition;
-    
+
     /**
      * This indicates if an index is clustered or not.
      */
-    private  boolean clustered;
+    private boolean clustered;
 
     private boolean primaryKeyIndex;
 
@@ -369,6 +367,8 @@ public class SQLIndex extends SQLObject {
             }
 
             public void dbChildrenRemoved(SQLObjectEvent e) {
+                //FIXME: for some stupid reason, this gets called when columns
+                // are simply moved in the table
                 removeColumnFromIndices(e);
             }
 
@@ -501,14 +501,25 @@ public class SQLIndex extends SQLObject {
                         }
                     }
                 }
-                if (getChildCount() == 0 && this.parent != null) {
-                    logger.debug("Removing " + getName() + " index from folder " + parent.getName());
-                    parent.getParent().getColumnsFolder().removeSQLObjectListener(removeColumnListener);
-                    parent.removeChild(this);
-                }
+                cleanUp();
             } catch (ArchitectException e1) {
                 throw new ArchitectRuntimeException(e1);
             }
+        }
+    }
+
+    /**
+     * This method is used to clean up the index when it no longer has any children.
+     */
+    public void cleanUp() {
+        try {
+            if (getChildCount() == 0 && this.parent != null) {
+                logger.debug("Removing " + getName() + " index from folder " + parent.getName());
+                parent.getParent().getColumnsFolder().removeSQLObjectListener(removeColumnListener);
+                parent.removeChild(this);
+            }
+        } catch (ArchitectException e1) {
+            throw new ArchitectRuntimeException(e1);
         }
     }
 
@@ -559,7 +570,6 @@ public class SQLIndex extends SQLObject {
         return type;
     }
 
-
     public void setType(String type) {
         String oldValue = this.type;
         this.type = type;
@@ -579,7 +589,7 @@ public class SQLIndex extends SQLObject {
         this.unique = unique;
         fireDbObjectChanged("unique", oldValue, unique);
     }
-    
+
     public void setClustered(boolean value) {
         boolean oldValue = this.clustered;
         this.clustered = value;
