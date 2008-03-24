@@ -68,68 +68,76 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class IndexEditPanel extends JPanel implements DataEntryPanel {
     protected SQLIndex index;
+
     protected SQLTable parent;
+
     protected SQLIndex indexCopy;
+
     JTextField name;
+
     JCheckBox unique;
+
     JCheckBox primaryKey;
+
     JComboBox indexType;
+
     JCheckBox clustered;
+
     IndexColumnTable columnsTable;
+
     /**
      * This session that contains this index panel.
      */
     ArchitectSwingSession session;
-    
+
     /**
      * Identifier for the default index type.
      */
     private static String DEFAULT_INDEX_TYPE = "<Platform Default>";
-   
-    public IndexEditPanel(SQLIndex index, ArchitectSwingSession session) throws ArchitectException{
-        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref","pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
+
+    public IndexEditPanel(SQLIndex index, ArchitectSwingSession session) throws ArchitectException {
+        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref",
+                "pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
         this.session = session;
         createGUI(index, index.getParentTable(), session);
     }
-   
+
     public IndexEditPanel(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws ArchitectException {
-        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref","pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
-        this.session=session;
+        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref",
+                "pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
+        this.session = session;
         createGUI(index, parent, session);
     }
 
     private void createGUI(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws ArchitectException {
         this.parent = parent;
         addUndoEventListener(session.getUndoManager().getEventAdapter());
-        PanelBuilder pb = new PanelBuilder((FormLayout)this.getLayout(),this);
+        PanelBuilder pb = new PanelBuilder((FormLayout) this.getLayout(), this);
         CellConstraints cc = new CellConstraints();
-        pb.add(new JLabel("Index Name"),cc.xy(1, 1));
-        pb.add(name = new JTextField("", 30),cc.xyw(3,1,4));
+        pb.add(new JLabel("Index Name"), cc.xy(1, 1));
+        pb.add(name = new JTextField("", 30), cc.xyw(3, 1, 4));
         unique = new JCheckBox("Unique");
-        pb.add(unique,cc.xy(3, 3));
+        pb.add(unique, cc.xy(3, 3));
         primaryKey = new JCheckBox("Primary Key");
-        pb.add(primaryKey,cc.xy(3, 5));
+        pb.add(primaryKey, cc.xy(3, 5));
         clustered = new JCheckBox("Clustered");
         clustered.setSelected(index.isClustered());
         pb.add(clustered, cc.xy(3, 7));
-        pb.add(new JLabel("Index Type"),cc.xy(1,9));
+        pb.add(new JLabel("Index Type"), cc.xy(1, 9));
 
         indexType = new JComboBox();
         //add the platform default type
-        indexType.addItem(DEFAULT_INDEX_TYPE); 
-        for(String type : getIndexTypes()){
+        indexType.addItem(DEFAULT_INDEX_TYPE);
+        for (String type : getIndexTypes()) {
             indexType.addItem(type);
         }
-        pb.add(indexType,cc.xyw(3, 9, 4));
+        pb.add(indexType, cc.xyw(3, 9, 4));
 
-       
         editIndex(index);
-        columnsTable = new IndexColumnTable(parent, indexCopy);
-       
-       
-        pb.add(new JScrollPane(columnsTable.getTable()),cc.xyw(1,13,6));
-       
-       
+        columnsTable = new IndexColumnTable(parent, indexCopy, index);
+
+        pb.add(new JScrollPane(columnsTable.getTable()), cc.xyw(1, 13, 6));
+
         // we want the buttons at their natural sizes, and the buttonbarbuilder wasn't doing that
         JPanel upDownPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         upDownPanel.add(new JButton(new AbstractAction(null, SPSUtils.createIcon("chevrons_up1", null)) {
@@ -137,9 +145,9 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
             public void actionPerformed(ActionEvent e) {
                 columnsTable.moveRow(true);
             }
-           
+
         }));
-        upDownPanel.add(new JButton(new AbstractAction(null,  SPSUtils.createIcon("chevrons_down1", null)){
+        upDownPanel.add(new JButton(new AbstractAction(null, SPSUtils.createIcon("chevrons_down1", null)) {
             public void actionPerformed(ActionEvent e) {
                 columnsTable.moveRow(false);
             }
@@ -148,15 +156,15 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         pb.add(upDownPanel, cc.xyw(1, 15, 6));
         loadIndexIntoPanel();
     }
-    
+
     /**
      * Returns an unique index name;
      */
-    private String getIndexName(){
+    private String getIndexName() {
         int i = 0;
         String name = null;
-        do{
-            name = generateName(i); 
+        do {
+            name = generateName(i);
             i++;
         } while (indexNameAlreadyExists(name));
         return name;
@@ -169,9 +177,9 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     private boolean indexNameAlreadyExists(String name) {
         try {
             for (int i = 0; i < parent.getIndicesFolder().getChildCount(); i++) {
-                   if(name.equals(parent.getIndicesFolder().getChild(i).getName())) {
-                       return true;
-                   }
+                if (name.equals(parent.getIndicesFolder().getChild(i).getName())) {
+                    return true;
+                }
             }
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
@@ -183,31 +191,31 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
      * This will generate an index name if the format: $tablename_idx(#)
      */
     private String generateName(int number) {
-        if(number == 0){
+        if (number == 0) {
             return new String(parent.getName() + "_idx");
         } else {
-            return new String (parent.getName() + "_idx" + Integer.toString(number));
+            return new String(parent.getName() + "_idx" + Integer.toString(number));
         }
     }
-   
-   /**
-	*This will return a list of Index Types that are found in the pl.ini file
-	*/
-    private List<String> getIndexTypes(){
+
+    /**
+     *This will return a list of Index Types that are found in the pl.ini file
+     */
+    private List<String> getIndexTypes() {
         List<String> indexTypes = new ArrayList<String>();
         List<SPDataSourceType> dsTypes = this.session.getContext().getPlDotIni().getDataSourceTypes();
-        for(SPDataSourceType dsType : dsTypes){
+        for (SPDataSourceType dsType : dsTypes) {
             for (int dataTypeCount = 0;; dataTypeCount += 1) {
                 String supportedType = dsType.getProperty(SQLIndex.INDEX_TYPE_DESCRIPTOR + "_" + dataTypeCount);
-                if (supportedType == null) break;
-                if(indexTypes.contains(supportedType)==false){
+                if (supportedType == null)
+                    break;
+                if (!indexTypes.contains(supportedType)) {
                     indexTypes.add(supportedType);
                 }
             }
-        } 
+        }
         return indexTypes;
     }
-
 
     public void editIndex(SQLIndex index) throws ArchitectException {
         this.index = index;
@@ -215,9 +223,9 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         indexCopy = new SQLIndex(index);
         indexCopy.setPrimaryKeyIndex(false);
     }
-   
-    private void loadIndexIntoPanel(){
-        if(index.getName() != null){
+
+    private void loadIndexIntoPanel() {
+        if (index.getName() != null) {
             name.setText(index.getName());
         } else {
             name.setText(getIndexName());
@@ -233,8 +241,8 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         }
         name.selectAll();
     }
-   
-    protected SQLIndex getIndexCopy(){
+
+    protected SQLIndex getIndexCopy() {
         return indexCopy;
     }
 
@@ -248,48 +256,47 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
      * returns true if saved, false otherwise
      */
     public boolean applyChanges() {
-       
+        columnsTable.cleanUp();
         columnsTable.finalizeIndex();
-       
-        startCompoundEdit("Index Properties Change");      
-        try {  
+        startCompoundEdit("Index Properties Change");
+        try {
             StringBuffer warnings = new StringBuffer();
             //We need to check if the index name and/or primary key name is empty or not
             //if they are, we need to warn the user since it will mess up the SQLScripts we create
             if (name.getText().trim().length() == 0) {
                 warnings.append("The index cannot be assigned a blank name \n");
-               
+
             }
             if (index.isPrimaryKeyIndex()) {
-                for (Column c:(List<Column>) indexCopy.getChildren()){
-                    if (c.getColumn() == null){
+                for (Column c : (List<Column>) indexCopy.getChildren()) {
+                    if (c.getColumn() == null) {
                         warnings.append("Can only add columns to the primary key\n");
                         break;
                     }
                 }
             }
-           
+
             if (indexType.getSelectedItem() == null) {
                 warnings.append("An index type must be selected\n");
             }
-           
-            if (warnings.toString().length() == 0){
+
+            if (warnings.toString().length() == 0) {
                 //The operation is successful
                 index.makeColumnsLike(indexCopy);
                 SQLTable parentTable = parent;
                 if (index.isPrimaryKeyIndex()) {
                     try {
                         parentTable.setMagicEnabled(false);
-                        for (SQLColumn c: parentTable.getColumns()){
+                        for (SQLColumn c : parentTable.getColumns()) {
                             c.setPrimaryKeySeq(null);
                         }
-                        int i=0;
-                        for (Column c:(List<Column>) indexCopy.getChildren()){
+                        int i = 0;
+                        for (Column c : (List<Column>) index.getChildren()) {
                             SQLColumn column = c.getColumn();
-                            if (column != null){
+                            if (column != null) {
                                 column.setPrimaryKeySeq(Integer.MAX_VALUE);
                                 parentTable.removeColumn(column);
-                                parentTable.addColumn(i,column);
+                                parentTable.addColumn(i, column);
                                 i++;
                             }
                         }
@@ -300,7 +307,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 index.setName(name.getText());
                 index.setUnique(unique.isSelected());
                 index.setClustered(clustered.isSelected());
-                if(indexType.getSelectedItem().toString().equals(DEFAULT_INDEX_TYPE)) {
+                if (indexType.getSelectedItem().toString().equals(DEFAULT_INDEX_TYPE)) {
                     index.setType(null);
                 } else {
                     index.setType(indexType.getSelectedItem().toString());
@@ -310,12 +317,13 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 if (!children.contains(index)) {
                     indicesFolder.addChild(index);
                 }
+                index.cleanUp();
                 return true;
-            } else{
-                JOptionPane.showMessageDialog(this,warnings.toString());
+            } else {
+                JOptionPane.showMessageDialog(this, warnings.toString());
                 //this is done so we can go back to this dialog after the error message
                 return false;
-            }           
+            }
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         } finally {
@@ -325,14 +333,13 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
 
     public void discardChanges() {
     }
-   
+
     /**
      * The list of SQLObject property change event listeners
      * used for undo
      */
     protected LinkedList<UndoCompoundEventListener> undoEventListeners = new LinkedList<UndoCompoundEventListener>();
 
-   
     public void addUndoEventListener(UndoCompoundEventListener l) {
         undoEventListeners.add(l);
     }
@@ -340,10 +347,10 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     public void removeUndoEventListener(UndoCompoundEventListener l) {
         undoEventListeners.remove(l);
     }
-   
+
     protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
         Iterator it = undoEventListeners.iterator();
-       
+
         if (e.getType().isStartEvent()) {
             while (it.hasNext()) {
                 ((UndoCompoundEventListener) it.next()).compoundEditStart(e);
@@ -355,14 +362,14 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         }
     }
 
-    public void startCompoundEdit(String message){
-        fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START,message));
+    public void startCompoundEdit(String message) {
+        fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START, message));
     }
-   
-    public void endCompoundEdit(String message){
-        fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END,message));
+
+    public void endCompoundEdit(String message) {
+        fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END, message));
     }
-   
+
     public JPanel getPanel() {
         return this;
     }
