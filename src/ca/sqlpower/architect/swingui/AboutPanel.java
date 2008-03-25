@@ -62,7 +62,7 @@ public class AboutPanel extends AbstractNoEditDataEntryPanel {
 
 		content = new JLabel("<html>Power*Architect "+
 		                    ArchitectVersion.APP_VERSION+"<br><br>" +
-							"Copyright 2003-2007 SQL Power Group Inc.<br>" +
+							"Copyright 2003-2008 SQL Power Group Inc.<br>" +
 							"</html>");
 		pan.add(content);
         return pan;
