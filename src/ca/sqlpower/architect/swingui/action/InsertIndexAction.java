@@ -64,7 +64,6 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
 
     @Override
     void processTablePane(TablePane tp) throws ArchitectException {
-        System.err.println("processTablePane tp.getModel(): "+tp.getModel());
         makeDialog(tp.getModel());
     }
     
