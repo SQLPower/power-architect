@@ -1,0 +1,109 @@
+Ad Hoc Testing Document
+
+Start-up
+
+	Delete the OS dependent preferences (Registry entry on Windows, .java/.userprefs/ca on unix, Library/Preferences/ca.sqlpower.plist)
+	Delete the PL.ini
+
+
+Components
+
+Anywhere
+	*	Follows the systems' interface guidelines 
+		* 	cancel ok on non mac VS ok cancel on mac 
+		*	Right Click brings up a context menu, command click on mac
+		*	Menu items that bring up a dialog end in "..."
+		*	ctrl-key on windows maps to command-key on mac
+	*	All fields and buttons are labeled and/or have an icon.  If they only have an icon they need a tool tip.
+	*	Escape exits, focus starts at the ok button
+
+Architect Menus
+	*	File
+		* 	New Project (ctl-N), 
+			Open Projects (ctl-O, Brings up the standard file open dialog),
+			Recent Files ( Sub menu with recent files click opens file), 
+			Clear Recent Files
+		*	Save (ctl-s), 
+			Save as...(Standard save dialog), 
+			Print... (ctrl-p, Brings up the print dialog) 
+		*	User Properties...(brings up the  user properties panel), 
+			Project Settings..(brings up the project settings dialog),
+			Save Settings
+		*	Exit
+	*	Edit
+		*	Undo (ctl-z), Redo(ctl-y)
+		*	Select All (ctl-a)
+		*	Find..(ctl-f, brings up the find dialog)
+	*	ETL
+		* 	Power*Loader
+			*	PL Transaction Export...	(Bring up the pl transaction export dialog)
+			*	Pl Transaction File Export (This should do something!!!)
+			*	Run PL Engine (Should be disabled if engine not set or not at set location)
+			*	Quick Start Wizard... (Open the PL quick start wizard)
+	*	Tools
+		*	Forward Engineer... (Forward Engineering dialog), 
+			Compare Data Models... (Compare DM Dialog)
+	*	Help
+		* 	About... (Brings up information on the architect)
+
+Tool Bars 
+	*	There should be two tool bars
+		* 	The tool bars should be able to tear or move
+		*	All icons have tool tips
+		*	The project tool bar sits above the db tree and the play pen and contains
+			*	New, Save, Load, Print
+			* 	Undo, Redo
+			*	Forward Engineer, Compare Data Models
+			*	Autolayout
+		* 	The playpen tool bar sits to the right of the playpen and contains
+			*	Zoom In, Zoom Out, Reset Zoom
+			*	Delete
+			*	New Table
+			*	New Column (Active when a table is selected), Edit Column (Active when a column is selected)
+			*	New Non-Identifying Relationship, New Identifying Relationship, 
+				Relationship Properties (active when a relation is selected)		
+
+DBTree
+	*	There are no empty lines
+	* 	New connection should show up in the context menu anywhere in the DBTree
+		* 	Contains a sub menu with New Connection ( brings up the DBCS dialog) and the connection list
+	* 	On load of a new project the DBTree should be in the same state as when the project was saved
+		* 	Target Database connection and name are preserved
+		* 	All databases where restored
+		* 	All playpen items show up in the Target Database Branch
+	
+	Target Database Branch
+		*	Make sure target database is on top and has its own icon
+		*	Make sure all tables, columns and relations in the playpen show up
+		* 	Target Database label shows "Target Database {Connection Name}"
+		* 	Connection Properties and set target dialog are in the context menu for this item
+		
+	All other Databases 
+		*	Lazy loading works
+		* 	Connection Properties and Remove connection options are in the context menu for this item
+
+Play Pen 
+	*	Context menu contains 
+		* 	Target Database 
+		* 	Set Database has the database list as a sub menu
+		*	New Table
+
+Database Connection Dialog
+	*	If changing properties it loads all the properties of a connection
+	*	When JDBC Driver changes 
+			connection Options gets driver specific option
+			Database type changes to the database type of that driver
+	*	Contains the fields
+			Connection Name, JDBC Driver, 
+			Connection Options (when no driver selected holds a message to that effect, otherwise
+				contains the driver specific options
+			JDBC URL (autofills when you fill in the connection options)
+			user name, password
+			PL Schema Owner
+			Database Type
+			ODBC Data Source Name
+
+
+
+
+	 

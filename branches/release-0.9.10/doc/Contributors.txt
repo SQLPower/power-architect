@@ -1,0 +1,23 @@
+We'd like to thank all the people who have contributed towards the Power*Architect project.
+
+DEVELOPERS
+----------
+Jonathan Fuerth
+Ovidiu Capmare
+Johnson Wu
+Jack Cooney
+Matthew Salter
+Benjamin Cheng
+Ian Darwin
+Ryan Bas
+Jeffrey Mo
+Thomas O'Brien
+Thomas McKee
+Ben Ko
+Kevin Chan
+Sean Oczkowski
+
+ARTWORK
+-------
+Giulio Quaglieri
+Mark James (famfamfam.com)

@@ -1,0 +1,8 @@
+This directory is for libraries that are required at runtime.
+
+
+                        ****** Important! ******
+
+The build script will package these libraries with the distribution,
+so you MUST ensure that we can and do meet all license requirements for
+redistribution in binary form when adding a new library to this directory!
