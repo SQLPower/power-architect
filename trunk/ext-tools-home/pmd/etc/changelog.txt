@@ -1,3 +1,151 @@
+March 25, 2008 - 4.2:
+
+Fixed bug 1920155 - CheckResultSet: Does not pass for loop conditionals
+
+March 21, 2008 - 4.2rc2:
+Fixed bug 1912831 - False + UnusedPrivateMethod with varargs
+Fixed bug 1913536 - Rule Designer does not recognize JSP(XML)
+Add -auxclasspath option for specifying Type Resolution classpath from command line and auxclasspath nested element for ant task.
+Fixed formatting problems in loggers.
+
+Ant task upgrade:
+	Added a new attribute 'maxRuleCount' to indicate whether or not to fail the build if PMD finds that much violations.
+
+March 07, 2008 - 4.2rc1:
+
+Fixed bug 1866198 - PMD should not register global Logger
+Fixed bug 1843273 - False - on SimplifyBooleanReturns
+Fixed bug 1848888 - Fixed false positive in UseEqualsToCompareStrings
+Fixed bug 1874313 - Documentation bugs
+Fixed bug 1855409 - False + in EmptyMethodInAbstractClassShouldBeAbstract
+Fixed bug 1888967 - Updated xpath query to detect more "empty" methods.
+Fixed bug 1891399 -	Check for JUnit4 test method fails
+Fixed bug 1894821 - False - for Test Class without Test Cases
+Fixed bug 1882457 - PositionLiteralsFirstInComparisons rule not working OK
+Fixed bug 1842505 - XML output incorrect for inner classes
+Fixed bug 1808158 - Constructor args could also be final
+Fixed bug 1902351 - AvoidReassigningParameters not identify parent field
+Fixed other false positives in EmptyMethodInAbstractClassShouldBeAbstract
+Fixed other issues in SimplifyBooleanReturns
+Modified AvoidReassigningParameter to also check constructor arguments for reassignement
+
+New rules:
+	Basic ruleset: AvoidMultipleUnaryOperators
+	Controversial ruleset: DoNotCallGarbageCollectionExplicitly
+	Design ruleset : ReturnEmptyArrayRatherThanNull,TooFewBranchesForASwitchStatement,AbstractClassWithoutAnyMethod
+	Codesize : TooManyMethods
+	StrictExceptions : DoNotThrowExceptionInFinally
+	Strings : AvoidStringBufferField
+
+Rule upgrade:
+	CyclomaticComplexity now can be configured to display only class average complexity or method complexity, or both.
+
+Designer upgrade:
+	A new panel for symbols and a tooltips on AST node that displays line, column and access node attributes (private,
+	static, abstract,...)
+
+1.7 added as a valid option for targetjdk.
+New elements under <ruleset>: <exclude-pattern> to match files exclude from processing, with <include-pattern> to override.
+Rules can now be written which produce violations based upon aggregate file processing (i.e. cross/multiple file violations).
+PMD Rule Designer can now shows Symbol Table contents for the selected AST node.
+PMD Rule Designer shows position info in tooltip for AST nodes and highlights matching code for selected AST node in code window.
+CPD Ant task will report to System.out when 'outputFile' not given.
+RuleSetWriter class can be used to Serialize a RuleSet to XML in a standard fashion.  Recommend PMD IDE plugins standardize their behavior.
+retroweaver updated to version 2.0.5.
+
+November 17, 2007 - 4.1:
+Fixed annotation bug: ClassCastException when a formal parameter had multiple annotations
+Added a Visual Studio renderer for CPD; just use "--format vs".
+Dependencies updates: asm to 3.1, retroweaver to 2.0.2, junit to 4.4
+new ant target ("regress") to test regression bugs only
+
+November 01, 2007 - 4.1rc1:
+New rules:
+	Basic ruleset: AvoidUsingHardCodedIP,CheckResultSet
+	Controversial ruleset: AvoidFinalLocalVariable,AvoidUsingShortType,AvoidUsingVolatile,AvoidUsingNativeCode,AvoidAccessibilityAlteration
+	Design ruleset: ClassWithOnlyPrivateConstructorsShouldBeFinal,EmptyMethodInAbstractClassShouldBeAbstract
+	Imports ruleset: TooManyStaticImports
+	J2ee ruleset: DoNotCallSystemExit, StaticEJBFieldShouldBeFinal,DoNotUseThreads
+	Strings ruleset: UseEqualsToCompareStrings
+
+Fixed bug 674394  - fixed false positive in DuplicateImports for disambiguation import
+Fixed bug 631681  - fixed false positive in UnusedPrivateField when field is accessed by outer class
+Fixed bug 985989  - fixed false negative in ConstructorCallsOverridableMethod for inner static classes
+Fixed bug 1409944 - fixed false positive in SingularField for lock objects
+Fixed bug 1472195 - fixed false positives in PositionLiteralsFirstInComparisons when the string is used as a parameter
+Fixed bug 1522517 - fixed false positive in UselessOverridingMethod for clone method
+Fixed bug 1744065 - fixed false positive in BooleanInstantiation when a custom Boolean is used
+Fixed bug 1765613 - fixed NullPointerException in CloneMethodMustImplementCloneable when checking enum
+Fixed bug 1740480 - fixed false positive in ImmutableField when the assignment is inside an 'if'
+Fixed bug 1702782 - fixed false positive in UselessOperationOnImmutable when an Immutable on which an operation is performed is compareTo'd
+Fixed bugs 1764288/1744069/1744071 - When using Type Resolution all junit test cases will notice if you're using an extended TestCase
+Fixed bug 1793215 - pmd-nicerhtml.xsl does not display line numbers
+Fixes bug 1796928 - fixed false positive in AvoidThrowingRawExceptionTypes, when a Type name is the same as a RawException.
+Fixed bug 1811506 - False - : UnusedFormalParameter (property "checkall" needs to be set)
+Fixed false negative in UnnecessaryCaseChange
+
+The Java 1.5 source code parser is now the default for testcode used in PMD's unit tests.
+Added TypeResolution to the XPath rule. Use typeof function to determine if a node is of a particular type
+Adding a GenericLiteralChecker, a generic rule that require a regex as property. It will log a violation if a Literal is matched by the regex. See the new rule AvoidUsingHardCodedIP for an example.
+Adding support for multiple line span String in CPD's AbstractTokenizer, this may change, for the better, CPD's Ruby parsing.
+This release adds 'nicehtml', with the plan for the next major release to make nicehtml->html, and html->oldhtml. This feature uses an XSLT transformation, default stylesheet maybe override with '-xslt filename'.
+New CPD command line feature : Using more than one directory for sources. You can now have several '--files' on the command line.
+SingularField greatly improved to generate very few false positives (none?). Moved from controversial to design. Two options added to restore old behaviour (mostly).
+Jaxen updated to 1.1.1, now Literal[@Image='""'] works in XPath expressions.
+
+July 20, 2007 - 4.0
+Fixed bug 1697397 - fixed false positives in ClassCastExceptionWithToArray
+Fixed bug 1728789 - removed redundant rule AvoidNonConstructorMethodsWithClassName; MethodWithSameNameAsEnclosingClass is faster and does the same thing.
+
+July 12, 2007 - 4.0rc2:
+New rules:
+	Typeresolution ruleset: SignatureDeclareThrowsException - re-implementation using the new Type Resolution facility (old rule is still available)
+Fixed bug 1698550 - CloneMethodMustImplementCloneable now accepts a clone method that throws CloneNotSupportedException in a final class
+Fixed bug 1680568 - The new typeresolution SignatureDeclareThrowsException rule now ignores setUp and tearDown in JUnit 4 tests and tests that do not directly extend TestCase
+The new typeresolution SignatureDeclareThrowsException rule can now ignore JUnit classes completely by setting the IgnoreJUnitCompletely property
+Fixed false positive in UselessOperationOnImmutable
+PMD now defaults to using a Java 1.5 source code parser.
+
+June 22, 2007 - 4.0rc1:
+New rules:
+	Strict exception ruleset: DoNotExtendJavaLangError
+	Basic JSP ruleset: JspEncoding
+	J2EE ruleset: MDBAndSessionBeanNamingConvention, RemoteSessionInterfaceNamingConvention, LocalInterfaceSessionNamingConvention, LocalHomeNamingConvention, RemoteInterfaceNamingConvention
+	Optimizations ruleset: AddEmptyString
+	Naming: BooleanGetMethodName
+New rulesets:
+    Migrating To JUnit4: Rules that help move from JUnit 3 to JUnit 4
+Fixed bug 1670717 - 'Copy xml to clipboard' menu command now works again in the Designer
+Fixed bug 1618858 - PMD no longer raises an exception on XPath like '//ConditionalExpression//ConditionalExpression'
+Fixed bug 1626232 - Commons logging rules (ProperLogger and UseCorrectExceptionLogging) now catch more cases
+Fixed bugs 1626201 & 1633683 - BrokenNullCheck now catches more cases
+Fixed bug 1626715 - UseAssertSameInsteadOfAssertTrue now correctly checks classes which contain the null constant
+Fixed bug 1531216 - ImmutableField. NameOccurrence.isSelfAssignment now recognizes this.x++ as a self assignment
+Fixed bug 1634078 - StringToString now recognizes toString on a String Array, rather than an element.
+Fixed bug 1631646 - UselessOperationOnImmutable doesn't throw on variable.method().variable.
+Fixed bug 1627830 - UseLocaleWithCaseConversions now works with compound string operations
+Fixed bug 1613807 - DontImportJavaLang rule allows import to Thread inner classes
+Fixed bug 1637573 - The PMD Ant task no longer closes System.out if toConsole is set
+Fixed bug 1451251 - A new UnusedImports rule, using typeresolution, finds unused import on demand rules
+Fixed bug 1613793 - MissingSerialVersionUID rule now doesn't fire on abstract classes
+Fixed bug 1666646 - ImmutableField rule doesn't report against volatile variables
+Fixed bug 1693924 - Type resolution now works for implicit imports
+Fixed bug 1705716 - Annotation declarations now trigger a new scope level in the symbol table.
+Fixed bug 1743938 - False +: InsufficientStringBufferDeclaration with multiply
+Fixed bug 1657957 - UseStringBufferForStringAppends now catches self-assignments
+Applied patch 1612455 - RFE 1411022 CompareObjectsWithEquals now catches the case where comparison is against new Object
+Implemented RFE 1562230 - Added migration rule to check for instantiation of Short/Byte/Long
+Implemented RFE 1627581 - SuppressWarnings("unused") now suppresses all warnings in unusedcode.xml
+XPath rules are now chained together for an extra speedup in processing
+PMD now requires JDK 1.5 to be compiled. Java 1.4 support is provided using Retroweaver
+- PMD will still analyze code from earlier JDKs
+- to run pmd with 1.4, use the files from the java14 directory (weaved pmd jar and support files)
+TypeResolution now looks at some ASTName nodes.
+Memory footprint reduced: most renderers now use less memory by generating reports on the fly.
+Ant task now takes advantage of multithreading code and on the fly renderers
+Ant task now logs more debug info when using -verbose
+PMD command line now has -benchmark: output a benchmark report upon completion; default to System.err
+
 December 19, 2006 - 3.9:
 New rules:
     Basic ruleset: BigIntegerInstantiation, AvoidUsingOctalValues
@@ -368,7 +516,7 @@ Fixed bug 1198832 - AbstractClassWithoutAbstractMethod no longer flags classes w
 Implemented RFE 1193979 - BooleanInstantiation now catches cases like Boolean.valueOf(true)
 Implemented RFE 1171095 - LabeledStatement nodes now contain the image of the label.
 Implemented RFE 1176401 - UnusedFormalParameter now flags public methods.
-Implemented RFE 994338 - The msg produced by ConstructorCallsOverridableMethod now includes the offending method name. 
+Implemented RFE 994338 - The msg produced by ConstructorCallsOverridableMethod now includes the offending method name.
 Modified command line parameters; removed -jdk15 and -jdk13 parameters and added a -'targetjdk [1.3|1.4|1.5]' parameter.
 Modified CSVRenderer to include more columns.
 Optimized rules: FinalFieldCouldBeStatic (115 seconds to 7 seconds), SuspiciousConstantFieldName (48 seconds to 14 seconds), UnusedModifer (49 seconds to 4 seconds)
@@ -382,7 +530,7 @@ Fixed bug 1146116 - JUnitTestsShouldIncludeAssert no longer crashes on inner Int
 Fixed bug 1114625 - UnusedPrivateField no longer throws an NPE on standalone postfix expressions which are prefixed with 'this'.
 Fixed bug 1114020 - The Ant task now reports a complete stack trace when run with the -verbose flag.
 Fixed bug 1117983 - MethodArgumentCouldBeFinal no longer reports false positives on try..catch blocks.
-Fixed bug 797742 - PMD now parses JDK 1.5 source code.  Note that it's not perfect yet; more testing/bug reports are welcome!  
+Fixed bug 797742 - PMD now parses JDK 1.5 source code.  Note that it's not perfect yet; more testing/bug reports are welcome!
 Fixed a bug - the StatisticalRule no longer 'merges' data points when using the 'topscore' property.
 Fixed a bug - the PMD Ant task's failOnRuleViolation attribute no longer causes a BuildException in the case when no rule violations occur.
 Modified the XSLT to add a summary section.
@@ -410,7 +558,7 @@ CPD now contains a generic copy/paste checker for programs in any language
 December 15, 2004 - 2.1:
 New rules: AvoidProtectedFieldInFinalClass, SystemPrintln
 Fixed bug 1050173 - ImmutableFieldRule no longer reports false positives for static fields.
-Fixed bug 1050286 - ImmutableFieldRule no longer reports false positives for classes which have multiple constructors only a subset of which set certain fields. 
+Fixed bug 1050286 - ImmutableFieldRule no longer reports false positives for classes which have multiple constructors only a subset of which set certain fields.
 Fixed bug 1055346 - ImmutableFieldRule no longer reports false positive on preinc/predecrement/postfix expressions.
 Fixed bug 1041739 - EmptyStatementNotInLoop no longer reports false positives for nested class declarations in methods.
 Fixed bug 1039963 - CPD no longer fails to parse C++ files with multi-line macros.
