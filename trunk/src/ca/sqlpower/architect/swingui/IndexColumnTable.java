@@ -33,8 +33,8 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Component;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -529,27 +529,21 @@ public class IndexColumnTable {
 
         newTable = new EditableJTable(model);
 
-        /*
-         * This makes sure that when the user clicks on a combo box, that the
-         * comboBox will gain focus right away, and will not have to be clicked
-         * again so that it can get focus.
-         */
-        newTable.addFocusListener(new FocusListener() {
-            public void focusGained(FocusEvent e) {
-                JTable table = (JTable) e.getComponent();
-                int row = table.getSelectionModel().getAnchorSelectionIndex();
-                int col = table.getColumnModel().getSelectionModel().getAnchorSelectionIndex();
-                if (col == table.getColumnModel().getColumnIndex(ORDER)) {
-                    boolean ok = table.editCellAt(row, col);
-                    Component comp = table.getEditorComponent();
-                    if (ok && comp instanceof JComboBox) {
-                        ((JComboBox) comp).setPopupVisible(false);
-                        table.getCellEditor().stopCellEditing();
+        //Forwards the mouse listener to the table component
+        //if the table gets the mouse click rather than the component
+        //(ie the combo box).
+        newTable.addMouseListener(new MouseListener() {
+        
+            public void mouseReleased(MouseEvent e) {}
+            public void mousePressed(MouseEvent e) {}
+            public void mouseExited(MouseEvent e) {}
+            public void mouseEntered(MouseEvent e) {}
+            public void mouseClicked(MouseEvent e) {
+                if (e.getComponent() != e.getComponent().getComponentAt(e.getPoint())) {
+                    for (MouseListener listener : e.getComponent().getComponentAt(e.getPoint()).getMouseListeners()) {
+                        listener.mouseClicked(e);
                     }
                 }
-            }
-
-            public void focusLost(FocusEvent e) {
             }
         });
         AscendDescend[] values = new AscendDescend[] { AscendDescend.ASCENDING, AscendDescend.DESCENDING,
