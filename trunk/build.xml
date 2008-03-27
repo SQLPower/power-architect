@@ -261,7 +261,7 @@
 		<property name="reports.junit" value="${reports}/junit"/>
 		<mkdir dir="${reports.junit}"/>
 		<!-- Output all System.out and System.err messages -->
-	   <junit printsummary="on" showoutput="yes">
+	   <junit printsummary="on" showoutput="no">
 	   	   <sysproperty key="ca.sqlpower.architect.test.dir" value="${build.tests}"/>
 	       <classpath>
 	       		<path refid="test.classpath"/>
