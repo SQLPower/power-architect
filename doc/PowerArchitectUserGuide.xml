@@ -1514,7 +1514,7 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="doc/images/Hijacked_Column_Relation.PNG"
+								fileref="doc/images/Hijacked_Column_Relation.png"
 								format="PNG" 
 								width="5in" />
 						</imageobject>
@@ -1528,7 +1528,7 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="doc/images/New_Column_Relation.PNG"
+								fileref="doc/images/New_Column_Relation.png"
 								format="PNG"
 								width="5in" />
 						</imageobject>
