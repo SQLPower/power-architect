@@ -228,7 +228,7 @@
 		<taskdef name="cpd" classname="net.sourceforge.pmd.cpd.CPDTask"
 			classpath="${pmd.jar}"/>
 		<property name="cpd-results" value="${reports}/cpd-ant-results.xml"/>
-		<cpd minimumTokenCount="120" format="xml" outputfile="${cpd-results}">
+		<cpd encoding="UTF-8" minimumTokenCount="120" format="xml" outputfile="${cpd-results}">
 			<fileset dir="${src}">
 				<include name="**/*.java"/>
 				<exclude name="generated/**.java"/>
