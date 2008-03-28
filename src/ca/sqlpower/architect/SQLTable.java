@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect;
 
@@ -32,9 +45,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.sql.CachedRowSet;
 
 public class SQLTable extends SQLObject {
 
@@ -604,7 +615,6 @@ public class SQLTable extends SQLObject {
 		    columnsFolder.removeChild(col);
         }
 	}
-	
 
 	/**
 	 * Moves the column at index <code>oldIdx</code> to index
@@ -633,13 +643,10 @@ public class SQLTable extends SQLObject {
             col.primaryKeySeq = interimPkSeq;
             col.fireDbObjectChanged("primaryKeySeq", oldPkSeq, interimPkSeq);
 
-            // If the indices are the same, then there's no point in moving the column
-            if (oldIdx != newIdx) {
-                columnsFolder.children.remove(oldIdx);
-                columnsFolder.fireDbChildRemoved(oldIdx, col);
-                columnsFolder.children.add(newIdx, col);
-                columnsFolder.fireDbChildInserted(newIdx, col);
-            }
+            columnsFolder.children.remove(oldIdx);
+            columnsFolder.fireDbChildRemoved(oldIdx, col);
+            columnsFolder.children.add(newIdx, col);
+            columnsFolder.fireDbChildInserted(newIdx, col);
 
             normalizePrimaryKey();
         } finally {
@@ -702,7 +709,7 @@ public class SQLTable extends SQLObject {
             // Phase 3 (see doc comment)
 
             if (getPrimaryKeyIndex() == null) {
-                SQLIndex pkIndex = new SQLIndex(getName()+"_pk", true, null, null ,null);
+                SQLIndex pkIndex = new SQLIndex(getName()+"_pk", true, null, SQLIndex.IndexType.CLUSTERED,null);
                 pkIndex.setPrimaryKeyIndex(true);
                 addIndex(pkIndex);
                 logger.debug("new pkIndex.getChildCount()="+pkIndex.getChildCount());
@@ -728,7 +735,7 @@ public class SQLTable extends SQLObject {
                 if (oldColumnInstances.get(col) != null) {
                     pkIndex.addChild(oldColumnInstances.get(col));
                 } else {
-                    pkIndex.addIndexColumn(col,AscendDescend.UNSPECIFIED);
+                    pkIndex.addIndexColumn(col,false,false);
                 }
             }
             if (pkIndex.getChildCount() == 0) {
@@ -891,34 +898,20 @@ public class SQLTable extends SQLObject {
 					parent.populateColumns();
 					parent.populateRelationships();
 				} else if (type == EXPORTED_KEYS) {
-					CachedRowSet crs = null;
+					ResultSet rs = null;
 					Connection con = null;
-					DatabaseMetaData dbmd = null;
 					try {
 						con = parent.getParentDatabase().getConnection();
-						dbmd = con.getMetaData();
-						crs = new CachedRowSet();
-						crs.populate(dbmd.getExportedKeys(parent.getCatalogName(), parent.getSchemaName(), parent.getName()));
-					} catch (SQLException ex) {
-                        throw new ArchitectException("Couldn't locate related tables", ex);
-                    } finally {
-                        // close the connection before it makes the recursive call
-                        // that could lead to opening more connections
-                        try {
-                            if (con != null) con.close();
-                        } catch (SQLException ex) {
-                            logger.warn("Couldn't close connection", ex);
-                        }
-                    }
-                    try {
-						while (crs.next()) {
-							if (crs.getInt(9) != 1) {
+						DatabaseMetaData dbmd = con.getMetaData();
+						rs = dbmd.getExportedKeys(parent.getCatalogName(), parent.getSchemaName(), parent.getName());
+						while (rs.next()) {
+							if (rs.getInt(9) != 1) {
 								// just another column mapping in a relationship we've already handled
 								continue;
 							}
-							String cat = crs.getString(5);
-							String sch = crs.getString(6);
-							String tab = crs.getString(7);
+							String cat = rs.getString(5);
+							String sch = rs.getString(6);
+							String tab = rs.getString(7);
 							SQLTable fkTable = parent.getParentDatabase().getTableByName(cat, sch, tab);
 							fkTable.populateColumns();
 							fkTable.populateRelationships();
@@ -927,7 +920,12 @@ public class SQLTable extends SQLObject {
 						throw new ArchitectException("Couldn't locate related tables", ex);
 					} finally {
 						try {
-							if (crs != null) crs.close();
+							if (rs != null) rs.close();
+						} catch (SQLException ex) {
+							logger.warn("Couldn't close resultset", ex);
+						}
+						try {
+							if (con != null) con.close();
 						} catch (SQLException ex) {
 							logger.warn("Couldn't close resultset", ex);
 						}
@@ -1078,9 +1076,7 @@ public class SQLTable extends SQLObject {
 	/**
 	 * Sets the table name, and also modifies the primary key name if
 	 * it was previously null or set to the default of
-	 * "oldTableName_pk".  Additionally, if any of this table's columns'
-     * sequence names have been explicitly set, the old table name within
-     * those sequence names will be replaced by the new table name.
+	 * "oldTableName_pk".
 	 *
 	 * @param argName The new table name.  NULL is not allowed.
 	 */
@@ -1089,14 +1085,13 @@ public class SQLTable extends SQLObject {
         logger.debug("About to change table name from \""+getName()+"\" to \""+argName+"\"");
         
         // this method can be called very early in a SQLTable's life,
-        // before its folders exist.  Therefore, we have to
+        // before its indices folder exists.  Therefore, we have to
         // be careful not to look up the primary key before one exists.
 
-        if ( (!isMagicEnabled()) || (indicesFolder == null) || (columnsFolder == null) ) {
+        if ( (!isMagicEnabled()) || (indicesFolder == null) ) {
             super.setName(argName);
         } else try {
             String oldName = getName();
-            
             startCompoundEdit("Table Name Change");
             super.setName(argName);
             SQLIndex primaryKeyIndex = getPrimaryKeyIndex();
@@ -1106,13 +1101,6 @@ public class SQLTable extends SQLObject {
                     || "".equals(getPrimaryKeyName())
                     || (oldName+"_pk").equals(getPrimaryKeyName())) ) {
                 primaryKeyIndex.setName(getName()+"_pk");
-            }
-            
-            for (SQLColumn col : getColumns()) {
-                if (col.isAutoIncrementSequenceNameSet()) {
-                    String newName = col.getAutoIncrementSequenceName().replace(oldName, argName);
-                    col.setAutoIncrementSequenceName(newName);
-                }
             }
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
@@ -1378,17 +1366,5 @@ public class SQLTable extends SQLObject {
         } finally {
             if (rs != null) rs.close();
         }
-    }
-
-    /**
-     * Returns an unmodifiable list of all the indices of this table, in the
-     * same order they appear in the indices folder. If this table has no indices,
-     * the returned list will be empty (never null).
-     * 
-     * @throws ArchitectException If there is a problem populating the indices folder
-     */
-    public List<SQLIndex> getIndices() throws ArchitectException {
-        List<SQLIndex> indices = getIndicesFolder().getChildren();
-        return Collections.unmodifiableList(indices);
     }
 }

@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
@@ -36,12 +49,11 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
-import java.util.Set;
 
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -117,7 +129,7 @@ public class TablePane
 	/**
 	 * Tracks which columns in this table are currently selected.
 	 */
-	protected Set<SQLColumn> selectedColumns;
+	protected ArrayList<Boolean> columnSelection;
 
 	/**
 	 * Tracks current highlight colours of the columns in this table.
@@ -147,7 +159,7 @@ public class TablePane
 		this.selectionListeners = new ArrayList<SelectionListener>();
 		this.dtl = new TablePaneDropListener(this);
 		this.margin = (Insets) tp.margin.clone();
-		this.selectedColumns = new HashSet<SQLColumn>(tp.selectedColumns);
+		this.columnSelection = new ArrayList<Boolean>(tp.columnSelection);
 		this.columnHighlight = new HashMap<SQLColumn,List<Color>>(tp.columnHighlight);
 		try {
 
@@ -259,8 +271,8 @@ public class TablePane
                     boolean wasSelectedPreviously = (e.getChildren()[i] == mostRecentSelectedRemoval);
                     if (wasSelectedPreviously) {
                         selectNone();
-                        selectedColumns.add((SQLColumn) e.getChildren()[i]);
                     }
+                    columnSelection.add(ci[i], wasSelectedPreviously);
                     // This is only supposed to work if we deselct the columns before selecting them
                     // this if stops the insert from wiping out a highlighted column
                     if (columnHighlight.get((SQLColumn) e.getChildren()[i]) == null) {
@@ -294,16 +306,20 @@ public class TablePane
                     logger.debug("Columns removed. Syncing select/highlight lists. Removed indices=["+sb+"]");
                 }
                 for (int i = 0; i < ci.length; i++) {
-                    if (selectedColumns.contains(e.getChildren()[i])) {
+                    if (columnSelection.get(ci[i]) == true) {
                         mostRecentSelectedRemoval = (SQLColumn) e.getChildren()[i];
                     }
-                    selectedColumns.remove(e.getChildren()[i]);
+                    columnSelection.remove(ci[i]);
                 }
+                if (columnSelection.size() > 0) {
+                    selectNone();
+                    columnSelection.set(Math.min(ci[0], columnSelection.size()-1), Boolean.TRUE);
+                }
+
+                // make sure everything is synced up
                 try {
-                    int size = model.getColumns().size();
-                    if (size > 0 ) {
-                        selectNone();
-                        selectedColumns.add(model.getColumn(Math.min(ci[0], size-1)));
+                    if (columnSelection.size() != model.getColumns().size()) {
+                        throw new IllegalStateException("out-of-sync selection list (event source="+e.getSource()+"): selection="+columnSelection+"; children="+model.getColumns());
                     }
                 } catch (ArchitectException ex) {
                     throw new ArchitectRuntimeException(ex);
@@ -339,7 +355,10 @@ public class TablePane
             logger.debug("TablePane got db structure change event. source="+e.getSource());
             if (e.getSource() == model.getColumnsFolder()) {
                 int numCols = e.getChildren().length;
-                selectedColumns = new HashSet<SQLColumn>(numCols);
+                columnSelection = new ArrayList<Boolean>(numCols);
+                for (int i = 0; i < numCols; i++) {
+                    columnSelection.add(Boolean.FALSE);
+                }
                 columnHighlight = new HashMap<SQLColumn,List<Color>>();
                 try {
                     for (SQLColumn child :((List<SQLColumn>) model.getColumnsFolder().getChildren())) {
@@ -391,7 +410,10 @@ public class TablePane
 
 
 		try {
-		    selectedColumns = new HashSet<SQLColumn>(m.getColumns().size());
+			columnSelection = new ArrayList<Boolean>(m.getColumns().size());
+			for (int i = 0; i < m.getColumns().size(); i++) {
+				columnSelection.add(Boolean.FALSE);
+			}
 			columnHighlight = new HashMap<SQLColumn,List<Color>>();
 			for (SQLColumn column: model.getColumns()) {
 				columnHighlight.put(column, new ArrayList<Color>());
@@ -481,7 +503,9 @@ public class TablePane
      * Deselects all columns in this tablepane.
      */
 	public void selectNone() {
-	    selectedColumns.clear();
+		for (int i = 0; i < columnSelection.size(); i++) {
+			columnSelection.set(i, Boolean.FALSE);
+		}
 		repaint();
 	}
 
@@ -495,11 +519,7 @@ public class TablePane
             selectNone();
             return;
         }
-        try {
-            selectedColumns.remove(model.getColumn(i));
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
-        }
+        columnSelection.set(i, Boolean.FALSE);
         repaint();
     }
 
@@ -508,15 +528,11 @@ public class TablePane
 	 * #selectNone()} is called rather than selecting a column.
 	 */
 	public void selectColumn(int i) {
-	    if (i < 0) {
+		if (i < 0) {
 			selectNone();
 			return;
 		}
-	    try{
-	        selectedColumns.add(model.getColumn(i));
-	    } catch (ArchitectException ex) {
-	        throw new ArchitectRuntimeException(ex);
-	    }
+		columnSelection.set(i, Boolean.TRUE);
 		repaint();
 	}
 
@@ -527,9 +543,10 @@ public class TablePane
 	 */
 	public boolean isColumnSelected(int i) {
 		try {
-		    return selectedColumns.contains(model.getColumn(i));
-		} catch (ArchitectException ex) {
-		    throw new ArchitectRuntimeException(ex);
+			return ((Boolean) columnSelection.get(i)).booleanValue();
+		} catch (IndexOutOfBoundsException ex) {
+			logger.error("Couldn't determine selected status of col "+i+" on table "+model.getName());
+			return false;
 		}
 	}
 
@@ -538,12 +555,11 @@ public class TablePane
 	 * COLUMN_INDEX_NONE if there are no selected columns.
 	 */
 	public int getSelectedColumnIndex() {
-		if (selectedColumns.size() > 0) {
-		    try {
-		        return model.getColumns().indexOf(selectedColumns.toArray()[0]);
-		    } catch (ArchitectException ex) {
-		        throw new ArchitectRuntimeException(ex);
-		    }
+		ListIterator<Boolean> it = columnSelection.listIterator();
+		while (it.hasNext()) {
+			if ((it.next()) == true) {
+				return it.previousIndex();
+			}
 		}
 		return COLUMN_INDEX_NONE;
 	}
@@ -595,29 +611,15 @@ public class TablePane
 
 	// ------------------ utility methods ---------------------
 
-    /**
-     * Returns the index of the column that point p is on top of.  If
-     * p is on top of the table name, returns COLUMN_INDEX_TITLE.
-     * Otherwise, p is not over a column or title and the returned
-     * index is COLUMN_INDEX_NONE.
-     */
-    public int pointToColumnIndex(Point p) throws ArchitectException {
-        return ((TablePaneUI) getUI()).pointToColumnIndex(p);
-    }
-
-    /**
-     * Returns the centre Y coordinate of the given column index.  The
-     * special {@link #COLUMN_INDEX_TITLE} value for <tt>colidx</tt>
-     * will produce the central Y coordinate for the title bar.
-     * 
-     * @param colidx the column number to get the central Y coordinate of.
-     * @return The Y coordinate at the visual centre point of the
-     * given column.  If the requested column index is out of range, the
-     * value <tt>-1</tt> is returned.
-     */
-    public int columnIndexToCentreY(int colidx) throws ArchitectException {
-        return ((TablePaneUI) getUI()).columnIndexToCentreY(colidx);
-    }
+	/**
+	 * Returns the index of the column that point p is on top of.  If
+	 * p is on top of the table name, returns COLUMN_INDEX_TITLE.
+	 * Otherwise, p is not over a column or title and the returned
+	 * index is COLUMN_INDEX_NONE.
+	 */
+	public int pointToColumnIndex(Point p) throws ArchitectException {
+		return ((TablePaneUI) getUI()).pointToColumnIndex(p);
+	}
 
 	/**
 	 * Inserts the list of SQLObjects into this table at the specified location.
@@ -693,7 +695,7 @@ public class TablePane
 				} else {
 					// importing column from a source database
 					getModel().inherit(insertionPoint, col, newColumnsInPk);
-					if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision());
+					if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table");
 				}
 			} else {
 				return false;
@@ -970,23 +972,16 @@ public class TablePane
     /**
      * Changes the foreground colour of a column.  This is useful when outside forces
      * want to colour in a column.
-     * <p>
-     * When highlighting for the given column is no longer desired, remove the
-     * highlight with a call to {@link #removeColumnHighlight(SQLColumn, Color)}.
      *
      * @param i The column index to recolour
-     * @param colour The new colour to show the column in.
+     * @param colour The new colour to show the column in.  null means use this TablePane's current
+     * foreground colour.
      */
     public void addColumnHighlight(SQLColumn column, Color colour) {
         columnHighlight.get(column).add(colour);
         repaint(); // XXX: should constrain repaint region to column i
     }
 
-    /**
-     * Removes the given colour highlight from the given column.  This method
-     * should be called once and only once for each corresponding invocation
-     * of {@link #addColumnHighlight(SQLColumn, Color)} with the same arguments.
-     */
     public void removeColumnHighlight(SQLColumn column, Color colour) {
         columnHighlight.get(column).remove(colour);
         repaint();

@@ -1,20 +1,7 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
+ * Created on Jul 31, 2007
  *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * This code belongs to SQL Power Group Inc.
  */
 package ca.sqlpower.architect.swingui;
 
@@ -23,8 +10,6 @@ import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JTabbedPane;
-
-import org.apache.log4j.Logger;
 
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -37,8 +22,6 @@ import ca.sqlpower.swingui.DataEntryPanel;
  */
 public class TabbedDataEntryPanel implements DataEntryPanel {
 
-    private static final Logger logger = Logger.getLogger(TabbedDataEntryPanel.class);
-    
     /**
      * The tabbed pane that holds all the GUIs added via addTab().
      */
@@ -69,13 +52,10 @@ public class TabbedDataEntryPanel implements DataEntryPanel {
      * @return True if and only if each panel's applyChanges() returned success.
      */
     public boolean applyChanges() {
-        logger.debug("Applying changes...");
         boolean success = true;
         for (DataEntryPanel panel : panels) {
-            logger.debug("       ... on " + panel);
             success &= panel.applyChanges();
         }
-        // FIXME: how can we roll back changes if one of the updates fails?
         return success;
     }
 
@@ -94,15 +74,6 @@ public class TabbedDataEntryPanel implements DataEntryPanel {
      */
     public JComponent getPanel() {
         return tabbedPane;
-    }
-
-    public boolean hasUnsavedChanges() {
-        for (DataEntryPanel panel : panels) {
-            if (panel.hasUnsavedChanges()) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

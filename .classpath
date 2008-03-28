@@ -13,23 +13,22 @@
 	<classpathentry kind="lib" path="lib/commons-beanutils-bean-collections.jar"/>
 	<classpathentry kind="lib" path="lib/commons-beanutils-core.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.1.jar"/>
-	<classpathentry kind="lib" path="lib/commons-dbcp-1.2.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-dbcp-1.2.1.jar" sourcepath="libsrc/commons-dbcp-1.2.1-src.zip"/>
 	<classpathentry kind="lib" path="lib/commons-digester.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
-	<classpathentry kind="lib" path="lib/commons-pool-1.3.jar"/>
+	<classpathentry kind="lib" path="lib/commons-pool-1.3.jar" sourcepath="libsrc/commons-pool-1.3-src.zip"/>
 	<classpathentry kind="lib" path="lib/commons-vfs-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/darwinsys.jar"/>
 	<classpathentry kind="lib" path="lib/edtftpj-1.5.4.jar"/>
 	<classpathentry kind="lib" path="lib/forms-1.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/itext-1.4.8.jar"/>
 	<classpathentry kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon-1.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/jhall.jar"/>
-	<classpathentry kind="lib" path="lib/kettle-engine-3.0.jar"/>
 	<classpathentry kind="lib" path="lib/log4j.jar"/>
 	<classpathentry kind="lib" path="lib/mail.jar"/>
 	<classpathentry kind="lib" path="osx_packaging_utils/osx_adapter.jar"/>
-	<classpathentry kind="lib" path="lib/spring-core.jar"/>
-	<classpathentry kind="lib" path="lib/iText-2.0.8.jar"/>
+	<classpathentry kind="lib" path="lib/kettle-engine-3.0.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

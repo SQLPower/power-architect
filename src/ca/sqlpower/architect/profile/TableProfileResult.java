@@ -1,23 +1,40 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.profile;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,123 +46,156 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.util.Monitorable;
-import ca.sqlpower.util.MonitorableImpl;
 
-/**
- * Holds profile results that pertain to a particular table. Instances of this
- * class are normally created and populated via a ProfileManager, but it is also
- * possible to obtain one by using a TableProfileCreator directly.
- */
 public class TableProfileResult extends AbstractProfileResult<SQLTable> {
 
     private static final Logger logger = Logger.getLogger(TableProfileResult.class);
 
     private int rowCount;
-    
-    /**
-     * The "children" of this profile result: the profile results for the columns
-     * of this table.
-     */
     private List<ColumnProfileResult> columnProfileResults = new ArrayList<ColumnProfileResult>();
 
-    private Monitorable progressMonitor = new MonitorableImpl();
+    /**
+     * The profile manager that "owns" this profile result.
+     */
+    private ProfileManager manager;
+
+    /**
+     * The progress so far. Row count is the first chunk of progress, then each column
+     * counts as one more chunk.
+     */
+    private int progress;
     
     /**
      * Creates a profile result which is not yet populated.  Normally, profile results
      * are created by the ProfileManager's createProfile() or asynchCreateProfiles()
      * method, so users will not use this constructor directly.
      * <p>
-     * Note that the profile result will be empty until it has been populated by a ProfileCreator
+     * Note that the profile result will be empty until its populate() method is called
      * (also taken care of by the ProfileManager that creates this result).
+     * <p>
+     * The only reason this method is public is because the SwingUIProject class needs
+     * to create profiles directly when reading in a project file.  It would be nice
+     * to come up with a better API and make this constructor protected.
      * 
      * @param profiledObject
      * @param manager
      * @param settings
      */
-    public TableProfileResult(SQLTable profiledObject, ProfileSettings settings) {
+    public TableProfileResult(SQLTable profiledObject, ProfileManager manager, ProfileSettings settings) {
         super(profiledObject);
+        this.manager = manager;
         setSettings(settings);
     }
 
-    /**
-     * Returns the progress monitor that can be polled to track the progress
-     * of this profile result being populated.  The progress monitor also
-     * provides the means of canceling the population of this profile result.
-     */
-    public Monitorable getProgressMonitor() {
-        return progressMonitor;
-    }
-
-    /**
-     * Returns the number of rows in this table.  This count is not guaranteed to
-     * be realistic until this result has been fully profiled.
-     */
     public int getRowCount() {
         return rowCount;
     }
 
-    public void setRowCount(int rowCount) {
-        this.rowCount = rowCount;
-    }
+    final static Date date = new Date();
+    final static DateFormat df = DateFormat.getDateTimeInstance();
 
     /**
      * This printf format string is used in our toString() but is also
      * made public for use in UI controls that need an approximation
      * of the format for e.g., sizing a JLabel or other text component
      */
-    public static final String TOSTRING_FORMAT = "Rows: %d   %s   Time:  %s";
+    public static final String TOSTRING_FORMAT = "Rows: %d   %s   Time:  %d ms";
 
     @Override
     public String toString() {
-        DateFormat df = DateFormat.getDateTimeInstance();
-        Date date = new Date(getCreateStartTime());
-        return String.format(TOSTRING_FORMAT, rowCount, df.format(date), formatCreateTime());
+        date.setTime(getCreateStartTime());
+        return String.format(TOSTRING_FORMAT, rowCount, df.format(date), getTimeToCreate());
     }
-    
-    /**
-     * Format the time it took to create so that it displays
-     * the proper time units.
-     * @return String representation of the create time
-     * with the proper time units.
-     */
-    private String formatCreateTime() {
-        long time = getTimeToCreate();
-        
-        // when time is less than 1 ms
-        if (time == 0) {
-            return "0 ms";
-        }
-        
-        // holds the values for each time unit
-        int[] timeValues = new int[6];
-        int i = 5;
-        timeValues[i--] = (int) time % 1000;
-        time /= 1000;
-        timeValues[i--] = (int) time % 60;
-        time /= 60;
-        timeValues[i--] = (int) time % 60;
-        time /= 60;
-        timeValues[i--] = (int) time % 24;
-        time /= 24;
-        timeValues[i--] = (int) time % 365;
-        time /= 365;
-        timeValues[i--] = (int) time;
 
-        StringBuilder s = new StringBuilder();
-        String[] timeUnits = new String[] {"yr", "day", "hr", "min", "sec", "ms"};
-        for (int j = 0; j < 6; j++) {
-            if (timeValues[j] > 0) {
-                s.append(timeValues[j] + " " + timeUnits[j] + " ");
+    protected void doProfile() throws SQLException, ArchitectException {
+        progress = 0;
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            SQLTable table = getProfiledObject();
+            SQLDatabase db = table.getParentDatabase();
+            conn = db.getConnection();
+            String databaseIdentifierQuoteString = null;
+
+            databaseIdentifierQuoteString = conn.getMetaData().getIdentifierQuoteString();
+
+            StringBuffer sql = new StringBuffer();
+            sql.append("SELECT COUNT(*) AS ROW__COUNT");
+            sql.append("\nFROM ");
+            sql.append(DDLUtils.toQualifiedName(table.getCatalogName(),
+                    table.getSchemaName(),
+                    table.getName(),
+                    databaseIdentifierQuoteString,
+                    databaseIdentifierQuoteString));
+            stmt = conn.createStatement();
+            stmt.setEscapeProcessing(false);
+            String lastSQL = sql.toString();
+
+            progress += 1;
+            
+            rs = stmt.executeQuery(lastSQL);
+
+            if ( rs.next() ) {
+                rowCount = rs.getInt("ROW__COUNT");
+            }
+            
+            List<SQLColumn> columns = table.getColumns();
+            if ( columns.size() == 0 ) {
+                return;
+            }
+            for (SQLColumn col : columns ) {
+                ColumnProfileResult columnResult = new ColumnProfileResult(col, manager, this);
+                columnResult.populate();
+                columnProfileResults.add(columnResult);
+                progress += 1;
+            }
+
+            // XXX: add where filter later
+        } finally {
+            try {
+                if (rs != null) rs.close();
+            } catch (SQLException ex) {
+                logger.error("Couldn't clean up result set", ex);
+            }
+            try {
+                if (stmt != null) stmt.close();
+            } catch (SQLException ex) {
+                logger.error("Couldn't clean up statement", ex);
+            }
+            if (conn != null) {
+                conn.close();
             }
         }
-        return s.toString();
     }
 
+    /**
+     * Returns the number of columns plus 1. This allows the progress bar to
+     * move before each column gets profiled, which makes it appear to be doing
+     * something right away.
+     */
+    @Override
+    public synchronized Integer getJobSize() {
+        SQLTable temp = getProfiledObject();
+        Integer ret = null;
+        try {
+            ret = new Integer(temp.getColumns().size() + 1);
+        } catch (ArchitectException e) {
+            throw new IllegalStateException("Failed to populate necessary columns.");
+        }
+        return ret;
+    }
+    
+    @Override
+    public synchronized int getProgress() {
+        return progress;
+    }
+    
     /**
      * Returns an unmodifiable list of columnProfileResults that
      * belong to this table.
@@ -192,9 +242,13 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
     }
 
     /**
-     * Adds a new column profile result to the end of the result list.
+     * Add a new column profile result to the end of the result list
      */
     public void addColumnProfileResult(ColumnProfileResult profileResult) {
         columnProfileResults.add(profileResult);
+    }
+
+    public void setRowCount(int rowCount) {
+        this.rowCount = rowCount;
     }
 }

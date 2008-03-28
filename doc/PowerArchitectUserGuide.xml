@@ -25,7 +25,7 @@
 		<date>Last Modified</date>
 
 		<copyright>
-			<year>2008</year>
+			<year>2007</year>
 			<holder>SQL Power Group Inc.</holder>
 		</copyright>
 		
@@ -180,7 +180,7 @@
 		</para>
 
 		<para>
-			Copyright (c) 2008, SQL Power Group Inc.
+			Copyright (c) 2007, SQL Power Group Inc.
 		</para>
 		
 		<para>
@@ -463,20 +463,12 @@
 					<command>java -jar architect.jar</command>.  For larger projects,
 					the default maximum amount of memory allowed by the Java runtime may not be
 					enough.  In that case, use a command such as <command>java -Xmx600m -jar architect.jar</command>,
-					which increases the cap on memory usage from the default 64MB to 600MB.<footnote>
-					    <para>
-					        Note that this will not ause the Architect to immediately allocate that
-					        amount of memory: the Xmx setting simply sets the upper limit on the
-					        total amount of memory the Architect will be allowed to allocate. If you
-					        are familiar with Unix-like operating systems, you can think of this
-					        setting as being similar to ulimit(1).
-					    </para>
-					</footnote>
+					which increases the memory cap from the default 64MB to 600MB.
 			    </para>
 			    
 			    <para>
 					Alternatively, if your operating system has a visual filesystem browser, you may be able to
-					launch the Architect by clicking (or double-clicking) on the architect.jar file.
+					launch the architect by clicking (or double-clicking) on the architect.jar file.
 				</para>
 
 			</section>
@@ -533,15 +525,10 @@
 			<para>
 				<emphasis>Zoom Tools</emphasis>
 				- These tools allow you to control the magnification 
-				level of your view into the playpen.  There are four zoom tools.
-				In order from top to bottom, their functions are: Zoom in a bit;
-				zoom out a bit; reset the zoom to its default level; and zoom to
-				fit the whole diagram.  If there are any selected components
-				in the playpen, they affect the behaviour of the zoom in and zoom
-				to fit tools: When zooming in, the Architect attempts to keep all
-				selected components visible (by scrolling your view to them); when
-				zooming to fit, the Architect will zoom to fit just the selected
-				components, and not the whole data model.
+				level of components display.  There are four zoom tools.
+				In order from top to bottom, their functions are: Zoom in,
+				zoom out, reset zoom level default, and zoom to fit entire
+				diagram.
 			</para>
 
 			<para>
@@ -1226,8 +1213,7 @@
 					the "New Table" option. A newly created table will
 					then be placed at the point of the right click. A
 					third way is to type the letter T with the mouse
-					over the playpen. To cancel creating a new table,
-					press the esc button.
+					over the playpen.
 				</para>
 
 			</section>
@@ -1404,32 +1390,6 @@
 				</itemizedlist>
 
 				<para>
-					The Power*Architect does not format the default value in
-					anyway, you are responsible for entering a valid default value. 
-					The following examples are valid:
-				</para>
-				
-				<itemizedlist>
-
-					<listitem>
-						<para>'word' for a String</para>
-					</listitem>
-	
-					<listitem>
-						<para>{d '2007-12-10'} for a Date</para>
-					</listitem>	
-					
-					<listitem>
-						<para>{t '5:38:00'} for a Time</para>
-					</listitem>
-					
-					<listitem>
-						<para>{ts '2007-12-10 5:38:00'} for a Timestamp</para>
-					</listitem>
-				
-				</itemizedlist>
-
-				<para>
 					A special feature of the Power*Architect is that if
 					a column orginated from a database, the
 					Power*Architect is able to remember the database and
@@ -1500,21 +1460,14 @@
 					created, and will appear as a link between the two
 					tables.
 				</para>
-				
-				<para>
-					To cancel creating a new relationship, press the esc 
-        			button or click anywhere in the background playpen.
-        		</para>
-				
 				<para>	
 					If a column in the child table shares the name of 
-					the primary key of the parent table and it is the first
-					relationship between the two tables, the relationship
+					the primary key of the parent table, the relationship
 					will map to the existing column in the child table.	
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="doc/images/Hijacked_Column_Relation.png"
+								fileref="doc/images/Hijacked_Column_Relation.PNG"
 								format="PNG" 
 								width="5in" />
 						</imageobject>
@@ -1523,12 +1476,12 @@
 				<para>
 					If a column exists in the child table that has the
 					same name as the primary key in the parent table
-					but a different data type or a relationship already
-					exists, a new column will be created.
+					but a different data type a new column will be
+					created.
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="doc/images/New_Column_Relation.png"
+								fileref="doc/images/New_Column_Relation.PNG"
 								format="PNG"
 								width="5in" />
 						</imageobject>
@@ -2036,16 +1989,10 @@
 					<title>What It Does</title>
 
 					<para>
-						One key design principle of the Power*Architect is that 
-	         			the data model remains generic for its entire lifetime. 
-	         			Forward	engineering is the process that makes the 
-	         			transformation to the specified database platform. During
-	         			this process, the Architect attempts to create the physical 
-	         			model that most closely represents the idealized generic 
-	         			model, given the constraints of the target system. The 
-	         			result is a SQL Script that can be run to update or put the 
-	         			components of the current Playpen into a database.
-	         		</para>
+						Forward Engineering creates a SQL Script that
+						can be run to update or put the components of
+						the current Playpen into a database
+					</para>
 
 				</section>
 
@@ -2072,7 +2019,7 @@
 					<mediaobject>
 						<imageobject>
 							<imagedata
-								fileref="doc/images/SimpleExample4.png" format="PNG"
+								fileref="doc/images/forward_engineer.png" format="PNG"
 								width="4in" />
 						</imageobject>
 					</mediaobject>
@@ -2091,7 +2038,7 @@
 					<mediaobject>
 						<imageobject>
 							<imagedata
-								fileref="doc/images/SimpleExample5.png" format="PNG" width="4in" />
+								fileref="doc/images/preview_sql.png" format="PNG" width="4in" />
 						</imageobject>
 					</mediaobject>
 				</section>
@@ -2626,27 +2573,6 @@
 				</imageobject>
 			</mediaobject>
 
-			<section id="profiling.profileMode">
-				<title>Profiling Mode</title>
-				<para>
-					The profiling mode can be changed under File ->
-					Project Settings.There are two possible modes for
-					profiling:
-
-					First is the Remote Database option. This sends a
-					query to the database and has it calculate all of
-					the statistics. This system works well over a large
-					network because very little data is transfered.
-
-					The second option, Local Reservoir which transfers
-					all of the data to the local computer and then
-					samples and process the data there. This works well
-					over a fast network. This option is still experimental
-					 and is known to cause an out of memory error when 
-					 profiling large tables.
-				</para>
-			</section>
-
 			<section id="profiling.tableView">
 				<title>Table View</title>
 				<para>
@@ -2926,13 +2852,11 @@
 						</entry>
 						<entry>
 							<para>
-								Preliminary support exists.  Reverse engineering
-								databases in Derby 10.3.2 or later is possible; Derby-specific
-								forward engineering is not yet available.  You could try
-								using the forward engineering support for another platform
-								such as MySQL or HSQLDB.  Please post to our web support forum
-								if you are interested in forward engineering your data models
-								to Derby!
+								Does not work; the current version
+								(10.1.2) has what we consider some
+								unwarranted chumminess with the JDBC
+								Driver Manager that breaks because we
+								use our own Java "ClassLoader"
 							</para>
 						</entry>
 					</row>

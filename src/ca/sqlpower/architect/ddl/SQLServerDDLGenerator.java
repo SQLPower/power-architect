@@ -1,27 +1,39 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.ddl;
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,13 +43,13 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
+import ca.sqlpower.architect.SQLIndex.IndexType;
 
 
 public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	public SQLServerDDLGenerator() throws SQLException {
 		super();
+		// TODO Auto-generated constructor stub
 	}
 
 	public static final String GENERATOR_VERSION = "$Revision$";
@@ -223,10 +235,6 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 		reservedWords.add("WRITETEXT");
 	}
 
-	public String getName() {
-	    return "Microsoft SQL Server";
-	}
-
 	public boolean isReservedWord(String word) {
 		return reservedWords.contains(word.toUpperCase());
 	}
@@ -266,7 +274,6 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 		typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("BINARY", Types.BINARY, 2000, "0x", null, DatabaseMetaData.columnNullable, true, false));
 		typeMap.put(Integer.valueOf(Types.BIT), new GenericTypeDescriptor("BIT", Types.BIT, 1, null, null, DatabaseMetaData.columnNullable, false, false));
 		typeMap.put(Integer.valueOf(Types.BLOB), new GenericTypeDescriptor("IMAGE", Types.BLOB, 2147483647, "0x", null, DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(Integer.valueOf(Types.BOOLEAN), new GenericTypeDescriptor("TINYINT", Types.TINYINT, 3, null, null, DatabaseMetaData.columnNullable, false, false));
 		typeMap.put(Integer.valueOf(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 8000, "'", "'", DatabaseMetaData.columnNullable, true, false));
 		typeMap.put(Integer.valueOf(Types.CLOB), new GenericTypeDescriptor("TEXT", Types.CLOB, 2147483647, "'", "'", DatabaseMetaData.columnNullable, false, false));
 		typeMap.put(Integer.valueOf(Types.DATE), new GenericTypeDescriptor("DATETIME", Types.DATE, 23, "'", "'", DatabaseMetaData.columnNullable, false, false));
@@ -390,29 +397,16 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 
     @Override
     public void addIndex(SQLIndex index) throws ArchitectException {
-        if (logger.isDebugEnabled()) {
-            String parentTableName = null;
-            String parentFolder = null;
-            if (index.getParentTable() != null) {
-                parentTableName = index.getParentTable().getName();
-            }
-            if (index.getParent() != null) {
-                parentFolder = index.getParent().getName();
-            }
-            logger.debug("Adding index: " + index + " (parent table " + parentTableName + ") (parentFolder " + parentFolder + ")");
-        }
+        if (index.getType() == IndexType.STATISTIC )
+            return;
 
-        createPhysicalName(topLevelNames, index);
+        checkDupIndexname(index);
 
         print("CREATE ");
         if (index.isUnique()) {
             print("UNIQUE ");
         }
-        if(index.isClustered()) {
-            print(" CLUSTERED ");
-        } else {
-            print(" NONCLUSTERED ");
-        }
+
         print("INDEX ");
         print(DDLUtils.toQualifiedName(null,null,index.getName()));
         print("\n ON ");
@@ -427,24 +421,5 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
         }
         print(" )\n");
         endStatement(DDLStatement.StatementType.CREATE, index);
-    }
-    
-    @Override
-    public String getDeferrabilityClause(SQLRelationship r) {
-        if (supportsDeferrabilityPolicy(r)) {
-            return "";
-        } else {
-            throw new UnsupportedOperationException(getName() + " does not support " + 
-                    r.getName() + "'s deferrability policy (" + r.getDeferrability() + ").");
-        }
-    }
-    
-    @Override
-    public boolean supportsDeferrabilityPolicy(SQLRelationship r) {
-        if (!Arrays.asList(Deferrability.values()).contains(r.getDeferrability())) {
-            throw new IllegalArgumentException("Unknown deferrability policy: " + r.getDeferrability());
-        } else {
-            return r.getDeferrability() == Deferrability.NOT_DEFERRABLE;
-        }
     }
 }

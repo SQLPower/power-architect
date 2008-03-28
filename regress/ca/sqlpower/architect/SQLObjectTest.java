@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect;
 
@@ -23,13 +36,11 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class SQLObjectTest extends SQLTestCase {
+import junit.framework.TestCase;
 
-	public SQLObjectTest(String name) throws Exception {
-        super(name);
-    }
+public class SQLObjectTest extends TestCase {
 
-    SQLObject target;
+	SQLObject target;
 	
 	private static class SQLObjectImpl extends SQLObject {
 	    protected boolean allowsChildren;
@@ -38,6 +49,10 @@ public class SQLObjectTest extends SQLTestCase {
 		}
 		SQLObject parent = null;
 
+		@Override
+		public String getName() {
+			throw new RuntimeException("test abstract stub");
+		}
 		@Override
 		public SQLObject getParent() {
 			return parent;
@@ -52,7 +67,7 @@ public class SQLObjectTest extends SQLTestCase {
 		}
 		@Override
 		public String getShortDisplayName() {
-            return "short display name";
+			throw new RuntimeException("test abstract stub");
 		}
 		@Override
 		public boolean allowsChildren() {
@@ -76,15 +91,9 @@ public class SQLObjectTest extends SQLTestCase {
 		}
 	}
 	
-	public void setUp() throws Exception {
-        super.setUp();
+	public void setUp() {
 		target = new SQLObjectImpl();
 	}
-    
-    @Override
-    protected SQLObject getSQLObjectUnderTest() throws ArchitectException {
-        return target;
-    }
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.isPopulated()'
@@ -101,6 +110,11 @@ public class SQLObjectTest extends SQLTestCase {
 		assertTrue(target.isPopulated());
 	}
 	
+	public final void testGetChildType()
+	{
+		
+	}
+
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.setChildren(List)'
 	 * Note that setChildren copies elements, does not assign the list, and
@@ -130,60 +144,98 @@ public class SQLObjectTest extends SQLTestCase {
 		assertEquals(Collections.EMPTY_LIST, target.getChildren());
 	}
 
-	public final void testFiresAddEvent() throws ArchitectException {
-		CountingSQLObjectListener l = new CountingSQLObjectListener();
-		target.addSQLObjectListener(l);
+	class TestListener implements SQLObjectListener {
+
+		boolean childInserted;
+		boolean childRemoved;
+		boolean objectChanged;
+		boolean structureChanged;
+		
+		public void dbChildrenInserted(SQLObjectEvent e) {
+			System.out.println("Listener.dbChildrenInserted()");
+			setChildInserted(true);
+		}
+
+		public void dbChildrenRemoved(SQLObjectEvent e) {
+			System.out.println("Listener.dbChildrenRemoved()");
+			setChildRemoved(true);
+		}
+
+		public void dbObjectChanged(SQLObjectEvent e) {
+			System.out.println("Listener.dbObjectChanged()");
+			setObjectChanged(true);
+		}
+
+		public void dbStructureChanged(SQLObjectEvent e) {
+			System.out.println("Listener.dbStructureChanged()");
+			setStructureChanged(true);
+		}
+
+		public boolean isChildInserted() {
+			return childInserted;
+		}
+
+		public void setChildInserted(boolean childInserted) {
+			this.childInserted = childInserted;
+		}
+
+		public boolean isChildRemoved() {
+			return childRemoved;
+		}
+
+		public void setChildRemoved(boolean childRemoved) {
+			this.childRemoved = childRemoved;
+		}
+
+		public boolean isObjectChanged() {
+			return objectChanged;
+		}
+
+		public void setObjectChanged(boolean objectChanged) {
+			this.objectChanged = objectChanged;
+		}
+
+		public boolean isStructureChanged() {
+			return structureChanged;
+		}
+
+		public void setStructureChanged(boolean structureChanged) {
+			this.structureChanged = structureChanged;
+		}
+		
+	}
+	
+	/*
+	 * Test method for 'ca.sqlpower.architect.SQLObject.addSQLObjectListener(SQLObjectListener)'
+	 */
+	public final void testSQLObjectListenerHandling() throws ArchitectException {
+		SQLObjectListener t = new TestListener();
+		TestListener tt = (TestListener)t;
+		
+		target.addSQLObjectListener(t);
 		((SQLObjectImpl) target).allowsChildren = true;
 		
+		tt.setChildInserted(false);
 		final SQLObjectImpl objectImpl = new SQLObjectImpl();
 		target.addChild(objectImpl);
-		assertEquals(1, l.getInsertedCount());
-        assertEquals(0, l.getRemovedCount());
-        assertEquals(0, l.getChangedCount());
-        assertEquals(0, l.getStructureChangedCount());
-    }
-
-    public void testFireChangeEvent() throws Exception {
-        CountingSQLObjectListener l = new CountingSQLObjectListener();
-        target.addSQLObjectListener(l);
-
-        ((SQLObjectImpl)target).fakeObjectChanged("fred","old value","new value");
-        assertEquals(0, l.getInsertedCount());
-        assertEquals(0, l.getRemovedCount());
-        assertEquals(1, l.getChangedCount());
-        assertEquals(0, l.getStructureChangedCount());
-    }
-    
-    /** make sure "change" to same value doesn't fire useless event */
-    public void testDontFireChangeEvent() throws Exception {
-        CountingSQLObjectListener l = new CountingSQLObjectListener();
-        target.addSQLObjectListener(l);
-
-        ((SQLObjectImpl)target).fakeObjectChanged("fred","old value","old value");
-        assertEquals(0, l.getInsertedCount());
-        assertEquals(0, l.getRemovedCount());
-        assertEquals(0, l.getChangedCount());
-        assertEquals(0, l.getStructureChangedCount());
-    }
-
-    public void testFireStructureChangeEvent() throws Exception {
-        CountingSQLObjectListener l = new CountingSQLObjectListener();
-        target.addSQLObjectListener(l);
-		((SQLObjectImpl)target).fakeStructureChanged();
-        assertEquals(0, l.getInsertedCount());
-        assertEquals(0, l.getRemovedCount());
-        assertEquals(0, l.getChangedCount());
-        assertEquals(1, l.getStructureChangedCount());
-    }
-    
-    public void testAddRemoveListener() {
-        CountingSQLObjectListener l = new CountingSQLObjectListener();
-        
-        target.addSQLObjectListener(l);
-        assertEquals(1, target.getSQLObjectListeners().size());
+		assertTrue(tt.isChildInserted());
 		
-        target.removeSQLObjectListener(l);
-		assertEquals(0, target.getSQLObjectListeners().size());
+		tt.setObjectChanged(false);
+		((SQLObjectImpl)target).fakeObjectChanged("fred","old value","new value");
+		assertTrue(tt.isObjectChanged());
+		
+		tt.setObjectChanged(false);
+		((SQLObjectImpl)target).fakeObjectChanged("fred","old value","old value");
+		assertFalse(tt.isObjectChanged());
+		
+		tt.setStructureChanged(false);
+		((SQLObjectImpl)target).fakeStructureChanged();
+		assertTrue(tt.isStructureChanged());
+		
+		// MUST BE LAST!!
+		target.removeSQLObjectListener(t);
+		assertEquals(Collections.EMPTY_LIST, target.getSQLObjectListeners());
+
 	}
 	
 	public void testNoMixChildTypes() throws ArchitectException {
@@ -204,36 +256,6 @@ public class SQLObjectTest extends SQLTestCase {
 		// now test the other direction
 		target.removeChild(0);
 		target.addChild(new SQLObjectImpl());
-        
-        // test passes if no exceptions were thrown
 	}
 	
-    public void testPreRemoveEventNoVeto() throws Exception {
-        target.addChild(new SQLObjectImpl());
-
-        CountingSQLObjectPreEventListener l = new CountingSQLObjectPreEventListener();
-        target.addSQLObjectPreEventListener(l);
-        
-        l.setVetoing(false);
-        
-        target.removeChild(0);
-        
-        assertEquals("Event fired", 1, l.getPreRemoveCount());
-        assertEquals("Child removed", 0, target.getChildren().size());
-    }
-    
-    public void testPreRemoveEventVeto() throws Exception {
-        target.addChild(new SQLObjectImpl());
-
-        CountingSQLObjectPreEventListener l = new CountingSQLObjectPreEventListener();
-        target.addSQLObjectPreEventListener(l);
-        
-        l.setVetoing(true);
-        
-        target.removeChild(0);
-        
-        assertEquals("Event fired", 1, l.getPreRemoveCount());
-        assertEquals("Child not removed", 1, target.getChildren().size());
-    }
-
 }

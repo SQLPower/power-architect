@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
@@ -61,7 +74,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	/**
 	 * The amount of extra (vertical) space between the PK columns and the non-PK columns. 
 	 */
-	final int pkGap = 10;
+	private int pkGap = 10;
 	
 	/**
 	 * Colour of the text background for selected tables and columns.
@@ -100,7 +113,6 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		TablePane tp = (TablePane) c;
 		try {
 			Graphics2D g2 = (Graphics2D) g;
-	
 			
 			if (logger.isDebugEnabled()) {
 				Rectangle clip = g2.getClipBounds();
@@ -118,16 +130,8 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 
 			//  We don't want to paint inside the insets or borders.
 			Insets insets = c.getInsets();
-			
-			//builds a little buffer to reduce the clipping problem
-			//this only seams to work at a non-zoomed level. This could 
-			//use a little work (better fix)
-			g.setColor(Color.WHITE);
-			g.fillRect(0, 0, c.getWidth(), c.getHeight());
-			
 			g.translate(insets.left, insets.top);
-
-	        int width = c.getWidth() - insets.left - insets.right;
+			int width = c.getWidth() - insets.left - insets.right;
 			int height = c.getHeight() - insets.top - insets.bottom;
 
 			Font font = c.getFont();
@@ -298,7 +302,6 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	 * This method is specified by TablePane.pointToColumnIndex().
 	 * This implementation depends on the implementation of paint().
 	 */
-    @Override
 	public int pointToColumnIndex(Point p) throws ArchitectException {
 		Font font = tablePane.getFont();
 		FontMetrics metrics = tablePane.getFontMetrics(font);
@@ -311,56 +314,28 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 
 		if (logger.isDebugEnabled()) logger.debug("p.y = "+p.y);
 		
-		int returnVal;
-		
 		if (p.y < 0) {
 		    logger.debug("y<0");
-		    returnVal = TablePane.COLUMN_INDEX_NONE;
+		    return TablePane.COLUMN_INDEX_NONE;
 		} else if (p.y <= fontHeight) {
 		    logger.debug("y<=fontHeight = "+fontHeight);
-		    returnVal = TablePane.COLUMN_INDEX_TITLE;
+			return TablePane.COLUMN_INDEX_TITLE;
 		} else if (numPkCols > 0 && p.y <= firstColStart + fontHeight*numPkCols - 1) {
 		    logger.debug("y<=firstColStart + fontHeight*numPkCols - 1= "+(firstColStart + fontHeight*numPkCols));
-		    returnVal = (p.y - firstColStart) / fontHeight;
+		    return (p.y - firstColStart) / fontHeight;
 		} else if (p.y <= pkLine + pkGap/2) {
 		    logger.debug("y<=pkLine + pkGap/2 = "+(pkLine + pkGap/2));
-		    returnVal = TablePane.COLUMN_INDEX_END_OF_PK;
+		    return TablePane.COLUMN_INDEX_END_OF_PK;
 		} else if (p.y <= firstColStart + fontHeight*numPkCols + pkGap) {
 		    logger.debug("y<=firstColStart + fontHeight*numPkCols + pkGap = "+(firstColStart + fontHeight*numPkCols + pkGap));
-		    returnVal = TablePane.COLUMN_INDEX_START_OF_NON_PK;
-		} else if (p.y < firstColStart + pkGap + fontHeight*numCols) {
-		    logger.debug("y<=firstColStart + pkGap + fontHeight*numCols = " + (firstColStart + pkGap + fontHeight*numCols));
-		    returnVal = (p.y - firstColStart - pkGap) / fontHeight;
+		    return TablePane.COLUMN_INDEX_START_OF_NON_PK;
+		} else if (p.y <= firstColStart + pkGap + fontHeight*numCols) {
+		    return (p.y - firstColStart - pkGap) / fontHeight;
 		} else {
-		    returnVal = TablePane.COLUMN_INDEX_NONE;
+			return numCols;
 		}
-		logger.debug("pointToColumnIndex return value is " + returnVal);
-		return returnVal;
 	}
 
-    @Override
-    public int columnIndexToCentreY(int colidx) throws ArchitectException {
-        Font font = tablePane.getFont();
-        FontMetrics metrics = tablePane.getFontMetrics(font);
-        int fontHeight = metrics.getHeight();
-        if (colidx == TablePane.COLUMN_INDEX_TITLE) {
-            return tablePane.getMargin().top + (fontHeight / 2);
-        } else if (colidx >= 0 && colidx < tablePane.getModel().getColumns().size()) {
-            int firstColY = fontHeight + gap + boxLineThickness + tablePane.getMargin().top;
-            int y = firstColY + (fontHeight * colidx) + (fontHeight / 2);
-            if (colidx >= tablePane.getModel().getPkSize()) {
-                y += pkGap;
-            }
-            if (logger.isDebugEnabled()) {
-                logger.debug("Column " + colidx + " Y value is " + y);
-                logger.debug("gap=" + gap + "; boxLineThickness=" + boxLineThickness + "; margin.top=" + tablePane.getMargin().top);
-            }
-            return y;
-        } else {
-            return -1;
-        }
-    }
-    
 	/**
 	 * Tells the component to revalidate (also causes a repaint) if
 	 * the given property change makes this necessary (any properties

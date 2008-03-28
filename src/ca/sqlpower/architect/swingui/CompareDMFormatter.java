@@ -1,24 +1,38 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dialog;
 import java.io.File;
 import java.sql.SQLException;
@@ -27,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.SwingUtilities;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
@@ -62,9 +77,9 @@ public class CompareDMFormatter {
     /**
      * The dialog that owns any additional dialogs popped up by this formatter.
      */
-    private final Dialog dialogOwner;
+    private final Component dialogOwner;
 
-    public CompareDMFormatter(ArchitectSwingSession session, Dialog dialogOwner, CompareDMSettings compDMSet) {
+    public CompareDMFormatter(ArchitectSwingSession session, Component dialogOwner, CompareDMSettings compDMSet) {
         super();
         this.session = session;
         this.dialogOwner = dialogOwner;
@@ -79,15 +94,15 @@ public class CompareDMFormatter {
             DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
             DefaultStyledDocument targetDoc = new DefaultStyledDocument();
 
-            DDLGenerator gen = null;
-            if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
-                gen = dmSetting.getDdlGenerator().newInstance();
+            DDLGenerator gen =(DDLGenerator)((Class) dmSetting.getSqlScriptFormatValue()).newInstance();
+            if (dmSetting.getTargetSettings().getDatastoreType().equals(CompareDMSettings.DatastoreType.DATABASE)) {
+                // Set generator for target catalog/schema if "newer" schema comes from a physical database
                 SQLCatalog cat = (SQLCatalog) dmSetting.getSourceSettings().getCatalogObject();
                 SQLSchema sch = (SQLSchema) dmSetting.getSourceSettings().getSchemaObject();
                 gen.setTargetCatalog(cat == null ? null : cat.getPhysicalName());
                 gen.setTargetSchema(sch == null ? null : sch.getPhysicalName());
             }
-            
+
             final Map<DiffType, AttributeSet> styles = new HashMap<DiffType, AttributeSet>();
             {
                 SimpleAttributeSet att = new SimpleAttributeSet();
@@ -109,7 +124,6 @@ public class CompareDMFormatter {
                 att = new SimpleAttributeSet();
                 StyleConstants.setForeground(att, Color.blue);
                 styles.put(DiffType.KEY_CHANGED, att);
-                styles.put(DiffType.DROP_KEY, att);
             }
            if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
 
@@ -140,6 +154,10 @@ public class CompareDMFormatter {
                 "Don't know what type of output to make");
             }
            
+            // This is a little error-prone because the ancestor could be a frame,
+            // So we just hope this is only ever used from the comparedmpanel's dialog
+            Dialog owner = (Dialog) SwingUtilities.getWindowAncestor(dialogOwner);
+           
             // get the title string for the compareDMFrame
             if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
                 String titleString = "Generated SQL Script to turn "+ toTitleText(true, left)
@@ -150,14 +168,19 @@ public class CompareDMFormatter {
                 if ( dmSetting.getSourceSettings().getDatastoreType().equals(CompareDMSettings.DatastoreType.FILE) )
                     db = null;
                 else if (dmSetting.getSourceSettings().getDatastoreType().equals(CompareDMSettings.DatastoreType.PROJECT) )
-                    db = session.getTargetDatabase();
+                    db = session.getPlayPen().getDatabase();
                 else
                     db = source.getDatabase();
                 logger.debug("We got to place #2");
 
-                SQLScriptDialog ssd = new SQLScriptDialog(dialogOwner,
-                        "Compare DM", titleString, false, gen, db == null?null:db.getDataSource(),
-                        false, session);
+                SQLScriptDialog ssd = new SQLScriptDialog(owner,
+                        "Compare DM",
+                        titleString,
+                        false,
+                        gen,
+                        db == null?null:db.getDataSource(),
+                        false,
+                        session);
                 ssd.setVisible(true);
                 logger.debug("We got to place #3");
 
@@ -166,7 +189,7 @@ public class CompareDMFormatter {
                 String rightTitle = toTitleText(false, right);
 
                 CompareDMFrame cf =
-                    new CompareDMFrame(dialogOwner, sourceDoc, targetDoc, leftTitle,rightTitle);
+                    new CompareDMFrame(owner, sourceDoc, targetDoc, leftTitle,rightTitle);
 
                 cf.pack();
                 cf.setVisible(true);
@@ -201,17 +224,12 @@ public class CompareDMFormatter {
                     SQLTable t = (SQLTable) chunk.getData();
                     if (hasKey(t)) {
                         gen.addPrimaryKey(t);
-                    }
-                }
-            } else if (chunk.getType() == DiffType.DROP_KEY) {
-                if(chunk.getData() instanceof SQLTable)
-                {
-                    SQLTable t = (SQLTable) chunk.getData();
-                    if (hasKey(t)) {
+                    } else {
                         gen.dropPrimaryKey(t);
                     }
                 }
-            } else if (chunk.getType() == DiffType.LEFTONLY)
+
+            }else if (chunk.getType() == DiffType.LEFTONLY)
             {
                 if (chunk.getData() instanceof SQLTable)
                 {
@@ -235,6 +253,9 @@ public class CompareDMFormatter {
                     if (t == null ) throw new NullPointerException();
                     if(t.getObjectType().equals("TABLE")) {
                         gen.addTable(t);
+                    }
+                    if (hasKey(t)) {
+                        gen.addPrimaryKey(t);
                     }
                 }else if (chunk.getData() instanceof SQLColumn){
                     SQLColumn c = (SQLColumn) chunk.getData();
@@ -284,11 +305,6 @@ public class CompareDMFormatter {
                     currentTableName = o.getName();
                 }
                     
-                continue;
-            }
-            if (chunk.getType().equals(DiffType.DROP_KEY)) {
-                //Drop key does will be shown here by a key changed type
-                //Drop key is mainly used in sql script generation.
                 continue;
             }
             AttributeSet attributes = styles.get(chunk.getType());
@@ -380,10 +396,6 @@ public class CompareDMFormatter {
 
             case KEY_CHANGED:
                 diffTypeEnglish = "needs a different primary key";
-                break;
-                
-            case DROP_KEY:
-                diffTypeEnglish = "needs to drop the source primary key";
                 break;
 
             default:

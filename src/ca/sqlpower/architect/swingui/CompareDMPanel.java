@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
@@ -23,11 +36,10 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -43,11 +55,13 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataEvent;
@@ -61,7 +75,6 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
@@ -72,10 +85,10 @@ import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.ConnectionComboBoxModel;
-import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
+import ca.sqlpower.swingui.SPSUtils.LabelValueBean;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -155,10 +168,6 @@ public class CompareDMPanel extends JPanel {
 
 	private JPanel buttonPanel;
 
-    /**
-     * The list of all DDL Generators available.  The items stored in this
-     * combo box are of type <tt>Class&lt;? extends DDLGenerator&gt;</tt>.
-     */
 	private JComboBox sqlTypeDropdown;
 
 	private JRadioButton sqlButton;
@@ -182,11 +191,6 @@ public class CompareDMPanel extends JPanel {
      * to the session so we can retrieve the datasource collection.
      */
     private ArchitectSwingSession session;
-    
-    /**
-     * The dialog that created and contains this panel
-     */
-    private JDialog parentDialog;
     
 	/**
 	 * Contains all of the properties and GUI components that relate to the
@@ -227,8 +231,7 @@ public class CompareDMPanel extends JPanel {
 		
 		private SchemaPopulator schemaPop;
 		private CatalogPopulator catalogPop;
-		
-		private boolean isSource;
+
 
 		/**
 		 * The last database returned by getDatabase(). Never access this
@@ -239,7 +242,7 @@ public class CompareDMPanel extends JPanel {
 		private Action newConnectionAction = new AbstractAction("New...") {
 			public void actionPerformed(ActionEvent e) {
 
-                final DataSourceCollection plDotIni = session.getContext().getPlDotIni();
+                final DataSourceCollection plDotIni = session.getContext().getUserSettings().getPlDotIni();
                 final SPDataSource dataSource = new SPDataSource(plDotIni);
                 Runnable onAccept = new Runnable() {
                     public void run() {
@@ -247,7 +250,7 @@ public class CompareDMPanel extends JPanel {
                         databaseDropdown.setSelectedItem(dataSource);
                     }
                 };
-                ASUtils.showDbcsDialog(SPSUtils.getWindowInHierarchy(CompareDMPanel.this), dataSource, onAccept);
+                ASUtils.showDbcsDialog(SwingUtilities.getWindowAncestor(CompareDMPanel.this), dataSource, onAccept);
 			}
 		};
 
@@ -353,8 +356,10 @@ public class CompareDMPanel extends JPanel {
 				} catch (ArchitectException e) {
 					logger.debug(
 						"Unexpected architect exception in ConnectionListener",	e);
-                    ASUtils.showExceptionDialogNoReport(CompareDMPanel.this,
-                            "Unexpected architect exception in ConnectionListener", e);
+                    JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(CompareDMPanel.this),
+                        "Unexpected architect exception in ConnectionListener" + "\n" + e, "Error",
+                        JOptionPane.ERROR_MESSAGE);
+
 				}
 			}
 
@@ -661,8 +666,6 @@ public class CompareDMPanel extends JPanel {
 				prefix = "target";
 			}
 			
-			this.isSource = defaultPlayPen;
-			
 			this.schemaPop = schemaPop;
 			this.catalogPop = catalogPop;
 			
@@ -689,7 +692,7 @@ public class CompareDMPanel extends JPanel {
 
 			databaseDropdown = new JComboBox();
 			databaseDropdown.setName(prefix + "DatabaseDropdown");
-			databaseDropdown.setModel(new ConnectionComboBoxModel(session.getContext().getPlDotIni()));
+			databaseDropdown.setModel(new ConnectionComboBoxModel(session.getUserSettings().getPlDotIni()));
 			databaseDropdown.setEnabled(false);
 			databaseDropdown.setRenderer(dataSourceRenderer);
 
@@ -723,22 +726,6 @@ public class CompareDMPanel extends JPanel {
 
             catalogDropdown.addActionListener(schemaPop);
             databaseDropdown.addActionListener(catalogPop);
-            databaseDropdown.addItemListener(new ItemListener() {
-                public void itemStateChanged(ItemEvent e) {
-                    if (!isSource) {
-                        return;
-                    }
-                    SPDataSource dataSource = (SPDataSource)((JComboBox)e.getSource()).getSelectedItem();  
-                    if (dataSource != null) {
-                        try {
-                            sqlTypeDropdown.setSelectedItem(Class.forName(dataSource.getParentType().getDDLGeneratorClass()));
-                        } catch (ClassNotFoundException e1) {
-                            logger.error("Error when finding the DDLGenerator class for the selected database!", e1);
-                        }
-                    }
-                }
-                
-            });
             
 			ActionListener listener = new OptionGroupListener();
 			playPenRadio.addActionListener(listener);
@@ -794,7 +781,7 @@ public class CompareDMPanel extends JPanel {
 				IOException {
 			SQLObject o;
 			if (playPenRadio.isSelected()) {
-				o = session.getTargetDatabase();
+				o = session.getPlayPen().getDatabase();
 			} else if (physicalRadio.isSelected()) {
 				if (schemaDropdown.getSelectedItem() != null) {
 					o = (SQLObject) schemaDropdown.getSelectedItem();
@@ -818,7 +805,7 @@ public class CompareDMPanel extends JPanel {
                 // or better yet, set o=f, and do the load itself in the compare worker, because this approach would share the progress bar with the comparison activity itself
 				ArchitectSwingSession newSession = session.getContext().createSession(in, false);
 				
-                o = newSession.getTargetDatabase();
+                o = newSession.getPlayPen().getDatabase();
                 
 			} else {
 				throw new IllegalStateException(
@@ -904,10 +891,6 @@ public class CompareDMPanel extends JPanel {
 			newConnectionAction.setEnabled(enable);
 		}
 
-        boolean isSource() {
-            return isSource;
-        }
-
 	}
 
 	/**
@@ -921,11 +904,7 @@ public class CompareDMPanel extends JPanel {
 	 */
 	public boolean isStartable() {
 		logger.debug("isStartable is checking...");
-		boolean startable = true;
-		if (sqlButton.isSelected()) {
-		    startable = source.physicalRadio.isSelected() && sqlTypeDropdown.getSelectedItem() != null;
-		}
-	    return source.isThisPartStartable() && target.isThisPartStartable() && startable;
+		return source.isThisPartStartable() && target.isThisPartStartable() && !(source.playPenRadio.isSelected() && sqlButton.isSelected());
 	}
 
 	public Action getStartCompareAction() {
@@ -940,9 +919,8 @@ public class CompareDMPanel extends JPanel {
 		return buttonPanel;
 	}
 
-	public CompareDMPanel(ArchitectSwingSession session, JDialog ownerDialog) {
+	public CompareDMPanel(ArchitectSwingSession session) {
         this.session = session;
-        this.parentDialog = ownerDialog;
 		buildUI(target.new SchemaPopulator(session),target.new CatalogPopulator(session),
 		        source.new SchemaPopulator(session),source.new CatalogPopulator(session));
 	}
@@ -956,8 +934,7 @@ public class CompareDMPanel extends JPanel {
 		progressBar.setIndeterminate(true);
 		progressBar.setVisible(false);
 
-		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes(session.getContext().getPlDotIni()));
-        sqlTypeDropdown.setRenderer(new DDLGeneratorListCellRenderer());
+		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes());
 		sqlTypeDropdown.setName("sqlTypeDropDown");
 		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown);
         sqlTypeDropdown.setEnabled(false);
@@ -1071,10 +1048,11 @@ public class CompareDMPanel extends JPanel {
 		setPreferredSize(new Dimension(800,600));
 		try {
 			restoreSettingsFromProject();
-		} catch (ArchitectException e) {
-			logger.warn("Failed to save user CompareDM preferences!", e);
+		} catch (ArchitectException e1) {
+			logger.warn("Failed to save user CompareDM preferences!");
 		}
 	}
+
 
 
 	/**
@@ -1114,13 +1092,6 @@ public class CompareDMPanel extends JPanel {
 
 		public void actionPerformed(ActionEvent e) {
 			startCompareAction.setEnabled(false);
-			sqlButton.setEnabled(false);
-			englishButton.setEnabled(false);
-			if (sqlButton.isSelected()) {
-			    sqlTypeDropdown.setEnabled(false);
-			} else {
-			    showNoChanges.setEnabled(false);
-			}
 
 			copySettingsToProject();
 
@@ -1149,18 +1120,24 @@ public class CompareDMPanel extends JPanel {
 						targetTables);
 				targetComp = new CompareSQL(targetTables,
 						sourceTables);
-			} catch (ArchitectException ex) {
-			    ASUtils.showExceptionDialog(session,
-			            "Could not begin diff process", ex);
-			    return;
-			} catch (Exception ex) {
-			    ASUtils.showExceptionDialogNoReport(CompareDMPanel.this, "Couldn't read file.", ex);
+			} catch (FileNotFoundException ex) {
+                JOptionPane.showMessageDialog(
+                        CompareDMPanel.this,
+                        "File not found: "+ex.getMessage());
+				logger.error("File could not be found.", ex);
+				return;
+			} catch (IOException ex) {
+                JOptionPane.showMessageDialog(
+                        CompareDMPanel.this,
+                        "Could not read file: "+ex.getMessage());
 				logger.error("Could not read file", ex);
 				return;
-			} finally {
-	             reenableGUIComponents();
+			} catch (ArchitectException ex) {
+				ASUtils.showExceptionDialog(session,
+                        "Could not begin diff process", ex);
+				return;
 			}
-			
+
 			SPSwingWorker compareWorker = new SPSwingWorker(session) {
 
 				private List<DiffChunk<SQLObject>> diff;
@@ -1172,7 +1149,6 @@ public class CompareDMPanel extends JPanel {
 				}
 
 				public void cleanup() {
-				    reenableGUIComponents();
                     if (getDoStuffException() != null) {
                         Throwable exc = getDoStuffException();
                         logger.error("Error in doStuff()", exc);
@@ -1181,8 +1157,9 @@ public class CompareDMPanel extends JPanel {
                         return;
                     }
 					logger.debug("cleanup starts");
-                    CompareDMFormatter dmFormat = new CompareDMFormatter(session, parentDialog, session.getCompareDMSettings());
+                    CompareDMFormatter dmFormat = new CompareDMFormatter(session, CompareDMPanel.this, session.getCompareDMSettings());
                     dmFormat.format(diff, diff1, left, right);
+                    startCompareAction.setEnabled(isStartable());
                     logger.debug("cleanup finished");
 				}
 
@@ -1190,17 +1167,6 @@ public class CompareDMPanel extends JPanel {
 
 			new Thread(compareWorker).start();
 			ProgressWatcher.watchProgress(progressBar,sourceComp);
-		}
-		
-		private void reenableGUIComponents() {
-		    sqlButton.setEnabled(true);
-            englishButton.setEnabled(true);
-            if (sqlButton.isSelected()) {
-                sqlTypeDropdown.setEnabled(true);
-            } else {
-                showNoChanges.setEnabled(true);
-            }
-            startCompareAction.setEnabled(isStartable());
 		}
 
 	}
@@ -1213,11 +1179,9 @@ public class CompareDMPanel extends JPanel {
 		CompareDMSettings s = session.getCompareDMSettings();
 		s.setSaveFlag(true);
 		s.setOutputFormat(englishButton.isSelected()?CompareDMSettings.OutputFormat.ENGLISH:CompareDMSettings.OutputFormat.SQL);
-		s.setSuppressSimilarities(showNoChanges.isSelected());
-        
-        Class<? extends DDLGenerator> selectedGenerator = 
-            (Class<? extends DDLGenerator>) sqlTypeDropdown.getSelectedItem();
-        s.setDdlGenerator(selectedGenerator);
+		s.setSqlScriptFormat( ((LabelValueBean)sqlTypeDropdown.getSelectedItem()).getLabel() );
+        s.setSuppressSimilarities(showNoChanges.isSelected());
+        s.setSqlScriptFormatValue( ((LabelValueBean)sqlTypeDropdown.getSelectedItem()).getValue() );
         
 		SourceOrTargetSettings sourceSetting = s.getSourceSettings();
 		copySourceOrTargetSettingsToProject(sourceSetting,source);
@@ -1276,7 +1240,16 @@ public class CompareDMPanel extends JPanel {
         
         showNoChanges.setSelected(s.getSuppressSimilarities());
 
-        sqlTypeDropdown.setSelectedItem(s.getDdlGenerator());
+		if ( s.getSqlScriptFormat() != null && s.getSqlScriptFormat().length() > 0 ) {
+
+			for ( int i=0; i<sqlTypeDropdown.getItemCount(); i++ ) {
+				LabelValueBean lvb = (LabelValueBean)sqlTypeDropdown.getItemAt(i);
+				if ( lvb.getLabel().equals(s.getSqlScriptFormat())) {
+					sqlTypeDropdown.setSelectedItem(lvb);
+					break;
+				}
+			}
+		}
 	}
 
 
@@ -1291,7 +1264,7 @@ public class CompareDMPanel extends JPanel {
 		else if ( rbs == CompareDMSettings.DatastoreType.FILE )
 			stuff.loadRadio.doClick();
 
-		List<SPDataSource> lds = session.getContext().getConnections();
+		List<SPDataSource> lds = session.getUserSettings().getConnections();
 		for (SPDataSource ds : lds){
 			if (ds.getDisplayName().equals(set.getConnectName())){
 				stuff.databaseDropdown.setSelectedItem(ds);

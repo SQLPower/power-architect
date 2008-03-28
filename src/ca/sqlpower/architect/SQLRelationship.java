@@ -1,25 +1,39 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,88 +44,10 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.sql.CachedRowSet;
-
-/**
- * The SQLRelationship class represents a foriegn key relationship between
- * two SQLTable objects or two groups of columns within the same table.
- */
 public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(SQLRelationship.class);
 
-    /**
-     * The enumeration of all referential integrity constraint checking
-     * policies.
-     */
-    public static enum Deferrability {
-        
-        /**
-         * Indicates the constrain is deferrable, and checking is deferred by
-         * default unless the current transaction has been set for immediate
-         * constraint checking.
-         */
-        INITIALLY_DEFERRED(5),
-        
-        /**
-         * Indicates the constrain is deferrable, and checking is performed
-         * immediately unless the current transaction has been set for deferred
-         * constraint checking.
-         */
-        INITIALLY_IMMEDIATE(6),
-        
-        /**
-         * Indicates that the checking for this constraint must always be immediate
-         * regardless of the current transaction setting.
-         */
-        NOT_DEFERRABLE(7);
-        
-        /**
-         * The JDBC code number for this deferrability policy.
-         */
-        private final int code;
-        
-        private Deferrability(int code) {
-            this.code = code;
-        }
-        
-        /**
-         * Returns the enumeration value associated with the given code number.
-         * The code numbers are defined in the JDBC specification.
-         * 
-         * @throws IllegalArgumentException if the given code number is not valid.
-         */
-        public static Deferrability ruleForCode(int code) {
-            for (Deferrability d : values()) {
-                if (d.code == code) return d;
-            }
-            throw new IllegalArgumentException("No such deferrability code " + code);
-        }
-        
-        /**
-         * Returns the enumeration value associated with the given code number,
-         * or the given default value if the given code number is not valid.
-         * This method exists mainly for backward compatibility with old projects
-         * where all the deferrability rules were defaulted to 0, which is an
-         * invalid code.  New code should normally be written to use {@link #ruleForCode(int)},
-         * which throws an exception when asked for an invalid code.
-         */
-        public static Deferrability ruleForCode(int code, Deferrability defaultValue) {
-            for (Deferrability d : values()) {
-                if (d.code == code) return d;
-            }
-            return defaultValue;
-        }
-        
-        /**
-         * Returns the JDBC code number for this deferrability rule.
-         */
-        public int getCode() {
-            return code;
-        }
-    }
-    
 	public static final int ZERO = 1;
 	public static final int ONE = 2;
 	public static final int MANY = 4;
@@ -123,33 +59,10 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	protected int updateRule;
 	protected int deleteRule;
-    
-    /**
-     * The deferrability rule for constraint checking on this relationship.
-     * Defaults to NOT_DEFERRABLE.
-     */
-	protected Deferrability deferrability = Deferrability.NOT_DEFERRABLE;
+	protected int deferrability;
 
 	protected int pkCardinality;
 	protected int fkCardinality;
-	
-	/**
-     * Value should be true if this relationship is identifying, and false if
-     * otherwise.
-     * <p>
-     * Here is our definition of identifying relationships and non-identifying
-     * relationships (as discussed in the <a
-     * href="http://groups.google.com/group/architect-developers/browse_thread/thread/d70e3e3ee3353f1"/>
-     * Architect Developer's mailing list</a>).
-     * <p>
-     * An 'identifying' relationship is: A foreign key relationship in which the
-     * whole primary key of the parent table is entirely contained in the
-     * primary key of the child table.
-     * <p>
-     * A 'non-identifying' relationship is: A foreign key relationship in which
-     * the whole primary key of the parent table is NOT entirely contained in
-     * the primary key of the child table.
-     */
 	protected boolean identifying;
 
 
@@ -169,20 +82,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		fkColumnManager = new RelationshipManager();
 	}
 
-	/**
-	 *  Adds a counter to the end of the default column name until
-	 *  it is unique in the given table.
+	/*
+	 *  Ideally, loop through until you get a unique column name...
 	 */
-	private static String generateUniqueColumnName(String colName,
-	        SQLTable table) throws ArchitectException {
-	    if (table.getColumnByName(colName) == null) return colName;
-	    int count = 1;
-	    String uniqueName;
-	    do {
-	        uniqueName = colName + "_" + count; 
-	        count++;
-	    } while (table.getColumnByName(uniqueName) != null);
-	    return uniqueName;
+	private static String generateUniqueColumnName(SQLColumn column, SQLTable table) {
+		return column.getParentTable().getName() + "_" + column.getName();  // FIXME: still might not be unique
 	}
 
     /**
@@ -206,20 +110,6 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
             ArchitectUtils.unlistenToHierarchy(fkColumnManager,fkTable);
 	}
 
-	/**
-     * Associates an {@link SQLRelationship} with the given {@link SQLTable}
-     * objects. Also automatically generates the PK to FK column mapping if
-     * autoGenerateMapping is set to true.
-     * 
-     * @param pkTable
-     *            The parent table in this relationship.
-     * @param fkTable
-     *            The child table in this relationship that contains the foreign
-     *            key.
-     * @param autoGenerateMapping
-     *            Automatically generates the PK to FK column mapping if true
-     * @throws ArchitectException
-     */
 	public void attachRelationship(SQLTable pkTable, SQLTable fkTable, boolean autoGenerateMapping) throws ArchitectException {
 		if(pkTable == null) throw new NullPointerException("Null pkTable not allowed");
 		if(fkTable == null) throw new NullPointerException("Null fkTable not allowed");
@@ -239,15 +129,6 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			fkTable.getColumnsFolder().setMagicEnabled(false);
 			fkTable.getImportedKeysFolder().setMagicEnabled(false);
 
-			boolean alreadyExists = false;
-			
-			for (SQLRelationship r : pkTable.getExportedKeys()) {
-			    if (r.getFkTable().equals(fkTable)) {
-			        alreadyExists = true;
-			        break;
-			    }
-			}
-			
 			pkTable.addExportedKey(this);
 			fkTable.addImportedKey(this);
 			if (autoGenerateMapping) {
@@ -259,29 +140,26 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				for (SQLColumn pkCol : pkColListCopy) {
 					if (pkCol.getPrimaryKeySeq() == null) break;
 
+					SQLColumn fkCol;
 					SQLColumn match = fkTable.getColumnByName(pkCol.getName());
-					SQLColumn fkCol = new SQLColumn(pkCol);
-					fkCol.setPrimaryKeySeq(null);
-                    if (pkTable == fkTable) {
-                        // self-reference should never hijack the PK!
-                        String colName = "Parent_" + fkCol.getName();
-                        fkCol.setName(generateUniqueColumnName(colName, fkTable));
-                        setIdentifying(false);
-                    } else if (match == null) { 
-                        // no match, so we need to import this column from PK table
-                        fkCol.setName(generateUniqueColumnName(pkCol.getName(),fkTable));
-                    } else {
+					if (match != null) {
 						// does the matching column have a compatible data type?
-						if (!alreadyExists && match.getType() == pkCol.getType() &&
+						if (match.getType() == pkCol.getType() &&
 								match.getPrecision() == pkCol.getPrecision() &&
 								match.getScale() == pkCol.getScale()) {
 							// column is an exact match, so we don't have to recreate it
 							fkCol = match;
 						} else {
-						    String colName = pkCol.getParentTable().getName() + "_" + pkCol.getName();
-							fkCol.setName(generateUniqueColumnName(colName,fkTable));
+							fkCol = new SQLColumn(pkCol);
+							fkCol.setName(generateUniqueColumnName(pkCol,fkTable));
+							fkCol.setPrimaryKeySeq(null);
 						}
-                    }
+					} else {
+						// no match, so we need to import this column from PK table
+						fkCol = new SQLColumn(pkCol);
+						fkCol.setPrimaryKeySeq(null);
+					}
+
 					this.addMapping(pkCol, fkCol);
 
 				}
@@ -384,40 +262,25 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			throw new ArchitectException("relationship.unpopulatedTargetDatabase");
 		}
 		Connection con = null;
-		CachedRowSet crs = null;
-		DatabaseMetaData dbmd = null;
+		ResultSet rs = null;
 		try {
 			con = db.getConnection();
-			dbmd = con.getMetaData();
-			crs = new CachedRowSet();
-	        crs.populate(dbmd.getImportedKeys(table.getCatalogName(),
-                     table.getSchemaName(),
-                     table.getName()));
-		} catch (SQLException e) {
-		    throw new ArchitectException("relationship.populate", e);
-		} finally {
-			// close the connection before it makes the recursive call
-            // that could lead to opening more connections
-		    try {
-		        if (con != null) con.close();
-		    } catch (SQLException e) {
-		        logger.warn("Couldn't close connection", e);
-		    }
-		}
-		try {
+			DatabaseMetaData dbmd = con.getMetaData();
 			SQLRelationship r = null;
 			int currentKeySeq;
 			LinkedList newKeys = new LinkedList();
 
-			logger.debug("search relationship for table:"+table.getCatalogName()+"."+
+			logger.debug("scarch relationship for table:"+table.getCatalogName()+"."+
 					table.getSchemaName()+"."+
 					table.getName());
 
+			rs = dbmd.getImportedKeys(table.getCatalogName(),
+									  table.getSchemaName(),
+									  table.getName());
 
 
-
-			while (crs.next()) {
-				currentKeySeq = crs.getInt(9);
+			while (rs.next()) {
+				currentKeySeq = rs.getInt(9);
 				if (currentKeySeq == 1) {
 					r = new SQLRelationship();
 					newKeys.add(r);
@@ -425,43 +288,37 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				ColumnMapping m = new ColumnMapping();
 				m.parent = r;
 				r.children.add(m);
-				r.pkTable = db.getTableByName(crs.getString(1),  // catalog
-											  crs.getString(2),  // schema
-											  crs.getString(3)); // table
+				r.pkTable = db.getTableByName(rs.getString(1),  // catalog
+											  rs.getString(2),  // schema
+											  rs.getString(3)); // table
 				if (r.pkTable == null) {
 				    logger.error("addImportedRelationshipsToTable: Couldn't find exporting table "
-				            +crs.getString(1)+"."+crs.getString(2)+"."+crs.getString(3)
+				            +rs.getString(1)+"."+rs.getString(2)+"."+rs.getString(3)
 				            +" in target database!");
 				    continue;
 				}
 
-				logger.debug("Looking for pk column '"+crs.getString(4)+"' in table '"+r.pkTable+"'");
-				m.pkColumn = r.pkTable.getColumnByName(crs.getString(4));
+				logger.debug("Looking for pk column '"+rs.getString(4)+"' in table '"+r.pkTable+"'");
+				m.pkColumn = r.pkTable.getColumnByName(rs.getString(4));
 				if (m.pkColumn == null) {
 					throw new ArchitectException("relationship.populate.nullPkColumn");
 				}
 
-				r.fkTable = db.getTableByName(crs.getString(5),  // catalog
-											  crs.getString(6),  // schema
-											  crs.getString(7)); // table
+				r.fkTable = db.getTableByName(rs.getString(5),  // catalog
+											  rs.getString(6),  // schema
+											  rs.getString(7)); // table
 				if (r.fkTable != table) {
 					throw new IllegalStateException("fkTable did not match requested table");
 				}
-				m.fkColumn = r.fkTable.getColumnByName(crs.getString(8));
+				m.fkColumn = r.fkTable.getColumnByName(rs.getString(8));
 				if (m.fkColumn == null) {
 					throw new ArchitectException("relationship.populate.nullFkColumn");
 				}
 				// column 9 (currentKeySeq) handled above
-				r.updateRule = crs.getInt(10);
-				r.deleteRule = crs.getInt(11);
-				r.setName(crs.getString(12));
-                try {
-                    r.deferrability = Deferrability.ruleForCode(crs.getInt(14));
-                } catch (IllegalArgumentException ex) {
-                    logger.warn("Invalid code when reverse engineering" +
-                            " relationship. Defaulting to NOT_DEFERRABLE.", ex);
-                    r.deferrability = Deferrability.NOT_DEFERRABLE;
-                }
+				r.updateRule = rs.getInt(10);
+				r.deleteRule = rs.getInt(11);
+				r.setName(rs.getString(12));
+				r.deferrability = rs.getInt(14);
 				// FIXME: need to determine if the column is identifying or non-identifying!
 			}
 
@@ -476,9 +333,14 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			throw new ArchitectException("relationship.populate", e);
 		} finally {
 			try {
-				if (crs != null) crs.close();
+				if (rs != null) rs.close();
 			} catch (SQLException e) {
 				logger.warn("Couldn't close resultset", e);
+			}
+			try {
+				if (con != null) con.close();
+			} catch (SQLException e) {
+				logger.warn("Couldn't close connection", e);
 			}
 		}
 	}
@@ -781,7 +643,6 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
                             +pkcol.getParentTable().getName()+"."+pkcol.getName()
                             +" to mapping");
                 }
-                if (pkcol.getParentTable().equals(fkTable)) return;
 				SQLColumn fkcol = fkTable.getColumnByName(pkcol.getName());
 				if (fkcol == null) fkcol = new SQLColumn(pkcol);
 				try {
@@ -951,15 +812,22 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		fireDbObjectChanged("deleteRule",oldDeleteRule,argDeleteRule);
 	}
 
-	public Deferrability getDeferrability()  {
+	/**
+	 * Gets the value of deferrability
+	 *
+	 * @return the value of deferrability
+	 */
+	public int getDeferrability()  {
 		return this.deferrability;
 	}
 
-	public void setDeferrability(Deferrability argDeferrability) {
-        if (argDeferrability == null) {
-            throw new NullPointerException("Deferrability policy must not be null");
-        }
-        Deferrability oldDefferability = this.deferrability;
+	/**
+	 * Sets the value of deferrability
+	 *
+	 * @param argDeferrability Value to assign to this.deferrability
+	 */
+	public void setDeferrability(int argDeferrability) {
+		int oldDefferability = this.deferrability;
 		this.deferrability = argDeferrability;
 		fireDbObjectChanged("deferrability",oldDefferability,argDeferrability);
 	}
@@ -1204,40 +1072,5 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				throw new LockedColumnException(this,col);
 			}
 		}
-	}
-	
-	/**
-     * Some SQLRelationship objects may not have their {@link #identifying}
-     * property set properly which is particularly the case then creating
-     * SQLRelationships for source database objects and then reverse
-     * engineering, so this method will determine for certain if a relationship
-     * is identifying or non-identifying. This is currently primarily being used
-     * for determining the identifying status of reverse-engineered
-     * relationships.
-     * 
-     * @return True if this SQLRelationship is identifying. False if it is
-     *         non-identifying.
-     */
-	public boolean determineIdentifyingStatus() throws ArchitectException {
-	    
-	    if (getPkTable().getPkSize() > getFkTable().getPkSize()) return false;
-	    
-	    List<ColumnMapping> columnMappings = (List<ColumnMapping>)getChildren();
-	    SQLIndex pkTablePKIndex = getPkTable().getPrimaryKeyIndex();
-	    if (pkTablePKIndex == null) return false;
-	    List<Column> pkColumns = pkTablePKIndex.getChildren();
-	    
-	    for (Column col: pkColumns) {
-	        boolean colIsInFKTablePK = false;
-	        for (ColumnMapping mapping: columnMappings) {
-	            if (mapping.getPkColumn().equals(col.getColumn()) &&
-	                    mapping.getFkColumn().isPrimaryKey()) { 
-                    colIsInFKTablePK = true;
-                    break;
-                }
-	        }
-	        if (colIsInFKTablePK == false) return false;
-	    }
-	    return true;
 	}
 }

@@ -1,28 +1,43 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.profile;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
@@ -30,19 +45,8 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.profile.event.ProfileResultEvent;
-import ca.sqlpower.architect.profile.event.ProfileResultListener;
+import ca.sqlpower.util.MonitorableImpl;
 
-/**
- * Base class for storing profile results that relate to a database object.
- * Provides mostly bookkeeping information and the infrastructure for event
- * support. Subclasses extend this class by providing additional attributes that
- * make sense for the type of object they profile.
- * 
- * @param <T>
- *            The type of DatabaseObject this profile pertains to. For example,
- *            SQLTable or SQLColumn.
- */
 public abstract class AbstractProfileResult<T extends SQLObject>
     implements Comparable<AbstractProfileResult>, ProfileResult<T> {
 
@@ -52,7 +56,14 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     private long createEndTime = -1L;
     private long createStartTime = -1L;
     private Exception ex;
+    // Monitorables
     private ProfileSettings settings;
+    private int progress = 0;
+    private Integer jobSize = null;
+    private String message = null;
+    private boolean started = false;
+    private boolean cancelled = false;
+    private boolean finished = false;
 
     /**
      * A list of ProfileResultListeners that should be notified of the
@@ -69,6 +80,61 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     public AbstractProfileResult(T profiledObject) {
         if (profiledObject == null) throw new NullPointerException("The profiled object has to be non-null");
         this.profiledObject = profiledObject;
+    }
+
+    /**
+     * A generic template for populating a profile result.  Calls {@link #doProfile()}
+     * to perform the actual work of populating this profile result.
+     * <p>
+     * This method will fire a profileStarted event before calling the subclass's
+     * doProfile, then fire a profileFinished event after doProfile exits (with
+     * or without success) unless this profile population has been cancelled,
+     * in which case it fires a profileCancelled event.
+     */
+    public void populate() {
+        try {
+            fireProfileStarted();
+            message = getProfiledObject().getName();
+            if (!cancelled) {
+                initialize();
+                doProfile();
+            }
+        } catch (Exception ex) {
+            setException(ex);
+            logger.error("Profile failed. Saving exception:", ex);
+        } finally {
+            finish();
+            progress++;
+            if (isCancelled()) {
+                fireProfileCancelled();
+            } else {
+                fireProfileFinished();
+            }
+        }
+    }
+
+    /**
+     * This method is the hook for subclasses to perform their specific
+     * profiling activity.  The template method {@link #populate(MonitorableImpl)}
+     * calls this method at the appropriate time.
+     */
+    protected abstract void doProfile() throws SQLException, ArchitectException;
+    
+    void initialize() {
+        started = true;
+        finished = false;
+        setCreateStartTime(System.currentTimeMillis());
+    }
+
+    /**
+     *  This method sets the end time of the profile result and sets finished to true
+     */
+    public void finish(long endTime) {
+        setCreateEndTime(endTime);
+        finished = true;
+    }
+    void finish() {
+        finish(System.currentTimeMillis());
     }
 
     /* (non-Javadoc)
@@ -121,13 +187,70 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     }
 
     /**
-     * If an exception is encountered while populating this profile result,
-     * it should be stored here for later inspection by client code.
+     * If a subclass runs into problems populating itself, it
+     * can call this method to store the exception for later inspection
+     * by client code.
      */
-    public void setException(Exception ex) {
+    protected void setException(Exception ex) {
         this.ex = ex;
     }
 
+    public synchronized boolean isCancelled() {
+        return cancelled;
+    }
+    
+    /**
+     * If you want to abort this profile operation, call this method
+     * with an argument of <tt>true</tt>.  If this profile has not yet
+     * started populating before it is cancelled, populate will not attempt
+     * any work when it is called.  If this profile is already
+     * populated, cancelling it will have no effect.
+     */
+    public synchronized void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+    
+    /**
+     * Specifies the amount of work that needs to be done in order to populate
+     * this profile (From the Monitorable interface). A null value indicates the
+     * amount of work is not yet known.
+     */
+    public synchronized Integer getJobSize() {
+        return jobSize;
+    }
+ 
+    /**
+     * The current message for this profile result's populate progress.  From
+     * the Monitorable interface.
+     */
+    public synchronized String getMessage() {
+        return message;
+    }
+
+    /**
+     * Returns the current amount of progress that has been made toward the
+     * goal of populating this profile result.  The number is on a scale of
+     * 0..jobSize.
+     */
+    public synchronized int getProgress() {
+        return progress;
+    }
+ 
+    /**
+     * Returns true if populate() has been called; false otherwise.
+     */
+    public synchronized boolean hasStarted() {
+        return started;
+    }
+
+    /**
+     * Returns true if populate() has completed without being
+     * cancelled, either successfully or with error.
+     */
+    public synchronized boolean isFinished() {
+        return finished;
+    }
+    
     /**
      * Compares this Profile Result based on the following attributes, in the following
      * priority:
@@ -271,7 +394,6 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     }
     
     protected final void fireProfileStarted() {
-        logger.debug("Firing profile started event for " + profiledObject);
         ProfileResultEvent event = new ProfileResultEvent(this);
         for (int i = profileResultListeners.size() - 1; i >= 0; i--) {
             profileResultListeners.get(i).profileStarted(event);
@@ -279,7 +401,6 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     }
     
     protected final void fireProfileFinished() {
-        logger.debug("Firing profile finished event for " + profiledObject);
         ProfileResultEvent event = new ProfileResultEvent(this);
         for (int i = profileResultListeners.size() - 1; i >= 0; i--) {
             profileResultListeners.get(i).profileFinished(event);
@@ -287,7 +408,6 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     }
     
     protected final void fireProfileCancelled() {
-        logger.debug("Firing profile cancelled event for " + profiledObject);
         ProfileResultEvent event = new ProfileResultEvent(this);
         for (int i = profileResultListeners.size() - 1; i >= 0; i--) {
             profileResultListeners.get(i).profileCancelled(event);

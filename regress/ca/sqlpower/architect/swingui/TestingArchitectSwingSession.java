@@ -1,43 +1,50 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JDialog;
 
-import ca.sqlpower.architect.AlwaysOKUserPrompter;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.ArchitectSessionImpl;
-import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObjectRoot;
-import ca.sqlpower.architect.UserPrompter;
-import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSwingWorker;
 
@@ -54,13 +61,11 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private PlayPen playpen;
     private UndoManager undoManager;
     private DBTree sourceDatabases;
-    private SQLObjectRoot rootObject;
-    private ProfileManager profileManager;
+    private TableProfileManager profileManager;
     private CompareDMSettings compareDMSettings;
-    private DDLGenerator ddlGenerator;
+    private GenericDDLGenerator ddlGenerator;
     private KettleJob kettleJob;
     private RecentMenu recent;
-    private ArchitectSession delegateSession;
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws ArchitectException {
         this.context = context;
@@ -70,19 +75,19 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
                 System.out.println("Fake load file for recent menu");
             }
         };
-        this.delegateSession = new ArchitectSessionImpl(context, "test");
-        profileManager = new ProfileManagerImpl(this);
+        profileManager = new TableProfileManager();
         project = new SwingUIProject(this);
         userSettings = context.getUserSettings();
-        rootObject = new SQLObjectRoot();
-        playpen = new PlayPen(this);
-        rootObject.addChild(getTargetDatabase());
-        sourceDatabases = new DBTree(this);
+        SQLDatabase ppdb = new SQLDatabase();
+        playpen = new PlayPen(this, ppdb);
+        List initialDBList = new ArrayList();
+        initialDBList.add(playpen.getDatabase());
+        sourceDatabases = new DBTree(this, initialDBList);
         undoManager = new UndoManager(playpen);
         
         compareDMSettings = new CompareDMSettings();
         
-        frame = new ArchitectFrame(this, null);
+        frame = new ArchitectFrame(this, project);
         frame.init();
         
         try {
@@ -90,7 +95,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         } catch (SQLException e) {
             throw new ArchitectException("SQL Error in ddlGenerator",e);
         }
-        kettleJob = new KettleJob(this);
+        kettleJob = new KettleJob();
         
     }
     
@@ -131,17 +136,20 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public void close() {
+        // TODO Auto-generated method stub
+        
     }
 
     public CompareDMSettings getCompareDMSettings() {
         return compareDMSettings;
     }
 
-    public DDLGenerator getDDLGenerator() {
+    public GenericDDLGenerator getDDLGenerator() {
         return ddlGenerator;
     }
 
     public String getName() {
+        // TODO Auto-generated method stub
         return null;
     }
 
@@ -150,6 +158,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public JDialog getProfileDialog() {
+        // TODO Auto-generated method stub
         return null;
     }
 
@@ -162,26 +171,27 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public boolean isSavingEntireSource() {
+        // TODO Auto-generated method stub
         return false;
     }
 
-    public void setDDLGenerator(DDLGenerator generator) {
+    public void setDDLGenerator(GenericDDLGenerator generator) {
+        // TODO Auto-generated method stub
+        
     }
 
     public void setName(String argName) {
+        // TODO Auto-generated method stub
+        
     }
 
     public void setSavingEntireSource(boolean argSavingEntireSource) {
+        // TODO Auto-generated method stub
+        
     }
 
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
-        while (rootObject.getChildCount() > 0) {
-            rootObject.removeChild(rootObject.getChildCount() - 1);
-        }
-        
-        for (SQLDatabase db : databases) {
-            rootObject.addChild(db);
-        }
+    public void setSourceDatabaseList(List databases) throws ArchitectException {
+        this.sourceDatabases.setModel(new DBTreeModel(databases,this));
     }
 
     public KettleJob getKettleJob() {
@@ -195,10 +205,6 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
     }
 
-    public void initGUI(ArchitectSwingSession session) throws ArchitectException {
-        throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
-    }
-    
     public void registerSwingWorker(SPSwingWorker worker) {
         
     }
@@ -230,21 +236,5 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
      */
     public void setRelationshipLinesDirect(boolean direct) {
         // ignore
-    }
-
-    public SQLDatabase getTargetDatabase() {
-        return delegateSession.getTargetDatabase();
-    }
-
-    public void setProject(CoreProject project) {
-        delegateSession.setProject(project);
-    }
-
-    public SQLObjectRoot getRootObject() {
-        return rootObject;
-    }
-
-    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-        return new AlwaysOKUserPrompter();
     }
 }

@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.diff;
 
@@ -29,7 +42,6 @@ import java.util.TreeSet;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
@@ -74,11 +86,6 @@ public class CompareSQL implements Monitorable {
 	 */
 	private boolean finished;
 
-    /**
-     * Flags whether or not this comparison has been cancelled.
-     */
-    private boolean cancelled;
-    
 	/**
 	 * The results we are working on (this will be returned by generateTableDiffs()).
 	 */
@@ -163,7 +170,7 @@ public class CompareSQL implements Monitorable {
 			}
 
 			// Will loop until one or both the list reaches its last table
-			while (sourceContinue && targetContinue && !isCancelled()) {
+			while (sourceContinue && targetContinue) {
 				// bring the source table up to the same level as the target
 				if (comparator.compare(sourceTable, targetTable) < 0) {
 					results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
@@ -217,7 +224,7 @@ public class CompareSQL implements Monitorable {
 
 			}
 			// If any tables in the sourceList still exist, the changes are added
-			while (sourceContinue && !isCancelled()) {
+			while (sourceContinue) {
 				results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
 				incProgress(1);
 				//results.addAll(generateColumnDiffs(sourceTable, null));
@@ -229,7 +236,7 @@ public class CompareSQL implements Monitorable {
 			}
 			
 			//If any remaining tables in the targetList still exist, they are now being added
-			while (targetContinue && !isCancelled()) {
+			while (targetContinue) {
 
 				results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
 				incProgress(1);
@@ -454,10 +461,6 @@ public class CompareSQL implements Monitorable {
 			if (comparator.compare(sourceColumn, targetColumn) < 0) {
 				diffs.add(new DiffChunk<SQLObject>(sourceColumn,
 						DiffType.LEFTONLY));
-				logger.debug("The source column is " + sourceColumn);
-				if (sourceColumn.isPrimaryKey()) {
-                    keyChangeFlag = true;
-                }
 				if (sourceColIter.hasNext()) {
 					sourceColumn = sourceColIter.next();
 				} else {
@@ -470,10 +473,6 @@ public class CompareSQL implements Monitorable {
 			if (comparator.compare(sourceColumn, targetColumn) > 0) {
 				diffs.add(new DiffChunk<SQLObject>(targetColumn,
 						DiffType.RIGHTONLY));
-				logger.debug("The target column is " + targetColumn);
-				if (targetColumn.isPrimaryKey()) {
-                    keyChangeFlag = true;
-				}
 				if (targetColIter.hasNext()) {
 					targetColumn = targetColIter.next();
 				} else {
@@ -486,19 +485,17 @@ public class CompareSQL implements Monitorable {
 			if (comparator.compare(sourceColumn, targetColumn) == 0) {
 				
 				if (targetColumn.isPrimaryKey() != sourceColumn.isPrimaryKey()){
-				    keyChangeFlag = true;
+					keyChangeFlag = true;
 					//diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.KEY_CHANGED));
 				}
-				if (ArchitectUtils.columnsDiffer(targetColumn, sourceColumn)) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Column " + sourceColumn.getName() + " differs!");
-                        logger.debug(String.format("  Type:      %10d %10d", targetColumn.getType(), sourceColumn.getType()));
-                        logger.debug(String.format("  Precision: %10d %10d", targetColumn.getPrecision(), sourceColumn.getPrecision()));
-                        logger.debug(String.format("  Scale:     %10d %10d", targetColumn.getScale(), sourceColumn.getScale()));
-                        logger.debug(String.format("  Nullable:  %10d %10d", targetColumn.getNullable(), sourceColumn.getNullable()));
-                    }
-				    diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.MODIFIED));
-				} else {
+				if (targetColumn.getType() != sourceColumn.getType()
+					|| (targetColumn.getPrecision() != sourceColumn.getPrecision())
+					|| (targetColumn.getScale() != sourceColumn.getScale())
+					|| (targetColumn.getNullable() != sourceColumn.getNullable())					
+					) {				
+						diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.MODIFIED));
+				} 
+				else {
 					diffs.add(new DiffChunk<SQLObject>(sourceColumn, DiffType.SAME));
 				}
 	
@@ -536,20 +533,15 @@ public class CompareSQL implements Monitorable {
 			}
 		}
 
-		if ( keyChangeFlag ) {
-		    if (sourceTable.getPrimaryKeyIndex() != null) {
-		        diffs.add(new DiffChunk<SQLObject>(sourceTable, DiffType.DROP_KEY));
-		    }
-		    diffs.add(new DiffChunk<SQLObject>(targetTable, DiffType.KEY_CHANGED));
-		}
+		if ( keyChangeFlag )
+			diffs.add(new DiffChunk<SQLObject>(targetTable, DiffType.KEY_CHANGED));
 		return diffs;
 	}
 	
+	
+	// ------------------ Monitorable Interface --------------------
 
-
-    // ------------------ Monitorable Interface --------------------
-
-    public synchronized Integer getJobSize() {
+	public synchronized Integer getJobSize() {
 		return jobSize;
 	}
 
@@ -569,13 +561,9 @@ public class CompareSQL implements Monitorable {
 		return currentTableName;
 	}
 
-    public synchronized void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
-    }
-
-    public synchronized boolean isCancelled() {
-        return cancelled;
-    }
+	public synchronized void setCancelled(boolean cancelled) {
+		cancelled = true;
+	}
 	
 	private synchronized void setJobSize(Integer jobSize) {
 		this.jobSize = jobSize;

@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.etl.kettle;
 
@@ -50,14 +63,11 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.FileValidator;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.TestingArchitectSession;
-import ca.sqlpower.architect.TestingArchitectSessionContext;
-import ca.sqlpower.architect.UserPrompter;
-import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
+import ca.sqlpower.architect.FileValidator.FileValidationResponse;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
@@ -68,13 +78,9 @@ public class CreateKettleJobTest extends TestCase {
     private SQLTable targetTableNoSource;
     private SQLTable targetTableMixedSource;
     
-    private ArchitectSession session;
-    
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        
-        session = new TestingArchitectSession(new TestingArchitectSessionContext());
         target = new SQLDatabase();
         target.setName("Target for Testing");
         SPDataSource ds = new SPDataSource(new PlDotIni());
@@ -140,7 +146,7 @@ public class CreateKettleJobTest extends TestCase {
     public void testCreatingJobsWithTablesWithNoSource() throws ArchitectException, IOException, RuntimeException, KettleException, SQLException {
         new File("TestingJob.kjb").delete();
         new File("transformation_for_table_TargetTable1.ktr").delete();
-        KettleJob job = new KettleJob(session);
+        KettleJob job = new KettleJob();
         job.setJobName("Testing Job");
         job.setSchemaName("Schema");
         job.setFilePath("TestingJob");
@@ -155,7 +161,7 @@ public class CreateKettleJobTest extends TestCase {
     public void testCreatingJobsWithTablesWithSources() throws ArchitectException, IOException, RuntimeException, KettleException, SQLException {
         new File("TestingJob.kjb").delete();
         new File("transformation_for_table_TargetTable2.ktr").delete();
-        KettleJob job = new KettleJob(session);
+        KettleJob job = new KettleJob();
         job.setJobName("Testing Job");
         job.setSchemaName("Schema");
         File jobFile = File.createTempFile("TestingJob", null);
@@ -170,7 +176,7 @@ public class CreateKettleJobTest extends TestCase {
 
     public void testAddDatabaseConnection() {
        Map<String, DatabaseMeta> databaseNames = new LinkedHashMap<String, DatabaseMeta>();
-       KettleJob job = new KettleJob(session);
+       KettleJob job = new KettleJob();
        DatabaseMeta dbMeta = job.addDatabaseConnection(databaseNames, target.getDataSource());
        assertEquals(dbMeta.getName(), target.getDataSource().getName());
        assertTrue(databaseNames.containsKey(target.getDataSource().getName()));
@@ -183,7 +189,7 @@ public class CreateKettleJobTest extends TestCase {
         DatabaseMeta dbMetaBean = new DatabaseMeta();
         dbMetaBean.setName("Meta Bean");
         databaseNames.put(target.getDataSource().getName(), dbMetaBean);
-        KettleJob job = new KettleJob(session);
+        KettleJob job = new KettleJob();
         DatabaseMeta dbMeta = job.addDatabaseConnection(databaseNames, target.getDataSource());
         assertEquals(dbMeta.getName(), dbMetaBean.getName());
         assertTrue(databaseNames.containsKey(target.getDataSource().getName()));
@@ -193,7 +199,7 @@ public class CreateKettleJobTest extends TestCase {
     
     public void testAddDatabaseConnectionThrowsRuntimeException() {
         Map<String, DatabaseMeta> databaseNames = new LinkedHashMap<String, DatabaseMeta>();
-        KettleJob job = new KettleJob(session);
+        KettleJob job = new KettleJob();
         try {
             job.addDatabaseConnection(databaseNames, new SPDataSource(new PlDotIni()));
             fail("A runtime exception was not thrown when an invalid data source was passed in");
@@ -202,20 +208,25 @@ public class CreateKettleJobTest extends TestCase {
         }
     }
     
-    public void testOutputToXMLCancel() throws IOException {
-        outputToXMLTesting(UserPromptResponse.CANCEL, true);
+    public void testOutputToXMLWriteNotOKAlways() throws IOException {
+        outputToXMLTesting(FileValidationResponse.WRITE_NOT_OK_ALWAYS, true);
     }
 
+
+    public void testOutputToXMLWriteOKAlways() throws IOException {
+        outputToXMLTesting(FileValidationResponse.WRITE_OK_ALWAYS, false);
+    }
+    
     public void testOutputToXMLFileValidatorWriteOk() throws IOException {
-        outputToXMLTesting(UserPromptResponse.OK, false);
+        outputToXMLTesting(FileValidationResponse.WRITE_OK, false);
     }
     
     public void testOutputToXMLFileValidatorWriteNotOk() throws IOException {
-        outputToXMLTesting(UserPromptResponse.NOT_OK, true);
+        outputToXMLTesting(FileValidationResponse.WRITE_NOT_OK, true);
     }
     
     public void testOutputToXMLFileException() throws IOException {
-        KettleJob job = new KettleJob(session);
+        KettleJob job = new KettleJob();
         
         LogWriter lw = LogWriter.getInstance();
         List<TransMeta> transList = new ArrayList<TransMeta>();
@@ -240,7 +251,7 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testCreateMergeJoinsNoInputs() {
-        KettleJob job = new KettleJob(session);
+        KettleJob job = new KettleJob();
         TransMeta transMeta = new TransMeta();
         List<StepMeta> mergeSteps = job.createMergeJoins(0, transMeta, new ArrayList<StepMeta>());
         assertEquals(0, mergeSteps.size());
@@ -248,7 +259,7 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testCreateMergeJoinsOneInput() {
-        KettleJob job = new KettleJob(session);
+        KettleJob job = new KettleJob();
         TransMeta transMeta = new TransMeta();
         List<StepMeta> inputSteps = new ArrayList<StepMeta>();
         inputSteps.add(new StepMeta());
@@ -259,7 +270,7 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testCreateMergeJoinsTwoInputs() {
-        KettleJob job = new KettleJob(session);
+        KettleJob job = new KettleJob();
         TransMeta transMeta = new TransMeta();
         List<StepMeta> inputSteps = new ArrayList<StepMeta>();
         StepMeta input1 = new StepMeta();
@@ -277,7 +288,7 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testCreateMergeJoinsThreeInputs() {
-        KettleJob job = new KettleJob(session);
+        KettleJob job = new KettleJob();
         TransMeta transMeta = new TransMeta();
         List<StepMeta> inputSteps = new ArrayList<StepMeta>();
         StepMeta input1 = new StepMeta();
@@ -295,7 +306,7 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testCreateRepository() {
-        KettleJob job = new KettleJob(session);
+        KettleJob job = new KettleJob();
         SPDataSource architectDS = target.getDataSource();
         job.setRepository(architectDS);
         Repository rep = job.createRepository();
@@ -306,32 +317,31 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testOutputToRepositoryOverwrite() throws SQLException, KettleException {
-        testOutputToRepository(UserPromptResponse.OK);
+        testOutputToRepository(FileValidationResponse.WRITE_OK);
+    }
+    
+    public void testOutputToRepositoryOverwriteAlways() throws SQLException, KettleException {
+        testOutputToRepository(FileValidationResponse.WRITE_OK_ALWAYS);
     }
     
     public void testOutputToRepositoryDontOverwrite() throws SQLException, KettleException {
-        testOutputToRepository(UserPromptResponse.NOT_OK);
+        testOutputToRepository(FileValidationResponse.WRITE_NOT_OK);
     }
     
-    public void testOutputToRepositoryCancel() throws SQLException, KettleException {
-        testOutputToRepository(UserPromptResponse.CANCEL);
+    public void testOutputToRepositoryDontOverwriteAlways() throws SQLException, KettleException {
+        testOutputToRepository(FileValidationResponse.WRITE_NOT_OK_ALWAYS);
     }
     
-    private void testOutputToRepository(final UserPromptResponse fvr) throws SQLException, KettleException{
+    private void testOutputToRepository(final FileValidationResponse fvr) throws SQLException, KettleException{
         TransMeta transMeta = createTransMeta();
         JobMeta job = createJobMeta();
         
         List<TransMeta> transList = new ArrayList<TransMeta>();
         transList.add(transMeta);
 
-        KettleJob kettleJob = new KettleJob(new TestingArchitectSession(new TestingArchitectSessionContext()) {
-            @Override
-            public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-                return new UserPrompter() {
-                    public UserPromptResponse promptUser(Object... formatArgs) {
-                        return fvr;
-                    }
-                };
+        KettleJob kettleJob = new KettleJob(new FileValidator(){
+            public FileValidationResponse acceptFile(String name, String path) {
+                return fvr;
             }
         }, new KettleRepositoryDirectoryChooser(){
             public RepositoryDirectory selectDirectory(Repository repo) {
@@ -344,14 +354,12 @@ public class CreateKettleJobTest extends TestCase {
         KettleRepositoryStub rep = new KettleRepositoryStub(new RepositoryMeta("", "", null));
         kettleJob.outputToRepository(job, transList, rep);
 
-        if (fvr == UserPromptResponse.NOT_OK || fvr == UserPromptResponse.CANCEL) {
+        if (fvr == FileValidationResponse.WRITE_NOT_OK || fvr == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
             assertEquals(0, rep.getNumTransformationsSaved());
             assertEquals(0, rep.getNumJobsSaved());
-        } else if (fvr == UserPromptResponse.OK) {
+        } else {
             assertEquals(1, rep.getNumTransformationsSaved());
             assertEquals(1, rep.getNumJobsSaved());
-        } else {
-            fail("Unknown user prompt response: " + fvr);
         }
         assertTrue(rep.getRepositoryDisconnected());
     }
@@ -364,7 +372,7 @@ public class CreateKettleJobTest extends TestCase {
      * the outputToXML file.
      * @throws IOException
      */
-    private void outputToXMLTesting(final UserPromptResponse fvr, boolean checkOriginalXML) throws IOException {
+    private void outputToXMLTesting(final FileValidationResponse fvr, boolean checkOriginalXML) throws IOException {
         TransMeta transMeta = createTransMeta();
         JobMeta job = createJobMeta();
         
@@ -387,14 +395,9 @@ public class CreateKettleJobTest extends TestCase {
         newJob.setName("jobName");
         newJob.addNote(new NotePadMeta("new job note", 0, 150, 125, 125));
         
-        KettleJob kettleJob = new KettleJob(new TestingArchitectSession(new TestingArchitectSessionContext()) {
-            @Override
-            public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-                return new UserPrompter() {
-                    public UserPromptResponse promptUser(Object... formatArgs) {
-                        return fvr;
-                    }
-                };
+        KettleJob kettleJob = new KettleJob(new FileValidator(){
+            public FileValidationResponse acceptFile(String name, String path) {
+                return fvr;
             }
         }, new RootRepositoryDirectoryChooser());
         kettleJob.setFilePath(jobOutputFile.getPath());

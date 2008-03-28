@@ -1,32 +1,43 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.ddl;
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -35,8 +46,7 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
+import ca.sqlpower.architect.SQLIndex.IndexType;
 
 public class MySqlDDLGenerator extends GenericDDLGenerator {
 
@@ -45,13 +55,6 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     }
 
     public static final String GENERATOR_VERSION = "$Revision$";
-
-    /**
-     * Systemwide setting (controlled by a system property) that tells whether
-     * or not this DDL generator will convert identifiers to lower case.
-     */
-    private static final boolean DOWNCASE_IDENTIFIERS = Boolean.parseBoolean(System.getProperty(
-            "ca.sqlpower.architect.ddl.MySqlDDLGenerator.DOWNCASE_IDENTIFIERS", "true"));
 
     private static final Logger logger = Logger.getLogger(MySqlDDLGenerator.class);
 
@@ -282,71 +285,37 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 
     }
 
-    public String getName() {
-        return "MySQL";
-    }
 
     @Override
     protected void createTypeMap() throws SQLException {
         typeMap = new HashMap();
 
-        typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 38, null, null,
-                DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(Integer.valueOf(Types.BIT), new GenericTypeDescriptor("TINYINT", Types.BIT, 1, null, null,
-                DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(Integer.valueOf(Types.BLOB), new GenericTypeDescriptor("LONGBLOB", Types.BLOB, 4000000000L, null,
-                null, DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(Integer.valueOf(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 2000, "'", "'",
-                DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(Integer.valueOf(Types.CLOB), new GenericTypeDescriptor("LONGTEXT", Types.CLOB, 4000000000L, null,
-                null, DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(Integer.valueOf(Types.BOOLEAN), new GenericTypeDescriptor("BOOLEAN", Types.BOOLEAN, 1, null, null,
-                DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(Integer.valueOf(Types.DATE), new GenericTypeDescriptor("DATE", Types.DATE, 0, "'", "'",
-                DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(Integer.valueOf(Types.DECIMAL), new GenericTypeDescriptor("DECIMAL", Types.DECIMAL, 38, null, null,
-                DatabaseMetaData.columnNullable, true, true));
-        typeMap.put(Integer.valueOf(Types.DOUBLE), new GenericTypeDescriptor("DOUBLE PRECISION", Types.DOUBLE, 38,
-                null, null, DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(Integer.valueOf(Types.FLOAT), new GenericTypeDescriptor("DOUBLE PRECISION", Types.FLOAT, 38, null,
-                null, DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(Integer.valueOf(Types.INTEGER), new GenericTypeDescriptor("INT", Types.INTEGER, 38, null, null,
-                DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(Integer.valueOf(Types.NUMERIC), new GenericTypeDescriptor("NUMERIC", Types.NUMERIC, 38, null, null,
-                DatabaseMetaData.columnNullable, true, true));
-        typeMap.put(Integer.valueOf(Types.REAL), new GenericTypeDescriptor("DOUBLE PRECISION", Types.REAL, 38, null,
-                null, DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(Integer.valueOf(Types.SMALLINT), new GenericTypeDescriptor("SMALLINT", Types.SMALLINT, 38, null,
-                null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(Integer.valueOf(Types.TIME), new GenericTypeDescriptor("TIME", Types.TIME, 0, "'", "'",
-                DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(Integer.valueOf(Types.TIMESTAMP), new GenericTypeDescriptor("TIMESTAMP", Types.TIMESTAMP, 0, "'",
-                "'", DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(Integer.valueOf(Types.TINYINT), new GenericTypeDescriptor("TINYINT", Types.TINYINT, 38, null, null,
-                DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("BINARY", Types.BINARY, 65535, null, null,
-                DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(Integer.valueOf(Types.LONGVARBINARY), new GenericTypeDescriptor("VARBINARY", Types.LONGVARBINARY,
-                65535, null, null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(Integer.valueOf(Types.VARBINARY), new GenericTypeDescriptor("VARBINARY", Types.VARBINARY, 65535,
-                null, null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(Integer.valueOf(Types.LONGVARCHAR), new GenericTypeDescriptor("TEXT", Types.LONGVARCHAR, 65535,
-                "'", "'", DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 65535, "'",
-                "'", DatabaseMetaData.columnNullable, true, false));
-    }
-
-    @Override
-    public String toIdentifier(String name) {
-        if (name != null && DOWNCASE_IDENTIFIERS) {
-            name = name.toLowerCase();
-        }
-        return super.toIdentifier(name);
+        typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.BIT), new GenericTypeDescriptor("TINYINT", Types.BIT, 1, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.BLOB), new GenericTypeDescriptor("LONGBLOB", Types.BLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 2000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.CLOB), new GenericTypeDescriptor("LONGTEXT", Types.CLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.DATE), new GenericTypeDescriptor("DATE", Types.DATE, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.DECIMAL), new GenericTypeDescriptor("DECIMAL", Types.DECIMAL, 38, null, null, DatabaseMetaData.columnNullable, true, true));
+        typeMap.put(Integer.valueOf(Types.DOUBLE), new GenericTypeDescriptor("DOUBLE PRECISION", Types.DOUBLE, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.FLOAT), new GenericTypeDescriptor("DOUBLE PRECISION", Types.FLOAT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.INTEGER), new GenericTypeDescriptor("INT", Types.INTEGER, 38, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.NUMERIC), new GenericTypeDescriptor("NUMERIC", Types.NUMERIC, 38, null, null, DatabaseMetaData.columnNullable, true, true));
+        typeMap.put(Integer.valueOf(Types.REAL), new GenericTypeDescriptor("DOUBLE PRECISION", Types.REAL, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.SMALLINT), new GenericTypeDescriptor("SMALLINT", Types.SMALLINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.TIME), new GenericTypeDescriptor("TIME", Types.TIME, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.TIMESTAMP), new GenericTypeDescriptor("TIMESTAMP", Types.TIMESTAMP, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.TINYINT), new GenericTypeDescriptor("TINYINT", Types.TINYINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("BINARY", Types.BINARY, 65535, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.LONGVARBINARY), new GenericTypeDescriptor("VARBINARY", Types.LONGVARBINARY, 65535, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.VARBINARY), new GenericTypeDescriptor("VARBINARY", Types.VARBINARY, 65535, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.LONGVARCHAR), new GenericTypeDescriptor("TEXT", Types.LONGVARCHAR, 65535, "'", "'", DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 65535, "'", "'", DatabaseMetaData.columnNullable, true, false));
     }
 
     /**
-     * Subroutine for toIdentifier(). Probably a generally useful feature that
-     * we should pull up to the GenericDDLGenerator.
+     * Subroutine for toIdentifier().  Probably a generally useful feature that we
+     * should pull up to the GenericDDLGenerator.
      */
     public boolean isReservedWord(String word) {
         return reservedWords.contains(word.toUpperCase());
@@ -361,46 +330,43 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     public String getSchemaTerm() {
         return null;
     }
-
+    
     @Override
     protected void addPrimaryKeysToCreateTable(SQLTable t) throws ArchitectException {
         logger.debug("Adding Primary keys");
-
-        Iterator it = t.getColumns().iterator();
-        boolean firstCol = true;
-        while (it.hasNext()) {
-            SQLColumn col = (SQLColumn) it.next();
-            if (col.getPrimaryKeySeq() == null)
-                break;
-            if (firstCol) {
-                print(",\n                PRIMARY KEY (");
-                firstCol = false;
-            } else {
-                print(", ");
-            }
-            print(col.getPhysicalName());
-        }
-        if (!firstCol) {
-            print(")");
-        }
-    }
-
+         
+         Iterator it = t.getColumns().iterator();
+         boolean firstCol = true;
+         while (it.hasNext()) {
+             SQLColumn col = (SQLColumn) it.next();
+             if (col.getPrimaryKeySeq() == null) break;
+             if (firstCol) {
+                 print(",\n                PRIMARY KEY (");
+                 firstCol = false;
+             } else {
+                 print(", ");
+             }
+             print(col.getPhysicalName());
+         }
+         if (!firstCol) {
+             print(")");
+         }
+ }
+    
     public void dropRelationship(SQLRelationship r) {
 
         print("\n ALTER TABLE ");
 
-        print(toQualifiedName(r.getFkTable()));
+        print( toQualifiedName(r.getFkTable()) );
         print(" DROP FOREIGN KEY ");
         print(r.getName());
         endStatement(DDLStatement.StatementType.DROP, r);
     }
-
-    /*
-     * The primary key name in MySQL is completely ignored. Every primary key is
-     * named PRIMARY so we don't have to do any checking of name conflicts for
-     * the primary key. We don't even have to specify a name for the primary
-     * key.
-     * 
+    
+    /* The primary key name in MySQL is completely ignored. Every primary
+     * key is named PRIMARY so we don't have to do any checking of name
+     * conflicts for the primary key. We don't even have to specify a
+     * name for the primary key.
      * @see ca.sqlpower.architect.ddl.GenericDDLGenerator#writePrimaryKey(ca.sqlpower.architect.SQLTable)
      */
     @Override
@@ -410,13 +376,12 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         Iterator it = t.getColumns().iterator();
         while (it.hasNext()) {
             SQLColumn col = (SQLColumn) it.next();
-            if (col.getPrimaryKeySeq() == null)
-                break;
+            if (col.getPrimaryKeySeq() == null) break;
             if (firstCol) {
                 // generate a unique primary key name
                 println("");
                 print("ALTER TABLE ");
-                print(toQualifiedName(t));
+                print( toQualifiedName(t) );
                 print(" ADD CONSTRAINT ");
                 print("PRIMARY KEY (");
                 firstCol = false;
@@ -430,7 +395,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             endStatement(DDLStatement.StatementType.ADD_PK, t);
         }
     }
-
+    
     /**
      * Adds support for the MySQL auto_increment feature.
      */
@@ -442,11 +407,13 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         }
         return type;
     }
-
+    
     @Override
     public void addIndex(SQLIndex index) throws ArchitectException {
+        if (index.getType() == IndexType.STATISTIC )
+            return;
 
-        createPhysicalName(topLevelNames, index);
+        checkDupIndexname(index);
 
         println("");
         print("CREATE ");
@@ -454,54 +421,20 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             print("UNIQUE ");
         }
         print("INDEX ");
-        print(toIdentifier(index.getName()));
-        if(index.getType() != null) {            
-            print(" USING " + index.getType());
-        }
+        print(index.getName());
         print("\n ON ");
-        print(index.getParentTable().getName());
+        print(toQualifiedName(index.getParentTable()));
         print("\n ( ");
 
         boolean first = true;
         for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
-            if (!first)
-                print(", ");
+            if (!first) print(", ");
             print(c.getName());
-            print(c.getAscendingOrDescending() == AscendDescend.ASCENDING ? " ASC" : "");
-            print(c.getAscendingOrDescending() == AscendDescend.DESCENDING ? " DESC" : "");
+            print(c.isAscending() ? " ASC" : "");
+            print(c.isDescending() ? " DESC" : "");
             first = false;
         }
         print(" )");
         endStatement(DDLStatement.StatementType.CREATE, index);
-    }
-
-    @Override
-    public String getDeferrabilityClause(SQLRelationship r) {
-        if (supportsDeferrabilityPolicy(r)) {
-            return "";
-        } else {
-            throw new UnsupportedOperationException(getName() + " does not support " + r.getName() +
-                    "'s deferrability policy (" + r.getDeferrability() + ").");
-        }
-    }
-
-    @Override
-    public boolean supportsDeferrabilityPolicy(SQLRelationship r) {
-        if (!Arrays.asList(Deferrability.values()).contains(r.getDeferrability())) {
-            throw new IllegalArgumentException("Unknown deferrability policy: " + r.getDeferrability());
-        } else {
-            return r.getDeferrability() == Deferrability.NOT_DEFERRABLE;
-        }
-    }
-
-    @Override
-    public void modifyColumn(SQLColumn c) {
-        Map colNameMap = new HashMap();
-        SQLTable t = c.getParentTable();
-        print("\n ALTER TABLE ");
-        print(toQualifiedName(t));
-        print(" MODIFY COLUMN ");
-        print(columnDefinition(c, colNameMap));
-        endStatement(DDLStatement.StatementType.MODIFY, c);
     }
 }

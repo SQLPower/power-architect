@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
@@ -22,8 +35,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +50,6 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 import org.apache.log4j.Logger;
 
@@ -59,7 +68,7 @@ public class ColumnEditPanel extends JPanel
      * The column we're editing.
      */
     private SQLColumn column;
-
+    
 	private JLabel sourceDB;
 	private JLabel sourceTableCol;
 	private JTextField colName;
@@ -71,23 +80,6 @@ public class ColumnEditPanel extends JPanel
 	private JTextField colDefaultValue;
 	private JCheckBox colInPK;
 	private JCheckBox colAutoInc;
-    private JTextField colAutoIncSequenceName;
-
-    /**
-     * The prefix string that comes before the current column name
-     * in the sequence name.  This is set via the {@link #discoverSequenceNamePattern()}
-     * method, which should be called automatically whenever the user
-     * changes the sequence name.
-     */
-    private String seqNamePrefix;
-
-    /**
-     * The suffix string that comes after the current column name
-     * in the sequence name.  This is set via the {@link #discoverSequenceNamePattern()}
-     * method, which should be called automatically whenever the user
-     * changes the sequence name.
-     */
-    private String seqNameSuffix;
 
 	public ColumnEditPanel(SQLColumn col) throws ArchitectException {
 		super(new BorderLayout(12,12));
@@ -131,42 +123,10 @@ public class ColumnEditPanel extends JPanel
 		centerPanel.add(colNullable = new JCheckBox());
 		colNullable.addActionListener(this);
 
-        centerPanel.add(new JLabel("Auto Increment"));
-        centerPanel.add(colAutoInc = new JCheckBox());
-        colAutoInc.addActionListener(this);
-
-        centerPanel.add(new JLabel("Sequence Name"));
-        centerPanel.add(colAutoIncSequenceName = new JTextField());
-        centerPanel.add(new JLabel(""));
-        centerPanel.add(new JLabel("Only applies to target platforms that use sequences"));
-        
-        // Listener to update the sequence name when the column name changes
-        colName.getDocument().addDocumentListener(new DocumentListener() {
-            public void changedUpdate(DocumentEvent e) { doSync(); }
-            public void insertUpdate(DocumentEvent e) { doSync(); }
-            public void removeUpdate(DocumentEvent e) { doSync(); }
-            private void doSync() {
-                syncSequenceName();
-            }
-        });
-
-        // Listener to rediscover the sequence naming convention, and reset the sequence name
-        // to its original (according to the column's own sequence name) naming convention when
-        // the user clears the sequence name field
-        colAutoIncSequenceName.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (colAutoIncSequenceName.getText().trim().equals("")) {
-                    colAutoIncSequenceName.setText(column.getAutoIncrementSequenceName());
-                    discoverSequenceNamePattern(column.getName());
-                    syncSequenceName();
-                } else {
-                    discoverSequenceNamePattern(colName.getText());
-                }
-            }
-        });
-        
-        
+		centerPanel.add(new JLabel("Auto Increment"));
+		centerPanel.add(colAutoInc = new JCheckBox());
+		colAutoInc.addActionListener(this);
+		
 		centerPanel.add(new JLabel("Remarks"));
 		centerPanel.add(colRemarks = new JTextField());
 	
@@ -199,8 +159,6 @@ public class ColumnEditPanel extends JPanel
 	 * Updates all the UI components to reflect the given column's properties.
      * Also saves a reference to the given column so the changes made in the
      * UI can be written back into the column.
-     * 
-     * @param col The column to edit
 	 */
 	public void editColumn(SQLColumn col) throws ArchitectException {
 		logger.debug("Edit Column '"+col+"' is being called");
@@ -230,45 +188,11 @@ public class ColumnEditPanel extends JPanel
 		colDefaultValue.setText(col.getDefaultValue());
 		colInPK.setSelected(col.getPrimaryKeySeq() != null);
 		colAutoInc.setSelected(col.isAutoIncrement());
-        colAutoIncSequenceName.setText(col.getAutoIncrementSequenceName());
 		updateComponents();
-        discoverSequenceNamePattern(col.getName());
 		colName.requestFocus();
 		colName.selectAll();
 	}
 
-    /**
-     * Figures out what the sequence name prefix and suffix strings are,
-     * based on the current contents of the sequence name and column name
-     * fields.
-     */
-    private void discoverSequenceNamePattern(String colName) {
-        String seqName = this.colAutoIncSequenceName.getText();
-        int prefixEnd = seqName.indexOf(colName);
-        if (prefixEnd >= 0 && colName.length() > 0) {
-            seqNamePrefix = seqName.substring(0, prefixEnd);
-            seqNameSuffix = seqName.substring(prefixEnd + colName.length());
-        } else {
-            seqNamePrefix = null;
-            seqNameSuffix = null;
-        }
-    }
-    
-    /**
-     * Modifies the contents of the "auto-increment sequence name" field to
-     * match the naming scheme as it is currently understood. This modification
-     * is only performed if the naming scheme has been successfully determined
-     * by the {@link #discoverSequenceNamePattern(String)} method. The new
-     * sequence name is written directly to the {@link #colAutoIncSequenceName}
-     * field.
-     */
-    private void syncSequenceName() {
-        if (seqNamePrefix != null && seqNameSuffix != null) {
-            String newName = seqNamePrefix + colName.getText() + seqNameSuffix;
-            colAutoIncSequenceName.setText(newName);
-        }
-    }
-    
 	/**
 	 * Implementation of ActionListener.
 	 */
@@ -308,15 +232,6 @@ public class ColumnEditPanel extends JPanel
 		    colNullable.setSelected(false);
 		    colNullable.setEnabled(false);
 		}
-		
-		if (colAutoInc.isSelected()) {
-		    colDefaultValue.setText("");
-		    colDefaultValue.setEnabled(false);
-		} else {
-		    colDefaultValue.setEnabled(true);
-		}
-        
-        colAutoIncSequenceName.setEnabled(colAutoInc.isSelected());
 	}
 	
 	/**
@@ -354,7 +269,6 @@ public class ColumnEditPanel extends JPanel
             } else {
                 column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getPrimaryKeySeq()) : null);
             }
-            column.setAutoIncrementSequenceName(colAutoIncSequenceName.getText());
         } finally {
             column.endCompoundEdit("Column Edit Panel Changes");
         }
@@ -432,10 +346,5 @@ public class ColumnEditPanel extends JPanel
 	public JLabel getSourceTableCol() {
 		return sourceTableCol;
 	}
-
-    public boolean hasUnsavedChanges() {
-        // TODO return whether this panel has been changed
-        return true;
-    }
 }
   

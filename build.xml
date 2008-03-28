@@ -57,7 +57,7 @@
 
 	<!-- pmd code checking tool and its helper jar files -->
 	<property name="pmd.home" value="ext-tools-home/pmd"/>
-	<property name="pmd.jar" value="${pmd.home}/lib/pmd-4.2.jar"/>
+	<property name="pmd.jar" value="${pmd.home}/lib/pmd-3.9.jar"/>
 
 	<!-- clover test coverage tool -->
 	<property name="clover.home" value="ext-tools-home/clover"/>
@@ -96,6 +96,13 @@
 		<condition property="app.ver.suffix" value="-${date}">
 			<isset property="nightly"/>
 		</condition>
+		<condition property="downloadLinkBase" 
+			value="http://nightlybuild.sqlpower.ca/architect/${app_ver_major}.${app_ver_minor}.${app_ver_tiny}-${date}">
+			<isset property="nightly"/>
+		</condition>
+		<condition property="docLinkBase" value="http://nightlybuild.sqlpower.ca/architect">
+			<isset property="nightly"/>		
+		</condition>
 		<!-- Else, if app_ver_suffix is empty, then don't use a suffix -->
 		<condition property="app.ver.suffix" value="">
 			<and>
@@ -103,26 +110,20 @@
 				<not><isset property="app.ver.suffix"/></not>
 			</and>
 		</condition>
+		<condition property="downloadLinkBase"
+			value="http://power-architect.googlecode.com/files">
+			<not><isset property="downloadLinkBase"/></not>
+		</condition>
+		<condition property="docLinkBase" 
+			value="http://download.sqlpower.ca/architect">
+			<not><isset property="docLinkBase"/></not>
+		</condition>
 		<!-- otherwise, use the normal app_ver_suffix as the suffix -->
 		<condition property="app.ver.suffix" value="-${app_ver_suffix}">
 			<not><isset property="app.ver.suffix"/></not>
 		</condition>
 
 		<property name="app.version" value="${app_ver_major}.${app_ver_minor}.${app_ver_tiny}${app.ver.suffix}"/>
-		<condition property="downloadLinkBase" value="http://nightlybuild.sqlpower.ca/architect/nightly/${app.version}">
-			<isset property="nightly"/>
-		</condition>
-		<condition property="docLinkBase" value="${downloadLinkBase}">
-			<isset property="nightly"/>		
-		</condition>
-		<condition property="downloadLinkBase"
-			value="http://power-architect.googlecode.com/files">
-			<not><isset property="downloadLinkBase"/></not>
-		</condition>
-		<condition property="docLinkBase" 
-			value="http://download.sqlpower.ca/architect/${app.version}">
-			<not><isset property="docLinkBase"/></not>
-		</condition>
 
 		<echo message="Building Architect version: ${app.version}"/>
 		<property name="dist.dir" value="dist/architect-${app.version}"/>
@@ -212,10 +213,10 @@
 		>
 		<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask"
 			classpath="${pmd.jar}"/>
-		<property name="pmd-results" value="${reports}/pmd-ant-results.html"/>
+		<property name="pmd-results" value="${reports}/pmd-ant-results.txt"/>
 		<pmd shortFilenames="true" targetjdk="1.5">
 			<ruleset>basic,imports</ruleset>
-			<formatter type="html" toFile="${pmd-results}"/>
+			<formatter type="text" toFile="${pmd-results}"/>
 			<fileset dir="${src}">
 				<include name="**/*.java"/>
 			</fileset>
@@ -227,15 +228,14 @@
 		description="Runs the PMD Copy/Paste Detection tool, and saves results to a file">
 		<taskdef name="cpd" classname="net.sourceforge.pmd.cpd.CPDTask"
 			classpath="${pmd.jar}"/>
-		<property name="cpd-results" value="${reports}/cpd-ant-results.xml"/>
-		<cpd minimumTokenCount="120" format="xml" outputfile="${cpd-results}">
+		<property name="cpd-results" value="${reports}/cpd-ant-results.txt"/>
+		<cpd minimumTokenCount="120" outputfile="${cpd-results}">
 			<fileset dir="${src}">
 				<include name="**/*.java"/>
 				<exclude name="generated/**.java"/>
 			</fileset>
 		</cpd>
-		<xslt in="${cpd-results}" style="${pmd.home}/etc/xslt/cpdhtml.xslt" out="${reports}/cpd-ant-results.html" />
-		<echo message="CPD completed, output is in ${reports}/cpd-ant-results.html."/>
+		<echo message="CPD completed, output is in  ${cpd-results}."/>
 	</target>
 
 	<target name="findbugs"
@@ -244,10 +244,10 @@
 		<taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask"
 			classpath="${findbugs-ant.jar}"/>
 		<findbugs home="${findbugs.home}"
-			output="html"
-			outputFile="${reports}/findbugs-ant-results.html"
+			output="text"
+			outputFile="findbugs-ant-results.txt"
 			reportLevel="low"
-			jvmargs="-Xmx512m">  <!-- FindBugs can use up a lot of memory, so adjust the JVM memory here-->
+			jvmargs="-Xmx256m">  <!-- FindBugs can use up a lot of memory, so adjust the JVM memory here-->
 			<class location="${build}" />
 			<sourcePath path="${src}" />
 			<!-- Classes needed by our code but that we don't want tested -->
@@ -258,11 +258,11 @@
 
 	<!-- Runs the Business and Auto test suites. The Swing UI test suite is
 	 	 not run because it fails randomly -->
-	<target name="junit" depends="compile-tests">
+	<target name="junit" depends="compile,compile-tests">
 		<property name="reports.junit" value="${reports}/junit"/>
 		<mkdir dir="${reports.junit}"/>
 		<!-- Output all System.out and System.err messages -->
-	   <junit printsummary="on" showoutput="no">
+	   <junit printsummary="on">
 	   	   <sysproperty key="ca.sqlpower.architect.test.dir" value="${build.tests}"/>
 	       <classpath>
 	       		<path refid="test.classpath"/>
@@ -317,6 +317,8 @@
 		<!-- copies the template log4j config file into the build dir -->
 		<copy tofile="${build}/log4j.properties"
 			file="src/log4j.properties.example"/>
+		<copy tofile="${build}/default_database_types.ini"
+					file="src/default_database_types.ini"/>
     </target>
 
 	<!-- This target is used to make a architect library jar to embed
@@ -326,8 +328,7 @@
 			includes="ca/sqlpower/architect/*.class,
 						ca/sqlpower/architect/ddl/*.class,
 						ca/sqlpower/architect/diff/*.class,
-						ca/sqlpower/architect/undo/*.class,
-						ca/sqlpower/architect/profile/**/*.class">
+						ca/sqlpower/architect/undo/*.class">
 		</jar>
 	</target>
 	
@@ -1009,9 +1010,7 @@
 			 compression="gzip" longfile="gnu">
 			<tarfileset dir="."
 				prefix="architect-src-only-${app.version}"
-				includes="${src}/**/*.java,
-					  ${src}/**/*.png,
-					  ${src}/**/*.gif,
+				includes="${src}/**/*.java, 
 					  regress/**/*.java,
 					  build.xml,
 					  build.properties.example,
@@ -1024,7 +1023,7 @@
 	<target name="jdbc_dist" depends="windows_jdbc_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
 	<target name="no_jdbc_dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg" />
 
-	<target name="dist" depends="pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,no_jdbc_dist,source_only_tgz"
+	<target name="dist" depends="jdbc_dist,no_jdbc_dist,source_only_tgz,pmd,pmd-cpd,javadoc"
 	        description="Builds Architect Distribution for all supported platforms to dist/architect-version/*">
 		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
 		<mkdir dir="${dist.dir}/doc"/>

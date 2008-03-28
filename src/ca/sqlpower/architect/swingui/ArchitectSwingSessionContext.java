@@ -1,29 +1,43 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Window;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
+import java.util.prefs.Preferences;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.CoreUserSettings;
 
 /**
@@ -34,7 +48,7 @@ import ca.sqlpower.architect.CoreUserSettings;
  * to information that is attached to specific projects, which is
  * stored in the session).
  */
-public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
+public interface ArchitectSwingSessionContext {
 
     /**
      * The size, in pixels, of the icons in the toolbar.  This used to be managed as a
@@ -43,6 +57,12 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      */
     public static final int ICON_SIZE = 16;
 
+    /**
+     * The URL where there is more information about finding and configuring
+     * JDBC drivers.
+     */
+    static final String DRIVERS_URL = "http://www.sqlpower.ca/forum/posts/list/401.page";
+    
     /**
      * Creates a new session within this parent context.  This will cause an
      * Architect Frame to appear on the user's desktop with a new empty project
@@ -82,25 +102,27 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
     public abstract ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, IOException;
 
     /**
-     * Creates a new session that will have its GUI components positioned relative to the GUI components
-     * of the given ArchitectSwingSession. Typically, the given ArchitectSwingSession is the session from
-     * where the call to create a new session was made. (ex. the given session's 'Open Project' button was
-     * pressed). If the given session is null, then it will default to using the most recently saved GUI
-     * component positions in the user preferences in {@link ArchitectSwingUserSettings}. 
-     * 
-     * @param openingSession
-     * @return
-     * @throws ArchitectException
-     */
-    public abstract ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws ArchitectException;
-    
-    /**
      * Returns true iff this context is running on a Mac OS X machine.  Some
      * UI features are different under that platform to increase the illusion
      * that the Architect is a native application.
      */
     public abstract boolean isMacOSX();
     
+    /**
+     * Returns the user preferences node associated with this context.
+     */
+    public abstract Preferences getPrefs();
+
+    /**
+     * Gets the user settings for this session 
+     */
+    public abstract CoreUserSettings getUserSettings();
+
+    /**
+     * Returns a collection containing all the sessions from this context. 
+     */
+    public Collection<ArchitectSwingSession> getSessions();
+
     /**
      * Closes all sessions and terminates the VM.  This is the typical "exit"
      * action for a project.
@@ -140,9 +162,4 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      * @param owner The owner of the dialog
      */
     public void showPreferenceDialog(Window owner);
-    
-    /**
-     * Gets the user settings for this session 
-     */
-    public abstract CoreUserSettings getUserSettings();
 }

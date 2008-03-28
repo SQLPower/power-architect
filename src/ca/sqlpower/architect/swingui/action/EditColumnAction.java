@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui.action;
 
@@ -151,24 +164,18 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			//editDialog.requestFocus();
 			
 		} else {
+		    final SQLColumn column =  new SQLColumn();
 				    
 		    logger.debug("Creating new column editor panel");
 		    
 			JPanel panel = new JPanel();
 			panel.setLayout(new BorderLayout(12,12));
 			panel.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-
-            final SQLColumn column;
 			if (!addToTable) {
-                column = st.getColumn(colIdx);
+			    columnEditPanel = new ColumnEditPanel(st.getColumn(colIdx));
 			} else {
-                column = new SQLColumn();
-                
-                // XXX it sucks to do this here, but the column can't determine its correct
-                //     sequence name until it has a parent. By then, it will be too late.
-                column.setAutoIncrementSequenceName(st.getName() + "_" + column.getName() + "_seq");
+			    columnEditPanel = new ColumnEditPanel(column);
 			}
-			columnEditPanel = new ColumnEditPanel(column);
 			
 			panel.add(columnEditPanel, BorderLayout.CENTER);
 			
@@ -179,9 +186,8 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 					 "OK",
 					 new Callable<Boolean>(){
 						public Boolean call() {
-						    EditColumnAction.this.putValue(SHORT_DESCRIPTION, "Editing "+columnEditPanel.getColName().getText() );
-						    if (addToTable) {
-						        tp.getModel().startCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'");
+							EditColumnAction.this.putValue(SHORT_DESCRIPTION, "Editing "+columnEditPanel.getColName().getText() );
+							if (addToTable) {
 							    try {
 							        tp.getModel().addColumn(colIdx, column);
 							    } catch (ArchitectException e) {
@@ -189,9 +195,6 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 							    }
 							}
 	                        Boolean ret = new Boolean(columnEditPanel.applyChanges());
-	                        if (addToTable) {
-	                            tp.getModel().endCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'");
-						    }
 							return ret;
 						}
 					}, 

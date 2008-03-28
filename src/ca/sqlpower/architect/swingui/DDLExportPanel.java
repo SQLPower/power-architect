@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
@@ -31,11 +44,11 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.SPSUtils;
 
 
 public class DDLExportPanel implements DataEntryPanel {
@@ -47,11 +60,6 @@ public class DDLExportPanel implements DataEntryPanel {
 
     private JComboBox targetDB;
     private JButton newTargetDB;
-    
-    /**
-     * The selector for which DDL Generator to use.  The contents of this combo box
-     * are all of type <tt>Class&lt;? extends DDLGenerator&gt;</tt>.
-     */
     private JComboBox dbType;
 	
 	private JLabel catalogLabel;
@@ -67,6 +75,7 @@ public class DDLExportPanel implements DataEntryPanel {
 	}
 
 	private void setup() {		
+		GenericDDLGenerator ddlg = session.getDDLGenerator();		
         panel.setLayout(new FormLayout());
         JPanel panelProperties = new JPanel(new FormLayout());
         panelProperties.add(new JLabel("Create in:"));
@@ -83,15 +92,21 @@ public class DDLExportPanel implements DataEntryPanel {
             });
         
         panelProperties.add(new JLabel("Generate DDL for Database Type:"));
-        DDLGenerator ddlg = session.getDDLGenerator();
-		Vector<Class<? extends DDLGenerator>> ddlTypes =
-            DDLUtils.getDDLTypes(session.getContext().getPlDotIni());
-        if (!ddlTypes.contains(ddlg.getClass())) {
-            ddlTypes.add(ddlg.getClass());
-        }
+		Vector<SPSUtils.LabelValueBean> ddlTypes =DDLUtils.getDDLTypes();
         panelProperties.add(dbType = new JComboBox(ddlTypes));
-        dbType.setRenderer(new DDLGeneratorListCellRenderer());
-		dbType.setSelectedItem(ddlg.getClass());
+		SPSUtils.LabelValueBean unknownGenerator = SPSUtils.lvb("Unknown Generator", ddlg.getClass());
+		dbType.addItem(unknownGenerator);
+		dbType.setSelectedItem(unknownGenerator);
+		for (SPSUtils.LabelValueBean lvb : ddlTypes) {
+            if (ddlg.getClass() == lvb.getValue() && lvb != unknownGenerator) {
+                dbType.setSelectedItem(lvb);
+            }
+        }
+		if (dbType.getSelectedItem() != unknownGenerator) {
+            // remove the unknown generator if we have a known generator
+            dbType.removeItem(unknownGenerator);
+        }
+		
 		dbType.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 						setUpCatalogAndSchemaFields();
@@ -116,10 +131,10 @@ public class DDLExportPanel implements DataEntryPanel {
 	 * first time.
 	 */
 	private void setUpCatalogAndSchemaFields() {
-		Class<? extends DDLGenerator> selectedGeneratorClass = null;
+		Class selectedGeneratorClass = null;
 		try {
-			selectedGeneratorClass = (Class<? extends DDLGenerator>) dbType.getSelectedItem();
-			DDLGenerator newGen = selectedGeneratorClass.newInstance();
+			selectedGeneratorClass = (Class) ((SPSUtils.LabelValueBean) dbType.getSelectedItem()).getValue();
+			GenericDDLGenerator newGen = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
 			if (newGen.getCatalogTerm() != null) {
 				catalogLabel.setText(newGen.getCatalogTerm());
 				catalogLabel.setEnabled(true);
@@ -147,22 +162,21 @@ public class DDLExportPanel implements DataEntryPanel {
 				message += (":\n"+selectedGeneratorClass.getName());
 			}
 			logger.error(message, ex);
-			ASUtils.showExceptionDialogNoReport(panel, message, ex);
+			JOptionPane.showMessageDialog(panel, message, "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
 	// ------------------------ Architect Panel Stuff -------------------------
 	public boolean applyChanges() {
-		DDLGenerator ddlg = session.getDDLGenerator();
-		Class<? extends DDLGenerator> selectedGeneratorClass =
-            (Class<? extends DDLGenerator>) dbType.getSelectedItem();
+		GenericDDLGenerator ddlg = session.getDDLGenerator();
+		Class selectedGeneratorClass = (Class) ((SPSUtils.LabelValueBean) dbType.getSelectedItem()).getValue();
 		if (ddlg.getClass() != selectedGeneratorClass) {
 			try {
-				ddlg = selectedGeneratorClass.newInstance();
+				ddlg = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
 				session.setDDLGenerator(ddlg);
 			} catch (Exception ex) {
 				logger.error("Problem creating user-selected DDL generator", ex);
-				throw new RuntimeException("Couldn't create a DDL generator of the selected type", ex);
+				throw new RuntimeException("Couldn't create a DDL generator of the selected type");
 			}
 		}
 		if (selectedGeneratorClass == GenericDDLGenerator.class) {
@@ -226,10 +240,5 @@ public class DDLExportPanel implements DataEntryPanel {
     
     public SPDataSource getTargetDB(){
         return (SPDataSource)targetDB.getSelectedItem();
-    }
-
-    public boolean hasUnsavedChanges() {
-        // TODO return whether this panel has been changed
-        return true;
     }
 }

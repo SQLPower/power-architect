@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.undo;
 
@@ -62,8 +75,8 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	}*/
 	
 	public void testMove() throws ArchitectException, IOException {
-		PlayPen pp = new PlayPen(session);
-		SQLTable table = new SQLTable(session.getTargetDatabase(),true);
+		PlayPen pp = new PlayPen(session, new SQLDatabase());
+		SQLTable table = new SQLTable(pp.getDatabase(),true);
 		TablePane tp = new TablePane(table,pp);
 		pp.addTablePane(tp, new Point());
 		UndoManager undoManager = new UndoManager(pp);
@@ -86,8 +99,8 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	
 	public void testMultiMove() throws ArchitectException 
 	{
-		PlayPen pp = new PlayPen(session);
-		SQLDatabase db = session.getTargetDatabase();
+		SQLDatabase db = new SQLDatabase();
+		PlayPen pp = new PlayPen(session, db);
 		SQLTable table = new SQLTable(db,true);
 		TablePane tp = new TablePane(table,pp);
 		SQLTable table2 = new SQLTable(db,true);
@@ -125,17 +138,18 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	}
     
     public void testCompoundEditEvent() throws ArchitectException{
-        PlayPen pp = new PlayPen(session);
+        SQLDatabase db = new SQLDatabase();
+        PlayPen pp = new PlayPen(session, db);
         UndoManager manager = new UndoManager(pp);
         StateChangeTestListner listner = new StateChangeTestListner();
         manager.addChangeListener(listner);
         UndoManager.SQLObjectUndoableEventAdapter adapter = manager.getEventAdapter();
         assertTrue(adapter.canUndoOrRedo());
         
-        adapter.compoundEditStart(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START, "Test"));
+        adapter.compoundEditStart(new UndoCompoundEvent(new SQLTable(),EventTypes.COMPOUND_EDIT_START, "Test"));
         assertEquals(" Improper number of state changes after first compound edit",1,listner.stateChanges);
         assertFalse(adapter.canUndoOrRedo());
-        adapter.compoundEditEnd(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END, "Test"));
+        adapter.compoundEditEnd(new UndoCompoundEvent(new SQLTable(),EventTypes.COMPOUND_EDIT_END, "Test"));
         assertEquals(" Improper number of state changes after first compound edit",2,listner.stateChanges);
         assertTrue(adapter.canUndoOrRedo());
     }

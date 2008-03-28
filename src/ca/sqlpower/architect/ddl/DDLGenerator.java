@@ -1,22 +1,39 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+/*
+ * Created on May 11, 2005
+ *
+ * This code belongs to SQL Power Group Inc.
+ */
 package ca.sqlpower.architect.ddl;
 
 import java.sql.SQLException;
@@ -42,14 +59,6 @@ import ca.sqlpower.architect.SQLTable;
 public interface DDLGenerator {
 
     /**
-     * Returns the name of this DDL Generator, which should be a
-     * human-readable string with the vendor and/or product name
-     * (and version if the generator doesn't work with all versions)
-     * of the database platform this generator targets.
-     */
-    public String getName();
-    
-    /**
      * Creates a list of DDLStatement objects which create all of the tables,
      * their columns and primary keys, and the foreign key relationships of the
      * given database.
@@ -63,20 +72,6 @@ public interface DDLGenerator {
     public List<DDLStatement> generateDDLStatements(Collection<SQLTable> tables)
     throws SQLException, ArchitectException;
 
-    /**
-     * Generates the series of DDL Statements as in {@link #generateDDLStatements(Collection)},
-     * then compiles them into a formatted script complete with statement terminators
-     * and transaction start and end statements (if supported by the target platform).
-     * This script is appropriate to feed into a target database using a vendor-supplied
-     * tool for executing SQL scripts.
-     * 
-     * @param tables The collection of tables the generated script should create.
-     * @return The String representation of the generated DDL script.
-     * @throws SQLException If there is a problem getting type info from the target DB.
-     * @throws ArchitectException If there are problems with the Architect objects.
-     */
-    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, ArchitectException;
-    
     /**
      * Appends the DDL statement for dropping the given column from its parent
      * table in this DDL Generator's target schema/catalog.
@@ -266,5 +261,4 @@ public interface DDLGenerator {
      * @return
      */
     public String columnType(SQLColumn col);
-    
 }

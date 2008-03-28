@@ -1,28 +1,43 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
+
+import java.util.List;
 
 import javax.swing.JDialog;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
@@ -34,17 +49,18 @@ import ca.sqlpower.swingui.SwingWorkerRegistry;
  * objects.
  */
 public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegistry {
-   
+
+    /**
+     * Returns the project associated with this session.  The project
+     * holds the playpen objects, and can save and load itself in an
+     * XML format.
+     */
+    public SwingUIProject getProject();
+
     /**
      * Returns the context that created this session.
      */
     public ArchitectSwingSessionContext getContext();
-    
-    /**
-     * Narrows the return type for the project: Swing Sessions
-     * have SwingUI projects, which are a subclass of CoreProject.
-     */
-    public SwingUIProject getProject();
     
     /**
      * Gets the recent menu list
@@ -78,7 +94,16 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public UndoManager getUndoManager();
     
     public CompareDMSettings getCompareDMSettings();
-      
+    
+    /**
+     * Gets the value of name
+     *
+     * @return the value of name
+     */
+    public String getName();
+    
+    public GenericDDLGenerator getDDLGenerator();
+    
     /**
      * Returns the JDialog containing the ProfileManagerView
      */
@@ -91,12 +116,14 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      */
     public void close();
     
+    public void setDDLGenerator(GenericDDLGenerator generator);
+    
     /**
-     * See {@link #userSettings}.
+     * Sets the value of name
      *
-     * @return the value of userSettings
+     * @param argName Value to assign to this.name
      */
-    public CoreUserSettings getUserSettings();
+    public void setName(String argName);
     
     /**
      * Saves the project associated with this session, optionally showing a file
@@ -125,6 +152,16 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      */
     public void setSavingEntireSource(boolean argSavingEntireSource);
     
+    /**
+     *  Replaces the entire list of source databases for this session.
+     *  This method is used reflectively by the code that does loading and saving,
+     *  so DON'T DELETE THIS METHOD even if it looks like it's unused.
+     * 
+     * @param databases
+     * @throws ArchitectException
+     */
+    public void setSourceDatabaseList(List databases) throws ArchitectException;
+    
     public KettleJob getKettleJob();
 
     public void setKettleJob(KettleJob kettleJob);
@@ -139,23 +176,6 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      */
     public void initGUI() throws ArchitectException;
 
-    /**
-     * Like initGUI(), this method initializes the GUI components for this
-     * session, with the exception that the GUI components will get positioned
-     * relative to the GUI component of the given ArchitectSwingSession. As with
-     * initGUI(), call this only if you need a GUI. This method must be called
-     * on the Swing Event Dispatch Thread.
-     * 
-     * @param openingSession
-     *            The ArchitectSwingSession to which this session's GUI
-     *            components will be positioned relative to
-     * @throws ArchitectException
-     * @throws IllegalStateException
-     *             if showGUI==true and this method was not called on the Event
-     *             Dispatch Thread.
-     */
-    public void initGUI(ArchitectSwingSession openingSession) throws ArchitectException;
-    
     /**
      * Returns true if the session contains a completely new and unmodified project.
      * Otherwise, it returns false.

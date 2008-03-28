@@ -1,24 +1,36 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Point;
 import java.beans.PropertyDescriptor;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -32,7 +44,6 @@ import java.sql.Connection;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,31 +52,20 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.tools.ant.filters.StringInputStream;
 
 import ca.sqlpower.ArchitectTestCase;
-import ca.sqlpower.architect.AlwaysOKUserPrompter;
+import ca.sqlpower.architect.AlwaysAcceptFileValidator;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.ArchitectSessionContext;
-import ca.sqlpower.architect.CoreProject;
+import ca.sqlpower.architect.FileValidator;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectRoot;
-import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.StubSQLObject;
-import ca.sqlpower.architect.TestingArchitectSessionContext;
-import ca.sqlpower.architect.UserPrompter;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
+import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.etl.kettle.RootRepositoryDirectoryChooser;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
@@ -132,25 +132,6 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "   <folder id='FOL11' populated='true' name='Imported Keys' type='2' >" +
         "   </folder>" +
         "  </table>" +
-        "  <table id=\"TAB1830\" populated=\"true\" name=\"mm_project\" objectType=\"TABLE\" physicalName=\"MM_PROJECT\" remarks=\"\" >" +
-        "   <folder id=\"FOL1831\" populated=\"true\" name=\"Columns\" physicalName=\"Columns\" type=\"1\" >" +
-        "    <column id=\"COL1832\" populated=\"true\" autoIncrement=\"true\" autoIncrementSequenceName=\"mm_project_oid_seq\" name=\"project_oid\" nullable=\"0\" physicalName=\"PROJECT_OID\" precision=\"22\" primaryKeySeq=\"0\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"4\" />" +
-        "    <column id=\"COL1833\" populated=\"true\" autoIncrement=\"false\" name=\"FOLDER_OID\" nullable=\"1\" physicalName=\"FOLDER_OID\" precision=\"22\" referenceCount=\"2\" remarks=\"\" scale=\"0\" type=\"4\" />" +
-        "    <column id=\"COL1834\" populated=\"true\" autoIncrement=\"false\" name=\"project_name\" nullable=\"1\" physicalName=\"PROJECT_NAME\" precision=\"80\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"12\" />" +
-        "   </folder>" +
-        "   <folder id=\"FOL1889\" populated=\"true\" name=\"Exported Keys\" physicalName=\"Exported Keys\" type=\"3\" >" +
-        "   </folder>" +
-        "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
-        "   </folder>" +
-        "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
-        "    <index id=\"IDX1892\" populated=\"true\" index-type=\"BTREE\" name=\"mm_project_pk\" physicalName=\"PL_MATCH_PK\" primaryKeyIndex=\"true\" unique=\"true\" >" +
-        "     <index-column id=\"IDC1893\" populated=\"true\" ascending=\"false\" column-ref=\"COL1832\" descending=\"false\" name=\"project_oid\" physicalName=\"MATCH_OID\" />" +
-        "    </index>" +
-        "    <index id=\"IDX1894\" populated=\"true\" index-type=\"BTREE\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
-        "     <index-column id=\"IDC1895\" populated=\"true\" ascending=\"false\" column-ref=\"COL1834\" descending=\"false\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
-        "    </index>" +
-        "   </folder>" +
-        "  </table>" +
         "  <relationships>" +
         "   <relationship id='REL12' populated='true' deferrability='0' deleteRule='0' fk-table-ref='TAB0' fkCardinality='6' identifying='true' name='Orders_Customers_fk' pk-table-ref='TAB6' pkCardinality='2' updateRule='0' >" +
         "    <column-mapping id='CMP13' populated='true' fk-column-ref='COL2' pk-column-ref='COL8' />" +
@@ -159,11 +140,11 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "  </relationships>" +
         " </target-database>" +
         " <ddl-generator type='ca.sqlpower.architect.ddl.GenericDDLGenerator' allow-connection='true'> </ddl-generator>" + 
-        " <compare-dm-settings ddlGenerator='ca.sqlpower.architect.ddl.SQLServerDDLGenerator' outputFormatAsString='ENGLISH'>" +        
+        " <compare-dm-settings sqlScriptFormat='SQLServer 2000' outputFormatAsString='ENGLISH'>" +        
         " <source-stuff datastoreTypeAsString='PROJECT' connectName='Arthur_test' " +
         " schema='ARCHITECT_REGRESS' filepath='' />"+
         "<target-stuff datastoreTypeAsString='FILE' filePath='Testpath' /> </compare-dm-settings>"+
-        " <play-pen zoom=\"12.3\" viewportX=\"200\" viewportY=\"20\">" +
+        " <play-pen>" +
         "  <table-pane table-ref='TAB0' x='85' y='101' />" +
         "  <table-pane table-ref='TAB6' x='196' y='38' />" +
         "  <table-link relationship-ref='REL12' pk-x='76' pk-y='60' fk-x='114' fk-y='30' />" +
@@ -195,19 +176,17 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		// StringReader r = new StringReader(testData);
 		ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
 		project.load(r, plIni);
-		assertFalse(
-		        "Project starts out with undo history",
-		        session.getUndoManager().canUndoOrRedo());
+		assertFalse("Project starts out with undo history",session.getUndoManager().canUndoOrRedo());
 
 		DBTree tree = session.getSourceDatabases();
 		assertNotNull(tree);
-		assertEquals(1, tree.getComponentCount());
+		assertEquals(tree.getComponentCount(), 1 );
 		
-		SQLDatabase target = session.getTargetDatabase(); 
+		SQLDatabase target = session.getPlayPen().getDatabase(); 
 		assertNotNull(target);
 		
-		assertEquals("Not Configured", target.getName());
-		assertEquals(3, target.getChildCount());		
+		assertEquals(target.getName(), "Not Configured");
+		assertEquals(target.getChildCount(), 2);		
 	}
 	
     /**
@@ -216,7 +195,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
     public void testLoadPK() throws Exception {
         testLoad();
         
-        SQLDatabase target = session.getTargetDatabase();
+        SQLDatabase target = session.getPlayPen().getDatabase();
         
         SQLTable t1 = (SQLTable) target.getChild(0);
         assertEquals(1, t1.getPkSize());
@@ -241,7 +220,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
      */
     public void testSaveLoadPK() throws Exception {
         // make a table with a pksize of 2
-        SQLDatabase target = session.getTargetDatabase();
+        SQLDatabase target = session.getPlayPen().getDatabase();
         SQLTable t = new SQLTable(null, "test_pk", null, "TABLE", true);
         t.addColumn(new SQLColumn(t, "pk1", Types.CHAR, 10, 0));
         t.addColumn(new SQLColumn(t, "pk2", Types.CHAR, 10, 0));
@@ -269,7 +248,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
-        target = session2.getTargetDatabase();
+        target = session2.getPlayPen().getDatabase();
         t = target.getTableByName("test_pk");
         subroutineForTestSaveLoadPK(t);
     }
@@ -419,13 +398,19 @@ public class TestSwingUIProject extends ArchitectTestCase {
 				} else if (props[i].getPropertyType() == SQLColumn.class) {
 					newVal = new SQLColumn();
 					((SQLColumn) newVal).setName("testing!");
+                } else if (props[i].getPropertyType() == SQLIndex.IndexType.class) {
+                    if (oldVal != SQLIndex.IndexType.HASHED) {
+                        newVal = SQLIndex.IndexType.HASHED;
+                    } else {
+                        newVal = SQLIndex.IndexType.CLUSTERED;
+                    }
                 } else if (props[i].getPropertyType() == SQLIndex.class) {
                     newVal = new SQLIndex();
                     ((SQLIndex) newVal).setName("a new index");
                 } else if (props[i].getPropertyType() == File.class) {
                     newVal = new File("temp" + System.currentTimeMillis());
-                } else if (props[i].getPropertyType() == UserPrompter.class) {
-                    newVal = new AlwaysOKUserPrompter();
+                } else if (props[i].getPropertyType() == FileValidator.class) {
+                    newVal = new AlwaysAcceptFileValidator();
                 } else if (props[i].getPropertyType() == KettleRepositoryDirectoryChooser.class) {
                     newVal = new RootRepositoryDirectoryChooser();
                 } else if (props[i].getPropertyType() == SPDataSource.class) {
@@ -708,7 +693,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		final String tableName = "harry";
 		testLoad();
 		
-		SQLDatabase ppdb = session.getTargetDatabase();
+		SQLDatabase ppdb = session.getPlayPen().getDatabase();
 		SQLTable table = new SQLTable(ppdb, true);
 		table.setName(tableName);
 		SQLColumn target = new SQLColumn(table, "my cool test column", Types.INTEGER, 10, 10);
@@ -768,7 +753,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
-		ppdb = (SQLDatabase) session2.getTargetDatabase();
+		ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
 		
 		target = ((SQLTable) ppdb.getTableByName(tableName)).getColumn(0);
 		
@@ -782,13 +767,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "rama_llama_dingdong";  // the power of the llama will save you
         testLoad();
         
-        SQLDatabase ppdb = session.getTargetDatabase();
+        SQLDatabase ppdb = session.getPlayPen().getDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         table.setName(tableName);
         SQLColumn col = new SQLColumn(table, "first", Types.VARCHAR, 10, 0);
         table.addColumn(col);
         SQLIndex target = new SQLIndex("testy index", false, null, null, null);
-        target.addChild(target.new Column(col, AscendDescend.UNSPECIFIED));
+        target.addChild(target.new Column(col, false, false));
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(target);
         col.setPrimaryKeySeq(0);
@@ -830,7 +815,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
-        ppdb = (SQLDatabase) session2.getTargetDatabase();
+        ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
         
         SQLTable targetTable = (SQLTable) ppdb.getTableByName(tableName);
         System.out.println("target table=["+targetTable.getName()+"]");
@@ -849,11 +834,11 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "delicatessen";
         testLoad();
         
-        SQLDatabase ppdb = session.getTargetDatabase();
+        SQLDatabase ppdb = session.getPlayPen().getDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         table.setName(tableName);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
-        SQLIndex.Column indexCol = index.new Column("phogna bologna", AscendDescend.DESCENDING);
+        SQLIndex.Column indexCol = index.new Column("phogna bologna", false, true);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
         index.addChild(indexCol);
@@ -880,7 +865,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         // grab the second database in the dbtree's model (the first is the play pen)
-        ppdb = (SQLDatabase) session2.getTargetDatabase();
+        ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
         
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
         
@@ -894,13 +879,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "delicatessen";
         testLoad();
         
-        SQLDatabase ppdb = session.getTargetDatabase();
+        SQLDatabase ppdb = session.getPlayPen().getDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         SQLColumn col = new SQLColumn(table,"col",1,0,0);
         table.setName(tableName);
         table.addColumn(col);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
-        SQLIndex.Column indexCol = index.new Column(col, AscendDescend.DESCENDING);
+        SQLIndex.Column indexCol = index.new Column(col, false, true);
         index.setPrimaryKeyIndex(true);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
@@ -942,7 +927,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
-        ppdb = (SQLDatabase) session2.getTargetDatabase();
+        ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
         System.out.println(ppdb.getTableByName(tableName));
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
         
@@ -956,13 +941,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "delicatessen";
         testLoad();
         
-        SQLDatabase ppdb = session.getTargetDatabase();
+        SQLDatabase ppdb = session.getPlayPen().getDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         SQLColumn col = new SQLColumn(table,"Column 1",1,1,1);
         table.addColumn(col);
         table.setName(tableName);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
-        index.addIndexColumn(col, AscendDescend.DESCENDING);
+        index.addIndexColumn(col, false, true);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
         col.setPrimaryKeySeq(new Integer(0));
@@ -993,7 +978,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
         // grab the second database in the dbtree's model (the first is the play pen)
-        ppdb = (SQLDatabase) session2.getTargetDatabase();
+        ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
         
         // child 1 because setPrimaryKeySeq calls normalizePrimaryKey which creates
         // a primary key is there is none made. The primary key is placed as child 0
@@ -1010,23 +995,23 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "delicatessen";
         testLoad();
         
-        SQLDatabase ppdb = session.getTargetDatabase();
+        SQLDatabase ppdb = session.getPlayPen().getDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         SQLColumn col = new SQLColumn(table,"Column 1",1,1,1);
         table.addColumn(col);
         table.setName(tableName);
         ppdb.addChild(table);
 
-        SQLIndex origIndex1 = new SQLIndex("tasty index", false, null, "HASH", null);
-        origIndex1.addIndexColumn(col, AscendDescend.DESCENDING);
+        SQLIndex origIndex1 = new SQLIndex("tasty index", false, null, IndexType.HASHED, null);
+        origIndex1.addIndexColumn(col, false, true);
         table.getIndicesFolder().addChild(origIndex1);
         col.setPrimaryKeySeq(new Integer(0));
 
         // second index references same column as first index, so
         // origIndex1.getChild(0).equals(origIndex2.getChild(0)) even though
         // they are not the same object
-        SQLIndex origIndex2 = new SQLIndex("nasty index", false, null, "HASH", null);
-        origIndex2.addIndexColumn(col, AscendDescend.DESCENDING);
+        SQLIndex origIndex2 = new SQLIndex("nasty index", false, null, IndexType.HASHED, null);
+        origIndex2.addIndexColumn(col, false, true);
         table.getIndicesFolder().addChild(origIndex2);
 
         ByteArrayOutputStream tempFile = new ByteArrayOutputStream();
@@ -1036,9 +1021,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
         SwingUIProject p = new SwingUIProject(session2);
-        p.load(new ByteArrayInputStream(tempFile.toByteArray()), context.getPlDotIni());
+        p.load(new ByteArrayInputStream(tempFile.toByteArray()), context.getUserSettings().getPlDotIni());
         
-        ppdb = session2.getTargetDatabase();
+        PlayPen pp = session2.getPlayPen();
+        ppdb = (SQLDatabase) pp.getDatabase();
         
         // child 1 because setPrimaryKeySeq calls normalizePrimaryKey which creates
         // a primary key is there is none made. The primary key is placed as child 0
@@ -1061,15 +1047,15 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		testLoad();
 		CompareDMSettings cds = session.getCompareDMSettings();		
 		File tmp = File.createTempFile("test", ".architect");
-		assertFalse(cds.getSaveFlag());
+		assertFalse (cds.getSaveFlag());
 		if (deleteOnExit) {
 			tmp.deleteOnExit();
 		}
-		PrintWriter out = new PrintWriter(tmp, ENCODING);
+		PrintWriter out = new PrintWriter(tmp,ENCODING);
 		assertNotNull(out);
-		project.save(out, ENCODING);
+		project.save(out,ENCODING);
 		assertFalse (cds.getSaveFlag());
-		assertEquals(SQLServerDDLGenerator.class, cds.getDdlGenerator());
+		assertEquals("SQLServer 2000", cds.getSqlScriptFormat());
 		assertEquals("ENGLISH", cds.getOutputFormatAsString());
 		assertEquals("PROJECT", cds.getSourceSettings().getDatastoreType().toString());
 		assertEquals("Arthur_test", cds.getSourceSettings().getConnectName());
@@ -1100,41 +1086,6 @@ public class TestSwingUIProject extends ArchitectTestCase {
             getAllInterestingProperties(session.getKettleJob(), propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
-    }
-    
-    public void testSaveAndLoadCoversPlayPen() throws Exception{
-        testLoad();
-        
-        PlayPen oldPP = session.getPlayPen();
-        oldPP.setZoom(123.45);
-        oldPP.setViewPosition(new Point(5,4));
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        project.save(byteArrayOutputStream, ENCODING);
-
-        System.out.println(byteArrayOutputStream.toString());
-
-        SwingUIProject project2 = new SwingUIProject(session);
-        project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
-        
-        PlayPen newPP = project2.getSession().getPlayPen();
-        
-        assertEquals(oldPP.getZoom(), newPP.getZoom());
-        assertEquals(oldPP.getViewPosition().getX(), newPP.getViewPosition().getX());
-        assertEquals(oldPP.getViewPosition().getY(), newPP.getViewPosition().getY());
-        
-    }
-    
-    public void testLoadCoversPlayPen()throws Exception{
-        BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.DEBUG);
-        testLoad();
-        
-        PlayPen oldPP = project.getSession().getPlayPen();
-        
-        assertEquals(12.3, oldPP.getZoom());
-        assertEquals(20, oldPP.getViewPosition().y);
-        assertEquals(200, oldPP.getViewPosition().x);
-        
     }
     
     /**
@@ -1229,64 +1180,5 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertEquals("id", cpr.getProfiledObject().getName());
         assertEquals(5, cpr.getMinLength());
         assertEquals(6, cpr.getMaxLength());
-    }
-    
-    /**
-     * Checks the entire object tree loaded in to ensure all the
-     * parent references point to the parents we found the children
-     * in.  This actually was a problem when using a CoreProject from
-     * the matchmaker app.
-     */
-    public void testParentsConnectedCoreProject() throws Exception {
-        // testing using a core project, just for fun
-        ArchitectSessionContext ctx = new TestingArchitectSessionContext();
-        ArchitectSession session = ctx.createSession(new StringInputStream(testData));
-        CoreProject prj = session.getProject();
-        SQLObjectRoot rootObject = session.getRootObject();
-        recursiveCheckParenting(rootObject, "Root");
-    }
-
-    /**
-     * The "target" database (the one we edit in the playpen) needs to
-     * be marked as such, because it has different behaviour with regards
-     * to resetting and connecting.
-     */
-    public void testPlayPenProperty() throws Exception {
-        testLoad();
-        SQLDatabase ppdb = (SQLDatabase) project.getSession().getRootObject().getChild(0);
-        assertTrue(ppdb.isPlayPenDatabase());
-    }
-
-    /**
-     * Subroutine of testParentsConnected.
-     */
-    private void recursiveCheckParenting(SQLObject o, String path) throws Exception {
-        System.out.println("Checking children of " + path);
-        for (Iterator it = o.getChildren().iterator(); it.hasNext();) {
-            SQLObject child = (SQLObject) it.next();
-            if (o instanceof SQLObjectRoot) {
-                // skip, because database parent pointers are null
-            } else if (child instanceof SQLRelationship && o.getName().startsWith("Imported Keys")) {
-                // skip, because the exported keys folder should be the parent
-                // Note, if this is failing, maybe you renamed the "Imported Keys" folder! :)
-            } else {
-                assertSame(path, o, child.getParent());
-            }
-            recursiveCheckParenting(child, path + "/" + child.getName());
-        }
-    }
-    
-    /**
-     * The "target" database (the one we edit in the playpen) needs to
-     * be marked as such, because it has different behaviour with regards
-     * to resetting and connecting.
-     */
-    public void testPlayPenPropertyCoreProject() throws Exception {
-        ArchitectSessionContext ctx = new TestingArchitectSessionContext();
-        ArchitectSession session = ctx.createSession(new StringInputStream(testData));
-        CoreProject prj = session.getProject();
-        SQLObjectRoot rootObject = session.getRootObject();
-        SQLDatabase ppdb = (SQLDatabase) rootObject.getChild(0);
-        assertTrue(ppdb.isPlayPenDatabase());
     }
 }

@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect;
 
@@ -212,23 +225,7 @@ public abstract class SQLObject implements java.io.Serializable {
 		if ( children.size() > 0 && 
 				! (children.get(0).getClass().isAssignableFrom(newChild.getClass())
 					|| newChild.getClass().isAssignableFrom(children.get(0).getClass()))) {
-            
-            ArchitectException ex;
-            if (newChild instanceof SQLExceptionNode) {
-
-                // long term, we want to dispose of SQLExceptionNode altogether. This is a temporary workaround.
-                SQLExceptionNode sen = (SQLExceptionNode) newChild;
-                ex = new ArchitectException(
-                        "Can't add exception node here because there are already other children. " +
-                        "See exception cause for the original exception.",
-                        sen.getException());
-            } else {
-                ex = new ArchitectException(
-                        "You Can't mix SQL Object Types! You gave: " +
-                        newChild.getClass().getName() +
-                        "; I need " + children.get(0).getClass());
-            }
-			throw ex;
+			throw new ArchitectException("You Can't mix SQL Object Types! You gave: "+newChild.getClass().getName()+"; I need "+children.get(0).getClass());
 		}
 		children.add(index, newChild);
 		newChild.setParent(this);
@@ -282,23 +279,12 @@ public abstract class SQLObject implements java.io.Serializable {
      * to override the behaviour of removeChild, override this method.
      */
     protected SQLObject removeImpl(int index) {
-        boolean shouldProceed = fireDbChildPreRemove(index, (SQLObject) children.get(index));
-
-        if (shouldProceed) {
-            try {
-                startCompoundEdit("Remove child of " + getName());
-                SQLObject removedChild = (SQLObject) children.remove(index);
-                if (removedChild != null) {
-                    removedChild.setParent(null);
-                    fireDbChildRemoved(index, removedChild);
-                }
-                return removedChild;
-            } finally {
-                endCompoundEdit("Remove child of " + getName());
-            }
-        } else {
-            return null;
+        SQLObject removedChild = (SQLObject) children.remove(index);
+        if (removedChild != null) {
+            removedChild.setParent(null);
+            fireDbChildRemoved(index, removedChild);
         }
+        return removedChild;
     }
 	
 	// ------------------- sql object event support -------------------
@@ -444,82 +430,6 @@ public abstract class SQLObject implements java.io.Serializable {
 		if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners.");
 	}
 
-    // ------------------- sql object Pre-event support -------------------
-    private final transient List<SQLObjectPreEventListener> sqlObjectPreEventListeners = 
-        new ArrayList<SQLObjectPreEventListener>();
-
-    /**
-     * @return An immutable copy of the list of SQLObject pre-event listeners
-     */
-    public List<SQLObjectPreEventListener> getSQLObjectPreEventListeners() {
-            return sqlObjectPreEventListeners;
-    }
-    
-    public void addSQLObjectPreEventListener(SQLObjectPreEventListener l) {
-        if (l == null) throw new NullPointerException("You can't add a null listener");
-        synchronized(sqlObjectPreEventListeners) {
-            if (sqlObjectPreEventListeners.contains(l)) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("NOT Adding duplicate pre-event listener "+l+" to SQLObject "+this);
-                }
-                return;
-            }       
-            sqlObjectPreEventListeners.add(l);
-        }
-    }
-
-    public void removeSQLObjectPreEventListener(SQLObjectPreEventListener l) {
-        synchronized(sqlObjectPreEventListeners) {
-            sqlObjectPreEventListeners.remove(l);
-        }
-    }
-
-    /**
-     * Fires a pre-remove event, and returns the status of whether or not the
-     * operation should proceed.
-     * 
-     * @param oldIndices The child indices that might be removed
-     * @param oldChildren The children that might be removed
-     * @return  True if the operation should proceed; false if it should not. 
-     */
-    protected boolean fireDbChildrenPreRemove(int[] oldIndices, List oldChildren) {
-        if (logger.isDebugEnabled()) {
-            logger.debug(getClass().getName()+" "+toString()+": " +
-                    "firing dbChildrenPreRemove event");
-        }
-        SQLObjectPreEvent e = new SQLObjectPreEvent
-            (this,
-             oldIndices,
-             (SQLObject[]) oldChildren.toArray(new SQLObject[oldChildren.size()]));
-        int count = 0;
-        synchronized (sqlObjectPreEventListeners) {
-            SQLObjectPreEventListener[] listeners =
-                sqlObjectPreEventListeners.toArray(new SQLObjectPreEventListener[0]);
-            for (SQLObjectPreEventListener l : listeners) {
-                l.dbChildrenPreRemove(e);
-                count++;
-            }
-        }
-        if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners. Veto="+e.isVetoed());
-        return !e.isVetoed();
-    }
-
-    /**
-     * Convenience method for {@link #fireDbChildrenPreRemove(int[], List)} when there
-     * is only one child being removed.
-     * 
-     * @param oldIndex The index of the child to be removed
-     * @param oldChild The child to be removed
-     */
-    protected boolean fireDbChildPreRemove(int oldIndex, SQLObject oldChild) {
-        int[] oldIndexArray = new int[1];
-        oldIndexArray[0] = oldIndex;
-        List oldChildList = new ArrayList(1);
-        oldChildList.add(oldChild);
-        return fireDbChildrenPreRemove(oldIndexArray, oldChildList);
-    }
-
-    
 	public abstract Class<? extends SQLObject> getChildType();
 	
 	/**
@@ -558,11 +468,11 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 	
 	public void startCompoundEdit(String message){
-		fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START,message));
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,message));
 	}
 	
 	public void endCompoundEdit(String message){
-		fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END,message));
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,message));
 	}
 
 	public LinkedList<UndoCompoundEventListener> getUndoEventListeners() {

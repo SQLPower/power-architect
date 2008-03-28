@@ -1,22 +1,39 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+/*
+ * Created on Jun 13, 2006
+ *
+ * This code belongs to SQL Power Group Inc.
+ */
 package ca.sqlpower.architect.swingui;
 
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -26,9 +43,9 @@ import javax.swing.tree.TreeModel;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.ExceptionReport;
 
 /**
@@ -70,27 +87,14 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
      * properties (or the default if not specified).
      */
     public void uncaughtException(Thread t, Throwable e) {
-        try {
-            logger.error("Uncaught exception", e);
-            handleAndReport(e);
-        } catch (Throwable doubleTrouble) {
-            // if handling the exception results in a new exception, we don't
-            // want that fact to go unnoticed!  At this point, we can't trust
-            // log4j or our own exception dialog, so we're left with System.err
-            doubleTrouble.printStackTrace();
-        }
-    }
-    
-    private void handleAndReport(Throwable e) {
-        ASUtils.showExceptionDialogNoReport("An unexpected exception has occured: ", e);
+        SPSUtils.showExceptionDialogNoReport("An unexpected exception has occured: ", e);
         UserSettings settings = context.getUserSettings().getQfaUserSettings();
         if (!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
         ExceptionReport report = new ExceptionReport(e, DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, "Architect");
         
         StringBuffer remarks = new StringBuffer();
-        Collection<ArchitectSession> sessions = context.getSessions();
-        for (ArchitectSession s: sessions) {
-            ArchitectSwingSession session = (ArchitectSwingSession) s;
+        Collection<ArchitectSwingSession> sessions = context.getSessions();
+        for (ArchitectSwingSession session: sessions) {
             if (session != null) {
                 PlayPen pp = session.getPlayPen();
                 if (pp != null) {

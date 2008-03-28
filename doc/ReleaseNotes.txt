@@ -10,48 +10,6 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  of the Architect.  We apologize for the inconvenience, but the benefits will
  outweigh the costs!
 
-0.9.10
-*Release is now licensed under the GPL version 3.
-*Revamped support for creating, editing, and reverse engineering indexes.
-*Fixed the relationship lines to be straight when printing if they were
- already straight in the playpen.
-*Added preliminary support for Apache Derby.  It is now possible to connect
- to a Derby instance and use it as a source database.  Forward engineering
- is not available yet.
-*Relationship connection points can now be moved along acceptable edges on tables.
-*Playpen zoom level and view position now gets saved with the project.
-*Tables are now drawn correctly in print preview when printing the data model.
-*Fixed some table formatting issues when generating a table profile PDF report.
-*The 'Copy Table Data' tool now has a button for the Database Connection Settings.
-*Fixed a bug that caused non-identifying relationships to be reverse engineered
-as identifying relationships in the Playpen.
-
-0.9.9
-*Added support for explicitly named sequences in PostgreSQL and Oracle
-*Added the ability to choose the constraint checking deferrability policy
- on foreign key relationships on supported platforms
-*Tweaked the database comparison feature to ignore meaningless data type
- differences between columns (for example, DECIMAL vs. NUMERIC)
-*Got rid of an excessive repainting problem introduced in version 0.9.8
- (improves drawing performance)
-*Added the SQL BOOLEAN type to the set of generic types.  It forward
- engineers to BOOLEAN on platforms that support it, and TINYINT on
- platforms that lack the BOOLEAN type.
-*Added DDL (forward engineering) support for HSQLDB
-*Fixed a bug in the SQL script dialog where if the user has chosen not to
- continue after an error, clicking execute has no effect.
-*Added a GUI relationship column mapping editor, allowing you to change which
-primary key column a foreign key maps to in the relationship properties editor. 
-*Fixed support for self-referencing relationships (where the primary key
-and foreign key are in the same table).
-*Improved 'Zoom-to-Fit' feature so that it can zoom-to-fit on selected objects 
-in the playpen instead of the entire model. Useful for very large data models.
-*The table profiler can now optionally perform its calculations locally, instead
-of on the database server. This may improve profiling performance.
-*Changed the action for Enter in the play pen to edit the selected item, 
-it is no longer limited to columns.
-
-
 0.9.8
 *Fixed a bug where re-profiling a cancelled profile would freeze the GUI until
  the profiling was finished.
