@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
@@ -78,7 +91,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * @see #contains
 	 */
 	protected int radius = 4;
-	
+
 	// ------------------------ ComponentUI methods ------------------------
 
 	public static PlayPenComponentUI createUI(PlayPenComponent c) {
@@ -292,20 +305,6 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	// ------------------ Custom methods ---------------------
 	
-	public BasicRelationshipUI () {
-	    
-	}
-	
-	/**
-	 * This copy constructor does not copy all values at current, 
-	 * such as computed bounds or the path.
-	 */
-	BasicRelationshipUI (BasicRelationshipUI copy) {
-	    this.fkConnectionPoint = copy.getFkConnectionPoint();
-	    this.pkConnectionPoint = copy.getPkConnectionPoint();
-	    this.orientation = copy.getOrientation();
-	    this.relationship = copy.getRelationship();
-	}
 	/**
 	 * Paints red dots.  Subclasses will implement real notation.
 	 */
@@ -403,121 +402,58 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * Returns the closest point to <code>p</code> which is along an
 	 * edge of either the PK table (onPkTable true) or the FK table
 	 * (onPkTable false).
-	 * NOTE: The orientation of the relationship will now be changed by 
-	 * this method.
 	 */
 	public Point closestEdgePoint(boolean onPkTable, Point p) {
 		TablePane tp = onPkTable ? relationship.getPkTable() : relationship.getFkTable();
 		Dimension tpsize = tp.getSize();
 		Point ep; // this is the return value (edge point), set in one of the cases below
 		Point sp; // this is the stationary point at the non-moving end of the relationship
+
 		if (onPkTable) {
 			sp = new Point(relationship.getFkTable().getLocation());
 			translatePoint(sp, fkConnectionPoint);
 			sp.x -= relationship.getPkTable().getX();
 			sp.y -= relationship.getPkTable().getY();
-			ep = checkClosestPointOnTable(tpsize, sp, p, PARENT_FACES_LEFT, PARENT_FACES_RIGHT, PARENT_FACES_TOP, PARENT_FACES_BOTTOM, CHILD_MASK, true);
-			
+
+			if ((orientation & PARENT_FACES_LEFT) != 0) {
+				ep = new Point(0, Math.max(0, Math.min(tpsize.height, p.y)));
+				if (Math.abs(ep.y - sp.y) <= getSnapRadius()) ep.y = sp.y;
+			} else if ((orientation & PARENT_FACES_RIGHT)  != 0) {
+				ep = new Point(tpsize.width, Math.max(0, Math.min(tpsize.height, p.y)));
+				if (Math.abs(ep.y - sp.y) <= getSnapRadius()) ep.y = sp.y;
+			} else if ((orientation & PARENT_FACES_TOP)  != 0) {
+				ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), 0);
+				if (Math.abs(ep.x - sp.x) <= getSnapRadius()) ep.x = sp.x;
+			} else if ((orientation & PARENT_FACES_BOTTOM)  != 0) {
+				ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), tpsize.height);
+				if (Math.abs(ep.x - sp.x) <= getSnapRadius()) ep.x = sp.x;
+			} else {
+				ep = new Point(p);
+			}
 		} else {
 			sp = new Point(relationship.getPkTable().getLocation());
 			translatePoint(sp, pkConnectionPoint);
 			sp.x -= relationship.getFkTable().getX();
 			sp.y -= relationship.getFkTable().getY();
-			ep = checkClosestPointOnTable(tpsize, sp, p, CHILD_FACES_LEFT, CHILD_FACES_RIGHT, CHILD_FACES_TOP, CHILD_FACES_BOTTOM, PARENT_MASK, false);
+
+			if ((orientation & CHILD_FACES_LEFT) != 0) {
+				ep = new Point(0, Math.max(0, Math.min(tpsize.height, p.y)));
+				if (Math.abs(ep.y - sp.y) <= getSnapRadius()) ep.y = sp.y;
+			} else if ((orientation & CHILD_FACES_RIGHT)  != 0) {
+				ep = new Point(tpsize.width, Math.max(0, Math.min(tpsize.height, p.y)));
+				if (Math.abs(ep.y - sp.y) <= getSnapRadius()) ep.y = sp.y;
+			} else if ((orientation & CHILD_FACES_TOP)  != 0) {
+				ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), 0);
+				if (Math.abs(ep.x - sp.x) <= getSnapRadius()) ep.x = sp.x;
+			} else if ((orientation & CHILD_FACES_BOTTOM)  != 0) {
+				ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), tpsize.height);
+				if (Math.abs(ep.x - sp.x) <= getSnapRadius()) ep.x = sp.x;
+			} else {
+				ep = new Point(p);
+			}
 		}
+
 		return ep;
-	}
-	/**
-	 * This method is a helper method for the ClosestEdgePoint method that will check 
-	 * if the orientation of an adjacent edge and will create a new point 
-	 * whenever the newly calculated orientation is valid. 
-	 * NOTE: This method will also change the current relationships orientation as a result.
-	 * The left, right, top and bottom variables passed to this method are the custom 
-	 * values of the orientation found in the RelationshipUI class.
-	 * @param sp Stationary point of the opposite table.
-	 * @param p Mouse Point in reference to the table
-	 * @param oppositeMask Mask of the opposite table.
-	 * @param pkTable This boolean value indicates which table has to be checked.
-	 * @return
-	 */
-	private Point checkClosestPointOnTable (Dimension tpsize, Point sp, Point p, int left, int right, int top, int bottom, int oppositeMask ,boolean pkTable)
-	{
-	    Point ep = new Point();
-	    if ((orientation & left) != 0) {
-            ep = new Point(0, Math.max(0, Math.min(tpsize.height, p.y)));
-            logger.debug("ep is : " + ep + " sp is " + sp + " p is " + p);
-            if (Math.abs(ep.y - sp.y) <= getSnapRadius()) {
-                ep.y = sp.y;
-            }
-            if (tpsize.height < p.y) {
-                orientation = orientation & oppositeMask | bottom;
-            } else if (p.y <= 0) {
-                orientation = orientation & oppositeMask | top;
-            }
-            BasicRelationshipUI newRelation = new BasicRelationshipUI(this);
-            if(pkTable){
-                newRelation.setPkConnectionPoint(ep);
-            }else{
-                newRelation.setFkConnectionPoint(ep);
-            }
-            if (!newRelation.isOrientationLegal()) {
-                orientation = orientation & oppositeMask | left;
-            }
-        } else if ((orientation & right)  != 0) {
-            ep = new Point(tpsize.width, Math.max(0, Math.min(tpsize.height, p.y)));
-            if (Math.abs(ep.y - sp.y) <= getSnapRadius()) ep.y = sp.y;
-            if (tpsize.height < p.y) {
-                orientation = orientation & oppositeMask | bottom;
-            } else if (p.y <= 0) {
-                orientation = orientation & oppositeMask | top;
-            }
-            BasicRelationshipUI newRelation = new BasicRelationshipUI(this);
-            if(pkTable){
-                newRelation.setPkConnectionPoint(ep);
-            }else{
-                newRelation.setFkConnectionPoint(ep);
-            }
-            if (!newRelation.isOrientationLegal()) {
-                orientation = orientation & oppositeMask | right;
-            }
-        } else if ((orientation & top)  != 0) {
-            ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), 0);
-            if (Math.abs(ep.x - sp.x) <= getSnapRadius()) ep.x = sp.x;
-            if (tpsize.width < p.x) {
-                orientation = orientation & oppositeMask | right;
-            } else if (p.x <= 0) {
-                orientation = orientation & oppositeMask | left;
-            }
-            BasicRelationshipUI newRelation = new BasicRelationshipUI(this);
-            if(pkTable){
-                newRelation.setPkConnectionPoint(ep);
-            }else{
-                newRelation.setFkConnectionPoint(ep);
-            }
-            if (!newRelation.isOrientationLegal()) {
-                orientation = orientation & oppositeMask | top;
-            }
-        } else if ((orientation & bottom)  != 0) {
-            ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), tpsize.height);
-            if (Math.abs(ep.x - sp.x) <= getSnapRadius()) ep.x = sp.x;
-            if (tpsize.width < p.x) {
-                orientation = orientation & oppositeMask | right;
-            } else if (p.x <= 0) {
-                orientation = orientation & oppositeMask | left;
-            }
-            BasicRelationshipUI newRelation = new BasicRelationshipUI(this);
-            if(pkTable){
-                newRelation.setPkConnectionPoint(ep);
-            }else{
-                newRelation.setFkConnectionPoint(ep);
-            }
-            if (!newRelation.isOrientationLegal()) {
-                orientation = orientation & oppositeMask | bottom;
-            }
-        } else {
-            ep = new Point(p);
-        }
-	    return ep;
 	}
 
 	/**
@@ -582,10 +518,6 @@ public class BasicRelationshipUI extends RelationshipUI
 	public int getTerminationWidth() {
 		return 5;
 	}
-	
-	public Relationship getRelationship() {
-	    return relationship;
-	}
 
 	public Stroke getIdentifyingStroke() {
 		return idStroke;
@@ -606,96 +538,15 @@ public class BasicRelationshipUI extends RelationshipUI
 	public boolean isOrientationLegal() {
 		boolean answer;
 		if (relationship.getPkTable() == relationship.getFkTable()) {
-			return (orientation == (PARENT_FACES_BOTTOM | CHILD_FACES_LEFT));
+			answer = (orientation == (PARENT_FACES_BOTTOM | CHILD_FACES_LEFT));
 		} else {
-		    if (orientation == 0) return false;
-		    Rectangle pkBounds = relationship.getPkTable().getBounds();
-		    Rectangle fkBounds = relationship.getFkTable().getBounds();
-		    Line2D.Double relationshipLine =
-		            new Line2D.Double(fkBounds.getX() + fkConnectionPoint.getX(),fkBounds.getY() + fkConnectionPoint.getY(),
-		                            pkBounds.getX() + pkConnectionPoint.getX(), pkBounds.getY() + pkConnectionPoint.getY());
-		        
-		    List<Point2D.Double> pkTableIntersectPoints = ASUtils.getIntersectPoints(pkBounds,relationshipLine);
-		    List<Point2D.Double> fkTableIntersectPoints = ASUtils.getIntersectPoints(fkBounds,relationshipLine);
-		    if ((pkTableIntersectPoints.size() <= 1 && fkTableIntersectPoints.size() <= 1)) {
-		        logger.debug("intersect points to pkTable " + pkTableIntersectPoints.size() + " intersect points to fkTable " + fkTableIntersectPoints.size());
-		        return true;
-		    }
-		    
-		    Point newParent = new Point();
-            Point newChild = new Point();
-            
-		    if (pkTableIntersectPoints.size() == 2 && pkTableIntersectPoints.get(0).equals(pkTableIntersectPoints.get(1))) {
-		        newParent = checkOrientationForCorner(pkConnectionPoint, orientation, PARENT_FACES_LEFT, PARENT_FACES_RIGHT, PARENT_FACES_TOP, PARENT_FACES_BOTTOM, PARENT_MASK);
-		    } 
-		    else {
-		        newParent.setLocation(pkConnectionPoint.getX(), pkConnectionPoint.getY());
-		    }
-		        
-		    if (fkTableIntersectPoints.size() == 2 && fkTableIntersectPoints.get(0).equals(fkTableIntersectPoints.get(1))) {
-		        newChild = checkOrientationForCorner(fkConnectionPoint, orientation, CHILD_FACES_LEFT, CHILD_FACES_RIGHT, CHILD_FACES_TOP, CHILD_FACES_BOTTOM, CHILD_MASK);
-            } else {
-                newChild.setLocation(fkConnectionPoint.getX(), fkConnectionPoint.getY());
-		    }
-
-		    relationshipLine =
-		        new Line2D.Double(fkBounds.getX() + newChild.getX(),fkBounds.getY() + newChild.getY(),
-		                pkBounds.getX() + newParent.getX(), pkBounds.getY() + newParent.getY());
-
-		    pkTableIntersectPoints = ASUtils.getIntersectPoints(pkBounds,relationshipLine);
-		    fkTableIntersectPoints = ASUtils.getIntersectPoints(fkBounds,relationshipLine);
-		    if ((pkTableIntersectPoints.size() <= 1 && fkTableIntersectPoints.size() <= 1)) {
-		        logger.debug("intersect points to pkTable " + pkTableIntersectPoints.size() + " intersect points to fkTable " + fkTableIntersectPoints.size());
-		        return true;
-		    }
-
+			answer = (orientation == getFacingEdges(relationship.getPkTable().getBounds(), relationship.getFkTable().getBounds()));
 		}
-
-			//answer = (orientation == getFacingEdges(relationship.getPkTable().getBounds(), relationship.getFkTable().getBounds()));
-
-		logger.debug("[31misOrientationLegal() returning false[0m");
-		return false;
+		if (answer == false) {
+			logger.debug("[31misOrientationLegal() returning false[0m");
+		}
+		return answer;
 	}
-
-	/**
-	 * This is a helper method for isOrientationLegal. This method will
-	 * take in an end point to a relation as well as the current orientation
-	 * and move the point off of a corner. The returned point is the new location
-	 * of the end point off the corner. The left, right, top, bottom and mask integers
-	 * are for the parent or child constant values since they are dependent on if they
-	 * are for the parent or child.
-	 */
-    private Point checkOrientationForCorner(Point relationEndpoint, int orientation, int left, int right, int top, int bottom, int mask) 
-    {
-       Point newEndpoint = new Point();
-       int parentOrientation = orientation & mask;
-       if (relationEndpoint.getX() == 0 && relationEndpoint.getY() == 0) {
-           if (parentOrientation == left) {
-               newEndpoint.setLocation(relationEndpoint.getX(), relationEndpoint.getY() + 1);
-           } else if (parentOrientation == top) {
-               newEndpoint.setLocation(relationEndpoint.getX() + 1, relationEndpoint.getY());
-           }
-       } else if (relationEndpoint.getX() == 0) {
-           if (parentOrientation == left) {
-               newEndpoint.setLocation(relationEndpoint.getX(), relationEndpoint.getY() - 1);
-           } else if (parentOrientation == bottom) {
-               newEndpoint.setLocation(relationEndpoint.getX() + 1, relationEndpoint.getY());
-           }
-       } else if (relationEndpoint.getY() == 0) {
-           if (parentOrientation == top) {
-               newEndpoint.setLocation(relationEndpoint.getX() - 1, relationEndpoint.getY());
-           } else if (parentOrientation == right) {
-               newEndpoint.setLocation(relationEndpoint.getX(), relationEndpoint.getY() + 1);
-           }
-       } else {
-           if (parentOrientation == right) {
-               newEndpoint.setLocation(relationEndpoint.getX(), relationEndpoint.getY() - 1);
-           } else if (parentOrientation == bottom) {
-               newEndpoint.setLocation(relationEndpoint.getX() - 1, relationEndpoint.getY());
-           }
-       }
-       return newEndpoint;
-    }
 	
 	/**
 	 * Attempts to move the connection points if they collided with another 

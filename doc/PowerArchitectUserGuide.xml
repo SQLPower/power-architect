@@ -25,7 +25,7 @@
 		<date>Last Modified</date>
 
 		<copyright>
-			<year>2008</year>
+			<year>2007</year>
 			<holder>SQL Power Group Inc.</holder>
 		</copyright>
 		
@@ -180,7 +180,7 @@
 		</para>
 
 		<para>
-			Copyright (c) 2008, SQL Power Group Inc.
+			Copyright (c) 2007, SQL Power Group Inc.
 		</para>
 		
 		<para>
@@ -463,20 +463,12 @@
 					<command>java -jar architect.jar</command>.  For larger projects,
 					the default maximum amount of memory allowed by the Java runtime may not be
 					enough.  In that case, use a command such as <command>java -Xmx600m -jar architect.jar</command>,
-					which increases the cap on memory usage from the default 64MB to 600MB.<footnote>
-					    <para>
-					        Note that this will not ause the Architect to immediately allocate that
-					        amount of memory: the Xmx setting simply sets the upper limit on the
-					        total amount of memory the Architect will be allowed to allocate. If you
-					        are familiar with Unix-like operating systems, you can think of this
-					        setting as being similar to ulimit(1).
-					    </para>
-					</footnote>
+					which increases the memory cap from the default 64MB to 600MB.
 			    </para>
 			    
 			    <para>
 					Alternatively, if your operating system has a visual filesystem browser, you may be able to
-					launch the Architect by clicking (or double-clicking) on the architect.jar file.
+					launch the architect by clicking (or double-clicking) on the architect.jar file.
 				</para>
 
 			</section>
@@ -1514,7 +1506,7 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="doc/images/Hijacked_Column_Relation.png"
+								fileref="doc/images/Hijacked_Column_Relation.PNG"
 								format="PNG" 
 								width="5in" />
 						</imageobject>
@@ -1528,7 +1520,7 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="doc/images/New_Column_Relation.png"
+								fileref="doc/images/New_Column_Relation.PNG"
 								format="PNG"
 								width="5in" />
 						</imageobject>
@@ -2926,13 +2918,11 @@
 						</entry>
 						<entry>
 							<para>
-								Preliminary support exists.  Reverse engineering
-								databases in Derby 10.3.2 or later is possible; Derby-specific
-								forward engineering is not yet available.  You could try
-								using the forward engineering support for another platform
-								such as MySQL or HSQLDB.  Please post to our web support forum
-								if you are interested in forward engineering your data models
-								to Derby!
+								Does not work; the current version
+								(10.1.2) has what we consider some
+								unwarranted chumminess with the JDBC
+								Driver Manager that breaks because we
+								use our own Java "ClassLoader"
 							</para>
 						</entry>
 					</row>

@@ -1,22 +1,39 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+/*
+ * Created September 28, 2006.
+ *
+ * This code belongs to SQL Power Group Inc.
+ */
 package ca.sqlpower.architect;
 
 import java.sql.Connection;
@@ -30,7 +47,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLTable.Folder;
-import ca.sqlpower.sql.SQL;
 
 /**
  * The SQLIndex class represents an index on a table in a relational database.
@@ -42,29 +58,54 @@ public class SQLIndex extends SQLObject {
     private static final Logger logger = Logger.getLogger(SQLIndex.class);
 
     /**
-     * An enumeration to define if a column in an index should be ordered in ascending
-     * order, descending order, or it should be left undefined.
+     * An enumeration of the types of indices that JDBC recognises.
      */
-    public static enum AscendDescend {
-        ASCENDING, DESCENDING, UNSPECIFIED;
+    public static enum IndexType {
+        /**
+         * Table statistics that are returned in conjuction with a table's index descriptions.
+         */
+        STATISTIC(DatabaseMetaData.tableIndexStatistic),
+
+        /**
+         * A clustered index.
+         */
+        CLUSTERED(DatabaseMetaData.tableIndexClustered),
+
+        /**
+         * A hashed index.
+         */
+        HASHED(DatabaseMetaData.tableIndexHashed),
+
+        /**
+         * An index that is not clustered or hashed, or table statisics.
+         */
+        OTHER(DatabaseMetaData.tableIndexOther);
+
+        private short jdbcType;
+
+        IndexType(short jdbcType) {
+            this.jdbcType = jdbcType;
+        }
+
+        /**
+         * Returns this index type's JDBC code (one of
+         * DatabaseMetaData.tableIndexStatistic,
+         * DatabaseMetaData.tableIndexClustered,
+         * DatabaseMetaData.tableIndexHashed, or
+         * DatabaseMetaData.tableIndexOther).
+         */
+        public short getJdbcType() {
+            return jdbcType;
+        }
+
+        public static IndexType forJdbcType(short jdbcType) {
+            if (jdbcType == DatabaseMetaData.tableIndexStatistic) return STATISTIC;
+            if (jdbcType == DatabaseMetaData.tableIndexClustered) return CLUSTERED;
+            if (jdbcType == DatabaseMetaData.tableIndexHashed) return HASHED;
+            if (jdbcType == DatabaseMetaData.tableIndexOther) return OTHER;
+            throw new IllegalArgumentException("Unknown JDBC index type code: " + jdbcType);
+        }
     }
-
-    /**
-     * This is the property name in the PL.ini file that will indicate what Index types
-     * are supported for any specific database.
-     */
-    public static String INDEX_TYPE_DESCRIPTOR = SQLIndex.class.getName() + ".IndexType";
-
-    /**
-     * This is the index type
-     */
-    public String type;
-
-    /**
-     * This is the name of the column that will be augmented by the custom 
-     * JDBC wrappers to represent index type;
-     */
-    public static String RS_INDEX_TYPE_COL = "SPG_INDEX_TYPE";
 
     /**
      * A simple placeholder for a column.  We're not using real SQLColumn instances here so that the
@@ -75,7 +116,7 @@ public class SQLIndex extends SQLObject {
 
         /**
          * Small class for reacting to changes in this index columns's
-         * target SQLColumn (if it has one at all).
+         * target SQLColumn (if it has one at all). 
          */
         private class TargetColumnListener implements SQLObjectListener {
 
@@ -91,7 +132,7 @@ public class SQLIndex extends SQLObject {
              * Updates the index column name to match the new value in this
              * event, if the event is a name change from the target SQLColumn.
              * The process of doing the update will cause the SQLIndex.Column
-             * object to fire an event of its own.
+             * object to fire an event of its own. 
              */
             public void dbObjectChanged(SQLObjectEvent e) {
                 if ("name".equals(e.getPropertyName())) {
@@ -105,7 +146,7 @@ public class SQLIndex extends SQLObject {
             public void dbStructureChanged(SQLObjectEvent e) {
                 Column.this.fireDbStructureChanged();
             }
-
+            
             @Override
             public String toString() {
                 StringBuffer buf = new StringBuffer();
@@ -119,7 +160,7 @@ public class SQLIndex extends SQLObject {
                 return buf.toString();
             }
         }
-
+        
         /**
          * The column in the table that this index column represents. Might be
          * null if this index column represents an expression rather than a
@@ -128,24 +169,29 @@ public class SQLIndex extends SQLObject {
         private SQLColumn column;
 
         /**
-         * Specifies if the column is ascending, descending, or undefined.
+         * Indicates if this index applies to ascending values.
          */
-        private AscendDescend ascendingOrDescending;
+        private boolean ascending;
+
+        /**
+         * Indicates if this index applies to descending values.
+         */
+        private boolean descending;
 
         /**
          * A proxy that refires certain events on the target column.
-         *
+         * 
          * <p>It is the job of {@link #setColumn(SQLColumn)} to keep this
          * listener hooked up to the correct SQLColumn object (or completely
          * disconnected in the case that there is no target SQLColumn).
          */
         private final TargetColumnListener targetColumnListener = new TargetColumnListener();
-
+        
         /**
          * Creates a Column object that corresponds to a particular SQLColumn.
          */
-        public Column(SQLColumn col, AscendDescend ad) {
-            this(col.getName(), ad);
+        public Column(SQLColumn col, boolean ascending, boolean descending) {
+            this(col.getName(), ascending, descending);
             setColumn(col);
         }
 
@@ -153,15 +199,16 @@ public class SQLIndex extends SQLObject {
          * Creates a Column object that does not correspond to a particular column
          * (such as an expression index).
          */
-        public Column(String name, AscendDescend ad) {
+        public Column(String name, boolean ascending, boolean descending) {
             children = Collections.emptyList();
             setName(name);
 
-            ascendingOrDescending = ad;
+            this.ascending = ascending;
+            this.descending = descending;
         }
 
         public Column() {
-            this((String) null, AscendDescend.UNSPECIFIED);
+            this((String) null, false, false);
         }
 
         @Override
@@ -217,39 +264,23 @@ public class SQLIndex extends SQLObject {
             fireDbObjectChanged("column", oldValue, column);
         }
 
-        public AscendDescend getAscendingOrDescending() {
-            return ascendingOrDescending;
-        }
-
-        /**
-         * This setter should be passed an enumerated item of type
-         * AscendDescend.
-         */
-        public void setAscendingOrDescending(Object ad) {
-            AscendDescend oldValue = ascendingOrDescending;
-            if (ad instanceof AscendDescend) {
-                ascendingOrDescending = (AscendDescend) ad;
-            } else if (ad instanceof String) {
-                ascendingOrDescending = AscendDescend.valueOf((String) ad);
-            } else {
-                throw new IllegalStateException("Invalid ascending or descending object on an index column.");
-            }
-            fireDbObjectChanged("ascendingOrDescending", oldValue, ascendingOrDescending);
+        public boolean isAscending() {
+            return ascending;
         }
 
         public void setAscending(boolean ascending) {
-            AscendDescend oldValue = this.ascendingOrDescending;
-            if (ascending) {
-                this.ascendingOrDescending = AscendDescend.ASCENDING;
-            }
-            fireDbObjectChanged("ascending", oldValue, ascendingOrDescending);
+            boolean oldValue = this.ascending;
+            this.ascending = ascending;
+            fireDbObjectChanged("ascending", oldValue, ascending);
+        }
+
+        public boolean isDescending() {
+            return descending;
         }
 
         public void setDescending(boolean descending) {
-            AscendDescend oldValue = this.ascendingOrDescending;
-            if (descending) {
-                this.ascendingOrDescending = AscendDescend.DESCENDING;
-            }
+            boolean oldValue = this.descending;
+            this.descending = descending;
             fireDbObjectChanged("descending", oldValue, descending);
         }
 
@@ -262,9 +293,9 @@ public class SQLIndex extends SQLObject {
         public int hashCode() {
             final int PRIME = 31;
             int result = 1;
-            result = PRIME * result + (ascendingOrDescending == AscendDescend.ASCENDING ? 1231 : 1237);
+            result = PRIME * result + (ascending ? 1231 : 1237);
             result = PRIME * result + ((column == null) ? 0 : column.hashCode());
-            result = PRIME * result + (ascendingOrDescending == AscendDescend.DESCENDING ? 1231 : 1237);
+            result = PRIME * result + (descending ? 1231 : 1237);
             return result;
         }
 
@@ -277,18 +308,19 @@ public class SQLIndex extends SQLObject {
             if (getClass() != obj.getClass())
                 return false;
             final Column other = (Column) obj;
-            if (ascendingOrDescending != other.ascendingOrDescending)
+            if (ascending != other.ascending)
                 return false;
             if (column == null) {
                 if (other.column != null)
                     return false;
             } else if (!column.equals(other.column))
                 return false;
-            if (ascendingOrDescending != other.ascendingOrDescending)
+            if (descending != other.descending)
                 return false;
             return true;
         }
-
+        
+        
     }
 
     /**
@@ -309,27 +341,20 @@ public class SQLIndex extends SQLObject {
     private String qualifier;
 
     /**
+     * The type of this index.
+     */
+    private IndexType type;
+
+    /**
      * The filter condition on this index, if any.  According to the ODBC programmer's reference,
      * this is probably a property of the index as a whole (as opposed to the individual index columns),
      * but it doesn't say that explicitly.  According to the JDBC spec, this could be anything at all.
      */
     private String filterCondition;
 
-    /**
-     * This indicates if an index is clustered or not.
-     */
-    private boolean clustered;
-
     private boolean primaryKeyIndex;
 
-    /**
-     * This is a listener that will listen for SQLColumns in the SQLTable's column folder
-     * and make sure that the SQLIndex will also remove its Column object associated
-     * with the SQLColumn removed.
-     */
-    private SQLObjectListener removeColumnListener;
-
-    public SQLIndex(String name, boolean unique, String qualifier, String type, String filter) {
+    public SQLIndex(String name, boolean unique, String qualifier, IndexType type, String filter) {
         this();
         setName(name);
         this.unique = unique;
@@ -341,32 +366,14 @@ public class SQLIndex extends SQLObject {
     public SQLIndex() {
         children = new ArrayList();
         primaryKeyIndex = false;
-        removeColumnListener = new SQLObjectListener() {
-
-            public void dbStructureChanged(SQLObjectEvent e) {
-            }
-
-            public void dbObjectChanged(SQLObjectEvent e) {
-            }
-
-            public void dbChildrenRemoved(SQLObjectEvent e) {
-                //FIXME: for some stupid reason, this gets called when columns
-                // are simply moved in the table
-                removeColumnFromIndices(e);
-            }
-
-            public void dbChildrenInserted(SQLObjectEvent e) {
-            }
-
-        };
     }
-
+    
     /**
      * Copy constructor for a sql index
      * @param oldIndex
      * @throws ArchitectException
      */
-    public SQLIndex(SQLIndex oldIndex) throws ArchitectException {
+    public SQLIndex(SQLIndex oldIndex) throws ArchitectException{
         this();
         setName(oldIndex.getName());
         unique = oldIndex.unique;
@@ -375,12 +382,11 @@ public class SQLIndex extends SQLObject {
         type = oldIndex.type;
         filterCondition = oldIndex.filterCondition;
         qualifier = oldIndex.qualifier;
-        clustered = oldIndex.clustered;
-        for (Object c : oldIndex.getChildren()) {
+        for (Object c: oldIndex.getChildren()){
             Column oldCol = (Column) c;
             Column newCol = new Column();
-            newCol.setAscendingOrDescending(oldCol.ascendingOrDescending);
-            newCol.setAscendingOrDescending(oldCol.ascendingOrDescending);
+            newCol.setAscending(oldCol.ascending);
+            newCol.setDescending(oldCol.descending);
             newCol.column = oldCol.column;
             newCol.setName(oldCol.getName());
             addChild(newCol);
@@ -437,7 +443,6 @@ public class SQLIndex extends SQLObject {
             return parent.getParent();
         }
     }
-
     @Override
     public String getShortDisplayName() {
         return getName();
@@ -464,46 +469,6 @@ public class SQLIndex extends SQLObject {
     @Override
     protected void setParent(SQLObject parent) {
         this.parent = (Folder<SQLIndex>) parent;
-        if (this.parent != null && this.parent.getParent() != null) {
-            this.parent.getParent().getColumnsFolder().addSQLObjectListener(removeColumnListener);
-        }
-
-    }
-
-    /**
-     * This is used by the removeColumn method to make sure that once a column
-     * is removed from a table, it is also removed from all the indices of that table.
-     */
-    private void removeColumnFromIndices(SQLObjectEvent e) {
-        if (parent != null && parent.getParent() != null && parent.getParent().getColumnsFolder().isMagicEnabled()) {
-            try {
-                for (int i = 0; i < e.getChildren().length; i++) {
-                    for (int j = this.getChildCount() - 1; j >= 0; j--) {
-                        if (getChild(j).getColumn().equals(e.getChildren()[i])) {
-                            removeChild(j);
-                        }
-                    }
-                }
-                cleanUp();
-            } catch (ArchitectException e1) {
-                throw new ArchitectRuntimeException(e1);
-            }
-        }
-    }
-
-    /**
-     * This method is used to clean up the index when it no longer has any children.
-     */
-    public void cleanUp() {
-        try {
-            if (getChildCount() == 0 && this.parent != null) {
-                logger.debug("Removing " + getName() + " index from folder " + parent.getName());
-                parent.getParent().getColumnsFolder().removeSQLObjectListener(removeColumnListener);
-                parent.removeChild(this);
-            }
-        } catch (ArchitectException e1) {
-            throw new ArchitectRuntimeException(e1);
-        }
     }
 
     @Override
@@ -517,8 +482,10 @@ public class SQLIndex extends SQLObject {
 
     @Override
     protected void addChildImpl(int index, SQLObject newChild) throws ArchitectException {
-        if (newChild instanceof SQLIndex.Column && primaryKeyIndex && ((Column) newChild).getColumn() == null) {
-            throw new ArchitectException("The primary key index must consist of real columns, not expressions");
+        if (newChild instanceof SQLIndex.Column 
+                && primaryKeyIndex
+                && ((Column) newChild).getColumn() == null ) {
+           throw new ArchitectException("The primary key index must consist of real columns, not expressions");
         }
         super.addChildImpl(index, newChild);
         Column c = (Column) newChild;
@@ -528,7 +495,7 @@ public class SQLIndex extends SQLObject {
             c.getColumn().addSQLObjectListener(c.targetColumnListener);
         }
     }
-
+    
     public String getFilterCondition() {
         return filterCondition;
     }
@@ -549,12 +516,12 @@ public class SQLIndex extends SQLObject {
         fireDbObjectChanged("qualifier", oldValue, qualifier);
     }
 
-    public String getType() {
+    public IndexType getType() {
         return type;
     }
 
-    public void setType(String type) {
-        String oldValue = this.type;
+    public void setType(IndexType type) {
+        IndexType oldValue = this.type;
         this.type = type;
         fireDbObjectChanged("type", oldValue, type);
     }
@@ -563,20 +530,10 @@ public class SQLIndex extends SQLObject {
         return unique;
     }
 
-    public boolean isClustered() {
-        return clustered;
-    }
-
     public void setUnique(boolean unique) {
         boolean oldValue = this.unique;
         this.unique = unique;
         fireDbObjectChanged("unique", oldValue, unique);
-    }
-
-    public void setClustered(boolean value) {
-        boolean oldValue = this.clustered;
-        this.clustered = value;
-        fireDbObjectChanged("clustered", oldValue, clustered);
     }
 
     public void setParent(SQLTable.Folder<SQLIndex> parent) {
@@ -588,37 +545,53 @@ public class SQLIndex extends SQLObject {
      * SQLObjectEvents to avoid infinite recursion, so you have to
      * generate them yourself at a safe time.
      */
-    static void addIndicesToTable(SQLTable addTo, String catalog, String schema, String tableName) throws SQLException,
-            ArchitectException {
+    static void addIndicesToTable(SQLTable addTo,
+                                  String catalog,
+                                  String schema,
+                                  String tableName)
+        throws SQLException, ArchitectException {
         Connection con = null;
         ResultSet rs = null;
         DatabaseMetaData dbmd = null;
-
         try {
             con = addTo.getParentDatabase().getConnection();
             dbmd = con.getMetaData();
+        } finally {
+            // close the connection before it makes the recursive call
+            // that could lead to opening more connections
+            try {
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                logger.error("Couldn't close connection", ex);
+            }
+        }
+         
+        try {
             String pkName = null;
             rs = dbmd.getPrimaryKeys(catalog, schema, tableName);
             while (rs.next()) {
                 SQLColumn col = addTo.getColumnByName(rs.getString(4), false, true);
                 //logger.debug(rs.getString(4));
-                if (col != null) {
+                if (col != null ){
                     col.primaryKeySeq = new Integer(rs.getInt(5));
-                    String pkNameCheck = rs.getString(6);
+                    String pkNameCheck =rs.getString(6);
                     if (pkName == null) {
                         pkName = pkNameCheck;
                     } else if (!pkName.equals(pkNameCheck)) {
                         throw new IllegalStateException("The PK name has changed somehow while adding indices to table");
                     }
                 } else {
-                    throw new SQLException("Column " + rs.getString(4) + " not found in " + addTo);
+                    throw new SQLException("Column "+rs.getString(4)+ " not found in "+addTo);
                 }
             }
             rs.close();
             rs = null;
-
-            logger.debug("SQLIndex.addIndicesToTable: catalog=" + catalog + "; schema=" + schema + "; tableName=" +
-                    tableName + "; primary key name=" + pkName);
+            
+            
+            logger.debug("SQLIndex.addIndicesToTable: catalog=" + catalog + 
+                    "; schema=" + schema + 
+                    "; tableName="+tableName +
+                    "; primary key name=" + pkName);
             SQLIndex idx = null;
             rs = dbmd.getIndexInfo(catalog, schema, tableName, false, true);
             while (rs.next()) {
@@ -644,44 +617,35 @@ public class SQLIndex extends SQLObject {
                 13 FILTER_CONDITION String => Filter condition, if any. (may be null)
                  */
                 boolean nonUnique = rs.getBoolean(4);
-                boolean isClustered = rs.getShort(7) == DatabaseMetaData.tableIndexClustered ? true : false;
                 String qualifier = rs.getString(5);
                 String name = rs.getString(6);
-                String type = null;
-                if (SQL.findColumnIndex(rs, RS_INDEX_TYPE_COL) > 0) {
-                    type = rs.getString(RS_INDEX_TYPE_COL);
-                }
+                IndexType type = IndexType.forJdbcType(rs.getShort(7));
                 int pos = rs.getInt(8);
                 String colName = rs.getString(9);
                 String ascDesc = rs.getString(10);
-                AscendDescend aOrD = AscendDescend.UNSPECIFIED;
-                if (ascDesc != null && ascDesc.equals("A")) {
-                    aOrD = AscendDescend.ASCENDING;
-                } else if (ascDesc != null && ascDesc.equals("D")) {
-                    aOrD = AscendDescend.DESCENDING;
-                }
+                boolean ascending = (ascDesc != null && ascDesc.equals("A"));
+                boolean descending = (ascDesc != null && ascDesc.equals("D"));
                 String filter = rs.getString(13);
 
                 if (pos == 0) {
                     // this is just the table stats, not an index
                     continue;
                 } else if (pos == 1) {
-                    logger.debug("Found index " + name);
+                    logger.debug("Found index "+name);
                     idx = new SQLIndex(name, !nonUnique, qualifier, type, filter);
-                    idx.setClustered(isClustered);
                     addTo.getIndicesFolder().children.add(idx);
                     if (name.equals(pkName)) {
                         idx.setPrimaryKeyIndex(true);
                     }
                 }
 
-                logger.debug("Adding column " + colName + " to index " + idx.getName());
+                logger.debug("Adding column "+colName+" to index "+idx.getName());
 
                 Column col;
                 if (addTo.getColumnByName(colName, false, true) != null) {
-                    col = idx.new Column(addTo.getColumnByName(colName, false, true), aOrD);
+                    col = idx.new Column(addTo.getColumnByName(colName, false, true), ascending, descending);
                 } else {
-                    col = idx.new Column(colName, aOrD); // probably an expression like "col1+col2"
+                    col = idx.new Column(colName, ascending, descending);  // probably an expression like "col1+col2"
                 }
 
                 idx.children.add(col); // direct access avoids possible recursive SQLObjectEvents
@@ -689,18 +653,12 @@ public class SQLIndex extends SQLObject {
             rs.close();
             rs = null;
 
+            
         } finally {
             try {
-                if (rs != null)
-                    rs.close();
+                if (rs != null) rs.close();
             } catch (SQLException ex) {
                 logger.error("Couldn't close result set", ex);
-            }
-            try {
-                if (con != null)
-                    con.close();
-            } catch (SQLException ex) {
-                logger.error("Couldn't close connection", ex);
             }
         }
     }
@@ -708,20 +666,19 @@ public class SQLIndex extends SQLObject {
     public boolean isPrimaryKeyIndex() {
         return primaryKeyIndex;
     }
-
+    
     /**
      * Updates whether this index is a primary key
-     *
+     * 
      * set this index as primary key index and remove any old primary key
-     * if isPrimaryKey is true.  Otherwise, sets primaryKeyIndex to false and
+     * if isPrimaryKey is true.  Otherwise, sets primaryKeyIndex to false and 
      * removes it from its parent table.
-     *
+     * 
      * @param isPrimaryKey
      */
     public void setPrimaryKeyIndex(boolean isPrimaryKey) throws ArchitectException {
         boolean oldValue = this.primaryKeyIndex;
-        if (oldValue == isPrimaryKey)
-            return;
+        if (oldValue == isPrimaryKey) return;
         try {
             startCompoundEdit("Make index a Primary Key");
             if (isPrimaryKey) {
@@ -750,24 +707,13 @@ public class SQLIndex extends SQLObject {
         return getName();
     }
 
-    public void addIndexColumn(SQLColumn col1, AscendDescend aOrD) throws ArchitectException {
-        Column col = new Column(col1, aOrD);
+    public void addIndexColumn(SQLColumn col1, boolean ascending, boolean descending) throws ArchitectException {
+        Column col = new Column(col1,ascending,descending);
         addChild(col);
     }
 
-    /**
-     * Returns a copy of a SQLIndex from a given SQLIndex in a parent SQLTable.
-     * This appears to be mainly used for creating a SQLIndex for a copied table
-     * in the playpen when importing tables from a source database as part of
-     * the reverse engineering feature.
-     *
-     * @param source The source SQLIndex to copy
-     * @param parentTable The parent SQLTable of the source SQLIndex
-     * @return A copy of the given source SQLIndex.
-     * @throws ArchitectException
-     */
-    public static SQLIndex getDerivedInstance(SQLIndex source, SQLTable parentTable) throws ArchitectException {
-
+    public static SQLIndex getDerivedInstance(SQLIndex source, SQLTable parenTable) throws ArchitectException {
+        
         SQLIndex index = new SQLIndex();
         index.setName(source.getName());
         index.setUnique(source.isUnique());
@@ -776,23 +722,15 @@ public class SQLIndex extends SQLObject {
         index.setFilterCondition(source.getFilterCondition());
         index.setQualifier(source.getQualifier());
         index.setPrimaryKeyIndex(source.isPrimaryKeyIndex());
-        index.setPhysicalName(source.getPhysicalName());
-        index.setClustered(source.isClustered());
-
+        
         for (Column column : source.getChildren()) {
-            Column newColumn;
-
-            if (column.getColumn() != null) {
-                SQLColumn sqlColumn = parentTable.getColumnByName(column.getColumn().getName());
-                if (sqlColumn == null) {
-                    throw new ArchitectException("Can not derive instance, because coulmn " +
-                            column.getColumn().getName() + "is not found in parent table [" + parentTable.getName() +
-                            "]");
-                }
-                newColumn = index.new Column(sqlColumn, column.getAscendingOrDescending());
-            } else {
-                newColumn = index.new Column(column.getName(), column.getAscendingOrDescending());
+            SQLColumn sqlColumn = parenTable.getColumnByName(column.getColumn().getName());
+            if ( sqlColumn == null ) {
+                throw new ArchitectException("Can not derive instance, because coulmn " +
+                        column.getColumn().getName() + "is not found in parent table [" +
+                        parenTable.getName() + "]");
             }
+            Column newColumn = index.new Column(sqlColumn,column.isAscending(),column.isDescending());
             index.addChild(newColumn);
         }
         return index;
@@ -800,21 +738,21 @@ public class SQLIndex extends SQLObject {
 
     /**
      * Make this index's columns look like the columns in index
-     *
+     * 
      * @param index The index who's columns are what we want in this index
      * @throws ArchitectException
      */
     public void makeColumnsLike(SQLIndex index) throws ArchitectException {
-        for (int i = children.size() - 1; i >= 0; i--) {
+        for (int i = children.size()-1; i>=0; i--){
             Column c = (Column) children.get(i);
             if (c.column != null) {
                 c.column.removeSQLObjectListener(c.targetColumnListener);
             }
             removeChild(i);
         }
-
+        
         for (Column c : index.getChildren()) {
-            Column newCol = new Column(c.getName(), c.getAscendingOrDescending());
+            Column newCol = new Column(c.getName(),c.isAscending(),c.isDescending());
             newCol.setColumn(c.getColumn());
             addChild(newCol);
         }

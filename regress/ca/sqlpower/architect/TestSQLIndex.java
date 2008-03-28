@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect;
 
@@ -26,17 +39,14 @@ import java.sql.Types;
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLIndex.Column;
+import ca.sqlpower.architect.SQLIndex.IndexType;
 
 public class TestSQLIndex extends SQLTestCase {
 
     private SQLIndex index;
     private SQLIndex index2;
-    private SQLIndex index3;
     private SQLColumn col1;
-    private SQLColumn col2;
-    private SQLColumn col3;
     private SQLTable table;
     private SQLTable dbTable;
     
@@ -150,30 +160,24 @@ public class TestSQLIndex extends SQLTestCase {
 
     protected void setUp() throws Exception {
         super.setUp();
-        index = new SQLIndex("Test Index",true,"a", "HASH","b");
+        index = new SQLIndex("Test Index",true,"a",IndexType.HASHED,"b");
         table = new SQLTable(null,true);
         table.setName("Test Table");
         col1 = new SQLColumn();
         table.addColumn(col1);
-        col2 = new SQLColumn();
+        SQLColumn col2 = new SQLColumn();
         table.addColumn(col2);
-        col3 = new SQLColumn();
+        SQLColumn col3 = new SQLColumn();
         table.addColumn(col3);
-        index.addIndexColumn(col1, AscendDescend.UNSPECIFIED);
-        index.addIndexColumn(col2, AscendDescend.DESCENDING);
-        index.addIndexColumn(col3, AscendDescend.ASCENDING);
+        index.addIndexColumn(col1, true, true);
+        index.addIndexColumn(col2, false, true);
+        index.addIndexColumn(col3, true, false);
         table.addIndex(index);
-        index2 = new SQLIndex("Test Index 2",true,"a", "HASH","b");
-        index2.addIndexColumn(col1, AscendDescend.UNSPECIFIED);
-        index2.addIndexColumn(col3, AscendDescend.DESCENDING);
+        index2 = new SQLIndex("Test Index 2",true,"a",IndexType.HASHED,"b");
+        index2.addIndexColumn(col1, true, true);
+        index2.addIndexColumn(col3, false, true);
         table.addIndex(index2);
         dbTable = db.getTableByName("SQL_COLUMN_TEST_3PK");
-
-        index3 = new SQLIndex("Test Index 3", true, "a", "HASH", "b");
-        index3.addIndexColumn(col3, AscendDescend.ASCENDING);
-        index3.addIndexColumn(col2, AscendDescend.DESCENDING);
-        index3.addIndexColumn(col1, AscendDescend.UNSPECIFIED);
-        table.addIndex(index3);
     }
 
     protected void tearDown() throws Exception {
@@ -316,10 +320,10 @@ public class TestSQLIndex extends SQLTestCase {
     }
     
     public void testAddStringColumnToPKThrowsException() throws ArchitectException{
-        SQLIndex i = new SQLIndex("Index",true,"","BTREE","");
+        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
         i.setPrimaryKeyIndex(true);
         try {
-            i.addChild(i.new Column("index column",AscendDescend.UNSPECIFIED));
+            i.addChild(i.new Column("index column",true,true));
             fail();
         } catch (ArchitectException e) {
             assertEquals("The primary key index must consist of real columns, not expressions",e.getMessage());
@@ -329,8 +333,8 @@ public class TestSQLIndex extends SQLTestCase {
     }
     
     public void testAddChangeIndexToPkWithStringColumn() throws ArchitectException{
-        SQLIndex i = new SQLIndex("Index",true,"", "BTREE","");
-        i.addChild(i.new Column("index column",AscendDescend.UNSPECIFIED));
+        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
+        i.addChild(i.new Column("index column",true,true));
         try {
             i.setPrimaryKeyIndex(true);
             fail();
@@ -341,23 +345,23 @@ public class TestSQLIndex extends SQLTestCase {
     }
     
     public void testMakeColumnsLikeOtherIndexWhichHasNoColumns() throws ArchitectException {
-        SQLIndex i = new SQLIndex("Index",true,"", "BTREE","");
+        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
         SQLColumn col = new SQLColumn();
-        i.addChild(i.new Column("index column",AscendDescend.UNSPECIFIED));
-        i.addChild(i.new Column(col,AscendDescend.UNSPECIFIED));
+        i.addChild(i.new Column("index column",true,true));
+        i.addChild(i.new Column(col,true,true));
         
-        SQLIndex i2 = new SQLIndex("Index2",false,"", "HASH","asdfa");
+        SQLIndex i2 = new SQLIndex("Index2",false,"",IndexType.HASHED,"asdfa");
         i.makeColumnsLike(i2);
         assertEquals("Oh no some children are left!",0,i.getChildCount());
     }
     
     public void testMakeColumnsLikeOtherIndexWhichHasColumns() throws ArchitectException {
-        SQLIndex i = new SQLIndex("Index",true,"", "BTREE","");
+        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
         SQLColumn col = new SQLColumn();
         
-        SQLIndex i2 = new SQLIndex("Index2",false,"", "HASH","asdfa");
-        i2.addChild(i2.new Column("index column",AscendDescend.UNSPECIFIED));
-        i2.addChild(i2.new Column(col,AscendDescend.UNSPECIFIED));
+        SQLIndex i2 = new SQLIndex("Index2",false,"",IndexType.HASHED,"asdfa");
+        i2.addChild(i2.new Column("index column",true,true));
+        i2.addChild(i2.new Column(col,true,true));
         i.makeColumnsLike(i2);
         assertEquals("Wrong number of children!",2,i.getChildCount());
         assertEquals("Oh no wrong child!",i2.getChild(0),i.getChild(0));
@@ -365,83 +369,17 @@ public class TestSQLIndex extends SQLTestCase {
     }
     
     public void testMakeColumnsLikeOtherIndexReordersColumns() throws ArchitectException {
-        SQLIndex i = new SQLIndex("Index",true,"", "BTREE","");
+        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
         SQLColumn col = new SQLColumn();
-        i.addChild(i.new Column(col,AscendDescend.UNSPECIFIED));
-        i.addChild(i.new Column("index column",AscendDescend.UNSPECIFIED));
+        i.addChild(i.new Column(col,true,true));
+        i.addChild(i.new Column("index column",true,true));
 
-        SQLIndex i2 = new SQLIndex("Index2",false,"", "HASH","asdfa");
-        i2.addChild(i2.new Column("index column",AscendDescend.UNSPECIFIED));
-        i2.addChild(i2.new Column(col,AscendDescend.UNSPECIFIED));
+        SQLIndex i2 = new SQLIndex("Index2",false,"",IndexType.HASHED,"asdfa");
+        i2.addChild(i2.new Column("index column",true,true));
+        i2.addChild(i2.new Column(col,true,true));
         i.makeColumnsLike(i2);
         assertEquals("Wrong number of children!",2,i.getChildCount());
         assertEquals("Oh no wrong child!",i2.getChild(0),i.getChild(0));
         assertEquals("Oh no wrong child!",i2.getChild(1),i.getChild(1));
-    }
-    
-    // Test to ensure NPE doesn't get thrown for a SQLIndex with no SQLColumn
-    public void testGetDerivedInstance() throws Exception {
-        SQLIndex derivedIndex;
-        Column newColumn = index.new Column("lower((name)::text))",AscendDescend.UNSPECIFIED);
-        index.addChild(newColumn);
-        derivedIndex = SQLIndex.getDerivedInstance(index, table);
-    }
-    
-    /**
-     * This test case will drop a column from a table and make sure that it
-     *  is also dropped from the index of the table.
-     */
-    public void testDropColumnFromIndex()throws ArchitectException{
-
-        assertEquals(3, index.getChildCount());
-        assertEquals(3, table.getColumns().size());
-        assertEquals(2, index2.getChildCount());
-        table.removeColumn(0);
-        assertEquals(2, table.getColumns().size());
-        assertEquals(2, index.getChildCount());
-        assertEquals(1, index2.getChildCount());
-        assertEquals(2, index3.getChildCount());
-    }
-    
-    /**
-     * This is similar to testDropColumnFromIndex, but it will add the columns in different
-     * order in two separate indices and it will check that the proper column is removed.
-     */
-    public void testDropColumnFromIndex2() throws ArchitectException{
-        table.removeColumn(0); 
-        assertEquals(2, table.getColumns().size()); 
-        assertEquals(2, index.getChildCount()); 
-        assertEquals(2, index3.getChildCount());
-        assertEquals(col2, index.getChild(0).getColumn());
-        assertEquals(col3, index.getChild(1).getColumn());
-        assertEquals(col3, index3.getChild(0).getColumn());
-        assertEquals(col2, index3.getChild(1).getColumn());
-    }
-    
-    /**
-     * Tests if we remove all of the columns in an index from its table
-     * that the index is removed from the table as well.
-     */
-    public void testRemoveIndexWhenColsRemoved() throws Exception {
-        assertEquals(index2, table.getIndexByName("Test Index 2"));
-        table.removeColumn(2);
-        table.removeColumn(0);
-        assertEquals(null, table.getIndexByName("Test Index 2"));
-    }
-
-    /**
-     * Tests if we remove all of the columns in an index from its table
-     * that the index is removed from the table as well, and the whole operation
-     * is a single compound operation.
-     */
-    public void testRemoveIndexWhenColsRemovedSingleUndoEvent() throws Exception {
-        assertEquals(index2, table.getIndexByName("Test Index 2"));
-        CountingUndoCompoundEventListener l = new CountingUndoCompoundEventListener();
-        ArchitectUtils.listenToHierarchy(l, table);
-        ArchitectUtils.addUndoListenerToHierarchy(l, table);
-        table.removeColumn(2);
-        assertEquals(0, l.getEditsBeforeLastGroup());
-        table.removeColumn(0);
-        assertEquals(0, l.getEditsBeforeLastGroup());
     }
 }

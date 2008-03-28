@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
+ * Copyright (c) 2007, SQL Power Group Inc.
  * 
  * All rights reserved.
  * 
@@ -29,53 +29,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package ca.sqlpower.architect.swingui;
 
-package ca.sqlpower.architect.swingui.action;
+import java.awt.Component;
 
-import java.awt.event.ActionEvent;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.table.TableCellEditor;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-
 /**
- * An action that, when invoked, pops up the IndexEditPanel for a certain
- * pre-determined index.
+ *  Creates an editor for the  
+ *
+ *  Note: This class only works with a table with a IndexColumnTableModel
  */
-public class EditSpecificIndexAction extends EditIndexAction {
-
-    /**
-     * This is the index associated with this edit action
-     */
-    private final SQLIndex index;
-
-    /**
-     * Creates a new instance of this action which will pop up an IndexEditPanel
-     * for the given index, regardless of the current selection. For a
-     * selection-sensitive index edit action, see
-     * {@link ArchitectFrame#getEditIndexAction()}.
-     * 
-     * @param session
-     *            The session to which this action belongs.
-     * @param index
-     *            The index this action instance will edit. Cannot be modified
-     *            once this action is constructed.
-     */
-    public EditSpecificIndexAction(ArchitectSwingSession session, SQLIndex index){
-        super(session, index.getName() + "...", index.getName(), null);
-        if (index == null) {
-            throw new NullPointerException("Null index not allowed");
-        }
-        this.index = index;
+public class IndexColumnTableCellEditor extends DefaultCellEditor implements TableCellEditor {
+    Component component;
+    
+    public IndexColumnTableCellEditor(JCheckBox checkBox) {
+        super(checkBox);
     }
 
-    public void actionPerformed(ActionEvent evt) {
+    public IndexColumnTableCellEditor(JComboBox comboBox) {
+        super(comboBox);
+    }
+
+    public IndexColumnTableCellEditor(JTextField textField) {
+        super(textField);
+    }
+    
+    public IndexColumnTableCellEditor() {
+        super(new JComboBox());
+    }
+
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+        IndexColumnTableModel tm = (IndexColumnTableModel) table.getModel();
         try {
-            makeDialog(index);
+            SQLColumnComboBoxModel columnComboBoxModel = new SQLColumnComboBoxModel(tm.getTable(), tm.getUsedColumns());
+            component = new JComboBox(columnComboBoxModel);
+            columnComboBoxModel.setSelectedItem(value);
+            return component;
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
-        } 
+        }
+    }
+
+    public Object getCellEditorValue() {
+       return ((JComboBox)component).getModel().getSelectedItem();
+    }
+    
+    @Override
+    public Component getComponent() {
+        return component;
     }
 }

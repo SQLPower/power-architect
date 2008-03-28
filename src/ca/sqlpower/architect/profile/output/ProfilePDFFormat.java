@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.profile.output;
 
@@ -25,7 +38,6 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,13 +71,6 @@ import com.lowagie.text.pdf.PdfTemplate;
 import com.lowagie.text.pdf.PdfWriter;
 
 public class ProfilePDFFormat implements ProfileFormat {
-    
-    /**
-     * The approximate border length of a pdfBorder. This is hard coded here
-     * because the table appears to have no way of getting this information.
-     * This value can be changed if things do not come out looking right
-     */
-    private static final int PIXELS_PER_BORDER = 6;
 
     private static final Logger logger = Logger.getLogger(ProfilePDFFormat.class);
     private int totalColumn;
@@ -88,20 +93,10 @@ public class ProfilePDFFormat implements ProfileFormat {
             "Count"
     };
     private int maxCharsInTopN = 50;
-    
-    private List<String> columnsToTruncate = new ArrayList<String>();
-    
-    /**
-     * The length to truncate the cells by.
-     */
-    private double truncateLength = -1;
 
     public ProfilePDFFormat() {
         super();
         totalColumn = headings.length;
-        columnsToTruncate.add("Min Value");
-        columnsToTruncate.add("Max Value");
-        columnsToTruncate.add("Top N Values");
     }
 
     /**
@@ -197,39 +192,6 @@ public class ProfilePDFFormat implements ProfileFormat {
                 TableProfileResult tResult = columnResult.getParentResult();
                 addBodyRow(tResult,columnResult, ddlg, pdfTable, bf, f, fsize, widths);
             }
-        }
-        
-        double allowedTableSize = pagesize.width() - mrgt - mlft;
-        double totalWidths = 0;
-        for (int i = 0; i < headings.length; i++) {
-            if (!columnsToTruncate.contains(headings[i])) {
-                widths[i] += PIXELS_PER_BORDER;
-                totalWidths += widths[i];
-            }
-        }
-        truncateLength = (allowedTableSize - totalWidths - (PIXELS_PER_BORDER * (columnsToTruncate.size()))) / columnsToTruncate.size();
-        logger.debug("Truncate length is " + truncateLength);
-        widths = new float[totalColumn]; 
-        
-        profiles = new LinkedList<ProfileTableStructure>(); // 1 table per profile result
-        for (ProfileResult result : profileResults ) {
-            if ( result instanceof TableProfileResult ) {
-                TableProfileResult tableResult = (TableProfileResult) result;
-                pdfTable = new PdfPTable(widths.length);
-                pdfTable.setWidthPercentage(100f);
-                ProfileTableStructure oneProfile = makeNextTable(
-                        tableResult, pdfTable, bf, fsize, widths);
-                profiles.add(oneProfile);
-                ddlg = tableResult.getDDLGenerator();
-            } else if ( result instanceof ColumnProfileResult ) {
-                final ColumnProfileResult columnResult = (ColumnProfileResult) result;
-                TableProfileResult tResult = columnResult.getParentResult();
-                addBodyRow(tResult,columnResult, ddlg, pdfTable, bf, f, fsize, widths);
-            }
-        }
-        
-        for (int i = 0; i < headings.length; i++) {
-            widths[i] += PIXELS_PER_BORDER;
         }
 
         // add the PdfPTables to the document; try to avoid orphan and widow rows
@@ -767,7 +729,7 @@ public class ProfilePDFFormat implements ProfileFormat {
                         contents = String.valueOf(result.getNullCount());
                     }
                     else {
-                        contents = "---";
+                        contents = "!NULL";
                     }
                     alignment = Element.ALIGN_RIGHT;
                 }
@@ -925,29 +887,12 @@ public class ProfilePDFFormat implements ProfileFormat {
 
             // update column width to reflect the widest cell
             for (String contentLine : contents.split("\n")) {
-                String newLine;
-                if (truncateLength >= 0) {
-                    if (bf.getWidthPoint(contentLine, fsize) < truncateLength) {
-                        newLine = contentLine + "\n";
-                    } else {
-                        double currentLength = bf.getWidthPoint("...", fsize);
-                        int stringPosition = 0;
-                        for (; stringPosition < contentLine.length(); stringPosition++) {
-                            if (currentLength > truncateLength) {
-                                break;
-                            }
-                            currentLength = bf.getWidthPoint(contentLine.substring(0, stringPosition) + "...", fsize); 
-                            stringPosition++;
-                        }
-                        newLine = contentLine.substring(0, stringPosition - 1) + "...\n";
-                    }
-                } else {
-                    newLine = contentLine + "\n";
+                if (contentLine.length() > maxCharsInTopN) {
+                    contentLine = contentLine.substring(0, maxCharsInTopN) + "...";
                 }
-                truncContents.append(newLine);
                 widths[colNo] = Math.max(widths[colNo],
-                                      bf.getWidthPoint(newLine, fsize));
-                logger.debug("width is now " + widths[colNo] + " for column " + colNo);
+                                      bf.getWidthPoint((String) contentLine, fsize));
+                truncContents.append(contentLine).append("\n");
             }
 
 

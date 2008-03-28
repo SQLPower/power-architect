@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect;
 
@@ -25,13 +38,9 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
-
-import ca.sqlpower.sql.SQL;
 
 public class SQLColumn extends SQLObject implements java.io.Serializable {
 
@@ -85,11 +94,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	// set to empty string so that we don't generate spurious undos
 	protected String remarks ="";
 	protected String defaultValue;
-	
-	/**
-     * This property is the sort key for this column in primary key index. If
-     * the value is null, then it is not a primary key column.
-     */
 	protected Integer primaryKeySeq;
     
     /**
@@ -268,57 +272,36 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		throws SQLException, DuplicateColumnException, ArchitectException {
 		Connection con = null;
 		ResultSet rs = null;
-		ResultSet typeRs = null;
 		DatabaseMetaData dbmd = null;
-
 		try {
-		    con = addTo.getParentDatabase().getConnection();
-		    dbmd = con.getMetaData();
-		    typeRs = con.getMetaData().getTypeInfo();
-		    Map<Double, Double> typeToMaxPrecisionMap = new HashMap<Double, Double>();
-            while (typeRs.next()) {
-                typeToMaxPrecisionMap.put(new Double(typeRs.getDouble(2)), new Double(typeRs.getDouble(3)));
-            }
-		    
+			con = addTo.getParentDatabase().getConnection();
+			dbmd = con.getMetaData();
+		} finally {
+		    // close the connection before it makes the recursive call
+            // that could lead to opening more connections
+		    try {
+		        if (con != null) con.close();
+		    } catch (SQLException ex) {
+		        logger.error("Couldn't close connection", ex);
+		    }
+		}
+		try {
 			logger.debug("SQLColumn.addColumnsToTable: catalog="+catalog+"; schema="+schema+"; tableName="+tableName);
 			rs = dbmd.getColumns(catalog, schema, tableName, "%");
-			
-			int autoIncCol = SQL.findColumnIndex(rs, "is_autoincrement");
-			logger.debug("Auto-increment info column: " + autoIncCol);
-			
 			while (rs.next()) {
-				logger.debug("addColumnsToTable SQLColumn constructor invocation.");
-				
-				//Must check precision from the column against the database allowed precision
-				//as some jdbc drivers returns a display precision and not an allowed database
-				//precision.
-				
-				int precision = rs.getInt(7);
-				Double typePrecision = typeToMaxPrecisionMap.get(new Double(rs.getInt(5)));
-				if (typePrecision != null && (rs.getInt(7) < 1 || rs.getInt(7) > typePrecision.intValue())) { //equate across java.sql.Types
-				    precision = typePrecision.intValue();
-				}
-				
-				boolean autoIncrement;
-                if (autoIncCol > 0) {
-                    autoIncrement = "yes".equalsIgnoreCase(rs.getString(autoIncCol));
-                } else {
-                    autoIncrement = false;
-                }
-				
+				logger.debug("addColumnsToTable SQLColumn constructor invocation.");				
 				SQLColumn col = new SQLColumn(addTo,
 											  rs.getString(4),  // col name
 											  rs.getInt(5), // data type (from java.sql.Types)
 											  rs.getString(6), // native type name
-											  precision, // column size (precision)
+											  rs.getInt(7), // column size (precision)
 											  rs.getInt(9), // decimal size (scale)
 											  rs.getInt(11), // nullable
 											  rs.getString(12) == null ? "" : rs.getString(12), // remarks
 											  rs.getString(13), // default value
 											  null, // primaryKeySeq
-											  autoIncrement // isAutoIncrement
+											  false // isAutoIncrement
 											  );
-				logger.debug("Precision for the column " + rs.getString(4) + " is " + rs.getInt(7));
 
 				// work around oracle 8i bug: when table names are long and similar,
 				// getColumns() sometimes returns columns from multiple tables!
@@ -345,20 +328,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 			}
 
 		} finally {
-		    try {
-                if (typeRs != null) typeRs.close();
-            } catch (SQLException ex) {
-                logger.error("Couldn't close result set", ex);
-            }
 			try {
 				if (rs != null) rs.close();
 			} catch (SQLException ex) {
 				logger.error("Couldn't close result set", ex);
-			}
-			try {
-			    if (con != null) con.close();
-			} catch (SQLException ex) {
-			    logger.error("Couldn't close connection", ex);
 			}
 		}
 	}

@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.profile;
 
@@ -26,10 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.ArchitectSessionContext;
-import ca.sqlpower.architect.ArchitectSessionContextImpl;
-import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
@@ -82,11 +91,6 @@ public abstract class TestProfileBase extends TestCase {
     protected SQLTable t3;
     
     /**
-     * The session the database and tables are in.
-     */
-    protected ArchitectSession session;
-    
-    /**
      * When true, the setUp method will print a summary of what it did.
      */
     protected boolean debug = false;
@@ -100,19 +104,18 @@ public abstract class TestProfileBase extends TestCase {
 
         DataSourceCollection plini = new PlDotIni();
         plini.read(new File("pl.regression.ini"));
+
         SPDataSource ds = plini.getDataSource("regression_test");
 
         mydb = new SQLDatabase(ds);
         Connection conn = null;
         Statement stmt = null;
         String lastSQL = null;
+
         /*
          * Setting up a clean db for each of the tests
          */
         try {
-            ArchitectSessionContext context = new ArchitectSessionContextImpl("pl.regression.ini");
-            session = new ArchitectSessionImpl(context, "TestProfileBase");
-            session.getRootObject().addChild(mydb);
             conn = mydb.getConnection();
             stmt = conn.createStatement();
             try {
@@ -174,7 +177,7 @@ public abstract class TestProfileBase extends TestCase {
             assertNotNull(t2);
             assertNotNull(t3);
             
-            pm = new ProfileManagerImpl(session);
+            pm = new ProfileManagerImpl();
             pm.getDefaultProfileSettings().setFindingAvg(true);
             pm.getDefaultProfileSettings().setFindingMin(true);
             pm.getDefaultProfileSettings().setFindingMax(true);

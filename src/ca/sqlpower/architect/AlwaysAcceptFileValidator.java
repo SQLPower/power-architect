@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
+ * Copyright (c) 2007, SQL Power Group Inc.
  * 
  * All rights reserved.
  * 
@@ -29,16 +29,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package ca.sqlpower.architect;
 
+
 /**
- * Interface that listeners interested in knowing when a certain operation
- * on a source SQLObject has been requested but has not yet been performed.
- * Listeners implementing this interface have the opportunity to veto the
- * changes that are described by the events they receive.
+ * A simple implementation of FileValidator that will accept any file.
+ * This is normally used as a default for when we run headless.
  */
-public interface SQLObjectPreEventListener {
-    
-    public void dbChildrenPreRemove(SQLObjectPreEvent e);
+public class AlwaysAcceptFileValidator implements FileValidator {
+
+    public FileValidationResponse acceptFile(String name, String path) {
+        return FileValidationResponse.WRITE_OK;
+    }
+
 }

@@ -1,24 +1,36 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Point;
 import java.beans.PropertyDescriptor;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -41,17 +53,15 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.apache.tools.ant.filters.StringInputStream;
 
 import ca.sqlpower.ArchitectTestCase;
-import ca.sqlpower.architect.AlwaysOKUserPrompter;
+import ca.sqlpower.architect.AlwaysAcceptFileValidator;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.CoreProject;
+import ca.sqlpower.architect.FileValidator;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -63,8 +73,7 @@ import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.StubSQLObject;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
-import ca.sqlpower.architect.UserPrompter;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
+import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.etl.kettle.RootRepositoryDirectoryChooser;
@@ -143,10 +152,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
         "   </folder>" +
         "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
-        "    <index id=\"IDX1892\" populated=\"true\" index-type=\"BTREE\" name=\"mm_project_pk\" physicalName=\"PL_MATCH_PK\" primaryKeyIndex=\"true\" unique=\"true\" >" +
+        "    <index id=\"IDX1892\" populated=\"true\" index-type=\"CLUSTERED\" name=\"mm_project_pk\" physicalName=\"PL_MATCH_PK\" primaryKeyIndex=\"true\" unique=\"true\" >" +
         "     <index-column id=\"IDC1893\" populated=\"true\" ascending=\"false\" column-ref=\"COL1832\" descending=\"false\" name=\"project_oid\" physicalName=\"MATCH_OID\" />" +
         "    </index>" +
-        "    <index id=\"IDX1894\" populated=\"true\" index-type=\"BTREE\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+        "    <index id=\"IDX1894\" populated=\"true\" index-type=\"CLUSTERED\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
         "     <index-column id=\"IDC1895\" populated=\"true\" ascending=\"false\" column-ref=\"COL1834\" descending=\"false\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
         "    </index>" +
         "   </folder>" +
@@ -163,7 +172,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         " <source-stuff datastoreTypeAsString='PROJECT' connectName='Arthur_test' " +
         " schema='ARCHITECT_REGRESS' filepath='' />"+
         "<target-stuff datastoreTypeAsString='FILE' filePath='Testpath' /> </compare-dm-settings>"+
-        " <play-pen zoom=\"12.3\" viewportX=\"200\" viewportY=\"20\">" +
+        " <play-pen>" +
         "  <table-pane table-ref='TAB0' x='85' y='101' />" +
         "  <table-pane table-ref='TAB6' x='196' y='38' />" +
         "  <table-link relationship-ref='REL12' pk-x='76' pk-y='60' fk-x='114' fk-y='30' />" +
@@ -419,13 +428,19 @@ public class TestSwingUIProject extends ArchitectTestCase {
 				} else if (props[i].getPropertyType() == SQLColumn.class) {
 					newVal = new SQLColumn();
 					((SQLColumn) newVal).setName("testing!");
+                } else if (props[i].getPropertyType() == SQLIndex.IndexType.class) {
+                    if (oldVal != SQLIndex.IndexType.HASHED) {
+                        newVal = SQLIndex.IndexType.HASHED;
+                    } else {
+                        newVal = SQLIndex.IndexType.CLUSTERED;
+                    }
                 } else if (props[i].getPropertyType() == SQLIndex.class) {
                     newVal = new SQLIndex();
                     ((SQLIndex) newVal).setName("a new index");
                 } else if (props[i].getPropertyType() == File.class) {
                     newVal = new File("temp" + System.currentTimeMillis());
-                } else if (props[i].getPropertyType() == UserPrompter.class) {
-                    newVal = new AlwaysOKUserPrompter();
+                } else if (props[i].getPropertyType() == FileValidator.class) {
+                    newVal = new AlwaysAcceptFileValidator();
                 } else if (props[i].getPropertyType() == KettleRepositoryDirectoryChooser.class) {
                     newVal = new RootRepositoryDirectoryChooser();
                 } else if (props[i].getPropertyType() == SPDataSource.class) {
@@ -788,7 +803,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLColumn col = new SQLColumn(table, "first", Types.VARCHAR, 10, 0);
         table.addColumn(col);
         SQLIndex target = new SQLIndex("testy index", false, null, null, null);
-        target.addChild(target.new Column(col, AscendDescend.UNSPECIFIED));
+        target.addChild(target.new Column(col, false, false));
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(target);
         col.setPrimaryKeySeq(0);
@@ -853,7 +868,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLTable table = new SQLTable(ppdb, true);
         table.setName(tableName);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
-        SQLIndex.Column indexCol = index.new Column("phogna bologna", AscendDescend.DESCENDING);
+        SQLIndex.Column indexCol = index.new Column("phogna bologna", false, true);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
         index.addChild(indexCol);
@@ -900,7 +915,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         table.setName(tableName);
         table.addColumn(col);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
-        SQLIndex.Column indexCol = index.new Column(col, AscendDescend.DESCENDING);
+        SQLIndex.Column indexCol = index.new Column(col, false, true);
         index.setPrimaryKeyIndex(true);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
@@ -962,7 +977,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         table.addColumn(col);
         table.setName(tableName);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
-        index.addIndexColumn(col, AscendDescend.DESCENDING);
+        index.addIndexColumn(col, false, true);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
         col.setPrimaryKeySeq(new Integer(0));
@@ -1017,16 +1032,16 @@ public class TestSwingUIProject extends ArchitectTestCase {
         table.setName(tableName);
         ppdb.addChild(table);
 
-        SQLIndex origIndex1 = new SQLIndex("tasty index", false, null, "HASH", null);
-        origIndex1.addIndexColumn(col, AscendDescend.DESCENDING);
+        SQLIndex origIndex1 = new SQLIndex("tasty index", false, null, IndexType.HASHED, null);
+        origIndex1.addIndexColumn(col, false, true);
         table.getIndicesFolder().addChild(origIndex1);
         col.setPrimaryKeySeq(new Integer(0));
 
         // second index references same column as first index, so
         // origIndex1.getChild(0).equals(origIndex2.getChild(0)) even though
         // they are not the same object
-        SQLIndex origIndex2 = new SQLIndex("nasty index", false, null, "HASH", null);
-        origIndex2.addIndexColumn(col, AscendDescend.DESCENDING);
+        SQLIndex origIndex2 = new SQLIndex("nasty index", false, null, IndexType.HASHED, null);
+        origIndex2.addIndexColumn(col, false, true);
         table.getIndicesFolder().addChild(origIndex2);
 
         ByteArrayOutputStream tempFile = new ByteArrayOutputStream();
@@ -1100,41 +1115,6 @@ public class TestSwingUIProject extends ArchitectTestCase {
             getAllInterestingProperties(session.getKettleJob(), propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
-    }
-    
-    public void testSaveAndLoadCoversPlayPen() throws Exception{
-        testLoad();
-        
-        PlayPen oldPP = session.getPlayPen();
-        oldPP.setZoom(123.45);
-        oldPP.setViewPosition(new Point(5,4));
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        project.save(byteArrayOutputStream, ENCODING);
-
-        System.out.println(byteArrayOutputStream.toString());
-
-        SwingUIProject project2 = new SwingUIProject(session);
-        project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
-        
-        PlayPen newPP = project2.getSession().getPlayPen();
-        
-        assertEquals(oldPP.getZoom(), newPP.getZoom());
-        assertEquals(oldPP.getViewPosition().getX(), newPP.getViewPosition().getX());
-        assertEquals(oldPP.getViewPosition().getY(), newPP.getViewPosition().getY());
-        
-    }
-    
-    public void testLoadCoversPlayPen()throws Exception{
-        BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.DEBUG);
-        testLoad();
-        
-        PlayPen oldPP = project.getSession().getPlayPen();
-        
-        assertEquals(12.3, oldPP.getZoom());
-        assertEquals(20, oldPP.getViewPosition().y);
-        assertEquals(200, oldPP.getViewPosition().x);
-        
     }
     
     /**

@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.diff;
 
@@ -419,11 +432,7 @@ public class CompareSQLTest extends TestCase {
 		assertTrue("No column mapping diffs found!", foundColMapDiff);
 	}
 	
-	/**
-	 * This test adds a primary key to the source table which is not added
-	 * to the primary key target table. This will simulate a user removing a key from a table.
-	 */
-	public void testKeyRemovedFromPrimaryKey() throws ArchitectException{			
+	public void testKeyChanged() throws ArchitectException{			
 		List<SQLTable> list1 = new ArrayList<SQLTable>();
 		SQLTable t1 = makeTable(4);
 		list1.add(t1);
@@ -444,8 +453,6 @@ public class CompareSQLTest extends TestCase {
 			if (dc.getData().getClass().equals(SQLTable.class)){
 				if(first_table){
 					assertEquals (DiffType.SAME ,dc.getType());
-				} else if (dc.getData().equals(t1)) {
-				    assertEquals(DiffType.DROP_KEY, dc.getType());
 				} else {
 					assertEquals (DiffType.KEY_CHANGED, dc.getType());
 				}
@@ -461,177 +468,6 @@ public class CompareSQLTest extends TestCase {
 		}		
 	}
 	
-	/**
-     * This test adds a primary key to the source table which is not added
-     * to the target table. This will simulate a user deleting a column that 
-     * was a primary key.
-     */
-    public void testKeyRemoved() throws ArchitectException{         
-        List<SQLTable> list1 = new ArrayList<SQLTable>();
-        SQLTable t1 = makeTable(4);
-        list1.add(t1);
-        SQLColumn c = t1.getColumn(3); 
-        c.setPrimaryKeySeq(new Integer(0));
-
-        List<SQLTable> list2 = new ArrayList<SQLTable>();
-        SQLTable t2 = makeTable(4);
-        t2.removeColumn(3);
-        list2.add(t2);
-                
-        CompareSQL sqlComparator = new CompareSQL(list1, list2);
-        List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
-        
-        
-        boolean first_table = true;
-        
-        for (DiffChunk dc : diffs){         
-            if (dc.getData().getClass().equals(SQLTable.class)){
-                if(first_table){
-                    assertEquals (DiffType.SAME ,dc.getType());
-                } else if (dc.getData().equals(t1)) {
-                    assertEquals(DiffType.DROP_KEY, dc.getType());
-                } else {
-                    assertEquals (DiffType.KEY_CHANGED, dc.getType());
-                }
-                first_table = false;
-            }
-            else if (dc.getData().getClass().equals(SQLColumn.class)){
-                if (((SQLObject) dc.getData()).getName().equals(c.getName())){
-                    assertEquals(DiffType.LEFTONLY, dc.getType());
-                } else {
-                    assertEquals (DiffType.SAME, dc.getType());
-                }
-            }
-        }       
-    }
-    
-    /**
-     * This test adds a primary key to the target table which is not added
-     * to the source table. This will simulate a user adding a new column 
-     * to be the primary key of a table.
-     */
-    public void testKeyAddedNew() throws ArchitectException{         
-        List<SQLTable> list1 = new ArrayList<SQLTable>();
-        SQLTable t1 = makeTable(4);
-        list1.add(t1);
-        t1.removeColumn(3);
-
-        List<SQLTable> list2 = new ArrayList<SQLTable>();
-        SQLTable t2 = makeTable(4);
-        list2.add(t2);
-        SQLColumn c = t2.getColumn(3); 
-        c.setPrimaryKeySeq(new Integer(0));
-                
-        CompareSQL sqlComparator = new CompareSQL(list1, list2);
-        List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
-        
-        
-        boolean first_table = true;
-        
-        for (DiffChunk dc : diffs){         
-            if (dc.getData().getClass().equals(SQLTable.class)){
-                if(first_table){
-                    assertEquals (DiffType.SAME ,dc.getType());
-                } else {
-                    assertEquals (DiffType.KEY_CHANGED, dc.getType());
-                }
-                first_table = false;
-            }
-            else if (dc.getData().getClass().equals(SQLColumn.class)){
-                if (((SQLObject) dc.getData()).getName().equals(c.getName())){
-                    assertEquals(DiffType.RIGHTONLY, dc.getType());
-                } else {
-                    assertEquals (DiffType.SAME, dc.getType());
-                }
-            }
-        }       
-    }
-    
-    /**
-     * This test adds a primary key to the target table which is in
-     * the source table. This will simulate a user setting an existing
-     * column to be the primary key of a table.
-     */
-    public void testKeyAddedFromExisting() throws ArchitectException{         
-        List<SQLTable> list1 = new ArrayList<SQLTable>();
-        SQLTable t1 = makeTable(4);
-        list1.add(t1);
-
-        List<SQLTable> list2 = new ArrayList<SQLTable>();
-        SQLTable t2 = makeTable(4);
-        list2.add(t2);
-        SQLColumn c = t2.getColumn(3); 
-        c.setPrimaryKeySeq(new Integer(0));
-                
-        CompareSQL sqlComparator = new CompareSQL(list1, list2);
-        List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
-        
-        
-        boolean first_table = true;
-        
-        for (DiffChunk dc : diffs){         
-            if (dc.getData().getClass().equals(SQLTable.class)){
-                if(first_table){
-                    assertEquals (DiffType.SAME ,dc.getType());
-                } else {
-                    assertEquals (DiffType.KEY_CHANGED, dc.getType());
-                }
-                first_table = false;
-            }
-            else if (dc.getData().getClass().equals(SQLColumn.class)){
-                if (((SQLObject) dc.getData()).getName().equals(c.getName())){
-                    assertEquals(DiffType.MODIFIED, dc.getType());
-                } else {
-                    assertEquals (DiffType.SAME, dc.getType());
-                }
-            }
-        }       
-    }
-	
-    /**
-     * This test changes the primary key of a table to be a different
-     * column in the same table. This will simulate a user changing
-     * the primary key of a table but not adding or removing any columns.
-     */
-    public void testKeyModified() throws ArchitectException{         
-        List<SQLTable> list1 = new ArrayList<SQLTable>();
-        SQLTable t1 = makeTable(4);
-        list1.add(t1);
-        SQLColumn c1 = t1.getColumn(3); 
-        c1.setPrimaryKeySeq(new Integer(0));
-
-        List<SQLTable> list2 = new ArrayList<SQLTable>();
-        SQLTable t2 = makeTable(4);
-        list2.add(t2);
-        SQLColumn c2 = t2.getColumn(2); 
-        c2.setPrimaryKeySeq(new Integer(0));
-                
-        CompareSQL sqlComparator = new CompareSQL(list1, list2);
-        List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
-        
-        
-        boolean first_table = true;
-        
-        for (DiffChunk dc : diffs){         
-            if (dc.getData().getClass().equals(SQLTable.class)){
-                if(first_table){
-                    assertEquals (DiffType.SAME ,dc.getType());
-                } else if (dc.getData().equals(t1)) {
-                    assertEquals(DiffType.DROP_KEY, dc.getType());
-                } else {
-                    assertEquals (DiffType.KEY_CHANGED, dc.getType());
-                }
-                first_table = false;
-            }
-            else if (dc.getData().getClass().equals(SQLColumn.class)){
-                if (((SQLObject) dc.getData()).getName().equals(c1.getName()) || ((SQLObject) dc.getData()).getName().equals(c2.getName())){
-                    assertEquals(DiffType.MODIFIED, dc.getType());
-                } else {
-                    assertEquals (DiffType.SAME, dc.getType());
-                }
-            }
-        }       
-    }
 
 	/**
 	 * Creates a table with the name <tt>table_<i>i</i></tt> (where <i>i</i> is the 

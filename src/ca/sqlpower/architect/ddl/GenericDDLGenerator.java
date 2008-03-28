@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.ddl;
 
@@ -43,7 +56,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSequence;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
+import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
@@ -468,20 +481,6 @@ public class GenericDDLGenerator implements DDLGenerator {
         endStatement(DDLStatement.StatementType.DROP, t);
     }
 
-	/**
-	 * Creates a SQL DDL snippet which consists of the column name, data type,
-	 * default value, and nullability clauses.
-	 * 
-	 * @param c The column to generate the DDL snippet for.
-	 * @param colNameMap Dirty hack for coming up with unique physical names. 
-	 * The final physical name generated in the SQL snippet will be stored
-	 * in this map. If you don't care about producing unique column names, just
-	 * pass in a freshly-created map. See {@link #createPhysicalName(Map, SQLObject)}
-	 * for more information.
-	 * @return The SQL snippet that describes the given column. The returned string
-	 * is not delimited at the beginning or end: you're responsible for properly putting
-	 * it in the context of a valid SQL statement.
-	 */
 	protected String columnDefinition(SQLColumn c, Map colNameMap) {
         StringBuffer def = new StringBuffer();
 
@@ -492,7 +491,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         def.append(columnType(c));
         def.append(" ");
 
-        if ( c.getDefaultValue() != null && !c.getDefaultValue().equals("")) {
+        if (c.getDefaultValue() != null && !c.getDefaultValue().equals("")) {
             def.append("DEFAULT ");
             def.append(c.getDefaultValue());
             def.append(" ");
@@ -501,7 +500,6 @@ public class GenericDDLGenerator implements DDLGenerator {
         // Column nullability
         def.append(columnNullability(c));
 
-        logger.debug("column definition "+ def.toString());
         return def.toString();
     }
 
@@ -746,13 +744,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public String toQualifiedName(SQLTable t) {
 		return toQualifiedName(t.getPhysicalName());
 	}
-	
-	/**
-	 * Creates a qualified name from the physical name of the SQLIndex
-	 */
-	public String toQualifiedName(SQLIndex i) {
-        return toQualifiedName(i.getPhysicalName());
-    }
 
     /**
      * Creates a fully-qualified table name from the given string (which
@@ -1125,6 +1116,9 @@ public class GenericDDLGenerator implements DDLGenerator {
      * table statistics (you can't create or drop them).
      */
     public void addIndex(SQLIndex index) throws ArchitectException {
+        if (index.getType() == IndexType.STATISTIC )
+            return;
+
         createPhysicalName(topLevelNames, index);
 
         println("");
@@ -1143,8 +1137,8 @@ public class GenericDDLGenerator implements DDLGenerator {
         for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
             if (!first) print(", ");
             print(c.getName());
-            print(c.getAscendingOrDescending() == AscendDescend.ASCENDING ? " ASC" : "");
-            print(c.getAscendingOrDescending() == AscendDescend.DESCENDING ? " DESC" : "");
+            print(c.isAscending() ? " ASC" : "");
+            print(c.isDescending() ? " DESC" : "");
             first = false;
         }
         print(" )");

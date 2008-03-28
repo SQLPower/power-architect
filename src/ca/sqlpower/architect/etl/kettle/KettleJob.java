@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.etl.kettle;
 
@@ -52,14 +65,14 @@ import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 import org.pentaho.di.trans.steps.tableinput.TableInputMeta;
 import org.pentaho.di.trans.steps.tableoutput.TableOutputMeta;
 
+import ca.sqlpower.architect.AlwaysAcceptFileValidator;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.DepthFirstSearch;
-import ca.sqlpower.architect.UserPrompter;
+import ca.sqlpower.architect.FileValidator;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
+import ca.sqlpower.architect.FileValidator.FileValidationResponse;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.util.MonitorableImpl;
@@ -107,6 +120,12 @@ public class KettleJob implements Monitorable {
     private List<String> tasksToDo;
     
     /**
+     * The file validator allows the selection for overwriting a file or not when saving
+     * the XML.
+     */
+    private FileValidator fileValidator;
+    
+    /**
      * This is the monitor implementation for this class. This is used to handle the progress bar
      * on the action window.
      */
@@ -127,22 +146,18 @@ public class KettleJob implements Monitorable {
      * to.
      */
     private KettleRepositoryDirectoryChooser dirChooser;
-
-    /**
-     * The session this job belongs to.
-     */
-    private final ArchitectSession session;
     
-    public KettleJob(ArchitectSession session, KettleRepositoryDirectoryChooser chooser) {
-        this(session);
+    public KettleJob(FileValidator validator, KettleRepositoryDirectoryChooser chooser) {
+        this();
+        fileValidator = validator;
         dirChooser = chooser;
     }
     
-    public KettleJob(ArchitectSession session) {
+    public KettleJob() {
         super();
         filePath = "";
         tasksToDo = new ArrayList<String>();
-        this.session = session;
+        fileValidator = new AlwaysAcceptFileValidator();
         monitor = new MonitorableImpl();
         dirChooser = new RootRepositoryDirectoryChooser();
     }
@@ -277,7 +292,7 @@ public class KettleJob implements Monitorable {
                 transformations.add(transMeta);
 
                 if (monitor.isCancelled()) {
-                    cancel();
+                    cancelled();
                     return;
                 }
                 
@@ -323,7 +338,7 @@ public class KettleJob implements Monitorable {
             }
 
             if (monitor.isCancelled()) {
-                cancel();
+                cancelled();
                 return;
             }
             
@@ -340,11 +355,13 @@ public class KettleJob implements Monitorable {
         }
     }
     
+
+    
     /**
      * This is a helper method that sets the taskToDo list with
      * the correct message to display.
      */
-    private void cancel() {
+    private void cancelled() {
         tasksToDo.clear();
         tasksToDo.add("The Kettle job was cancelled so some files may be missing.");
     }
@@ -382,11 +399,10 @@ public class KettleJob implements Monitorable {
     }
     
     /**
-     * This method outputs the xml for the given transformations and job to
-     * files. The path class variable and parent file must be set before using
-     * this method. The file is overwritten or not depending on the user
-     * prompter provided by the ArchitectSession. This method is exposed as
-     * package private for testing purposes.
+     * This method outputs the xml for the given transformations and job to files.
+     * The path class variable and parent file must be set before using this method.
+     * The file is overwritten or not depending on the file validator. This method
+     *  is package private for testing purposes.
      */
     void outputToXML(List<TransMeta> transformations, JobMeta job) throws IOException {
         Map<File, String> outputs = new LinkedHashMap<File, String>();
@@ -396,7 +412,7 @@ public class KettleJob implements Monitorable {
             transMeta.setFilename(file.getName());
             outputs.put(file, transMeta.getXML());
             if (monitor.isCancelled()) {
-                cancel();
+                cancelled();
                 return;
             }
         }
@@ -416,24 +432,27 @@ public class KettleJob implements Monitorable {
         job.setFilename(fileName);
         outputs.put(new File(fileName), job.getXML());
         
-        UserPrompter up = session.createUserPrompter(
-                "The file {0} already exists. Overwrite?",
-                "Overwrite", "Don't Overwrite", "Cancel");
+        FileValidationResponse overwriteOption = FileValidationResponse.WRITE_OK;
         for (File f : outputs.keySet()) {
             try {
+                if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
+                    continue;
+                }
                 logger.debug("The file to output is " + f.getPath());
                 if (f.exists()) {
-                    UserPromptResponse overwriteOption = up.promptUser(f.getAbsolutePath());
-                    if (overwriteOption == UserPromptResponse.OK) {
+                    if (overwriteOption == FileValidationResponse.WRITE_OK_ALWAYS) {
                         f.delete();
-                    } else if (overwriteOption == UserPromptResponse.NOT_OK) {
-                        continue;
-                    } else if (overwriteOption == UserPromptResponse.CANCEL) {
-                        cancel();
-                        return;
                     } else {
-                        throw new IllegalStateException(
-                                "Unknown response value from user prompt: " + overwriteOption);
+                        String parentFilePath = f.getParentFile().getPath();
+                        overwriteOption = fileValidator.acceptFile(f.getName(), parentFilePath);
+                        if (overwriteOption == FileValidationResponse.WRITE_OK ||
+                                overwriteOption == FileValidationResponse.WRITE_OK_ALWAYS) {
+                        } else if (overwriteOption == FileValidationResponse.CANCEL) {
+                            cancelled();
+                            return;
+                        } else {
+                            continue;
+                        }
                     }
                 }
                 f.createNewFile();
@@ -445,7 +464,7 @@ public class KettleJob implements Monitorable {
                 monitor.setProgress(monitor.getProgress() + 1);
                 
                 if (monitor.isCancelled()) {
-                    cancel();
+                    cancelled();
                     return;
                 }
             } catch (IOException er) {
@@ -498,33 +517,27 @@ public class KettleJob implements Monitorable {
             } 
 
             try {
-                UserPrompter up = session.createUserPrompter(
-                        "{0} {1} already exists in the repository. Replace?",
-                        "Replace", "Don't Replace", "Cancel");
+                FileValidationResponse overwriteOption = FileValidationResponse.WRITE_OK;
                 for (TransMeta tm: transformations) {
                     if (monitor.isCancelled()) {
-                        cancel();
+                        cancelled();
                         return;
                     }
                     tm.setDirectory(directory);
-                    
-                    // check for existing transaction having same name
-                    long id = repo.getTransformationID(tm.getName(), directory.getID());
-                    if (id >= 0) {
-                        logger.debug("We found a transformation with the same name, the id is " + id);
-                        UserPromptResponse overwriteOption = up.promptUser("Transformation", tm.getName());
-                        
-                        if (overwriteOption == UserPromptResponse.OK) {
-                            // will fall through and overwrite
-                        } else if (overwriteOption == UserPromptResponse.NOT_OK) {
-                            monitor.setProgress(monitor.getProgress() + 1);
-                            continue;
-                        } else if (overwriteOption == UserPromptResponse.CANCEL) {
-                            cancel();
-                            break;
-                        } else {
-                            throw new IllegalStateException(
-                                    "Unknown user prompt response: " + overwriteOption);
+                    if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
+                        monitor.setProgress(monitor.getProgress() + 1);
+                        continue;
+                    }
+                    if (overwriteOption != FileValidationResponse.WRITE_OK_ALWAYS) {
+                        long id = repo.getTransformationID(tm.getName(), directory.getID());
+                        if (id >= 0) {
+                            logger.debug("We found a transformation with the same name, the id is " + id);
+                            overwriteOption = fileValidator.acceptFile(tm.getName(), directory.getPath());
+                            if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS ||
+                                    overwriteOption == FileValidationResponse.WRITE_NOT_OK) {
+                                monitor.setProgress(monitor.getProgress() + 1);
+                                continue;
+                            }
                         }
                     }
                     tm.saveRep(repo);
@@ -532,7 +545,7 @@ public class KettleJob implements Monitorable {
                     logger.debug("Progress is " + monitor.getProgress() + " out of " + monitor.getJobSize());
                 }
                 if (monitor.isCancelled()) {
-                    cancel();
+                    cancelled();
                     return;
                 }
 
@@ -540,23 +553,21 @@ public class KettleJob implements Monitorable {
                 //The first entry is not a transformation so skip it
                 //This is done here so we know where the files are being saved and that they are saved
                 for (int i = 1; i < jm.nrJobEntries(); i++) {
-                    JobEntryTrans trans = (JobEntryTrans) (jm.getJobEntry(i).getEntry());
+                    JobEntryTrans trans = (JobEntryTrans)(jm.getJobEntry(i).getEntry());
                     trans.setDirectory(directory);
                 }
 
                 jm.setDirectory(directory);
-                if (repo.getTransformationID(jm.getName(), directory.getID()) >= 0) {
-                    UserPromptResponse overwriteOption = up.promptUser("Job", jm.getName());
-                    if (overwriteOption == UserPromptResponse.OK) {
-                        // will fall through and overwrite
-                    } else if (overwriteOption == UserPromptResponse.NOT_OK) {
-                        return;
-                    } else if (overwriteOption == UserPromptResponse.CANCEL) {
-                        cancel();
-                        return;
-                    } else {
-                        throw new IllegalStateException(
-                                "Unknown user prompt response: " + overwriteOption);
+                if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
+                    return;
+                }
+                if (overwriteOption != FileValidationResponse.WRITE_OK_ALWAYS) {
+                    if (repo.getTransformationID(jm.getName(), directory.getID()) >= 0) {
+                        overwriteOption = fileValidator.acceptFile(jm.getName(), directory.getPath());
+                        if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS ||
+                                overwriteOption == FileValidationResponse.WRITE_NOT_OK) {
+                            return;
+                        }
                     }
                 }
                 jm.saveRep(repo);
@@ -567,7 +578,7 @@ public class KettleJob implements Monitorable {
                 tasksToDo.add("Kettle job " + jm.getName() + " failed to save to respitory due to a Kettle error.");
                 throw e;
             }
-        } catch (SQLException e) {
+        }catch (SQLException e) {
             tasksToDo.clear();
             tasksToDo.add("Kettle job " + jm.getName() + " failed to save to respitory due to a SQL error.");
             throw e;
@@ -680,6 +691,10 @@ public class KettleJob implements Monitorable {
         return tasksToDo;
     }
 
+    public void setFileValidator(FileValidator fileValidator) {
+        this.fileValidator = fileValidator;
+    }
+    
     public Integer getJobSize() {
         return monitor.getJobSize();
     }

@@ -21,6 +21,7 @@
 	<classpathentry kind="lib" path="lib/darwinsys.jar"/>
 	<classpathentry kind="lib" path="lib/edtftpj-1.5.4.jar"/>
 	<classpathentry kind="lib" path="lib/forms-1.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/itext-1.4.8.jar"/>
 	<classpathentry kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon-1.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart-1.0.1.jar"/>
@@ -30,6 +31,5 @@
 	<classpathentry kind="lib" path="lib/mail.jar"/>
 	<classpathentry kind="lib" path="osx_packaging_utils/osx_adapter.jar"/>
 	<classpathentry kind="lib" path="lib/spring-core.jar"/>
-	<classpathentry kind="lib" path="lib/iText-2.0.8.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

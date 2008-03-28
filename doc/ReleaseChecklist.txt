@@ -1,6 +1,6 @@
                      Power*Architect release checklist
 
-$Id$
+$Id:$
 
 This file is intended as a guide for the person who is packaging, posting,
 and announcing a new release of the Power*Architect.  This list is probably
@@ -19,11 +19,7 @@ Good luck with the release!
  release number.  Normally, this will mean setting the suffix to "" for a full
  release, or "beta", "rc1", etc for a pre-release.
 *Run the ArchitectMegaTestSuite. It should pass with a flying colour (green)
-*Generate the JUnit and Clover test reports (run the 'clover.test.and.report' build.xml
- target). This must be done separately from 'dist', otherwise the executables generated will
- require the clover.jar library to run.
-*Run the 'clean' build.xml target to remove the Clover-dependent compiled class files
- and build the distribution (build.xml target "dist"). For an official release, this
+*Build the distribution (build.xml target "dist"). For an official release, this
  has to be done on OS X, since the tools for creating the dmg disk image file are
  unavailable elsewhere.
 *Test the three flavours of binaries (Generic tarball, OS X disk image, Windows
@@ -46,8 +42,7 @@ Good luck with the release!
  *For Windows only, test the uninstaller
 *Commit, then tag the release in the SVN repository, if you made it all the way
  to this point without finding any new problems!
-*Add the current release number without the -alpha suffix to Bugzilla, as well
- as the next release number with -alpha.
+
 
 Making the new release available
 *Upload generic, mac, and windows binaries to Google Code

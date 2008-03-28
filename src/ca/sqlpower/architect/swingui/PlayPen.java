@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
@@ -78,7 +91,6 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -96,28 +108,21 @@ import javax.swing.event.MouseInputAdapter;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLExceptionNode;
-import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLObjectPreEvent;
-import ca.sqlpower.architect.SQLObjectPreEventListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.UserPrompter;
-import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CancelAction;
-import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
@@ -137,50 +142,8 @@ import ca.sqlpower.swingui.SPSwingWorker;
 public class PlayPen extends JPanel
 	implements java.io.Serializable, SQLObjectListener, SelectionListener, Scrollable {
 
-    /**
-     * Watches the session's root object, and reacts when SQLDatabase items
-     * are removed. In that case, it ensures there are no dangling references
-     * from the playpen database back to the removed database or its children.
-     * If there are, the user is asked to decide to either cancel the operation
-     * or allow the ETL lineage (SQLColumn.sourceColumn) references to be broken.
-     */
-	public class DatabaseRemovalWatcher implements SQLObjectPreEventListener {
 
-        public void dbChildrenPreRemove(SQLObjectPreEvent e) {
-            UserPrompter up = session.createUserPrompter(
-                    "{0} objects in the PlayPen were reverse engineered from\n" +
-                    "the database {1}, which you''re trying to remove.\n" +
-                    "\n" +
-                    "If you proceed, you will lose ETL lineage information for\n" +
-                    "the objects originally sourced from that database.",
-                    "Forget Lineage", "Keep Source Connection", "Cancel");
-            for (SQLObject so : e.getChildren()) {
-                SQLDatabase db = (SQLDatabase) so;
-                try {
-                    List<SQLColumn> refs = ArchitectUtils.findColumnsSourcedFromDatabase(session.getTargetDatabase(), db);
-                    if (!refs.isEmpty()) {
-                        UserPromptResponse response = up.promptUser(refs.size(), db.getName());
-                        if (response == UserPromptResponse.OK) {
-                            // disconnect those columns' source columns
-                            for (SQLColumn col : refs) {
-                                col.setSourceColumn(null);
-                            }
-                        } else if (response == UserPromptResponse.NOT_OK) {
-                            e.veto();
-                        } else if (response == UserPromptResponse.CANCEL) {
-                            e.veto();
-                        }
-                    }
-                } catch (ArchitectException ex) {
-                    throw new ArchitectRuntimeException(ex);
-                }
-            }
-        }
-
-    }
-
-
-    public interface CancelableListener {
+	public interface CancelableListener {
 
 		public void cancel();
 
@@ -373,18 +336,6 @@ public class PlayPen extends JPanel
      * The session that contains this playpen
      */
 	private final ArchitectSwingSession session;
-	
-	/**
-	 * The initial position of the viewport.
-	 */
-	private Point viewportPosition;
-	
-	/**
-	 * The font render context for cases where the play pen
-	 * has no graphics object to get the font render context
-	 * but we know it from another panel.
-	 */
-	private FontRenderContext fontRenderContext;
     
 	/**
      * Creates a play pen with reasonable defaults.  If you are creating
@@ -400,7 +351,6 @@ public class PlayPen extends JPanel
 		this.session = session;
 		setDatabase(session.getTargetDatabase());
         zoom = 1.0;
-        viewportPosition = new Point(0, 0);
 		setBackground(java.awt.Color.white);
 		contentPane = new PlayPenContentPane(this);
 		setName("Play Pen");
@@ -417,9 +367,6 @@ public class PlayPen extends JPanel
 		ds = new DragSource();
 		ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
 		logger.debug("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));
-		fontRenderContext = null;
-        
-        session.getRootObject().addSQLObjectPreEventListener(new DatabaseRemovalWatcher());
 	}
 
 	/**
@@ -437,7 +384,7 @@ public class PlayPen extends JPanel
 	 */
 	public PlayPen(ArchitectSwingSession session, PlayPen pp) {
 		this(session);
-		
+
 		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
 			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
 			if (ppc instanceof TablePane) {
@@ -474,7 +421,7 @@ public class PlayPen extends JPanel
         try {
             removeHierarcyListeners(session.getTargetDatabase());
         } catch (ArchitectException ex) {
-            logger.error("Couldn't unlisten this playpen from the database", ex);
+            logger.error("Couldn't unlisten this playpen from the database");
         }
     }
 
@@ -530,36 +477,22 @@ public class PlayPen extends JPanel
      * set the action command in its parent menu item so that the
      * action can figure out what the source of the Action was.
 	 */
-	void setupTablePanePopup(SQLTable table) {
+	void setupTablePanePopup() {
 		ArchitectFrame af = session.getArchitectFrame();
 		tablePanePopup = new JPopupMenu();
-		
+
 		JMenuItem mi;
         
         mi = new JMenuItem();
         mi.setAction(af.getInsertIndexAction());
         mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
-        try {
-            if (table != null && table.getIndicesFolder().getChildCount() > 0) {
-                JMenu menu = new JMenu("Index Properties");
-                menu.setIcon(SPSUtils.createIcon("edit_index", "Edit Index", ArchitectSwingSessionContext.ICON_SIZE));
-                for (SQLIndex index : table.getIndices()) {
-                    JMenuItem menuItem = new JMenuItem(new EditSpecificIndexAction(session, index));
-                    menuItem.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-                    menu.add(menuItem);
-                }
-                tablePanePopup.add(menu);
-            }
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
-        }
 
         tablePanePopup.addSeparator();
-
-        mi = new JMenuItem();
-        mi.setAction(af.getEditColumnAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        
+		mi = new JMenuItem();
+		mi.setAction(af.getEditColumnAction());
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
 		mi = new JMenuItem();
@@ -655,10 +588,7 @@ public class PlayPen extends JPanel
 
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getInsertColumnAction().getValue(Action.ACCELERATOR_KEY), "NEW COLUMN");
         getActionMap().put("NEW COLUMN", af.getInsertColumnAction());
-
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getInsertIndexAction().getValue(Action.ACCELERATOR_KEY), "NEW INDEX");
-        getActionMap().put("NEW INDEX", af.getInsertIndexAction());
-
+        
 		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY), "NEW IDENTIFYING RELATION");
 		getActionMap().put("NEW IDENTIFYING RELATION", af.getCreateIdentifyingRelationshipAction());
 
@@ -985,26 +915,18 @@ public class PlayPen extends JPanel
 			logger.debug("view position is: " + viewPosition);
 			return viewPosition;
 		} else {
-			return new Point(0, 0);
+			return null;
 		}
 	}
 
 	// set the position of the viewport that we are sitting in
-	public void setViewPosition(Point p) {
+	public void setViewPosition(Point p ) {
 		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
 		if (c != null) {
 			JViewport jvp = (JViewport) c;
 			logger.debug("view position set to: " + p);
-			if (p != null) {
-			    jvp.setViewPosition(p);
-			}
-
+			jvp.setViewPosition(p);
 		}
-		viewportPosition = p;
-	}
-	
-	public void setInitialViewPosition() {
-	    setViewPosition(viewportPosition);
 	}
 
     /** See {@link #paintingEnabled}. */
@@ -1360,22 +1282,6 @@ public class PlayPen extends JPanel
 		return tp;
 	}
 
-	/**
-     * Creates exported relationships if the importing tables exist in the
-     * PlayPen if isPrimaryKeyTableNew is set to true. Otherwise, it creates
-     * imported relationships if the exporting tables exist in the PlayPen if
-     * isPrimaryKeyTableNew is set to false.
-     * 
-     * @param source
-     *            SQLTable representation of the table in the source database
-     * @param newTable
-     *            Newly created SQLTable instance into where the relationships
-     *            are copied.
-     * @param isPrimaryKeyTableNew
-     *            Adds exported key relationships if true, imported keys if
-     *            false.
-     * @throws ArchitectException
-     */
     private void createRelationshipsFromPP(SQLTable source, SQLTable newTable, boolean isPrimaryKeyTableNew) throws ArchitectException {
         // create exported relationships if the importing tables exist in pp
 		Iterator sourceKeys = null;
@@ -1388,10 +1294,6 @@ public class PlayPen extends JPanel
 		    Object next = sourceKeys.next();
 		    if ( !(next instanceof SQLRelationship) ) continue;  // there could be SQLExceptionNodes here
 			SQLRelationship r = (SQLRelationship) next;
-			
-			// If relationship is self-referencing, then don't add it twice.
-			if (r.getFkTable().equals(r.getPkTable()) && !isPrimaryKeyTableNew) continue;
-			
 			if (logger.isInfoEnabled()) {
 				logger.info("Looking for fk table "+r.getFkTable().getName()+" in playpen");
 			}
@@ -1405,28 +1307,16 @@ public class PlayPen extends JPanel
 
 			if (tablePane != null) {
 				logger.info("FOUND IT!");
+				SQLTable oldTable = tablePane.getModel();
 
 				SQLRelationship newRel = new SQLRelationship();
 				newRel.setName(r.getName());
-				newRel.setIdentifying(r.determineIdentifyingStatus());
-				
-				SQLTable oldTable;
-				
-				if (r.getFkTable().equals(r.getPkTable())) {
-    			    // Prevents relationships from attaching to the wrong table
-                    // if a table with a self referencing relationship gets
-                    // imported twice.
-    			    oldTable = newTable;
-				} else {
-				    oldTable = tablePane.getModel();
-				}
-				
-				if (isPrimaryKeyTableNew) {
-				    newRel.attachRelationship(newTable,oldTable,false);
-				} else {
-				    newRel.attachRelationship(oldTable,newTable,false);
-				}
-				
+				newRel.setIdentifying(true);
+                if (isPrimaryKeyTableNew) {
+                    newRel.attachRelationship(newTable,oldTable,false);
+                } else {
+                    newRel.attachRelationship(oldTable,newTable,false);
+                }
 				addImpl(new Relationship(this, newRel),null,getPPComponentCount());
 
 				Iterator mappings = r.getChildren().iterator();
@@ -1489,7 +1379,7 @@ public class PlayPen extends JPanel
 		                      0,
 			                  100);
 		AddObjectsTask t = new AddObjectsTask(list,
-				preferredLocation, pm, session);
+				preferredLocation, pm, null, session);
 		t.setNextProcess(nextProcess);
 		new Thread(t, "Objects-Adder").start();
 	}
@@ -1497,6 +1387,7 @@ public class PlayPen extends JPanel
 	protected class AddObjectsTask extends MonitorableWorker {
 		private List<SQLObject> sqlObjects;
 		private Point preferredLocation;
+		private JDialog parentDialog;
 		private boolean hasStarted = false;
 		private boolean finished = false;
 		private String message = null;
@@ -1508,10 +1399,12 @@ public class PlayPen extends JPanel
 		public AddObjectsTask(List<SQLObject> sqlObjects,
 				Point preferredLocation,
 				ProgressMonitor pm,
+				JDialog parentDialog, 
                 ArchitectSwingSession session) {
             super(session);
 			this.sqlObjects = sqlObjects;
 			this.preferredLocation = preferredLocation;
+			this.parentDialog = parentDialog;
 			finished = false;
 			ProgressWatcher.watchProgress(pm, this);
 			this.pm = pm;
@@ -2327,7 +2220,7 @@ public class PlayPen extends JPanel
 					(new ActionEvent(evt.getSource(),
 							ActionEvent.ACTION_PERFORMED,
 							ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
-				} else if(evt.getClickCount()==1 && evt.getButton() == MouseEvent.BUTTON1){
+				} else if(evt.getClickCount()==1){
 				    if (c.isSelected()&& componentPreviouslySelected)c.setSelected(false,SelectionEvent.SINGLE_SELECT);
                 }
           		session.getArchitectFrame().getCreateIdentifyingRelationshipAction().cancel();
@@ -2387,7 +2280,7 @@ public class PlayPen extends JPanel
 
 					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0) {
 						mouseMode = MouseModeType.MULTI_SELECT;
-					} else if (evt.getButton() == MouseEvent.BUTTON1) {
+					} else {
 						mouseMode = MouseModeType.SELECT_RELATIONSHIP;
 						if ( !r.isSelected() ) {
 							pp.selectNone();
@@ -2576,8 +2469,8 @@ public class PlayPen extends JPanel
 		 * Shows the playpen popup menu if appropriate.
 		 */
 		public boolean maybeShowPopup(MouseEvent evt) {
-		    
-			setupTablePanePopup(null);
+
+			setupTablePanePopup();
 			setupPlayPenPopup();
 
 			Point p = evt.getPoint();
@@ -2608,7 +2501,6 @@ public class PlayPen extends JPanel
 						return false;
 					}
 					logger.debug("about to show playpen tablepane popup...");
-					setupTablePanePopup(tp.getModel());
 					tp.showPopup(pp.tablePanePopup, p);
 					return true;
 				}
@@ -2839,26 +2731,18 @@ public class PlayPen extends JPanel
 	}
 
     /**
-     * @return The font render context at the current zoom setting
-     *         or the font render context defined by the setter.
+     * @return The font render context at the current zoom setting.
      */
     public FontRenderContext getFontRenderContext() {
-        
         Graphics2D g2 = (Graphics2D) getGraphics();
         FontRenderContext frc = null;
         if (g2 != null) {
             g2.scale(zoom, zoom);
             frc = g2.getFontRenderContext();
             g2.dispose();
-        } else {
-            frc = fontRenderContext;
         }
         if (logger.isDebugEnabled()) logger.debug("Returning frc="+frc);
         return frc;
-    }
-    
-    public void setFontRenderContext(FontRenderContext frc) {
-        fontRenderContext = frc;
     }
 
     /**

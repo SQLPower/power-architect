@@ -1,20 +1,33 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package ca.sqlpower.architect.swingui;
 
@@ -38,7 +51,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
-import org.apache.commons.digester.Rule;
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -133,16 +145,7 @@ public class SwingUIProject extends CoreProject {
         // the play pen
         PlayPenFactory ppFactory = new PlayPenFactory();
         d.addFactoryCreate("architect-project/play-pen", ppFactory);
-        
-        //Sets the view point again in the case that the viewport was invalid in the factory
-        d.addRule("architect-project/play-pen", new Rule() {
-            @Override
-            public void end() throws Exception {
-                super.end();
-                getSession().getPlayPen().setInitialViewPosition();
-            }
-        });
-        
+
         TablePaneFactory tablePaneFactory = new TablePaneFactory();
         d.addFactoryCreate("architect-project/play-pen/table-pane", tablePaneFactory);
         // factory will add the tablepanes to the playpen
@@ -168,25 +171,9 @@ public class SwingUIProject extends CoreProject {
 
         return d;
     }
-    
-    
 
     private class PlayPenFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
-        	String zoomLevel = attributes.getValue("zoom");
-        	if (zoomLevel != null) {
-        	    getSession().getPlayPen().setZoom(Double.parseDouble(zoomLevel));
-        	}
-        	
-        	String viewportX = attributes.getValue("viewportX");
-        	String viewportY = attributes.getValue("viewportY");
-        	
-        	if (viewportX != null && viewportY != null) {
-        	    Point viewPoint = new Point(Integer.parseInt(viewportX), Integer.parseInt(viewportY));
-        		getSession().getPlayPen().setViewPosition(viewPoint);
-        	}
-        	logger.debug("Viewport position is " + getSession().getPlayPen().getViewPosition());
-        	
             String relStyle = attributes.getValue("relationship-style");
             boolean direct;
             if (relStyle == null) {
@@ -223,14 +210,11 @@ public class SwingUIProject extends CoreProject {
                     (SQLRelationship) objectIdMap.get(attributes.getValue("relationship-ref"));
                 r = new Relationship(getSession().getPlayPen(), rel);
                 getSession().getPlayPen().addRelationship(r);
-                r.updateUI();
 
                 int pkx = Integer.parseInt(attributes.getValue("pk-x"));
                 int pky = Integer.parseInt(attributes.getValue("pk-y"));
                 int fkx = Integer.parseInt(attributes.getValue("fk-x"));
                 int fky = Integer.parseInt(attributes.getValue("fk-y"));
-                int orientation = Integer.parseInt(attributes.getValue("orientation"));
-                ((RelationshipUI) r.getUI()).setOrientation(orientation);
                 r.setPkConnectionPoint(new Point(pkx, pky));
                 r.setFkConnectionPoint(new Point(fkx, fky));
             } catch (ArchitectException e) {
@@ -572,10 +556,7 @@ public class SwingUIProject extends CoreProject {
     private void savePlayPen(PrintWriter out) throws IOException, ArchitectException {
         String relStyle = getSession().getRelationshipLinesDirect() ?
                 RELATIONSHIP_STYLE_DIRECT : RELATIONSHIP_STYLE_RECTILINEAR;
-        ioo.println(out, "<play-pen zoom=\"" + getSession().getPlayPen().getZoom() + 
-        		"\" viewportX=\"" + getSession().getPlayPen().getViewPosition().x + 
-        		"\" viewportY=\"" + getSession().getPlayPen().getViewPosition().y + 
-        		"\" relationship-style="+quote(relStyle) + ">");
+        ioo.println(out, "<play-pen relationship-style="+quote(relStyle)+">");
         ioo.indent++;
         for(int i = getSession().getPlayPen().getTablePanes().size()-1; i>= 0; i--) {
             TablePane tp = getSession().getPlayPen().getTablePanes().get(i);
@@ -594,8 +575,7 @@ public class SwingUIProject extends CoreProject {
                     +" pk-x=\""+r.getPkConnectionPoint().x+"\""
                     +" pk-y=\""+r.getPkConnectionPoint().y+"\""
                     +" fk-x=\""+r.getFkConnectionPoint().x+"\""
-                    +" fk-y=\""+r.getFkConnectionPoint().y+"\""
-                    +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\" />");
+                    +" fk-y=\""+r.getFkConnectionPoint().y+"\" />");
         }
         ioo.indent--;
         ioo.println(out, "</play-pen>");
@@ -787,14 +767,7 @@ public class SwingUIProject extends CoreProject {
             SQLIndex index = (SQLIndex) o;
             propNames.put("unique", index.isUnique());
             propNames.put("qualifier", index.getQualifier());
-            propNames.put("clustered", index.isClustered());
-            /*
-             * Normally, hyphenated names are used to stop
-             * BeanUtils from auto-populating a field. However in this case,
-             * we are going to keep the hyphen (and break the normal scheme)
-             * in order to preserve backward compatibility.
-             */
-            propNames.put("index-type", index.getType());
+            propNames.put("index-type", index.getType().name());
             propNames.put("primaryKeyIndex", index.isPrimaryKeyIndex());
             propNames.put("filterCondition", index.getFilterCondition());
         } else if (o instanceof SQLIndex.Column) {
@@ -804,7 +777,8 @@ public class SwingUIProject extends CoreProject {
             if (col.getColumn() != null) {
                 propNames.put("column-ref", objectIdMap.get(col.getColumn()));
             }
-            propNames.put("ascendingOrDescending", col.getAscendingOrDescending().name());
+            propNames.put("ascending", col.isAscending());
+            propNames.put("descending", col.isDescending());
         } else {
             throw new UnsupportedOperationException("Whoops, the SQLObject type "
                     +o.getClass().getName()+" is not supported!");

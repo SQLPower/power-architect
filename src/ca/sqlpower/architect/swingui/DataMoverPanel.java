@@ -1,22 +1,39 @@
 /*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * Copyright (c) 2007, SQL Power Group Inc.
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *     * Neither the name of SQL Power Group Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+/*
+ * Created on Nov 28, 2006
+ *
+ * This code belongs to SQL Power Group Inc.
+ */
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Window;
@@ -39,6 +56,7 @@ import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.SQLCatalog;
@@ -50,10 +68,7 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.sql.DataMover;
-import ca.sqlpower.sql.DatabaseListChangeEvent;
-import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -80,11 +95,6 @@ public class DataMoverPanel {
     private JTree destTree;
     
     /**
-     * The root object of the source and destination trees.
-     */
-    private SQLObjectRoot treeRoot;
-    
-    /**
      * Checkbox for selecting whether or not to wipe out the destination
      * table's contents before loading.
      */
@@ -95,10 +105,11 @@ public class DataMoverPanel {
      */
     private ArchitectSwingSession session;
     
-    public DataMoverPanel(ArchitectSwingSession session) throws ArchitectException {
-        this.session = session;
-        
-        setupDBTrees();
+    public DataMoverPanel(ArchitectSession session) throws ArchitectException {
+        SQLObjectRoot treeRoot = new SQLObjectRoot();
+        for (SPDataSource ds : session.getContext().getConnections()) {
+            treeRoot.addChild(new SQLDatabase(ds));
+        }
         
         sourceTree = new JTree(new DBTreeModel(session, treeRoot));
         sourceTree.setRootVisible(false);
@@ -124,24 +135,6 @@ public class DataMoverPanel {
         pb.add(new JScrollPane(sourceTree), cc.xy(1, 3));
         pb.add(new JScrollPane(destTree), cc.xy(3, 3));
         
-        session.getContext().getPlDotIni().addDatabaseListChangeListener(new DatabaseListChangeListener() {
-            public void databaseAdded(DatabaseListChangeEvent e) {
-                try {
-                    setupDBTrees();                            
-                } catch (ArchitectException ex) {
-                    SPSUtils.showExceptionDialogNoReport(panel, "Could not get a database from the list of connections.", ex);
-                }
-            }
-            public void databaseRemoved(DatabaseListChangeEvent e) {
-                try {
-                    setupDBTrees();                            
-                } catch (ArchitectException ex) {
-                    SPSUtils.showExceptionDialogNoReport(panel, "Could not get a database from the list of connections.", ex);
-                }
-            }
-        });
-
-        pb.add(new JButton(new DatabaseConnectionManagerAction(session)), cc.xy(1, 5));
         pb.add(truncateDestinationTableBox = new JCheckBox("Truncate Destination Table?"), cc.xy(3, 5));
 
         pb.add(ButtonBarFactory.buildOKCancelBar(
@@ -150,23 +143,6 @@ public class DataMoverPanel {
         
         pb.setDefaultDialogBorder();
         panel = pb.getPanel();
-    }
-
-    /**
-     * Sets the trees in the data mover panel to have all of the connections
-     * in the current context.
-     */
-    private void setupDBTrees() throws ArchitectException {
-        if (treeRoot == null) {
-            treeRoot = new SQLObjectRoot();
-        } else {
-            for(int i = treeRoot.getChildCount() - 1; i >= 0; i--) {
-                treeRoot.removeChild(i);
-            }
-        }
-        for (SPDataSource ds : session.getContext().getConnections()) {
-            treeRoot.addChild(new SQLDatabase(ds));
-        }
     }
     
     private Action okAction = new AbstractAction("OK") {
