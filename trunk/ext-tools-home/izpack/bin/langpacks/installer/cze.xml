@@ -9,7 +9,7 @@
     <str id="installer.next" txt="Dal¹í"/>
     <str id="installer.prev" txt="Pøedcházející"/>
     <str id="installer.quit" txt="Konec"/>
-    <str id="installer.madewith" txt="(Vytvoøené pomocí IzPack - http://www.izforge.com/)"/>
+    <str id="installer.madewith" txt="(Vytvoøené pomocí IzPack - http://izpack.org/)"/>
     <str id="installer.quit.title" txt="Skuteènì chcete ukonèit instalaci ?"/>
     <str id="installer.quit.message" txt="Tato operace ukonèí instalaci !"/>
     <str id="installer.warning" txt="Varování !"/>

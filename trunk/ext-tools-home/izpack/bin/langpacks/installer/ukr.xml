@@ -9,7 +9,7 @@
     <str id="installer.next" txt="Далі"/>
     <str id="installer.prev" txt="�?азад"/>
     <str id="installer.quit" txt="Вийти"/>
-    <str id="installer.madewith" txt="(Ін�?тал�?тор зроблено за допомогою IzPack - http://www.izforge.com/)"/>
+    <str id="installer.madewith" txt="(Ін�?тал�?тор зроблено за допомогою IzPack - http://izpack.org/)"/>
     <str id="installer.quit.title" txt="Завершити роботу?"/>
     <str id="installer.quit.message" txt="Ін�?тал�?ці�? буде відмінена !"/>
     <str id="installer.warning" txt="За�?тереженн�? !"/>

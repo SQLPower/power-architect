@@ -9,7 +9,7 @@
     <str id="installer.next" txt="Kemudian"/>
     <str id="installer.prev" txt="Sebelum"/>
     <str id="installer.quit" txt="Tamat"/>
-    <str id="installer.madewith" txt="(Di Perbuat Dengan IzPack - http://www.izforge.com/)"/>
+    <str id="installer.madewith" txt="(Di Perbuat Dengan IzPack - http://izpack.org/)"/>
     <str id="installer.quit.title" txt="Anda pasti mahu tamatkan operasi?"/>
     <str id="installer.quit.message" txt="Ini akan menghentikan pemasangan!"/>
     <str id="installer.warning" txt="Amaran !"/>

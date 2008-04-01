@@ -10,19 +10,10 @@ uses XML files to describe your installation.
 is also very modular so that you can easely create and integrate your own
 panels (installation steps).
 
-    The IzPack homepage is http://www.izforge.com/izpack/ . You can contact the
-author : julien@izforge.com / julien.ponge@gmail.com .
+    The IzPack homepage is http://izpack.org/ . You can contact the
+author: julien.ponge@gmail.com .
 
-    > 2 - The documentation <
-    
-    A documentation is available in the doc folder. It was generated with 
-LaTeX under GNU-Linux. You can print a book version by modifying the 
-izpack-doc.tex file (change the class from report to book) that is located in
-the src/doc folder (provided that you installed the source code). A makefile
-is available to compile the documentation, see the Readme file of the folder
-for more.
-
-    > 3 - Licencing issues <
+    > 2 - Licencing issues <
     
     The licences used by IzPack or the libraries it uses are available in the 
 legal folder. IzPack itself is covered by the Apache License Version 2.0.

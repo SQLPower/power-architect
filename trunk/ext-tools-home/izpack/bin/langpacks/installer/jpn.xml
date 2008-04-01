@@ -40,7 +40,7 @@
     <str id="installer.next" txt="次へ"/>
     <str id="installer.prev" txt="前へ"/>
     <str id="installer.quit" txt="終了"/>
-    <str id="installer.madewith" txt="(IzPackにて作成されました - http://www.izforge.com/)"/>
+    <str id="installer.madewith" txt="(IzPackにて作成されました - http://izpack.org/)"/>
     <str id="installer.quit.title" txt="インストールの中止"/>
     <str id="installer.quit.message" txt="インストーラを終了します!"/>
     <str id="installer.warning" txt="警告 !"/>

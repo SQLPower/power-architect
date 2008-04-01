@@ -676,7 +676,7 @@
 						<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 							<include name="*.ico"/>
 						</fileset>
-						<parsable targetfile="${INSTALL_PATH}/architect_file_association.reg" type="windowsreg"/>
+						<parsable targetfile="${INSTALL_PATH}/architect_file_association.reg"/>
 						<executable targetfile="regedit.exe" stage="postinstall" keep="true">
 						   <args>
 						     <arg value="\/s"/>
@@ -759,7 +759,7 @@
 							<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 								<include name="*.ico"/>
 							</fileset>
-							<parsable targetfile="${INSTALL_PATH}/architect_file_association.reg" type="windowsreg"/>
+							<parsable targetfile="${INSTALL_PATH}/architect_file_association.reg"/>
 							<executable targetfile="regedit.exe" stage="postinstall" keep="true">
 							   <args>
 							     <arg value="\/s"/>
@@ -778,9 +778,37 @@
 				</installation>
 				]]>
 			</config>
-			</izpack>
+	      </izpack>
 		</target>
-
+	
+	<property name="izpack2exe.dir" value="${izpack.dir}/utils/izpack2exe"/>
+	
+	<!-- 
+		Uses izpack python script to convert the Windows JAR installer nto EXE executables
+		Note that this target requires the python command to be in your PATH
+	 -->
+	<target name="windows_exe_installer" depends="windows_installer">
+	  <exec executable="python" dir="${izpack2exe.dir}">
+	    <arg value="izpack2exe.py"/>
+	    <arg value="--file=../../../../${dist.dir}/Architect-Setup-Windows-${app.version}.jar"/>
+	    <arg value="--no-upx"/>
+	  	<arg value="--output=../../../../${dist.dir}/Architect-Setup-Windows-${app.version}.exe"/>
+	  </exec>
+	</target>
+	
+	<!-- 
+		Uses izpack python script to convert the Windows JDBC JAR installer into EXE executables
+		Note that this target requires the python command to be in your PATH
+	 -->
+	<target name="windows_jdbc_exe_installer" depends="windows_jdbc_installer">
+	  <exec executable="python" dir="${izpack2exe.dir}">
+	    <arg value="izpack2exe.py"/>
+	    <arg value="--file=../../../../${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"/>
+	    <arg value="--no-upx"/>
+	  	<arg value="--output=../../../../${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.exe"/>
+	  </exec>
+	</target>
+	
 	<target name="osx_adapter_jar" depends="checkBuildPath"
 			description="Creates the osx_packaging_utils/osx_adapter.jar file (only works on OSX)">
 		<javac srcdir="osx_packaging_utils"
@@ -1021,8 +1049,8 @@
 		</tar>
 	</target>
 	
-	<target name="jdbc_dist" depends="windows_jdbc_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
-	<target name="no_jdbc_dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg" />
+	<target name="jdbc_dist" depends="windows_jdbc_exe_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
+	<target name="no_jdbc_dist" depends="windows_exe_installer,generic_install,osx_tgz,osx_dmg" />
 
 	<target name="dist" depends="pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,no_jdbc_dist,source_only_tgz"
 	        description="Builds Architect Distribution for all supported platforms to dist/architect-version/*">

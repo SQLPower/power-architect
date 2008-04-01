@@ -9,7 +9,7 @@
     <str id="installer.next" txt="Urmator"/>
     <str id="installer.prev" txt="Anterior"/>
     <str id="installer.quit" txt="Iesire"/>
-    <str id="installer.madewith" txt="(Produs de IzPack - http://www.izforge.com/)"/>
+    <str id="installer.madewith" txt="(Produs de IzPack - http://izpack.org/)"/>
     <str id="installer.quit.title" txt="Sunteti sigur ca vreti sa iesiti ?"/>
     <str id="installer.quit.message" txt="Instalarea va fi oprita !"/>
     <str id="installer.warning" txt="Atentie !"/>
