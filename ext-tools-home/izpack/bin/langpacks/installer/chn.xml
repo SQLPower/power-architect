@@ -9,7 +9,7 @@
     <str id="installer.next" txt="下一步"/>
     <str id="installer.prev" txt="上一步"/>
     <str id="installer.quit" txt="退出"/>
-    <str id="installer.madewith" txt="(由IzPack制作生成 - http://www.izforge.com/)"/>
+    <str id="installer.madewith" txt="(由IzPack制作生成 - http://izpack.org/)"/>
     <str id="installer.quit.title" txt="是否确定退出?"/>
     <str id="installer.quit.message" txt="将取消该安装过程 !"/>
     <str id="installer.warning" txt="警告 !"/>

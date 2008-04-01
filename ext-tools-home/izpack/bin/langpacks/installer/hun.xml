@@ -9,7 +9,7 @@
     <str id="installer.next" txt="Következõ"/>
     <str id="installer.prev" txt="Elözõ"/>
     <str id="installer.quit" txt="Kilépés"/>
-    <str id="installer.madewith" txt="(Created with IzPack - http://www.izforge.com/)"/>
+    <str id="installer.madewith" txt="(Készült az IzPack-vel - http://izpack.org/)"/>
     <str id="installer.quit.title" txt="A telepítés megszakítása"/>
     <str id="installer.quit.message" txt="Biztos benne, hogy ki akar lépni ?"/>
     <str id="installer.warning" txt="Figylem !"/>
@@ -17,6 +17,9 @@
     <str id="installer.no" txt="Nem"/>
     <str id="installer.cancel" txt="Megszakít"/> 
     <str id="installer.error" txt="Hiba"/>
+    <str id="installer.help" txt="Súgó"/>
+    <str id="installer.step" txt="Step"/>
+    <str id="installer.of" txt="of"/>
     
     <!-- Uninstaller specific strings -->
     <str id="uninstaller.warning" txt="A telepített alkalmazás eltávolítása következik !"/>
@@ -31,7 +34,7 @@
     
     <str id="LicencePanel.info" txt="Kérem olvassa el a következõ licence megállapodást :"/>
     <str id="LicencePanel.agree" txt="Elfogadja a licence feltételeket ?"/>
-    <str id="LicencePanel.notagree" txt="I do not accept the terms of this license agreement."/>
+    <str id="LicencePanel.notagree" txt="NEM fogadom el a megadott licence feltételeket."/>
     <str id="LicencePanel.yes" txt="Igen"/>
     <str id="LicencePanel.no" txt="Nem"/>
     
@@ -46,16 +49,18 @@
     <str id="TargetPanel.createdir" txt="A cél mappát a tetelepítõ létrehozza :" />
          
     
-    <str id="PacksPanel.info" txt="Válassza ki az instalálandó csomagokat :"/>
+    <str id="PacksPanel.info" txt="Válassza ki az telepítendõ csomagokat :"/>
     <str id="PacksPanel.tip" txt="Megjegyzés: a szürke csomagok telepítése elengedhetetlen."/>
     <str id="PacksPanel.space" txt="Összesen szükséges hely a lemezen: "/>
-    <str id="PacksPanel.description" txt="Description"/>
+    <str id="PacksPanel.description" txt="Leírás"/>
+    <str id="PacksPanel.freespace" txt="Rendelkezésre álló hely a lemezen: "/>
     
     <str id="InstallPanel.info" txt="Kattintson az 'Telepítés !' gombra a telepítés megkezdéséhez!"/>
     <str id="InstallPanel.install" txt="Telepítés !"/>
     <str id="InstallPanel.tip" txt="Telepítési folyamat :"/>
     <str id="InstallPanel.begin" txt="[Nincs megkezdve]"/>
     <str id="InstallPanel.finished" txt="[Befejezve]"/>
+    <str id="InstallPanel.progress" txt="Összefoglaló telepítési folyamat:"/>
     
     <str id="FinishPanel.success" txt="A telepítés sikeresen lezajlott."/>
     <str id="FinishPanel.fail" txt="A telepítés sikertelen!"/>
@@ -76,12 +81,12 @@
     <str id="ShortcutPanel.regular.currentUser" txt="aktuális felhasználó          "/>
     <str id="ShortcutPanel.regular.allUsers" txt="összes felhasználó            "/>
 
-    <str id="ShortcutPanel.alternate.apology" txt="Sajnos az IzPack nem támogatja parancsikon lértehozását az Ön operációs rendszerén! Paramcs ikon készítésének módjáról tájékozódjon az operációs rendszer kézikönyvébõl!"/>
+    <str id="ShortcutPanel.alternate.apology" txt="Sajnos az IzPack nem támogatja parancsikon lértehozását az Ön operációs rendszerén! Parancs ikon készítésének módjáról tájékozódjon az operációs rendszer kézikönyvébõl!"/>
     <str id="ShortcutPanel.alternate.targetsLabel" txt="A következõ listában a gyártó által megjelölt belépési pontok láthatók:"/>
     <str id="ShortcutPanel.alternate.textFileExplanation" txt="Késöbbi felhasználás céljából szöveg file-ba mentheti a belépési pontok részletes leírását"/>
     <str id="ShortcutPanel.alternate.saveButton" txt="A szöveg file mentése"/>
     
-    <str id="ShortcutPanel.textFile.header" txt="Parancsikon Informatiók\n=======================\n\nAz alábbi lista tartalmazza a tervezett parancsikonok kézi létrehozásához szükséges információkat.\n"/>
+    <str id="ShortcutPanel.textFile.header" txt="Parancsikon Információk\n=======================\n\nAz alábbi lista tartalmazza a tervezett parancsikonok kézi létrehozásához szükséges információkat.\n"/>
     
     <str id="ShortcutPanel.textFile.name"         txt="Parancsikon       : "/>
     <str id="ShortcutPanel.textFile.description"  txt="Leírás            : "/>
@@ -91,8 +96,27 @@
     <str id="ShortcutPanel.textFile.iconIndex"    txt="Icon Index        : "/>
     <str id="ShortcutPanel.textFile.work"         txt="Munka könyvtár    : "/>
 
-    <str id="UserInputPanel.error.caption"        txt="Input Problem"/>
+    <str id="UserInputPanel.error.caption"        txt="Adathiba"/>
 
+    <str id="JDKPathPanel.extendedIntro" txt="A telepített alkalmazásnak szüksége van egy JDK-ra, mely verziószáma ${JDKPathPanel.minVersion} és ${JDKPathPanel.maxVersion} között kell legyen. Csak (JRE) nem elegendõ."/>
+    <str id="JDKPathPanel.intro" txt="A telepített alkalmazásnak szüksége van egy JDK-ra. Egy java runtime environment (JRE) nem elegendõ."/>
+    <str id="JDKPathPanel.info" txt="Válassza ki a JDK helyét:"/>
+    <str id="JDKPathPanel.badVersion1" txt="A megadott JDK nem megfelelõ (elérhetõ: "/>
+    <str id="JDKPathPanel.badVersion2" txt=" szükséges: "/>
+    <str id="JDKPathPanel.badVersion3" txt=") mégis ezt a JDK-t használjuk?"/>
+
+    <str id="PathInputPanel.required" txt="A kiválasztott könyvtár nem létezik."/>
+    <str id="PathInputPanel.notValid" txt="A kiválasztott könyvtár nem tartalmazza a szükséges Java terméket."/>
+
+    <str id="SummaryPanel.info" txt="Készen állunk a telepítésre. A fontosabb beállítások listája. Kattintson az 'Következõ' gombra a telepítés megkezdéséhez, "/>
+    <str id="TargetPanel.summaryCaption" txt="Cél mappa"/>
+    <str id="JDKPathPanel.summaryCaption" txt="JDK elérési út"/>
+    <str id="PacksPanel.summaryCaption" txt="Kiválasztott telepítési csomagok"/>
+    <str id="ImgPacksPanel.summaryCaption" txt="Kiválasztott telepítési csomagok"/>
+
+    <str id="CheckedHelloPanel.productAlreadyExist0" txt="Ez a program már telepítve van a következõ mappában "/>
+    <str id="CheckedHelloPanel.productAlreadyExist1" txt=" . Bzitos benne, hogy még egy példányban telepíteni akarja?"/>
+    <str id="CheckedHelloPanel.infoOverUninstallKey" txt="A program eltávolításához szükséges kulcs a következõ lesz: " />
     <!-- Add your own panels specific strings here if you need -->
 
 </langpack>

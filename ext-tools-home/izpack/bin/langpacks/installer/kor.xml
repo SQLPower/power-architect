@@ -9,7 +9,7 @@
     <str id="installer.next" txt="다음"/>
     <str id="installer.prev" txt="이전"/>
     <str id="installer.quit" txt="종료"/>
-    <str id="installer.madewith" txt="(Made with IzPack - http://www.izforge.com/)"/>
+    <str id="installer.madewith" txt="(Made with IzPack - http://izpack.org/)"/>
     <str id="installer.quit.title" txt="종료하시겠습니까?"/>
     <str id="installer.quit.message" txt="설치가 취소됩니다!"/>
     <str id="installer.warning" txt="경고!"/>

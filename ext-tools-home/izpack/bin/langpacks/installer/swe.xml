@@ -9,7 +9,7 @@
     <str id="installer.next" txt="Nästa"/>
     <str id="installer.prev" txt="Föregående"/>
     <str id="installer.quit" txt="Avsluta"/>
-    <str id="installer.madewith" txt="(Skapad med IzPack - http://www.izforge.com/)"/>
+    <str id="installer.madewith" txt="(Skapad med IzPack - http://izpack.org/)"/>
     <str id="installer.quit.title" txt="Är du säker att du vill avsluta?"/>
     <str id="installer.quit.message" txt="Detta kommer att avbryta installationen!"/>
     <str id="installer.warning" txt="Varning!"/>
@@ -153,13 +153,13 @@
 
     <str id="ProcessPanel.heading" txt="Processar" />
 
-    <!-- Strings for the summary of panels --- START -->
+    <!-- Strings for the summary of panels - START -->
     <str id="SummaryPanel.info" txt="Färdig att installera. Viktiga inställningar anges nedan. Tryck &quot;Nästa&quot; för att starta installationen, "/>
     <str id="TargetPanel.summaryCaption" txt="Sökväg för installationen"/>
     <str id="JDKPathPanel.summaryCaption" txt="Sökväg till JDK"/>
     <str id="PacksPanel.summaryCaption" txt="Valda paket för installering"/>
     <str id="ImgPacksPanel.summaryCaption" txt="Valda paket för installering"/>
-    <!-- Strings for the summary of panels --- END -->
+    <!-- Strings for the summary of panels - END -->
 
     <!-- Add your own panels specific strings here if you need -->
 

@@ -9,7 +9,7 @@
     <str id="installer.next" txt="Neste"/>
     <str id="installer.prev" txt="Forrige"/>
     <str id="installer.quit" txt="Avslutt"/>
-    <str id="installer.madewith" txt="(Laget med IzPack - http://www.izforge.com/)"/>
+    <str id="installer.madewith" txt="(Laget med IzPack - http://izpack.org/)"/>
     <str id="installer.quit.title" txt="Er du sikker på at du vil avslutte ?"/>
     <str id="installer.quit.message" txt="Dette vil avbryte installasjonen !"/>
     <str id="installer.warning" txt="Advarsel !"/>

@@ -10,7 +10,7 @@
     <str id="installer.next"         txt="Далее"/>
     <str id="installer.prev"         txt="Назад"/>
     <str id="installer.quit"         txt="Выход"/>
-    <str id="installer.madewith"     txt="(Программа установки сделана при помощи IzPack - http://www.izforge.com/)"/>
+    <str id="installer.madewith"     txt="(Программа установки сделана при помощи IzPack - http://izpack.org/)"/>
     <str id="installer.quit.title"   txt="Закончить работу?"/>
     <str id="installer.quit.message" txt="Установка будет отменена!"/>
     <str id="installer.warning"      txt="Предупреждение!"/>
@@ -29,6 +29,8 @@
     <str id="HelloPanel.welcome2"       txt=" !"/>
     <str id="HelloPanel.authors"        txt="Авторы программы: "/>
     <str id="HelloPanel.url"            txt="Домашняя страница программы: "/>
+    
+    <str id="PrinterSelectPanel.select_printer" txt="Укажите принтер для установки и тестовой печати." />
 
     <str id="CheckedHelloPanel.productAlreadyExist0" txt="Этот продукт уже установлен на данном компьютере в каталоге "/>
     <str id="CheckedHelloPanel.productAlreadyExist1" txt=" . Вы действительно хотите установить еще одну копию?"/>
@@ -60,7 +62,7 @@
     <str id="JDKPathPanel.badVersion3" txt="), всё равно использовать этот JDK?"/>
 
     <str id="PacksPanel.info"              txt="Выберите наборы для установки:"/>
-    <str id="PacksPanel.tip"               txt="Примечание: неактивные наборы обязательны к установке."/>
+    <str id="PacksPanel.tip"               txt="Примечание: неактивные модули обязательны к установке."/>
     <str id="PacksPanel.space"             txt="Требуется места: "/>
     <str id="PacksPanel.freespace"         txt="Доступно места: "/>
     <str id="PacksPanel.description"       txt="Описание"/>
@@ -85,7 +87,7 @@
     <str id="FinishPanel.auto"        txt="Создать сценарий автоматической установки"/>
     <str id="FinishPanel.auto.tip"    txt="Будет создан файл, позволяющий автоматически провести такую же инсталляцию программы на другом компьютере."/>
 
-    <str id="ImgPacksPanel.packs"    txt="Доступны следующие наборы:"/>
+    <str id="ImgPacksPanel.packs"    txt="Доступны следующие модули:"/>
     <str id="ImgPacksPanel.snap"     txt="Снимок экрана:"/>
     <str id="ImgPacksPanel.checkbox" txt=" Установить набор"/>
 
@@ -159,8 +161,8 @@
     <str id="SummaryPanel.info"            txt="Все необходимые данные для начала установки собраны. Нажмите &quot;Далее&quot; для запуска."/>
     <str id="TargetPanel.summaryCaption"   txt="Каталог установки"/>
     <str id="JDKPathPanel.summaryCaption"  txt="Путь к JDK"/>
-    <str id="PacksPanel.summaryCaption"    txt="Выбранные наборы для установки"/>
-    <str id="ImgPacksPanel.summaryCaption" txt="Выбранные наборы для установки"/>
+    <str id="PacksPanel.summaryCaption"    txt="Выбранные модули для установки"/>
+    <str id="ImgPacksPanel.summaryCaption" txt="Выбранные модули для установки"/>
     <!-- Strings for the summary of panels - END -->
 
     <!-- Strings for the Registry -->

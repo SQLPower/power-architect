@@ -9,7 +9,7 @@
     <str id="installer.next" txt="Επόμενο"/>
     <str id="installer.prev" txt="Προηγούμενο"/>
     <str id="installer.quit" txt="Έξοδος"/>
-    <str id="installer.madewith" txt="(Κατασκευασμένο με το - http://www.izforge.com/)"/>
+    <str id="installer.madewith" txt="(Κατασκευασμένο με το - http://izpack.org/)"/>
     <str id="installer.quit.title" txt="Θέλετε πραγματικά να φύγετε;"/>
     <str id="installer.quit.message" txt="Αυτό θα ακυρώσει την εγκατάσταση!"/>
     <str id="installer.warning" txt="Προσοχή!"/>

@@ -9,7 +9,7 @@
     <str id="installer.next" txt="Следеће"/>
     <str id="installer.prev" txt="Претходно"/>
     <str id="installer.quit" txt="Излаз"/>
-    <str id="installer.madewith" txt="(Направљено помоћу IzPack-а - http://www.izforge.com/)"/>
+    <str id="installer.madewith" txt="(Направљено помоћу IzPack-а - http://izpack.org/)"/>
     <str id="installer.quit.title" txt="Да ли сте сигурни да желите да изађете?"/>
     <str id="installer.quit.message" txt="Ово ће да прекине инсталацију!"/>
     <str id="installer.warning" txt="Упозорење!"/>
