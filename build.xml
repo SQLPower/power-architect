@@ -1211,6 +1211,9 @@
 			</condition>
 		</fail>
 		<echo message="Attempting to build sqlpower-library project..."/>
+		<ant dir="${sqlpower.library.home}" target="clean">
+			<property name="build" value="${sqlpower.library.home}/build"/>
+		</ant>
 		<ant dir="${sqlpower.library.home}">
 			<property name="build" value="${sqlpower.library.home}/build"/>
 		</ant>
