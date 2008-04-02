@@ -77,6 +77,21 @@
 		</not>
 	</condition>
 
+	<!-- When the build runs on Windows, we can create the .exe executable
+	     using the izpack2exe's exe tool. Otherwise, we would use python
+	     along with the python izpack2exe python script.
+	-->
+	<condition property="isWindows">
+		<os family="windows"/>
+	</condition>
+
+	<condition property="isNotWindows">
+		<not>
+			<os family="windows"/>
+		</not>
+	</condition>
+
+	
 	<target name="init" depends="checkAntVersion, checkBuildPath"
 		description="Checks build prereqs, creates output dir, and determines product version"
 		>
@@ -783,11 +798,13 @@
 	
 	<property name="izpack2exe.dir" value="${izpack.dir}/utils/izpack2exe"/>
 	
+	<target name="windows_exe_installer" depends="windows_exe_installer_with_python, windows_exe_installer_without_python"/>
+	
 	<!-- 
 		Uses izpack python script to convert the Windows JAR installer nto EXE executables
 		Note that this target requires the python command to be in your PATH
 	 -->
-	<target name="windows_exe_installer" depends="windows_installer">
+	<target name="windows_exe_installer_with_python" depends="windows_installer" if="isNotWindows">
 	  <exec executable="python" dir="${izpack2exe.dir}">
 	    <arg value="izpack2exe.py"/>
 	    <arg value="--file=../../../../${dist.dir}/Architect-Setup-Windows-${app.version}.jar"/>
@@ -797,15 +814,45 @@
 	</target>
 	
 	<!-- 
+		Uses izpack2exe executable to convert the Windows JDBC JAR installer into EXE executables
+		Note that this target is designed to work only on Windows
+	 -->
+	<target name="windows_exe_installer_without_python" depends="windows_installer" if="isWindows">
+	  <exec executable="cmd" dir="${izpack2exe.dir}">
+  	    <arg value="/c"/>
+  	    <arg value="izpack2exe.exe"/>
+	    <arg value="--file=..\..\..\..\${dist.dir}\Architect-Setup-Windows-${app.version}.jar"/>
+	    <arg value="--no-upx"/>
+	  	<arg value="--output=..\..\..\..\${dist.dir}\Architect-Setup-Windows-${app.version}.exe"/>
+	  </exec>
+	</target>
+	
+	<target name="windows_jdbc_exe_installer" depends="windows_jdbc_exe_installer_with_python, windows_jdbc_exe_installer_without_python"/>
+	
+	<!-- 
 		Uses izpack python script to convert the Windows JDBC JAR installer into EXE executables
 		Note that this target requires the python command to be in your PATH
 	 -->
-	<target name="windows_jdbc_exe_installer" depends="windows_jdbc_installer">
+	<target name="windows_jdbc_exe_installer_with_python" depends="windows_jdbc_installer" if="isNotWindows">
 	  <exec executable="python" dir="${izpack2exe.dir}">
 	    <arg value="izpack2exe.py"/>
 	    <arg value="--file=../../../../${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"/>
 	    <arg value="--no-upx"/>
 	  	<arg value="--output=../../../../${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.exe"/>
+	  </exec>
+	</target>
+	
+	<!-- 
+		Uses izpack2exe executable to convert the Windows JDBC JAR installer into EXE executables
+		Note that this target is designed to work only on Windows
+	 -->
+	<target name="windows_jdbc_exe_installer_without_python" depends="windows_jdbc_installer" if="isWindows">
+	  <exec executable="cmd" dir="${izpack2exe.dir}">
+  	    <arg value="/c"/>
+  	    <arg value="izpack2exe.exe"/>
+	    <arg value="--file=..\..\..\..\${dist.dir}\Architect-Setup-Windows-jdbc-${app.version}.jar"/>
+	    <arg value="--no-upx"/>
+	  	<arg value="--output=..\..\..\..\${dist.dir}\Architect-Setup-Windows-jdbc-${app.version}.exe"/>
 	  </exec>
 	</target>
 	
@@ -1164,7 +1211,6 @@
 			</condition>
 		</fail>
 		<echo message="Attempting to build sqlpower-library project..."/>
-		<ant dir="${sqlpower.library.home}" target="clean"/>
 		<ant dir="${sqlpower.library.home}">
 			<property name="build" value="${sqlpower.library.home}/build"/>
 		</ant>
