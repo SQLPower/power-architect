@@ -38,6 +38,7 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.MonitorableImpl;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.Rectangle;
@@ -60,8 +61,8 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
      *  and requests a file to save to. When it gets that it draws the
      *  playpen to a PDF file on a seperate thread.
      */
-    public boolean setup(ActionMonitor monitor, Map<String,Object> properties) {
-        monitor.started = true;
+    public boolean setup(MonitorableImpl monitor, Map<String,Object> properties) {
+        monitor.setStarted(true);
         JFileChooser chooser = new JFileChooser(session.getRecentMenu().getMostRecentFile());
         chooser.addChoosableFileFilter(SPSUtils.PDF_FILE_FILTER);
         monitor.setJobSize(playpen.getPlayPenContentPane().getComponentCount());
@@ -100,12 +101,12 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
     }
     
     @Override
-    public void cleanUp(ActionMonitor monitor) {
+    public void cleanUp(MonitorableImpl monitor) {
         // TODO might have to cleanup here
     }
 
     @Override
-    public void doStuff(ActionMonitor monitor, Map<String, Object> properties) {
+    public void doStuff(MonitorableImpl monitor, Map<String, Object> properties) {
         PlayPen playPen = new PlayPen(session, playpen);
         
         // don't need this playpen to be interactive or respond to SQLObject changes

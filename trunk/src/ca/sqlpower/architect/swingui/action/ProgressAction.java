@@ -32,7 +32,7 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
-import ca.sqlpower.util.Monitorable;
+import ca.sqlpower.util.MonitorableImpl;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -44,67 +44,6 @@ import com.jgoodies.forms.layout.FormLayout;
  * bar.  The dialog automatically closes when the job finishes.
  */
 public abstract class ProgressAction extends AbstractArchitectAction {
-    /**
-     * A simple bean monitor.  Used to allow the classes extending
-     * ProgressAction to manipulate the progressbar.
-     */
-    public class ActionMonitor implements Monitorable {
-        Integer jobSize = null;
-        String message ="";
-        int progress = 0;
-        boolean started = false;
-        boolean finished = false;
-        boolean cancelled = false;
-
-        public boolean isCancelled() {
-            return cancelled;
-        }
-
-        public void setCancelled(boolean cancelled) {
-            this.cancelled = cancelled;
-        }
-
-        public boolean hasStarted() {
-            return started;
-        }
-
-        public boolean isFinished() {
-            return finished;
-        }
-
-        public void setFinished(boolean finished) {
-            this.finished = finished;
-        }
-
-        public Integer getJobSize() {
-            return jobSize;
-        }
-
-        public void setJobSize(Integer jobSize) {
-            this.jobSize = jobSize;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-
-        public int getProgress() {
-            return progress;
-        }
-
-        public void setProgress(int progress) {
-            this.progress = progress;
-        }
-
-        public void setStarted(boolean started) {
-            this.started = started;
-        }
-
-    }
     
     public ProgressAction(
             ArchitectSwingSession session,
@@ -136,7 +75,7 @@ public abstract class ProgressAction extends AbstractArchitectAction {
                 "4dlu,pref,4dlu, pref, 6dlu, pref,4dlu"));
         JLabel label = new JLabel(getDialogMessage());
         JProgressBar progressBar = new JProgressBar();
-        final ActionMonitor monitor = new ActionMonitor();
+        final MonitorableImpl monitor = new MonitorableImpl();
         if (!setup(monitor,properties)){
             // if setup indicates not to continue (returns false), then exit method
             return;
@@ -185,15 +124,15 @@ public abstract class ProgressAction extends AbstractArchitectAction {
      * @return return true to continue with the action, return false to stop the action
      *          This could be used to respond to user choice to cancel the action
      */
-    public abstract boolean setup(ActionMonitor monitor, Map<String, Object> properties);
+    public abstract boolean setup(MonitorableImpl monitor, Map<String, Object> properties);
     /**
      * doStuff replaces the actionPerformed() call
      */
-    public abstract void doStuff(ActionMonitor monitor, Map<String, Object> properties);
+    public abstract void doStuff(MonitorableImpl monitor, Map<String, Object> properties);
     /**
      * Perform any cleanup code here 
      */
-    public abstract void cleanUp(ActionMonitor monitor);
+    public abstract void cleanUp(MonitorableImpl monitor);
     /**
      * Gets the message that will be displayed on the progressbar
      * 
