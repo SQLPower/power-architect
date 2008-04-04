@@ -53,6 +53,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.InsertionPointWatcher;
 import ca.sqlpower.architect.LockedColumnException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
@@ -629,7 +630,7 @@ public class TablePane
 	 * @return True if the insert worked; false otherwise
 	 * @throws ArchitectException If there are problems in the business model
 	 */
-	public boolean insertObjects(List<SQLObject> items, int insertionPoint) throws ArchitectException {
+	public boolean insertObjects(List<? extends SQLObject> items, int insertionPoint) throws ArchitectException {
 		boolean newColumnsInPk = false;
 		if (insertionPoint == COLUMN_INDEX_END_OF_PK) {
 		    insertionPoint = getModel().getPkSize();
@@ -669,21 +670,26 @@ public class TablePane
 					getModel().changeColumnIndex(oldIndex, insertionPoint, newColumnsInPk);
 				} else if (col.getParentTable().getParentDatabase() == getModel().getParentDatabase()) {
 					// moving column within playpen
+                    
+                    InsertionPointWatcher<SQLTable.Folder<SQLColumn>> ipWatcher =
+                        new InsertionPointWatcher<SQLTable.Folder<SQLColumn>>(getModel().getColumnsFolder(), insertionPoint);
 					col.getParentTable().removeColumn(col);
+                    ipWatcher.dispose();
+                    
 					if (logger.isDebugEnabled()) {
 						logger.debug("Moving column '"+col.getName()
 								+"' to table '"+getModel().getName()
-								+"' at position "+insertionPoint);
+								+"' at position "+ipWatcher.getInsertionPoint());
 					}
 					try {
                         // You need to disable the magic (really the normalization) otherwise it goes around
                         // the property change events and causes undo to fail when dragging into the primary
                         // key of a table
 					    getModel().setMagicEnabled(false);
-					    getModel().addColumn(insertionPoint, col);
+					    getModel().addColumn(ipWatcher.getInsertionPoint(), col);
 
 					    if (newColumnsInPk) {
-					        col.setPrimaryKeySeq(new Integer(insertionPoint));
+					        col.setPrimaryKeySeq(new Integer(ipWatcher.getInsertionPoint()));
 					    } else {
 					        col.setPrimaryKeySeq(null);
 					    }

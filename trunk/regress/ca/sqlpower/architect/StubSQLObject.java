@@ -18,6 +18,8 @@
  */
 package ca.sqlpower.architect;
 
+import java.util.ArrayList;
+
 /**
  * The StubSQLObject is a general-purpose SQLObject that you can use for testing
  * the Architect.  You might need to subclass it, or you might need to enhance
@@ -29,6 +31,10 @@ public class StubSQLObject extends SQLObject {
      * Keeps track of how many times populate() has been called.
      */
     private int populateCount = 0;
+    
+    public StubSQLObject() {
+        children = new ArrayList<SQLObject>();
+    }
     
     @Override
     public SQLObject getParent() {
@@ -52,7 +58,7 @@ public class StubSQLObject extends SQLObject {
 
     @Override
     public boolean allowsChildren() {
-        return false;
+        return true;
     }
 
     @Override
