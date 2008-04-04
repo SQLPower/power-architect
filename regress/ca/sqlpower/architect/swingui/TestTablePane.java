@@ -22,6 +22,7 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Color;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import junit.framework.TestCase;
@@ -29,6 +30,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 
 public class TestTablePane extends TestCase {
@@ -205,5 +207,27 @@ public class TestTablePane extends TestCase {
         assertEquals(Color.GREEN, tp.getColumnHighlight(col));
         tp.removeColumnHighlight(col, Color.GREEN);
         assertEquals(tp.getForeground(), tp.getColumnHighlight(col));
+    }
+    
+    /**
+     * Regression test for bug 1542.
+     */
+    public void testDragDropParentPKToChildTable() throws Exception {
+        SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
+        TablePane tp2 = new TablePane(t2, pp);
+        
+        SQLRelationship r = new SQLRelationship();
+        r.attachRelationship(t, t2, true);
+        
+        SQLColumn parentPk1 = t.getColumn(0);
+        assertTrue(parentPk1.isPrimaryKey());
+        
+        // Before fixing bug 1542, the following operation failed with
+        // java.lang.IndexOutOfBoundsException: Index: 3, Size: 2
+        // Because before inserting parentPk1 into t2, it was removed from t1
+        // That removal from t1 causes the side effect of removing the imported
+        // copy of parentPk1 in t2. Hence, t2 shrinks by one column, and the
+        // specified insertion index is out of bounds.
+        tp2.insertObjects(Collections.singletonList(parentPk1), t2.getColumns().size());
     }
 }
