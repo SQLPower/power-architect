@@ -310,6 +310,14 @@ public class TablePane
                     throw new ArchitectRuntimeException(ex);
                 }
             }
+            
+            // no matter where the event came from, we should no longer be listening to the removed children
+            try {
+                ArchitectUtils.unlistenToHierarchy(this, e.getChildren());
+            } catch (ArchitectException ex) {
+                throw new ArchitectRuntimeException(ex);
+            }
+            
             firePropertyChange("model.children", null, null);
             //revalidate();
         }

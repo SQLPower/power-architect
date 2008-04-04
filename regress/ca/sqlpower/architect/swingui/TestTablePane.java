@@ -230,4 +230,11 @@ public class TestTablePane extends TestCase {
         // specified insertion index is out of bounds.
         tp2.insertObjects(Collections.singletonList(parentPk1), t2.getColumns().size());
     }
+    
+    public void testUnlistenToRemovedColumns() throws Exception {
+        SQLColumn c = t.getColumn(0);
+        assertTrue(c.getSQLObjectListeners().contains(tp.columnListener));
+        t.removeColumn(0);
+        assertFalse(c.getSQLObjectListeners().contains(tp.columnListener));
+    }
 }
