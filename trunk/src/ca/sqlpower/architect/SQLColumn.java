@@ -71,8 +71,18 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 * 2. nativePrecision and nativeScale might be useful to keep just in case users want
 	 * to forward engineer into the same target database as the source.
 	 */
-	protected int precision; // the length of the field in digits or characters
-	protected int scale; // the placement of a decimal point, counting from the far right
+    
+    /**
+     * The maximum length of the field in digits or characters. For numeric types,
+     * this value includes all significant digits on both sides of the decimal point.
+     */
+	protected int precision;
+    
+    /**
+     * The maximum number of digits after the decimal point. For non-numeric data types,
+     * this value should be set to 0.
+     */
+	protected int scale;
 	
 	/**
 	 * This column's nullability type.  One of:
@@ -341,7 +351,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 				
 				addTo.columnsFolder.children.add(col); // don't use addTo.columnsFolder.addColumn() (avoids multiple SQLObjectEvents)
 
-				// XXX: need to find out if column is auto-increment
 			}
 
 		} finally {
