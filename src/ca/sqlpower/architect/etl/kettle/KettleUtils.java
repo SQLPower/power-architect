@@ -31,6 +31,7 @@ import ca.sqlpower.sql.SPDataSourceType;
 
 public class KettleUtils {
 
+    @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(KettleUtils.class);
     
     public static List<String> retrieveKettleConnectionTypes() {
