@@ -43,6 +43,7 @@ import ca.sqlpower.util.MonitorableImpl;
  */
 public class TableProfileResult extends AbstractProfileResult<SQLTable> {
 
+    @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(TableProfileResult.class);
 
     private int rowCount;
