@@ -50,7 +50,6 @@ import javax.swing.tree.TreePath;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -64,6 +63,7 @@ import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPDataSourcePanel;
+import ca.sqlpower.swingui.SPSwingWorker;
 
 public class DBTree extends JTree implements DragSourceListener {
 	static Logger logger = Logger.getLogger(DBTree.class);
@@ -602,8 +602,8 @@ public class DBTree extends JTree implements DragSourceListener {
 	            session.getProject().setModified(true);
 	            // start a thread to poke the new SQLDatabase object...
 	            logger.debug("start poking database " + newDB.getName());
-	            Thread thread = new PokeDBThread(newDB);
-	            thread.start();
+	            PokeDBWorker poker = new PokeDBWorker(newDB);
+	            new Thread(poker, "PokeDB: " + newDB.getName()).start();
 	        }
 	    } catch (ArchitectException ex) {
 	        logger.warn("Couldn't add new database to tree", ex);
@@ -655,19 +655,85 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 	}
 
-	protected class PokeDBThread extends Thread {
-		SQLObject so;
-		PokeDBThread (SQLObject so) {
-			super();
-			this.so = so;
+	/**
+	 * A Swing Worker that descends a tree of SQLObjects, stopping when a
+	 * SQLColumn is encountered. This is useful in making the application
+	 * more responsive: As soon as a source database is added to the tree,
+	 * this worker will start to connect to it and exercise its JDBC driver.
+	 * Then once the user goes to expand the tree, the response is instant!
+	 */
+	private class PokeDBWorker extends SPSwingWorker {
+	    
+	    /**
+	     * The top object where the poking starts.
+	     */
+		final SQLObject root;
+		
+		/**
+		 * The most-recently-visited object. This is tracked so that cleanup
+		 * knows where to add the SQLExceptionNode in case of failure.
+		 */
+		SQLObject mostRecentlyVisited;
+		
+		/**
+		 * Creates a new worker that will recursively visit the SQLObject tree
+		 * rooted at so, stopping when a SQLColumn descendant of so is encountered.
+		 * 
+		 * @param so The object to start with
+		 */
+		PokeDBWorker(SQLObject so) {
+			super(session);
+			this.root = so;
 		}
-		public void run() {
-			try {
-				ArchitectUtils.pokeDatabase(so);
-			} catch (ArchitectException ex) {
-				logger.error("problem poking database " + so.getName(),ex);
-			}
-			logger.debug("finished poking database " + so.getName());
+		
+		/**
+         * Recursively visits SQLObjects starting at {@link #source}, stopping
+         * at the first leaf node (SQLColumn) encountered.
+         */
+		@Override
+		public void doStuff() throws Exception {
+		    pokeDatabase(root);
+		    logger.debug("successfully poked database " + root.getName());
+		}
+		
+		/**
+		 * The recursive subroutine of doStuff(). That means it will be called
+		 * on a worker thread, and it shouldn't do anything that needs to be
+		 * done on Swing's Event Dispatch Thread!
+		 */
+		private boolean pokeDatabase(final SQLObject source) throws ArchitectException {
+		    if (logger.isDebugEnabled()) logger.debug("HELLO my class is " + source.getClass().getName() + ", my name is + " + source.getName());
+		    if (source.allowsChildren()) {
+		        mostRecentlyVisited = source;
+		        int j = 0;
+		        boolean done = false;
+		        int childCount = source.getChildCount();
+		        while (!done && j < childCount) {
+		            done = pokeDatabase(source.getChild(j));
+		            j++;
+		        }
+		        return done;
+		    } else {
+		        return true; // found a leaf node
+		    }
+		}
+		
+		/**
+		 * Checks if the doStuff() procedure ran into trouble, and if so, attaches
+		 * a SQLException node under the node that was being visited at the time
+		 * the exception was thrown.
+		 */
+		@Override
+		public void cleanup() throws Exception {
+		    if (getDoStuffException() != null) {
+		        // FIXME: SQLObject should have an "exception" property that's not a child,
+		        //        and client code shouldn't have to clean up populate exceptions
+		        //        like this
+		        mostRecentlyVisited.addChild(
+		                new SQLExceptionNode(
+		                        getDoStuffException(),
+		                        "Error during initial database probe"));
+		    }
 		}
 	}
 
