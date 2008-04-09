@@ -230,35 +230,6 @@ public class ArchitectUtils {
 	}
 
 	/**
-	 * Recursively poke the SQLDatabase until we find at least one leaf node
-	 * (SQLColumn).
-	 *
-	 * @param source the source object (usually the database)
-	 */
-	public static boolean pokeDatabase(SQLObject source) throws ArchitectException {
-		if (logger.isDebugEnabled()) logger.debug("HELLO my class is " + source.getClass().getName() + ", my name is + " + source.getName());
-		if (source.allowsChildren()) {
-			int j = 0;
-			boolean done = false;
-			int childCount;
-			try {
-			    childCount = source.getChildCount();
-			} catch (ArchitectException e) {
-			    // FIXME: this behaviour should be an optional part of SQLObject's populate() method, not something client code has to do
-			    source.addChild(new SQLExceptionNode(e, "Error during initial database probe"));
-			    childCount = 1;
-			}
-			while (!done && j < childCount) {
-				done = pokeDatabase(source.getChild(j));
-				j++;
-			}
-			return done;
-		} else {
-			return true; // found a leaf node
-		}
-	}
-
-	/**
 	 * Recursively count tables in the project, including ones that have not been
 	 * expanded in the DBTree.
 	 *
