@@ -36,6 +36,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLIndex;
@@ -194,9 +195,18 @@ public class GenericDDLGenerator implements DDLGenerator {
 		ddl = new StringBuffer(500);
         topLevelNames = new CaseInsensitiveHashMap();
 
+        /*
+         * topological sort ensures child tables are created before their
+         * parents. this is not strictly necessary, but apparently all the cool
+         * tools do it this way. :)
+         */
+        List<SQLTable> tableList = new ArrayList<SQLTable>(tables);
+        DepthFirstSearch dfs = new DepthFirstSearch(tableList);
+        tableList = dfs.getFinishOrder();
+        
 		try {
-			if (allowConnection && tables.size() > 0) {
-                SQLDatabase parentDb = ArchitectUtils.getAncestor(tables.iterator().next(), SQLDatabase.class);
+			if (allowConnection && tableList.size() > 0) {
+                SQLDatabase parentDb = ArchitectUtils.getAncestor(tableList.get(0), SQLDatabase.class);
 				con = parentDb.getConnection();
 			} else {
 				con = null;
@@ -204,7 +214,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 			createTypeMap();
 
-			for (SQLTable t : tables) {
+			for (SQLTable t : tableList) {
 
 				addTable(t);
                 
@@ -214,7 +224,7 @@ public class GenericDDLGenerator implements DDLGenerator {
                 }
 			}
             
-            for (SQLTable t : tables) {
+            for (SQLTable t : tableList) {
 				writeExportedRelationships(t);
 			}
 
