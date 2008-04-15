@@ -196,9 +196,9 @@ public class GenericDDLGenerator implements DDLGenerator {
         topLevelNames = new CaseInsensitiveHashMap();
 
         /*
-         * topological sort ensures child tables are created before their
-         * parents. this is not strictly necessary, but apparently all the cool
-         * tools do it this way. :)
+         * topological sort ensures parent tables are created before their
+         * children. This is not strictly necessary, but apparently all the
+         * cool tools do it this way. :)
          */
         List<SQLTable> tableList = new ArrayList<SQLTable>(tables);
         DepthFirstSearch dfs = new DepthFirstSearch(tableList);
