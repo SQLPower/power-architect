@@ -25,7 +25,10 @@ import ca.sqlpower.architect.SQLRelationship.Deferrability;
 
 
 /**
- * Converts between String and SQLRelationship.Deferrability values.
+ * Converts between String and SQLRelationship.Deferrability values. Supports
+ * converting an Integer code value (such as 7), a String representation of an
+ * integer code value (such as "7"), or a string representation of a
+ * Deferrability constant name (such as "INITALLY_DEFERRED").
  */
 public class DeferrabilityConverter implements Converter {
 
@@ -36,7 +39,11 @@ public class DeferrabilityConverter implements Converter {
         
         if (targetType == Deferrability.class) {
             if ( ! (value instanceof Integer)) {
-                value = Integer.valueOf(value.toString());
+                try {
+                    value = Integer.valueOf(value.toString());
+                } catch (NumberFormatException ex) {
+                    return Deferrability.valueOf(value.toString());
+                }
             }
             return Deferrability.ruleForCode(((Integer) value).intValue(), Deferrability.NOT_DEFERRABLE);
         } else {

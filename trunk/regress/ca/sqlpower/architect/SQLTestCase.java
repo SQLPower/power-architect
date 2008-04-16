@@ -167,9 +167,9 @@ public abstract class SQLTestCase extends ArchitectTestCase {
                 newVal = new SQLIndex();
             } else if ( property.getPropertyType() == SQLRelationship.Deferrability.class){
                 if (oldVal == SQLRelationship.Deferrability.INITIALLY_DEFERRED) {
-                    newVal = SQLRelationship.Deferrability.NOT_DEFERRABLE.getCode();
+                    newVal = SQLRelationship.Deferrability.NOT_DEFERRABLE;
                 } else {
-                    newVal = SQLRelationship.Deferrability.INITIALLY_DEFERRED.getCode();
+                    newVal = SQLRelationship.Deferrability.INITIALLY_DEFERRED;
                 }
             } else {
 				throw new RuntimeException("This test case lacks a value for "+
@@ -180,6 +180,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 			int oldChangeCount = listener.getChangedCount();
 			
 			try {
+                System.out.println("Setting property '"+property.getName()+"' to '"+newVal+"' ("+newVal.getClass().getName()+")");
 				BeanUtils.copyProperty(so, property.getName(), newVal);
 				
 				// some setters fire multiple events (they change more than one property)
@@ -189,15 +190,9 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 					assertEquals("Property name mismatch for "+property.getName()+ " in "+so.getClass(),
 							property.getName(),
 							listener.getLastEvent().getPropertyName());
-					if(listener.getLastEvent().getNewValue() instanceof SQLRelationship.Deferrability){
 					assertEquals("New value for "+property.getName()+" was wrong",
-							newVal,
-							((SQLRelationship.Deferrability)listener.getLastEvent().getNewValue()).getCode());
-					}else{
-					    assertEquals("New value for "+property.getName()+" was wrong",
-	                            newVal,
-	                            listener.getLastEvent().getNewValue());  
-					}
+					        newVal,
+					        listener.getLastEvent().getNewValue());  
 				}
 			} catch (InvocationTargetException e) {
 				System.out.println("(non-fatal) Failed to write property '"+property.getName()+" to type "+so.getClass().getName());
@@ -291,9 +286,9 @@ public abstract class SQLTestCase extends ArchitectTestCase {
                 newVal = new SQLIndex();
             } else if ( property.getPropertyType() == SQLRelationship.Deferrability.class){
                 if (oldVal == SQLRelationship.Deferrability.INITIALLY_DEFERRED) {
-                    newVal = SQLRelationship.Deferrability.NOT_DEFERRABLE.getCode();
+                    newVal = SQLRelationship.Deferrability.NOT_DEFERRABLE;
                 } else {
-                    newVal = SQLRelationship.Deferrability.INITIALLY_DEFERRED.getCode();
+                    newVal = SQLRelationship.Deferrability.INITIALLY_DEFERRED;
                 }
 
             } else {
