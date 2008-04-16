@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,7 +40,24 @@ import ca.sqlpower.sql.CachedRowSet;
  */
 public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
-	private static Logger logger = Logger.getLogger(SQLRelationship.class);
+    /**
+     * Comparator that orders ColumnMapping objects by FK column position.
+     */
+	public static class ColumnMappingFKColumnOrderComparator implements Comparator<ColumnMapping> {
+        public int compare(ColumnMapping o1, ColumnMapping o2) {
+            try {
+                int fkPos1 = o1.getFkColumn().getParent().getChildren().indexOf(o1.getFkColumn());
+                int fkPos2 = o2.getFkColumn().getParent().getChildren().indexOf(o2.getFkColumn());
+                if (fkPos1 == fkPos2) return 0;
+                if (fkPos1 < fkPos2) return -1;
+                return 1;
+            } catch (ArchitectException ex) {
+                throw new ArchitectRuntimeException(ex);
+            }
+        }
+    }
+
+    private static Logger logger = Logger.getLogger(SQLRelationship.class);
 
     /**
      * The enumeration of all referential integrity constraint checking
@@ -318,6 +336,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 */
     	private void realizeMapping() throws ArchitectException {
         for (ColumnMapping m : getMappings()) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("realizeMapping: processing " + m);
+            }
             SQLColumn fkCol = m.getFkColumn();
             try {
                 fkCol.setMagicEnabled(false);
@@ -329,8 +350,10 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
                 int insertIdx;
                 if (identifying) {
                     if (fkCol.getPrimaryKeySeq() == null) {
+                        logger.debug("realizeMapping: fkCol PK seq is null. Inserting at end of PK.");
                         insertIdx = fkTable.getPkSize();
                     } else {
+                        logger.debug("realizeMapping: using existing fkCol PK seq " + fkCol.getPrimaryKeySeq());
                         insertIdx = fkCol.getPrimaryKeySeq();
                     }
                 } else {
@@ -346,7 +369,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
                 // This might bump up the reference count (which would be
                 // correct)
                 fkTable.addColumn(insertIdx, fkCol);
-                logger.debug("Added column '" + fkCol.getName() + "' at index " + insertIdx);
+                logger.debug("realizeMapping: Added column '" + fkCol.getName() + "' at index " + insertIdx);
                 if (fkCol.getReferenceCount() <= 0)
                     throw new IllegalStateException("Created a column with 0 references!");
 
@@ -567,7 +590,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		public void dbChildrenInserted(SQLObjectEvent e) {
 
 			if (!(e.getSQLSource().isMagicEnabled())){
-				logger.debug("Magic disabled ignoring sqlobjectEvent "+e);
+				logger.debug("Magic disabled; ignoring sqlobjectEvent "+e);
 				return;
 			}
 			if (logger.isDebugEnabled()) {
@@ -607,7 +630,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 		public void dbChildrenRemoved(SQLObjectEvent e) {
 			if (!(e.getSQLSource().isMagicEnabled())){
-				logger.debug("Magic disabled ignoring sqlobjectEvent "+e);
+				logger.debug("Magic disabled; ignoring sqlobjectEvent "+e);
 				return;
 			}
 			if (logger.isDebugEnabled()) {
@@ -631,7 +654,13 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 									r.getFkTable().removeImportedKey(r);
 									logger.debug("Removing references for mappings: "+getMappings());
 
-									for (ColumnMapping cm : r.getMappings()) {
+                                    // references to fk columns are removed in reverse order in case
+                                    // this relationship is reconnected in the future. (if not removed
+                                    // in reverse order, the PK sequence numbers will change as each
+                                    // mapping is removed and the subsequent column indexes shift down)
+                                    List<ColumnMapping> mappings = new ArrayList<ColumnMapping>(r.getMappings());
+                                    Collections.sort(mappings, Collections.reverseOrder(new ColumnMappingFKColumnOrderComparator()));
+									for (ColumnMapping cm : mappings) {
 										logger.debug("Removing reference to fkcol "+ cm.getFkColumn());
 										cm.getFkColumn().removeReference();
 									}
