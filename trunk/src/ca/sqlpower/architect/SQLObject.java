@@ -389,23 +389,24 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	protected void fireDbObjectChanged(String propertyName, Object oldValue, Object newValue) {
-		SQLObjectEvent e = new SQLObjectEvent(
-				this,
-				propertyName,
-				oldValue,
-				newValue);
 		boolean same = (oldValue == null ? oldValue == newValue : oldValue.equals(newValue));
 		if (same) {
-			logger.debug("Object changed event aborted, the old value '"+oldValue+"' of "
-					+propertyName+" equals the new value '"+newValue+"'");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Not firing property change: "+getClass().getName()+"."+propertyName+
+                        " '"+oldValue+"' == '"+newValue+"'");
+            }
 			return;
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug(getClass().getName()+" "+toString()+": " +
-					"firing dbObjectChanged event");
-			logger.debug("Changed the old value '"+oldValue+"' of "
-					+propertyName+" to '"+newValue+"'");
+			logger.debug("Firing Property Change: "+getClass().getName()+"."+propertyName+
+                    " '"+oldValue+"' -> '"+newValue+"'");
 		}
+
+        SQLObjectEvent e = new SQLObjectEvent(
+                this,
+                propertyName,
+                oldValue,
+                newValue);
 
 		int count = 0;
 		synchronized(sqlObjectListeners) {
