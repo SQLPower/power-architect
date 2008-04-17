@@ -15,6 +15,8 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  created before any of their children.
 *Fixed a bug which prevented PK columns from getting pushed into tables
  beyond immediate children (see forum thread 1899)
+*PDF profiling reports now show the database connection name and the fully-
+ qualified table name rather than just the unqualified table name
 
 0.9.10
 *Release is now licensed under the GPL version 3.

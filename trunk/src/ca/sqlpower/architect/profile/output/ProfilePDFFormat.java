@@ -33,8 +33,10 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
@@ -394,8 +396,9 @@ public class ProfilePDFFormat implements ProfileFormat {
 //        TableProfileResult tProfile = (TableProfileResult) pm.getResult(sqlTable);
         PdfPTable infoTable = new PdfPTable(2);
         StringBuffer heading = new StringBuffer();
+        heading.append("Connection: ").append(sqlTable.getParentDatabase().getName()).append("\n");
+        heading.append("Table: ").append(ArchitectUtils.toQualifiedName(sqlTable, SQLDatabase.class));
         if ( result.getException() != null ) {
-            heading.append("Table: ").append(sqlTable.getName());
             heading.append(" Profiling Error");
             if ( result.getException() != null )
                 heading.append(":\n").append(result.getException());
@@ -403,7 +406,6 @@ public class ProfilePDFFormat implements ProfileFormat {
         else {
             PdfPCell infoCell;
 
-            heading.append("Table: ").append(sqlTable.getName());
             infoCell = new PdfPCell(new Phrase("Row Count:",colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
@@ -731,13 +733,14 @@ public class ProfilePDFFormat implements ProfileFormat {
             int alignment;
 
             if ( headings[colNo].equalsIgnoreCase("table name") ) {
+                String fqTableName = ArchitectUtils.toQualifiedName(col.getParentTable(), SQLDatabase.class);
                 if ( tProfile == null || tProfile.getException() != null) {
-                    contents = col.getParentTable().getName() + "\nProfiling Error:\n";
+                    contents = fqTableName + "\nProfiling Error:\n";
                     if ( tProfile != null && tProfile.getException() != null )
                         contents += tProfile.getException();
                 }
                 else {
-                    contents = col.getParentTable().getName();
+                    contents = fqTableName;
                 }
                 alignment = Element.ALIGN_LEFT;
             } else if ( headings[colNo].equalsIgnoreCase("row count") ) {
