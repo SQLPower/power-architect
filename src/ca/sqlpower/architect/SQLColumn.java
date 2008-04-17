@@ -658,7 +658,11 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	        if (argPrimaryKeySeq != null && !this.autoIncrement) {
 	            setNullable(DatabaseMetaData.columnNoNulls);	
 	        }
-
+            
+	        // consider delaying this event until after the column has been put in place,
+            // because firing the event at this point causes relationship managers to update the
+            // child's PK before the parent's PK is properly formed
+            // (such a change would require thorough testing of course!)
             this.primaryKeySeq = argPrimaryKeySeq;
             fireDbObjectChanged("primaryKeySeq",oldPrimaryKeySeq,argPrimaryKeySeq);
 
