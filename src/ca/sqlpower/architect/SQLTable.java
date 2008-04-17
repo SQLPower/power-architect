@@ -453,13 +453,13 @@ public class SQLTable extends SQLObject {
 	public SQLColumn getColumnByName(String colName, boolean populate, boolean caseSensitive)
         throws ArchitectException {
 		if (populate) populateColumns();
-		if (logger.isDebugEnabled()) {
-            logger.debug("Looking for column "+colName+" in "+children);
-        }
 		/* if columnsFolder.children.iterator(); gets changed to getColumns().iterator()
 		 * we get infinite recursion between populateColumns, getColumns,
 		 * getColumnsByName and addColumnsToTable
 		 */
+		if (logger.isDebugEnabled()) {
+		    logger.debug("Looking for column "+colName+" in "+columnsFolder.children);
+		}
 		Iterator it = columnsFolder.children.iterator();
 		while (it.hasNext()) {
 			SQLColumn col = (SQLColumn) it.next();
@@ -686,7 +686,7 @@ public class SQLTable extends SQLObject {
             boolean donePk = false;
             int i = 0;
             for (SQLColumn col : getColumns()) {
-                if (col.getPrimaryKeySeq() == null) donePk = true;
+                donePk |= col.getPrimaryKeySeq() == null;
                 Integer oldPkSeq = col.getPrimaryKeySeq();
                 Integer newPkSeq;
                 if (!donePk) {
@@ -738,9 +738,9 @@ public class SQLTable extends SQLObject {
 		    endCompoundEdit("Normalizing Primary Key");
 		}
         if (logger.isDebugEnabled()) {
-            logger.debug("----Normalize Results----");
+            logger.debug("----Normalize Results for table " + getName() + "----");
             for (SQLColumn col : getColumns()) {
-                logger.debug("Column Name " + col.getName() + " Key Sequence" +col.getPrimaryKeySeq() );
+                logger.debug("Column Name " + col.getName() + " Key Sequence " +col.getPrimaryKeySeq() );
             }
         }
 	}
