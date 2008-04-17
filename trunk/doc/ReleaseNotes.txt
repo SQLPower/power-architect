@@ -10,6 +10,12 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  of the Architect.  We apologize for the inconvenience, but the benefits will
  outweigh the costs!
 
+0.9.11
+*Forward engineering scripts are now organized so that parent tables are
+ created before any of their children.
+*Fixed a bug which prevented PK columns from getting pushed into tables
+ beyond immediate children (see forum thread 1899)
+
 0.9.10
 *Release is now licensed under the GPL version 3.
 *Revamped support for creating, editing, and reverse engineering indexes.
