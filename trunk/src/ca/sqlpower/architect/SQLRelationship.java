@@ -590,7 +590,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		public void dbChildrenInserted(SQLObjectEvent e) {
 
 			if (!(e.getSQLSource().isMagicEnabled())){
-				logger.debug("Magic disabled; ignoring sqlobjectEvent "+e);
+				logger.debug("Magic disabled; ignoring children inserted event "+e);
 				return;
 			}
 			if (logger.isDebugEnabled()) {
@@ -630,7 +630,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 		public void dbChildrenRemoved(SQLObjectEvent e) {
 			if (!(e.getSQLSource().isMagicEnabled())){
-				logger.debug("Magic disabled; ignoring sqlobjectEvent "+e);
+				logger.debug("Magic disabled; ignoring children removed event "+e);
 				return;
 			}
 			if (logger.isDebugEnabled()) {
@@ -692,7 +692,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 		public void dbObjectChanged(SQLObjectEvent e) {
 			if (!(e.getSQLSource().isMagicEnabled())){
-				logger.debug("Magic disabled ignoring sqlobjectEvent "+e);
+				logger.debug("Magic disabled; ignoring sqlobject changed event "+e);
 				return;
 			}
 			String prop = e.getPropertyName();
@@ -804,37 +804,26 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		}
 
 		protected void ensureInMapping(SQLColumn pkcol) throws ArchitectException {
-			if (!containsPkColumn(pkcol)) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("ensureInMapping("+getName()+"): Adding "
-                            +pkcol.getParentTable().getName()+"."+pkcol.getName()
-                            +" to mapping");
-                }
-                if (pkcol.getParentTable().equals(fkTable)) return;
-				SQLColumn fkcol = fkTable.getColumnByName(pkcol.getName());
-				if (fkcol == null) fkcol = new SQLColumn(pkcol);
-				try {
-                    fkTable.setMagicEnabled(false);
-					fkcol.setMagicEnabled(false);
-                    int insertIdx;
-                    if (identifying) {
-                        insertIdx = fkTable.getPkSize();
-                        fkcol.setPrimaryKeySeq(new Integer(insertIdx));
-                    } else {
-                        insertIdx = fkTable.getColumns().size();
-                        fkcol.setPrimaryKeySeq(null);
-                    }
-                    logger.debug("ensureInMapping("+getName()+"): adding fkcol at index "+
-                            insertIdx+" (rel is identifying? "+identifying+
-                            ", pkseq="+fkcol.getPrimaryKeySeq()+")");
-                    fkcol.setAutoIncrement(false);
-                    fkTable.addColumn(insertIdx, fkcol);
-				} finally {
-					fkTable.setMagicEnabled(true);
-					fkcol.setMagicEnabled(true);
-				}
-				addMapping(pkcol, fkcol);
-			}
+		    if (!containsPkColumn(pkcol)) {
+		        if (logger.isDebugEnabled()) {
+		            logger.debug("ensureInMapping("+getName()+"): Adding "
+		                    +pkcol.getParentTable().getName()+"."+pkcol.getName()
+		                    +" to mapping");
+		        }
+		        if (pkcol.getParentTable().equals(fkTable)) return;
+		        SQLColumn fkcol = fkTable.getColumnByName(pkcol.getName());
+		        if (fkcol == null) fkcol = new SQLColumn(pkcol);
+		        fkTable.addColumn(fkcol);
+		        if (identifying) {
+		            fkcol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
+		        } else {
+		            // XXX might only want to do this if fkcol was newly created
+		            fkcol.setPrimaryKeySeq(null);
+		        }
+		        logger.debug("ensureInMapping("+getName()+"): added fkcol at pkSeq "+fkcol.getPrimaryKeySeq());
+		        fkcol.setAutoIncrement(false);
+		        addMapping(pkcol, fkcol);
+		    }
 		}
 
 		/**
