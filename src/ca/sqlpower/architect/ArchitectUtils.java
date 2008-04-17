@@ -572,8 +572,24 @@ public class ArchitectUtils {
      * the last.
      */
     public static String toQualifiedName(SQLObject obj) {
+        return toQualifiedName(obj, null);
+    }
+    
+    /**
+     * Creates a dot-separated string of the name of the given SQLObject and the
+     * names of each of its ancestors, stopping at the first ancestor of the
+     * given type. The top-level ancestor's name will be the first name to
+     * appear in the string, and the given object's name will be the last.
+     * 
+     * @param obj
+     *            The object whose qualified name you wish to obtain
+     * @param stopAt
+     *            The class of ancestor to stop at. The name of this ancestor
+     *            will not be included in the returned string.
+     */
+    public static String toQualifiedName(SQLObject obj, Class<? extends SQLObject> stopAt) {
         List<SQLObject> ancestors = new ArrayList<SQLObject>();
-        while (obj != null) {
+        while (obj != null && obj.getClass() != stopAt) {
             ancestors.add(obj);
             obj = obj.getParent();
         }
@@ -586,7 +602,7 @@ public class ArchitectUtils {
         }
         return sb.toString();
     }
-    
+
     /**
      * Checks if the definitions of two columns are materially different.
      * Some data types (for example, DECIMAL and NUMERIC) are essentially
