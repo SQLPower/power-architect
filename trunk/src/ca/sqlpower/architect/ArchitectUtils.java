@@ -569,7 +569,7 @@ public class ArchitectUtils {
      * Creates a dot-separated string of the name of the given SQLObject and the
      * names of each of its ancestors.  The top-level ancestor's name will be the
      * first name to appear in the string, and the given object's name will be
-     * the last.
+     * the last. This is the equivalent of calling toQualifiedName(obj, null).
      */
     public static String toQualifiedName(SQLObject obj) {
         return toQualifiedName(obj, null);
@@ -585,7 +585,10 @@ public class ArchitectUtils {
      *            The object whose qualified name you wish to obtain
      * @param stopAt
      *            The class of ancestor to stop at. The name of this ancestor
-     *            will not be included in the returned string.
+     *            will not be included in the returned string. If stopAt is
+     *            null, or a class which is not an ancestor of the given
+     *            SQLObject, the returned string will contain all ancestor
+     *            object names up to the root of the SQLObject tree.
      */
     public static String toQualifiedName(SQLObject obj, Class<? extends SQLObject> stopAt) {
         List<SQLObject> ancestors = new ArrayList<SQLObject>();
