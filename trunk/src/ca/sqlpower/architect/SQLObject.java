@@ -362,7 +362,7 @@ public abstract class SQLObject implements java.io.Serializable {
 		if (logger.isDebugEnabled()) {
 			logger.debug(getClass().getName()+" "+toString()+": " +
 					"firing dbChildrenRemoved event");
-			logger.debug("Removing children "+oldChildren +" from "+oldIndices);
+			logger.debug("Removing children " + oldChildren + " from " + this);
 		}
 		SQLObjectEvent e = new SQLObjectEvent
 			(this,
