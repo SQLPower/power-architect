@@ -40,7 +40,7 @@
 	<!-- Windows installer tool: izpack (needs both a jar and its own
 	     directory to run properly) -->
 	<property name="izpack.dir" value="ext-tools-home/izpack"/>
-	<taskdef name="izpack" classpath="${izpack.dir}/lib/compiler.jar"
+	<taskdef name="izpack" classpath="${izpack.dir}/lib/standalone-compiler.jar"
 		     classname="com.izforge.izpack.ant.IzPackTask"/>
 
 	<!-- Base directory for the izpack (Windows) installer output -->
