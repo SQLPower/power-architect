@@ -111,8 +111,6 @@ public class TestSQLRelationship extends SQLTestCase {
 		childTable1.addColumn(new SQLColumn(childTable1, "child_pkcol_1", Types.INTEGER, 10, 0));
 		childTable1.addColumn(new SQLColumn(childTable1, "child_pkcol_2", Types.INTEGER, 10, 0));
 		childTable1.addColumn(new SQLColumn(childTable1, "child_attribute", Types.INTEGER, 10, 0));
-        childTable1.getColumn(0).setPrimaryKeySeq(0);
-        childTable1.getColumn(1).setPrimaryKeySeq(1);
 		database.addChild(childTable1);
 		
 		childTable2 = new SQLTable(database, "child_2", null, "TABLE", true);
@@ -760,6 +758,56 @@ public class TestSQLRelationship extends SQLTestCase {
     }
     
     /**
+     * The original fix for self-referencing tables only works for an existing
+     * PK when you attach a new relationship. This test ensures the self-reference
+     * also works when a column is added to the PK while the self-referencing
+     * relationship already exists.
+     */
+    public void testSelfReferencingAutoMappingOnPKModification() throws Exception {
+        int oldColCount = parentTable.getColumns().size();
+        
+        SQLRelationship r = new SQLRelationship();
+        r.attachRelationship(parentTable, parentTable, true);
+        assertEquals(0, r.getMappings().size());
+
+        SQLColumn parentCol = parentTable.getColumnByName("pkcol_1");
+        parentCol.setPrimaryKeySeq(0);
+        
+        assertEquals(1, r.getMappings().size());
+        SQLRelationship.ColumnMapping mapping = r.getMappings().get(0);
+        assertNotSame(mapping.getFkColumn(), mapping.getPkColumn());
+        assertEquals(oldColCount + 1, parentTable.getColumns().size());
+        assertTrue(parentTable.getColumns().contains(mapping.getPkColumn()));
+        assertTrue(parentTable.getColumns().contains(mapping.getFkColumn()));
+    }
+
+    /**
+     * Self-references set themselves to non-idendifying because that makes sense,
+     * and prevents infinite recursion when you add to the primary key. :) But it's
+     * easy enough to manually set them back to identifying later on.. so this test
+     * makes sure you can still safely modify a PK when it has an identifying self-referencing
+     * relationship.
+     */
+    public void testSelfReferencingInfiniteRecursionOnPKModification() throws Exception {
+        int oldColCount = parentTable.getColumns().size();
+        
+        SQLRelationship r = new SQLRelationship();
+        r.attachRelationship(parentTable, parentTable, true);
+        assertEquals(0, r.getMappings().size());
+
+        r.setIdentifying(true);
+        SQLColumn parentCol = parentTable.getColumnByName("pkcol_1");
+        parentCol.setPrimaryKeySeq(0);
+        
+        assertEquals(1, r.getMappings().size());
+        SQLRelationship.ColumnMapping mapping = r.getMappings().get(0);
+        assertNotSame(mapping.getFkColumn(), mapping.getPkColumn());
+        assertEquals(oldColCount + 1, parentTable.getColumns().size());
+        assertTrue(parentTable.getColumns().contains(mapping.getPkColumn()));
+        assertTrue(parentTable.getColumns().contains(mapping.getFkColumn()));
+    }
+
+    /**
      * This tests for uniqueness in the generated column names. It is
      * simple and does not cover all cases of attachRelationship because
      * each case is merely a slight deviation with the same logic. 
@@ -852,7 +900,10 @@ public class TestSQLRelationship extends SQLTestCase {
         
         parentTable.getColumnByName("pkcol_1").setPrimaryKeySeq(0);
         parentTable.getColumnByName("pkcol_2").setPrimaryKeySeq(1);
-        
+
+        childTable1.getColumnByName("child_pkcol_1").setPrimaryKeySeq(0);
+        childTable1.getColumnByName("child_pkcol_2").setPrimaryKeySeq(1);
+
         SQLTable grandchildTable = new SQLTable(database, "grandchild_1", null, "TABLE", true);
         grandchildTable.addColumn(new SQLColumn(grandchildTable, "grandchild_pkcol_1", Types.INTEGER, 10, 0));
         grandchildTable.addColumn(new SQLColumn(grandchildTable, "grandchild_pkcol_2", Types.INTEGER, 10, 0));
@@ -882,5 +933,102 @@ public class TestSQLRelationship extends SQLTestCase {
         
         // and finally, the point of the test...
         assertEquals(oldGrandchildPkSize + 1, grandchildTable.getPkSize());
+    }
+    
+    /**
+     * Regression test: ensures that column rename operations cascade beyond the
+     * direct child of the parent whose column was renamed.
+     * <p>
+     * This test uses a slightly different setup from {@link #testMultiStepCascade()}
+     * because the renames are only supposed to cascade through column mappings
+     * where the FK column name was the same as the PK column name. The difference is
+     * that this test uses childTable2 because its imported columns are named the
+     * same as the parent PK.
+     */
+    public void testCascadeColumnRename() throws Exception {
+        // removing rel1 because it makes extra noise in the logs.
+        // this is not expected to affect test results.
+        parentTable.removeExportedKey(rel1);
+        
+        rel2.setIdentifying(true);
+        
+        parentTable.getColumnByName("pkcol_1").setPrimaryKeySeq(0);
+
+        SQLTable grandchildTable = new SQLTable(database, "grandchild_1", null, "TABLE", true);
+        database.addChild(grandchildTable);
+
+        SQLRelationship rel3 = new SQLRelationship();
+        rel3.setIdentifying(true);
+        rel3.setName("rel3");
+        rel3.attachRelationship(childTable2, grandchildTable, true);
+        
+        SQLColumn parentPk = parentTable.getColumnByName("pkcol_1");
+        SQLColumn parentPkInChild = childTable2.getColumnByName("pkcol_1");
+        SQLColumn parentPkInGrandchild = grandchildTable.getColumnByName("pkcol_1");
+        
+        assertNotNull(parentPk);
+        assertNotNull(parentPkInChild);
+        assertNotNull(parentPkInGrandchild);
+        
+        parentPk.setName("new_name");
+        
+        // These three tests are the point
+        assertEquals("new_name", parentPk.getName());
+        assertEquals("new_name", parentPkInChild.getName());
+        assertEquals("new_name", parentPkInGrandchild.getName());
+    }
+
+    /**
+     * This is a bit of a white-box test for an actual problem that we ran into.
+     * SQLTable.normalizePrimaryKey() was getting columns to fire primaryKeySeq
+     * change events inside its loop, but sometimes (especially in the case of a
+     * self-referencing relationship) those events were causing the column list
+     * to change.. which causes a concurrent modification exception!
+     * 
+     * @throws Exception
+     */
+    public void testComodificationInNormalize() throws Exception {
+        parentTable.removeExportedKey(rel1);
+        parentTable.removeExportedKey(rel2);
+        
+        SQLRelationship selfRef = new SQLRelationship();
+        selfRef.setName("parent_table_self_ref");
+        selfRef.attachRelationship(parentTable, parentTable, true);
+        
+        parentTable.getColumnByName("pkcol_1").setPrimaryKeySeq(0);
+        parentTable.getColumnByName("pkcol_2").setPrimaryKeySeq(1);
+        parentTable.getColumnByName("attribute_1").setPrimaryKeySeq(2);
+
+        // This was causing ConcurrentModificationException
+        parentTable.getColumnByName("pkcol_2").setPrimaryKeySeq(null);
+    }
+    
+    /**
+     * Actual bug: On a table that has a self-reference, If you remove a column
+     * from the PK, and there were more PK columns after it, those successive PK
+     * columns will end up removed from the PK.
+     */
+    public void testRemovePkColWithSelfRef() throws Exception {
+        parentTable.removeExportedKey(rel1);
+        parentTable.removeExportedKey(rel2);
+
+        parentTable.getColumnByName("pkcol_1").setPrimaryKeySeq(0);
+        parentTable.getColumnByName("pkcol_2").setPrimaryKeySeq(1);
+        parentTable.getColumnByName("attribute_1").setPrimaryKeySeq(2);
+        
+        SQLRelationship selfRef = new SQLRelationship();
+        selfRef.setName("parent_table_self_ref");
+        selfRef.attachRelationship(parentTable, parentTable, true);
+
+        assertEquals(Integer.valueOf(0), parentTable.getColumnByName("pkcol_1").getPrimaryKeySeq());
+        assertEquals(Integer.valueOf(1), parentTable.getColumnByName("pkcol_2").getPrimaryKeySeq());
+        assertEquals(Integer.valueOf(2), parentTable.getColumnByName("attribute_1").getPrimaryKeySeq());
+        
+        parentTable.getColumnByName("pkcol_2").setPrimaryKeySeq(null);
+ 
+        // The last of these three assertions is the one this test is looking for
+        assertEquals(Integer.valueOf(0), parentTable.getColumnByName("pkcol_1").getPrimaryKeySeq());
+        assertEquals(null,               parentTable.getColumnByName("pkcol_2").getPrimaryKeySeq());
+        assertEquals(Integer.valueOf(1), parentTable.getColumnByName("attribute_1").getPrimaryKeySeq());
     }
 }

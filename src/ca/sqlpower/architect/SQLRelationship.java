@@ -247,14 +247,14 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 		detachListeners();
 
+		this.pkTable = pkTable;
+		this.fkTable = fkTable;
+
+		fireDbObjectChanged("pkTable",oldPkt,pkTable);
+		fireDbObjectChanged("fkTable",oldFkt,fkTable);
+
 		try {
-			this.pkTable = pkTable;
-			this.fkTable = fkTable;
-
-			fireDbObjectChanged("pkTable",oldPkt,pkTable);
-			fireDbObjectChanged("fkTable",oldFkt,fkTable);
-
-			fkTable.getColumnsFolder().setMagicEnabled(false);
+		    fkTable.getColumnsFolder().setMagicEnabled(false);
 			fkTable.getImportedKeysFolder().setMagicEnabled(false);
 
 			boolean alreadyExists = false;
@@ -803,6 +803,10 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 		}
 
+        // XXX this code serves essentially the same purpose as the loop in realizeMapping().
+        //     We should refactor that method to use this one as a subroutine, and at that
+        //     time, ensure the special cases in both places are preserved.
+        //     (if there is a special case in there that's not here, it's probably a bug)
 		protected void ensureInMapping(SQLColumn pkcol) throws ArchitectException {
 		    if (!containsPkColumn(pkcol)) {
 		        if (logger.isDebugEnabled()) {
@@ -810,11 +814,21 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		                    +pkcol.getParentTable().getName()+"."+pkcol.getName()
 		                    +" to mapping");
 		        }
-		        if (pkcol.getParentTable().equals(fkTable)) return;
-		        SQLColumn fkcol = fkTable.getColumnByName(pkcol.getName());
-		        if (fkcol == null) fkcol = new SQLColumn(pkcol);
+                
+                SQLColumn fkcol;
+		        if (pkcol.getParentTable().equals(fkTable)) {
+                    // self-reference! must create new column!
+                    fkcol = new SQLColumn(pkcol);
+                    fkcol.setName(generateUniqueColumnName("Parent_"+pkcol.getName(), pkcol.getParentTable()));
+                } else {
+                    fkcol = fkTable.getColumnByName(pkcol.getName());
+                    if (fkcol == null) fkcol = new SQLColumn(pkcol);
+                }
+                
+                // this either adds the new column or bumps up the refcount on existing col
 		        fkTable.addColumn(fkcol);
-		        if (identifying) {
+                
+		        if (identifying && pkTable != fkTable) {
 		            fkcol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
 		        } else {
 		            // XXX might only want to do this if fkcol was newly created
