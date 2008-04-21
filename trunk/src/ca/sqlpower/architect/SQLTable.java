@@ -647,6 +647,8 @@ public class SQLTable extends SQLObject {
         }
 	}
 
+    private boolean normalizing = false;
+    private boolean normalizeAgain = false;
 	/**
      * Renumbers the PrimaryKeySeq values of all columns in this table, then
      * rebuilds this table's Primary Key Index so it correctly reflects the
@@ -679,63 +681,86 @@ public class SQLTable extends SQLObject {
      * </ul>
      */
 	public void normalizePrimaryKey() throws ArchitectException {
+        if (normalizing) {
+            logger.debug("Already normalizing! Original normalize should make a second pass", new Exception("Stack trace!"));
+//            normalizeAgain = true;
+            return;
+//            throw new RuntimeException("stack trace!");
+        }
 		try {
+            normalizing = true;
+            
             startCompoundEdit("Normalizing Primary Key");
 
-            // Phase 1 and 2 (see doc comment)
-            boolean donePk = false;
-            int i = 0;
-            for (SQLColumn col : getColumns()) {
-                donePk |= col.getPrimaryKeySeq() == null;
-                Integer oldPkSeq = col.getPrimaryKeySeq();
-                Integer newPkSeq;
-                if (!donePk) {
-                    newPkSeq = new Integer(i);
-                } else {
-                    newPkSeq = null;
-                }
-                col.primaryKeySeq = newPkSeq;
-                col.fireDbObjectChanged("primaryKeySeq", oldPkSeq, newPkSeq);
-                i++;
-            }
-            
-            // Phase 3 (see doc comment)
+            do {
+                normalizeAgain = false;
 
-            if (getPrimaryKeyIndex() == null) {
-                SQLIndex pkIndex = new SQLIndex(getName()+"_pk", true, null, null ,null);
-                pkIndex.setPrimaryKeyIndex(true);
-                addIndex(pkIndex);
-                logger.debug("new pkIndex.getChildCount()="+pkIndex.getChildCount());
-            }
+                // Phase 1 and 2 (see doc comment)
+                boolean donePk = false;
+                int i = 0;
 
-            SQLIndex pkIndex = getPrimaryKeyIndex();
-            Map<SQLColumn, Column> oldColumnInstances = new HashMap<SQLColumn, Column>();
-            while (pkIndex.getChildCount() > 0) {
-                Column child = (Column) pkIndex.removeChild(0);
-                if (child.getColumn() == null) {
-                    throw new IllegalStateException(
-                            "Found a functional index column in PK." +
-                            " PK Name: " + pkIndex.getName() +
-                            ", Index Column name: " + child.getName());
+                // iterating over a copy of the column list because new columns can
+                // be added or removed from the table as a side effect of the
+                // primaryKeySeq change events. The effect of iterating over
+                // the copy is that new columns will be ignored in this normalize
+                // effort, and removed columns will be treated as if they were
+                // still in the table.
+              for (SQLColumn col : new ArrayList<SQLColumn>(getColumns())) {
+//                for (SQLColumn col : getColumns()) {
+                    logger.debug("*** normalize " + getName() + " phase 1/2: " + col);
+                    donePk |= col.getPrimaryKeySeq() == null;
+                    Integer oldPkSeq = col.getPrimaryKeySeq();
+                    Integer newPkSeq;
+                    if (!donePk) {
+                        newPkSeq = new Integer(i);
+                    } else {
+                        newPkSeq = null;
+                    }
+                    col.primaryKeySeq = newPkSeq;
+                    col.fireDbObjectChanged("primaryKeySeq", oldPkSeq, newPkSeq);
+                    i++;
                 }
-                oldColumnInstances.put(child.getColumn(),child);
-            }
-            
-            assert pkIndex.getChildCount() == 0;
-            
-            for (SQLColumn col : getColumns()) {
-                if (col.getPrimaryKeySeq() == null) break;
-                if (oldColumnInstances.get(col) != null) {
-                    pkIndex.addChild(oldColumnInstances.get(col));
-                } else {
-                    pkIndex.addIndexColumn(col,AscendDescend.UNSPECIFIED);
+
+                // Phase 3 (see doc comment)
+
+                if (getPrimaryKeyIndex() == null) {
+                    SQLIndex pkIndex = new SQLIndex(getName()+"_pk", true, null, null ,null);
+                    pkIndex.setPrimaryKeyIndex(true);
+                    addIndex(pkIndex);
+                    logger.debug("new pkIndex.getChildCount()="+pkIndex.getChildCount());
                 }
-            }
-            if (pkIndex.getChildCount() == 0) {
-                getIndicesFolder().removeChild(pkIndex);
-            }
-        } finally {
+
+                SQLIndex pkIndex = getPrimaryKeyIndex();
+                Map<SQLColumn, Column> oldColumnInstances = new HashMap<SQLColumn, Column>();
+                while (pkIndex.getChildCount() > 0) {
+                    Column child = (Column) pkIndex.removeChild(0);
+                    if (child.getColumn() == null) {
+                        throw new IllegalStateException(
+                                "Found a functional index column in PK." +
+                                " PK Name: " + pkIndex.getName() +
+                                ", Index Column name: " + child.getName());
+                    }
+                    oldColumnInstances.put(child.getColumn(),child);
+                }
+
+                assert pkIndex.getChildCount() == 0;
+
+                for (SQLColumn col : getColumns()) {
+                    if (col.getPrimaryKeySeq() == null) break;
+                    if (oldColumnInstances.get(col) != null) {
+                        pkIndex.addChild(oldColumnInstances.get(col));
+                    } else {
+                        pkIndex.addIndexColumn(col,AscendDescend.UNSPECIFIED);
+                    }
+                }
+                if (pkIndex.getChildCount() == 0) {
+                    getIndicesFolder().removeChild(pkIndex);
+                }
+            } while (normalizeAgain);
+		} finally {
 		    endCompoundEdit("Normalizing Primary Key");
+            normalizing = false;
+            normalizeAgain = false;
 		}
         if (logger.isDebugEnabled()) {
             logger.debug("----Normalize Results for table " + getName() + "----");
