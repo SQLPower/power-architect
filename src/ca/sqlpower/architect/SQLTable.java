@@ -923,7 +923,9 @@ public class SQLTable extends SQLObject {
 						con = parent.getParentDatabase().getConnection();
 						dbmd = con.getMetaData();
 						crs = new CachedRowSet();
-						crs.populate(dbmd.getExportedKeys(parent.getCatalogName(), parent.getSchemaName(), parent.getName()));
+						ResultSet exportedKeysRS = dbmd.getExportedKeys(parent.getCatalogName(), parent.getSchemaName(), parent.getName());
+                        crs.populate(exportedKeysRS);
+                        exportedKeysRS.close();
 					} catch (SQLException ex) {
                         throw new ArchitectException("Couldn't locate related tables", ex);
                     } finally {
