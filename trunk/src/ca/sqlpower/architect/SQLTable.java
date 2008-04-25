@@ -947,6 +947,12 @@ public class SQLTable extends SQLObject {
 							String sch = crs.getString(6);
 							String tab = crs.getString(7);
 							SQLTable fkTable = parent.getParentDatabase().getTableByName(cat, sch, tab);
+                            if (fkTable == null) {
+                                throw new IllegalStateException("While populating table " +
+                                        ArchitectUtils.toQualifiedName(getParent()) +
+                                        ", I failed to find child table " +
+                                        "\""+cat+"\".\""+sch+"\".\""+tab+"\"");
+                            }
 							fkTable.populateColumns();
 							fkTable.populateRelationships();
 						}
