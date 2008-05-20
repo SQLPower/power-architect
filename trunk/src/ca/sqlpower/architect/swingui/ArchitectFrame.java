@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -451,8 +452,12 @@ public class ArchitectFrame extends JFrame {
         projectBar.add(helpAction);
         projectBar.setToolTipText("Project Toolbar");
         projectBar.setName("Project Toolbar");
-
-
+        
+        projectBar.setFocusable(false);
+        for (Component c : projectBar.getComponents()) {
+            c.setFocusable(false);
+        }
+        
         JButton tempButton = null; // shared actions need to report where they are coming from
         ppBar.setToolTipText("PlayPen Toolbar");
         ppBar.setName("PlayPen ToolBar");
@@ -479,7 +484,11 @@ public class ArchitectFrame extends JFrame {
         ppBar.add(createIdentifyingRelationshipAction);
         tempButton = ppBar.add(editRelationshipAction);
         tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-
+        
+        ppBar.setFocusable(false);
+        for (Component c : ppBar.getComponents()) {
+            c.setFocusable(false);
+        }
 
         Container projectBarPane = getContentPane();
         projectBarPane.setLayout(new BorderLayout());
