@@ -62,9 +62,7 @@ public class FreqValueCountTableModel extends AbstractTableModel {
         } else if (column == 2) {
             for (ColumnValueCount cvc : profile.getValueCount()) {
                 if (cvc.getValue() != null) {
-                    if (cvc.getValue() instanceof Number) {
-                        return cvc.getValue().getClass();
-                    }
+                    return cvc.getValue().getClass();
                 }
             }
             return Object.class;
