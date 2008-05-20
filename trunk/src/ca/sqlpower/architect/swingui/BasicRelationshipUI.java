@@ -831,14 +831,14 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	    // adjusts the x coordinate if the table faced top or bottom
 	    if ( ((orientation & orientations[2]) != 0) || ((orientation & orientations[0]) != 0) ) {
-	        x += offset * getSnapRadius() * 2;
+	        x += offset * getTerminationWidth() * 2;
 	        if ((x < getTerminationWidth()) || 
 	                (x > tBounds.width - getTerminationWidth())) {
 	            return null;
 	        }
 	    // adjusts the y coordinate if the table faced left or right
 	    } else if ( ((orientation & orientations[3]) != 0) || ((orientation & orientations[1]) != 0) ) {
-	        y += offset * getSnapRadius() * 2;
+	        y += offset * getTerminationWidth() * 2;
 	        if ((y < getTerminationWidth()) ||
 	                (y > tBounds.height - getTerminationWidth())) {
 	            return null;
