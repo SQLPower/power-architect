@@ -49,7 +49,7 @@ public class FreqValueTable extends JTable {
                 tc.setCellRenderer(new PercentTableCellRenderer());
                 break;
             default:
-                tc.setCellRenderer(null);
+                tc.setCellRenderer(new ValueTableCellRenderer());
                 break;
             }
         }
