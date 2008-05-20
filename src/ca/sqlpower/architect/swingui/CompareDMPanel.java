@@ -399,7 +399,7 @@ public class CompareDMPanel extends JPanel {
 					if (cat == null) {
 						// there are no catalogs (database is completely empty)
 						catalogDropdown.setEnabled(false);
-					}  else {
+					} else {
 						// there are catalogs, but they don't contain schemas
 						catalogDropdown.setEnabled(true);
 					}
@@ -510,6 +510,7 @@ public class CompareDMPanel extends JPanel {
 				ActionListener {
 		    
 		    String select;
+		    boolean populating = false;
 
 			public SchemaPopulator(ArchitectSwingSession session) {
                 super(session);
@@ -544,7 +545,8 @@ public class CompareDMPanel extends JPanel {
 				SQLCatalog catToPopulate = (SQLCatalog) catalogDropdown
 						.getSelectedItem();
 
-				if (catToPopulate != null) {
+				if (catToPopulate != null && !populating) {
+				    populating = true;
 					startCompareAction.setEnabled(false);
 					Thread t = new Thread(this);
 					t.start();
@@ -558,7 +560,7 @@ public class CompareDMPanel extends JPanel {
 				started = true;
 				SQLCatalog catToPopulate = (SQLCatalog) catalogDropdown
 						.getSelectedItem();
-				catToPopulate.getChildren(); // this might take a while
+				catToPopulate.populate(); // this might take a while
 				finished = true;
 			}
 
@@ -575,11 +577,11 @@ public class CompareDMPanel extends JPanel {
 				schemaLabel.setText("");
 				SQLCatalog populatedCat = (SQLCatalog) catalogDropdown
 						.getSelectedItem();
-
+						
 				if (populatedCat.isSchemaContainer()) {
 					for (SQLObject item : (List<SQLObject>) populatedCat
 							.getChildren()) {
-						schemaDropdown.addItem(item);
+					    schemaDropdown.addItem(item);
 					}
 
 					if (schemaDropdown.getItemCount() > 0) {
@@ -602,6 +604,7 @@ public class CompareDMPanel extends JPanel {
                     }
                 }
                 select = null;
+                populating = false;
 			}
 			
 			
@@ -1400,7 +1403,7 @@ public class CompareDMPanel extends JPanel {
                 taSchemaObj = (SQLObject)target.schemaDropdown.getSelectedItem();
                 
             }
-            
+                        
             target.loadFilePath.setText(sourceLoadFilePath);
             source.loadFilePath.setText(targetLoadFilePath);
             
