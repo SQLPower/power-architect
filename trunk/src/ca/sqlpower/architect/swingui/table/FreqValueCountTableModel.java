@@ -18,11 +18,12 @@
  */
 package ca.sqlpower.architect.swingui.table;
 
-import java.text.NumberFormat;
+import java.math.BigDecimal;
 
 import javax.swing.table.AbstractTableModel;
 
 import ca.sqlpower.architect.profile.ColumnProfileResult;
+import ca.sqlpower.architect.profile.ColumnValueCount;
 
 
 
@@ -52,6 +53,26 @@ public class FreqValueCountTableModel extends AbstractTableModel {
         }
     }
     
+    @Override
+    public Class<?> getColumnClass(int column) {
+        if (column == 0) {
+            return Integer.class;
+        } else if (column == 1) {
+            return BigDecimal.class;
+        } else if (column == 2) {
+            for (ColumnValueCount cvc : profile.getValueCount()) {
+                if (cvc.getValue() != null) {
+                    if (cvc.getValue() instanceof Number) {
+                        return cvc.getValue().getClass();
+                    }
+                }
+            }
+            return Object.class;
+        } else {
+            throw new IllegalStateException("Unknown Column Index:"+column);
+        }
+    }
+    
     public int getRowCount() {
         return profile==null?0:profile.getValueCount().size();
     }
@@ -63,19 +84,10 @@ public class FreqValueCountTableModel extends AbstractTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         if ( profile == null )
             return null;
-        
         if ( columnIndex == 0 ) {
             return profile.getValueCount().get(rowIndex).getCount();
         } else if ( columnIndex == 1 ) {
-            double d = profile.getValueCount().get(rowIndex).getPercent();
-            if (d == -1) {
-                //this is used to stop old saved files from breaking
-                return "n/a";
-            } else {
-                NumberFormat percentFormat = NumberFormat.getPercentInstance();
-                percentFormat.setMaximumFractionDigits(2);
-                return percentFormat.format(d);
-            }
+            return (double)(profile.getValueCount().get(rowIndex).getPercent());
         } else if (columnIndex == 2) {
             return profile.getValueCount().get(rowIndex).getValue();
         } else {

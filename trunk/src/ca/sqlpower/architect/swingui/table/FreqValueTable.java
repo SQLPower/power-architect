@@ -26,12 +26,18 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
-public class FreqValueTable extends JTable {
+import ca.sqlpower.swingui.table.PercentTableCellRenderer;
 
+public class FreqValueTable extends JTable {
 
     public FreqValueTable(TableModel dm) {
         super(dm);
-        
+    }
+    
+    @Override
+    public void setModel(TableModel dataModel) {
+        super.setModel(dataModel);
+
         TableColumnModel cm = getColumnModel();
         for (int col = 0; col < cm.getColumnCount(); col++) {
             TableColumn tc = cm.getColumn(col);
@@ -40,7 +46,7 @@ public class FreqValueTable extends JTable {
                 tc.setCellRenderer(null);
                 break;
             case 1:
-                tc.setCellRenderer(new ValueTableCellRenderer());
+                tc.setCellRenderer(new PercentTableCellRenderer());
                 break;
             default:
                 tc.setCellRenderer(null);
@@ -75,6 +81,5 @@ public class FreqValueTable extends JTable {
             column.setPreferredWidth(Math.max(headerWidth, cellWidth));
         }
     }
-
 
 }
