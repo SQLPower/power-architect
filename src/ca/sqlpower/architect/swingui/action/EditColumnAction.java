@@ -57,9 +57,11 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 
 	protected JDialog editDialog;			
 	protected ColumnEditPanel columnEditPanel;
+	protected ArchitectSwingSession session;
 
 	public EditColumnAction(ArchitectSwingSession session) {
         super(session, "Column Properties...", "Column Properties", "edit_column");
+        this.session = session;
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		setEnabled(false);
         
@@ -168,7 +170,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
                 //     sequence name until it has a parent. By then, it will be too late.
                 column.setAutoIncrementSequenceName(st.getName() + "_" + column.getName() + "_seq");
 			}
-			columnEditPanel = new ColumnEditPanel(column);
+			columnEditPanel = new ColumnEditPanel(column, session);
 			
 			panel.add(columnEditPanel, BorderLayout.CENTER);
 			
@@ -201,6 +203,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 							return new Boolean(true);
 						}
 					});
+			columnEditPanel.setEditDialog(editDialog);
 			panel.setOpaque(true);
 			editDialog.pack();
 			editDialog.setLocationRelativeTo(frame);
