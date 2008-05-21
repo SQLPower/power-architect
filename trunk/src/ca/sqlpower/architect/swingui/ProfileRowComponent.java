@@ -358,7 +358,9 @@ public class ProfileRowComponent extends JPanel implements Selectable {
 
         public void profileStarted(ProfileResultEvent event) {
             reProfileButton.setVisible(false);
+            deleteButton.setVisible(false);
             statusLabel.setVisible(false);
+            cancelButton.setVisible(true);
         }
     };
 
@@ -387,9 +389,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         this.reProfileButton = new JButton(refreshIcon);
         reProfileButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                cancelButton.setVisible(true);
-                deleteButton.setVisible(false);
-                reProfileButton.setVisible(false);
+                result.getProgressMonitor().setCancelled(false);
                 ProgressWatcher.watchProgress(progressBar, result.getProgressMonitor());
                 add(progressBar, ComponentType.PROGRESS_BAR);
                 pm.scheduleProfile(result);
@@ -413,7 +413,6 @@ public class ProfileRowComponent extends JPanel implements Selectable {
             }
         });
         add(deleteButton, ComponentType.DELETE);
-        deleteButton.setVisible(false);
 
         SQLTable table = result.getProfiledObject();
         
@@ -430,7 +429,6 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         add(new JLabel("(" + table.getParentDatabase().getName() + ")"), ComponentType.CONNECTION_NAME);
         
         add(reProfileButton, ComponentType.RELOAD);
-        reProfileButton.setVisible(false);
         
         ProgressWatcher pw = new ProgressWatcher(progressBar, result.getProgressMonitor());
         pw.setHideLabelWhenFinished(true);
