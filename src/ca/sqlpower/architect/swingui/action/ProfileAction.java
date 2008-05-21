@@ -62,7 +62,7 @@ public class ProfileAction extends AbstractArchitectAction {
         
         if (dbTree.getSelectionPaths() != null) {
             for (TreePath path: dbTree.getSelectionPaths()){
-                if (path.isDescendant(targetDBPath)) {
+                if (targetDBPath.isDescendant(path)) {
     
                     int answer = JOptionPane.showConfirmDialog(session.getArchitectFrame(),
                             "Cannot perform profiling on the project database." +
@@ -89,7 +89,7 @@ public class ProfileAction extends AbstractArchitectAction {
             for ( TreePath tp : dbTree.getSelectionPaths() ) {
                 logger.debug("Top of first loop, treepath=" + tp);
                 // skip the target db
-                if (tp.isDescendant(targetDBPath)) continue;
+                if (targetDBPath.isDescendant(tp)) continue;
                 if ( tp.getLastPathComponent() instanceof SQLDatabase ) {
                     sqlObject.add((SQLDatabase)tp.getLastPathComponent());
                 }
