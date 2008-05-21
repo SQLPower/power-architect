@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import javax.swing.ButtonGroup;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -31,6 +32,10 @@ import javax.swing.JTextField;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
@@ -41,7 +46,7 @@ import ca.sqlpower.swingui.DataEntryPanel;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class RelationshipEditPanel implements DataEntryPanel {
+public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel {
 
 	private static final Logger logger = Logger.getLogger(RelationshipEditPanel.class);
 
@@ -54,6 +59,11 @@ public class RelationshipEditPanel implements DataEntryPanel {
      * The relationship being edited.
      */
 	private SQLRelationship relationship;
+	
+	/**
+	 * The frame which this relationship editing dialog resides in.
+	 */
+	private JDialog editDialog;
 
 	private JTextField relationshipName;
 
@@ -139,6 +149,13 @@ public class RelationshipEditPanel implements DataEntryPanel {
         
         fb.setDefaultDialogBorder();
         panel = fb.getPanel();
+        
+        try {
+            ArchitectUtils.listenToHierarchy(this, session.getRootObject());
+        } catch (ArchitectException e) {
+            logger.error("Fail to add sql object listener to the edit panel.");
+            e.printStackTrace();
+        }
 	}
 
 
@@ -277,6 +294,54 @@ public class RelationshipEditPanel implements DataEntryPanel {
     public boolean hasUnsavedChanges() {
         // TODO return whether this panel has been changed
         return true;
+    }
+
+    // -----------------Methods from SQLObjectListener------------------- //
+
+    public void dbChildrenInserted(SQLObjectEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+    public void dbChildrenRemoved(SQLObjectEvent e) {
+        logger.debug("SQLObject children got removed: "+e);
+        boolean itemDeleted = false;
+        SQLObject[] c = e.getChildren();
+        
+        for (int i = 0; i < c.length; i++) {
+            
+            try {
+                if(this.relationship.equals(c[i])) {
+                    itemDeleted = true;
+                    break;
+                }
+            } catch (Exception ex) {
+                logger.error("Could not compare the removed sql objects.", ex);
+            }
+        }
+        if(itemDeleted) {
+            if(this.editDialog != null) {
+                this.editDialog.setVisible(false);
+            }
+            itemDeleted = false;
+        }
+    }
+
+
+    public void dbObjectChanged(SQLObjectEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+    public void dbStructureChanged(SQLObjectEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    public void setEditDialog(JDialog editDialog) {
+        this.editDialog = editDialog;
     }
 	
 }

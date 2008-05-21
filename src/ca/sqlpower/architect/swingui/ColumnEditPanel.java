@@ -32,6 +32,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -45,13 +46,17 @@ import javax.swing.event.DocumentListener;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLType;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class ColumnEditPanel extends JPanel
-	implements ActionListener, DataEntryPanel {
+	implements SQLObjectListener, ActionListener, DataEntryPanel {
 
 	private static final Logger logger = Logger.getLogger(ColumnEditPanel.class);
 
@@ -59,7 +64,12 @@ public class ColumnEditPanel extends JPanel
      * The column we're editing.
      */
     private SQLColumn column;
-
+	
+	/**
+	 * The frame of the column edit dialog.
+	 */
+	private JDialog editDialog;
+	
 	private JLabel sourceDB;
 	private JLabel sourceTableCol;
 	private JTextField colName;
@@ -89,11 +99,12 @@ public class ColumnEditPanel extends JPanel
      */
     private String seqNameSuffix;
 
-	public ColumnEditPanel(SQLColumn col) throws ArchitectException {
+	public ColumnEditPanel(SQLColumn col, ArchitectSwingSession session) throws ArchitectException {
 		super(new BorderLayout(12,12));
 		logger.debug("ColumnEditPanel called");
         buildUI();
 		editColumn(col);
+		ArchitectUtils.listenToHierarchy(this, session.getRootObject());
 	}
 
     private void buildUI() {
@@ -437,5 +448,73 @@ public class ColumnEditPanel extends JPanel
         // TODO return whether this panel has been changed
         return true;
     }
+    
+    // -----------------Methods from SQLObjectListener------------------- //
+
+    /**
+     * Listens for property changes in the model (tables
+     * added).  If this change affects the appearance of
+     * this widget, we will notify all change listeners (the UI
+     * delegate) with a ChangeEvent.
+     */
+    public void dbChildrenInserted(SQLObjectEvent e) {
+        logger.debug("SQLObject children got inserted: "+e);
+    }
+
+    public void dbChildrenRemoved(SQLObjectEvent e) {
+        
+        logger.debug("SQLObject children got removed: "+e);
+        boolean itemDeleted = false;
+        SQLObject[] c = e.getChildren();
+
+        
+        for (int i = 0; i < c.length; i++) {
+            
+            try {
+                if(this.column.equals(c[i])) {
+                    itemDeleted = true;
+                    break;
+                }
+                else if(c[i] instanceof SQLTable) {
+                    for(int j = 0; j < c[i].getChildCount(); j++) {
+                        for (int k = 0; k < c[i].getChild(j).getChildCount(); k++){
+                            if(this.column.equals(c[i].getChild(j).getChild(k))) {
+                                itemDeleted = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                logger.error("Could not compare the removed sql objects.", ex);
+            }
+        }
+        if(itemDeleted) {
+            if(this.editDialog != null) {
+                this.editDialog.setVisible(false);
+            }
+            itemDeleted = false;
+        }
+    }
+
+    public void dbObjectChanged(SQLObjectEvent e) {
+        // TODO Auto-generated method stub
+       
+    }
+
+    public void dbStructureChanged(SQLObjectEvent e) {
+        // TODO Auto-generated method stub
+       
+    }
+   
+    /**
+     * For others to pass in a reference of the jframe which column 
+     * edit panel resides in.
+     * @param editDialog
+     */
+    public void setEditDialog(JDialog editDialog) {
+        this.editDialog = editDialog;
+    }
+
 }
   

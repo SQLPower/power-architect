@@ -21,6 +21,7 @@ package ca.sqlpower.architect.swingui;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -28,16 +29,28 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import org.apache.log4j.Logger;
+
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.swingui.DataEntryPanel;
 
-public class TableEditPanel extends JPanel implements DataEntryPanel {
+public class TableEditPanel extends JPanel implements SQLObjectListener, DataEntryPanel {
+    
+    private static final Logger logger = Logger.getLogger(TableEditPanel.class);
 
+    /**
+     * The frame which this table edit panel resides in.
+     */
+    private JDialog editDialog;
 	protected SQLTable table;
 	JTextField name;
 	JTextField pkName;
@@ -55,6 +68,11 @@ public class TableEditPanel extends JPanel implements DataEntryPanel {
 		remarks.setLineWrap(true);
 		remarks.setWrapStyleWord(true);
 		editTable(t);
+		try {
+            ArchitectUtils.listenToHierarchy(this, session.getRootObject());
+        } catch (ArchitectException e) {
+            e.printStackTrace();
+        }
 	}
 
 	public void editTable(SQLTable t) {
@@ -182,6 +200,50 @@ public class TableEditPanel extends JPanel implements DataEntryPanel {
     public boolean hasUnsavedChanges() {
         // TODO return whether this panel has been changed
         return true;
+    }
+
+    // -----------------Methods from SQLObjectListener------------------- //
+    
+    public void dbChildrenInserted(SQLObjectEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void dbChildrenRemoved(SQLObjectEvent e) {
+        logger.debug("SQLObject children got removed: "+e);
+        boolean itemDeleted = false;
+        SQLObject[] c = e.getChildren();
+        
+        for (int i = 0; i < c.length; i++) {            
+            try {
+                if(this.table.equals(c[i])) {
+                    itemDeleted = true;
+                    break;
+                }
+            } catch (Exception ex) {
+                logger.error("Could not compare the removed sql objects.", ex);
+            }
+        }
+        if(itemDeleted) {
+            if(this.editDialog != null) {
+                this.editDialog.setVisible(false);
+            }
+            itemDeleted = false;
+        }        
+    }
+
+    public void dbObjectChanged(SQLObjectEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void dbStructureChanged(SQLObjectEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    public void setEditDialog(JDialog editDialog) {
+        this.editDialog = editDialog;
     }
 
 }
