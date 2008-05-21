@@ -43,6 +43,7 @@ import javax.swing.UIManager;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -66,6 +67,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
     private enum ComponentType {
         ICON,
         TABLE_NAME,
+        CONNECTION_NAME,
         TABLE_INFO,
         PROGRESS_BAR, 
         RELOAD, 
@@ -121,6 +123,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         private int yGap;
         private Component icon;
         private Component tableName;
+        private Component connectionName;
         private Component tableInfo;
         private Component progressBar;
         private Component reload;
@@ -143,6 +146,9 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                 break;
             case TABLE_NAME:
                 tableName = comp;
+                break;
+            case CONNECTION_NAME:
+                connectionName = comp;
                 break;
             case TABLE_INFO:
                 tableInfo = comp;
@@ -210,6 +216,13 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                 int y = height /2 - yGap/2 - preferredSize.height;
                 tableName.setBounds(x, y, preferredSize.width, preferredSize.height);
             }
+            if (connectionName != null) {
+                Dimension preferredSize = new Dimension(stretchyPreferredWidth,
+                        connectionName.getPreferredSize().height);
+                int x = inset.left + icon.getPreferredSize().width + xGap + tableName.getPreferredSize().width + xGap;
+                int y = height /2 - yGap/2 - preferredSize.height;
+                connectionName.setBounds(x, y, preferredSize.width, preferredSize.height);
+            }
             if (tableInfo != null) {
                 Dimension preferredSize = new Dimension(stretchyPreferredWidth,
                         tableInfo.getPreferredSize().height);
@@ -248,7 +261,8 @@ public class ProfileRowComponent extends JPanel implements Selectable {
             return new Dimension(icon.getMinimumSize().width +  
                     3 * xGap + 
                     Math.max(progressBar.getMinimumSize().width, 
-                            tableName.getMinimumSize().width) +
+                            tableName.getMinimumSize().width +
+                            xGap + connectionName.getMinimumSize().width) +
                             // reload and delete buttons same size
                             2 * reload.getMinimumSize().width, 
                             tableName.getMinimumSize().height +
@@ -262,7 +276,8 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                     tableInfo.getPreferredSize().width);
             return new Dimension(icon.getPreferredSize().width +
                     3 * xGap +
-                    Math.max(maxOfBarAndInfo, tableName.getPreferredSize().width) +
+                    Math.max(maxOfBarAndInfo, tableName.getPreferredSize().width +
+                    xGap + connectionName.getPreferredSize().width) +
                     // reload and delete buttons same size
                     2 * reload.getPreferredSize().width +
                     inset.left + inset.right,
@@ -399,8 +414,20 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         });
         add(deleteButton, ComponentType.DELETE);
         deleteButton.setVisible(false);
+
+        SQLTable table = result.getProfiledObject();
         
-        add(new JLabel(result.getProfiledObject().getName()), ComponentType.TABLE_NAME);
+        StringBuilder tableName = new StringBuilder();
+        if (table.getCatalog() != null) {
+            tableName.append(table.getCatalogName()).append(".");
+        }
+        if (table.getSchema() != null) {
+            tableName.append(table.getSchemaName()).append(".");
+        }
+        tableName.append(table.getName());
+        add(new JLabel(tableName.toString()), ComponentType.TABLE_NAME);
+        
+        add(new JLabel("(" + table.getParentDatabase().getName() + ")"), ComponentType.CONNECTION_NAME);
         
         add(reProfileButton, ComponentType.RELOAD);
         reProfileButton.setVisible(false);
