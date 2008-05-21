@@ -38,6 +38,7 @@ public class TestColumnEditPanel extends TestCase {
 	SQLColumn col4;
 	SQLTable table2;
 	ColumnEditPanel panel;
+	ArchitectSwingSession session;
 	
 	protected void setUp() throws Exception {
 		db = new SQLDatabase();
@@ -57,7 +58,8 @@ public class TestColumnEditPanel extends TestCase {
 		table.addColumn(col3);
 		table2.addColumn(col4);
 		TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-		panel = new ColumnEditPanel(col2);
+		session = context.createSession();
+		panel = new ColumnEditPanel(col2, session);
 		
 		super.setUp();
 	}
@@ -157,7 +159,7 @@ public class TestColumnEditPanel extends TestCase {
         assertTrue(c1.isPrimaryKey());
 		
         int previousIdx = table.getColumnIndex(table.getColumnByName("PKColumn 1"));
-        ColumnEditPanel editPanel = new ColumnEditPanel(c1);
+        ColumnEditPanel editPanel = new ColumnEditPanel(c1, session);
 		editPanel.applyChanges();
 		assertEquals(previousIdx, table.getColumnIndex(table.getColumnByName("PKColumn 1")));		
 	}
@@ -175,7 +177,7 @@ public class TestColumnEditPanel extends TestCase {
         TablePane tp = new TablePane(table, pp);
         tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
         tp.selectColumn(table.getColumnIndex(col3));        
-        ColumnEditPanel ce = new ColumnEditPanel(col3);        
+        ColumnEditPanel ce = new ColumnEditPanel(col3, session);        
         ce.getColInPK().setSelected(true);
         ce.applyChanges();
         assertEquals(table.getColumnIndex(col3), tp.getSelectedColumnIndex());
