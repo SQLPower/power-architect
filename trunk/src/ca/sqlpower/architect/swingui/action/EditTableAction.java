@@ -87,7 +87,7 @@ public class EditTableAction extends AbstractArchitectAction {
 		}	
 	}
 
-	private JDialog d;
+	private JDialog editDialog;
 	
 	public void makeDialog(SQLTable table) {
 		final TableEditPanel editPanel = new TableEditPanel(session, table);
@@ -110,12 +110,12 @@ public class EditTableAction extends AbstractArchitectAction {
 			}
 		};
 
-		d = DataEntryPanelBuilder.createDataEntryPanelDialog(
+		editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				editPanel, frame,
 				"Table Properties", "OK", okCall, cancelCall);
-
-		d.pack();
-		d.setLocationRelativeTo(frame);
-		d.setVisible(true);
+		editPanel.setEditDialog(editDialog);
+		editDialog.pack();
+		editDialog.setLocationRelativeTo(frame);
+		editDialog.setVisible(true);
 	}
 }

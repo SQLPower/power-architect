@@ -101,14 +101,15 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
         panel.addTab("Relationship", editPanel);
         panel.addTab("Mappings", mappingPanel);
         
-		final JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
+		final JDialog editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				panel,
 				frame, 
 				"Relationship Properties", "OK");
 				
-		d.pack();
-		d.setLocationRelativeTo(frame);
-		d.setVisible(true);
+		editPanel.setEditDialog(editDialog);
+		editDialog.pack();
+		editDialog.setLocationRelativeTo(frame);
+		editDialog.setVisible(true);
 	}
 
 	public void setupAction(List selectedItems) {
