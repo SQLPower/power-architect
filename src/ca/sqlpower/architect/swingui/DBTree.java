@@ -373,7 +373,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			mi.setAction(af.getEditTableAction());
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
 			newMenu.add(mi);
-			if (p.getLastPathComponent() instanceof SQLTable || p.getLastPathComponent() instanceof SQLColumn) {
+			if (p.getLastPathComponent() instanceof SQLTable) {
 				mi.setEnabled(true);
 			} else {
 				mi.setEnabled(false);
