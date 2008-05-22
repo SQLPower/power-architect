@@ -198,7 +198,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
             final int stretchyPreferredWidth = width -
                 inset.left -
                 inset.right -
-                3 * xGap -
+                4 * xGap -
                 icon.getPreferredSize().width -
                 // reload and delete buttons are same size
                 2 * reload.getPreferredSize().width;
@@ -210,14 +210,15 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                 icon.setBounds(x, y, preferredSize.width, preferredSize.height);
             }
             if (tableName != null) {
-                Dimension preferredSize = new Dimension(stretchyPreferredWidth,
+                int preferredWidth = (int) Math.min(stretchyPreferredWidth, tableName.getPreferredSize().width);
+                Dimension preferredSize = new Dimension(preferredWidth,
                         tableName.getPreferredSize().height);
                 int x = inset.left + icon.getPreferredSize().width + xGap;
                 int y = height /2 - yGap/2 - preferredSize.height;
                 tableName.setBounds(x, y, preferredSize.width, preferredSize.height);
             }
             if (connectionName != null) {
-                Dimension preferredSize = new Dimension(stretchyPreferredWidth,
+                Dimension preferredSize = new Dimension(stretchyPreferredWidth - tableName.getPreferredSize().width,
                         connectionName.getPreferredSize().height);
                 int x = inset.left + icon.getPreferredSize().width + xGap + tableName.getPreferredSize().width + xGap;
                 int y = height /2 - yGap/2 - preferredSize.height;
