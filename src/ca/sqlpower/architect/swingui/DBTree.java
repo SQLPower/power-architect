@@ -414,45 +414,45 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
 		} else if (!isTargetDatabaseNode(p) && p != null) { // clicked on DBCS item in DBTree
 			newMenu.addSeparator();
-			if (p.getLastPathComponent() instanceof SQLDatabase) {
-				newMenu.add(new JMenuItem(removeDBCSAction));
-			}
-			
-			JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
-			newMenu.add(popupProperties);
-			
-            if (p.getLastPathComponent() instanceof SQLDatabase){
-                SQLDatabase tempDB=(SQLDatabase)(p.getLastPathComponent());
+
+			if (p.getLastPathComponent() instanceof SQLDatabase){
+			    SQLDatabase tempDB=(SQLDatabase)(p.getLastPathComponent());
+
+			    try {
+			        //this if is looking for a database with only tables in it
+			        //it checks first that it does not hold schemas of catalogs
+			        //then it looks if it contains error nodes, which will occur if the 
+			        //tree only has one child
+			        if (!tempDB.isCatalogContainer() && !tempDB.isSchemaContainer() && 
+			                (!(tempDB.getChildCount() == 1) || 
+			                        !tempDB.getChild(0).getClass().equals(SQLExceptionNode.class)))
+			        {
+			            //a new action is needed to maintain the database variable
+			            CompareToCurrentAction compareToCurrentAction = new CompareToCurrentAction();
+			            compareToCurrentAction.putValue(CompareToCurrentAction.DATABASE,tempDB);
+			            JMenuItem popupCompareToCurrent = new JMenuItem(compareToCurrentAction);            
+			            newMenu.add(popupCompareToCurrent);
+			        }
+			    } catch (ArchitectException e) {
+			        ASUtils.showExceptionDialog(session, "Error Communicating with database", e);
+			    }
+			    
+			    JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
+			    newMenu.add(profile);
+
                 JMenuItem setAsDB = new JMenuItem(new SetConnAsTargetDB(tempDB.getDataSource()));
                 newMenu.add(setAsDB);
                 
-                
-                
-                try {
-                    //this if is looking for a database with only tables in it
-                    //it checks first that it does not hold schemas of catalogs
-                    //then it looks if it contains error nodes, which will occur if the 
-                    //tree only has one child
-                    if (!tempDB.isCatalogContainer() && !tempDB.isSchemaContainer() && 
-                            (!(tempDB.getChildCount() == 1) || 
-                            !tempDB.getChild(0).getClass().equals(SQLExceptionNode.class)))
-                    {
-                        //a new action is needed to maintain the database variable
-                        CompareToCurrentAction compareToCurrentAction = new CompareToCurrentAction();
-                        compareToCurrentAction.putValue(CompareToCurrentAction.DATABASE,tempDB);
-                        JMenuItem popupCompareToCurrent = new JMenuItem(compareToCurrentAction);            
-                        newMenu.add(popupCompareToCurrent);
-                    }
-                } catch (ArchitectException e) {
-                    ASUtils.showExceptionDialog(session, "Error Communicating with database", e);
-                }
-                
+                newMenu.add(new JMenuItem(removeDBCSAction));
             } else if (p.getLastPathComponent() instanceof SQLSchema){
                 //a new action is needed to maintain the schema variable
                 CompareToCurrentAction compareToCurrentAction = new CompareToCurrentAction();
                 compareToCurrentAction.putValue(CompareToCurrentAction.SCHEMA, p.getLastPathComponent());
                 JMenuItem popupCompareToCurrent = new JMenuItem(compareToCurrentAction);            
                 newMenu.add(popupCompareToCurrent);
+                
+                JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
+                newMenu.add(profile);
             } else if (p.getLastPathComponent() instanceof SQLCatalog) {
                 SQLCatalog catalog = (SQLCatalog)p.getLastPathComponent();
                 try {
@@ -468,7 +468,17 @@ public class DBTree extends JTree implements DragSourceListener {
                 } catch (ArchitectException e) {
                     ASUtils.showExceptionDialog(session, "Error Communicating with database", e);
                 }
+                
+                JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
+                newMenu.add(profile);
+            } else if (p.getLastPathComponent() instanceof SQLTable) {
+                JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
+                newMenu.add(profile);
             }
+            
+			newMenu.addSeparator();
+            JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
+            newMenu.add(popupProperties);
 		}
 
 		// Show exception details (SQLException node can appear anywhere in the hierarchy)

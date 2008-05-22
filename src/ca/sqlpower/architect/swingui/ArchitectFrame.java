@@ -723,4 +723,8 @@ public class ArchitectFrame extends JFrame {
     public CompareDMDialog getCompareDMDialog() {
         return comapareDMDialog;
     }
+
+    public ProfileAction getProfileAction() {
+        return profileAction;
+    }
 }
