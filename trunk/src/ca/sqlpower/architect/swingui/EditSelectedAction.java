@@ -39,7 +39,7 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
     private static final Logger logger = Logger.getLogger(EditSelectedAction.class);
     
     public EditSelectedAction(ArchitectSwingSession session) throws ArchitectException {
-        super(session, "Edit Selected", "Edit Selected", "edit_column");
+        super(session, "Edit Selected", "Edit Selected", "edit_selected");
         
         this.session = session;
         playpen = session.getPlayPen();
@@ -147,5 +147,4 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
         }
         putValue(SHORT_DESCRIPTION, Description + " (Shortcut enter)");
     }
-
 }
