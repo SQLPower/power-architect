@@ -1696,7 +1696,7 @@ public class PlayPen extends JPanel
 	 * user clicks.
 	 */
 	public void addFloating(TablePane tp) {
-		new FloatingTableListener(this, tp, zoomPoint(new Point(tp.getSize().width/2,0)),true);
+	    new FloatingTableListener(this, tp, zoomPoint(new Point(0,0)),true);
 	}
 
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
