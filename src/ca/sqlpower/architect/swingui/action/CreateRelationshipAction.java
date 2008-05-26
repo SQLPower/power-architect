@@ -98,7 +98,6 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 	static public void doCreateRelationship(SQLTable pkTable, SQLTable fkTable, PlayPen pp, boolean identifying) {
 		try {
 			pp.startCompoundEdit("Add Relationship");
-			fkTable.setMagicEnabled(false);
 			SQLRelationship model = new SQLRelationship();
 			// XXX: need to ensure uniqueness of setName(), but 
 			// to_identifier should take care of this...			
@@ -113,7 +112,6 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 			logger.error("Couldn't create relationship", ex);
 			ASUtils.showExceptionDialogNoReport(pp, "Couldn't create relationship.", ex);
 		} finally {
-			fkTable.setMagicEnabled(true);
 			pp.endCompoundEdit("Ending the creation of a relationship");
 		}
 	}
