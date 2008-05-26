@@ -390,7 +390,7 @@ public class PlayPen extends JPanel
 	/**
 	 * Flag to prevent recursive selections for selectObjects()
 	 */
-	private boolean selectingOnTree = false;
+	private boolean ignoreTreeSelection = false;
     
 	/**
      * Creates a play pen with reasonable defaults.  If you are creating
@@ -1863,6 +1863,7 @@ public class PlayPen extends JPanel
 	 * Deselects all selectable items in the PlayPen.
 	 */
 	public void selectNone() {
+	 	session.getSourceDatabases().clearSelection();
  		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
  			if (contentPane.getComponent(i) instanceof Selectable) {
  				Selectable s = (Selectable) contentPane.getComponent(i);
@@ -1885,6 +1886,11 @@ public class PlayPen extends JPanel
  			}
  		}
  		mouseMode = MouseModeType.MULTI_SELECT;
+ 		try {
+            updateDBTree();
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
 	}
 
 
@@ -1948,25 +1954,6 @@ public class PlayPen extends JPanel
 	 */
 	public void itemSelected(SelectionEvent e) {
 	    fireSelectionEvent(e);
-
-        PlayPenComponent comp = (PlayPenComponent) e.getSource();
-        DBTree tree = session.getSourceDatabases();
-        TreePath[] treePaths = tree.getTreePathsForNode((SQLObject) comp.getModel());
-
-        selectingOnTree = true;
-        boolean addedPaths = false;
-        for (TreePath tp: treePaths) {
-            if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
-                logger.debug("adding selection path: " + tp);
-                tree.addSelectionPath(tp);
-                addedPaths = true;
-            }
-        }
-        
-        if (addedPaths) {
-            tree.clearNonPlayPenSelections();
-        }
-        selectingOnTree = false;
 	}
 
 	/**
@@ -1975,19 +1962,6 @@ public class PlayPen extends JPanel
 	 */
 	public void itemDeselected(SelectionEvent e) {
 	    fireSelectionEvent(e);
-
-	    PlayPenComponent comp = (PlayPenComponent) e.getSource();
-	    DBTree tree = session.getSourceDatabases();
-	    TreePath[] treePaths = tree.getTreePathsForNode((SQLObject) comp.getModel());
-        
-	    selectingOnTree = true;
-	    for (TreePath tp: treePaths) {
-    	    if (tree.getSelectionPaths() != null && Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
-    	        logger.debug("removing selection path: " + tp);
-    	        tree.removeSelectionPath(tp);
-    	    }
-	    }
-	    selectingOnTree = false;
 	}
 	
 	// --------------------- SELECTION EVENT SUPPORT ---------------------
@@ -2570,6 +2544,11 @@ public class PlayPen extends JPanel
 			}
 			maybeShowPopup(evt);
 			repaint();
+			try {
+			    updateDBTree();
+			} catch (ArchitectException e) {
+			    throw new ArchitectRuntimeException(e);
+			}
 		}
 
 		// ---------------- MOUSEMOTION LISTENER INTERFACE -----------------
@@ -2739,6 +2718,11 @@ public class PlayPen extends JPanel
 		 */
 		public void mouseReleased(MouseEvent e) {
 			cleanup(false);
+			try {
+                pp.updateDBTree();
+            } catch (ArchitectException ex) {
+                throw new ArchitectRuntimeException(ex);
+            }
 		}
 
 		public void cancel() {
@@ -2908,10 +2892,10 @@ public class PlayPen extends JPanel
      * @throws ArchitectException 
      */
     public void selectObjects(List<SQLObject> selections) throws ArchitectException {
-        if (selectingOnTree) return;
-        selectingOnTree = true;
+        if (ignoreTreeSelection) return;
+        ignoreTreeSelection = true;
 
-        logger.debug("selecting and showing: " + selections);
+        logger.debug("selecting: " + selections);
         
         DBTree tree = session.getSourceDatabases();
         
@@ -2965,21 +2949,19 @@ public class PlayPen extends JPanel
                 if (r != null && !r.isSelected()) {
                     r.setSelected(true,SelectionEvent.SINGLE_SELECT);
                 } else {
-                    // ensure the other node representing the same SQLRelationship is also selected on dbTree
-                    TreePath[] treePaths = tree.getTreePathsForNode(obj);
-                    for (TreePath tp: treePaths) {
-                        if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
-                            tree.addSelectionPath(tp);
-                        }
-                    }
-                    tree.clearNonPlayPenSelections();
                     ignoredObjs.add(obj);
                 }
+                // ensure the other node representing the same SQLRelationship is also selected on dbTree
+                TreePath[] treePaths = tree.getTreePathsForNode(obj);
+                for (TreePath tp: treePaths) {
+                    tree.addSelectionPath(tp);
+                }
+                tree.clearNonPlayPenSelections();
             }
         }
         
-        logger.debug("selectAndShow ignoring: " + ignoredObjs);
-        logger.debug("selectAndShow adding tables selections: " + colTables);
+        logger.debug("selectObjects ignoring: " + ignoredObjs);
+        logger.debug("selectObjects adding tables selections: " + colTables);
         
         // deselects all other playpen components
         for (PlayPenComponent comp : getSelectedItems()) {
@@ -3007,7 +2989,7 @@ public class PlayPen extends JPanel
             }
             
         }
-        selectingOnTree = false;
+        ignoreTreeSelection = false;
     }
 
 	public PlayPenContentPane getPlayPenContentPane() {
@@ -3026,8 +3008,53 @@ public class PlayPen extends JPanel
         return cursorManager;
     }
 
-    public void setSelectingOnTree(boolean selectingOnTree) {
-        this.selectingOnTree = selectingOnTree;
+    public void setIgnoreTreeSelection(boolean value) {
+        this.ignoreTreeSelection = value;
     }
 
+    public boolean ignoreTreeSelection() {
+        return ignoreTreeSelection;
+    }
+    
+    /**
+     * Synchronizes the dbtTree selection with the playpen selections
+     * @throws ArchitectException 
+     * 
+     */
+    private void updateDBTree() throws ArchitectException {
+        if (ignoreTreeSelection) return;
+        ignoreTreeSelection = true;
+        DBTree tree = session.getSourceDatabases();
+        tree.clearSelection();
+        
+        List<TreePath> selectionPaths = new ArrayList<TreePath>();
+        boolean addedPaths = false;
+        // finds all the TreePaths to select
+        for (PlayPenComponent comp : getSelectedItems()) {
+            TreePath[] compPaths = tree.getTreePathsForNode((SQLObject) comp.getModel());
+            for (TreePath tp: compPaths) {
+                if (!selectionPaths.contains(tp)) {
+                    selectionPaths.add(tp);
+                    addedPaths = true;
+                }
+            }
+            
+            if (comp instanceof TablePane) {
+                for (SQLColumn col :((TablePane) comp).getSelectedColumns()) {
+                    TreePath tp = tree.getTreePathForNode(col);
+                    if (!selectionPaths.contains(tp)) {
+                        selectionPaths.add(tp);
+                        addedPaths = true;
+                    }
+                }
+            }
+        }
+        
+        tree.setSelectionPaths(selectionPaths.toArray(new TreePath[selectionPaths.size()]));
+        if (addedPaths) {
+            tree.clearNonPlayPenSelections();
+        }
+        ignoreTreeSelection = false;
+        
+    }
 }

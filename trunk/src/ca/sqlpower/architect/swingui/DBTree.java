@@ -875,13 +875,14 @@ public class DBTree extends JTree implements DragSourceListener {
 	 */
 	private void selectInPlayPen(TreePath[] treePaths) {
 	    PlayPen pp = session.getPlayPen();
+	    if (pp.ignoreTreeSelection()) return;
 	    if (treePaths == null) {
 	        pp.selectNone();
 	    } else {
 	        List<SQLObject> objects = new ArrayList<SQLObject>();
 	        for (TreePath tp : treePaths) {
+	            if (!getPathForRow(0).isDescendant(tp)) continue;
 	            SQLObject obj = (SQLObject) tp.getLastPathComponent();
-	            
 	            // only select playpen represented objects.
 	            if ((obj instanceof SQLTable || obj instanceof SQLRelationship || obj instanceof SQLColumn) &&
 	                    !objects.contains(obj)) {
