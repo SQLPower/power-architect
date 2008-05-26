@@ -72,7 +72,7 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 			}
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
-			if (selections.length != 1) {
+			if (selections.length != 2) {
 				JOptionPane.showMessageDialog(dbt, "Please select the relationship you would like to edit.");
 			} else {
 				TreePath tp = selections[0];
