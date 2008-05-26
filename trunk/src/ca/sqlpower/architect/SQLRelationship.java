@@ -739,12 +739,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 						} else if (prop.equals("name")) {
 							// only update the fkcol name if its name was the same as the old pkcol name
 							if (m.getFkColumn().getName().equalsIgnoreCase((String) e.getOldValue())) {
-								try {
-									m.getFkColumn().setMagicEnabled(false);
-									m.getFkColumn().setName(m.getPkColumn().getName());
-								} finally {
-									m.getFkColumn().setMagicEnabled(true);
-								}
+							    m.getFkColumn().setName(m.getPkColumn().getName());
 							}
 						} else if (prop.equals("type")) {
 							m.getFkColumn().setType(m.getPkColumn().getType());
