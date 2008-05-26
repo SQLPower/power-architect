@@ -591,11 +591,25 @@ public class PlayPen extends JPanel
 		tablePanePopup.add(mi);
 
 		tablePanePopup.addSeparator();
-
+		
 		mi = new JMenuItem();
 		mi.setAction(af.getDeleteSelectedAction());
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
+		
+		JMenu align = new JMenu("Align Tables");
+		mi = new JMenuItem();
+		//TODO add the actions.
+		mi.setAction(af.getAlignTableHorizontalAction()); 
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+		align.add(mi);
+		mi = new JMenuItem();
+		mi.setAction(af.getAlignTableVerticalAction());
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+		align.add(mi);
+		tablePanePopup.add(align);
+		
+		
 
 		if (logger.isDebugEnabled()) {
 			tablePanePopup.addSeparator();
@@ -2002,7 +2016,7 @@ public class PlayPen extends JPanel
 			throw new IllegalStateException("Unknown selection event type "+e.getType());
 		}
 	}
-
+	
 	// Cancel Support
 	protected LinkedList<CancelableListener> cancelableListeners = new LinkedList<CancelableListener>();
 
@@ -2033,7 +2047,6 @@ public class PlayPen extends JPanel
 
 	private void fireUndoCompoundEvent(UndoCompoundEvent e) {
 		Iterator it = undoEventListeners.iterator();
-
 
 		if (e.getType().isStartEvent()) {
 			while (it.hasNext()) {
