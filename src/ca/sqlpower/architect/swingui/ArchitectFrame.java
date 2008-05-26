@@ -84,6 +84,7 @@ import ca.sqlpower.architect.swingui.action.PrintAction;
 import ca.sqlpower.architect.swingui.action.ProfileAction;
 import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
 import ca.sqlpower.architect.swingui.action.RedoAction;
+import ca.sqlpower.architect.swingui.action.ReverseRelationshipAction;
 import ca.sqlpower.architect.swingui.action.SQLRunnerAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
 import ca.sqlpower.architect.swingui.action.SelectAllAction;
@@ -168,6 +169,8 @@ public class ArchitectFrame extends JFrame {
             session.getContext().closeAll();
         }
     };
+
+    private ReverseRelationshipAction reverseRelationshipAction;
 
     /**
      * This constructor is used by the session implementation. To obtain an
@@ -339,6 +342,8 @@ public class ArchitectFrame extends JFrame {
                 KeyStroke.getKeyStroke(KeyEvent.VK_A, accelMask));
 
         profileAction = new ProfileAction(session, session.getProfileManager());
+        
+        reverseRelationshipAction = new ReverseRelationshipAction(session);
 
         menuBar = new JMenuBar();
 
@@ -722,6 +727,11 @@ public class ArchitectFrame extends JFrame {
     
     public CompareDMDialog getCompareDMDialog() {
         return comapareDMDialog;
+    }
+
+    public ReverseRelationshipAction getReverseRelationshipAction() {
+        // TODO Auto-generated method stub
+        return reverseRelationshipAction;
     }
 
     public ProfileAction getProfileAction() {
