@@ -46,7 +46,7 @@ public class EditTableAction extends AbstractArchitectAction {
 	protected final DBTree dbt; 
 	
 	public EditTableAction(ArchitectSwingSession session) {
-	    super(session, "Table Properties...", "Table Properties", "TableProperties");
+	    super(session, "Table Properties...", "Table Properties", "edit_table");
         dbt = frame.getDbTree();
 	}
 
