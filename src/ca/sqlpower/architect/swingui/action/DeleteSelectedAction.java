@@ -90,9 +90,8 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 
         if (items.size() < 1) {
             JOptionPane.showMessageDialog(playpen, "No items to delete!");
-        }
-        // one or more items selected
-        else {
+        } else {
+            // one or more items selected
             int tCount = 0;
             int rCount = playpen.getSelectedRelationShips().size();
             int cCount = 0;
@@ -134,6 +133,8 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
         } 
 
         playpen.startCompoundEdit("Delete");
+        // prevent tree selection during delete
+        playpen.setIgnoreTreeSelection(true);
         try {
 
             //We deselect the components first because relationships might be already
@@ -213,6 +214,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
             } 
         } finally {
             playpen.endCompoundEdit("Ending multi-select");
+            playpen.setIgnoreTreeSelection(false);
         }
     }
 

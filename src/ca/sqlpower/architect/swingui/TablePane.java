@@ -541,7 +541,7 @@ public class TablePane
 	    DBTree tree = getPlayPen().getSession().getSourceDatabases();
 	    TreePath tp = tree.getTreePathForNode(col.getParentTable());
 
-	    getPlayPen().setSelectingOnTree(true);
+	    getPlayPen().setIgnoreTreeSelection(true);
 	    if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
 	        tree.addSelectionPath(tp);
 	    }
@@ -551,7 +551,7 @@ public class TablePane
 	        tree.addSelectionPath(tp);
 	        tree.clearNonPlayPenSelections();
 	    }
-	    getPlayPen().setSelectingOnTree(false);
+	    getPlayPen().setIgnoreTreeSelection(false);
 	}
 
 	private void deselectColumnOnTree(SQLColumn col) {
