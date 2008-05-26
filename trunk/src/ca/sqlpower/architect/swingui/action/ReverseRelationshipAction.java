@@ -86,14 +86,13 @@ public class ReverseRelationshipAction extends AbstractArchitectAction implement
                 
                 SQLRelationship sr = relationship.getModel();
                 sr.getPkTable().removeExportedKey(sr);
-                fkTable.setMagicEnabled(false);
                 SQLRelationship model = new SQLRelationship();
                 // XXX: need to ensure uniqueness of setName(), but 
                 // to_identifier should take care of this...            
                 model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk"); 
                 model.setIdentifying(identify);
                 model.attachRelationship(fkTable,pkTable,true);
-                
+
                 Relationship r = new Relationship(playpen, model);
                 playpen.addRelationship(r);
                 r.revalidate();
@@ -101,7 +100,6 @@ public class ReverseRelationshipAction extends AbstractArchitectAction implement
                 logger.error("Couldn't reverse relationship", ex);
                 ASUtils.showExceptionDialogNoReport(playpen, "Couldn't reverse relationship.", ex);
             } finally {
-                fkTable.setMagicEnabled(true);
                 playpen.endCompoundEdit("Ending the reversal of a relationship");
             }
         } else {
