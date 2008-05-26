@@ -58,6 +58,7 @@ import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.swingui.action.AboutAction;
+import ca.sqlpower.architect.swingui.action.AlignTableAction;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CloseProjectAction;
 import ca.sqlpower.architect.swingui.action.CompareDMAction;
@@ -156,7 +157,10 @@ public class ArchitectFrame extends JFrame {
     private EditRelationshipAction editRelationshipAction;
     private SearchReplaceAction searchReplaceAction;
     private SelectAllAction selectAllAction;
-
+    private ReverseRelationshipAction reverseRelationshipAction;
+    private AlignTableAction alignTableHorizontalAction;
+    private AlignTableAction alignTableVerticalAction;
+    
     private Action exportDDLAction;
     private Action compareDMAction;
     private Action dataMoverAction;
@@ -170,7 +174,6 @@ public class ArchitectFrame extends JFrame {
         }
     };
 
-    private ReverseRelationshipAction reverseRelationshipAction;
 
     /**
      * This constructor is used by the session implementation. To obtain an
@@ -344,6 +347,8 @@ public class ArchitectFrame extends JFrame {
         profileAction = new ProfileAction(session, session.getProfileManager());
         
         reverseRelationshipAction = new ReverseRelationshipAction(session);
+        alignTableHorizontalAction = new AlignTableAction(session, "Align Tables Horizontally", "Align tables horizontally.", true);
+        alignTableVerticalAction = new AlignTableAction(session, "Align Tables Vectically", "Align tables vectically.", false);
 
         menuBar = new JMenuBar();
 
@@ -730,11 +735,18 @@ public class ArchitectFrame extends JFrame {
     }
 
     public ReverseRelationshipAction getReverseRelationshipAction() {
-        // TODO Auto-generated method stub
         return reverseRelationshipAction;
     }
 
     public ProfileAction getProfileAction() {
         return profileAction;
+    }
+    
+    public AlignTableAction getAlignTableHorizontalAction() {
+        return alignTableHorizontalAction;
+    }
+    
+    public AlignTableAction getAlignTableVerticalAction() {
+        return alignTableVerticalAction;
     }
 }
