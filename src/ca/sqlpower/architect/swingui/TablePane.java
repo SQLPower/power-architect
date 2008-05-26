@@ -47,6 +47,7 @@ import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
@@ -151,7 +152,6 @@ public class TablePane
 		this.selectedColumns = new HashSet<SQLColumn>(tp.selectedColumns);
 		this.columnHighlight = new HashMap<SQLColumn,List<Color>>(tp.columnHighlight);
 		try {
-
 			PlayPenComponentUI newUi = tp.getUI().getClass().newInstance();
 			newUi.installUI(this);
 			setUI(newUi);
@@ -255,14 +255,13 @@ public class TablePane
                     }
                     logger.debug("Columns inserted. Syncing select/highlight lists. New indices=["+sb+"]");
                 }
-
                 for (int i = 0; i < ci.length; i++) {
                     boolean wasSelectedPreviously = (e.getChildren()[i] == mostRecentSelectedRemoval);
                     if (wasSelectedPreviously) {
-                        selectNone();
                         selectedColumns.add((SQLColumn) e.getChildren()[i]);
+                        selectColumnOnTree((SQLColumn) e.getChildren()[i]);
                     }
-                    // This is only supposed to work if we deselct the columns before selecting them
+                    // This is only supposed to work if we deselect the columns before selecting them
                     // this if stops the insert from wiping out a highlighted column
                     if (columnHighlight.get((SQLColumn) e.getChildren()[i]) == null) {
                         columnHighlight.put((SQLColumn) e.getChildren()[i], new ArrayList<Color>());
@@ -304,7 +303,6 @@ public class TablePane
                     int size = model.getColumns().size();
                     if (size > 0 ) {
                         selectNone();
-                        selectedColumns.add(model.getColumn(Math.min(ci[0], size-1)));
                     }
                 } catch (ArchitectException ex) {
                     throw new ArchitectRuntimeException(ex);
@@ -490,6 +488,10 @@ public class TablePane
      * Deselects all columns in this tablepane.
      */
 	public void selectNone() {
+	    List<SQLColumn> deselectCols = new ArrayList<SQLColumn>(selectedColumns);
+	    for (SQLColumn col : deselectCols) {
+	        deselectColumnOnTree(col);
+	    }
 	    selectedColumns.clear();
 		repaint();
 	}
@@ -506,9 +508,11 @@ public class TablePane
         }
         try {
             selectedColumns.remove(model.getColumn(i));
+            deselectColumnOnTree(model.getColumn(i));
         } catch (ArchitectException ex) {
             throw new ArchitectRuntimeException(ex);
         }
+        
         repaint();
     }
 
@@ -521,12 +525,42 @@ public class TablePane
 			selectNone();
 			return;
 		}
-	    try{
-	        selectedColumns.add(model.getColumn(i));
+	    try {
+    	    selectedColumns.add(model.getColumn(i));
+    	    selectColumnOnTree(model.getColumn(i));
 	    } catch (ArchitectException ex) {
 	        throw new ArchitectRuntimeException(ex);
 	    }
+	    
 		repaint();
+	}
+	
+	private void selectColumnOnTree(SQLColumn col) {
+	    logger.debug("selecting column on tree: " + col);
+
+	    DBTree tree = getPlayPen().getSession().getSourceDatabases();
+	    TreePath tp = tree.getTreePathForNode(col.getParentTable());
+
+	    getPlayPen().setSelectingOnTree(true);
+	    if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
+	        tree.addSelectionPath(tp);
+	    }
+	     
+	    tp = tree.getTreePathForNode(col);
+	    if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
+	        tree.addSelectionPath(tp);
+	        tree.clearNonPlayPenSelections();
+	    }
+	    getPlayPen().setSelectingOnTree(false);
+	}
+
+	private void deselectColumnOnTree(SQLColumn col) {
+	    logger.debug("deselecting column on tree: " + col);
+	    DBTree tree = getPlayPen().getSession().getSourceDatabases();
+	    TreePath tp = tree.getTreePathForNode(col);
+	    if (tree.getSelectionPaths() != null && Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
+	        tree.removeSelectionPath(tp);
+	    }
 	}
 
 	/**

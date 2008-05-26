@@ -92,6 +92,7 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.MouseInputAdapter;
+import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
@@ -385,6 +386,11 @@ public class PlayPen extends JPanel
 	 * but we know it from another panel.
 	 */
 	private FontRenderContext fontRenderContext;
+	
+	/**
+	 * Flag to prevent recursive selections for selectObjects()
+	 */
+	private boolean selectingOnTree = false;
     
 	/**
      * Creates a play pen with reasonable defaults.  If you are creating
@@ -1924,20 +1930,52 @@ public class PlayPen extends JPanel
 
 	/**
 	 * Forwards the selection event <code>e</code> to all PlayPen
-	 * selection listeners.
+	 * selection listeners. Also selects the object on the DBTree.
 	 */
 	public void itemSelected(SelectionEvent e) {
-		fireSelectionEvent(e);
+	    fireSelectionEvent(e);
+
+        PlayPenComponent comp = (PlayPenComponent) e.getSource();
+        DBTree tree = session.getSourceDatabases();
+        TreePath[] treePaths = tree.getTreePathsForNode((SQLObject) comp.getModel());
+
+        selectingOnTree = true;
+        boolean addedPaths = false;
+        for (TreePath tp: treePaths) {
+            if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
+                logger.debug("adding selection path: " + tp);
+                tree.addSelectionPath(tp);
+                addedPaths = true;
+            }
+        }
+        
+        if (addedPaths) {
+            tree.clearNonPlayPenSelections();
+        }
+        selectingOnTree = false;
 	}
 
 	/**
 	 * Forwards the selection event <code>e</code> to all PlayPen
-	 * selection listeners.
+	 * selection listeners. Also selects the object on the DBTree.
 	 */
 	public void itemDeselected(SelectionEvent e) {
-		fireSelectionEvent(e);
-	}
+	    fireSelectionEvent(e);
 
+	    PlayPenComponent comp = (PlayPenComponent) e.getSource();
+	    DBTree tree = session.getSourceDatabases();
+	    TreePath[] treePaths = tree.getTreePathsForNode((SQLObject) comp.getModel());
+        
+	    selectingOnTree = true;
+	    for (TreePath tp: treePaths) {
+    	    if (tree.getSelectionPaths() != null && Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
+    	        logger.debug("removing selection path: " + tp);
+    	        tree.removeSelectionPath(tp);
+    	    }
+	    }
+	    selectingOnTree = false;
+	}
+	
 	// --------------------- SELECTION EVENT SUPPORT ---------------------
 
 	protected LinkedList selectionListeners = new LinkedList();
@@ -2387,7 +2425,7 @@ public class PlayPen extends JPanel
 
 					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0) {
 						mouseMode = MouseModeType.MULTI_SELECT;
-					} else if (evt.getButton() == MouseEvent.BUTTON1) {
+					} else {
 						mouseMode = MouseModeType.SELECT_RELATIONSHIP;
 						if ( !r.isSelected() ) {
 							pp.selectNone();
@@ -2588,7 +2626,6 @@ public class PlayPen extends JPanel
 			if ( c instanceof Relationship) {
 				if (evt.isPopupTrigger() && !evt.isConsumed()) {
 					Relationship r = (Relationship) c;
-					r.setSelected(true,SelectionEvent.SINGLE_SELECT);
 					r.showPopup(r.getPopup(), p);
 					return true;
 				}
@@ -2596,17 +2633,6 @@ public class PlayPen extends JPanel
 				TablePane tp = (TablePane) c;
 				if (evt.isPopupTrigger() && !evt.isConsumed()) {
 					PlayPen pp = tp.getPlayPen();
-
-					try {
-						tp.selectNone(); // single column selection model for now
-						int idx = tp.pointToColumnIndex(p);
-						if (idx >= 0) {
-							tp.selectColumn(idx);
-						}
-					} catch (ArchitectException e) {
-						logger.error("Exception converting point to column", e);
-						return false;
-					}
 					logger.debug("about to show playpen tablepane popup...");
 					setupTablePanePopup(tp.getModel());
 					tp.showPopup(pp.tablePanePopup, p);
@@ -2862,33 +2888,113 @@ public class PlayPen extends JPanel
     }
 
     /**
-     * Selects the playpen component that represents the given SQLObject,
-     * and scrolls the viewport to ensure the component is visible on-screen.
+     * Selects the playpen component that represents the given SQLObject.
      * If the given SQL Object isn't in the playpen, this method has no effect.
      *
-     * @param selection Either a SQLTable or SQLRelationship object.
+     * @param selection A list of SQLObjects, should only have SQLColumn, SQLTable or SQLRelationship.
+     * @throws ArchitectException 
      */
-    public void selectAndShow(SQLObject selection) {
-        if (selection instanceof SQLTable) {
-            TablePane tp = findTablePane((SQLTable) selection);
-            if (tp != null) {
-                selectNone();
-                tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-                Rectangle scrollTo = tp.getBounds();
-                zoomRect(scrollTo);
-                scrollRectToVisible(scrollTo);
-            }
-        } else if (selection instanceof SQLRelationship) {
-            Relationship r = findRelationship((SQLRelationship) selection);
-            if (r != null) {
-                selectNone();
-                r.setSelected(true,SelectionEvent.SINGLE_SELECT);
-                Rectangle scrollTo = r.getBounds();
-                zoomRect(scrollTo);
-                scrollRectToVisible(scrollTo);
+    public void selectObjects(List<SQLObject> selections) throws ArchitectException {
+        if (selectingOnTree) return;
+        selectingOnTree = true;
+
+        logger.debug("selecting and showing: " + selections);
+        
+        DBTree tree = session.getSourceDatabases();
+        
+        // tables to add to select because of column selection 
+        List<SQLObject> colTables = new ArrayList<SQLObject>();
+        
+        // objects that were already selected, only used for debugging
+        List<SQLObject> ignoredObjs = new ArrayList<SQLObject>();
+
+        for (SQLObject obj : selections) {
+            if (obj instanceof SQLColumn){
+                //Since we cannot directly select a SQLColumn directly
+                //from the playpen, there is a special case for it
+                SQLColumn col = (SQLColumn) obj;
+                SQLTable table = col.getParentTable();
+                TablePane tablePane = findTablePane(table);
+                if (tablePane != null) {
+                    colTables.add(table);
+                    // select the parent table
+                    if (!tablePane.isSelected()) {
+                        tablePane.setSelected(true,SelectionEvent.SINGLE_SELECT);
+                    }
+                    
+                    // ensures the table is selected on the dbTree
+                    TreePath tp = tree.getTreePathForNode(table);
+                    if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
+                        tree.addSelectionPath(tp);
+                        tree.clearNonPlayPenSelections();
+                    }
+                    
+                    // finally select the actual column
+                    int index = table.getColumnIndex(col);
+                    if (!tablePane.isColumnSelected(index)) {
+                        tablePane.selectColumn(index);
+                    } else {
+                        ignoredObjs.add(col);
+                    }
+                } else {
+                    ignoredObjs.add(col);
+                    ignoredObjs.add(table);
+                }
+            } else if (obj instanceof SQLTable) {
+                TablePane tp = findTablePane((SQLTable) obj);
+                if (tp != null && !tp.isSelected()) {
+                    tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+                } else {
+                    ignoredObjs.add(obj);
+                }
+            } else if (obj instanceof SQLRelationship) {
+                Relationship r = findRelationship((SQLRelationship) obj);
+                if (r != null && !r.isSelected()) {
+                    r.setSelected(true,SelectionEvent.SINGLE_SELECT);
+                } else {
+                    // ensure the other node representing the same SQLRelationship is also selected on dbTree
+                    TreePath[] treePaths = tree.getTreePathsForNode(obj);
+                    for (TreePath tp: treePaths) {
+                        if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
+                            tree.addSelectionPath(tp);
+                        }
+                    }
+                    tree.clearNonPlayPenSelections();
+                    ignoredObjs.add(obj);
+                }
             }
         }
-
+        
+        logger.debug("selectAndShow ignoring: " + ignoredObjs);
+        logger.debug("selectAndShow adding tables selections: " + colTables);
+        
+        // deselects all other playpen components
+        for (PlayPenComponent comp : getSelectedItems()) {
+            if (comp instanceof TablePane) {
+                TablePane tablePane = (TablePane) comp;
+                if (!selections.contains(tablePane.getModel()) && !colTables.contains(tablePane.getModel())) {
+                    tablePane.setSelected(false, SelectionEvent.SINGLE_SELECT);
+                }
+                
+                // cannot deselect columns while going through the selected columns
+                List<Integer> indices = new ArrayList<Integer>();
+                for (SQLColumn col : tablePane.selectedColumns) {
+                    if (!selections.contains(col) && col.getParentTable() != null) {
+                        indices.add(col.getParentTable().getColumnIndex(col));
+                    }
+                }
+                for (int index : indices) {
+                    tablePane.deselectColumn(index);
+                }
+            } else if (comp instanceof Relationship) {
+                Relationship relationship = (Relationship) comp;
+                if (!selections.contains(relationship.getModel())) {
+                    relationship.setSelected(false, SelectionEvent.SINGLE_SELECT);
+                }
+            }
+            
+        }
+        selectingOnTree = false;
     }
 
 	public PlayPenContentPane getPlayPenContentPane() {
@@ -2905,6 +3011,10 @@ public class PlayPen extends JPanel
     
     public CursorManager getCursorManager() {
         return cursorManager;
+    }
+
+    public void setSelectingOnTree(boolean selectingOnTree) {
+        this.selectingOnTree = selectingOnTree;
     }
 
 }

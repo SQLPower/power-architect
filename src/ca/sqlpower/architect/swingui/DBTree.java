@@ -44,12 +44,15 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -75,7 +78,8 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected NewDBCSAction newDBCSAction;
 	protected DBCSPropertiesAction dbcsPropertiesAction;
 	protected RemoveDBCSAction removeDBCSAction;
-	protected ShowInPlayPenAction showInPlayPenAction;
+//	About to be reimplented for multiselect
+//	protected ShowInPlayPenAction showInPlayPenAction;
     protected SetConnAsTargetDB setConnAsTargetDB;
     
     /**
@@ -108,8 +112,14 @@ public class DBTree extends JTree implements DragSourceListener {
 		newDBCSAction = new NewDBCSAction();
 		dbcsPropertiesAction = new DBCSPropertiesAction();	
 		removeDBCSAction = new RemoveDBCSAction();
-		showInPlayPenAction = new ShowInPlayPenAction();
+//      About to be reimplented for multiselect
+//		showInPlayPenAction = new ShowInPlayPenAction();
 		addMouseListener(new PopupListener());
+		addTreeSelectionListener(new TreeSelectionListener(){
+            public void valueChanged(TreeSelectionEvent e) {
+                selectInPlayPen(getSelectionPaths());
+            }
+		});
         setCellRenderer(new DBTreeCellRenderer(session));
 	}
 
@@ -365,9 +375,10 @@ public class DBTree extends JTree implements DragSourceListener {
 
 			newMenu.addSeparator();
 
-			mi = new JMenuItem();
-			mi.setAction(showInPlayPenAction);
-			newMenu.add(mi);
+//			commented until reimplemented
+//			mi = new JMenuItem();
+//			mi.setAction(showInPlayPenAction);
+//			newMenu.add(mi);
 
 			mi = new JMenuItem();
 			mi.setAction(af.getEditTableAction());
@@ -856,38 +867,33 @@ public class DBTree extends JTree implements DragSourceListener {
             session.getArchitectFrame().getCompareDMDialog().compareCurrentWithOrig(schema,catalog, db);
         }
     }
-
-
+	
 	/**
-	 * The DBCSPropertiesAction responds to the "Properties" item in
-	 * the popup menu.  It determines which item in the tree is
-	 * currently selected, then (creates and) shows its properties
-	 * window.
+	 * Selects the corresponding objects from the give TreePaths on the PlayPen.
+	 * 
+	 * @param treePaths TreePaths containing the objects to select.
 	 */
-	protected class ShowInPlayPenAction extends AbstractAction {
-		public ShowInPlayPenAction() {
-			super("Show in Playpen");
-		}
-
-		public void actionPerformed(ActionEvent e) {
-			TreePath p = getSelectionPath();
-			if (p == null) {
-				return;
-			}
-			PlayPen pp = session.getPlayPen();
-			SQLObject selection = (SQLObject) p.getLastPathComponent();
-            //Since we cannot directly select a SQLColumn directly
-            //from the playpen, there is a special case for it
-            if (selection instanceof SQLColumn){
-                SQLColumn col = (SQLColumn)selection;
-                SQLTable table = col.getParentTable();
-                TablePane tp = pp.findTablePane(table);
-                pp.selectAndShow(table);
-                tp.selectedColumns.add(col);
-            } else
-                pp.selectAndShow(selection);
-
-		}
+	private void selectInPlayPen(TreePath[] treePaths) {
+	    PlayPen pp = session.getPlayPen();
+	    if (treePaths == null) {
+	        pp.selectNone();
+	    } else {
+	        List<SQLObject> objects = new ArrayList<SQLObject>();
+	        for (TreePath tp : treePaths) {
+	            SQLObject obj = (SQLObject) tp.getLastPathComponent();
+	            
+	            // only select playpen represented objects.
+	            if ((obj instanceof SQLTable || obj instanceof SQLRelationship || obj instanceof SQLColumn) &&
+	                    !objects.contains(obj)) {
+	                objects.add(obj);
+	            }
+	        }
+	        try {
+	            pp.selectObjects(objects);
+	        } catch (ArchitectException e) {
+	            throw new ArchitectRuntimeException(e);
+	        }
+	    }
 	}
 
 	// --------------- INNER CLASSES -----------------
@@ -933,4 +939,59 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
  		}
 	}
+
+ 	/**
+ 	 * Removes all selections of objects that are not represented on the playpen.
+ 	 * 
+ 	 */
+    public void clearNonPlayPenSelections() {
+        if (getSelectionPaths() == null) return;
+        for (TreePath tp : getSelectionPaths()) {
+            SQLObject obj = (SQLObject) tp.getLastPathComponent();
+            if (!(obj instanceof SQLTable || obj instanceof SQLRelationship || obj instanceof SQLColumn)) {
+                removeSelectionPath(tp);
+            }
+        }
+    }
+    
+    /**
+     * Returns an array of TreePaths for the given SQLObject. Currently only
+     * SQLRelationships are handled for multiple TreePaths.
+     * 
+     * @param obj SQLObject to build TreePath upon.
+     * @return array of TreePaths for given object.
+     */
+    public TreePath[] getTreePathsForNode(SQLObject obj) {
+        List<TreePath> treePaths = new ArrayList<TreePath>();
+
+        treePaths.add(getTreePathForNode(obj));
+        
+        // SQLRelationship's have two nodes on the Tree, under pkTable and fkTable.
+        if (obj instanceof SQLRelationship) {
+            SQLTable fkTable = ((SQLRelationship) obj).getFkTable();
+            TreePath tp = getTreePathForNode(fkTable.getImportedKeysFolder());
+            treePaths.add(tp.pathByAddingChild(obj));
+        }
+        
+        return treePaths.toArray(new TreePath[treePaths.size()]);
+    }
+    
+    /**
+     * Returns the TreePath built from the getParent() of the given SQLObject.
+     * 
+     * @param obj SQLObject to build TreePath upon.
+     * @return TreePath for given object.
+     */
+    public TreePath getTreePathForNode(SQLObject obj) {
+        List<SQLObject> path = new ArrayList<SQLObject>();
+        
+        while(obj != null) {
+            path.add(0, obj);
+            obj = obj.getParent();
+        }
+        
+        // the root object is not in the hierarchy
+        path.add(0, session.getRootObject());
+        return new TreePath(path.toArray());
+    }
 }
