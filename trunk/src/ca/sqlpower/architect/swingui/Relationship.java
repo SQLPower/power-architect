@@ -143,6 +143,10 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		mi = new JMenuItem(af.getDeleteSelectedAction());
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		popup.add(mi);
+		
+		mi = new JMenuItem(af.getReverseRelationshipAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        popup.add(mi);
         
         if (logger.isDebugEnabled()) {
             mi = new JMenuItem(new AbstractAction("Show Mappings") {
