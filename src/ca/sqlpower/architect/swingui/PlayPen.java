@@ -2920,11 +2920,14 @@ public class PlayPen extends JPanel
                     
                     // ensures the table is selected on the dbTree
                     TreePath tp = tree.getTreePathForNode(table);
-                    if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
+                    if (!tree.isPathSelected(tp)) {
                         tree.addSelectionPath(tp);
                         tree.clearNonPlayPenSelections();
-                        tree.removeSelectionPath(tree.getTreePathForNode(col));
-                        tree.addSelectionPath(tree.getTreePathForNode(col));
+                        
+                        // ensures column tree path is selected after the table
+                        TreePath colPath = tree.getTreePathForNode(col);
+                        tree.removeSelectionPath(colPath);
+                        tree.addSelectionPath(colPath);
                     }
                     
                     // finally select the actual column
