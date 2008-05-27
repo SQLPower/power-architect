@@ -598,18 +598,15 @@ public class PlayPen extends JPanel
 		tablePanePopup.add(mi);
 		
 		JMenu align = new JMenu("Align Tables");
-		mi = new JMenuItem();
-		//TODO add the actions.
-		mi.setAction(af.getAlignTableHorizontalAction()); 
-		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		align.add(mi);
-		mi = new JMenuItem();
-		mi.setAction(af.getAlignTableVerticalAction());
-		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		align.add(mi);
-		tablePanePopup.add(align);
-		
-		
+        mi = new JMenuItem();
+        mi.setAction(af.getAlignTableHorizontalAction()); 
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        align.add(mi);
+        mi = new JMenuItem();
+        mi.setAction(af.getAlignTableVerticalAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        align.add(mi);
+        tablePanePopup.add(align);
 
 		if (logger.isDebugEnabled()) {
 			tablePanePopup.addSeparator();

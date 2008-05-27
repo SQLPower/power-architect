@@ -86,8 +86,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
         // list of all tables and relationships to be deleted
         List <PlayPenComponent> deleteItems = new ArrayList<PlayPenComponent>(); 
 
-        boolean deletingColumns = false;
-
+        
         if (items.size() < 1) {
             JOptionPane.showMessageDialog(playpen, "No items to delete!");
         } else {
@@ -109,7 +108,6 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
                             cCount = cCount + currTable.getSelectedColumns().size();
                             tablesWithColumns.add(currTable);
                             deleteItems.remove(i);
-                            deletingColumns = true;
                             i--;
                         } else {
                             tCount++;
