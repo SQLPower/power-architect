@@ -536,12 +536,13 @@ public class TablePane
 	}
 	
 	private void selectColumnOnTree(SQLColumn col) {
+	    if (getPlayPen().ignoreTreeSelection()) return;
+	    getPlayPen().setIgnoreTreeSelection(true);
 	    logger.debug("selecting column on tree: " + col);
-
+	    
 	    DBTree tree = getPlayPen().getSession().getSourceDatabases();
 	    TreePath tp = tree.getTreePathForNode(col.getParentTable());
 
-	    getPlayPen().setIgnoreTreeSelection(true);
 	    if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
 	        tree.addSelectionPath(tp);
 	    }
@@ -555,12 +556,16 @@ public class TablePane
 	}
 
 	private void deselectColumnOnTree(SQLColumn col) {
+	    if (getPlayPen().ignoreTreeSelection()) return;
+        getPlayPen().setIgnoreTreeSelection(true);
 	    logger.debug("deselecting column on tree: " + col);
+	    
 	    DBTree tree = getPlayPen().getSession().getSourceDatabases();
 	    TreePath tp = tree.getTreePathForNode(col);
 	    if (tree.getSelectionPaths() != null && Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
 	        tree.removeSelectionPath(tp);
 	    }
+	    getPlayPen().setIgnoreTreeSelection(false);
 	}
 
 	/**
