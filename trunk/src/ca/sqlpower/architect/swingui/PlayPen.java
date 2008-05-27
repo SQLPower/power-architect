@@ -2390,6 +2390,11 @@ public class PlayPen extends JPanel
                 session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
 				maybeShowPopup(evt);
 			}
+			try {
+			    updateDBTree();
+			} catch (ArchitectException e) {
+			    throw new ArchitectRuntimeException(e);
+			}
 		}
 
 
@@ -2545,10 +2550,10 @@ public class PlayPen extends JPanel
 			maybeShowPopup(evt);
 			repaint();
 			try {
-			    updateDBTree();
-			} catch (ArchitectException e) {
-			    throw new ArchitectRuntimeException(e);
-			}
+                updateDBTree();
+            } catch (ArchitectException e) {
+                throw new ArchitectRuntimeException(e);
+            }
 		}
 
 		// ---------------- MOUSEMOTION LISTENER INTERFACE -----------------
@@ -2718,11 +2723,6 @@ public class PlayPen extends JPanel
 		 */
 		public void mouseReleased(MouseEvent e) {
 			cleanup(false);
-			try {
-                pp.updateDBTree();
-            } catch (ArchitectException ex) {
-                throw new ArchitectRuntimeException(ex);
-            }
 		}
 
 		public void cancel() {
@@ -2896,7 +2896,6 @@ public class PlayPen extends JPanel
         ignoreTreeSelection = true;
 
         logger.debug("selecting: " + selections);
-        
         DBTree tree = session.getSourceDatabases();
         
         // tables to add to select because of column selection 
@@ -2924,6 +2923,8 @@ public class PlayPen extends JPanel
                     if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
                         tree.addSelectionPath(tp);
                         tree.clearNonPlayPenSelections();
+                        tree.removeSelectionPath(tree.getTreePathForNode(col));
+                        tree.addSelectionPath(tree.getTreePathForNode(col));
                     }
                     
                     // finally select the actual column
@@ -3055,6 +3056,5 @@ public class PlayPen extends JPanel
             tree.clearNonPlayPenSelections();
         }
         ignoreTreeSelection = false;
-        
     }
 }
