@@ -3057,4 +3057,45 @@ public class PlayPen extends JPanel
         }
         ignoreTreeSelection = false;
     }
+
+    /**
+     * Scrolls the playpen to show the selected objects. The most left component
+     * takes precedence if multiple objects are selected.
+     * 
+     */
+    public void showSelected() {
+        Rectangle r = null;
+        Point minX = null;
+        Point minY = null;
+        
+        for (PlayPenComponent comp : getSelectedItems()) {
+            if (r == null) {
+                // first component
+                r = comp.getBounds();
+                minX = comp.getLocation();
+                minY = comp.getLocation();
+            } else {
+                r.add(comp.getBounds());
+                if (comp.getX() < minX.getX()) {
+                    minX = comp.getLocation();
+                }
+                if (comp.getY() < minY.getY()) {
+                    minY = comp.getLocation();
+                }
+            }
+        }
+        
+        Rectangle visibleRect = unzoomRect(getVisibleRect());
+        // adjustments for when visible size is too small
+        if (r.getHeight() > visibleRect.height) {
+            r.setLocation(minY.getLocation());
+            r.setSize(r.width, visibleRect.height);
+        }
+        if (r.getWidth() > visibleRect.width) {
+            r.setLocation(minX.getLocation());
+            r.setSize(visibleRect.width, r.height);
+        }
+        
+        scrollRectToVisible(zoomRect(r));
+    }
 }

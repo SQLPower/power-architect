@@ -78,8 +78,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected NewDBCSAction newDBCSAction;
 	protected DBCSPropertiesAction dbcsPropertiesAction;
 	protected RemoveDBCSAction removeDBCSAction;
-//	About to be reimplented for multiselect
-//	protected ShowInPlayPenAction showInPlayPenAction;
+	protected ShowInPlayPenAction showInPlayPenAction;
     protected SetConnAsTargetDB setConnAsTargetDB;
     
     /**
@@ -112,8 +111,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		newDBCSAction = new NewDBCSAction();
 		dbcsPropertiesAction = new DBCSPropertiesAction();	
 		removeDBCSAction = new RemoveDBCSAction();
-//      About to be reimplented for multiselect
-//		showInPlayPenAction = new ShowInPlayPenAction();
+		showInPlayPenAction = new ShowInPlayPenAction();
 		addMouseListener(new PopupListener());
 		addTreeSelectionListener(new TreeSelectionListener(){
             public void valueChanged(TreeSelectionEvent e) {
@@ -375,10 +373,9 @@ public class DBTree extends JTree implements DragSourceListener {
 
 			newMenu.addSeparator();
 
-//			commented until reimplemented
-//			mi = new JMenuItem();
-//			mi.setAction(showInPlayPenAction);
-//			newMenu.add(mi);
+			mi = new JMenuItem();
+			mi.setAction(showInPlayPenAction);
+			newMenu.add(mi);
 
 			mi = new JMenuItem();
 			mi.setAction(af.getEditTableAction());
@@ -994,5 +991,15 @@ public class DBTree extends JTree implements DragSourceListener {
         // the root object is not in the hierarchy
         path.add(0, session.getRootObject());
         return new TreePath(path.toArray());
+    }
+    
+    protected class ShowInPlayPenAction extends AbstractAction {
+        public ShowInPlayPenAction() {
+            super("Show in Playpen");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            session.getPlayPen().showSelected();
+        }
     }
 }
