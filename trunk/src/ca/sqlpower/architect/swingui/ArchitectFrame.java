@@ -89,6 +89,7 @@ import ca.sqlpower.architect.swingui.action.ReverseRelationshipAction;
 import ca.sqlpower.architect.swingui.action.SQLRunnerAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
 import ca.sqlpower.architect.swingui.action.SelectAllAction;
+import ca.sqlpower.architect.swingui.action.FocusToChildOrParentTableAction;
 import ca.sqlpower.architect.swingui.action.UndoAction;
 import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
@@ -160,6 +161,8 @@ public class ArchitectFrame extends JFrame {
     private ReverseRelationshipAction reverseRelationshipAction;
     private AlignTableAction alignTableHorizontalAction;
     private AlignTableAction alignTableVerticalAction;
+    private FocusToChildOrParentTableAction focusToChildAction;
+    private FocusToChildOrParentTableAction focusToParentAction;
     
     private Action exportDDLAction;
     private Action compareDMAction;
@@ -345,10 +348,12 @@ public class ArchitectFrame extends JFrame {
                 KeyStroke.getKeyStroke(KeyEvent.VK_A, accelMask));
 
         profileAction = new ProfileAction(session, session.getProfileManager());
-        
         reverseRelationshipAction = new ReverseRelationshipAction(session);
         alignTableHorizontalAction = new AlignTableAction(session, "Align Tables Horizontally", "Align tables horizontally.", true);
         alignTableVerticalAction = new AlignTableAction(session, "Align Tables Vectically", "Align tables vectically.", false);
+        focusToParentAction = new FocusToChildOrParentTableAction(session, "Set Focus to Parent Table", "Set Focus to Parent Table", true);
+        focusToChildAction = new FocusToChildOrParentTableAction(session, "Set Focus to Child Table", "Set Focus to Child Table", false);
+        
 
         menuBar = new JMenuBar();
 
@@ -748,5 +753,13 @@ public class ArchitectFrame extends JFrame {
     
     public AlignTableAction getAlignTableVerticalAction() {
         return alignTableVerticalAction;
+    }
+    
+    public FocusToChildOrParentTableAction getFocusToParentAction() {
+        return focusToParentAction;
+    }
+    
+    public FocusToChildOrParentTableAction getFocusToChildAction() {
+        return focusToChildAction;
     }
 }

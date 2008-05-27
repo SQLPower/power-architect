@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -147,6 +148,17 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		mi = new JMenuItem(af.getReverseRelationshipAction());
         mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         popup.add(mi);
+        
+        JMenu setFocusToRelatedTables = new JMenu("Set Focus to...");
+        mi = new JMenuItem();
+        mi.setAction(af.getFocusToParentAction()); 
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        setFocusToRelatedTables.add(mi);
+        mi = new JMenuItem();
+        mi.setAction(af.getFocusToChildAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        setFocusToRelatedTables.add(mi);
+        popup.add(setFocusToRelatedTables);
         
         if (logger.isDebugEnabled()) {
             mi = new JMenuItem(new AbstractAction("Show Mappings") {
