@@ -39,7 +39,6 @@ import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -49,12 +48,10 @@ public class AlignTableAction extends AbstractArchitectAction implements Selecti
    
     private static final Logger logger = Logger.getLogger(AlignTableAction.class);
     
-    private ArchitectFrame af;
     private boolean isHorizontal;
     
     public AlignTableAction(ArchitectSwingSession session, String actionName, String actionDescription, boolean isHorizontal) {
         super(session, actionName, actionDescription);
-        this.af = session.getArchitectFrame();
         this.isHorizontal = isHorizontal;
         setEnabled(true);
         
@@ -71,6 +68,7 @@ public class AlignTableAction extends AbstractArchitectAction implements Selecti
         } else if (selection.size() >= 2) {
             int min = Integer.MAX_VALUE;
             playpen.startCompoundEdit("Aligning tables");
+            logger.debug("Starting to align " + selection.size() + "tables");
             if (!isHorizontal) {
                 for (int i = 0; i < selection.size(); i++) {
                     if (selection.get(i).getX() < min) { 
