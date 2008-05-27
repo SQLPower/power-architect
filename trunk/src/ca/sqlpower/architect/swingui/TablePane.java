@@ -543,12 +543,12 @@ public class TablePane
 	    DBTree tree = getPlayPen().getSession().getSourceDatabases();
 	    TreePath tp = tree.getTreePathForNode(col.getParentTable());
 
-	    if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
+	    if (!tree.isPathSelected(tp)) {
 	        tree.addSelectionPath(tp);
 	    }
 	     
 	    tp = tree.getTreePathForNode(col);
-	    if (tree.getSelectionPaths() == null || !Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
+	    if (!tree.isPathSelected(tp)) {
 	        tree.addSelectionPath(tp);
 	        tree.clearNonPlayPenSelections();
 	    }
@@ -562,7 +562,7 @@ public class TablePane
 	    
 	    DBTree tree = getPlayPen().getSession().getSourceDatabases();
 	    TreePath tp = tree.getTreePathForNode(col);
-	    if (tree.getSelectionPaths() != null && Arrays.asList(tree.getSelectionPaths()).contains(tp)) {
+	    if (tree.isPathSelected(tp)) {
 	        tree.removeSelectionPath(tp);
 	    }
 	    getPlayPen().setIgnoreTreeSelection(false);

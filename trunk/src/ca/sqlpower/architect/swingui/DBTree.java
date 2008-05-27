@@ -33,6 +33,9 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 
@@ -79,7 +82,9 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected DBCSPropertiesAction dbcsPropertiesAction;
 	protected RemoveDBCSAction removeDBCSAction;
 	protected ShowInPlayPenAction showInPlayPenAction;
-    protected SetConnAsTargetDB setConnAsTargetDB;
+	protected CollapseAllAction collapseAllAction;
+    protected ExpandAllAction expandAllAction;
+	protected SetConnAsTargetDB setConnAsTargetDB;
     
     /**
      * The architect session, so we can access common objects
@@ -112,6 +117,8 @@ public class DBTree extends JTree implements DragSourceListener {
 		dbcsPropertiesAction = new DBCSPropertiesAction();	
 		removeDBCSAction = new RemoveDBCSAction();
 		showInPlayPenAction = new ShowInPlayPenAction();
+		collapseAllAction = new CollapseAllAction();
+		expandAllAction = new ExpandAllAction();
 		addMouseListener(new PopupListener());
 		addTreeSelectionListener(new TreeSelectionListener(){
             public void valueChanged(TreeSelectionEvent e) {
@@ -334,7 +341,13 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 		ASUtils.breakLongMenu(session.getArchitectFrame(),connectionsMenu);
 
+		newMenu.addSeparator();
+        newMenu.add(new JMenuItem(expandAllAction));
+        newMenu.add(new JMenuItem(collapseAllAction));
+
 		if (!isTargetDatabaseNode(p) && isTargetDatabaseChild(p)) {
+	        newMenu.add(new JMenuItem(showInPlayPenAction));
+
 			newMenu.addSeparator();
 			ArchitectFrame af = session.getArchitectFrame();
 			JMenuItem mi;
@@ -372,11 +385,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
 
 			newMenu.addSeparator();
-
-			mi = new JMenuItem();
-			mi.setAction(showInPlayPenAction);
-			newMenu.add(mi);
-
+			
 			mi = new JMenuItem();
 			mi.setAction(af.getEditTableAction());
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
@@ -1000,6 +1009,66 @@ public class DBTree extends JTree implements DragSourceListener {
 
         public void actionPerformed(ActionEvent e) {
             session.getPlayPen().showSelected();
+        }
+    }
+    
+    /**
+     * Collapses all the descendants of the selected path
+     */
+    protected class CollapseAllAction extends AbstractAction {
+        public CollapseAllAction() {
+            super("Collapse All Children");
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+           TreePath selected = getSelectionPath();
+           Enumeration<TreePath> descendants = getExpandedDescendants(selected);
+           if (descendants == null) return;
+           
+           List<TreePath> paths = Collections.list(descendants);
+           
+           // Sort required to make sure the parent is collapsed after child.
+           Collections.sort(paths, new Comparator<TreePath>(){
+            public int compare(TreePath o1, TreePath o2) {
+                return o2.getPathCount() - o1.getPathCount();
+            }
+           });
+           
+           for (TreePath path : paths) {
+               collapsePath(path);
+           }
+           collapsePath(selected);
+        }
+
+    }
+    
+    /**
+     * Expands all the descendants of the selected path 
+     */
+    protected class ExpandAllAction extends AbstractAction {
+        public ExpandAllAction() {
+            super("Expand All Children");
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+            TreePath selected = getSelectionPath();
+            if (selected == null) return;
+            setExpandedState(selected, true);
+            expandChildren(selected);
+        }
+        
+        private void expandChildren(TreePath parentPath) {
+            Object parent = parentPath.getLastPathComponent();
+            TreeModel model = getModel();
+            for (int i=0 ; i<model.getChildCount(parent); i++) {
+                Object child = model.getChild(parent, i);
+                TreePath childPath = parentPath.pathByAddingChild(child);
+                
+                setExpandedState(childPath, true);
+                if (!model.isLeaf(child)) {
+                    expandChildren(childPath);
+                }
+            }
         }
     }
 }
