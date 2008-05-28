@@ -873,6 +873,39 @@ public class TablePane
 					}
 
                     boolean success = false;
+                    
+                    //Check to see if the drag and drop will change the current relationship
+                    List<SQLRelationship> importedKeys = tp.getModel().getImportedKeys();
+                    
+                    boolean newColumnsInPk = false;
+                    if (insertionPoint == COLUMN_INDEX_END_OF_PK) {
+                        newColumnsInPk = true;
+                    } else if (insertionPoint == COLUMN_INDEX_START_OF_NON_PK) {
+                        newColumnsInPk = false;
+                    } else if (insertionPoint == COLUMN_INDEX_TITLE) {
+                        newColumnsInPk = true;
+                    } else if (insertionPoint < 0) {
+                        newColumnsInPk = false;
+                    } else if (insertionPoint < tp.getModel().getPkSize()) {
+                        newColumnsInPk = true;
+                    }
+                    
+                    for(int i = 0; i < importedKeys.size(); i++) {
+                        for(int j = 0; j < droppedItems.size(); j++) {
+                            if(importedKeys.get(i).containsFkColumn((SQLColumn)(droppedItems.get(j)))) {
+                                System.out.println(insertionPoint + ", " +tp.getModel().getColumnIndex((SQLColumn)(droppedItems.get(j))));
+                                if(!newColumnsInPk) {
+                                    importedKeys.get(i).setIdentifying(false);
+                                    break;
+                                }
+                                else {
+                                    importedKeys.get(i).setIdentifying(true);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
                     try {
                         success = tp.insertObjects(droppedItems, insertionPoint);
                     } catch (LockedColumnException ex ) {
@@ -1149,5 +1182,4 @@ public class TablePane
     public void setDashed(boolean isDashed) {
         this.isDashed = isDashed;
     }
-    
 }
