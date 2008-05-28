@@ -41,9 +41,7 @@ public class FocusToChildOrParentTableAction extends AbstractArchitectAction imp
 
     public void actionPerformed(ActionEvent e) {
         List<Relationship> selection = playpen.getSelectedRelationShips();
-        if (selection.size() < 1) {
-            JOptionPane.showMessageDialog(playpen, "Select exactly 1 table to get to focus on its parent or child table.");
-        } else if (selection.size() == 1) {
+        if (selection.size() == 1) {
             if(isToFocusParentTable) {
                 TablePane parentTable = selection.get(0).getPkTable();
                 playpen.selectNone();
@@ -57,17 +55,13 @@ public class FocusToChildOrParentTableAction extends AbstractArchitectAction imp
                 playpen.showSelected();
             }
         } else {
-            JOptionPane.showMessageDialog(playpen, "Select exactly 1 table to get to focus on its parent or child table.");
+            JOptionPane.showMessageDialog(playpen, "Select exactly 1 relationship to get to focus on its parent or child table.");
         }
     }
     
     public void itemDeselected(SelectionEvent e) {
-        // TODO Auto-generated method stub
-        
     }
 
     public void itemSelected(SelectionEvent e) {
-        // TODO Auto-generated method stub
-        
     }
 }
