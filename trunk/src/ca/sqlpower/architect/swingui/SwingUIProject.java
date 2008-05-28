@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Color;
 import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
@@ -210,6 +211,24 @@ public class SwingUIProject extends CoreProject {
             int y = Integer.parseInt(attributes.getValue("y"));
             SQLTable tab = (SQLTable) objectIdMap.get(attributes.getValue("table-ref"));
             TablePane tp = new TablePane(tab, getSession().getPlayPen());
+            
+            String bgColorString = attributes.getValue("bgColor");
+            if (bgColorString != null) {
+                Color bgColor = Color.decode(bgColorString);
+                tp.setBackground(bgColor);
+            }
+            String fgColorString = attributes.getValue("fgColor");
+            if (fgColorString != null) {
+                Color fgColor = Color.decode(fgColorString);
+                tp.setForeground(fgColor);
+            }
+            
+            boolean rounded = "true".equals(attributes.getValue("rounded"));
+            tp.setRounded(rounded);
+            
+            boolean dashed = "true".equals(attributes.getValue("dashed"));
+            tp.setDashed(dashed);
+                
             getSession().getPlayPen().addTablePane(tp, new Point(x, y));
             return tp;
         }
@@ -580,8 +599,15 @@ public class SwingUIProject extends CoreProject {
         for(int i = getSession().getPlayPen().getTablePanes().size()-1; i>= 0; i--) {
             TablePane tp = getSession().getPlayPen().getTablePanes().get(i);
             Point p = tp.getLocation();
+            
+            Color bgColor = tp.getBackground();
+            String bgColorString = String.format("0x%02x%02x%02x", bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue());
+            Color fgColor = tp.getForeground();
+            String fgColorString = String.format("0x%02x%02x%02x", fgColor.getRed(), fgColor.getGreen(), fgColor.getBlue());
+            
             ioo.println(out, "<table-pane table-ref="+quote(objectIdMap.get(tp.getModel()).toString())+""
-                    +" x=\""+p.x+"\" y=\""+p.y+"\" />");
+                    +" x=\""+p.x+"\" y=\""+p.y+"\" bgColor=\""+bgColorString+"\" fgColor=\""+fgColorString+
+                    "\" rounded=\"" + tp.isRounded() + "\" dashed=\"" + tp.isDashed() + "\" />");
             if (pm != null) {
                 pm.setProgress(++progress);
             }

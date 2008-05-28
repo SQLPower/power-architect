@@ -50,10 +50,10 @@ public abstract class PlayPenComponent implements Selectable {
 
 	private PlayPenContentPane parent;
 	private Rectangle bounds = new Rectangle();
-	private Color backgroundColor;
+	protected Color backgroundColor;
 	private Insets insets = new Insets(0,0,0,0);
 	private String name;
-	private Color foregroundColor;
+	protected Color foregroundColor;
 	private String toolTipText;
 	private boolean opaque;
 	

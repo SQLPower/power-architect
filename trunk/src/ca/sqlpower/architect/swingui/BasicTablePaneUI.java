@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -27,6 +28,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -51,27 +53,33 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	/**
 	 * Thickness (in Java2D units) of the surrounding box.
 	 */
-	final int boxLineThickness = 1;
+	public static final int BOX_LINE_THICKNESS = 1;
 	
 	/**
 	 * Amount of space left between the surrounding box and the text it contains.
 	 */
-	final int gap = 1;
+	public static final int GAP = 1;
 	
 	/**
 	 * The amount of extra (vertical) space between the PK columns and the non-PK columns. 
 	 */
-	final int pkGap = 10;
+	public static final int PK_GAP = 10;
 	
 	/**
-	 * Colour of the text background for selected tables and columns.
+	 * The width and height of the arc for a rounded rectangle table. 
+	 */
+	private static final int ARC_LENGTH = 7;
+	
+	/**
+	 * Dashed and normal strokes for different line styles on tables.
+	 */
+	private static final BasicStroke DASHED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {15.0f, 4.0f}, 0.0f);
+	private static final BasicStroke NORMAL_STROKE = new BasicStroke(1.0f);
+	
+	/**
+	 * Colour of the text background for selected columns.
 	 */
 	protected Color selectedColor = new Color(204, 204, 255);
-	
-	/**
-	 * Colour of the title background for non-selected tables.
-	 */
-	protected Color unselectedColor = new Color(240, 240, 240);
 
 	/**
 	 * Doesn't return a preferredSize with width less than this.
@@ -93,14 +101,21 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
     }
 
     public void paint(Graphics2D g) {
-    		paint(g,tablePane);
+    	paint(g,tablePane);
     }
     
     public void paint(Graphics g, PlayPenComponent c) {
 		TablePane tp = (TablePane) c;
 		try {
 			Graphics2D g2 = (Graphics2D) g;
-	
+			Stroke oldStroke = g2.getStroke();
+			
+			if (tp.isDashed()) {
+			    g2.setStroke(DASHED_STROKE);
+			} else {
+			    g2.setStroke(NORMAL_STROKE);
+			}
+			
 			
 			if (logger.isDebugEnabled()) {
 				Rectangle clip = g2.getClipBounds();
@@ -143,70 +158,72 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			int maxDescent = metrics.getMaxDescent();
 			int y = 0;
 			
-			g2.setColor(c.getBackground());
+			g2.setColor(c.getPlayPen().getBackground());
 			g2.fillRect(0, 0, width, height);
 			// no need to reset to foreground: next operation always changes the colour
-			
+
 			// highlight title if table is selected
 			if (tp.selected == true) {
-				g2.setColor(selectedColor);
+				g2.setColor(tp.getBackground().darker());
 			} else {
-				g2.setColor(unselectedColor);
+				g2.setColor(tp.getBackground());
 			}
-			g2.fillRect(0, 0, c.getWidth(), fontHeight);
-			g2.setColor(c.getForeground());
+			
+			if (tp.isRounded()) {
+			    g2.fillRoundRect(0, 0, c.getWidth(), fontHeight, ARC_LENGTH, ARC_LENGTH);
+			} else {
+			    g2.fillRect(0, 0, c.getWidth(), fontHeight);
+			}
+			
+			g2.setColor(tp.getForeground());
 
 			// print table name
 			g2.drawString(getTitleString(tablePane), 0, y += ascent);
-
+			
+			g2.setColor(Color.BLACK);
 			// draw box around columns
 			if (fontHeight < 0) {
 				throw new IllegalStateException("FontHeight is negative");
 			}
-			g2.drawRect(0, fontHeight+gap,
-						width-boxLineThickness, height-(fontHeight+gap+boxLineThickness));
-			y += gap + boxLineThickness + tp.getMargin().top;
+			
+			if (tp.isRounded()) {
+			    g2.drawRoundRect(0, fontHeight+GAP, width-BOX_LINE_THICKNESS, 
+			            height-(fontHeight+GAP+BOX_LINE_THICKNESS), ARC_LENGTH, ARC_LENGTH);
+			} else {
+			    g2.drawRect(0, fontHeight+GAP, width-BOX_LINE_THICKNESS, 
+                        height-(fontHeight+GAP+BOX_LINE_THICKNESS));
+			}
+			y += GAP + BOX_LINE_THICKNESS + tp.getMargin().top;
 
 			// print columns
 			Iterator colNameIt = tablePane.getModel().getColumns().iterator();
 			int i = 0;
-			int hwidth = width-tp.getMargin().right-tp.getMargin().left-boxLineThickness*2;
+			int hwidth = width-tp.getMargin().right-tp.getMargin().left-BOX_LINE_THICKNESS*2;
 			boolean stillNeedPKLine = true;
-			Color currentColor = null;
 			while (colNameIt.hasNext()) {
 				SQLColumn col = (SQLColumn) colNameIt.next();
 				if (col.getPrimaryKeySeq() == null && stillNeedPKLine) {
 					stillNeedPKLine = false;
-					y += pkGap;
-					currentColor = null;
-					g2.setColor(tp.getForeground());
-					g2.drawLine(0, y+maxDescent-(pkGap/2), width-1, y+maxDescent-(pkGap/2));
+					y += PK_GAP;
+					g2.drawLine(0, y+maxDescent-(PK_GAP/2), width-1, y+maxDescent-(PK_GAP/2));
 				}
 				if (tp.isColumnSelected(i)) {
 					if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected");
 					g2.setColor(selectedColor);
-					g2.fillRect(boxLineThickness+tp.getMargin().left, y-ascent+fontHeight,
+					g2.fillRect(BOX_LINE_THICKNESS+tp.getMargin().left, y-ascent+fontHeight,
 								hwidth, fontHeight);
-					g2.setColor(tp.getForeground());
 				}
-				if (tp.getColumnHighlight(i) != currentColor) {
-				    currentColor = tp.getColumnHighlight(i);
-				    g2.setColor(currentColor == null ? tp.getForeground() : currentColor);
-				}
+				g2.setColor(Color.BLACK);
 				g2.drawString(col.getShortDisplayName(),
-							  boxLineThickness+tp.getMargin().left,
+							  BOX_LINE_THICKNESS+tp.getMargin().left,
 							  y += fontHeight);
 				i++;
 			}
 
-			if (currentColor != null) {
-			    g2.setColor(tp.getForeground());
-			}
-			
 			if (stillNeedPKLine) {
 			    stillNeedPKLine = false;
-			    y += pkGap;
-			    g2.drawLine(0, y+maxDescent-(pkGap/2), width-1, y+maxDescent-(pkGap/2));
+			    y += PK_GAP;
+			    g2.drawLine(0, y+maxDescent-(PK_GAP/2), width-1, y+maxDescent-(PK_GAP/2));
 			}
 			
 			// paint insertion point
@@ -214,17 +231,20 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			if (logger.isDebugEnabled()) {
 			    g2.drawString(String.valueOf(ip), width-20, ascent);
 			}
+
+			g2.setStroke(oldStroke);
+			
 			if (ip != TablePane.COLUMN_INDEX_NONE) {
-			    y = gap + boxLineThickness + tp.getMargin().top + fontHeight;
+			    y = GAP + BOX_LINE_THICKNESS + tp.getMargin().top + fontHeight;
 			    if (ip == TablePane.COLUMN_INDEX_END_OF_PK) {
 			        y += fontHeight * tablePane.getModel().getPkSize();
 			    } else if (ip == TablePane.COLUMN_INDEX_START_OF_NON_PK) {
-			        y += fontHeight * tablePane.getModel().getPkSize() + pkGap;
+			        y += fontHeight * tablePane.getModel().getPkSize() + PK_GAP;
 			    } else if (ip < tablePane.getModel().getPkSize()) {
 			        if (ip == TablePane.COLUMN_INDEX_TITLE) ip = 0;
 			        y += ip * fontHeight;
 			    } else {
-				    y += ip * fontHeight + pkGap;
+				    y += ip * fontHeight + PK_GAP;
 				}
 				g2.drawLine(5, y, width - 6, y);
 				g2.drawLine(2, y-3, 5, y);
@@ -232,9 +252,8 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 				g2.drawLine(width - 3, y-3, width - 6, y);
 				g2.drawLine(width - 3, y+3, width - 6, y);
 			}
-
+			
 			g.translate(-insets.left, -insets.top);
-
 		} catch (ArchitectException e) {
 			logger.warn("BasicTablePaneUI.paint failed", e);
 		}
@@ -263,7 +282,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			FontRenderContext frc = c.getFontRenderContext();
 			FontMetrics metrics = c.getFontMetrics(font);
 			int fontHeight = metrics.getHeight();
-			height = insets.top + fontHeight + gap + c.getMargin().top + pkGap + cols*fontHeight + boxLineThickness*2 + c.getMargin().bottom + insets.bottom;
+			height = insets.top + fontHeight + GAP + c.getMargin().top + PK_GAP + cols*fontHeight + BOX_LINE_THICKNESS*2 + c.getMargin().bottom + insets.bottom;
 			width = minimumWidth;
 			logger.debug("starting width is: " + width);
 			List<String> itemsToCheck = new ArrayList<String>();
@@ -284,7 +303,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 				}
 				logger.debug("new width is: " + width);
 			}
-			width += insets.left + c.getMargin().left + boxLineThickness*2 + c.getMargin().right + insets.right;
+			width += insets.left + c.getMargin().left + BOX_LINE_THICKNESS*2 + c.getMargin().right + insets.right;
 		} catch (ArchitectException e) {
 			logger.warn("BasicTablePaneUI.getPreferredSize failed due to", e);
 			width = 100;
@@ -306,7 +325,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 
 		int numPkCols = tablePane.getModel().getPkSize();
 		int numCols = tablePane.getModel().getColumns().size();
-		int firstColStart = fontHeight + gap + boxLineThickness + tablePane.getMargin().top;
+		int firstColStart = fontHeight + GAP + BOX_LINE_THICKNESS + tablePane.getMargin().top;
 		int pkLine = firstColStart + fontHeight*numPkCols;
 
 		if (logger.isDebugEnabled()) logger.debug("p.y = "+p.y);
@@ -322,15 +341,15 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		} else if (numPkCols > 0 && p.y <= firstColStart + fontHeight*numPkCols - 1) {
 		    logger.debug("y<=firstColStart + fontHeight*numPkCols - 1= "+(firstColStart + fontHeight*numPkCols));
 		    returnVal = (p.y - firstColStart) / fontHeight;
-		} else if (p.y <= pkLine + pkGap/2) {
-		    logger.debug("y<=pkLine + pkGap/2 = "+(pkLine + pkGap/2));
+		} else if (p.y <= pkLine + PK_GAP/2) {
+		    logger.debug("y<=pkLine + pkGap/2 = "+(pkLine + PK_GAP/2));
 		    returnVal = TablePane.COLUMN_INDEX_END_OF_PK;
-		} else if (p.y <= firstColStart + fontHeight*numPkCols + pkGap) {
-		    logger.debug("y<=firstColStart + fontHeight*numPkCols + pkGap = "+(firstColStart + fontHeight*numPkCols + pkGap));
+		} else if (p.y <= firstColStart + fontHeight*numPkCols + PK_GAP) {
+		    logger.debug("y<=firstColStart + fontHeight*numPkCols + pkGap = "+(firstColStart + fontHeight*numPkCols + PK_GAP));
 		    returnVal = TablePane.COLUMN_INDEX_START_OF_NON_PK;
-		} else if (p.y < firstColStart + pkGap + fontHeight*numCols) {
-		    logger.debug("y<=firstColStart + pkGap + fontHeight*numCols = " + (firstColStart + pkGap + fontHeight*numCols));
-		    returnVal = (p.y - firstColStart - pkGap) / fontHeight;
+		} else if (p.y < firstColStart + PK_GAP + fontHeight*numCols) {
+		    logger.debug("y<=firstColStart + pkGap + fontHeight*numCols = " + (firstColStart + PK_GAP + fontHeight*numCols));
+		    returnVal = (p.y - firstColStart - PK_GAP) / fontHeight;
 		} else {
 		    returnVal = TablePane.COLUMN_INDEX_NONE;
 		}
@@ -346,14 +365,14 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
         if (colidx == TablePane.COLUMN_INDEX_TITLE) {
             return tablePane.getMargin().top + (fontHeight / 2);
         } else if (colidx >= 0 && colidx < tablePane.getModel().getColumns().size()) {
-            int firstColY = fontHeight + gap + boxLineThickness + tablePane.getMargin().top;
+            int firstColY = fontHeight + GAP + BOX_LINE_THICKNESS + tablePane.getMargin().top;
             int y = firstColY + (fontHeight * colidx) + (fontHeight / 2);
             if (colidx >= tablePane.getModel().getPkSize()) {
-                y += pkGap;
+                y += PK_GAP;
             }
             if (logger.isDebugEnabled()) {
                 logger.debug("Column " + colidx + " Y value is " + y);
-                logger.debug("gap=" + gap + "; boxLineThickness=" + boxLineThickness + "; margin.top=" + tablePane.getMargin().top);
+                logger.debug("gap=" + GAP + "; boxLineThickness=" + BOX_LINE_THICKNESS + "; margin.top=" + tablePane.getMargin().top);
             }
             return y;
         } else {
@@ -376,7 +395,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			// helps with debugging to keep component names identical with model -- it's not visual
 			tablePane.setName(tablePane.getModel().getName());
 			return;
-		}
+		} 
 		tablePane.revalidate();
 	}
 

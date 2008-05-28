@@ -82,9 +82,9 @@ public class BasicTablePaneUITest extends TestCase {
         Font font = tp.getFont();
         FontMetrics metrics = tp.getFontMetrics(font);
         int fontHeight = metrics.getHeight();
-        int firstColStart = fontHeight + ui.gap + ui.boxLineThickness + tp.getMargin().top;
+        int firstColStart = fontHeight + BasicTablePaneUI.GAP + BasicTablePaneUI.BOX_LINE_THICKNESS + tp.getMargin().top;
         int numCols = tp.getModel().getColumns().size();
-        testPoint.setLocation(0, firstColStart + ui.pkGap + fontHeight * numCols);
+        testPoint.setLocation(0, firstColStart + BasicTablePaneUI.PK_GAP + fontHeight * numCols);
         returnVal = ui.pointToColumnIndex(testPoint);
         assertEquals(TablePane.COLUMN_INDEX_NONE, returnVal);
 

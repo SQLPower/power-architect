@@ -132,6 +132,9 @@ public class TablePane
 	 * dragged.  At all other times, it should be null.
 	 */
 	protected SQLColumn draggingColumn;
+	
+	protected boolean isRounded;
+	protected boolean isDashed;
 
     private boolean fullyQualifiedNameInHeader = false;
 
@@ -167,14 +170,16 @@ public class TablePane
 
 
 	public TablePane(SQLTable m, PlayPen parentPP) {
-    		super(parentPP.getPlayPenContentPane());
-		setModel(m);
-		setOpaque(true);
-		setInsertionPoint(COLUMN_INDEX_NONE);
+	    super(parentPP.getPlayPenContentPane());
+	    this.backgroundColor = new Color(240, 240, 240);
+	    this.foregroundColor = Color.BLACK;
+	    setRounded(false);
+	    setModel(m);
+	    setOpaque(true);
+	    setInsertionPoint(COLUMN_INDEX_NONE);
 
-
-		//dt = new DropTarget(parentPP, new TablePaneDropListener(this));
-		dtl = new TablePaneDropListener(this);
+	    //dt = new DropTarget(parentPP, new TablePaneDropListener(this));
+	    dtl = new TablePaneDropListener(this);
 
 		updateUI();
 	}
@@ -1116,4 +1121,33 @@ public class TablePane
             throw new ArchitectRuntimeException(ex);
         }
     }
+
+    /**
+     * Indicates whether the corners are rounded. 
+     */
+    public boolean isRounded() {
+        return isRounded;
+    }
+
+    /**
+     * Sets whether the corners are rounded. 
+     */
+    public void setRounded(boolean isRounded) {
+        this.isRounded = isRounded;
+    }
+
+    /**
+     * Indicates whether the lines are dashed/normal. 
+     */
+    public boolean isDashed() {
+        return isDashed;
+    }
+
+    /**
+     * Sets whether the lines are dashed. 
+     */
+    public void setDashed(boolean isDashed) {
+        this.isDashed = isDashed;
+    }
+    
 }
