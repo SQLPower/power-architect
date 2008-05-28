@@ -25,9 +25,12 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowStateListener;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -118,6 +121,10 @@ public class ArchitectFrame extends JFrame {
 	private PlayPen playpen = null;
 	DBTree dbTree = null;
 	private CompareDMDialog comapareDMDialog = null;
+	private int oldWidth;
+    private int oldHeight;
+	private int prefWidth;
+	private int prefHeight;
 
     private JMenu connectionsMenu;
 	private ArchitectLayout autoLayout;
@@ -229,11 +236,44 @@ public class ArchitectFrame extends JFrame {
         
         bounds.width = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_WIDTH, (int) (dim.width * 0.8));
         bounds.height = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_HEIGHT, (int) (dim.height * 0.8));
+        prefWidth = bounds.width;
+        prefHeight = bounds.height;
+        oldWidth = prefWidth;
+        oldHeight = prefHeight;
         
         setBounds(bounds);
+        setPreferredSize(new Dimension(bounds.width, bounds.height));
         addWindowListener(new ArchitectFrameWindowListener());
         session.getUserSettings().getSwingSettings().setBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN,
                 prefs.getBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, true));
+        
+        addComponentListener(new ComponentListener() {
+            public void componentHidden(ComponentEvent e) {
+            }
+
+            public void componentMoved(ComponentEvent e) {
+            }
+
+            public void componentResized(ComponentEvent e) {
+                ArchitectFrame.this.oldWidth = prefWidth;
+                ArchitectFrame.this.oldHeight = prefHeight;
+                ArchitectFrame.this.prefWidth = ArchitectFrame.this.getWidth();
+                ArchitectFrame.this.prefHeight = ArchitectFrame.this.getHeight();
+            }
+
+            public void componentShown(ComponentEvent e) {
+            }
+        });
+        
+        //No race here because windows state listener only activate when maximize-window button is clicked.
+        addWindowStateListener(new WindowStateListener() {
+            public void windowStateChanged(WindowEvent e) {
+                if(e.getNewState() == ArchitectFrame.MAXIMIZED_BOTH) {
+                    ArchitectFrame.this.prefWidth = oldWidth;
+                    ArchitectFrame.this.prefHeight = oldHeight;
+                }
+            }
+        });
 	}
 
     /**
@@ -582,8 +622,8 @@ public class ArchitectFrame extends JFrame {
 		prefs.putInt(ArchitectSwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
 		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_X, getLocation().x);
 		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_Y, getLocation().y);
-		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_WIDTH, getPreferredSize().width);
-		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_HEIGHT, getPreferredSize().height);
+		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_WIDTH, prefWidth);
+		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_HEIGHT, prefHeight);
         prefs.putBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN,
                 us.getSwingSettings().getBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, true));
 
