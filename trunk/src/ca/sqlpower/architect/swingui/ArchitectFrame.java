@@ -75,6 +75,7 @@ import ca.sqlpower.architect.swingui.action.EditTableAction;
 import ca.sqlpower.architect.swingui.action.ExportCSVAction;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction;
 import ca.sqlpower.architect.swingui.action.ExportPlaypenToPDFAction;
+import ca.sqlpower.architect.swingui.action.FocusToChildOrParentTableAction;
 import ca.sqlpower.architect.swingui.action.HelpAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
 import ca.sqlpower.architect.swingui.action.InsertIndexAction;
@@ -89,7 +90,6 @@ import ca.sqlpower.architect.swingui.action.ReverseRelationshipAction;
 import ca.sqlpower.architect.swingui.action.SQLRunnerAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
 import ca.sqlpower.architect.swingui.action.SelectAllAction;
-import ca.sqlpower.architect.swingui.action.FocusToChildOrParentTableAction;
 import ca.sqlpower.architect.swingui.action.UndoAction;
 import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
@@ -568,8 +568,8 @@ public class ArchitectFrame extends JFrame {
 		prefs.putInt(ArchitectSwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
 		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_X, getLocation().x);
 		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_Y, getLocation().y);
-		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_WIDTH, getWidth());
-		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_HEIGHT, getHeight());
+		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_WIDTH, getPreferredSize().width);
+		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_HEIGHT, getPreferredSize().height);
         prefs.putBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN,
                 us.getSwingSettings().getBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, true));
 
