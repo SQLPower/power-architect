@@ -48,6 +48,8 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 import org.apache.log4j.Logger;
 
@@ -392,10 +394,22 @@ public class ArchitectFrame extends JFrame {
         // the connections menu is set up when a new project is created (because it depends on the current DBTree)
         connectionsMenu = new JMenu("Connections");
         connectionsMenu.setMnemonic('c');
+        connectionsMenu.addMenuListener(new MenuListener(){
+            public void menuCanceled(MenuEvent e) {
+                // do nothing here
+            }
+            public void menuDeselected(MenuEvent e) {
+                // do nothin here
+            }
+
+            public void menuSelected(MenuEvent e) {
+             refreshConnectionMenu();   
+            }
+        });
         menuBar.add(connectionsMenu);
         connectionsMenu.removeAll();
-        dbTree.refreshMenu(null);
-        connectionsMenu.add(dbTree.connectionsMenu);
+        
+        connectionsMenu.add(dbTree.setupDBCSMenu());
         connectionsMenu.add(new JMenuItem(dbTree.dbcsPropertiesAction));
         connectionsMenu.add(new JMenuItem(dbTree.removeDBCSAction));
         connectionsMenu.addSeparator();
@@ -761,5 +775,13 @@ public class ArchitectFrame extends JFrame {
     
     public FocusToChildOrParentTableAction getFocusToChildAction() {
         return focusToChildAction;
+    }
+    
+    /**
+     * Updates the menu for new connections.
+     */
+    public void refreshConnectionMenu() {
+        connectionsMenu.remove(0);
+        connectionsMenu.add(dbTree.setupDBCSMenu(), 0);
     }
 }
