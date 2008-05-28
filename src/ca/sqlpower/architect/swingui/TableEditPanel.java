@@ -18,11 +18,20 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.Icon;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -42,6 +51,7 @@ import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.util.WebColour;
 
 public class TableEditPanel extends JPanel implements SQLObjectListener, DataEntryPanel {
     
@@ -55,9 +65,18 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 	JTextField name;
 	JTextField pkName;
 	JTextArea remarks;
-
+	private JComboBox bgColor;
+	private JComboBox fgColor;
+	private JCheckBox rounded;
+	private JCheckBox dashed;
+	
+	private final ArchitectSwingSession session;
+	private final TablePane tp;
+	
 	public TableEditPanel(ArchitectSwingSession session, SQLTable t) {
 		super(new FormLayout());
+		this.session = session;
+		this.tp = session.getPlayPen().findTablePane(t);
 		addUndoEventListener(session.getUndoManager().getEventAdapter());
 		add(new JLabel("Table Name"));
 		add(name = new JTextField("", 30));
@@ -67,6 +86,25 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		add(new JScrollPane(remarks = new JTextArea(4, 30)));
 		remarks.setLineWrap(true);
 		remarks.setWrapStyleWord(true);
+		
+		add(new JLabel("Table Colour"));
+		ColorCellRenderer renderer = new ColorCellRenderer();
+		bgColor = new JComboBox(ColorScheme.BREWER_SET19);
+        bgColor.setRenderer(renderer);
+        bgColor.addItem(new Color(240, 240, 240));
+		add(bgColor);
+		
+		add(new JLabel("Text Colour"));
+		fgColor = new JComboBox(ColorScheme.BREWER_SET19);
+        fgColor.setRenderer(renderer);
+        fgColor.addItem(Color.BLACK);
+        add(fgColor);
+        
+        add(new JLabel("Dashed Lines"));
+        add(dashed = new JCheckBox());
+        add(new JLabel("Rounded Corners"));
+        add(rounded = new JCheckBox());        
+        
 		editTable(t);
 		try {
             ArchitectUtils.listenToHierarchy(this, session.getRootObject());
@@ -90,6 +128,13 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
         }
 		remarks.setText(t.getRemarks());
 		name.selectAll();
+		
+		if (tp != null) {
+    		bgColor.setSelectedItem(tp.getBackground());
+    		fgColor.setSelectedItem(tp.getForeground());
+    		dashed.setSelected(tp.isDashed());
+    		rounded.setSelected(tp.isRounded());
+		}
 	}
 
 	// --------------------- ArchitectPanel interface ------------------
@@ -122,7 +167,14 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                 }
                 
                 table.setName(name.getText());
-                table.setRemarks(remarks.getText());                
+                table.setRemarks(remarks.getText());   
+                
+                if (tp != null) {
+                    tp.setBackground((Color)bgColor.getSelectedItem());
+                    tp.setForeground((Color)fgColor.getSelectedItem());
+                    tp.setDashed(dashed.isSelected());
+                    tp.setRounded(rounded.isSelected());
+                }
                 return true;
             } else{
                 JOptionPane.showMessageDialog(this,warnings.toString());
@@ -245,5 +297,70 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
     public void setEditDialog(JDialog editDialog) {
         this.editDialog = editDialog;
     }
+    
+    public static class ColorScheme {
 
+        /**
+         * Brewer Colour Scheme "set19".  A nice collection of colours for colour coding
+         * sets of information with up to 9 elements.
+         */
+        public static final WebColour[] BREWER_SET19 = {
+            new WebColour("#e41a1c"),
+            new WebColour("#377eb8"),
+            new WebColour("#4daf4a"),
+            new WebColour("#80b1d3"),
+            new WebColour("#984ea3"),
+            new WebColour("#ff7f00"),
+            new WebColour("#ffff33"),
+            new WebColour("#a65628"),
+            new WebColour("#f781bf"),
+            new WebColour("#999999")
+        };
+    }
+    /**
+     * Renders a rectangle of colour in a list cell.  The colour is determined
+     * by the list item value, which must be of type java.awt.Color.
+     */
+    private class ColorCellRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            super.getListCellRendererComponent(list, "", index, isSelected, cellHasFocus);
+            if (value == null) {
+                value = Color.BLACK;
+            }
+            setBackground((Color) value);
+            setOpaque(true);
+            setPreferredSize(new Dimension(40, 20));
+            setIcon(new ColorIcon((Color) value));
+            return this;
+        }
+    }
+    
+    /**
+     * This class converts a Color into an icon that has width of 85 pixels
+     * and height of 50 pixels.
+     */
+    private class ColorIcon implements Icon {
+        private int HEIGHT = 20;
+        private int WIDTH = 40;
+        
+        private Color colour;
+     
+        public ColorIcon(Color colour) {
+            this.colour = colour;
+        }
+     
+        public int getIconHeight() {
+            return HEIGHT;
+        }
+     
+        public int getIconWidth() {
+            return WIDTH;
+        }
+     
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(colour);
+            g.fillRect(x, y, WIDTH - 1, HEIGHT - 1);
+        }
+    }
 }
