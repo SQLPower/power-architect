@@ -2952,11 +2952,6 @@ public class PlayPen extends JPanel
                 } else {
                     ignoredObjs.add(obj);
                 }
-                // ensure the other node representing the same SQLRelationship is also selected on dbTree
-                TreePath[] treePaths = tree.getTreePathsForNode(obj);
-                for (TreePath tp: treePaths) {
-                    tree.addSelectionPath(tp);
-                }
                 tree.clearNonPlayPenSelections();
             }
         }
@@ -3032,17 +3027,15 @@ public class PlayPen extends JPanel
         boolean addedPaths = false;
         // finds all the TreePaths to select
         for (PlayPenComponent comp : getSelectedItems()) {
-            TreePath[] compPaths = tree.getTreePathsForNode((SQLObject) comp.getModel());
-            for (TreePath tp: compPaths) {
-                if (!selectionPaths.contains(tp)) {
-                    selectionPaths.add(tp);
-                    addedPaths = true;
-                }
+            TreePath tp = tree.getTreePathForNode((SQLObject) comp.getModel());
+            if (!selectionPaths.contains(tp)) {
+                selectionPaths.add(tp);
+                addedPaths = true;
             }
             
             if (comp instanceof TablePane) {
                 for (SQLColumn col :((TablePane) comp).getSelectedColumns()) {
-                    TreePath tp = tree.getTreePathForNode(col);
+                    tp = tree.getTreePathForNode(col);
                     if (!selectionPaths.contains(tp)) {
                         selectionPaths.add(tp);
                         addedPaths = true;

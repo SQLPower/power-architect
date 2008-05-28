@@ -72,11 +72,23 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 			}
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
-			if (selections.length != 2) {
-				JOptionPane.showMessageDialog(dbt, "Please select the relationship you would like to edit.");
+			if (selections.length < 1) {
+				JOptionPane.showMessageDialog(dbt, "Select a relationship (by clicking on it) and try again.");
+			} else if (selections.length > 2) {
+			    JOptionPane.showMessageDialog(playpen, "You have selected multiple items, but you can only edit one at a time.");
 			} else {
-				TreePath tp = selections[0];
-				SQLObject so = (SQLObject) tp.getLastPathComponent();
+			    TreePath tp = selections[0];
+			    SQLObject so = (SQLObject) tp.getLastPathComponent();
+			    
+			    // there are two instances of a relationship on the tree
+			    if (selections.length == 2) {
+			        SQLObject secondObj = (SQLObject) selections[1].getLastPathComponent();
+			        if (!so.equals(secondObj)) {
+			            JOptionPane.showMessageDialog(dbt, "Please select the relationship you would like to edit.");
+			            return;
+			        }
+			    }
+			    
 				if (so instanceof SQLRelationship) {
 					SQLRelationship sr = (SQLRelationship) so;
 					makeDialog(sr);
