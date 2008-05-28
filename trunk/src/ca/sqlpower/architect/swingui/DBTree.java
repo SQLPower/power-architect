@@ -30,6 +30,8 @@ import java.awt.dnd.DragSourceListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -40,6 +42,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.InputMap;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -47,6 +50,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
@@ -908,7 +912,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			if ( (ie.getModifiers() & InputEvent.BUTTON1_MASK) == 0) {
 				return;
 			}
-
+			
 			DBTree t = (DBTree) dge.getComponent();
   			TreePath[] p = t.getSelectionPaths();
 
@@ -936,6 +940,36 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
  		}
 	}
+ 	
+ 	void setupKeyboardActions() {
+ 	    /**
+ 	     * The ActionMap key for the action that deletes the selected
+ 	     * object in this DBTree.
+ 	     */
+ 	    final Object KEY_DELETE_SELECTED
+ 	        = "ca.sqlpower.architect.swingui.DBTree.KEY_DELETE_SELECTED";
+        ArchitectFrame af = session.getArchitectFrame();
+
+        InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), KEY_DELETE_SELECTED);
+        getActionMap().put(KEY_DELETE_SELECTED, af.getDeleteSelectedAction());
+        
+        
+
+        addKeyListener(new KeyListener() {
+
+            private void changeCursor(KeyEvent e) {
+            }
+
+            public void keyPressed(KeyEvent e) { changeCursor(e); }
+            public void keyReleased(KeyEvent e) { changeCursor(e); }
+            public void keyTyped(KeyEvent e) { changeCursor(e); }
+            
+        });
+    }
+ 	
 
  	/**
  	 * Removes all selections of objects that are not represented on the playpen.
