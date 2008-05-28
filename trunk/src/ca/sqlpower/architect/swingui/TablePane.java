@@ -893,7 +893,6 @@ public class TablePane
                     for(int i = 0; i < importedKeys.size(); i++) {
                         for(int j = 0; j < droppedItems.size(); j++) {
                             if(importedKeys.get(i).containsFkColumn((SQLColumn)(droppedItems.get(j)))) {
-                                System.out.println(insertionPoint + ", " +tp.getModel().getColumnIndex((SQLColumn)(droppedItems.get(j))));
                                 if(!newColumnsInPk) {
                                     importedKeys.get(i).setIdentifying(false);
                                     break;
