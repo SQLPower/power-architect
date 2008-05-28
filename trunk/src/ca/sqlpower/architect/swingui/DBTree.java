@@ -76,7 +76,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	
 	protected DragSource ds;
 	protected JPopupMenu popup;
-	protected JMenu connectionsMenu;
+	protected JMenu dbcsMenu;
 	protected SPDataSourcePanel spDataSourcePanel;
 	protected NewDBCSAction newDBCSAction;
 	protected DBCSPropertiesAction dbcsPropertiesAction;
@@ -328,18 +328,9 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected JPopupMenu refreshMenu(TreePath p) {
 		logger.debug("refreshMenu is being called.");
 		JPopupMenu newMenu = new JPopupMenu();
-		newMenu.add(connectionsMenu = new JMenu("Add Source Connection"));
-		connectionsMenu.add(new JMenuItem(newDBCSAction));
-		connectionsMenu.addSeparator();
+		newMenu.add(setupDBCSMenu());
 		
 		newMenu.add(new DatabaseConnectionManagerAction(session));
-
-		// populate
-
-		for (SPDataSource dbcs : session.getContext().getConnections()) {
-			connectionsMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
-		}
-		ASUtils.breakLongMenu(session.getArchitectFrame(),connectionsMenu);
 
 		newMenu.addSeparator();
         newMenu.add(new JMenuItem(expandAllAction));
@@ -667,7 +658,6 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-
             final DataSourceCollection plDotIni = session.getContext().getPlDotIni();
             final SPDataSource dataSource = new SPDataSource(plDotIni);
             Runnable onAccept = new Runnable() {
@@ -1070,5 +1060,22 @@ public class DBTree extends JTree implements DragSourceListener {
                 }
             }
         }
+    }
+    
+    /**
+     * Returns a new updated connections menu.
+     */
+    public JMenu setupDBCSMenu() {
+        dbcsMenu = new JMenu("Add Source Connection");
+        dbcsMenu.add(new JMenuItem(new NewDBCSAction()));
+        dbcsMenu.addSeparator();
+
+        // populate
+        for (SPDataSource dbcs : session.getContext().getConnections()) {
+            dbcsMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
+        }
+        ASUtils.breakLongMenu(session.getArchitectFrame(), dbcsMenu);
+        
+        return dbcsMenu;
     }
 }
