@@ -1713,7 +1713,7 @@ public class PlayPen extends JPanel
 	 * user clicks.
 	 */
 	public void addFloating(TablePane tp) {
-	    new FloatingTableListener(this, tp, zoomPoint(new Point(0,0)),true);
+	    new FloatingTableListener(this, tp, this.unzoomPoint(new Point(0,0)),true);
 	}
 
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
