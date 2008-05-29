@@ -53,12 +53,14 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
@@ -434,26 +436,48 @@ public class ArchitectFrame extends JFrame {
         // the connections menu is set up when a new project is created (because it depends on the current DBTree)
         connectionsMenu = new JMenu("Connections");
         connectionsMenu.setMnemonic('c');
+        menuBar.add(connectionsMenu);
+        connectionsMenu.removeAll();
+        
+        final JMenu dbcsMenu = dbTree.setupDBCSMenu();
+        final JMenuItem propertiesMenu = new JMenuItem(dbTree.dbcsPropertiesAction);
+        final JMenuItem removeDBCSMenu = new JMenuItem(dbTree.removeDBCSAction);
+        
+        connectionsMenu.add(dbcsMenu);
+        connectionsMenu.add(propertiesMenu);
+        connectionsMenu.add(removeDBCSMenu);
+        connectionsMenu.addSeparator();
+        connectionsMenu.add(new DatabaseConnectionManagerAction(session));
+
         connectionsMenu.addMenuListener(new MenuListener(){
+            
+            private JMenu dbcs = dbcsMenu;
+            
             public void menuCanceled(MenuEvent e) {
                 // do nothing here
             }
             public void menuDeselected(MenuEvent e) {
                 // do nothin here
             }
-
+            
             public void menuSelected(MenuEvent e) {
-             refreshConnectionMenu();   
+                // updates for new connections
+                connectionsMenu.remove(dbcs);
+                dbcs = dbTree.setupDBCSMenu();
+                connectionsMenu.add(dbcs, 0);
+                
+                // enable/disable dbcs related menu items
+                TreePath tp = dbTree.getSelectionPath();
+                if (tp != null) {
+                    boolean dbcsSelected = !dbTree.isTargetDatabaseNode(tp) && !dbTree.isTargetDatabaseChild(tp);
+                    propertiesMenu.setEnabled(dbcsSelected);
+                    removeDBCSMenu.setEnabled(dbcsSelected && tp.getLastPathComponent() instanceof SQLDatabase);
+                } else {
+                    propertiesMenu.setEnabled(false);
+                    removeDBCSMenu.setEnabled(false);
+                }
             }
         });
-        menuBar.add(connectionsMenu);
-        connectionsMenu.removeAll();
-        
-        connectionsMenu.add(dbTree.setupDBCSMenu());
-        connectionsMenu.add(new JMenuItem(dbTree.dbcsPropertiesAction));
-        connectionsMenu.add(new JMenuItem(dbTree.removeDBCSAction));
-        connectionsMenu.addSeparator();
-        connectionsMenu.add(new DatabaseConnectionManagerAction(session));
         
         JMenu etlMenu = new JMenu("ETL");
         etlMenu.setMnemonic('l');
@@ -815,13 +839,5 @@ public class ArchitectFrame extends JFrame {
     
     public FocusToChildOrParentTableAction getFocusToChildAction() {
         return focusToChildAction;
-    }
-    
-    /**
-     * Updates the menu for new connections.
-     */
-    public void refreshConnectionMenu() {
-        connectionsMenu.remove(0);
-        connectionsMenu.add(dbTree.setupDBCSMenu(), 0);
     }
 }
