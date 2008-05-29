@@ -31,7 +31,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -102,6 +101,13 @@ public class DBTree extends JTree implements DragSourceListener {
 	 * specs.
 	 */
 	protected boolean panelHoldsNewDBCS;
+	
+	/**
+     * The ActionMap key for the action that deletes the selected
+     * object in this DBTree.
+     */
+	private static final Object KEY_DELETE_SELECTED
+        = "ca.sqlpower.architect.swingui.DBTree.KEY_DELETE_SELECTED";
 
 
 	// ----------- CONSTRUCTORS ------------
@@ -881,7 +887,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	    } else {
 	        List<SQLObject> objects = new ArrayList<SQLObject>();
 	        for (TreePath tp : treePaths) {
-	            if (!getPathForRow(0).isDescendant(tp)) continue;
+	            if (isTargetDatabaseNode(tp) || !isTargetDatabaseChild(tp)) continue;
 	            SQLObject obj = (SQLObject) tp.getLastPathComponent();
 	            // only select playpen represented objects.
 	            if ((obj instanceof SQLTable || obj instanceof SQLRelationship || obj instanceof SQLColumn) &&
@@ -895,6 +901,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	            throw new ArchitectRuntimeException(e);
 	        }
 	    }
+	    
 	}
 
 	// --------------- INNER CLASSES -----------------
@@ -941,32 +948,23 @@ public class DBTree extends JTree implements DragSourceListener {
  		}
 	}
  	
- 	void setupKeyboardActions() {
- 	    /**
- 	     * The ActionMap key for the action that deletes the selected
- 	     * object in this DBTree.
- 	     */
- 	    final Object KEY_DELETE_SELECTED
- 	        = "ca.sqlpower.architect.swingui.DBTree.KEY_DELETE_SELECTED";
-        ArchitectFrame af = session.getArchitectFrame();
+ 	public void setupKeyboardActions() {
+        final ArchitectFrame frame = session.getArchitectFrame();
 
         InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), KEY_DELETE_SELECTED);
-        getActionMap().put(KEY_DELETE_SELECTED, af.getDeleteSelectedAction());
         
-        
-
-        addKeyListener(new KeyListener() {
-
-            private void changeCursor(KeyEvent e) {
+        getActionMap().put(KEY_DELETE_SELECTED, new AbstractAction(){
+            public void actionPerformed(ActionEvent evt) {
+                TreePath tp = getSelectionPath();
+                if (tp != null) {
+                    if (!isTargetDatabaseNode(tp) && isTargetDatabaseChild(tp)) {
+                        frame.getDeleteSelectedAction().actionPerformed(evt);
+                    } else if (!isTargetDatabaseNode(tp) && tp.getLastPathComponent() instanceof SQLDatabase) {
+                        removeDBCSAction.actionPerformed(evt);
+                    }
+                }
             }
-
-            public void keyPressed(KeyEvent e) { changeCursor(e); }
-            public void keyReleased(KeyEvent e) { changeCursor(e); }
-            public void keyTyped(KeyEvent e) { changeCursor(e); }
-            
         });
     }
  	

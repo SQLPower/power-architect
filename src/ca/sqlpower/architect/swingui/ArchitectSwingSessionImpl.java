@@ -213,7 +213,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         // This has to be called after frame.init() because playPen gets the keyboard actions from frame,
         // which only get set up after calling frame.init().
         playPen.setupKeyboardActions();
-        this.sourceDatabases.setupKeyboardActions();
+        sourceDatabases.setupKeyboardActions();
         
         macOSXRegistration(frame);
         
