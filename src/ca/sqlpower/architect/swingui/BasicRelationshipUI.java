@@ -705,7 +705,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * Guesses for new connection points in the following order:
 	 *             7  5  3  1  origin  2  4  6  8
 	 */
-	private void fixConnectionPoints() {
+	public void fixConnectionPoints() {
 	    logger.debug("fixConnectionPoints()");
 	    PlayPen playPen = relationship.getPlayPen();
 	    Rectangle pktBounds = relationship.getPkTable().getBounds();

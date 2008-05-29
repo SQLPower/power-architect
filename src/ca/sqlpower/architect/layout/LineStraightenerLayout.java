@@ -25,6 +25,7 @@ import java.util.Collection;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.BasicRelationshipUI;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.RelationshipUI;
 import ca.sqlpower.architect.swingui.TablePane;
@@ -97,6 +98,8 @@ public class LineStraightenerLayout extends AbstractLayout {
                 logger.debug("Found vertical overlap at y = " + y);
                 r.setPkConnectionPoint(new Point(r.getPkConnectionPoint().x, y - tp1.getY()));
                 r.setFkConnectionPoint(new Point(r.getFkConnectionPoint().x, y - tp2.getY()));
+                ((BasicRelationshipUI)(r.getUI())).fixConnectionPoints();
+                
             }
         } else if (((orientation & (RelationshipUI.CHILD_FACES_TOP | RelationshipUI.CHILD_FACES_BOTTOM)) != 0) &&
                    ((orientation & (RelationshipUI.PARENT_FACES_TOP | RelationshipUI.PARENT_FACES_BOTTOM)) != 0)) {
@@ -108,6 +111,7 @@ public class LineStraightenerLayout extends AbstractLayout {
                 logger.debug("Found horizontal overlap at x = " + x);
                 r.setPkConnectionPoint(new Point(x - tp1.getX(), r.getPkConnectionPoint().y));
                 r.setFkConnectionPoint(new Point(x - tp2.getX(), r.getFkConnectionPoint().y));
+                ((BasicRelationshipUI)(r.getUI())).fixConnectionPoints();
             }
         } else {
             logger.debug("No facing sides found. Skipping this relationship.");
