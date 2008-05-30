@@ -27,6 +27,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
@@ -2666,6 +2667,20 @@ public class PlayPen extends JPanel
 	 * listener.
 	 */
 	public static class FloatingTableListener extends  MouseInputAdapter implements CancelableListener  {
+	    
+	    /**
+	     * The max distance from the side the mouse can be to start an autoscroll
+	     */
+	    private static final int AUTO_SCROLL_INSET = 25; 
+	    
+	    /**
+	     * The speed at which auto scroll happens
+	     */
+	    private static final int AUTO_SCROLL_SPEED = 10;
+	 
+	    // no of units to be scrolled in each direction 
+	    private Insets scrollUnits = new Insets(AUTO_SCROLL_INSET, AUTO_SCROLL_INSET, AUTO_SCROLL_INSET, AUTO_SCROLL_INSET);
+	    
 		private PlayPen pp;
 		private TablePane tp;
 		private Point handle;
@@ -2713,6 +2728,67 @@ public class PlayPen extends JPanel
 			pp.zoomPoint(e.getPoint());
 			p = new Point(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
 			pp.setChildPosition(tp, p);
+			JViewport viewport = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, pp);
+	        if(viewport==null || pp.getSelectedItems().size() < 1) 
+	            return; 
+	        
+	        // Theoretically should re-validate at the end of autoscrolling. But this would make the selected sqlObject fall off
+	        // the border.
+	        pp.revalidate();
+	        Point viewPos = viewport.getViewPosition(); 
+	        Rectangle view = viewport.getViewRect();
+	        int viewHeight = viewport.getExtentSize().height; 
+	        int viewWidth = viewport.getExtentSize().width; 
+	        
+	        // TODO: 1. Make changes to slow down the scrolling. 2. Need to fix the problem when
+	        // scrolling towards upper leftern area, the size of playpen would adjust according to the used playpen area
+	        // and the selected sqlObject would jump to the bottom right corner. This only happens when playpen area shrink.
+	        //
+	        // perform scrolling 
+	        if ((p.y - viewPos.y) < scrollUnits.top && viewPos.y > 0) { // scroll up 
+	            view.y = tp.getBounds().y;
+	            /*
+	            view.y -= AUTO_SCROLL_SPEED;
+	            if (tp != null) {
+	                tp.setLocation(tp.getX(), tp.getY() - AUTO_SCROLL_SPEED);
+	            }
+	            */
+	        } if ((viewPos.y + viewHeight - p.y) < scrollUnits.bottom) { // scroll down 
+	            view.y = tp.getBounds().y + tp.getBounds().height - viewHeight;
+	            /*
+	            scrollUnits.bottom += AUTO_SCROLL_SPEED;
+	            pp.revalidate();
+	            view.y += AUTO_SCROLL_SPEED;          
+	            if (tp != null) {
+	                tp.setLocation(tp.getX(), tp.getY() + AUTO_SCROLL_SPEED);
+	            }
+	            */
+	        } if ((p.x - viewPos.x) < scrollUnits.left && viewPos.x > 0) { // scroll left 
+	            view.x = tp.getBounds().x;
+	            /*
+	            view.x -= AUTO_SCROLL_SPEED;
+	            if (tp != null) {
+	                tp.setLocation(tp.getX() - AUTO_SCROLL_SPEED, tp.getY());
+	            }
+	            */
+	            
+	        } if ((viewPos.x + viewWidth - p.x) < scrollUnits.right) { // scroll right 
+	            view.x = tp.getBounds().x + tp.getBounds().width - viewWidth;
+	            /*
+	            scrollUnits.right += AUTO_SCROLL_SPEED;
+	            pp.revalidate();
+	            view.x += AUTO_SCROLL_SPEED;
+	            if (tp != null) {
+	                tp.setLocation(tp.getX() + AUTO_SCROLL_SPEED, tp.getY());
+	            }
+	            */
+	        } 
+	        logger.debug(viewport.getViewPosition());
+	        pp.scrollRectToVisible(view);
+	        // Necessary to stop tables from flashing.
+	        if (tp != null) {
+	            tp.repaint();
+	        }
 		}
 
 		/**
