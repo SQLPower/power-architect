@@ -598,7 +598,7 @@
 				<inlinemediaobject>
 					<imageobject>
 						<imagedata fileref="doc/images/basicui.png"
-							format="PNG" />
+							format="PNG" width="5.5in"/>
 					</imageobject>
 				</inlinemediaobject>
 			</para>
@@ -714,6 +714,16 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
+								fileref="src/icons/Index_key16.png" format="PNG" />
+						</imageobject>
+					</inlinemediaobject>
+					Primary Key
+				</para>
+
+				<para>
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
 								fileref="src/icons/ExportedKey16.png" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
@@ -738,16 +748,6 @@
 						</imageobject>
 					</inlinemediaobject>
 					Index
-				</para>
-
-				<para>
-					<inlinemediaobject>
-						<imageobject>
-							<imagedata
-								fileref="src/icons/Index_key16.png" format="PNG" />
-						</imageobject>
-					</inlinemediaobject>
-					Index Key
 				</para>
 
 				<para>
