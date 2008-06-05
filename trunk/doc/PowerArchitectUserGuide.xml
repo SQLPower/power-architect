@@ -72,10 +72,11 @@
 				view and compare data structures and mappings. For
 				example, you can compare the structure of any two
 				databases, highlighting the differences and similarities
-				and generating the required DDL to synchronize them. You
-				can also create a visual mapping report listing the
-				source tables used in your data model, or create a
-				profile of the data contained in a database.
+				and generating the required DDL statements to
+				synchronize them. You can also create a visual mapping
+				report listing the source tables used in your data
+				model, or create an easy-to-read profile summarizing the
+				data contained in a database.
 			</para>
 
 			<para>
@@ -98,7 +99,8 @@
 
 			<para>
 				The guide assumes you are familiar with basic database
-				operations and terminology (please refer to "<xref linkend="glossary"/>"
+				operations and terminology (please refer to
+				<xref linkend="glossary" />
 				for a list of some common database terms). If you plan
 				to use Kettle jobs, the guide assumes you have some
 				knowledge about ETL (Extract, Transform, Load)
@@ -216,12 +218,14 @@
 
 		<para>
 			To get started using Power*Architect, begin by reading
-			"<xref linkend="getting_started.user_interface"/>". This
-			section gives you a quick introduction to the main
+			<xref linkend="getting_started.user_interface" />
+			. This section gives you a quick introduction to the main
 			Power*Architect areas, the playpen and the database tree.
-			You may then want to work through the hands-on "<xref linkend="getting_started.example"/>". This example shows you how to create
-			a simple data model, set up a database connection, and
-			forward engineer your model to any database you choose.
+			You may then want to work through the hands-on
+			<xref linkend="getting_started.example" />
+			. This example shows you how to create a simple data model,
+			set up a database connection, and forward engineer your
+			model to any database you choose.
 		</para>
 
 		<para>
@@ -231,42 +235,42 @@
 			for an overview of typical activities you would perform with
 			Power*Architect.
 		</para>
-		
-
-<itemizedlist>
-
-<listitem>
-<para>
-"<xref linkend="getting_started.data_model"/>"
-</para>
-</listitem>
-
-<listitem>
-<para>
-"<xref linkend="getting_started.analyze"/>"
-</para>
-</listitem>
-
-<listitem>
-<para>
-"<xref linkend="getting_started.copy_data"/>"
-</para>
-</listitem>
-
-<listitem>
-<para>
-"<xref linkend="getting_started.advanced"/>"
-</para>
-</listitem>
-
-<listitem>
-<para>
-"<xref linkend="getting_started.preferences"/>"
-</para>
-</listitem>
 
 
-</itemizedlist>
+		<itemizedlist>
+
+			<listitem>
+				<para>
+					<xref linkend="getting_started.data_model" />
+				</para>
+			</listitem>
+
+			<listitem>
+				<para>
+					<xref linkend="getting_started.analyze" />
+				</para>
+			</listitem>
+
+			<listitem>
+				<para>
+					<xref linkend="getting_started.copy_data" />
+				</para>
+			</listitem>
+
+			<listitem>
+				<para>
+					<xref linkend="getting_started.advanced" />
+				</para>
+			</listitem>
+
+			<listitem>
+				<para>
+					<xref linkend="getting_started.preferences" />
+				</para>
+			</listitem>
+
+
+		</itemizedlist>
 		<section id="getting_started.data_model">
 
 			<title>About Data Models</title>
@@ -285,29 +289,27 @@
 						reverse engineering an existing database, or by
 						using a combination of these two methods.
 					</para>
-					
-<para>
-					For more information, see:
-</para>
-					
 
-<itemizedlist>
+					<para>For more information, see:</para>
 
-<listitem>
-<para>
-					"<xref linkend="data_model"/>"
-</para>
-</listitem>
 
-<listitem>
-<para>
-					"<xref linkend="reverse_engineering"/>"
-</para>
-</listitem>
+					<itemizedlist>
 
-</itemizedlist>		
-					
-					
+						<listitem>
+							<para>
+								<xref linkend="data_model" />
+							</para>
+						</listitem>
+
+						<listitem>
+							<para>
+								<xref linkend="reverse_engineering" />
+							</para>
+						</listitem>
+
+					</itemizedlist>
+
+
 				</listitem>
 
 				<listitem>
@@ -317,27 +319,25 @@
 						engineering, you must first set up a database
 						type and connection for the target database.
 					</para>
-					
-					<para>
-					For more information, see:
-</para>
-					
 
-<itemizedlist>
+					<para>For more information, see:</para>
 
-<listitem>
-<para>
-					"<xref linkend="forward_engineer"/>"
-</para>
-</listitem>
 
-<listitem>
-<para>
-					"<xref linkend="setup_database"/>"
-</para>
-</listitem>
+					<itemizedlist>
 
-</itemizedlist>		
+						<listitem>
+							<para>
+								<xref linkend="forward_engineer" />
+							</para>
+						</listitem>
+
+						<listitem>
+							<para>
+								<xref linkend="setup_database" />
+							</para>
+						</listitem>
+
+					</itemizedlist>
 
 
 				</listitem>
@@ -347,22 +347,20 @@
 						Use a Kettle job to copy data into your new
 						database.
 					</para>
-					
-<para>
-										For more information, see:
-</para>
-					
 
-<itemizedlist>
+					<para>For more information, see:</para>
 
-<listitem>
-<para>
-					"<xref linkend="copy_data.kettle_job"/>"
-</para>
-</listitem>
 
-</itemizedlist>		
-					
+					<itemizedlist>
+
+						<listitem>
+							<para>
+								<xref linkend="copy_data.kettle_job" />
+							</para>
+						</listitem>
+
+					</itemizedlist>
+
 				</listitem>
 
 			</orderedlist>
@@ -388,21 +386,19 @@
 						to update an older database to match a newer
 						data model.
 					</para>
-					
-					<para>
-										For more information, see:
-</para>
-					
 
-<itemizedlist>
+					<para>For more information, see:</para>
 
-<listitem>
-<para>
-					"<xref linkend="analysis.compare_dm"/>"
-</para>
-</listitem>
 
-</itemizedlist>	
+					<itemizedlist>
+
+						<listitem>
+							<para>
+								<xref linkend="analysis.compare_dm" />
+							</para>
+						</listitem>
+
+					</itemizedlist>
 
 
 				</listitem>
@@ -411,23 +407,21 @@
 					<para>
 						View a profile of the data in a database table.
 					</para>
-					
-										<para>
-										For more information, see:
-</para>
-					
 
-<itemizedlist>
+					<para>For more information, see:</para>
 
-<listitem>
-<para>
-					"<xref linkend="analysis.profiling"/>"
-</para>
-</listitem>
 
-</itemizedlist>	
-					
-					
+					<itemizedlist>
+
+						<listitem>
+							<para>
+								<xref linkend="analysis.profiling" />
+							</para>
+						</listitem>
+
+					</itemizedlist>
+
+
 				</listitem>
 
 				<listitem>
@@ -436,22 +430,21 @@
 						for the tables in your Power*Architect data
 						model.
 					</para>
-					
-															<para>
-										For more information, see:
-</para>
-					
 
-<itemizedlist>
+					<para>For more information, see:</para>
 
-<listitem>
-<para>
-					"<xref linkend="analysis.visual_mapping_report"/>"
-</para>
-</listitem>
 
-</itemizedlist>	
-					
+					<itemizedlist>
+
+						<listitem>
+							<para>
+								<xref
+									linkend="analysis.visual_mapping_report" />
+							</para>
+						</listitem>
+
+					</itemizedlist>
+
 				</listitem>
 
 				<listitem>
@@ -460,21 +453,19 @@
 						between a source database and your
 						Power*Architect data model.
 					</para>
-					
-										<para>
-										For more information, see:
-</para>
-					
 
-<itemizedlist>
+					<para>For more information, see:</para>
 
-<listitem>
-<para>
-					"<xref linkend="analysis.etl_export_csv"/>"
-</para>
-</listitem>
 
-</itemizedlist>	
+					<itemizedlist>
+
+						<listitem>
+							<para>
+								<xref linkend="analysis.etl_export_csv" />
+							</para>
+						</listitem>
+
+					</itemizedlist>
 
 				</listitem>
 
@@ -499,22 +490,21 @@
 						Copy data across database platforms to create a
 						verbatim copy of an existing database.
 					</para>
-					
-															<para>
-										For more information, see:
-</para>
-					
 
-<itemizedlist>
+					<para>For more information, see:</para>
 
-<listitem>
-<para>
-					"<xref linkend="copy_data.copy_table_data"/>"
-</para>
-</listitem>
 
-</itemizedlist>	
-					
+					<itemizedlist>
+
+						<listitem>
+							<para>
+								<xref
+									linkend="copy_data.copy_table_data" />
+							</para>
+						</listitem>
+
+					</itemizedlist>
+
 				</listitem>
 
 				<listitem>
@@ -522,22 +512,20 @@
 						Create multiple transformations based on a data
 						model.
 					</para>
-					
-															<para>
-										For more information, see:
-</para>
-					
 
-<itemizedlist>
+					<para>For more information, see:</para>
 
-<listitem>
-<para>
-					"<xref linkend="copy_data.kettle_job"/>"
-</para>
-</listitem>
 
-</itemizedlist>	
-					
+					<itemizedlist>
+
+						<listitem>
+							<para>
+								<xref linkend="copy_data.kettle_job" />
+							</para>
+						</listitem>
+
+					</itemizedlist>
+
 				</listitem>
 
 			</itemizedlist>
@@ -553,21 +541,19 @@
 				allows you to work at the raw SQL command level. This
 				feature should only be used by advanced users.
 			</para>
-			
-													<para>
-										For more information, see:
-</para>
-					
 
-<itemizedlist>
+			<para>For more information, see:</para>
 
-<listitem>
-<para>
-					"<xref linkend="SQLRunner"/>"
-</para>
-</listitem>
 
-</itemizedlist>	
+			<itemizedlist>
+
+				<listitem>
+					<para>
+						<xref linkend="SQLRunner" />
+					</para>
+				</listitem>
+
+			</itemizedlist>
 
 		</section>
 
@@ -580,20 +566,18 @@
 				Power*Architect.
 			</para>
 
-													<para>
-										For more information, see:
-</para>
-					
+			<para>For more information, see:</para>
 
-<itemizedlist>
 
-<listitem>
-<para>
-					"<xref linkend="system_settings"/>"
-</para>
-</listitem>
+			<itemizedlist>
 
-</itemizedlist>	
+				<listitem>
+					<para>
+						<xref linkend="system_settings" />
+					</para>
+				</listitem>
+
+			</itemizedlist>
 
 		</section>
 
@@ -796,7 +780,9 @@
 					indices, and relationships. You can create these
 					objects in Power*Architect or obtain them by reverse
 					engineering an existing database. For more
-					information on working in the playpen, see "<xref linkend="data_model"/>".
+					information on working in the playpen, see
+					<xref linkend="data_model" />
+					.
 				</para>
 
 			</section>
@@ -926,9 +912,9 @@
 					<listitem>
 
 						<para>
-							Click the New Table icon at the right
-							side. The cursor will change to a crosshair.
-							Move the cursor near the left of the Playpen
+							Click the New Table icon at the right side.
+							The cursor will change to a crosshair. Move
+							the cursor near the left of the Playpen
 							area, and click. A "New Table" will appear.
 						</para>
 
@@ -982,7 +968,8 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/SimpleExample1.png" format="PNG" width="4in" />
+									fileref="doc/images/SimpleExample1.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 
@@ -1008,7 +995,8 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/SimpleExample2.png" format="PNG" width="4in" />
+									fileref="doc/images/SimpleExample2.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 					</listitem>
@@ -1029,7 +1017,8 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/SimpleExample3.png" format="PNG" width="4in" />
+									fileref="doc/images/SimpleExample3.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 					</listitem>
@@ -1057,7 +1046,8 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/SimpleExample4.png" format="PNG" width="4in" />
+									fileref="doc/images/SimpleExample4.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 					</listitem>
@@ -1076,7 +1066,8 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/SimpleExample5.png" format="PNG" width="4in" />
+									fileref="doc/images/SimpleExample5.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 					</listitem>
@@ -1148,7 +1139,8 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/SimpleExample6.png" format="PNG" width="4in" />
+									fileref="doc/images/SimpleExample6.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 					</listitem>
@@ -1208,8 +1200,10 @@
 
 			Use the Power*Architect playpen to create a data model
 			diagram that includes tables, columns, indices, and
-			relationships. Before you begin, be sure to read "<xref linkend="getting_started"/>", which explains how to use the playpen and
-			the database tree.
+			relationships. Before you begin, be sure to read
+			<xref linkend="getting_started" />
+			, which explains how to use the playpen and the database
+			tree.
 
 		</para>
 
@@ -1297,13 +1291,14 @@
 							create the table. The Table Properties
 							dialog box appears.
 						</para>
-							
-<mediaobject>
-<imageobject>
-<imagedata fileref="doc/images/table_props.png" format="PNG" width="4in" />
-</imageobject>
-</mediaobject>
-							
+
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/table_props.png" format="PNG" width="4in" />
+							</imageobject>
+						</mediaobject>
+
 
 					</listitem>
 
@@ -1398,7 +1393,11 @@
 												when you forward
 												engineer the data model.
 
-												For more information, see "<xref linkend="data_model.columns.new"/>".
+												For more information,
+												see
+												<xref
+													linkend="data_model.columns.new" />
+												.
 
 											</para>
 
@@ -1513,7 +1512,8 @@
 							<imageobject>
 
 								<imagedata
-									fileref="doc/images/Table_Properties.png" format="PNG" width="4in" />
+									fileref="doc/images/Table_Properties.png" format="PNG"
+									width="4in" />
 
 							</imageobject>
 
@@ -1554,7 +1554,9 @@
 						<para>
 
 							Modify the table properties as required. For
-							a description of the properties, see "<xref linkend="data_model.tables.new"/>".
+							a description of the properties, see
+							<xref linkend="data_model.tables.new" />
+							.
 
 						</para>
 
@@ -1672,12 +1674,13 @@
 							in the side toolbar. The Column Properties
 							dialog box appears.
 						</para>
-							
-<mediaobject>
-<imageobject>
-<imagedata fileref="doc/images/column_props.png" format="PNG" width="4in" />
-</imageobject>
-</mediaobject>
+
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/column_props.png" format="PNG" width="4in" />
+							</imageobject>
+						</mediaobject>
 
 
 						<para>
@@ -2179,7 +2182,8 @@
 							<imageobject>
 
 								<imagedata
-									fileref="doc/images/Column_properties.png" format="PNG" width="4in" />
+									fileref="doc/images/Column_properties.png" format="PNG"
+									width="4in" />
 
 							</imageobject>
 
@@ -2202,7 +2206,9 @@
 						<para>
 
 							Modify the column properties as required.
-							For a description of the properties, see "<xref linkend="data_model.columns.new"/>".
+							For a description of the properties, see
+							<xref linkend="data_model.columns.new" />
+							.
 
 						</para>
 
@@ -2263,7 +2269,9 @@
 				<para>
 
 					Note: You can also add or remove columns from the
-					primary key. For more information, see "<xref linkend="data_model.primary_keys"/>".
+					primary key. For more information, see
+					<xref linkend="data_model.primary_keys" />
+					.
 
 				</para>
 
@@ -2312,12 +2320,13 @@
 				</listitem>
 
 			</orderedlist>
-			
-<mediaobject>
-<imageobject>
-<imagedata fileref="doc/images/pk_add.png" format="PNG" width="4in" />
-</imageobject>
-</mediaobject>
+
+			<mediaobject>
+				<imageobject>
+					<imagedata fileref="doc/images/pk_add.png"
+						format="PNG" width="4in" />
+				</imageobject>
+			</mediaobject>
 
 			<para>
 
@@ -2353,7 +2362,9 @@
 			<para>
 
 				Note: You can change the primary key name for the table.
-				For more information, see "<xref linkend="data_model.tables.modify"/>".
+				For more information, see
+				<xref linkend="data_model.tables.modify" />
+				.
 
 			</para>
 
@@ -2441,12 +2452,14 @@
 							each invoice will have a line 0, line 1,
 							line 2, etc.
 						</para>
-							
-<mediaobject>
-<imageobject>
-<imagedata fileref="doc/images/exp_id_relationship.png" format="PNG" width="4in" />
-</imageobject>
-</mediaobject>
+
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/exp_id_relationship.png" format="PNG"
+									width="4in" />
+							</imageobject>
+						</mediaobject>
 
 
 					</listitem>
@@ -2467,12 +2480,14 @@
 							of the invoice line.
 
 						</para>
-						
-<mediaobject>
-<imageobject>
-<imagedata fileref="doc/images/exp_nonid_relationship.png" format="PNG" width="4in" />
-</imageobject>
-</mediaobject>
+
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/exp_nonid_relationship.png" format="PNG"
+									width="4in" />
+							</imageobject>
+						</mediaobject>
 
 						<para>
 
@@ -2577,12 +2592,14 @@
 							table. A relationship is created between the
 							two tables and is shown as a line.
 						</para>
-							
-<mediaobject>
-<imageobject>
-<imagedata fileref="doc/images/exp_nonid_relationship.png" format="PNG" width="4in" />
-</imageobject>
-</mediaobject>
+
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/exp_nonid_relationship.png" format="PNG"
+									width="4in" />
+							</imageobject>
+						</mediaobject>
 
 
 						<para>
@@ -2642,7 +2659,8 @@
 									<imageobject>
 
 										<imagedata
-											fileref="doc/images/New_Column_Relation.png" format="PNG" width="4in" />
+											fileref="doc/images/New_Column_Relation.png" format="PNG"
+											width="4in" />
 
 									</imageobject>
 
@@ -2675,7 +2693,9 @@
 					You can now define the relationship properties, view
 					the individual column mappings or change the mapping
 					of the child table to the parent table. For more
-					information, see "<xref linkend="data_model.relationships.modify"/>".
+					information, see
+					<xref linkend="data_model.relationships.modify" />
+					.
 
 				</para>
 
@@ -2683,7 +2703,10 @@
 
 					Note: You can automatically straighten the
 					relationship lines between tables. For more
-					information, see "<xref linkend="data_model.playpen_objects.straighten_lines"/>".
+					information, see
+					<xref
+						linkend="data_model.playpen_objects.straighten_lines" />
+					.
 
 				</para>
 
@@ -2723,7 +2746,8 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/relationship_properties.png" format="PNG" width="4in" />
+									fileref="doc/images/relationship_properties.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 
@@ -3161,12 +3185,14 @@
 							same column as a foreign key in multiple
 							tables.
 						</para>
-							
-<mediaobject>
-<imageobject>
-<imagedata fileref="doc/images/relationship_props_mappings.png" format="PNG" width="4in" />
-</imageobject>
-</mediaobject>
+
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/relationship_props_mappings.png"
+									format="PNG" width="4in" />
+							</imageobject>
+						</mediaobject>
 
 
 					</listitem>
@@ -3213,24 +3239,26 @@
 
 						<para>
 
-							Select a table in the playpen, then click 
-							
-<inlinemediaobject>
-<imageobject>
-<imagedata fileref="src/icons/new_index16.png" format="PNG" />
-</imageobject>
-</inlinemediaobject>							
-							
-							 in the side toolbar. The Index Properties
+							Select a table in the playpen, then click
+
+							<inlinemediaobject>
+								<imageobject>
+									<imagedata
+										fileref="src/icons/new_index16.png" format="PNG" />
+								</imageobject>
+							</inlinemediaobject>
+
+							in the side toolbar. The Index Properties
 							dialog box appears.
 
 						</para>
 
-<mediaobject>
-<imageobject>
-<imagedata fileref="doc/images/index_props.png" format="PNG" width="4in" />
-</imageobject>
-</mediaobject>
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/index_props.png" format="PNG" width="4in" />
+							</imageobject>
+						</mediaobject>
 
 
 						<para>
@@ -3751,7 +3779,9 @@
 						<para>
 
 							Modify the index properties as required. For
-							a description of the properties, see "<xref linkend="data_model.indices.create"/>".
+							a description of the properties, see
+							<xref linkend="data_model.indices.create" />
+							.
 
 						</para>
 
@@ -3814,25 +3844,29 @@
 				<para>
 
 					To undo an action, click
-					
+
 					<inlinemediaobject>
-<imageobject>
-<imagedata fileref="src/icons/undo_arrow16.png" format="PNG" />
-</imageobject>
-</inlinemediaobject>
- in the top toolbar. You can also select Edit » Undo or press CTRL+Z.
+						<imageobject>
+							<imagedata
+								fileref="src/icons/undo_arrow16.png" format="PNG" />
+						</imageobject>
+					</inlinemediaobject>
+					in the top toolbar. You can also select Edit » Undo
+					or press CTRL+Z.
 
 				</para>
 
 				<para>
 
-					To redo an action, click 
-				<inlinemediaobject>
-<imageobject>
-<imagedata fileref="src/icons/redo_arrow16.png" format="PNG" />
-</imageobject>
-</inlinemediaobject>
- in the top toolbar. You can also select Edit » Redo or press CTRL+Y.
+					To redo an action, click
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/redo_arrow16.png" format="PNG" />
+						</imageobject>
+					</inlinemediaobject>
+					in the top toolbar. You can also select Edit » Redo
+					or press CTRL+Y.
 
 				</para>
 
@@ -3903,16 +3937,17 @@
 
 					To delete a diagram object (table, column, or
 					relationship) in the playpen, select one or more
-					objects in the playpen, then click 
+					objects in the playpen, then click
 
-<inlinemediaobject>
-<imageobject>
-<imagedata fileref="src/icons/delete16.png" format="PNG" />
-</imageobject>
-</inlinemediaobject>
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata fileref="src/icons/delete16.png"
+								format="PNG" />
+						</imageobject>
+					</inlinemediaobject>
 
 
-					 in the side toolbar.
+					in the side toolbar.
 
 				</para>
 
@@ -3965,7 +4000,9 @@
 					visually connect to a table in the diagram. (To
 					change the columns mapped by a relationship link,
 					you must modify the relationship. For more
-					information, see "<xref linkend="data_model.relationships.modify"/>".)
+					information, see
+					<xref linkend="data_model.relationships.modify" />
+					.)
 
 				</para>
 
@@ -3983,7 +4020,9 @@
 
 							You can rearrange columns within a table or
 							move columns from one table to another. For
-							more information, see "<xref linkend="data_model.columns.move"/>".
+							more information, see
+							<xref linkend="data_model.columns.move" />
+							.
 
 						</para>
 
@@ -3994,7 +4033,10 @@
 						<para>
 
 							You can automatically arrange the tables in
-							the playpen. For more information, see "<xref linkend="data_model.playpen_objects.auto_layout"/>".
+							the playpen. For more information, see
+							<xref
+								linkend="data_model.playpen_objects.auto_layout" />
+							.
 						</para>
 
 					</listitem>
@@ -4005,7 +4047,10 @@
 
 							You can automatically straighten the
 							relationship lines between tables. For more
-							information, see "<xref linkend="data_model.playpen_objects.straighten_lines"/>".
+							information, see
+							<xref
+								linkend="data_model.playpen_objects.straighten_lines" />
+							.
 
 						</para>
 
@@ -4119,29 +4164,14 @@
 
 						<para>
 
-<inlinemediaobject>
-<imageobject>
-<imagedata fileref="src/icons/zoom_in16.png" format="PNG" />
-</imageobject>
-</inlinemediaobject>
+							<inlinemediaobject>
+								<imageobject>
+									<imagedata
+										fileref="src/icons/zoom_in16.png" format="PNG" />
+								</imageobject>
+							</inlinemediaobject>
 
-							 Zoom in
-
-						</para>
-
-					</listitem>
-
-					<listitem>
-
-						<para>
-						
-<inlinemediaobject>
-<imageobject>
-<imagedata fileref="src/icons/zoom_out16.png" format="PNG" />
-</imageobject>
-</inlinemediaobject>					
-
-							 Zoom out
+							Zoom in
 
 						</para>
 
@@ -4150,14 +4180,15 @@
 					<listitem>
 
 						<para>
-						
-<inlinemediaobject>
-<imageobject>
-<imagedata fileref="src/icons/zoom_reset16.png" format="PNG" />
-</imageobject>
-</inlinemediaobject>
 
-							 Reset the zoom to the default level
+							<inlinemediaobject>
+								<imageobject>
+									<imagedata
+										fileref="src/icons/zoom_out16.png" format="PNG" />
+								</imageobject>
+							</inlinemediaobject>
+
+							Zoom out
 
 						</para>
 
@@ -4166,14 +4197,32 @@
 					<listitem>
 
 						<para>
-						
-<inlinemediaobject>
-<imageobject>
-<imagedata fileref="src/icons/zoom_fit16.png" format="PNG" />
-</imageobject>
-</inlinemediaobject>
 
-							 Zoom to fit
+							<inlinemediaobject>
+								<imageobject>
+									<imagedata
+										fileref="src/icons/zoom_reset16.png" format="PNG" />
+								</imageobject>
+							</inlinemediaobject>
+
+							Reset the zoom to the default level
+
+						</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>
+
+							<inlinemediaobject>
+								<imageobject>
+									<imagedata
+										fileref="src/icons/zoom_fit16.png" format="PNG" />
+								</imageobject>
+							</inlinemediaobject>
+
+							Zoom to fit
 
 						</para>
 
@@ -4220,7 +4269,8 @@
 							<imageobject>
 
 								<imagedata
-									fileref="doc/images/find_and_replace.png" format="PNG" width="4in" />
+									fileref="doc/images/find_and_replace.png" format="PNG"
+									width="4in" />
 
 							</imageobject>
 
@@ -4351,7 +4401,9 @@
 			connecting to a database, such as reverse and forward
 			engineering. Power*Architect allows you to use any JDBC- or
 			ODBC-accessible source database. For more information on
-			supported databases, see "<xref linkend="setup_database.supported_databases"/>".
+			supported databases, see
+			<xref linkend="setup_database.supported_databases" />
+			.
 		</para>
 
 		<para>
@@ -4365,7 +4417,9 @@
 				<para>
 					Define general settings and drivers for the database
 					platform you plan to connect to (such as SQL Server
-					or Oracle). For more information, see "<xref linkend="setup_database.database_types"/>".
+					or Oracle). For more information, see
+					<xref linkend="setup_database.database_types" />
+					.
 				</para>
 			</listitem>
 
@@ -4374,7 +4428,9 @@
 					Create a connection to a specific database server.
 					This connection uses the general settings and
 					drivers you have configured for the database
-					platform. For more information, see "<xref linkend="setup_database.connections"/>".
+					platform. For more information, see
+					<xref linkend="setup_database.connections" />
+					.
 				</para>
 			</listitem>
 
@@ -4510,7 +4566,9 @@
 				Note: Remember, at this point you are configuring
 				general settings only and are not connecting to a
 				specific database. For more information on connecting to
-				a database, see "<xref linkend="setup_database.connections"/>".
+				a database, see
+				<xref linkend="setup_database.connections" />
+				.
 			</para>
 
 			<itemizedlist>
@@ -4522,7 +4580,10 @@
 						If you plan to work with one of these database
 						platforms, all you need to do is define the
 						location of the JDBC driver. For more
-						information, see "<xref linkend="setup_database.database_types.jdbc_driver"/>".
+						information, see
+						<xref
+							linkend="setup_database.database_types.jdbc_driver" />
+						.
 					</para>
 				</listitem>
 
@@ -4530,7 +4591,10 @@
 					<para>
 						You can also define additional database
 						platforms in Power*Architect. For more
-						information, see "<xref linkend="setup_database.database_types.new"/>".
+						information, see
+						<xref
+							linkend="setup_database.database_types.new" />
+						.
 					</para>
 				</listitem>
 
@@ -4575,13 +4639,14 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/UserPref-JDBC.png" format="PNG" width="4in" />
+									fileref="doc/images/UserPref-JDBC.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 
 						<para>
-							Note: You can modify an existing database type
-							by clicking on it in the list.
+							Note: You can modify an existing database
+							type by clicking on it in the list.
 						</para>
 
 					</listitem>
@@ -4847,13 +4912,16 @@
 						<para>
 							The settings on the Kettle tab are only used
 							when you create a Kettle job. For more
-							information on these settings, see "<xref linkend="copy_data.kettle_job"/>".
+							information on these settings, see
+							<xref linkend="copy_data.kettle_job" />
+							.
 						</para>
 
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/UserPref-Kettle.png" format="PNG" width="4in" />
+									fileref="doc/images/UserPref-Kettle.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 
@@ -4868,7 +4936,10 @@
 				<para>
 					Next, you must define the location of the JDBC
 					driver for the database type. For more information,
-					see "<xref linkend="setup_database.database_types.jdbc_driver"/>".
+					see
+					<xref
+						linkend="setup_database.database_types.jdbc_driver" />
+					.
 				</para>
 
 			</section>
@@ -4890,7 +4961,9 @@
 					Note: Remember, at this point you are just telling
 					Power*Architect where the drivers are. You must set
 					up a database connection in order to connect to a
-					specific database server (for more information, see "<xref linkend="setup_database.connections"/>").
+					specific database server (for more information, see
+					<xref linkend="setup_database.connections" />
+					).
 				</para>
 
 				<para>
@@ -5022,7 +5095,9 @@
 			<para>
 				Before creating a connection, you must define the
 				general settings for the database platform. For more
-				information, see "<xref linkend="setup_database.database_types"/>".
+				information, see
+				<xref linkend="setup_database.database_types" />
+				.
 			</para>
 
 			<section id="setup_database.connections.create">
@@ -5068,7 +5143,8 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/database_conn_window.png" format="PNG" width="4in" />
+									fileref="doc/images/database_conn_window.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 
@@ -5137,7 +5213,10 @@
 												database types you
 												defined in your user
 												preferences. For more
-												information, see "<xref linkend="setup_database.database_types"/>".
+												information, see
+												<xref
+													linkend="setup_database.database_types" />
+												.
 											</para>
 										</entry>
 
@@ -5269,7 +5348,9 @@
 						<para>
 							The settings on the Kettle tab are only used
 							when you create a Kettle job. For more
-							information on these settings, see "<xref linkend="copy_data.kettle_job"/>".
+							information on these settings, see
+							<xref linkend="copy_data.kettle_job" />
+							.
 						</para>
 					</listitem>
 
@@ -5297,15 +5378,19 @@
 					You can add a previously created database connection
 					to a project. (When you create a new connection, it
 					is automatically added to the current project. For
-					more information, see "<xref linkend="setup_database.connections.create"/>".)
-					You can also remove a connection from a project.
+					more information, see
+					<xref linkend="setup_database.connections.create" />
+					.) You can also remove a connection from a project.
 					You cannot remove a connection if it is being used
 					as a source connection in the playpen.
 				</para>
 
 				<para>
 					Note: You can permanently delete connections. For
-					more information, see "<xref linkend="setup_database.connections.modify_delete"/>".
+					more information, see
+					<xref
+						linkend="setup_database.connections.modify_delete" />
+					.
 				</para>
 
 				<para>
@@ -5380,7 +5465,9 @@
 				<para>
 					Note: You can also remove a connection from a
 					project without permanently deleting the connection.
-					For more information, see "<xref linkend="connections.in_project"/>".
+					For more information, see
+					<xref linkend="connections.in_project" />
+					.
 				</para>
 
 				<para>To modify a database connection:</para>
@@ -5431,7 +5518,10 @@
 					<listitem>
 						<para>
 							Modify the connection settings. For
-							information on the settings, see "<xref linkend="setup_database.connections.create"/>".
+							information on the settings, see
+							<xref
+								linkend="setup_database.connections.create" />
+							.
 						</para>
 					</listitem>
 
@@ -5491,11 +5581,13 @@
 						Settings dialog box appears.
 					</para>
 
-<mediaobject>
-<imageobject>
-<imagedata fileref="doc/images/project_settings.png" format="PNG" width="4in" />
-</imageobject>
-</mediaobject>
+					<mediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/project_settings.png" format="PNG"
+								width="4in" />
+						</imageobject>
+					</mediaobject>
 
 
 				</listitem>
@@ -5590,7 +5682,10 @@
 
 										<para>
 											For more information about
-											profiling, see "<xref linkend="analysis.profiling"/>".
+											profiling, see
+											<xref
+												linkend="analysis.profiling" />
+											.
 										</para>
 									</entry>
 
@@ -5651,7 +5746,10 @@
 
 										<para>
 											For more information about
-											profiling, see "<xref linkend="analysis.profiling"/>".
+											profiling, see
+											<xref
+												linkend="analysis.profiling" />
+											.
 										</para>
 
 									</entry>
@@ -5742,7 +5840,11 @@
 
 			<para>
 				Note: This section describes general user preferences
-				only. For information on JDBC drivers preferences, see "<xref linkend="setup_database"/>". You can also set project settings (see "<xref linkend="system_settings.project_settings"/>").
+				only. For information on JDBC drivers preferences, see
+				<xref linkend="setup_database" />
+				. You can also set project settings (see
+				<xref linkend="system_settings.project_settings" />
+				).
 			</para>
 
 			<orderedlist>
@@ -5760,7 +5862,8 @@
 					<mediaobject>
 						<imageobject>
 							<imagedata
-								fileref="doc/images/UserPref-General.png" format="PNG" width="4in" />
+								fileref="doc/images/UserPref-General.png" format="PNG"
+								width="4in" />
 						</imageobject>
 					</mediaobject>
 
@@ -5971,7 +6074,9 @@
 			an existing database, then work with the data model in
 			Power*Architect. You can also use Power*Architect to create
 			an upgrade script for the original database (for more
-			information, see "<xref linkend="analysis.compare_dm"/>").
+			information, see
+			<xref linkend="analysis.compare_dm" />
+			).
 		</para>
 
 		<para>
@@ -5982,7 +6087,9 @@
 			at a time from several different source systems, then make
 			modifications in Power*Architect, using the playpen. You can
 			then forward engineer the new data warehouse data model to a
-			new, separate database (for more information, see "<xref linkend="forward_engineer"/>", then use an ETL tool to transfer the data from the source
+			new, separate database (for more information, see
+			<xref linkend="forward_engineer" />
+			, then use an ETL tool to transfer the data from the source
 			systems to the data warehouse.
 		</para>
 
@@ -5990,30 +6097,30 @@
 			For more information, on ETL tools in Power*Architect, see
 			the following sections:
 		</para>
-		
 
-<itemizedlist>
 
-<listitem>
-<para>
-		"<xref linkend="copy_data.kettle_job"/>"
-</para>
-</listitem>
+		<itemizedlist>
 
-<listitem>
-<para>
-		"<xref linkend="analysis.visual_mapping_report"/>"
-</para>
-</listitem>
+			<listitem>
+				<para>
+					<xref linkend="copy_data.kettle_job" />
+				</para>
+			</listitem>
 
-<listitem>
-<para>
-		"<xref linkend="analysis.etl_export_csv"/>"
-</para>
-</listitem>
+			<listitem>
+				<para>
+					<xref linkend="analysis.visual_mapping_report" />
+				</para>
+			</listitem>
 
-</itemizedlist>
-		
+			<listitem>
+				<para>
+					<xref linkend="analysis.etl_export_csv" />
+				</para>
+			</listitem>
+
+		</itemizedlist>
+
 		<para>To reverse engineer a data model:</para>
 
 		<orderedlist>
@@ -6029,14 +6136,18 @@
 				<para>
 					If necessary, create a connection for the database
 					you want to reverse engineer. For more information,
-					see "<xref linkend="setup_database"/>".
+					see
+					<xref linkend="setup_database" />
+					.
 				</para>
 			</listitem>
 
 			<listitem>
 				<para>
 					Add the database connection to your project. For
-					more information, see "<xref linkend="setup_database.connections"/>".
+					more information, see
+					<xref linkend="setup_database.connections" />
+					.
 				</para>
 
 				<para>
@@ -6060,7 +6171,9 @@
 				<para>
 					Note: If you want to save the entire hierarchy in
 					the project, enable the snapshot option in project
-					settings. For more information, see "<xref linkend="system_settings.project_settings"/>".
+					settings. For more information, see
+					<xref linkend="system_settings.project_settings" />
+					.
 				</para>
 
 			</listitem>
@@ -6093,7 +6206,9 @@
 		<para>
 			In addition to using objects from the database tree, you can
 			create new objects (tables, columns, etc.) in the playpen.
-			For more information on working with the playpen, see "<xref linkend="data_model"/>".
+			For more information on working with the playpen, see
+			<xref linkend="data_model" />
+			.
 		</para>
 
 		<para>You can also do the following:</para>
@@ -6103,28 +6218,37 @@
 			<listitem>
 				<para>
 					Create a report listing the source tables used for
-					the tables in the playpen. For more information, see "<xref linkend="analysis.visual_mapping_report"/>".
+					the tables in the playpen. For more information, see
+					<xref linkend="analysis.visual_mapping_report" />
+					.
 				</para>
 			</listitem>
 
 			<listitem>
 				<para>
 					Compare your current data model to the original
-					database. For more information, see "<xref linkend="analysis.compare_dm"/>".
+					database. For more information, see
+					<xref linkend="analysis.compare_dm" />
+					.
 				</para>
 			</listitem>
 
 			<listitem>
 				<para>
 					Forward engineer the schema. For more information,
-					see "<xref linkend="forward_engineer"/>".
+					see
+					<xref linkend="forward_engineer" />
+					.
 				</para>
 			</listitem>
 
 			<listitem>
 				<para>
 					Use a Kettle job to move data from the original
-					database to your new database. For more information, see "<xref linkend="copy_data.kettle_job"/>".
+					database to your new database. For more information,
+					see
+					<xref linkend="copy_data.kettle_job" />
+					.
 				</para>
 			</listitem>
 
@@ -6165,7 +6289,9 @@
 		<para>
 			Note: You can view or change the location of the forward
 			engineering log file in user preferences. For more
-			information, see "<xref linkend="system_settings.project_settings"/>".
+			information, see
+			<xref linkend="system_settings.project_settings" />
+			.
 		</para>
 
 		<para>To forward engineer a data model:</para>
@@ -6242,14 +6368,18 @@
 			<listitem>
 				<para>
 					If necessary, create a connection for the target
-					database. For more information, see "<xref linkend="setup_database"/>".
+					database. For more information, see
+					<xref linkend="setup_database" />
+					.
 				</para>
 			</listitem>
 
 			<listitem>
 				<para>
 					Add the database connection to your project. For
-					more information, see "<xref linkend="connections.in_project"/>".
+					more information, see
+					<xref linkend="connections.in_project" />
+					.
 				</para>
 			</listitem>
 
@@ -6474,7 +6604,10 @@
 								database in the comparison. You must
 								also select the connection
 								Power*Architect will use to connect to
-								the database. For more information, see "<xref linkend="setup_database.connections"/>".
+								the database. For more information, see
+								<xref
+									linkend="setup_database.connections" />
+								.
 							</para>
 						</listitem>
 
@@ -6555,11 +6688,12 @@
 				similarities and differences.
 			</para>
 
-			<table frame="all">
+			<para>
+				The following table summarizes the meaning of the colour
+				codes used in the data model comparison:
+			</para>
 
-				<title>
-					Colour Codes - English Data Model Comparison
-				</title>
+			<informaltable frame="all">
 
 				<tgroup cols="2">
 
@@ -6611,7 +6745,7 @@
 
 				</tgroup>
 
-			</table>
+			</informaltable>
 
 		</section>
 
@@ -6635,7 +6769,9 @@
 			<para>
 				Note: The Execute button is only available if the older
 				database has a valid database connection. For more
-				information, see "<xref linkend="setup_database.connections"/>".
+				information, see
+				<xref linkend="setup_database.connections" />
+				.
 			</para>
 
 		</section>
@@ -6751,7 +6887,9 @@
 					<listitem>
 						<para>
 							Connect to the database you want to profile.
-							For more information, see "<xref linkend="setup_database.connections"/>".
+							For more information, see
+							<xref linkend="setup_database.connections" />
+							.
 						</para>
 					</listitem>
 
@@ -6807,7 +6945,8 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/table_profile.png" format="PNG" width="4in" />
+									fileref="doc/images/table_profile.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 
@@ -6817,7 +6956,10 @@
 						<para>
 							You can view details about each profile in
 							the Table Profiles window. For more
-							information, see "<xref linkend="analysis.profiling.view_details"/>".
+							information, see
+							<xref
+								linkend="analysis.profiling.view_details" />
+							.
 						</para>
 					</listitem>
 
@@ -6826,12 +6968,13 @@
 				<para>
 					Note: To create a new profile of the same table,
 					select the table in the Table Profiles window and
-					click 
-<inlinemediaobject>
-<imageobject>
-<imagedata fileref="src/icons/arrow_refresh16.png" format="PNG" />
-</imageobject>
-</inlinemediaobject>
+					click
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/arrow_refresh16.png" format="PNG" />
+						</imageobject>
+					</inlinemediaobject>
 					. The previous profile will be retained as well.
 					(Power*Architect will connect to the source database
 					to create the new profile, regardless of the profile
@@ -6881,7 +7024,13 @@
 
 				<para>
 					You can view the profile details as a graph or
-					table. For more information, see "<xref linkend="analysis.profiling.view_details.graph"/>" and "<xref linkend="analysis.profiling.view_details.table"/>".
+					table. For more information, see
+					<xref
+						linkend="analysis.profiling.view_details.graph" />
+					and
+					<xref
+						linkend="analysis.profiling.view_details.table" />
+					.
 				</para>
 
 			</section>
@@ -6900,7 +7049,8 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/profilePieChart.png" format="PNG" width="4in" />
+									fileref="doc/images/profilePieChart.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 
@@ -6928,7 +7078,10 @@
 						<para>
 							Note: You can set the number of common
 							values to include in the comparison. For
-							more information, see "<xref linkend="system_settings.project_settings"/>".
+							more information, see
+							<xref
+								linkend="system_settings.project_settings" />
+							.
 						</para>
 
 					</listitem>
@@ -7016,14 +7169,15 @@
 
 					<listitem>
 						<para>
-							To delete a profile, click 
-<inlinemediaobject>
-<imageobject>
-<imagedata fileref="src/icons/delete16.png" format="PNG" />
-</imageobject>
-</inlinemediaobject>
+							To delete a profile, click
+							<inlinemediaobject>
+								<imageobject>
+									<imagedata
+										fileref="src/icons/delete16.png" format="PNG" />
+								</imageobject>
+							</inlinemediaobject>
 
-							 beside the profile.
+							beside the profile.
 						</para>
 					</listitem>
 
@@ -7051,7 +7205,10 @@
 
 					<listitem>
 						<para>
-							Create one or more profiles (see "<xref linkend="analysis.profiling.create_profile"/>").
+							Create one or more profiles (see
+							<xref
+								linkend="analysis.profiling.create_profile" />
+							).
 						</para>
 					</listitem>
 
@@ -7063,8 +7220,10 @@
 						<para>
 							In the Table Profiles window, select the
 							profiles you want to include in the PDF,
-							then click View Selected (see "<xref linkend="analysis.profiling.view_details"/>").
-							Or click View All to include all of the
+							then click View Selected (see
+							<xref
+								linkend="analysis.profiling.view_details" />
+							). Or click View All to include all of the
 							profiles in the PDF.
 						</para>
 					</listitem>
@@ -7185,7 +7344,9 @@
 				copy, use an ETL tool such as Kettle. ETL tools offer
 				great flexibility in extracting, transforming, and
 				loading data between databases. For more information,
-				see "<xref linkend="copy_data.kettle_job"/>".
+				see
+				<xref linkend="copy_data.kettle_job" />
+				.
 			</para>
 
 			<para>To copy data:</para>
@@ -7197,12 +7358,14 @@
 						Select Tools » Copy Table Data. The Copy table
 						data dialog box appears.
 					</para>
-					
-<mediaobject>
-<imageobject>
-<imagedata fileref="doc/images/copy_table_data.png" format="PNG" width="4in" />
-</imageobject>
-</mediaobject>
+
+					<mediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/copy_table_data.png" format="PNG"
+								width="4in" />
+						</imageobject>
+					</mediaobject>
 
 				</listitem>
 
@@ -7274,15 +7437,18 @@
 					<listitem>
 						<para>
 							Create a new data model in Power*Architect
-							using reverse engineering (see "<xref linkend="reverse_engineering"/>").
+							using reverse engineering (see
+							<xref linkend="reverse_engineering" />
+							).
 						</para>
 					</listitem>
 
 					<listitem>
 						<para>
 							Forward engineer the data model into a new
-							database (see "<xref linkend="forward_engineer"/>").
-							This creates the tables and relationships
+							database (see
+							<xref linkend="forward_engineer" />
+							). This creates the tables and relationships
 							in the target database.
 						</para>
 					</listitem>
@@ -7297,13 +7463,17 @@
 
 				<para>
 					Before creating a Kettle job, ensure you've
-					completed the prerequisites (see "<xref linkend="copy_data.kettle_job.prereqs"/>").
+					completed the prerequisites (see
+					<xref linkend="copy_data.kettle_job.prereqs" />
+					).
 				</para>
 
 				<para>
 					Note: You can view or change the location of the
 					Kettle (ETL) log file in user preferences. For more
-					information, see "<xref linkend="system_settings.user_prefs"/>".
+					information, see
+					<xref linkend="system_settings.user_prefs" />
+					.
 				</para>
 
 				<orderedlist>
@@ -7324,7 +7494,8 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/create_kettle_job.png" format="PNG" width="4in" />
+									fileref="doc/images/create_kettle_job.png" format="PNG"
+									width="4in" />
 							</imageobject>
 						</mediaobject>
 
@@ -7404,8 +7575,10 @@
 														connection
 														properties for
 														the database
-														platform. 
-(See "<xref linkend="setup_database.connections"/>".)
+														platform. (See
+														<xref
+															linkend="setup_database.connections" />
+														.)
 													</para>
 												</listitem>
 
@@ -7553,8 +7726,10 @@
 												the database contains a
 												repository) or you can
 												set up a new connection
-												to a repository. 
-(See "<xref linkend="setup_database.connections"/>".)
+												to a repository. (See
+												<xref
+													linkend="setup_database.connections" />
+												.)
 											</para>
 
 											<para>
@@ -7576,8 +7751,10 @@
 														connection
 														properties for
 														the database
-														platform. 
-(See "<xref linkend="setup_database.connections"/>".)
+														platform. (See
+														<xref
+															linkend="setup_database.connections" />
+														.)
 													</para>
 												</listitem>
 
@@ -7864,7 +8041,8 @@
 			<mediaobject>
 				<imageobject>
 					<imagedata
-						fileref="doc/images/sqlrunner_output_2.png" format="PNG" width="4in" />
+						fileref="doc/images/sqlrunner_output_2.png" format="PNG"
+						width="4in" />
 				</imageobject>
 			</mediaobject>
 			<para>
@@ -7875,7 +8053,8 @@
 			<mediaobject>
 				<imageobject>
 					<imagedata
-						fileref="doc/images/sqlrunner_html_output.png" format="PNG" width="4in" />
+						fileref="doc/images/sqlrunner_html_output.png" format="PNG"
+						width="4in" />
 				</imageobject>
 			</mediaobject>
 			<para>
@@ -9360,8 +9539,7 @@
 					libraries have been invaluable in the development of
 					Power*Architect. The text of the Apache License
 					follows, because we are redistributing several
-					Apache libraries upon which Power*Architect
-					depends.
+					Apache libraries upon which Power*Architect depends.
 				</para>
 
 				<para>
