@@ -88,6 +88,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected CollapseAllAction collapseAllAction;
     protected ExpandAllAction expandAllAction;
 	protected SetConnAsTargetDB setConnAsTargetDB;
+	protected SelectAllChildTablesAction selectAllChildTablesAction;
     
     /**
      * The architect session, so we can access common objects
@@ -136,6 +137,7 @@ public class DBTree extends JTree implements DragSourceListener {
             }
 		});
         setCellRenderer(new DBTreeCellRenderer(session));
+        selectAllChildTablesAction = new SelectAllChildTablesAction();
 	}
 
 	// ----------- INSTANCE METHODS ------------
@@ -492,6 +494,8 @@ public class DBTree extends JTree implements DragSourceListener {
             } else if (p.getLastPathComponent() instanceof SQLTable) {
                 JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
                 newMenu.add(profile);
+                JMenuItem selectAllChildTables = new JMenuItem(this.selectAllChildTablesAction);
+                newMenu.add(selectAllChildTables);
             }
             
 			newMenu.addSeparator();
@@ -1090,6 +1094,34 @@ public class DBTree extends JTree implements DragSourceListener {
                 if (!model.isLeaf(child)) {
                     expandChildren(childPath);
                 }
+            }
+        }
+    }
+    
+    /**
+     * Adds to select all child tables of the current table
+     */
+    protected class SelectAllChildTablesAction extends AbstractAction {
+        public SelectAllChildTablesAction() {
+            super("Select All Child Tables");
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+            TreePath selected = getSelectionPath();
+            try {
+                if(selected == null) 
+                    return;
+                else {
+                    SQLTable centralTable = (SQLTable)selected.getLastPathComponent();
+                    List<SQLRelationship> exportedKeys = centralTable.getExportedKeys();
+                    for(int i = 0; i < exportedKeys.size(); i++) {
+                        SQLTable childTable = exportedKeys.get(i).getFkTable();
+                        DBTree.this.addSelectionPath(getTreePathForNode(childTable));
+                    }
+                }
+            } catch (Exception e1) {
+                e1.printStackTrace();
+                return;
             }
         }
     }
