@@ -1353,17 +1353,19 @@ public class PlayPen extends JPanel
 	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws ArchitectException {
 		SQLTable newTable = SQLTable.getDerivedInstance(source, session.getTargetDatabase()); // adds newTable to db
 		String key = source.getName().toLowerCase();
+		boolean isAlreadyOnPlaypen = false;
+		int newSuffix = 0;
 
 		// ensure tablename is unique
 		if (logger.isDebugEnabled()) logger.debug("before add: " + tableNames);
 		if (!tableNames.add(key)) {
 			boolean done = false;
-			int newSuffix = 0;
 			while (!done) {
 				newSuffix++;
 				done = tableNames.add(key+"_"+newSuffix);
 			}
 			newTable.setName(source.getName()+"_"+newSuffix);
+			isAlreadyOnPlaypen = true;
 		}
 		if (logger.isDebugEnabled()) logger.debug("after add: " + tableNames);
 
@@ -1373,8 +1375,8 @@ public class PlayPen extends JPanel
 		addImpl(tp, preferredLocation,getPPComponentCount());
 		tp.revalidate();
 
-        createRelationshipsFromPP(source, newTable,true);
-        createRelationshipsFromPP(source, newTable,false);
+        createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, newSuffix);
+        createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, newSuffix);
 		return tp;
 	}
 
@@ -1392,9 +1394,16 @@ public class PlayPen extends JPanel
      * @param isPrimaryKeyTableNew
      *            Adds exported key relationships if true, imported keys if
      *            false.
+     * @param isAlreadyOnPlaypen
+     *            If the new table is already on playpen, its name will be changed
+     *            Then we need to make sure its relationships don't point to the old
+     *            tables
+     * @param suffix
+     *            Indicating the number of the copies of the table we have already
+     *            on the playpen
      * @throws ArchitectException
      */
-    private void createRelationshipsFromPP(SQLTable source, SQLTable newTable, boolean isPrimaryKeyTableNew) throws ArchitectException {
+    private void createRelationshipsFromPP(SQLTable source, SQLTable newTable, boolean isPrimaryKeyTableNew, boolean isAlreadyOnPlaypen, int suffix) throws ArchitectException {
         // create exported relationships if the importing tables exist in pp
 		Iterator sourceKeys = null;
         if (isPrimaryKeyTableNew) {
@@ -1415,10 +1424,20 @@ public class PlayPen extends JPanel
 			}
 
             TablePane tablePane =  null;
-            if (isPrimaryKeyTableNew){
-                tablePane =findTablePaneByName(r.getFkTable().getName());
-            } else {
-                tablePane =findTablePaneByName(r.getPkTable().getName());
+            
+            if(!isAlreadyOnPlaypen) {
+                if (isPrimaryKeyTableNew){
+                    tablePane =findTablePaneByName(r.getFkTable().getName());
+                } else {
+                    tablePane =findTablePaneByName(r.getPkTable().getName());
+                }
+            }
+            else {
+                if (isPrimaryKeyTableNew){
+                    tablePane =findTablePaneByName(r.getFkTable().getName()+"_"+suffix);
+                } else {
+                    tablePane =findTablePaneByName(r.getPkTable().getName()+"_"+suffix);
+                }
             }
 
 			if (tablePane != null) {
@@ -2741,8 +2760,10 @@ public class PlayPen extends JPanel
 	        int viewWidth = viewport.getExtentSize().width; 
 	        
 	        // TODO: 1. Make changes to slow down the scrolling. 2. Need to fix the problem when
-	        // scrolling towards upper leftern area, the size of playpen would adjust according to the used playpen area
-	        // and the selected sqlObject would jump to the bottom right corner. This only happens when playpen area shrink.
+	        // scrolling towards upper leftern area, the size of playpen would adjust according 
+	        // to the used playpen area and the selected sqlObject would jump to the bottom right 
+	        // corner of the current rectangular view. The scrolling still works though.This only 
+	        // happens when playpen area shrink.
 	        //
 	        // perform scrolling 
 	        if ((p.y - viewPos.y) < scrollUnits.top && viewPos.y > 0) { // scroll up 
@@ -2753,6 +2774,7 @@ public class PlayPen extends JPanel
 	                tp.setLocation(tp.getX(), tp.getY() - AUTO_SCROLL_SPEED);
 	            }
 	            */
+	            
 	        } if ((viewPos.y + viewHeight - p.y) < scrollUnits.bottom) { // scroll down 
 	            view.y = tp.getBounds().y + tp.getBounds().height - viewHeight;
 	            /*
