@@ -67,6 +67,7 @@ import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AlignTableAction;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
+import ca.sqlpower.architect.swingui.action.CheckForUpdateAction;
 import ca.sqlpower.architect.swingui.action.CloseProjectAction;
 import ca.sqlpower.architect.swingui.action.CompareDMAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
@@ -300,6 +301,7 @@ public class ArchitectFrame extends JFrame {
         
         Action helpAction = new HelpAction(session);
         helpAction.putValue(AbstractAction.SHORT_DESCRIPTION, "User Guide");
+        Action checkForUpdateAction = new CheckForUpdateAction(session);
 
         newProjectAction = new AbstractAction("New Project",
                 SPSUtils.createIcon("new_project","New Project",sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
@@ -520,6 +522,8 @@ public class ArchitectFrame extends JFrame {
         }
         helpMenu.add(helpAction);
         helpMenu.add(SPSUtils.forumAction);
+        helpMenu.addSeparator();
+        helpMenu.add(checkForUpdateAction);
         menuBar.add(helpMenu);
 
         setJMenuBar(menuBar);
