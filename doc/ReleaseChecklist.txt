@@ -57,6 +57,8 @@ Making the new release available
 *Upload source code snapshot to Google Code
 *Deprecate all Google Code files related to the previous release
 *Upload the dist directory to the SQL Power web server (/tomcat/virtualhosts/download/x.y.z/)
+*Add/update the architect.version.properties file on an update website domain. The Power*Architect
+will use this to check the latest version number.
 
 Announcing the New Release
 *Post to architect-developers mailing list
