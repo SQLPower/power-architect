@@ -1099,7 +1099,7 @@
 	<target name="jdbc_dist" depends="windows_jdbc_exe_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
 	<target name="no_jdbc_dist" depends="windows_exe_installer,generic_install,osx_tgz,osx_dmg" />
 
-	<target name="dist" depends="pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,no_jdbc_dist,source_only_tgz"
+	<target name="dist" depends="pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,no_jdbc_dist,source_only_tgz, architect.version.properties"
 	        description="Builds Architect Distribution for all supported platforms to dist/architect-version/*">
 		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
 		<mkdir dir="${dist.dir}/doc"/>
@@ -1218,5 +1218,13 @@
 			<property name="build" value="${sqlpower.library.home}/build"/>
 		</ant>
 		<copy file="${sqlpower.library.home}/deploy/sqlpower_library.jar" todir="${lib}"/>
+	</target>
+	
+	<target name="architect.version.properties" depends="init">
+		<propertyfile
+		    file="${dist.dir}/architect.version.properties"
+		    comment="Power*Architect Version">
+		  <entry key="app.version" value="${app.version}"/>
+		</propertyfile>
 	</target>
 </project>
