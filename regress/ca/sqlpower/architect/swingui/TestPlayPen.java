@@ -89,6 +89,12 @@ public class TestPlayPen extends TestCase {
 				new Point(99,98), tp.getLocation());
 	}
 
+	/**
+	 * Description of the scenario: We are to reverse engineer two tables into the playpen.
+	 * There exists one relationship between the two tables. After the first reverse engineering
+	 * process, we reverse engineering the parent table again into the playpen. Now we shoud
+	 * expect 3 tables in total lying on playpen, and 1 relationship between the first two tables.
+	 */
 	public void testImportTableCopyHijacksProperly() throws ArchitectException {
 
 		SQLDatabase sourceDB = new SQLDatabase();
@@ -124,13 +130,15 @@ public class TestPlayPen extends TestCase {
 				otherCount++;
 			}
 		}
+		// The behaviour of the reverse engineering is slightly modified. When reverse engineer copy(ies)
+		// of related tables to the playpen. The relationship is not pointed to the old tables.	
 		assertEquals("Expected three tables in pp", 3, tabCount);
-		assertEquals("Expected two relationships in pp", 2, relCount);
+		assertEquals("Expected two relationships in pp", 1, relCount); //changed from 2 to 1
 		assertEquals("Found junk in playpen", 0, otherCount);
 
 		TablePane importedChild = pp.findTablePaneByName("child");
 		assertEquals("Incorrect reference count on imported child col",
-				3, importedChild.getModel().getColumn(0).getReferenceCount());
+				2, importedChild.getModel().getColumn(0).getReferenceCount()); //changed from 3 to 2
 	}
 	
 	/**
