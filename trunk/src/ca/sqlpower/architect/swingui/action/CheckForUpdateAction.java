@@ -70,7 +70,7 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
             if(mostCurrVersion == null || mostCurrVersion.equals("")) new Exception();
             String[] version = mostCurrVersion.split("\\.");
 
-            // If the latest is less(not possible but included anyways) than the user's version, prompt update.
+            // If user's version is less than the most current version, prompt update.
             if (Integer.parseInt(ArchitectVersion.APP_VERSION_MAJOR) >= Integer.parseInt(version[0])) {
                 if (Integer.parseInt(ArchitectVersion.APP_VERSION_MINOR) >= Integer.parseInt(version[1])) {
                     if (Integer.parseInt(ArchitectVersion.APP_VERSION_TINY) >= Integer.parseInt(version[2].contains("-") ? 
