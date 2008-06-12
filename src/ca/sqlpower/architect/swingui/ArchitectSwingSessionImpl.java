@@ -184,7 +184,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             throw new IllegalStateException("This method must be called on the Swing Event Dispatch Thread.");
         }
 
+        // makes the tool tips show up on these components 
         ToolTipManager.sharedInstance().registerComponent(playPen);
+        ToolTipManager.sharedInstance().registerComponent(sourceDatabases);
         
         if (openingSession != null) {
             Rectangle bounds = openingSession.getArchitectFrame().getBounds();

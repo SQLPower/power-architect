@@ -150,6 +150,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 		        setForeground(Color.lightGray);
 		    }
 		}
+	    setToolTipText(getText());
 		return this;
 	}
 }
