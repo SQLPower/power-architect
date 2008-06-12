@@ -59,10 +59,11 @@ import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
-import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
+import ca.sqlpower.swingui.event.SessionLifecycleEvent;
+import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
 public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
@@ -113,7 +114,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private KettleJob kettleJob;
     // END STUFF BROUGHT IN FROM SwingUIProject
     
-    private List<SessionLifecycleListener> lifecycleListener;
+    private List<SessionLifecycleListener<ArchitectSwingSession>> lifecycleListener;
     
     private Set<SPSwingWorker> swingWorkers;
     
@@ -169,7 +170,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         
         undoManager = new UndoManager(playPen);
         
-        lifecycleListener = new ArrayList<SessionLifecycleListener>();
+        lifecycleListener = new ArrayList<SessionLifecycleListener<ArchitectSwingSession>>();
         
         swingWorkers = new HashSet<SPSwingWorker>();
     }
@@ -689,13 +690,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
     // END STUFF BROUGHT IN FROM SwingUIProject
 
-    public void addSessionLifecycleListener(SessionLifecycleListener listener) {
+    public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener) {
         lifecycleListener.add(listener);
     }
     
     public void fireSessionClosing() {
-        SessionLifecycleEvent evt = new SessionLifecycleEvent(this);
-        for (SessionLifecycleListener listener: lifecycleListener) {
+        SessionLifecycleEvent<ArchitectSwingSession> evt = new SessionLifecycleEvent<ArchitectSwingSession>(this);
+        for (SessionLifecycleListener<ArchitectSwingSession> listener: lifecycleListener) {
             listener.sessionClosing(evt);
         }
     }

@@ -37,13 +37,14 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.db.DataSourceDialogFactory;
 import ca.sqlpower.swingui.db.DataSourceTypeDialogFactory;
 import ca.sqlpower.swingui.db.DatabaseConnectionManager;
+import ca.sqlpower.swingui.event.SessionLifecycleEvent;
+import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
 /**
  * Instances of this class provide the basic global (non-project-specific) settings
@@ -237,8 +238,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * Removes the closed session from the list, and terminates the VM
      * if there are no more sessions.
      */
-    private SessionLifecycleListener sessionLifecycleListener = new SessionLifecycleListener() {
-        public void sessionClosing(SessionLifecycleEvent e) {
+    private SessionLifecycleListener<ArchitectSwingSession> sessionLifecycleListener =
+        new SessionLifecycleListener<ArchitectSwingSession>() {
+        public void sessionClosing(SessionLifecycleEvent<ArchitectSwingSession> e) {
             getSessions().remove(e.getSource());
             if (getSessions().isEmpty() && exitAfterAllSessionsClosed) {
                 System.exit(0);
