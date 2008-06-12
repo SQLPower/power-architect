@@ -138,11 +138,6 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
     }
 
     /**
-     * Version numbers are mutually comparable even if they have different
-     * numbers of parts, and in that case, version <tt>2.0</tt> is older
-     * than <tt>2.0.0</tt> or <tt>2.0.1</tt> but still newer than
-     * <tt>1.0.0</tt>.
-     * <p>
      * If two versions differ only as far as one having a suffix and the other
      * not having a suffix, the one without the suffix is considered newer. This
      * allows the natural idea that the following are in chronological order:
