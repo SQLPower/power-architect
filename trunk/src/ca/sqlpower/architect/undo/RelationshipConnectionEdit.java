@@ -17,11 +17,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package javax.swing.undo;
+package ca.sqlpower.architect.undo;
 
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import javax.swing.undo.AbstractUndoableEdit;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
 
 import org.apache.log4j.Logger;
 

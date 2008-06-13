@@ -32,7 +32,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.CompoundEdit;
-import javax.swing.undo.RelationshipConnectionEdit;
 import javax.swing.undo.UndoableEdit;
 
 import org.apache.log4j.Logger;
