@@ -20,6 +20,8 @@ package ca.sqlpower;
 
 import java.io.IOException;
 
+import ca.sqlpower.architect.profile.ProfileTests;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -42,6 +44,7 @@ public class ArchitectMegaTestSuite extends TestCase {
 		suite.addTest(ArchitectBusinessTestSuite.suite());
 		suite.addTest(ArchitectSwingTestSuite.suite());
         suite.addTest(ArchitectAutoTests.suite());
+        suite.addTest(ProfileTests.suite());
 		//$JUnit-END$
 		return suite;
 	}
