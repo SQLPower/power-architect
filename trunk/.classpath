@@ -31,5 +31,9 @@
 	<classpathentry kind="lib" path="osx_packaging_utils/osx_adapter.jar"/>
 	<classpathentry kind="lib" path="lib/spring-core.jar"/>
 	<classpathentry kind="lib" path="lib/iText-2.0.8.jar"/>
+	<classpathentry kind="lib" path="jdbc_drivers/hsqldb-1.8.0.9.jar"/>
+	<classpathentry kind="lib" path="jdbc_drivers/mysql-connector-java-5.1.5-bin.jar"/>
+	<classpathentry kind="lib" path="jdbc_drivers/postgresql-8.2-506.jdbc3.jar"/>
+	<classpathentry kind="lib" path="jdbc_drivers/sqlserver_2005.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
