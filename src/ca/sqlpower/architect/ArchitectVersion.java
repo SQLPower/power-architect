@@ -130,7 +130,7 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
         sb.append("." + parts[1]);
         sb.append("." + parts[2]);
         
-        if (sb.length() == 3) return sb.toString();
+        if (parts.length == 3) return sb.toString();
         
         sb.append("-" + parts[3]);
         
