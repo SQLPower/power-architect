@@ -30,6 +30,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
+import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 
 public class PlayPenContentPane {
 	private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
@@ -211,6 +212,12 @@ public class PlayPenContentPane {
 		}
 	}
 	
+	private void refireRelationshipConnectionPointsMoved(RelationshipConnectionPointEvent e) {
+	    for (PlayPenComponentListener l : playPenComponentListeners) {
+	        l.relationshipConnectionPointsMoved(e);
+	    }
+	}
+	
 	private class PlayPenComponentEventPassthrough implements PlayPenComponentListener {
 
 		public void componentMoved(PlayPenComponentEvent e) {
@@ -220,6 +227,10 @@ public class PlayPenContentPane {
 		public void componentResized(PlayPenComponentEvent e) {
 			refirePlayPenComponentResized(e);
 		}
+		
+        public void relationshipConnectionPointsMoved(RelationshipConnectionPointEvent e) {
+            refireRelationshipConnectionPointsMoved(e);
+        }
 
 	}
 }

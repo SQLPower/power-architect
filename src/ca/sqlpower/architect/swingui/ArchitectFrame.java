@@ -268,7 +268,6 @@ public class ArchitectFrame extends JFrame {
             }
         });
         
-        //No race here because windows state listener only activate when maximize-window button is clicked.
         addWindowStateListener(new WindowStateListener() {
             public void windowStateChanged(WindowEvent e) {
                 if(e.getNewState() == ArchitectFrame.MAXIMIZED_BOTH) {
