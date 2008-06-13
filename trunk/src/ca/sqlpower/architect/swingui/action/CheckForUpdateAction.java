@@ -36,7 +36,7 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
 
     private static final Logger logger = Logger.getLogger(CheckForUpdateAction.class);
 
-    private static final String VERSION_FILE_URL = "http://dhcp-126.sqlpower.ca:8080/sqlpower_website/architect.version.properties";
+    private static final String VERSION_FILE_URL = "http://power-architect.sqlpower.ca/current_version";
 
     private ArchitectSwingSession session;
     private String versionPropertyString;
@@ -71,7 +71,7 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
                 return;
             }
             else {
-                JOptionPane.showMessageDialog(this.session.getArchitectFrame(), "Congratulations, your copy of Power*Architect is up to date.",
+                JOptionPane.showMessageDialog(this.session.getArchitectFrame(), "Your copy of Power*Architect is up to date.",
                   "The latest version of Power*Architect is: " + latestVersion.toString(), JOptionPane.INFORMATION_MESSAGE);
                   setEnabled(false);
                   return;
@@ -88,8 +88,8 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
      * This method is to be modified later according to specifications of software update
      */
     private void promptUpdate() {
-        JOptionPane.showMessageDialog(this.session.getArchitectFrame(), "You are using an early version of Power*Architect, " +
-                "please visit our website for the latest version.", "The latest version of Power*Architect is: " + 
+        JOptionPane.showMessageDialog(this.session.getArchitectFrame(), "An updated version of Power*Architect is available, " +
+                "please visit http://download.sqlpower.ca/architect/current.html for the latest version.", "The latest version of Power*Architect is: " + 
                 versionPropertyString, JOptionPane.INFORMATION_MESSAGE);
 
     }
