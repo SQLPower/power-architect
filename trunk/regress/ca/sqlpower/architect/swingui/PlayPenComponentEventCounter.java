@@ -20,6 +20,7 @@ package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
+import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 
 public class PlayPenComponentEventCounter implements PlayPenComponentListener {
 	
@@ -27,9 +28,10 @@ public class PlayPenComponentEventCounter implements PlayPenComponentListener {
 	private int ends;
 	private int moved;
 	private int resized;
+	private int conPointsMoved;
 
 	public int getEvents(){
-		return ends+moved+resized+starts;
+		return ends+moved+resized+starts+conPointsMoved;
 	}
 	
 	public int getEnds() {
@@ -50,8 +52,10 @@ public class PlayPenComponentEventCounter implements PlayPenComponentListener {
 	public int getStarts() {
 		return starts;
 	}
-
 	
+	public int getConPointsMoved() {
+	    return conPointsMoved;
+	}
 
 	public void componentMoveStart(PlayPenComponentEvent e) {
 		starts++;
@@ -72,5 +76,10 @@ public class PlayPenComponentEventCounter implements PlayPenComponentListener {
 		resized++;
 
 	}
+
+    public void relationshipConnectionPointsMoved(RelationshipConnectionPointEvent e) {
+       conPointsMoved++;
+        
+    }
 
 }

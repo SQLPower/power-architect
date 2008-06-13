@@ -32,6 +32,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.CompoundEdit;
+import javax.swing.undo.RelationshipConnectionEdit;
 import javax.swing.undo.UndoableEdit;
 
 import org.apache.log4j.Logger;
@@ -47,6 +48,7 @@ import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
+import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 
 /**
  * 
@@ -111,12 +113,24 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		private HashMap<PlayPenComponent, Point> newPositions;
 		private HashMap<PlayPenComponent, Point> originalPositions;
 		
+		/**
+		 * This data structure contains the corresponding connection points for a particular relationship.
+		 * The first point in a list is the pkTable connection point and the second point in the table
+		 * is the fkTable connection point.
+		 */
+		private HashMap<Relationship, Point[] > originalConnectionPoints;
+		private HashMap<Relationship, Point[] > newConnectionPoints;
+		
 		public SQLObjectUndoableEventAdapter() {
 			
 			ce = null;
 			compoundEditStackCount = 0;
 			newPositions = new HashMap<PlayPenComponent, Point>();
 			originalPositions = new HashMap<PlayPenComponent, Point>();
+			
+			// Remember the connection points of a relationship when user changes them
+			newConnectionPoints = new HashMap<Relationship, Point[] >();
+			originalConnectionPoints = new HashMap<Relationship, Point[] >();
 		}
         
        /**
@@ -240,9 +254,10 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				throw new IllegalStateException("The compound edit stack ("+compoundEditStackCount+") should be 0");
 			}
 			
-			
 			// add any movements
 			List<PlayPenComponentEvent> condensedMoveEvents = new ArrayList<PlayPenComponentEvent>();
+			List<RelationshipConnectionPointEvent> condensedRelConnectionEvents = new ArrayList<RelationshipConnectionPointEvent>();
+			
 			for (Map.Entry<PlayPenComponent, Point> ent : newPositions.entrySet()) {
 				PlayPenComponent ppc = ent.getKey();
 				Point oldPos = originalPositions.get(ppc);
@@ -250,10 +265,22 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				condensedMoveEvents.add(new PlayPenComponentEvent(ppc, oldPos, newPos));
 			}
 			
+			for (Map.Entry<Relationship, Point[]> ent : newConnectionPoints.entrySet()) {
+			    Relationship r = ent.getKey();
+			    Point[] oldConnections = originalConnectionPoints.get(r);
+			    Point[] newConnections = ent.getValue();
+			    condensedRelConnectionEvents.add(new RelationshipConnectionPointEvent(r, oldConnections[0], newConnections[0], 
+			            oldConnections[1], newConnections[1]));
+			}
+			
 			if (ce != null) {
 				if (condensedMoveEvents.size()>0 ){
 					TablePaneLocationEdit tableEdit = new TablePaneLocationEdit(condensedMoveEvents);
 					ce.addEdit(tableEdit);
+				}
+				if (condensedRelConnectionEvents.size() > 0) {
+				    RelationshipConnectionEdit relEdits = new RelationshipConnectionEdit(condensedRelConnectionEvents);
+				    ce.addEdit(relEdits);
 				}
 
 				// make sure the edit is no longer in progress
@@ -272,6 +299,10 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				if (condensedMoveEvents.size()>0 ){
 					UndoManager.this.addEdit(new TablePaneLocationEdit(condensedMoveEvents));
 				}
+				if (condensedRelConnectionEvents.size() > 0) {
+				    
+				    UndoManager.this.addEdit(new RelationshipConnectionEdit(condensedRelConnectionEvents));
+				}
 				newPositions.clear();
 			}
 			fireStateChanged();
@@ -280,9 +311,8 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 
 		public void componentMoved(PlayPenComponentEvent e) {
 			if (UndoManager.this.isUndoOrRedoing()) return;
-			//TODO Add relationship handle move support
+			// Relationship connection points movements are handled in relationshipConnectionPointsMoved()
 			if (e.getSource() instanceof Relationship) return;
-			
 			if (newPositions.put(e.getPPComponent(), e.getNewPoint()) == null) {
 				originalPositions.put(e.getPPComponent(), e.getOldPoint());
 			}
@@ -294,6 +324,31 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		public void componentResized(PlayPenComponentEvent e) {
 			if (UndoManager.this.isUndoOrRedoing()) return;
 		}
+		
+		/**
+		 * This method is invoked only when a user actively changes connection points of 1 relationship
+		 */
+		public void relationshipConnectionPointsMoved(RelationshipConnectionPointEvent e) {
+		    if (e.getSource() instanceof Relationship) {
+		        Relationship r = (Relationship) e.getSource();
+		        if(r.getPlayPen().getSelectedTables().size() > 0) return;
+		        if(this.newConnectionPoints.size() == 1) this.newConnectionPoints = new HashMap<Relationship, Point[] >();
+		        
+		        Point[] connectionPoints = {r.getPkConnectionPoint(), r.getFkConnectionPoint()};
+		        this.newConnectionPoints.put(r, connectionPoints);
+		        
+		        // Now get the two old connection points
+		        Point pkOldPoint = e.getPkOldPoint();
+		        Point fkOldPoint = e.getFkOldPoint();
+		        
+		        Point[] connectionPoints2 = {pkOldPoint, fkOldPoint};
+		        originalConnectionPoints.put(r, connectionPoints2);
+		    }
+		    
+		    if(ce == null) {
+		        returnToEditState();
+		    }
+		}
 
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (UndoManager.this.isUndoOrRedoing()) return;
@@ -304,7 +359,6 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				logger.debug("compoundEditStart with event: "+e.toString());
 			}
 			compoundGroupStart(e.getMessage());
-			
 		}
 
 		public void compoundEditEnd(UndoCompoundEvent e) {
@@ -312,7 +366,6 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				logger.debug("compoundEditEnd with event: "+e.toString());
 			}
 			compoundGroupEnd();
-			
 		}
 	}
 
@@ -463,6 +516,4 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		
 		return sb.toString();
 	}
-
-	
 }

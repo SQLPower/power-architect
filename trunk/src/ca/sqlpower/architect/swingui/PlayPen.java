@@ -2425,7 +2425,7 @@ public class PlayPen extends JPanel
 			if (c != null) p.translate(-c.getX(), -c.getY());
 
             if (c instanceof Relationship) {
-
+                
 				Relationship r = (Relationship) c;
 				PlayPen pp = (PlayPen) r.getPlayPen();
 
@@ -2759,12 +2759,7 @@ public class PlayPen extends JPanel
 	        int viewHeight = viewport.getExtentSize().height; 
 	        int viewWidth = viewport.getExtentSize().width; 
 	        
-	        // TODO: 1. Make changes to slow down the scrolling. 2. Need to fix the problem when
-	        // scrolling towards upper leftern area, the size of playpen would adjust according 
-	        // to the used playpen area and the selected sqlObject would jump to the bottom right 
-	        // corner of the current rectangular view. The scrolling still works though.This only 
-	        // happens when playpen area shrink.
-	        //
+	        // TODO: slow down scrolling. 
 	        // perform scrolling 
 	        if ((p.y - viewPos.y) < scrollUnits.top && viewPos.y > 0) { // scroll up 
 	            view.y = tp.getBounds().y;

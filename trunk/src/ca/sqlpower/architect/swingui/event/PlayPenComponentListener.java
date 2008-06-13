@@ -32,5 +32,10 @@ public interface PlayPenComponentListener {
 	 * by pkTable or fkTable.
 	 */
 	public void componentResized(PlayPenComponentEvent e);
+	
+	/**
+	 * Reconnects connection points if the event was generated
+	 */
+	public void relationshipConnectionPointsMoved(RelationshipConnectionPointEvent e);
 
 }

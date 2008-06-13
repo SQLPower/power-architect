@@ -39,7 +39,7 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
     private static final String VERSION_FILE_URL = "http://dhcp-126.sqlpower.ca:8080/sqlpower_website/architect.version.properties";
 
     private ArchitectSwingSession session;
-    private String mostCurrVersion;
+    private String versionPropertyString;
 
     public CheckForUpdateAction(ArchitectSwingSession session) {
         super(session, "Check for Software Updates", "Check for Software Updates");
@@ -50,7 +50,6 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
      * This sends a request to get access to architect.version.properties
      */
     public void actionPerformed(ActionEvent e) {
-
         try {
             URL url = new URL(VERSION_FILE_URL);
             HttpURLConnection urlc = (HttpURLConnection) url.openConnection();
@@ -59,39 +58,28 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
             urlc.setDoInput(true);
             urlc.setDoOutput(false);
             urlc.connect();
-
             InputStream propertyInputStream = urlc.getInputStream();
-
             Properties properties = new Properties();
             properties.load(propertyInputStream);
 
-            mostCurrVersion = properties.getProperty("app.version");
+            versionPropertyString = properties.getProperty("app.version");
+            ArchitectVersion latestVersion = new ArchitectVersion(versionPropertyString);
+            ArchitectVersion userVersion = ArchitectVersion.getAppVersionObject();
             
-            if(mostCurrVersion == null || mostCurrVersion.equals("")) new Exception();
-            String[] version = mostCurrVersion.split("\\.");
-
-            // If user's version is less than the most current version, prompt update.
-            if (Integer.parseInt(ArchitectVersion.APP_VERSION_MAJOR) >= Integer.parseInt(version[0])) {
-                if (Integer.parseInt(ArchitectVersion.APP_VERSION_MINOR) >= Integer.parseInt(version[1])) {
-                    if (Integer.parseInt(ArchitectVersion.APP_VERSION_TINY) >= Integer.parseInt(version[2].contains("-") ? 
-                            version[2].substring(0, version[2].indexOf("-")) : version[2])) {
-                        JOptionPane.showMessageDialog(this.session.getArchitectFrame(), "Congratulations, your copy of Power*Architect is up to date.",
-                                "The latest version of Power*Architect is: " + mostCurrVersion, JOptionPane.INFORMATION_MESSAGE);
-                        setEnabled(false);
-                        return;
-                    }
-                    else promptUpdate();
-                    return;
-                }
-                else promptUpdate();
+            if (userVersion.compareTo(latestVersion) == -1) {
+                promptUpdate();
                 return;
-            } 
-            else promptUpdate();
-            return;
-
+            }
+            else {
+                JOptionPane.showMessageDialog(this.session.getArchitectFrame(), "Congratulations, your copy of Power*Architect is up to date.",
+                  "The latest version of Power*Architect is: " + latestVersion.toString(), JOptionPane.INFORMATION_MESSAGE);
+                  setEnabled(false);
+                  return;
+            }
         } catch(Exception ex) {
-            JOptionPane.showMessageDialog(this.session.getArchitectFrame(), "Failed to check for software update.",
-                    "You version of Power*Arhitect is: " + ArchitectVersion.APP_VERSION, JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this.session.getArchitectFrame(), "Failed to check for software updates",
+                    "Your version of Power*Architect is: " + ArchitectVersion.APP_VERSION, JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
             logger.error("Fail to compare version number");
         }
     }
@@ -101,8 +89,8 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
      */
     private void promptUpdate() {
         JOptionPane.showMessageDialog(this.session.getArchitectFrame(), "You are using an early version of Power*Architect, " +
-                "please visit our website for a software update.", "The latest version of Power*Architect is: " + 
-                mostCurrVersion, JOptionPane.INFORMATION_MESSAGE);
+                "please visit our website for the latest version.", "The latest version of Power*Architect is: " + 
+                versionPropertyString, JOptionPane.INFORMATION_MESSAGE);
 
     }
 }

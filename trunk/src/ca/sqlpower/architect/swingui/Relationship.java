@@ -49,6 +49,7 @@ import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
+import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
@@ -338,6 +339,9 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 
 		public void componentMoveEnd(PlayPenComponentEvent e) {
 		}
+
+        public void relationshipConnectionPointsMoved(RelationshipConnectionPointEvent e) {
+        }
 	}
 	
 
@@ -367,6 +371,8 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 			r.getPlayPen().addMouseMotionListener(this);
 			r.getPlayPen().addMouseListener(this);
 			r.getPlayPen().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+			r.getPlayPen().startCompoundEdit("Starting to change connection points");
+			r.fireRelationshipConnectionPointsMovedByUser(r.getPkConnectionPoint(), r.getFkConnectionPoint());
 		}
 
 		/**
@@ -421,6 +427,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		 */
 		public void mouseReleased(MouseEvent e) {
 			cleanup();
+			r.getPlayPen().endCompoundEdit("Stopped to change connection points");
 		}
 
 		protected void cleanup() {

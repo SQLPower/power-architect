@@ -59,6 +59,7 @@ import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
+import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -603,6 +604,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         public void componentMoveEnd(PlayPenComponentEvent e) {
             getProject().setModified(true);
             isNew = false;
+        }
+
+        public void relationshipConnectionPointsMoved(RelationshipConnectionPointEvent e) {
+            getProject().setModified(true);
+            isNew = false;
+            
         }
     }
     

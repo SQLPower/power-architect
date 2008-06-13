@@ -39,6 +39,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
+import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 
 /**
  * PlayPenComponent is the base class for a component that can live in the playpen's
@@ -306,6 +307,14 @@ public abstract class PlayPenComponent implements Selectable {
 		while (it.hasNext()) {
 			((PlayPenComponentListener) it.next()).componentResized(e);
 		}
+	}
+	
+	protected void fireRelationshipConnectionPointsMovedByUser(Point pkPoint, Point fkPoint) {
+	    RelationshipConnectionPointEvent e = new RelationshipConnectionPointEvent(this, pkPoint, fkPoint);
+	    Iterator it = playPenComponentListeners.iterator();
+	    while (it.hasNext()) {
+	        ((PlayPenComponentListener) it.next()).relationshipConnectionPointsMoved(e);
+	    }
 	}
 
 	
