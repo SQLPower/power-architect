@@ -42,12 +42,6 @@
 					<include>log4j.properties</include>
 				</includes>
 			</resource>
-			<resource>
-				<directory>jdbc_drivers</directory>
-				<includes>
-					<include>*.jar</include>
-				</includes>
-			</resource>
 		</resources>
 		
 		<plugins>
@@ -200,6 +194,24 @@
 			<version>1.6.5</version>
 			<scope>compile</scope>			
 		</dependency>
+		
+		<dependency>
+		    <groupId>mysql</groupId>
+		    <artifactId>mysql-connector-java</artifactId>
+		    <version>5.1.5</version>
+		</dependency> 
+		
+		<dependency>
+		    <groupId>postgresql</groupId>
+		    <artifactId>postgresql</artifactId>
+		    <version>8.2-507.jdbc3</version>
+		</dependency> 
+		
+		<dependency>
+		    <groupId>hsqldb</groupId>
+		    <artifactId>hsqldb</artifactId>
+		    <version>1.8.0.7</version>
+		</dependency> 
 		
 		<dependency>
 			<groupId>gsbase</groupId>
