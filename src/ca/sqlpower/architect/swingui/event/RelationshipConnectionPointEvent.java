@@ -36,6 +36,8 @@ public class RelationshipConnectionPointEvent extends EventObject {
     private Point pkNewPoint;
     private Point fkOldPoint;
     private Point fkNewPoint;
+    
+    private boolean isStraighteningLine;
 
     public RelationshipConnectionPointEvent(PlayPenComponent source) {
         super(source);
@@ -45,6 +47,13 @@ public class RelationshipConnectionPointEvent extends EventObject {
         super(source);
         this.pkOldPoint = pkOldPoint;
         this.fkOldPoint = fkOldPoint;
+    }
+    
+    public RelationshipConnectionPointEvent(PlayPenComponent source, Point pkOldPoint, Point fkOldPoint, boolean isStraighteningLine) {
+        super(source);
+        this.pkOldPoint = pkOldPoint;
+        this.fkOldPoint = fkOldPoint;
+        this.isStraighteningLine = isStraighteningLine;
     }
     
     public void setNewPoints(Point pkPoint, Point fkPoint) {
@@ -70,6 +79,10 @@ public class RelationshipConnectionPointEvent extends EventObject {
     
     public Relationship getRelationship() {
         return (Relationship) getSource();
+    }
+    
+    public boolean isStraighteningLine() {
+        return this.isStraighteningLine;
     }
     
     @Override

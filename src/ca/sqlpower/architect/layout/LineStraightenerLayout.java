@@ -72,6 +72,7 @@ public class LineStraightenerLayout extends AbstractLayout {
         for (LayoutEdge e : edges) {
             if (e instanceof Relationship) {
                 Relationship r = (Relationship) e;
+                r.fireRelationshipConnectionPointsMovedByUser(r.getPkConnectionPoint(), r.getFkConnectionPoint(), true);
                 attemptToStraighten(r);
             }
         }
@@ -181,4 +182,5 @@ public class LineStraightenerLayout extends AbstractLayout {
         }
         
     }
+
 }
