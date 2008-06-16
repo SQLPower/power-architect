@@ -86,12 +86,10 @@ private static final Logger logger = Logger.getLogger(RelationshipConnectionEdit
         logger.debug("Changing the Connection locations of " + componentEvent.getSource() + ". Pk: " + pkConnectionPoint + 
                 " Fk: " + fkConnectionPoint);
         if (componentEvent.getSource() instanceof Relationship) {
-            ((Relationship) componentEvent.getSource()).setPkConnectionPoint(pkConnectionPoint);
-            ((Relationship) componentEvent.getSource()).setFkConnectionPoint(fkConnectionPoint);
-            ((Relationship) componentEvent.getSource()).repaint();
-            ((Relationship) componentEvent.getSource()).revalidate();
-            ((Relationship) componentEvent.getSource()).getPlayPen().revalidate();
-            ((Relationship) componentEvent.getSource()).getPlayPen().validate();
+            Relationship r = ((Relationship) componentEvent.getSource());
+            r.updateUI();
+            r.setPkConnectionPoint(pkConnectionPoint);
+            r.setFkConnectionPoint(fkConnectionPoint);
         }
     }
     

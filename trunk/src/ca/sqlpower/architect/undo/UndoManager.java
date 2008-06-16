@@ -49,10 +49,6 @@ import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
 import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 
-/**
- * 
- *
- */
 public class UndoManager extends javax.swing.undo.UndoManager {
 
 	private static final Logger logger = Logger.getLogger(UndoManager.class);
@@ -118,7 +114,6 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		 * is the fkTable connection point.
 		 */
 		private HashMap<Relationship, Point[] > originalConnectionPoints;
-		private HashMap<Relationship, Point[] > newConnectionPoints;
 		
 		public SQLObjectUndoableEventAdapter() {
 			
@@ -128,7 +123,6 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			originalPositions = new HashMap<PlayPenComponent, Point>();
 			
 			// Remember the connection points of a relationship when user changes them
-			newConnectionPoints = new HashMap<Relationship, Point[] >();
 			originalConnectionPoints = new HashMap<Relationship, Point[] >();
 		}
         
@@ -182,7 +176,6 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		}
 		
 		private void addEdit(UndoableEdit undoEdit) {
-			
 			if (logger.isDebugEnabled()) {
 				logger.debug("Adding new edit: "+undoEdit);
 			}
@@ -239,8 +232,6 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			
 			// too many changes clear undo
 			UndoManager.this.discardAllEdits();
-			
-			
 		}
 		
 		/**
@@ -263,23 +254,27 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				Point newPos = ent.getValue();
 				condensedMoveEvents.add(new PlayPenComponentEvent(ppc, oldPos, newPos));
 			}
-			
-			for (Map.Entry<Relationship, Point[]> ent : newConnectionPoints.entrySet()) {
-			    Relationship r = ent.getKey();
-			    Point[] oldConnections = originalConnectionPoints.get(r);
-			    Point[] newConnections = ent.getValue();
-			    condensedRelConnectionEvents.add(new RelationshipConnectionPointEvent(r, oldConnections[0], newConnections[0], 
-			            oldConnections[1], newConnections[1]));
+			Relationship r = null;
+			Point[] oldConnections = null;
+			if (originalConnectionPoints.size() > 0) {
+			    r = originalConnectionPoints.entrySet().iterator().next().getKey();
+			    oldConnections = originalConnectionPoints.get(r);
+			    condensedRelConnectionEvents.add(new RelationshipConnectionPointEvent(r, oldConnections[0], 
+			            oldConnections[1]));
 			}
 			
 			if (ce != null) {
-				if (condensedMoveEvents.size()>0 ){
+				if (condensedMoveEvents.size() > 0){
 					TablePaneLocationEdit tableEdit = new TablePaneLocationEdit(condensedMoveEvents);
 					ce.addEdit(tableEdit);
 				}
 				if (condensedRelConnectionEvents.size() > 0) {
-				    RelationshipConnectionEdit relEdits = new RelationshipConnectionEdit(condensedRelConnectionEvents);
-				    ce.addEdit(relEdits);
+				    if (r.getPkConnectionPoint().equals(condensedRelConnectionEvents.get(condensedRelConnectionEvents.size()-1).getPkOldPoint()) && 
+                            r.getFkConnectionPoint().equals(condensedRelConnectionEvents.get(condensedRelConnectionEvents.size()-1).getFkOldPoint())) ;
+				    else {
+				        RelationshipConnectionEdit relEdits = new RelationshipConnectionEdit(condensedRelConnectionEvents);
+				        ce.addEdit(relEdits);
+				    }
 				}
 
 				// make sure the edit is no longer in progress
@@ -292,15 +287,15 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				} else {
                     if (logger.isDebugEnabled()) logger.debug("Compound edit " + ce + " is not undoable so we are not adding it");
 				}
-
 				ce = null;
 			} else {
-				if (condensedMoveEvents.size()>0 ){
+				if (condensedMoveEvents.size() > 0){
 					UndoManager.this.addEdit(new TablePaneLocationEdit(condensedMoveEvents));
 				}
 				if (condensedRelConnectionEvents.size() > 0) {
-				    
-				    UndoManager.this.addEdit(new RelationshipConnectionEdit(condensedRelConnectionEvents));
+				    if (r.getPkConnectionPoint().equals(condensedRelConnectionEvents.get(condensedRelConnectionEvents.size()-1).getPkOldPoint()) && 
+				            r.getFkConnectionPoint().equals(condensedRelConnectionEvents.get(condensedRelConnectionEvents.size()-1).getFkOldPoint())) ;
+				    else UndoManager.this.addEdit(new RelationshipConnectionEdit(condensedRelConnectionEvents));
 				}
 				newPositions.clear();
 			}
@@ -328,25 +323,22 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		 * This method is invoked only when a user actively changes connection points of 1 relationship
 		 */
 		public void relationshipConnectionPointsMoved(RelationshipConnectionPointEvent e) {
+		    if (UndoManager.this.isUndoOrRedoing()) return;
 		    if (e.getSource() instanceof Relationship) {
-		        Relationship r = (Relationship) e.getSource();
-		        if(r.getPlayPen().getSelectedTables().size() > 0) return;
-		        if(this.newConnectionPoints.size() == 1) this.newConnectionPoints = new HashMap<Relationship, Point[] >();
-		        
-		        Point[] connectionPoints = {r.getPkConnectionPoint(), r.getFkConnectionPoint()};
-		        this.newConnectionPoints.put(r, connectionPoints);
-		        
-		        // Now get the two old connection points
-		        Point pkOldPoint = e.getPkOldPoint();
-		        Point fkOldPoint = e.getFkOldPoint();
-		        
-		        Point[] connectionPoints2 = {pkOldPoint, fkOldPoint};
-		        originalConnectionPoints.put(r, connectionPoints2);
-		    }
-		    
-		    if(ce == null) {
-		        returnToEditState();
-		    }
+                Relationship r = (Relationship) e.getSource();
+                if(r.getPlayPen().getSelectedTables().size() > 0) return;
+                if(this.originalConnectionPoints.size() == 1) this.originalConnectionPoints = new HashMap<Relationship, Point[] >();
+                // Now get the two old connection points
+                Point pkOldPoint = e.getPkOldPoint();
+                Point fkOldPoint = e.getFkOldPoint();
+                
+                Point[] connectionPoints2 = {pkOldPoint, fkOldPoint};
+                originalConnectionPoints.put(r, connectionPoints2);
+            }
+            
+            if(ce == null) {
+                returnToEditState();
+            }
 		}
 
 		public void propertyChange(PropertyChangeEvent evt) {
@@ -485,7 +477,6 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	public SQLObjectUndoableEventAdapter getEventAdapter() {
 		return eventAdapter;
 	}
-	
 	
 	// Change event support
 	

@@ -41,14 +41,6 @@ public class RelationshipConnectionPointEvent extends EventObject {
         super(source);
     }
     
-    public RelationshipConnectionPointEvent(PlayPenComponent source, Point pkOldPoint, Point pkNewPoint, Point fkOldPoint, Point fkNewPoint) {
-        super(source);
-        this.pkOldPoint = pkOldPoint;
-        this.pkNewPoint = pkNewPoint;
-        this.fkOldPoint = fkOldPoint;
-        this.fkNewPoint = fkNewPoint;
-    }
-    
     public RelationshipConnectionPointEvent(PlayPenComponent source, Point pkOldPoint, Point fkOldPoint) {
         super(source);
         this.pkOldPoint = pkOldPoint;

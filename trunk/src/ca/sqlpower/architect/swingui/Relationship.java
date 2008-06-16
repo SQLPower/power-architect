@@ -426,8 +426,8 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		 * instance's creator saved a reference).
 		 */
 		public void mouseReleased(MouseEvent e) {
+		    r.getPlayPen().endCompoundEdit("Stopped to change connection points");
 			cleanup();
-			r.getPlayPen().endCompoundEdit("Stopped to change connection points");
 		}
 
 		protected void cleanup() {
@@ -443,7 +443,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
         if (isSelected()) {
             for (SQLObject newChild : e.getChildren()) {
                 SQLRelationship.ColumnMapping cm = (ColumnMapping) newChild;
-                pkTable.addColumnHighlight(cm.getPkColumn(), columnHighlightColour);
+                pkTable.addColumnHighlight(cm.getPkColumn(), columnHighlightColour); 
                 fkTable.addColumnHighlight(cm.getFkColumn(), columnHighlightColour);
             }
         }
