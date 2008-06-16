@@ -58,8 +58,12 @@ public class TestProfileCSV extends TestProfileBase {
         String line;
         assertNotNull(line = rdr.readLine());   // Header line
         assertTrue(line.startsWith("DATABASE,CATALOG,SCHEMA"));
-        assertNotNull(line = rdr.readLine());   // first results line
-        assertTrue("Incorrect line: " + line, line.endsWith("12345678901234567890a"));
+        
+        for (int i = 0; i < 2; i++) {
+            rdr.readLine();
+        }
+        assertNotNull(line = rdr.readLine());   // third results line, column t1_c4
+        assertTrue("Incorrect line: " + line, line.endsWith("\"32,345.7\","));
     }
 
 }
