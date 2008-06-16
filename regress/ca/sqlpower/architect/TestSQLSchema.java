@@ -44,7 +44,7 @@ public class TestSQLSchema extends SQLTestCase {
 	public void testGetName() {
 		assertNull(s.getName());
 		
-		SQLSchema s2 = new SQLSchema(s,"xxx",true);
+		SQLSchema s2 = new SQLSchema(db,"xxx",true);
 		assertEquals("xxx",s2.getName());
 	}
 
@@ -54,8 +54,8 @@ public class TestSQLSchema extends SQLTestCase {
 	public void testGetParent() {
 		assertNull(s.getParent());
 		
-		SQLSchema s2 = new SQLSchema(s,"xxx",true);
-		assertEquals(s,s2.getParent());
+		SQLSchema s2 = new SQLSchema(db,"xxx",true);
+		assertEquals(db,s2.getParent());
 		
 	}
 
@@ -149,7 +149,7 @@ public class TestSQLSchema extends SQLTestCase {
 		s.setName("xx23");
 		assertEquals(s.getName(),"xx23");
 		
-		SQLSchema s2 = new SQLSchema(s,"xxx",true);
+		SQLSchema s2 = new SQLSchema(db,"xxx",true);
 		s2.setName("xx23");
 		assertEquals(s2.getName(),"xx23");
 	}
@@ -164,7 +164,7 @@ public class TestSQLSchema extends SQLTestCase {
 		s.setNativeTerm("AAA");
 		assertEquals(s.getNativeTerm(),"aaa");
 		
-		SQLSchema s2 = new SQLSchema(s,"xxx",true);
+		SQLSchema s2 = new SQLSchema(db,"xxx",true);
 		assertEquals(s2.getNativeTerm(),"schema");
 		s2.setNativeTerm(null);
 		assertNull(s2.getNativeTerm());

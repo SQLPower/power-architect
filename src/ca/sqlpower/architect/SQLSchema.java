@@ -170,8 +170,10 @@ public class SQLSchema extends SQLObject {
 	 * @param argNativeTerm Value to assign to this.nativeTerm
 	 */
 	public void setNativeTerm(String argNativeTerm) {
+	    String oldValue = nativeTerm;
 		if (argNativeTerm != null) argNativeTerm = argNativeTerm.toLowerCase();
 		this.nativeTerm = argNativeTerm;
+		fireDbObjectChanged("nativeTerm", oldValue, argNativeTerm);
 	}
 
 	@Override
