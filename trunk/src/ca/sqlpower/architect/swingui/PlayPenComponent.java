@@ -309,8 +309,9 @@ public abstract class PlayPenComponent implements Selectable {
 		}
 	}
 	
-	protected void fireRelationshipConnectionPointsMovedByUser(Point pkPoint, Point fkPoint) {
-	    RelationshipConnectionPointEvent e = new RelationshipConnectionPointEvent(this, pkPoint, fkPoint);
+	public void fireRelationshipConnectionPointsMovedByUser(Point pkPoint, Point fkPoint, boolean isStraighteningLine) {
+	    RelationshipConnectionPointEvent e;
+	    e = new RelationshipConnectionPointEvent(this, pkPoint, fkPoint, isStraighteningLine);
 	    Iterator it = playPenComponentListeners.iterator();
 	    while (it.hasNext()) {
 	        ((PlayPenComponentListener) it.next()).relationshipConnectionPointsMoved(e);

@@ -256,11 +256,10 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			}
 			Relationship r = null;
 			Point[] oldConnections = null;
-			if (originalConnectionPoints.size() > 0) {
-			    r = originalConnectionPoints.entrySet().iterator().next().getKey();
-			    oldConnections = originalConnectionPoints.get(r);
-			    condensedRelConnectionEvents.add(new RelationshipConnectionPointEvent(r, oldConnections[0], 
-			            oldConnections[1]));
+			for (Map.Entry<Relationship, Point[]> ent : originalConnectionPoints.entrySet()) {
+			    r = ent.getKey();
+			    oldConnections = ent.getValue();
+			    condensedRelConnectionEvents.add(new RelationshipConnectionPointEvent(r, oldConnections[0], oldConnections[1]));
 			}
 			
 			if (ce != null) {
@@ -325,15 +324,17 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		public void relationshipConnectionPointsMoved(RelationshipConnectionPointEvent e) {
 		    if (UndoManager.this.isUndoOrRedoing()) return;
 		    if (e.getSource() instanceof Relationship) {
-                Relationship r = (Relationship) e.getSource();
-                if(r.getPlayPen().getSelectedTables().size() > 0) return;
-                if(this.originalConnectionPoints.size() == 1) this.originalConnectionPoints = new HashMap<Relationship, Point[] >();
-                // Now get the two old connection points
+		        Relationship r = (Relationship) e.getSource();
+		        if(!e.isStraighteningLine()) {
+		            if(r.getPlayPen().getSelectedTables().size() > 0) return;
+		            if(this.originalConnectionPoints.size() >= 1) this.originalConnectionPoints = new HashMap<Relationship, Point[] >();
+		        }
+		        // Now get the two old connection points
                 Point pkOldPoint = e.getPkOldPoint();
                 Point fkOldPoint = e.getFkOldPoint();
                 
-                Point[] connectionPoints2 = {pkOldPoint, fkOldPoint};
-                originalConnectionPoints.put(r, connectionPoints2);
+                Point[] connectionPoints = {pkOldPoint, fkOldPoint};
+                originalConnectionPoints.put(r, connectionPoints);
             }
             
             if(ce == null) {

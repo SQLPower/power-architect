@@ -372,7 +372,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 			r.getPlayPen().addMouseListener(this);
 			r.getPlayPen().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 			r.getPlayPen().startCompoundEdit("Starting to change connection points");
-			r.fireRelationshipConnectionPointsMovedByUser(r.getPkConnectionPoint(), r.getFkConnectionPoint());
+			r.fireRelationshipConnectionPointsMovedByUser(r.getPkConnectionPoint(), r.getFkConnectionPoint(), false);
 		}
 
 		/**
