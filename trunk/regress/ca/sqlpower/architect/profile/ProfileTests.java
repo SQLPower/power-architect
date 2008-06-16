@@ -26,7 +26,6 @@ public class ProfileTests {
     public static Test suite() {
         TestSuite suite = new TestSuite("Test for ca.sqlpower.architect.profile");
         //$JUnit-BEGIN$
-        suite.addTestSuite(TestProfileManagerListeners.class);
         suite.addTestSuite(TestProfileCSV.class);
         suite.addTestSuite(TableProfileManagerTest.class);
         suite.addTestSuite(AbstractProfileResultTest.class);

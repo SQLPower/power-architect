@@ -46,7 +46,7 @@ public class TestEditColumnAction extends TestCase {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
 		editColumn = new EditColumnAction(session);
-		pp = new PlayPen(session);
+		pp = session.getArchitectFrame().getPlayPen();
 		tp = new TablePane(new SQLTable(session.getTargetDatabase(),true),pp);
 		tp.getModel().setName("Table1");
 		tp.getModel().addColumn(new SQLColumn(tp.getModel(),"col1",Types.INTEGER,1,1));

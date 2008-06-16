@@ -33,11 +33,10 @@ public class TestProfileManager extends TestProfileBase {
         
         for (TableProfileResult tpr : tableResults) {
             System.out.println(t.getName() + "  " + tpr.toString());      
-            SQLColumn c = t.getColumnByName("t1_c1");
+            SQLColumn c = t.getColumnByName("t1_c4");
             Collection<ColumnProfileResult> columnResults = tpr.getColumnProfileResult(c);
             for (ColumnProfileResult cr : columnResults) {
-                // Test min value: trim because it's stored in char(100).
-                assertEquals("get min value", "abc12345678901234567890a", cr.getMinValue().toString().trim());
+                assertEquals("get min value", "12345.6789", cr.getMinValue().toString());
             }
                 
             c = t.getColumnByName("t1_c6");
@@ -45,7 +44,7 @@ public class TestProfileManager extends TestProfileBase {
             for (ColumnProfileResult cr : columnResults) {
                 assertNotNull("get column result", cr);
                 assertEquals(5, cr.getDistinctValueCount());
-                assertEquals(3, ((BigDecimal) cr.getAvgValue()).intValue());
+                assertEquals(3, ((Number) cr.getAvgValue()).intValue());
             }
         }
     }
@@ -61,7 +60,7 @@ public class TestProfileManager extends TestProfileBase {
             for (ColumnProfileResult cr : columnResults) {
                 assertNotNull("get column result", cr);
                 assertEquals(4, cr.getDistinctValueCount()); // one is null
-                assertEquals(987654322, ((BigDecimal) cr.getAvgValue()).intValue());
+                assertEquals(987654322, ((Number) cr.getAvgValue()).intValue());
             }
         }
     }
@@ -82,7 +81,39 @@ public class TestProfileManager extends TestProfileBase {
                 assertNull("get max of no values", (BigDecimal) cr.getMaxValue());                
             }
         }
+    }
+    
+    public void testProfileAddedEventFiresWhenTableReprofiled() throws Exception {
+        CountingProfileChangeListener listener = new CountingProfileChangeListener();
+        pm.addProfileChangeListener(listener);
+        assertEquals(0, listener.getAddedEventCount());
+        assertEquals(0, listener.getRemovedEventCount());
 
+        SQLTable t = mydb.getTableByName("PROFILE_TEST1");
+        pm.createProfile(t);
+        assertEquals("Added event not fired!", 1, listener.getAddedEventCount());
+        assertEquals("Incorrect number of removed events!", 0, listener.getRemovedEventCount());
+
+        pm.createProfile(t);
+        assertEquals("Added event not fired when reprofiled!", 2, listener.getAddedEventCount());
+    }
+    
+    public void testProfileRemovedEventFiresWhenProfiledRemoved() throws Exception {
+        CountingProfileChangeListener listener = new CountingProfileChangeListener();
+        pm.addProfileChangeListener(listener);
+        assertEquals(0, listener.getAddedEventCount());
+        assertEquals(0, listener.getRemovedEventCount());
+
+        SQLTable t = mydb.getTableByName("PROFILE_TEST1");
+        pm.createProfile(t);
+        assertEquals("Added event not fired!", 1, listener.getAddedEventCount());
+        assertEquals("Incorrect number of removed events!", 0, listener.getRemovedEventCount());
+        
+        Collection<TableProfileResult> tableResults = pm.getResults(t);
+        for (TableProfileResult tpr : tableResults) {
+            pm.removeProfile(tpr);
+        }
+        assertEquals("Incorrect number of removed events!", tableResults.size(), listener.getRemovedEventCount());
     }
     
     /**
