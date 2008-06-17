@@ -543,6 +543,26 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	}
 
 	/**
+	 * Indicates whether this column is a foreign key
+	 * 
+	 * @return whether this column exists as a foreign key column in any of
+	 * its parent table's imported keys
+	 */
+	public boolean isForeignKey() {
+	    if (getParentTable() == null) return false;
+	    try {
+	        for (SQLRelationship r : getParentTable().getImportedKeys()) {
+	            if (r.containsFkColumn(this)) {
+	                return true;
+	            }
+	        }
+	        return false;
+	    } catch (ArchitectException ex) {
+	        throw new RuntimeException(ex);
+	    }
+	}
+
+	/**
 	 * Returns the parent SQLTable object, which is actually a grandparent.
 	 */
 	public SQLTable getParentTable() {
