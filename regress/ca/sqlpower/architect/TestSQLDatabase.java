@@ -27,7 +27,6 @@ import java.util.List;
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
 import ca.sqlpower.testutil.MockJDBCDriver;
@@ -422,83 +421,25 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertEquals (db1.getChild(0), t2);
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.getSQLObjectListeners()'
-	 */
-	public void testGetSQLObjectListeners() throws ArchitectException {
-		TestSQLObjectListener test1 = new TestSQLObjectListener();
-		TestSQLObjectListener test2 = new TestSQLObjectListener();
-		SQLDatabase s1 = new SQLDatabase();
-		
-		s1.addSQLObjectListener(test1);
-		s1.addSQLObjectListener(test2);
-		
-		assertEquals(s1.getSQLObjectListeners().get(0),test1);
-		assertEquals(s1.getSQLObjectListeners().get(1),test2);
-		
-		for ( int i=0; i<5; i++ ) {
-			s1.addChild(new SQLTable(s1,"","","TABLE", true));
-		}
-		
-		assertEquals(test1.getInsertedCount(),5);
-		assertEquals(test1.getRemovedCount(),0);
-		assertEquals(test1.getChangedCount(),0);
-		assertEquals(test1.getStructureChangedCount(),0);
-		
-		assertEquals(test2.getInsertedCount(),5);
-		assertEquals(test2.getRemovedCount(),0);
-		assertEquals(test2.getChangedCount(),0);
-		assertEquals(test2.getStructureChangedCount(),0);
-		
-		s1.removeSQLObjectListener(test2);
-		
-		for ( int i=0; i<5; i++ ) {
-			s1.removeChild(0);
-		}
-		
-		assertEquals(test1.getInsertedCount(),5);
-		assertEquals(test1.getRemovedCount(),5);
-		assertEquals(test1.getChangedCount(),0);
-		assertEquals(test1.getStructureChangedCount(),0);
-		
-		assertEquals(test2.getInsertedCount(),5);
-		assertEquals(test2.getRemovedCount(),0);
-		assertEquals(test2.getChangedCount(),0);
-		assertEquals(test2.getStructureChangedCount(),0);
-		
-		assertEquals(s1.getSQLObjectListeners().size(),1);
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.fireDbChildrenInserted(int[], List)'
-	 */
 	public void testFireDbChildrenInserted() throws ArchitectException {
-		
 		SQLDatabase db1 = new SQLDatabase();
-		TestSQLObjectListener test1 = new TestSQLObjectListener();		
-				
+		TestingSQLObjectListener test1 = new TestingSQLObjectListener();		
 		db1.addSQLObjectListener(test1);		
-		
-		assertEquals(test1.getInsertedCount(),0);
-		assertEquals(test1.getRemovedCount(),0);
-		assertEquals(test1.getChangedCount(),0);
-		assertEquals(test1.getStructureChangedCount(),0);
-				
-		db1.setDataSource(db.getDataSource());
-		db1.setPopulated(false);
-		db1.populate();
-		
-		assertEquals(test1.getInsertedCount(),1);
-		assertEquals(test1.getRemovedCount(),0);
-		assertEquals(test1.getChangedCount(),1);
-		assertEquals(test1.getStructureChangedCount(),0);
-		
-		db1.setDataSource(new SPDataSource(getPLIni()));
-		
-		assertEquals(test1.getInsertedCount(),1);
-		assertEquals(test1.getRemovedCount(),1);
-		assertEquals(test1.getChangedCount(),2);
-		assertEquals(test1.getStructureChangedCount(),0);		
+
+		db1.addChild(new SQLCatalog());
+		assertEquals("Children inserted event not fired!", 1, test1.getInsertedCount());
+	}
+	
+	public void testFireDbChildrenRemoved() throws ArchitectException {
+	    SQLDatabase db1 = new SQLDatabase();
+	    SQLCatalog tempCatalog = new SQLCatalog();
+	    db1.addChild(tempCatalog);
+
+	    TestingSQLObjectListener test1 = new TestingSQLObjectListener();        
+        db1.addSQLObjectListener(test1);        
+
+        db1.removeChild(tempCatalog);
+        assertEquals("Children removed event not fired!", 1, test1.getRemovedCount());
 	}
 
 	/*
