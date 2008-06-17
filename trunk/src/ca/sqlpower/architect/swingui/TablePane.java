@@ -768,7 +768,7 @@ public class TablePane
 	public static class TablePaneDropListener implements DropTargetListener {
 
 		protected TablePane tp;
-
+		
 		public TablePaneDropListener(TablePane tp) {
 			this.tp = tp;
 		}
@@ -890,7 +890,11 @@ public class TablePane
                         newColumnsInPk = true;
                     }
                     
+                    try {
+                        
                     for(int i = 0; i < importedKeys.size(); i++) {
+                        // Not dealing with self-referencing tables right now.
+                        if(importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
                         for(int j = 0; j < droppedItems.size(); j++) {
                             if(importedKeys.get(i).containsFkColumn((SQLColumn)(droppedItems.get(j)))) {
                                 if(!newColumnsInPk) {
@@ -904,8 +908,7 @@ public class TablePane
                             }
                         }
                     }
-                    
-                    try {
+                        
                         success = tp.insertObjects(droppedItems, insertionPoint);
                     } catch (LockedColumnException ex ) {
                         JOptionPane.showConfirmDialog(pp,
@@ -916,6 +919,8 @@ public class TablePane
                                 "Column is Locked",
                                 JOptionPane.CLOSED_OPTION);
                         success = false;
+                    } catch (IndexOutOfBoundsException ex) {
+                        
                     }
 
 
