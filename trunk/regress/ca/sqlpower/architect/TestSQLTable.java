@@ -921,6 +921,8 @@ public class TestSQLTable extends SQLTestCase {
                 set.add("definitelyNullable");  // secondary property depends on nullable
                 set.add("primaryKey");          // secondary property depends on position in parent is isInPk
                 set.add("SQLObjectListeners"); // interferes with EventLogger, which listens to all objects
+                set.add("foreignKey");         // secondary property depends on position in parent
+                set.add("indexed");            // secondary property depends on position in parent
                 ignoreProperties.put(SQLColumn.class, set);
                 
                 set = new HashSet<String>();

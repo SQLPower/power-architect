@@ -309,19 +309,21 @@ public class TestSQLColumn extends SQLTestCase {
 		assertEquals(origCol, derivCol.getSourceColumn());
 		assertEquals("NUMERIC", derivCol.getSourceDataTypeName());
 
-        Map origProps = BeanUtils.describe(origCol);
-		Map derivProps = BeanUtils.describe(derivCol);
-		
-		derivProps.remove("parentTable");
-		derivProps.remove("parent");
-		derivProps.remove("sourceColumn");
-		derivProps.remove("sourceDataTypeName");
-        derivProps.remove("SQLObjectListeners");
-        origProps.remove("SQLObjectListeners");
-		origProps.remove("parentTable");
-		origProps.remove("parent");
-		origProps.remove("sourceColumn");
-		origProps.remove("sourceDataTypeName");
+		Set<String> propsToIgnore = new HashSet<String>();
+		propsToIgnore.add("parentTable");
+		propsToIgnore.add("parent");
+		propsToIgnore.add("sourceColumn");
+		propsToIgnore.add("sourceDataTypeName");
+		propsToIgnore.add("SQLObjectListeners");
+		propsToIgnore.add("foreignKey");
+		propsToIgnore.add("indexed");
+        
+        Map<String,Object> origProps = (Map<String,Object>) BeanUtils.describe(origCol);
+        Map<String,Object> derivProps = (Map<String,Object>) BeanUtils.describe(derivCol);
+        
+        origProps.keySet().removeAll(propsToIgnore);
+        derivProps.keySet().removeAll(propsToIgnore);
+        
 		assertEquals("Derived instance properties differ from original",
 				origProps.toString(), derivProps.toString());
 	}
@@ -684,6 +686,8 @@ public class TestSQLColumn extends SQLTestCase {
 		propsToIgnore.add("parentTable");
 		propsToIgnore.add("parent");
         propsToIgnore.add("SQLObjectListeners");
+        propsToIgnore.add("foreignKey");
+        propsToIgnore.add("indexed");
 		
 		Map<String,Object> origProps = (Map<String,Object>) BeanUtils.describe(cowCol);
 		Map<String,Object> derivProps = (Map<String,Object>) BeanUtils.describe(tmpCol);
