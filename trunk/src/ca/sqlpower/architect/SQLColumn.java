@@ -569,8 +569,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	    if (getParentTable() == null) return false;
 	    try {
 	        for (SQLIndex ind : getParentTable().getIndices()) {
-	            if (ind.getChildren().contains(this)) {
-	                return true;
+	            for (SQLIndex.Column col : ind.getChildren()) {
+	                if (this.equals(col.getColumn())) {
+	                    return true;
+	                }
 	            }
 	        }
 	        return false;
