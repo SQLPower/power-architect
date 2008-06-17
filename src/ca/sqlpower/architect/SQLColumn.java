@@ -561,6 +561,23 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	        throw new RuntimeException(ex);
 	    }
 	}
+	
+	/**
+	 * Returns whether this column is in an index 
+	 */
+	public boolean isIndexed() {
+	    if (getParentTable() == null) return false;
+	    try {
+	        for (SQLIndex ind : getParentTable().getIndices()) {
+	            if (ind.getChildren().contains(this)) {
+	                return true;
+	            }
+	        }
+	        return false;
+	    } catch (ArchitectException ex) {
+	        throw new RuntimeException(ex);
+        }
+	}
 
 	/**
 	 * Returns the parent SQLTable object, which is actually a grandparent.
