@@ -27,9 +27,7 @@ import java.util.List;
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-
 import ca.sqlpower.architect.SQLTable.Folder;
-import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 
 public class TestFolder extends SQLTestCase {
 
@@ -259,58 +257,27 @@ public class TestFolder extends SQLTestCase {
 		assertEquals(main1.getChild(0), c2);
 	}
 
-
-
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.fireDbChildrenInserted(int[], List)'
-	 */
-	public void testFireDbChildrenInserted() throws Exception {
-
+	public void testFireDbChildrenInserted() throws ArchitectException {
 		Folder f1 = new Folder (Folder.COLUMNS, true);
 
-		TestSQLObjectListener test1 = new TestSQLObjectListener();
-		f1.addSQLObjectListener(test1);
-		TestSQLObjectListener test2 = new TestSQLObjectListener();
-		f1.addSQLObjectListener(test2);
-
-		assertEquals(test1.getInsertedCount(), 0);
-		assertEquals(test1.getRemovedCount(), 0);
-		assertEquals(test1.getChangedCount(), 0);
-		assertEquals(test1.getStructureChangedCount(), 0);
-
-		assertEquals(test2.getInsertedCount(), 0);
-		assertEquals(test2.getRemovedCount(), 0);
-		assertEquals(test2.getChangedCount(), 0);
-		assertEquals(test2.getStructureChangedCount(), 0);
+		TestingSQLObjectListener testListener = new TestingSQLObjectListener();
+		f1.addSQLObjectListener(testListener);
 
 		SQLColumn tmpCol = new SQLColumn();
 		f1.addChild(tmpCol);
-
-		assertEquals(test1.getInsertedCount(), 1);
-		assertEquals(test1.getRemovedCount(), 0);
-		assertEquals(test1.getChangedCount(), 0);
-		assertEquals(test1.getStructureChangedCount(), 0);
-
-		assertEquals(test2.getInsertedCount(), 1);
-		assertEquals(test2.getRemovedCount(), 0);
-		assertEquals(test2.getChangedCount(), 0);
-		assertEquals(test2.getStructureChangedCount(), 0);
-
-		f1.removeSQLObjectListener(test1);
-		f1.removeChild(tmpCol);
-
-		assertEquals(test1.getInsertedCount(), 1);
-		assertEquals(test1.getRemovedCount(), 0);
-		assertEquals(test1.getChangedCount(), 0);
-		assertEquals(test1.getStructureChangedCount(), 0);
-
-		assertEquals(test2.getInsertedCount(), 1);
-		assertEquals(test2.getRemovedCount(), 1);
-		assertEquals(test2.getChangedCount(), 0);
-		assertEquals(test2.getStructureChangedCount(), 0);
-
-		
+		assertEquals("Children inserted event not fired!", 1, testListener.getInsertedCount());
 	}
 
+	public void testFireDbChildrenRemoved() throws ArchitectException {
+	    Folder f1 = new Folder (Folder.COLUMNS, true);
+	    
+        SQLColumn tmpCol = new SQLColumn();
+        f1.addChild(tmpCol);
+        
+        TestingSQLObjectListener testListener = new TestingSQLObjectListener();
+        f1.addSQLObjectListener(testListener);
+        f1.removeChild(tmpCol);
+        
+        assertEquals("Children removed event not fired!", 1, testListener.getRemovedCount());
+	}
 }

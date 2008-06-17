@@ -42,7 +42,6 @@ import org.apache.commons.beanutils.BeanUtils;
 
 import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLTable.Folder;
-import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.TestSQLTable.EventLogger.SQLObjectSnapshot;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.sql.SPDataSource;
@@ -429,62 +428,26 @@ public class TestSQLTable extends SQLTestCase {
         assertNull(t1.getPrimaryKeyIndex());
     }
     
-    /*
-     * Test method for 'ca.sqlpower.architect.SQLObject.fireDbChildrenInserted(int[], List)'
-     */
     public void testFireDbChildrenInserted() throws Exception {
+        SQLTable table1 = new SQLTable();
         
-        SQLTable table1 = db.getTableByName("REGRESSION_TEST1");
-        SQLColumn c1 = table1.getColumn(0);
-        Folder folder = table1.getColumnsFolder();
+        TestingSQLObjectListener testListener = new TestingSQLObjectListener();
+        table1.addSQLObjectListener(testListener);
         
-        TestSQLObjectListener test1 = new TestSQLObjectListener();
-        folder.addSQLObjectListener(test1);
-        TestSQLObjectListener test2 = new TestSQLObjectListener();
-        folder.addSQLObjectListener(test2);
+        table1.addChild(new Folder(Folder.COLUMNS, true));
+        assertEquals("Children inserted event not fired!", 1, testListener.getInsertedCount());
+    }
+    
+    public void testFireDbChildrenRemoved() throws Exception {
+        SQLTable table1 = new SQLTable();
+        Folder tempFolder = new Folder(Folder.COLUMNS, true);
+        table1.addChild(tempFolder);
         
-        assertEquals(test1.getInsertedCount(), 0);
-        assertEquals(test1.getRemovedCount(), 0);
-        assertEquals(test1.getChangedCount(), 0);
-        assertEquals(test1.getStructureChangedCount(), 0);
+        TestingSQLObjectListener testListener = new TestingSQLObjectListener();
+        table1.addSQLObjectListener(testListener);
         
-        assertEquals(test2.getInsertedCount(), 0);
-        assertEquals(test2.getRemovedCount(), 0);
-        assertEquals(test2.getChangedCount(), 0);
-        assertEquals(test2.getStructureChangedCount(), 0);
-        
-        SQLColumn tmpCol = new SQLColumn();
-        table1.addColumn(tmpCol);
-        table1.changeColumnIndex(table1.getColumnIndex(c1), 2, false);
-        
-        assertEquals(test1.getInsertedCount(), 2);
-        assertEquals(test1.getRemovedCount(), 1);
-        assertEquals(test1.getChangedCount(), 0);
-        assertEquals(test1.getStructureChangedCount(), 0);
-        
-        assertEquals(test2.getInsertedCount(), 2);
-        assertEquals(test2.getRemovedCount(), 1);
-        assertEquals(test2.getChangedCount(), 0);
-        assertEquals(test2.getStructureChangedCount(), 0);
-        
-        folder.removeSQLObjectListener(test1);
-        table1.changeColumnIndex(table1.getColumnIndex(c1), 1, false);
-        
-        assertEquals(test1.getInsertedCount(), 2);
-        assertEquals(test1.getRemovedCount(), 1);
-        assertEquals(test1.getChangedCount(), 0);
-        assertEquals(test1.getStructureChangedCount(), 0);
-        
-        assertEquals(test2.getInsertedCount(), 3);
-        assertEquals(test2.getRemovedCount(), 2);
-        assertEquals(test2.getChangedCount(), 0);
-        assertEquals(test2.getStructureChangedCount(), 0);
-        
-        table1.removeColumn(tmpCol);
-        assertEquals(test2.getInsertedCount(), 3);
-        assertEquals(test2.getRemovedCount(), 3);
-        assertEquals(test2.getChangedCount(), 0);
-        assertEquals(test2.getStructureChangedCount(), 0);
+        table1.removeChild(tempFolder);
+        assertEquals("Children removed event not fired!", 1, testListener.getRemovedCount());
     }
     
     public void testDeleteLockedColumn() throws ArchitectException {

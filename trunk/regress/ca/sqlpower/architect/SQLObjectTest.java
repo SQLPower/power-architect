@@ -185,6 +185,18 @@ public class SQLObjectTest extends SQLTestCase {
         target.removeSQLObjectListener(l);
 		assertEquals(0, target.getSQLObjectListeners().size());
 	}
+    
+    public void testRemovedListenerUnlistens() {
+        CountingSQLObjectListener l = new CountingSQLObjectListener();
+        target.addSQLObjectListener(l);
+        
+        ((SQLObjectImpl)target).fakeStructureChanged();
+        assertEquals(1, l.getStructureChangedCount());
+        
+        target.removeSQLObjectListener(l);
+        ((SQLObjectImpl)target).fakeStructureChanged();
+        assertEquals(1, l.getStructureChangedCount());
+    }
 	
 	public void testNoMixChildTypes() throws ArchitectException {
 		target.addChild(new SQLExceptionNode(null, "everything is ok. don't panic."));

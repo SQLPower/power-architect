@@ -18,7 +18,6 @@
  */
 package ca.sqlpower.architect;
 
-import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 
 public class TestSQLSchema extends SQLTestCase {
 
@@ -283,49 +282,22 @@ public class TestSQLSchema extends SQLTestCase {
 		assertEquals(0,s.getChildCount());
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.getSQLObjectListeners()'
-	 */
-	public void testGetSQLObjectListeners() throws Exception {
-		TestSQLObjectListener test1 = new TestSQLObjectListener();
-		TestSQLObjectListener test2 = new TestSQLObjectListener();
-		
+	public void testFireDbChildrenInserted() throws Exception {
+		TestingSQLObjectListener test1 = new TestingSQLObjectListener();
 		s.addSQLObjectListener(test1);
-		s.addSQLObjectListener(test2);
 		
-		assertEquals(s.getSQLObjectListeners().get(0),test1);
-		assertEquals(s.getSQLObjectListeners().get(1),test2);
-		
-		for ( int i=0; i<5; i++ ) {
-			s.addChild(new SQLTable(s,"","","TABLE", true));
-		}
-		
-		assertEquals(test1.getInsertedCount(),5);
-		assertEquals(test1.getRemovedCount(),0);
-		assertEquals(test1.getChangedCount(),0);
-		assertEquals(test1.getStructureChangedCount(),0);
-		
-		assertEquals(test2.getInsertedCount(),5);
-		assertEquals(test2.getRemovedCount(),0);
-		assertEquals(test2.getChangedCount(),0);
-		assertEquals(test2.getStructureChangedCount(),0);
-		
-		s.removeSQLObjectListener(test2);
-		
-		for ( int i=0; i<5; i++ ) {
-			s.removeChild(0);
-		}
-		
-		assertEquals(test1.getInsertedCount(),5);
-		assertEquals(test1.getRemovedCount(),5);
-		assertEquals(test1.getChangedCount(),0);
-		assertEquals(test1.getStructureChangedCount(),0);
-		
-		assertEquals(test2.getInsertedCount(),5);
-		assertEquals(test2.getRemovedCount(),0);
-		assertEquals(test2.getChangedCount(),0);
-		assertEquals(test2.getStructureChangedCount(),0);
-		
-		assertEquals(s.getSQLObjectListeners().size(),1);
+		s.addChild(new SQLTable(s,"","","TABLE", true));
+		assertEquals("Children inserted event not fired!", 1, test1.getInsertedCount());
+	}
+
+	public void testFireDbChildrenRemoved() throws Exception {
+	    SQLTable tempTable = new SQLTable(s,"","","TABLE", true);
+        s.addChild(tempTable);
+	    
+	    TestingSQLObjectListener test1 = new TestingSQLObjectListener();
+	    s.addSQLObjectListener(test1);
+
+	    s.removeChild(tempTable);
+	    assertEquals("Children removed event not fired!", 1, test1.getRemovedCount());
 	}
 }
