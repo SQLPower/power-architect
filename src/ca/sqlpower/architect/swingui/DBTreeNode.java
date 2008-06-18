@@ -1,39 +1,12 @@
-/*
- * Copyright (c) 2008, SQL Power Group Inc.
- *
- * This file is part of Power*Architect.
- *
- * Power*Architect is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Power*Architect is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */
 package ca.sqlpower.architect.swingui;
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
+import javax.swing.tree.*;
 
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreeNode;
-
-import org.apache.log4j.Logger;
-
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.ArchitectException;
 
 public class DBTreeNode implements MutableTreeNode {
-	private static final Logger logger = Logger.getLogger(DBTreeNode.class);
 	
 	protected static Map userObjectToTreeNodeMap = new HashMap();
 
@@ -105,6 +78,7 @@ public class DBTreeNode implements MutableTreeNode {
 	public int getChildCount() {
 		try {
 			int count = userObject.getChildren().size();
+			System.out.println("[33mChild count of "+userObject.getShortDisplayName()+" is "+count+"[0m");
 			return count;
 		} catch (ArchitectException e) {
 			e.printStackTrace();
@@ -192,12 +166,7 @@ public class DBTreeNode implements MutableTreeNode {
 
 	public void insert(MutableTreeNode child, int index) {
 		if (child instanceof DBTreeNode) {
-			try {
-				userObject.addChild(index, ((DBTreeNode) child).getSQLObject());
-			} catch (ArchitectException e) {
-				logger.error("Couldn't add \""+child.toString()+"\" to tree:", e);
-				ASUtils.showExceptionDialogNoReport("Failed to add child node.", e);
-			}
+			userObject.addChild(index, ((DBTreeNode) child).getSQLObject());
 			child.setParent(this);
 		} else {
 			throw new IllegalArgumentException("You can't add a non-DBTreeNode to a DBTreeNode");
