@@ -355,6 +355,9 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                 statusLabel.setForeground(Color.RED);
             }
             progressBar.setVisible(false);
+            if(ProfileRowComponent.this.getParent() != null) {
+                ((ProfileManagerView)(ProfileRowComponent.this.getParent().getParent().getParent().getParent())).sort();
+            }
         }
 
         public void profileStarted(ProfileResultEvent event) {
