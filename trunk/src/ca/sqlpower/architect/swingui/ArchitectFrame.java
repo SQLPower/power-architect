@@ -183,7 +183,7 @@ public class ArchitectFrame extends JFrame {
     /**
      * Closes all sessions and terminates the JVM.
      */
-    private Action exitAction = new AbstractAction("Exit") {
+    private Action exitAction = new AbstractAction(Messages.getString("ArchitectFrame.exitActionName")) { //$NON-NLS-1$
         public void actionPerformed(ActionEvent e) {
             session.getContext().closeAll();
         }
@@ -209,7 +209,7 @@ public class ArchitectFrame extends JFrame {
         session = architectSession;
         ArchitectSwingSessionContext context = session.getContext();
         
-        setTitle(session.getName()+" - Power*Architect");
+        setTitle(session.getName()+" - Power*Architect"); //$NON-NLS-1$
         setIconImage(ASUtils.getFrameIconImage());
 	    
         // close is handled by a window listener
@@ -299,48 +299,48 @@ public class ArchitectFrame extends JFrame {
         aboutAction = new AboutAction(session);
         
         Action helpAction = new HelpAction(session);
-        helpAction.putValue(AbstractAction.SHORT_DESCRIPTION, "User Guide");
+        helpAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.userGuideActionDescription")); //$NON-NLS-1$
         Action checkForUpdateAction = new CheckForUpdateAction(session);
 
-        newProjectAction = new AbstractAction("New Project",
-                SPSUtils.createIcon("new_project","New Project",sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
+        newProjectAction = new AbstractAction(Messages.getString("ArchitectFrame.newProjectActionName"), //$NON-NLS-1$
+                SPSUtils.createIcon("new_project",Messages.getString("ArchitectFrame.newProjectActionIconDescription"),sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) { //$NON-NLS-1$ //$NON-NLS-2$
             public void actionPerformed(ActionEvent e) {
                 try {
                     createNewProject();
                 } catch (Exception ex) {
-                    ASUtils.showExceptionDialog(session, "Couldn't create new project.", ex);
-                    logger.error("Got exception while creating new project", ex);
+                    ASUtils.showExceptionDialog(session, Messages.getString("ArchitectFrame.projectCreationFailed"), ex); //$NON-NLS-1$
+                    logger.error("Got exception while creating new project", ex); //$NON-NLS-1$
                 }
             }
         };
-        newProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "New");
+        newProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.newProjectActionDescription")); //$NON-NLS-1$
         newProjectAction.putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_N, accelMask));
 
 
         openProjectAction = new OpenProjectAction(session);
 
-        saveProjectAction = new AbstractAction("Save Project",
-                SPSUtils.createIcon("disk",
-                        "Save Project",
+        saveProjectAction = new AbstractAction(Messages.getString("ArchitectFrame.saveProjectActionName"), //$NON-NLS-1$
+                SPSUtils.createIcon("disk", //$NON-NLS-1$
+                        Messages.getString("ArchitectFrame.saveProjectActionIconDescription"), //$NON-NLS-1$
                         sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
                 session.saveOrSaveAs(false, true);
             }
         };
-        saveProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save");
+        saveProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.saveProjectActionDescription")); //$NON-NLS-1$
         saveProjectAction.putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_S, accelMask));
 
-        saveProjectAsAction = new AbstractAction("Save Project As...",
-                SPSUtils.createIcon("save_as",
-                        "Save Project As...",
+        saveProjectAsAction = new AbstractAction(Messages.getString("ArchitectFrame.saveProjectAsActionName"), //$NON-NLS-1$
+                SPSUtils.createIcon("save_as", //$NON-NLS-1$
+                        Messages.getString("ArchitectFrame.saveProjectAsActionIconDescription"), //$NON-NLS-1$
                         sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
                 session.saveOrSaveAs(true, true);
             }
         };
-        saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save As");
+        saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.saveProjectAsActionDescription")); //$NON-NLS-1$
         
         closeProjectAction = new CloseProjectAction(session);
 
@@ -358,11 +358,11 @@ public class ArchitectFrame extends JFrame {
         zoomNormalAction = new ZoomResetAction(session);
 
         zoomToFitAction = new ZoomToFitAction(session);
-        zoomToFitAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom to fit");
+        zoomToFitAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.zoomToFitActionDescription")); //$NON-NLS-1$
 
         undoAction = new UndoAction(session, session.getUndoManager());
         redoAction = new RedoAction(session, session.getUndoManager());
-        autoLayoutAction = new AutoLayoutAction(session, "Auto Layout", "Automatic Layout", "auto_layout");
+        autoLayoutAction = new AutoLayoutAction(session, Messages.getString("ArchitectFrame.autoLayoutActionName"), Messages.getString("ArchitectFrame.autoLayoutActionDescription"), "auto_layout"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         autoLayout = new FruchtermanReingoldForceLayout();
         autoLayoutAction.setLayout(autoLayout);
         exportDDLAction = new ExportDDLAction(session);
@@ -394,15 +394,15 @@ public class ArchitectFrame extends JFrame {
 
         profileAction = new ProfileAction(session, session.getProfileManager());
         reverseRelationshipAction = new ReverseRelationshipAction(session);
-        alignTableHorizontalAction = new AlignTableAction(session, "Align Tables Horizontally", "Align tables horizontally.", true);
-        alignTableVerticalAction = new AlignTableAction(session, "Align Tables Vectically", "Align tables vectically.", false);
-        focusToParentAction = new FocusToChildOrParentTableAction(session, "Set Focus to Parent Table", "Set Focus to Parent Table", true);
-        focusToChildAction = new FocusToChildOrParentTableAction(session, "Set Focus to Child Table", "Set Focus to Child Table", false);
+        alignTableHorizontalAction = new AlignTableAction(session, Messages.getString("ArchitectFrame.alignTablesHorizontallyActionName"), Messages.getString("ArchitectFrame.alignTablesHorizontallyActionDescription"), true); //$NON-NLS-1$ //$NON-NLS-2$
+        alignTableVerticalAction = new AlignTableAction(session, Messages.getString("ArchitectFrame.alignTablesVerticallyActionName"), Messages.getString("ArchitectFrame.alignTablesVerticallyActionDescription"), false); //$NON-NLS-1$ //$NON-NLS-2$
+        focusToParentAction = new FocusToChildOrParentTableAction(session, Messages.getString("ArchitectFrame.setFocusToParentTableActionName"), Messages.getString("ArchitectFrame.setFocusToParentTableActionDescription"), true); //$NON-NLS-1$ //$NON-NLS-2$
+        focusToChildAction = new FocusToChildOrParentTableAction(session, Messages.getString("ArchitectFrame.setFocusToChildTableActionName"), Messages.getString("ArchitectFrame.setFocusToChildTableActionDescription"), false); //$NON-NLS-1$ //$NON-NLS-2$
         
 
         menuBar = new JMenuBar();
 
-        JMenu fileMenu = new JMenu("File");
+        JMenu fileMenu = new JMenu(Messages.getString("ArchitectFrame.fileMenu")); //$NON-NLS-1$
         fileMenu.setMnemonic('f');
         fileMenu.add(newProjectAction);
         fileMenu.add(openProjectAction);
@@ -424,7 +424,7 @@ public class ArchitectFrame extends JFrame {
         }
         menuBar.add(fileMenu);
 
-        JMenu editMenu = new JMenu("Edit");
+        JMenu editMenu = new JMenu(Messages.getString("ArchitectFrame.editMenu")); //$NON-NLS-1$
         editMenu.setMnemonic('e');
         editMenu.add(undoAction);
         editMenu.add(redoAction);
@@ -435,7 +435,7 @@ public class ArchitectFrame extends JFrame {
         menuBar.add(editMenu);
 
         // the connections menu is set up when a new project is created (because it depends on the current DBTree)
-        connectionsMenu = new JMenu("Connections");
+        connectionsMenu = new JMenu(Messages.getString("ArchitectFrame.connectionsMenu")); //$NON-NLS-1$
         connectionsMenu.setMnemonic('c');
         menuBar.add(connectionsMenu);
         connectionsMenu.removeAll();
@@ -480,14 +480,14 @@ public class ArchitectFrame extends JFrame {
             }
         });
         
-        JMenu etlMenu = new JMenu("ETL");
+        JMenu etlMenu = new JMenu(Messages.getString("ArchitectFrame.etlMenu")); //$NON-NLS-1$
         etlMenu.setMnemonic('l');
         etlMenu.add(exportCSVAction);
         etlMenu.add(mappingReportAction);
         etlMenu.add(kettleETL);
         menuBar.add(etlMenu);
 
-        JMenu toolsMenu = new JMenu("Tools");
+        JMenu toolsMenu = new JMenu(Messages.getString("ArchitectFrame.toolsMenu")); //$NON-NLS-1$
         toolsMenu.setMnemonic('t');
         toolsMenu.add(exportDDLAction);
         toolsMenu.add(compareDMAction);
@@ -497,15 +497,15 @@ public class ArchitectFrame extends JFrame {
 
         menuBar.add(toolsMenu);
 
-        JMenu profileMenu = new JMenu("Profile");
+        JMenu profileMenu = new JMenu(Messages.getString("ArchitectFrame.profileMenu")); //$NON-NLS-1$
         profileMenu.setMnemonic('p');
         profileMenu.add(profileAction);
 
         menuBar.add(profileMenu);
 
-        JMenu windowMenu = new JMenu("Window");
+        JMenu windowMenu = new JMenu(Messages.getString("ArchitectFrame.windowMenu")); //$NON-NLS-1$
         windowMenu.add(new DatabaseConnectionManagerAction(session));
-        windowMenu.add(new AbstractAction("Profile Manager") {
+        windowMenu.add(new AbstractAction(Messages.getString("ArchitectFrame.profileManager")) { //$NON-NLS-1$
             public void actionPerformed(ActionEvent e) {
                 session.getProfileDialog().setVisible(true);
             }
@@ -513,7 +513,7 @@ public class ArchitectFrame extends JFrame {
         
         menuBar.add(windowMenu);
 
-        JMenu helpMenu = new JMenu("Help");
+        JMenu helpMenu = new JMenu(Messages.getString("ArchitectFrame.helpMenu")); //$NON-NLS-1$
         helpMenu.setMnemonic('h');
         if (!context.isMacOSX()) {
             helpMenu.add(aboutAction);
@@ -546,8 +546,8 @@ public class ArchitectFrame extends JFrame {
         projectBar.add(profileAction);
         projectBar.addSeparator();
         projectBar.add(helpAction);
-        projectBar.setToolTipText("Project Toolbar");
-        projectBar.setName("Project Toolbar");
+        projectBar.setToolTipText(Messages.getString("ArchitectFrame.projectToolbarToolTip")); //$NON-NLS-1$
+        projectBar.setName(Messages.getString("ArchitectFrame.projectToolbarName")); //$NON-NLS-1$
         
         projectBar.setFocusable(false);
         for (Component c : projectBar.getComponents()) {
@@ -555,8 +555,8 @@ public class ArchitectFrame extends JFrame {
         }
         
         JButton tempButton = null; // shared actions need to report where they are coming from
-        ppBar.setToolTipText("PlayPen Toolbar");
-        ppBar.setName("PlayPen ToolBar");
+        ppBar.setToolTipText(Messages.getString("ArchitectFrame.playPenToolbarToolTip")); //$NON-NLS-1$
+        ppBar.setName(Messages.getString("ArchitectFrame.playPenToolbarName")); //$NON-NLS-1$
         ppBar.add(zoomInAction);
         ppBar.add(zoomOutAction);
         ppBar.add(zoomNormalAction);
@@ -595,7 +595,7 @@ public class ArchitectFrame extends JFrame {
         projectBarPane.add(cp, BorderLayout.CENTER);
 
         cp.add(splitPane, BorderLayout.CENTER);
-        logger.debug("Added splitpane to content pane");
+        logger.debug("Added splitpane to content pane"); //$NON-NLS-1$
     }
     
     /**
@@ -659,7 +659,7 @@ public class ArchitectFrame extends JFrame {
 		try {
             session.getContext().getPlDotIni().write(new File(session.getContext().getPlDotIniPath()));
         } catch (IOException e) {
-            logger.error("Couldn't save PL.INI file!", e);
+            logger.error("Couldn't save PL.INI file!", e); //$NON-NLS-1$
         }
 	}
 
@@ -667,7 +667,7 @@ public class ArchitectFrame extends JFrame {
 	 * Creates an ArchitectFrame and sets it visible.  This method is
 	 * an acceptable way to launch the Architect application.
 	 */
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings("deprecation") //$NON-NLS-1$
 	public static void main(final String args[]) throws ArchitectException {
 		SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
@@ -698,7 +698,7 @@ public class ArchitectFrame extends JFrame {
                     //We wish we had a parent component to direct the dialog to
                     //instead of passing a null, but this is being invoked, so 
                     //everything else blew up.
-                    ASUtils.showExceptionDialog(null, "Could not launch the Power*Architect", e);
+                    ASUtils.showExceptionDialog(null, Messages.getString("ArchitectFrame.architectLaunchFailureMessage"), e); //$NON-NLS-1$
                 }
 		    }
 		});
