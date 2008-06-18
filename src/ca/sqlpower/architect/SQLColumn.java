@@ -582,6 +582,26 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	}
 
 	/**
+	 * Returns whether this column is in an unique index.
+	 */
+	public boolean isUniqueIndexed() {
+	    if (getParentTable() == null) return false;
+	    try {
+	        for (SQLIndex ind : getParentTable().getIndices()) {
+	            if (!ind.isUnique()) continue;
+	            for (SQLIndex.Column col : ind.getChildren()) {
+	                if (this.equals(col.getColumn())) {
+	                    return true;
+	                }
+	            }
+	        }
+	        return false;
+	    } catch (ArchitectException ex) {
+	        throw new RuntimeException(ex);
+	    }
+	}
+
+	/**
 	 * Returns the parent SQLTable object, which is actually a grandparent.
 	 */
 	public SQLTable getParentTable() {
