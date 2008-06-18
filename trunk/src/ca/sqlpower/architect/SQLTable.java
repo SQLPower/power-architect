@@ -696,8 +696,7 @@ public class SQLTable extends SQLObject {
                 normalizeAgain = false;
 
                 // Phase 1 and 2 (see doc comment)
-                boolean donePk = false;
-                int i = 0;
+                int i = 0;  //Primary key count
 
                 // iterating over a copy of the column list because new columns can
                 // be added or removed from the table as a side effect of the
@@ -705,20 +704,15 @@ public class SQLTable extends SQLObject {
                 // the copy is that new columns will be ignored in this normalize
                 // effort, and removed columns will be treated as if they were
                 // still in the table.
-              for (SQLColumn col : new ArrayList<SQLColumn>(getColumns())) {
-//                for (SQLColumn col : getColumns()) {
+                for (SQLColumn col : new ArrayList<SQLColumn>(getColumns())) {
                     logger.debug("*** normalize " + getName() + " phase 1/2: " + col);
-                    donePk |= col.getPrimaryKeySeq() == null;
-                    Integer oldPkSeq = col.getPrimaryKeySeq();
-                    Integer newPkSeq;
-                    if (!donePk) {
-                        newPkSeq = new Integer(i);
-                    } else {
-                        newPkSeq = null;
+                    if (col.getPrimaryKeySeq() != null) {
+                        Integer oldPkSeq = col.getPrimaryKeySeq();
+                        Integer newPkSeq = new Integer(i);
+                        col.primaryKeySeq = newPkSeq;
+                        col.fireDbObjectChanged("primaryKeySeq", oldPkSeq, newPkSeq);
+                        i++;
                     }
-                    col.primaryKeySeq = newPkSeq;
-                    col.fireDbObjectChanged("primaryKeySeq", oldPkSeq, newPkSeq);
-                    i++;
                 }
 
                 // Phase 3 (see doc comment)
