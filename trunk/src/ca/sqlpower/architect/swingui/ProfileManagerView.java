@@ -274,6 +274,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         topPanel.add(clearSearchButton);
         
         comparator = new TableProfileNameComparator();
+        
         JLabel orderByLabel = new JLabel("Order by");
         topPanel.add(orderByLabel);
         final JRadioButton nameRadioButton = new JRadioButton("Name");
@@ -284,7 +285,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         dateRadioButton.addKeyListener(pageListener);
         ActionListener radioListener = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if(nameRadioButton.isSelected()) {
+                if (nameRadioButton.isSelected()) {
                     setComparator(new TableProfileNameComparator());
                 } else {
                     setComparator(new TableProfileDateComparator());
@@ -477,6 +478,15 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
             }
         }
         doSearch(searchText.getText());
+    }
+
+    /**
+     * Sorts the list either alphabetically or chronologically.
+     */
+    public void sort() {
+        Collections.sort(showingRows, comparator);
+        updateResultListPanel();
+        updateStatus();
     }
 
     public void profileListChanged(ProfileChangeEvent e) {
