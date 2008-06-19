@@ -34,6 +34,7 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLSequence;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
+import ca.sqlpower.sql.SQL;
 
 /**
  * DDL Generator for Postgres 8.x (does not support e.g., ALTER COLUMN operations 7.[34]).
@@ -294,7 +295,6 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 
     }
 
-    
 	/**
 	 * Returns null, even though Postgres calls this "Database."  The reason is,
 	 * you can't refer to objects in a different database than the default
@@ -395,4 +395,22 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
             }
         }
     }
+    
+    /**
+     * Augments the default columnDefinition behaviour by adding the correct
+     * default value clause for auto-increment columns. For non-autoincrement
+     * columns, the behaviour is the same as {@link GenericDDLGenerator#columnDefinition(SQLColumn, Map)}.
+     */
+    @Override
+    protected String columnDefinition(SQLColumn c, Map colNameMap) {
+        String nameAndType = super.columnDefinition(c, colNameMap);
+        
+        if (c.isAutoIncrement()) {
+            SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
+            return nameAndType + " DEFAULT nextval(" + SQL.quote(toQualifiedName(seq.getName())) + ")";
+        } else {
+            return nameAndType;
+        }
+    }
+
 }
