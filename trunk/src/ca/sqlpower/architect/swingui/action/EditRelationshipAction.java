@@ -50,7 +50,7 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 	protected final DBTree dbt; 
 	
 	public EditRelationshipAction(ArchitectSwingSession session) {
-		super(session, "Relationship Properties", "Relationship Properties", "edit_relationship");
+		super(session, "Relationship Properties...", "Relationship Properties", "edit_relationship");
 		setEnabled(false);
         playpen.addSelectionListener(this);
         setupAction(playpen.getSelectedItems());

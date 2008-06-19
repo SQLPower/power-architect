@@ -38,7 +38,7 @@ public class CreateTableAction extends AbstractArchitectAction {
 	private final ArchitectSwingSession session;
 	
 	public CreateTableAction(ArchitectSwingSession session) {
-        super(session, "New Table", "New Table (Shortcut T)", "new_table");
+        super(session, "New Table...", "New Table (Shortcut T)", "new_table");
         this.session = session;
 		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_T,0));
 	}

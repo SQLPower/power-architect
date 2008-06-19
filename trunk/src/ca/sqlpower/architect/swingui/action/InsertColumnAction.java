@@ -36,7 +36,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
 	private static final Logger logger = Logger.getLogger(InsertColumnAction.class);
 	
 	public InsertColumnAction(ArchitectSwingSession session) {
-        super(session, "New Column", "New Column (Shortcut C)", "new_column");
+        super(session, "New Column...", "New Column (Shortcut C)", "new_column");
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_C,0));
 		setEnabled(false);
