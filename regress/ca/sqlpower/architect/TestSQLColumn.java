@@ -317,6 +317,7 @@ public class TestSQLColumn extends SQLTestCase {
 		propsToIgnore.add("SQLObjectListeners");
 		propsToIgnore.add("foreignKey");
 		propsToIgnore.add("indexed");
+		propsToIgnore.add("uniqueIndexed");
         
         Map<String,Object> origProps = (Map<String,Object>) BeanUtils.describe(origCol);
         Map<String,Object> derivProps = (Map<String,Object>) BeanUtils.describe(derivCol);
@@ -688,6 +689,7 @@ public class TestSQLColumn extends SQLTestCase {
         propsToIgnore.add("SQLObjectListeners");
         propsToIgnore.add("foreignKey");
         propsToIgnore.add("indexed");
+        propsToIgnore.add("uniqueIndexed");
 		
 		Map<String,Object> origProps = (Map<String,Object>) BeanUtils.describe(cowCol);
 		Map<String,Object> derivProps = (Map<String,Object>) BeanUtils.describe(tmpCol);
