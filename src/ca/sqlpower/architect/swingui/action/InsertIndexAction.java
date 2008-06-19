@@ -40,7 +40,7 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
     private static final Logger logger = Logger.getLogger(InsertColumnAction.class);
     
     public InsertIndexAction(ArchitectSwingSession session) {
-        super(session, "New Index", "New Index (Shortcut I)", "new_index");
+        super(session, "New Index...", "New Index (Shortcut I)", "new_index");
         putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I, 0));
         setEnabled(false);
