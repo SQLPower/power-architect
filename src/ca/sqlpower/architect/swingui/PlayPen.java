@@ -328,7 +328,7 @@ public class PlayPen extends JPanel
 	 * the back/bottom of the component stack.
 	 */
 	protected Action sendToBackAction;
-
+	
 	/**
 	 * This dialog box is for editting the PlayPen's DB Connection spec.
 	 */
@@ -370,6 +370,12 @@ public class PlayPen extends JPanel
 	private DragSource ds;
 
 	private boolean normalizing;
+	
+	protected boolean showPrimary = true;
+    protected boolean showForeign = true;
+    protected boolean showIndexed = true;
+    protected boolean showUnique = true;
+    protected boolean showTheRest = true;
 
     /**
      * The session that contains this playpen
@@ -581,6 +587,8 @@ public class PlayPen extends JPanel
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
+		tablePanePopup.addSeparator();
+		
 		mi = new JMenuItem();
 		mi.setAction(bringToFrontAction);
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
@@ -591,6 +599,19 @@ public class PlayPen extends JPanel
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
+		JMenu align = new JMenu("Align Tables");
+		mi = new JMenuItem();
+		mi.setAction(af.getAlignTableHorizontalAction()); 
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+		align.add(mi);
+		
+		
+		mi = new JMenuItem();
+		mi.setAction(af.getAlignTableVerticalAction());
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+		align.add(mi);
+		tablePanePopup.add(align);
+		
 		tablePanePopup.addSeparator();
 		
 		mi = new JMenuItem();
@@ -598,16 +619,6 @@ public class PlayPen extends JPanel
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 		
-		JMenu align = new JMenu("Align Tables");
-        mi = new JMenuItem();
-        mi.setAction(af.getAlignTableHorizontalAction()); 
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        align.add(mi);
-        mi = new JMenuItem();
-        mi.setAction(af.getAlignTableVerticalAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        align.add(mi);
-        tablePanePopup.add(align);
 
 		if (logger.isDebugEnabled()) {
 			tablePanePopup.addSeparator();
@@ -693,15 +704,28 @@ public class PlayPen extends JPanel
 
 		getActionMap().put(KEY_SELECT_UPWARD, new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
-				List items = getSelectedItems();
+				List<PlayPenComponent> items = getSelectedItems();
 				if (items.size() == 1) {
-					PlayPenComponent item = (PlayPenComponent) items.get(0);
+					PlayPenComponent item = items.get(0);
 					if (item instanceof TablePane) {
 						TablePane tp = (TablePane) item;
 						int oldIndex = tp.getSelectedColumnIndex();
 						if (oldIndex > 0) {
-							tp.selectNone();
-							tp.selectColumn(oldIndex - 1);
+							try {
+							    int newIndex = oldIndex;
+							    while (newIndex - 1 >= 0) {
+							        newIndex--;
+							        if (!tp.hiddenColumns.contains(tp.getModel().getColumn(newIndex))) {
+							            break;
+							        }
+							    }
+							    if (!tp.hiddenColumns.contains(tp.getModel().getColumn(newIndex))) {
+							        tp.selectNone();
+							        tp.selectColumn(newIndex);
+							    }
+							} catch (ArchitectException ex) {
+							    throw new ArchitectRuntimeException(ex);
+                            }
 						}
 					}
 				}
@@ -719,8 +743,21 @@ public class PlayPen extends JPanel
 
 						try {
 							if (oldIndex < tp.getModel().getColumns().size() - 1) {
-								tp.selectNone();
-								tp.selectColumn(oldIndex + 1);
+	                            try {
+	                                int newIndex = oldIndex;
+	                                while (newIndex + 1 < tp.getModel().getColumns().size()) {
+	                                    newIndex++;
+	                                    if (!tp.hiddenColumns.contains(tp.getModel().getColumn(newIndex))) {
+	                                        break;
+	                                    }
+	                                }
+	                                if (!tp.hiddenColumns.contains(tp.getModel().getColumn(newIndex))) {
+	                                    tp.selectNone();
+	                                    tp.selectColumn(newIndex);
+	                                }
+	                            } catch (ArchitectException ex) {
+	                                throw new ArchitectRuntimeException(ex);
+	                            }
 							}
 						} catch (ArchitectException e1) {
 							logger.error("Could not get columns of "+ tp.getName(), e1);
@@ -1118,6 +1155,8 @@ public class PlayPen extends JPanel
 			} else {
 				throw new IllegalArgumentException("Constraints must be a Point");
 			}
+			// Makes drag and dropped tables show the proper columns
+			((TablePane) c).updateHiddenColumns();
 		} else {
 			throw new IllegalArgumentException("PlayPen can't contain components of type "
 											   +c.getClass().getName());
@@ -1198,6 +1237,11 @@ public class PlayPen extends JPanel
         AutoLayoutAction layoutAction = new AutoLayoutAction(session, "Straighten Lines", "Sraighten Relationship Lines Where Possible", icon);
         layoutAction.setLayout(new LineStraightenerLayout());
         mi.setAction(layoutAction);
+        playPenPopup.add(mi);
+        
+        mi = new JMenuItem();
+        mi.setAction(af.getShowColumnsAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         playPenPopup.add(mi);
         
 		if (logger.isDebugEnabled()) {
@@ -2105,7 +2149,6 @@ public class PlayPen extends JPanel
 		 * the DropTarget registered with this listener.
 		 */
 		public void dragOver(DropTargetDragEvent dtde) {
-
 			PlayPen pp = (PlayPen) dtde.getDropTargetContext().getComponent();
 			Point sp = pp.unzoomPoint(new Point(dtde.getLocation()));
 			PlayPenComponent ppc = pp.contentPane.getComponentAt(sp);
@@ -3183,5 +3226,86 @@ public class PlayPen extends JPanel
         }
         
         scrollRectToVisible(zoomRect(r));
+    }
+    
+    /**
+     * Indicates whether the playPen should show primary keys. 
+     */
+    public boolean isShowPrimary() {
+        return showPrimary;
+    }
+
+    /**
+     * Sets whether primary keys should be shown.
+     */
+    public void setShowPrimary(boolean hidePrimary) {
+        this.showPrimary = hidePrimary;
+    }
+
+    /**
+     * Indicates whether the playPen should show foreign keys. 
+     */
+    public boolean isShowForeign() {
+        return showForeign;
+    }
+
+    /**
+     * Sets whether foreign keys should be shown.
+     */
+    public void setShowForeign(boolean hideForeign) {
+        this.showForeign = hideForeign;
+    }
+
+    /**
+     * Indicates whether the playPen should show keys that are
+     * indexed. 
+     */
+    public boolean isShowIndexed() {
+        return showIndexed;
+    }
+
+    /**
+     * Sets whether indexed keys should be shown.
+     */
+    public void setShowIndexed(boolean hideIndexed) {
+        this.showIndexed = hideIndexed;
+    }
+
+    /**
+     * Indicates whether the playPen should show unique keys. 
+     */
+    public boolean isShowUnique() {
+        return showUnique;
+    }
+
+    /**
+     * Sets whether unique keys should be shown.
+     */
+    public void setShowUnique(boolean hideUnique) {
+        this.showUnique = hideUnique;
+    }
+
+    /**
+     * Indicates whether the playPen should show all columns 
+     * except primary , foreign, unique and indexed keys. 
+     */
+    public boolean isShowTheRest() {
+        return showTheRest;
+    }
+
+    /**
+     * Sets whether all columns should be shown except primary,
+     * foreign, unique and indexed keys.
+     */
+    public void setShowTheRest(boolean hideTheRest) {
+        this.showTheRest = hideTheRest;
+    }
+    
+    public void updateHiddenColumns() {
+        for (TablePane tp : getTablePanes()) {
+            tp.updateHiddenColumns();
+            tp.revalidate();
+            tp.repaint();
+        }
     }
 }

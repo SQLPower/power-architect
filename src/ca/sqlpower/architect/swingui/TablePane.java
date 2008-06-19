@@ -120,6 +120,11 @@ public class TablePane
 	 * Tracks which columns in this table are currently selected.
 	 */
 	protected Set<SQLColumn> selectedColumns;
+	
+	/**
+	 * Tracks which columns in this table are currently selected.
+	 */
+	protected Set<SQLColumn> hiddenColumns;
 
 	/**
 	 * Tracks current highlight colours of the columns in this table.
@@ -153,6 +158,7 @@ public class TablePane
 		this.dtl = new TablePaneDropListener(this);
 		this.margin = (Insets) tp.margin.clone();
 		this.selectedColumns = new HashSet<SQLColumn>(tp.selectedColumns);
+        this.hiddenColumns = new HashSet<SQLColumn>();
 		this.columnHighlight = new HashMap<SQLColumn,List<Color>>(tp.columnHighlight);
 		try {
 			PlayPenComponentUI newUi = tp.getUI().getClass().newInstance();
@@ -171,6 +177,7 @@ public class TablePane
 
 	public TablePane(SQLTable m, PlayPen parentPP) {
 	    super(parentPP.getPlayPenContentPane());
+	    this.hiddenColumns = new HashSet<SQLColumn>();
 	    this.backgroundColor = new Color(240, 240, 240);
 	    this.foregroundColor = Color.BLACK;
 	    setRounded(false);
@@ -193,9 +200,9 @@ public class TablePane
 	// see also PlayPenComponent
 
     public void updateUI() {
-    		TablePaneUI ui = (TablePaneUI) BasicTablePaneUI.createUI(this);
-    		ui.installUI(this);
-		setUI(ui);
+        TablePaneUI ui = (TablePaneUI) BasicTablePaneUI.createUI(this);
+        ui.installUI(this);
+        setUI(ui);
     }
 
     public String getUIClassID() {
@@ -278,6 +285,8 @@ public class TablePane
             } catch (ArchitectException ex) {
                 logger.error("Caught exception while listening to added children", ex);
             }
+            
+            updateHiddenColumns();
             firePropertyChange("model.children", null, null);
             //revalidate();
         }
@@ -320,7 +329,7 @@ public class TablePane
             } catch (ArchitectException ex) {
                 throw new ArchitectRuntimeException(ex);
             }
-            
+            updateHiddenColumns();
             firePropertyChange("model.children", null, null);
             //revalidate();
         }
@@ -337,6 +346,7 @@ public class TablePane
                         "  Source="+e.getSource()+" Property="+e.getPropertyName()+
                         " oldVal="+e.getOldValue()+" newVal="+e.getNewValue());
             }
+            updateHiddenColumns();
             firePropertyChange("model."+e.getPropertyName(), null, null);
             //repaint();
         }
@@ -360,6 +370,7 @@ public class TablePane
                 } catch (ArchitectException e1) {
                     throw new ArchitectRuntimeException(e1);
                 }
+                updateHiddenColumns();
                 firePropertyChange("model.children", null, null);
                 //revalidate();
             }
@@ -601,18 +612,51 @@ public class TablePane
 		return COLUMN_INDEX_NONE;
 	}
 
+	public void updateHiddenColumns() {
+	    try {
+	        hiddenColumns.clear();
+
+	        // if all the boxes are checked, then hide no columns, only these 3 need be
+	        // checked. Draw a truth table if you don't believe me.
+	        if (!(getPlayPen().isShowForeign() && getPlayPen().isShowIndexed() 
+	                && getPlayPen().isShowTheRest())) {
+	            
+	            // start with a list of all the columns, then remove the ones that 
+	            // should be shown
+	            hiddenColumns.addAll(getModel().getColumns());
+	            for (SQLColumn col : getModel().getColumns()) {
+	                if (getPlayPen().isShowPrimary() && col.isPrimaryKey()) {
+	                    hiddenColumns.remove(col);
+	                } else if (getPlayPen().isShowForeign() && col.isForeignKey()) {
+	                    hiddenColumns.remove(col);
+	                } else if (getPlayPen().isShowIndexed() && col.isIndexed()) {
+	                    hiddenColumns.remove(col);
+	                } else if (getPlayPen().isShowUnique() && col.isUniqueIndexed()) {
+	                    hiddenColumns.remove(col);
+	                } else if (getPlayPen().isShowTheRest() && !(col.isPrimaryKey() || col.isForeignKey() 
+	                        || col.isIndexed())) {
+	                    // unique index not checked because it is a subset of index
+	                    hiddenColumns.remove(col);
+	                }
+	            }
+	        }
+	    } catch (ArchitectException ex) {
+	        throw new ArchitectRuntimeException(ex); 
+	    }
+	}
+
 	/**
 	 * Returns the list of selected column(s).
 	 * @throws ArchitectException
 	 */
 	public List<SQLColumn> getSelectedColumns() throws ArchitectException {
-		List<SQLColumn> selectedColumns = new ArrayList<SQLColumn>();
-		for (int i=0; i < getModel().getColumns().size(); i++) {
-			if (isColumnSelected(i)) {
-				selectedColumns.add(getModel().getColumn(i));
-			}
-		}
-		return selectedColumns;
+	    List<SQLColumn> selectedColumns = new ArrayList<SQLColumn>();
+	    for (int i=0; i < getModel().getColumns().size(); i++) {
+	        if (isColumnSelected(i)) {
+	            selectedColumns.add(getModel().getColumn(i));
+	        }
+	    }
+	    return selectedColumns;
 	}
 
 	// --------------------- SELECTION EVENT SUPPORT ---------------------
@@ -620,11 +664,11 @@ public class TablePane
 	protected List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
 
 	public void addSelectionListener(SelectionListener l) {
-		selectionListeners.add(l);
+	    selectionListeners.add(l);
 	}
 
 	public void removeSelectionListener(SelectionListener l) {
-		selectionListeners.remove(l);
+	    selectionListeners.remove(l);
 	}
 
 	protected void fireSelectionEvent(SelectionEvent e) {
@@ -1186,4 +1230,18 @@ public class TablePane
     public void setDashed(boolean isDashed) {
         this.isDashed = isDashed;
     }
+
+    /**
+     * Returns the number of hidden primary key columns
+     */
+    public int getHiddenPkCount() {
+        int count = 0;
+        for (SQLColumn c : hiddenColumns) {
+            if (c.getPrimaryKeySeq() != null) {
+                count++;
+            }
+        }
+        return count;
+    }
+    
 }

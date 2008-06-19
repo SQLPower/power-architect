@@ -85,6 +85,7 @@ import ca.sqlpower.architect.swingui.action.ExportDDLAction;
 import ca.sqlpower.architect.swingui.action.ExportPlaypenToPDFAction;
 import ca.sqlpower.architect.swingui.action.FocusToChildOrParentTableAction;
 import ca.sqlpower.architect.swingui.action.HelpAction;
+import ca.sqlpower.architect.swingui.action.ShowColumnsAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
 import ca.sqlpower.architect.swingui.action.InsertIndexAction;
 import ca.sqlpower.architect.swingui.action.KettleJobAction;
@@ -156,6 +157,7 @@ public class ArchitectFrame extends JFrame {
     private InsertColumnAction insertColumnAction;
     private InsertIndexAction insertIndexAction;
     private EditTableAction editTableAction;
+    private ShowColumnsAction showColumnsAction;
     
     /**
      * Edits the index which is currently selected in the DBTree.
@@ -384,6 +386,7 @@ public class ArchitectFrame extends JFrame {
         insertColumnAction = new InsertColumnAction(session);
         insertIndexAction = new InsertIndexAction(session);
         editTableAction = new EditTableAction(session);
+        showColumnsAction = new ShowColumnsAction(session);
         editIndexAction = new EditSelectedIndexAction(session);
         searchReplaceAction = new SearchReplaceAction(session);
         searchReplaceAction.putValue(AbstractAction.ACCELERATOR_KEY,
@@ -782,6 +785,10 @@ public class ArchitectFrame extends JFrame {
 
     public EditTableAction getEditTableAction() {
         return editTableAction;
+    }
+    
+    public ShowColumnsAction getShowColumnsAction() {
+        return showColumnsAction;
     }
 
     public InsertColumnAction getInsertColumnAction() {
