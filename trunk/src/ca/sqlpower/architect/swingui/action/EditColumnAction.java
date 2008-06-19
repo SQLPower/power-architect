@@ -110,11 +110,15 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
 			logger.debug("selections length is: " + selections.length);
-			if (selections.length != 1) {
+			// both tables and columns are selected on the tree
+			if (selections.length != 2) {
 				JOptionPane.showMessageDialog(dbt, "Please select the column you would like to edit.");
 			} else {
-				TreePath tp = selections[0];
-				SQLObject so = (SQLObject) tp.getLastPathComponent();
+				SQLObject so = (SQLObject) selections[0].getLastPathComponent();
+				if (so instanceof SQLTable) {
+				    // if this is the table, the other must be the column...
+				    so = (SQLObject) selections[1].getLastPathComponent();
+				}
 				if (so instanceof SQLColumn) {
 					SQLColumn sc = (SQLColumn) so;
 					SQLTable st = sc.getParentTable();
