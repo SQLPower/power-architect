@@ -220,7 +220,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			    // draws the column
 			    currentColor = tp.getColumnHighlight(i);
 			    g2.setColor(currentColor == null ? Color.BLACK : currentColor);
-			    g2.drawString(col.getShortDisplayName(),
+			    g2.drawString(col.getShortDisplayName() + getColumnTag(col),
 			            BOX_LINE_THICKNESS+tp.getMargin().left,
 			            y += fontHeight);
 			    i++;
@@ -475,4 +475,25 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
         }
     }
     
+    /**
+     * Determines what tag to append to the given column
+     */
+    private String getColumnTag(SQLColumn col) {
+        String tag = "";
+        boolean isPK = col.isPrimaryKey();
+        boolean isFK = col.isForeignKey();
+        boolean isAK = col.isUniqueIndexed() && !isPK;
+        if (isPK && isFK) {
+            tag = "  [ PFK ]";
+        } else if (isAK && isFK) {
+            tag = "  [ AFK ]";
+        } else if (isPK) {
+            tag = "  [ PK ]";
+        } else if (isFK) {
+            tag = "  [ FK ]";
+        } else if (isAK) {
+            tag = "  [ AK ]";
+        }
+        return tag;
+    }
 }
