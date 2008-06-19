@@ -120,6 +120,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "   </folder>" +
         "   <folder id='FOL5' populated='true' name='Imported Keys' type='2' >" +
         "   </folder>" +
+        "   <folder id='FOL13' populated='true' name='Indices' type='4' >" +
+        "   </folder>" +
         "  </table>" +
         "  <table id='TAB6' populated='true' primaryKeyName='id' remarks='' name='Orders' >" +
         "   <folder id='FOL7' populated='true' name='Columns' type='1' >" +
@@ -130,6 +132,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "   <folder id='FOL10' populated='true' name='Exported Keys' type='3' >" +
         "   </folder>" +
         "   <folder id='FOL11' populated='true' name='Imported Keys' type='2' >" +
+        "   </folder>" +
+        "   <folder id='FOL14' populated='true' name='Indices' type='4' >" +
         "   </folder>" +
         "  </table>" +
         "  <table id=\"TAB1830\" populated=\"true\" name=\"mm_project\" objectType=\"TABLE\" physicalName=\"MM_PROJECT\" remarks=\"\" >" +
