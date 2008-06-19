@@ -134,7 +134,11 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
             } else {
                 setIcon(indexIcon);
             }
-        } else if (value instanceof SQLColumn || value instanceof Column) {
+        } else if (value instanceof SQLColumn) {
+            tagColumn((SQLColumn)value);
+            setIcon(columnIcon);
+        } else if (value instanceof Column) {
+            tagColumn(((Column)value).getColumn());
             setIcon(columnIcon);
         } else {
 			setIcon(null);
@@ -153,4 +157,26 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 	    setToolTipText(getText());
 		return this;
 	}
+    
+     /**
+     * Determines what tag to append to the given column
+     */
+    private void tagColumn(SQLColumn col) {
+        String append = "";
+        boolean isPK = col.isPrimaryKey();
+        boolean isFK = col.isForeignKey();
+        boolean isAK = col.isUniqueIndexed() && !isPK;
+        if (isPK && isFK) {
+            append = "  [ PFK ]";
+        } else if (isAK && isFK) {
+            append = "  [ AFK ]";
+        } else if (isPK) {
+            append = "  [ PK ]";
+        } else if (isFK) {
+            append = "  [ FK ]";
+        } else if (isAK) {
+            append = "  [ AK ]";
+        }
+        setText(getText() + append);
+    }
 }
