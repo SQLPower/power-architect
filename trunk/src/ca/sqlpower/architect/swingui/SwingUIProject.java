@@ -188,7 +188,29 @@ public class SwingUIProject extends CoreProject {
         	}
         	logger.debug("Viewport position is " + getSession().getPlayPen().getViewPosition());
         	
-            String relStyle = attributes.getValue("relationship-style");
+        	// default values in playpen are true
+        	String showPrimary = attributes.getValue("showPrimary");
+        	if (showPrimary != null) {
+        	    getSession().getPlayPen().setShowPrimary(Boolean.valueOf(showPrimary));
+        	}
+        	String showForeign = attributes.getValue("showForeign");
+        	if (showForeign != null) {
+        	    getSession().getPlayPen().setShowForeign(Boolean.valueOf(showForeign));
+        	}
+        	String showIndexed = attributes.getValue("showIndexed");
+        	if (showIndexed != null) {
+        	    getSession().getPlayPen().setShowIndexed(Boolean.valueOf(showIndexed));
+        	}
+        	String showUnique = attributes.getValue("showUnique");
+        	if (showUnique != null) {
+        	    getSession().getPlayPen().setShowUnique(Boolean.valueOf(showUnique));
+        	}
+        	String showTheRest = attributes.getValue("showTheRest");
+        	if (showTheRest != null) {
+        	    getSession().getPlayPen().setShowTheRest(Boolean.valueOf(showTheRest));
+        	}
+        	
+        	String relStyle = attributes.getValue("relationship-style");
             boolean direct;
             if (relStyle == null) {
                 direct = false;
@@ -594,7 +616,12 @@ public class SwingUIProject extends CoreProject {
         ioo.println(out, "<play-pen zoom=\"" + getSession().getPlayPen().getZoom() + 
         		"\" viewportX=\"" + getSession().getPlayPen().getViewPosition().x + 
         		"\" viewportY=\"" + getSession().getPlayPen().getViewPosition().y + 
-        		"\" relationship-style="+quote(relStyle) + ">");
+        		"\" relationship-style="+quote(relStyle) +
+        		" showPrimary=\"" + getSession().getPlayPen().isShowPrimary() +
+        		"\" showForeign=\"" + getSession().getPlayPen().isShowForeign() +
+        		"\" showIndexed=\"" + getSession().getPlayPen().isShowIndexed() +
+        		"\" showUnique=\"" + getSession().getPlayPen().isShowUnique() +
+        		"\" showTheRest=\"" + getSession().getPlayPen().isShowTheRest() + "\">");
         ioo.indent++;
         for(int i = getSession().getPlayPen().getTablePanes().size()-1; i>= 0; i--) {
             TablePane tp = getSession().getPlayPen().getTablePanes().get(i);
