@@ -740,7 +740,7 @@ public class TestSQLRelationship extends SQLTestCase {
     
     /**
      * Self-referencing auto-mapping regressed at some point and we didn't notice.
-     * This test covers one of the many bugs repored in forum posting 1772.
+     * This test covers one of the many bugs reported in forum posting 1772.
      */
     public void testSelfReferencingAutoMapping() throws Exception {
         SQLColumn parentCol = parentTable.getColumnByName("pkcol_1");
@@ -1030,5 +1030,101 @@ public class TestSQLRelationship extends SQLTestCase {
         assertEquals(Integer.valueOf(0), parentTable.getColumnByName("pkcol_1").getPrimaryKeySeq());
         assertEquals(null,               parentTable.getColumnByName("pkcol_2").getPrimaryKeySeq());
         assertEquals(Integer.valueOf(1), parentTable.getColumnByName("attribute_1").getPrimaryKeySeq());
+    }
+    
+    /**
+     * Description of the scenario: We have a table with 3 existing columns. Now create a
+     * self-referencing relationship. Three more columns will be generated with prefix "Parent_".
+     * Now move column "Parent_pkcol_1" up to follow the last pk column, there should be another
+     * column named "Parent_Parent_pkcol_1" generated.
+     * @throws Exception
+     */
+    public void testMoveToPkColWithSelfRef() throws Exception {
+        parentTable.removeExportedKey(rel1);
+        parentTable.removeExportedKey(rel2);
+
+        parentTable.getColumnByName("pkcol_1").setPrimaryKeySeq(0);
+        parentTable.getColumnByName("pkcol_2").setPrimaryKeySeq(1);
+        parentTable.getColumnByName("attribute_1").setPrimaryKeySeq(2);
+        
+        SQLRelationship selfRef = new SQLRelationship();
+        selfRef.setName("parent_table_self_ref");
+        selfRef.attachRelationship(parentTable, parentTable, true);
+
+        assertEquals(Integer.valueOf(0), parentTable.getColumnByName("pkcol_1").getPrimaryKeySeq());
+        assertEquals(Integer.valueOf(1), parentTable.getColumnByName("pkcol_2").getPrimaryKeySeq());
+        assertEquals(Integer.valueOf(2), parentTable.getColumnByName("attribute_1").getPrimaryKeySeq());
+        
+        assertNotNull(parentTable.getColumnByName("Parent_pkcol_1"));
+        
+        parentTable.getColumnByName("Parent_pkcol_1").setPrimaryKeySeq(3);
+        SQLColumn newlyGeneratedCol = parentTable.getColumnByName("Parent_Parent_pkcol_1");
+        
+        assertNotNull(newlyGeneratedCol);
+        assertEquals(6, parentTable.getColumnIndex(newlyGeneratedCol));
+    }
+    
+    /**
+     * Description of the scenario: Continue from the results in {@link testMoveToPkWithSelfRef()}.
+     * Now move the column "Parent_pkcol_1" above "pkcol_1", and the results should be as expected.
+     * 
+     * @throws Exception
+     * @see testMoveToPkColWithSelfRef()
+     */
+    public void testMoveGeneratedColInSelfRefTable() throws Exception {
+        parentTable.removeExportedKey(rel1);
+        parentTable.removeExportedKey(rel2);
+
+        parentTable.getColumnByName("pkcol_1").setPrimaryKeySeq(0);
+        parentTable.getColumnByName("pkcol_2").setPrimaryKeySeq(1);
+        parentTable.getColumnByName("attribute_1").setPrimaryKeySeq(2);
+        
+        SQLRelationship selfRef = new SQLRelationship();
+        selfRef.setName("parent_table_self_ref");
+        selfRef.attachRelationship(parentTable, parentTable, true);
+        
+        SQLColumn newlyGeneratedCol = parentTable.getColumnByName("Parent_pkcol_1");
+        assertNotNull(newlyGeneratedCol);
+        newlyGeneratedCol.setPrimaryKeySeq(3);
+        
+        parentTable.changeColumnIndex(3, 0, true);
+        
+        assertEquals(Integer.valueOf(0), newlyGeneratedCol.getPrimaryKeySeq());
+        assertEquals(Integer.valueOf(1), parentTable.getColumnByName("pkcol_1").getPrimaryKeySeq());
+        assertEquals(Integer.valueOf(2), parentTable.getColumnByName("pkcol_2").getPrimaryKeySeq());
+        assertEquals(Integer.valueOf(3), parentTable.getColumnByName("attribute_1").getPrimaryKeySeq());
+    }
+    
+    /**
+     * Description of the scenario: Continue from the results in 
+     * {@link testMoveGeneratedColInSelfRefTable()} Now move "pkcol_1" down to
+     * among the fk columns. All primary keys change to foreign keys. pkcol_2 disappears and there will
+     * be 2 pkcol_1. At the same time, column "Parent_pkcol_1" disappear from the table completely.
+     * @throws Exception
+     * @see testMoveGeneratedColInSelfRefTable()
+     */
+    public void testMoveOriginalPkColInSelfRefTable() throws Exception{
+        parentTable.removeExportedKey(rel1);
+        parentTable.removeExportedKey(rel2);
+
+        parentTable.getColumnByName("pkcol_1").setPrimaryKeySeq(0);
+        parentTable.getColumnByName("pkcol_2").setPrimaryKeySeq(1);
+        parentTable.getColumnByName("attribute_1").setPrimaryKeySeq(2);
+        
+        SQLRelationship selfRef = new SQLRelationship();
+        selfRef.setName("parent_table_self_ref");
+        selfRef.attachRelationship(parentTable, parentTable, true);
+        
+        SQLColumn newlyGeneratedCol = parentTable.getColumnByName("Parent_pkcol_1");
+        newlyGeneratedCol.setPrimaryKeySeq(3);
+        
+        parentTable.changeColumnIndex(3, 0, true);
+        
+        // The results below are erroneous, in terms of behaviours
+        parentTable.changeColumnIndex(1, 3, false);
+        
+        assertEquals(0, parentTable.getPkSize());
+        assertEquals(null, parentTable.getColumnByName("pkcol_2"));
+        assertEquals(5, parentTable.getColumns().size());
     }
 }
