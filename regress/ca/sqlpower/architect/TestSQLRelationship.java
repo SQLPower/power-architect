@@ -1037,6 +1037,7 @@ public class TestSQLRelationship extends SQLTestCase {
      * self-referencing relationship. Three more columns will be generated with prefix "Parent_".
      * Now move column "Parent_pkcol_1" up to follow the last pk column, there should be another
      * column named "Parent_Parent_pkcol_1" generated.
+     * 
      * @throws Exception
      */
     public void testMoveToPkColWithSelfRef() throws Exception {
@@ -1099,7 +1100,8 @@ public class TestSQLRelationship extends SQLTestCase {
      * Description of the scenario: Continue from the results in 
      * {@link testMoveGeneratedColInSelfRefTable()} Now move "pkcol_1" down to
      * among the fk columns. All primary keys change to foreign keys. pkcol_2 disappears and there will
-     * be 2 pkcol_1. At the same time, column "Parent_pkcol_1" disappear from the table completely.
+     * be two pkcol_1. At the same time, column "Parent_pkcol_1" disappear from the table completely.
+     * 
      * @throws Exception
      * @see testMoveGeneratedColInSelfRefTable()
      */
@@ -1119,12 +1121,10 @@ public class TestSQLRelationship extends SQLTestCase {
         newlyGeneratedCol.setPrimaryKeySeq(3);
         
         parentTable.changeColumnIndex(3, 0, true);
-        
-        // The results below are erroneous, in terms of behaviours
         parentTable.changeColumnIndex(1, 3, false);
         
-        assertEquals(0, parentTable.getPkSize());
-        assertEquals(null, parentTable.getColumnByName("pkcol_2"));
+        assertEquals(2, parentTable.getPkSize());
+        assertNotNull(parentTable.getColumnByName("pkcol_2"));
         assertEquals(5, parentTable.getColumns().size());
     }
 }
