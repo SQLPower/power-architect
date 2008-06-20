@@ -329,7 +329,7 @@
 				<include name="*.png"/>
 			</fileset>
 		</copy>
-		<copy todir="${build}">
+		<copy todir="${build}/ca">
 			<fileset dir="src/ca">
 				<include name="**/*.properties"/>
 			</fileset>
