@@ -329,6 +329,12 @@
 				<include name="*.png"/>
 			</fileset>
 		</copy>
+		<copy todir="${build}">
+			<fileset dir="src/ca">
+				<include name="**/*.properties"/>
+			</fileset>
+		</copy>
+		
 		<!-- copies the template log4j config file into the build dir -->
 		<copy tofile="${build}/log4j.properties"
 			file="src/log4j.properties.example"/>
