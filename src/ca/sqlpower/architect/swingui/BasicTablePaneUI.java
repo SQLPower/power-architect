@@ -313,7 +313,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 					logger.error("Found null column in table '"+table.getName()+"'");
 					throw new NullPointerException("Found null column in table '"+table.getName()+"'");
 				}
-				itemsToCheck.add(col.toString());
+				itemsToCheck.add(col.toString() + getColumnTag(col));
 			}
 			itemsToCheck.add(getTitleString(c));   // this works as long as the title uses the same font as the columns
 			for(String item : itemsToCheck) {
