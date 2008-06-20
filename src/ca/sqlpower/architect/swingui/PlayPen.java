@@ -3238,8 +3238,8 @@ public class PlayPen extends JPanel
     /**
      * Sets whether primary keys should be shown.
      */
-    public void setShowPrimary(boolean hidePrimary) {
-        this.showPrimary = hidePrimary;
+    public void setShowPrimary(boolean showPrimary) {
+        this.showPrimary = showPrimary;
     }
 
     /**
@@ -3252,8 +3252,8 @@ public class PlayPen extends JPanel
     /**
      * Sets whether foreign keys should be shown.
      */
-    public void setShowForeign(boolean hideForeign) {
-        this.showForeign = hideForeign;
+    public void setShowForeign(boolean showForeign) {
+        this.showForeign = showForeign;
     }
 
     /**
@@ -3267,8 +3267,8 @@ public class PlayPen extends JPanel
     /**
      * Sets whether indexed keys should be shown.
      */
-    public void setShowIndexed(boolean hideIndexed) {
-        this.showIndexed = hideIndexed;
+    public void setShowIndexed(boolean showIndexed) {
+        this.showIndexed = showIndexed;
     }
 
     /**
@@ -3281,8 +3281,8 @@ public class PlayPen extends JPanel
     /**
      * Sets whether unique keys should be shown.
      */
-    public void setShowUnique(boolean hideUnique) {
-        this.showUnique = hideUnique;
+    public void setShowUnique(boolean showUnique) {
+        this.showUnique = showUnique;
     }
 
     /**
@@ -3297,8 +3297,8 @@ public class PlayPen extends JPanel
      * Sets whether all columns should be shown except primary,
      * foreign, unique and indexed keys.
      */
-    public void setShowTheRest(boolean hideTheRest) {
-        this.showTheRest = hideTheRest;
+    public void setShowTheRest(boolean showTheRest) {
+        this.showTheRest = showTheRest;
     }
     
     public void updateHiddenColumns() {

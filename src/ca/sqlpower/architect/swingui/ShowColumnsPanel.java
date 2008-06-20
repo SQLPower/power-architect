@@ -65,7 +65,7 @@ public class ShowColumnsPanel extends JPanel
         JPanel outerPanel = new JPanel(outerLayout);
         PanelBuilder outerpb = new PanelBuilder(outerLayout, outerPanel);
         
-        outerpb.add(new JLabel("Show Only columns which are:"), cc.xy(1, 1));
+        outerpb.add(new JLabel("Show only columns which are:"), cc.xy(1, 1));
         FormLayout innerLayout = new FormLayout("20dlu, pref",
                 "4dlu,pref,2dlu,pref,2dlu,pref,2dlu,pref,2dlu,pref,8dlu");
         JPanel innerPanel = new JPanel(innerLayout);
