@@ -20,8 +20,14 @@ package ca.sqlpower.architect.undo;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLIndex;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.StubSQLObject;
 
 
 public class TestSQLObjectChildrenInsert extends TestCase {
@@ -71,5 +77,142 @@ public class TestSQLObjectChildrenInsert extends TestCase {
 		
 	}
 	
+    public void testPresentationNameGeneric() throws Exception {
+        StubSQLObject parent = new StubSQLObject();
+        StubSQLObject child = new StubSQLObject();
+        parent.addChild(child);
+        SQLObjectEvent evt = new SQLObjectEvent(parent, new int[] { 0 }, new SQLObject[] { child });
+        SQLObjectInsertChildren edit = new SQLObjectInsertChildren();
+        edit.createEditFromEvent(evt);
+        assertEquals("Add child", edit.getPresentationName());
+    }
 
+    public void testPresentationNameGenericPlural() throws Exception {
+        StubSQLObject parent = new StubSQLObject();
+        StubSQLObject child = new StubSQLObject();
+        parent.addChild(child);
+        StubSQLObject child2 = new StubSQLObject();
+        parent.addChild(child2);
+        SQLObjectEvent evt = new SQLObjectEvent(parent, new int[] { 0, 1 }, new SQLObject[] { child, child2 });
+        SQLObjectInsertChildren edit = new SQLObjectInsertChildren();
+        edit.createEditFromEvent(evt);
+        assertEquals("Add children", edit.getPresentationName());
+    }
+    
+    public void testPresentationNameSQLTable() throws Exception {
+        StubSQLObject parent = new StubSQLObject();
+        SQLTable child = new SQLTable();
+        parent.addChild(child);
+        SQLObjectEvent evt = new SQLObjectEvent(parent, new int[] { 0 }, new SQLObject[] { child });
+        SQLObjectInsertChildren edit = new SQLObjectInsertChildren();
+        edit.createEditFromEvent(evt);
+        assertEquals("Add table", edit.getPresentationName());
+    }
+    
+    public void testPresentationNameSQLTablePlural() throws Exception {
+        StubSQLObject parent = new StubSQLObject();
+        SQLTable child = new SQLTable();
+        parent.addChild(child);
+        SQLTable child2 = new SQLTable();
+        parent.addChild(child2);
+        SQLObjectEvent evt = new SQLObjectEvent(parent, new int[] { 0, 1 }, new SQLObject[] { child, child2 });
+        SQLObjectInsertChildren edit = new SQLObjectInsertChildren();
+        edit.createEditFromEvent(evt);
+        assertEquals("Add tables", edit.getPresentationName());
+    }
+    
+    public void testPresentationNameSQLColumn() throws Exception {
+        StubSQLObject parent = new StubSQLObject();
+        SQLColumn child = new SQLColumn();
+        parent.addChild(child);
+        SQLObjectEvent evt = new SQLObjectEvent(parent, new int[] { 0 }, new SQLObject[] { child });
+        SQLObjectInsertChildren edit = new SQLObjectInsertChildren();
+        edit.createEditFromEvent(evt);
+        assertEquals("Add column", edit.getPresentationName());
+    }
+    
+    public void testPresentationNameSQLColumnPlural() throws Exception {
+        StubSQLObject parent = new StubSQLObject();
+        SQLColumn child = new SQLColumn();
+        parent.addChild(child);
+        SQLColumn child2 = new SQLColumn();
+        parent.addChild(child2);
+        SQLObjectEvent evt = new SQLObjectEvent(parent, new int[] { 0, 1 }, new SQLObject[] { child, child2 });
+        SQLObjectInsertChildren edit = new SQLObjectInsertChildren();
+        edit.createEditFromEvent(evt);
+        assertEquals("Add columns", edit.getPresentationName());
+    }
+
+    public void testPresentationNameSQLIndex() throws Exception {
+        StubSQLObject parent = new StubSQLObject();
+        SQLIndex child = new SQLIndex() {
+            @Override
+            protected void setParent(SQLObject parent) {
+                // no op!
+            }
+        };
+        parent.addChild(child);
+        SQLObjectEvent evt = new SQLObjectEvent(parent, new int[] { 0 }, new SQLObject[] { child });
+        SQLObjectInsertChildren edit = new SQLObjectInsertChildren();
+        edit.createEditFromEvent(evt);
+        assertEquals("Add index", edit.getPresentationName());
+    }
+    
+    public void testPresentationNameSQLIndexPlural() throws Exception {
+        StubSQLObject parent = new StubSQLObject();
+        SQLIndex child = makeSQLIndex();
+        parent.addChild(child);
+        SQLIndex child2 = makeSQLIndex();
+        parent.addChild(child2);
+        SQLObjectEvent evt = new SQLObjectEvent(parent, new int[] { 0, 1 }, new SQLObject[] { child, child2 });
+        SQLObjectInsertChildren edit = new SQLObjectInsertChildren();
+        edit.createEditFromEvent(evt);
+        assertEquals("Add indexes", edit.getPresentationName());
+    }
+
+    public void testPresentationNameSQLRelationship() throws Exception {
+        StubSQLObject parent = new StubSQLObject();
+        SQLRelationship child = makeSQLRelationship();
+        parent.addChild(child);
+        SQLObjectEvent evt = new SQLObjectEvent(parent, new int[] { 0 }, new SQLObject[] { child });
+        SQLObjectInsertChildren edit = new SQLObjectInsertChildren();
+        edit.createEditFromEvent(evt);
+        assertEquals("Add relationship", edit.getPresentationName());
+    }
+    
+    public void testPresentationNameSQLRelationshipPlural() throws Exception {
+        StubSQLObject parent = new StubSQLObject();
+        SQLRelationship child = makeSQLRelationship();
+        parent.addChild(child);
+        SQLRelationship child2 = makeSQLRelationship();
+        parent.addChild(child2);
+        SQLObjectEvent evt = new SQLObjectEvent(parent, new int[] { 0, 1 }, new SQLObject[] { child, child2 });
+        SQLObjectInsertChildren edit = new SQLObjectInsertChildren();
+        edit.createEditFromEvent(evt);
+        assertEquals("Add relationships", edit.getPresentationName());
+    }
+
+    /**
+     * Creates a SQLIndex that doesn't care what kind of parent it belongs to.
+     */
+    private SQLIndex makeSQLIndex() {
+        return new SQLIndex() {
+            @Override
+            protected void setParent(SQLObject parent) {
+                // no op!
+            }
+        };
+    }
+
+    /**
+     * Creates a SQLRelationship that doesn't care what kind of parent it belongs to.
+     */
+    private SQLRelationship makeSQLRelationship() {
+        return new SQLRelationship() {
+            @Override
+            protected void setParent(SQLObject parent) {
+                // no op!
+            }
+        };
+    }
 }

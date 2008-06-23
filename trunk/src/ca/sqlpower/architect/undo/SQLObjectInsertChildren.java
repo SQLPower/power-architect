@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
@@ -50,26 +51,29 @@ public class SQLObjectInsertChildren extends SQLObjectChildren {
 
 	@Override
 	public void createToolTip() {
-		if (e.getChildren().length > 0)
-		{
-			if (e.getChildren()[0] instanceof SQLTable)
-			{
-				toolTip = "Add table";
-			}
-			if (e.getChildren()[0] instanceof SQLColumn)
-			{
-				toolTip = "Add column";
-			}
-			if (e.getChildren()[0] instanceof SQLRelationship)
-			{
-				toolTip = "Add relation";
-			}
-			if (e.getChildren().length>1)
-			{
-				toolTip = toolTip+"s";
-			}
-		}
-		
+		if (e.getChildren().length > 0) {
+		    String pluralSuffix;
+            if (e.getChildren()[0] instanceof SQLTable) {
+                toolTip = "Add table";
+                pluralSuffix = "s";
+            } else if (e.getChildren()[0] instanceof SQLColumn) {
+                toolTip = "Add column";
+                pluralSuffix = "s";
+            } else if (e.getChildren()[0] instanceof SQLRelationship) {
+                toolTip = "Add relationship";
+                pluralSuffix = "s";
+            } else if (e.getChildren()[0] instanceof SQLIndex) {
+                toolTip = "Add index";
+                pluralSuffix = "es";
+            } else {
+                toolTip = "Add child";
+                pluralSuffix = "ren";
+            }
+            
+            if (e.getChildren().length > 1) {
+                toolTip += pluralSuffix;
+            }
+        }
 	}
 	
 	@Override
