@@ -1223,7 +1223,7 @@
 		<ant dir="${sqlpower.library.home}">
 			<property name="build" value="${sqlpower.library.home}/build"/>
 		</ant>
-		<copy file="${sqlpower.library.home}/deploy/sqlpower_library.jar" todir="${lib}"/>
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${lib}"/>
 	</target>
 	
 	<target name="architect.version.properties" depends="init">
