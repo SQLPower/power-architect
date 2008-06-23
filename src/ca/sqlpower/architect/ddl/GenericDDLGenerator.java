@@ -497,18 +497,16 @@ public class GenericDDLGenerator implements DDLGenerator {
 
         // Column name
         def.append(createPhysicalName(colNameMap, c));
-        def.append(" ");
 
-        def.append(columnType(c));
         def.append(" ");
+        def.append(columnType(c));
 
         if ( c.getDefaultValue() != null && !c.getDefaultValue().equals("")) {
+            def.append(" ");
             def.append("DEFAULT ");
             def.append(c.getDefaultValue());
-            def.append(" ");
         }
         
-        // Column nullability
         def.append(columnNullability(c));
 
         logger.debug("column definition "+ def.toString());
@@ -522,9 +520,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 				throw new UnsupportedOperationException
 					("The data type "+td.getName()+" is not nullable on the target database platform.");
 			}
-			return "NULL";
+			return "";
 		} else {
-			return "NOT NULL";
+			return " NOT NULL";
 		}
     }
 
