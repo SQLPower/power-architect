@@ -19,6 +19,8 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Rectangle;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -57,9 +59,6 @@ import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
-import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
-import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
-import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -532,7 +531,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * <p>Note: when we implement proper undo/redo support, this class should
      * be replaced with a hook into that system.
      */
-    class ProjectModificationWatcher implements SQLObjectListener, PlayPenComponentListener {
+    class ProjectModificationWatcher implements SQLObjectListener, PropertyChangeListener {
 
         /**
          * Sets up a new modification watcher on the given playpen.
@@ -544,7 +543,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 logger.error("Can't listen to business model for changes", e);
             }
             PlayPenContentPane ppcp = pp.contentPane;
-            ppcp.addPlayPenComponentListener(this);
+            ppcp.addPropertyChangeListener(this);
         }
 
         /** Marks project dirty, and starts listening to new kids. */
@@ -587,26 +586,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             isNew = false;
         }
 
-        public void componentMoved(PlayPenComponentEvent e) {
-
-        }
-
-        public void componentResized(PlayPenComponentEvent e) {
-            getProject().setModified(true);
-            isNew = false;
-        }
-
-        public void componentMoveStart(PlayPenComponentEvent e) {
-            getProject().setModified(true);
-            isNew = false;
-        }
-
-        public void componentMoveEnd(PlayPenComponentEvent e) {
-            getProject().setModified(true);
-            isNew = false;
-        }
-
-        public void relationshipConnectionPointsMoved(RelationshipConnectionPointEvent e) {
+        /**
+         * Marks the project dirty when property change event fires.
+         */
+        public void propertyChange(PropertyChangeEvent evt) {
             getProject().setModified(true);
             isNew = false;
             

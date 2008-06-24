@@ -29,27 +29,32 @@ import javax.swing.undo.CannotUndoException;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
+import ca.sqlpower.architect.swingui.event.PlayPenComponentMovedEvent;
 
+
+/**
+ * Specifies the procedures in performing an undo or redo when dealing
+ * with movements of TablePane(s).
+ */
 public class TablePaneLocationEdit extends AbstractUndoableEdit {
 	private static final Logger logger = Logger.getLogger(TablePaneLocationEdit.class);
 	
-	ArrayList<PlayPenComponentEvent> list;
+	ArrayList<PlayPenComponentMovedEvent> list;
 	
-	public TablePaneLocationEdit(PlayPenComponentEvent e) {
-		list = new ArrayList<PlayPenComponentEvent>();
+	public TablePaneLocationEdit(PlayPenComponentMovedEvent e) {
+		list = new ArrayList<PlayPenComponentMovedEvent>();
 		list.add(e);
 	}
 	
-	public TablePaneLocationEdit(Collection<PlayPenComponentEvent> list) {
-		this.list = new ArrayList<PlayPenComponentEvent>();
+	public TablePaneLocationEdit(Collection<PlayPenComponentMovedEvent> list) {
+		this.list = new ArrayList<PlayPenComponentMovedEvent>();
 		this.list.addAll(list);
 	}
 	
 	@Override
 	public void undo() throws CannotUndoException {
 		super.undo();
-		for (PlayPenComponentEvent componentEvent : list) {
+		for (PlayPenComponentMovedEvent componentEvent : list) {
 			changeLocation(componentEvent, componentEvent.getOldPoint());
 		}
 	}
@@ -57,12 +62,12 @@ public class TablePaneLocationEdit extends AbstractUndoableEdit {
 	@Override
 	public void redo() throws CannotRedoException {
 		super.redo();
-		for (PlayPenComponentEvent componentEvent : list) {
+		for (PlayPenComponentMovedEvent componentEvent : list) {
 			changeLocation(componentEvent, componentEvent.getNewPoint());
 		}
 	}
 	
-	private void changeLocation(PlayPenComponentEvent componentEvent, Point newPoint) {
+	private void changeLocation(PlayPenComponentMovedEvent componentEvent, Point newPoint) {
 		logger.debug("Changing the location of "+componentEvent.getSource()+" to " + newPoint);
 		if (componentEvent.getSource() instanceof TablePane) {
 			((TablePane) componentEvent.getSource()).setLocation(newPoint);

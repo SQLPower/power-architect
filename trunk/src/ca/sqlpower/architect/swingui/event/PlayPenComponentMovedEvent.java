@@ -19,40 +19,29 @@
 package ca.sqlpower.architect.swingui.event;
 
 import java.awt.Point;
-import java.util.EventObject;
+import java.beans.PropertyChangeEvent;
 
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 
-public class PlayPenComponentEvent extends EventObject {
+public class PlayPenComponentMovedEvent extends PropertyChangeEvent {
+
+	public PlayPenComponentMovedEvent(PlayPenComponent source) {
+		super(source, "Playpen Component moved", null, null);
+	}
 	
-	Point oldPoint;
-	Point newPoint;
-	
-	public PlayPenComponentEvent(PlayPenComponent source) {
-		super(source);
+	public PlayPenComponentMovedEvent(PlayPenComponent source, Point oldPoint, Point newPoint) {
+	    super(source, "Playpen Component moved", oldPoint, newPoint);
 	}
 	
 	public Point getNewPoint() {
-		return newPoint;
+		return (Point)this.getNewValue();
 	}
 
-	public void setNewPoint(Point newPoint) {
-		this.newPoint = newPoint;
-	}
 
 	public Point getOldPoint() {
-		return oldPoint;
+		return (Point)this.getOldValue();
 	}
 
-	public void setOldPoint(Point oldPoint) {
-		this.oldPoint = oldPoint;
-	}
-
-	public PlayPenComponentEvent(PlayPenComponent source,Point oldPoint, Point newPoint) {
-		super(source);
-		this.oldPoint = oldPoint;
-		this.newPoint = newPoint;
-	}
 	
 	public PlayPenComponent getPPComponent() {
 		return (PlayPenComponent) getSource();
@@ -60,6 +49,6 @@ public class PlayPenComponentEvent extends EventObject {
 	
 	@Override
 	public String toString() {
-		return "Moving "+source+" from "+oldPoint +" to "+newPoint;
+		return "Moving "+source+" from "+getOldPoint() +" to "+getNewPoint();
 	}
 }

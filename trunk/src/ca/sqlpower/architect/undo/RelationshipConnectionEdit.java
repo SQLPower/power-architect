@@ -60,8 +60,7 @@ private static final Logger logger = Logger.getLogger(RelationshipConnectionEdit
     public void undo() throws CannotUndoException {
         super.undo();
         for (RelationshipConnectionPointEvent componentEvent : list) {
-            componentEvent.setNewPoints(componentEvent.getRelationship().getPkConnectionPoint(), componentEvent.getRelationship().getFkConnectionPoint());
-            changeConnectionPoints(componentEvent, componentEvent.getPkOldPoint(), componentEvent.getFkOldPoint());
+            changeConnectionPoints(componentEvent, ((Point[])componentEvent.getOldValue())[0], ((Point[])componentEvent.getOldValue())[1]);
         }
     }
     
@@ -72,7 +71,7 @@ private static final Logger logger = Logger.getLogger(RelationshipConnectionEdit
     public void redo() throws CannotRedoException {
         super.redo();
         for (RelationshipConnectionPointEvent componentEvent : list) {
-            changeConnectionPoints(componentEvent, componentEvent.getPkNewPoint(), componentEvent.getFkNewPoint());
+            changeConnectionPoints(componentEvent, ((Point[])componentEvent.getNewValue())[0], ((Point[])componentEvent.getNewValue())[1]);
         }
     }
     

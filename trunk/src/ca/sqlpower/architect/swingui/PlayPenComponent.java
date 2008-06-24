@@ -29,17 +29,11 @@ import java.awt.Rectangle;
 import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.beans.PropertyChangeSupport;
 
 import javax.swing.JPopupMenu;
 
 import org.apache.log4j.Logger;
-
-import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
-import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
-import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 
 /**
  * PlayPenComponent is the base class for a component that can live in the playpen's
@@ -48,7 +42,7 @@ import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 public abstract class PlayPenComponent implements Selectable {
 
 	private static final Logger logger = Logger.getLogger(PlayPenComponent.class);
-
+	
 	private PlayPenContentPane parent;
 	private Rectangle bounds = new Rectangle();
 	protected Color backgroundColor;
@@ -60,9 +54,7 @@ public abstract class PlayPenComponent implements Selectable {
 	
 	private PlayPenComponentUI ui;
 
-	private List propertyChangeListeners = new ArrayList();
-
-	private List playPenComponentListeners = new ArrayList();
+	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	
 	protected PlayPenComponent(PlayPenContentPane parent) {
 		this.parent = parent;
@@ -151,16 +143,19 @@ public abstract class PlayPenComponent implements Selectable {
 		Point oldPoint = new Point(bounds.x,bounds.y);
 		bounds.setBounds(x,y,width,height);
 		
+		/*
+		 * At the moment only the movement of tablepanes' matters to us. So
+		 * here i've moved the firing to TablePane.setbounds(). This also
+		 * allows this class to be more general.
+		 */
 		
-		
-		if (oldBounds.x != x || oldBounds.y != y) {
-			firePlayPenComponentMoved(oldPoint, new Point(x,y));
-		}
-		
-		if (oldBounds.width != width || oldBounds.height != height) {
-			firePlayPenComponentResized();
-		}
-
+//		if (oldBounds.x != x || oldBounds.y != y) {
+//			firePropertyChange(new PlayPenComponentMovedEvent(this, oldPoint, new Point(x,y)));
+//		}
+//		
+//		if (oldBounds.width != width || oldBounds.height != height) {
+//			firePropertyChange(new PlayPenComponentResizedEvent());
+//		}
 		repaint();
 	}
 
@@ -265,59 +260,33 @@ public abstract class PlayPenComponent implements Selectable {
 		this.name = name;
 	}
 
+	/**
+	 * Adds a property change listener to the existing list.
+	 */
 	public void addPropertyChangeListener(PropertyChangeListener l) {
-		propertyChangeListeners.add(l);
+		pcs.addPropertyChangeListener(l);
 	}
 	
+	/**
+	 * Removes a specific property change listener from the existing list.
+	 */
 	public void removePropertyChangeListener(PropertyChangeListener l) {
-		propertyChangeListeners.remove(l);
+		pcs.removePropertyChangeListener(l);
 	}
 	
+	/**
+	 * Notifies property change listeners of a property change event.
+	 */
 	protected void firePropertyChange(String propName, Object oldValue, Object newValue) {
-		PropertyChangeEvent e = new PropertyChangeEvent(this, propName, oldValue, newValue);
-		Iterator it = propertyChangeListeners.iterator();
-		while (it.hasNext()) {
-			((PropertyChangeListener) it.next()).propertyChange(e);
-		}
+		pcs.firePropertyChange(propName, oldValue, newValue);
 	}
 	
-	protected void firePropertyChange(String propName, int oldValue, int newValue) {
-		firePropertyChange(propName, new Integer(oldValue), new Integer(newValue));
+	/**
+	 * @see PlayPenComponent.firePropertyChange()
+	 */
+	public void firePropertyChange(PropertyChangeEvent e) {
+	    pcs.firePropertyChange(e);
 	}
-	
-	public void addPlayPenComponentListener(PlayPenComponentListener l) {
-		playPenComponentListeners.add(l);
-	}
-	
-	public void removePlayPenComponentListener(PlayPenComponentListener l) {
-		playPenComponentListeners.remove(l);
-	}
-	
-	protected void firePlayPenComponentMoved(Point oldPoint,Point newPoint) {
-		PlayPenComponentEvent e = new PlayPenComponentEvent(this,oldPoint,newPoint);
-		Iterator it = playPenComponentListeners.iterator();
-		while (it.hasNext()) {
-			((PlayPenComponentListener) it.next()).componentMoved(e);
-		}
-	}
-	
-	protected void firePlayPenComponentResized() {
-		PlayPenComponentEvent e = new PlayPenComponentEvent(this);
-		Iterator it = playPenComponentListeners.iterator();
-		while (it.hasNext()) {
-			((PlayPenComponentListener) it.next()).componentResized(e);
-		}
-	}
-	
-	public void fireRelationshipConnectionPointsMovedByUser(Point pkPoint, Point fkPoint, boolean isStraighteningLine) {
-	    RelationshipConnectionPointEvent e;
-	    e = new RelationshipConnectionPointEvent(this, pkPoint, fkPoint, isStraighteningLine);
-	    Iterator it = playPenComponentListeners.iterator();
-	    while (it.hasNext()) {
-	        ((PlayPenComponentListener) it.next()).relationshipConnectionPointsMoved(e);
-	    }
-	}
-
 	
 	public int getX() {
 		return bounds.x;
@@ -439,6 +408,16 @@ public abstract class PlayPenComponent implements Selectable {
 
     public PlayPenContentPane getParent() {
         return parent;
+    }
+    
+    /**
+     * An instance is fired when playpen component gets resized.
+     * @author kaiyi
+     */
+    public class PlayPenComponentResizedEvent extends PropertyChangeEvent {
+        public PlayPenComponentResizedEvent() {
+            super(PlayPenComponent.this, "bounds", null, null);
+        }
     }
 	
 }

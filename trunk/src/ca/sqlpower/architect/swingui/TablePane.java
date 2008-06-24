@@ -21,6 +21,7 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Color;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -64,6 +65,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
+import ca.sqlpower.architect.swingui.event.PlayPenComponentMovedEvent;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
@@ -468,7 +470,7 @@ public class TablePane
 		int old = insertionPoint;
 		this.insertionPoint = ip;
 		if (ip != old) {
-			firePropertyChange("insertionPoint", old, insertionPoint);
+			firePropertyChange("insertionPoint", new Integer(old), new Integer(insertionPoint));
 			repaint();
 		}
 	}
@@ -933,26 +935,18 @@ public class TablePane
                     } else if (insertionPoint < tp.getModel().getPkSize()) {
                         newColumnsInPk = true;
                     }
-                    
+
                     try {
-                        
-                    for(int i = 0; i < importedKeys.size(); i++) {
-                        // Not dealing with self-referencing tables right now.
-                        if(importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
-                        for(int j = 0; j < droppedItems.size(); j++) {
-                            if(importedKeys.get(i).containsFkColumn((SQLColumn)(droppedItems.get(j)))) {
-                                if(!newColumnsInPk) {
-                                    importedKeys.get(i).setIdentifying(false);
-                                    break;
-                                }
-                                else {
-                                    importedKeys.get(i).setIdentifying(true);
+                        for(int i = 0; i < importedKeys.size(); i++) {
+                            // Not dealing with self-referencing tables right now.
+                            if(importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
+                            for(int j = 0; j < droppedItems.size(); j++) {
+                                if(importedKeys.get(i).containsFkColumn((SQLColumn)(droppedItems.get(j)))) {
+                                    importedKeys.get(i).setIdentifying(newColumnsInPk);
                                     break;
                                 }
                             }
                         }
-                    }
-                        
                         success = tp.insertObjects(droppedItems, insertionPoint);
                     } catch (LockedColumnException ex ) {
                         JOptionPane.showConfirmDialog(pp,
@@ -964,7 +958,7 @@ public class TablePane
                                 JOptionPane.CLOSED_OPTION);
                         success = false;
                     } catch (IndexOutOfBoundsException ex) {
-                        
+                        ex.printStackTrace();
                     }
 
 
@@ -1244,4 +1238,28 @@ public class TablePane
         return count;
     }
     
+    /**
+     * Not only sets the new bounds and the new location
+     * of the tablepane, but also fires specfic events associated with
+     * each change.
+     */
+    @Override
+    protected void setBoundsImpl(int x, int y, int width, int height) { 
+        Rectangle oldBounds = getBounds();
+        super.setBoundsImpl(x, y, width, height);
+        if (oldBounds.x != x || oldBounds.y != y) {
+            firePropertyChange(new PlayPenComponentMovedEvent(this, oldBounds.getLocation(), new Point(x,y)));
+        }
+        if (oldBounds.width != width || oldBounds.height != height) {
+            firePropertyChange(new PlayPenComponentResizedEvent());
+        }
+    }
+
+    /**
+     * @see TablePane.setBoundsImpl()
+     */
+    @Override
+    public void setBounds(int x, int y, int width, int height) {
+        super.setBounds(x, y, width, height);
+    }
 }

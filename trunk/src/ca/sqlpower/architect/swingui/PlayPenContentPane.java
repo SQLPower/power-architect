@@ -28,22 +28,18 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
-import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
-import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
-
 public class PlayPenContentPane {
 	private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
 	protected PlayPen owner;
 	private List<PlayPenComponent> children = new ArrayList<PlayPenComponent>();
 	private List<Relationship> relations = new ArrayList<Relationship>();
-	private List<PlayPenComponentListener> playPenComponentListeners = new ArrayList<PlayPenComponentListener>();
-	private PlayPenComponentEventPassthrough playPenComponentEventPassthrough;
+	private List<PropertyChangeListener> propertyChangeListeners = new ArrayList<PropertyChangeListener>();
+	private PropertyChangeEventPassthrough propertyChangeEventPassthrough;
 
 
 	public PlayPenContentPane(PlayPen owner) {
 		this.owner = owner;
-		playPenComponentEventPassthrough = new PlayPenComponentEventPassthrough();
+		propertyChangeEventPassthrough = new PropertyChangeEventPassthrough();
 		owner.addPropertyChangeListener("zoom", new ZoomFixer());
 	}
 	
@@ -143,7 +139,7 @@ public class PlayPenContentPane {
 		} else {
 			children.add(i,c);
 		}
-		c.addPlayPenComponentListener(playPenComponentEventPassthrough);
+		c.addPropertyChangeListener(propertyChangeEventPassthrough);
 		c.addSelectionListener(getOwner());
 		c.revalidate();
 	}
@@ -161,7 +157,7 @@ public class PlayPenContentPane {
 		}
 		
 		Rectangle r = c.getBounds();
-		c.removePlayPenComponentListener(playPenComponentEventPassthrough);
+		c.removePropertyChangeListener(propertyChangeEventPassthrough);
 		c.removeSelectionListener(getOwner());
 		if (j < children.size()) {
 			children.remove(j);
@@ -191,46 +187,25 @@ public class PlayPenContentPane {
 		}
 	}
 	
-	// ----------------- PlayPenComponentListener Passthrough stuff ---------------------------
-	public void addPlayPenComponentListener(PlayPenComponentListener l) {
-		playPenComponentListeners.add(l);
+	// ----------------- PropertyChangeListener Passthrough stuff ---------------------------
+	
+	public void addPropertyChangeListener(PropertyChangeListener l) {
+	    propertyChangeListeners.add(l);
 	}
 	
-	public void removePlayPenComponentListener(PlayPenComponentListener l) {
-		playPenComponentListeners.remove(l);
+	public void removePropertyChangeListener(PropertyChangeListener l) {
+	    propertyChangeListeners.remove(l);
 	}
 	
-	private void refirePlayPenComponentMoved(PlayPenComponentEvent e) {
-		for (PlayPenComponentListener l : playPenComponentListeners) {
-			l.componentMoved(e);
-		}
-	}
-
-	private void refirePlayPenComponentResized(PlayPenComponentEvent e) {
-		for (PlayPenComponentListener l : playPenComponentListeners) {
-			l.componentResized(e);
-		}
-	}
-	
-	private void refireRelationshipConnectionPointsMoved(RelationshipConnectionPointEvent e) {
-	    for (PlayPenComponentListener l : playPenComponentListeners) {
-	        l.relationshipConnectionPointsMoved(e);
+	private void refirePropertyChanged(PropertyChangeEvent e) {
+	    for (PropertyChangeListener l : propertyChangeListeners) {
+	        l.propertyChange(e);
 	    }
 	}
 	
-	private class PlayPenComponentEventPassthrough implements PlayPenComponentListener {
-
-		public void componentMoved(PlayPenComponentEvent e) {
-			refirePlayPenComponentMoved(e);
-		}
-
-		public void componentResized(PlayPenComponentEvent e) {
-			refirePlayPenComponentResized(e);
-		}
-		
-        public void relationshipConnectionPointsMoved(RelationshipConnectionPointEvent e) {
-            refireRelationshipConnectionPointsMoved(e);
+	private class PropertyChangeEventPassthrough implements PropertyChangeListener {
+        public void propertyChange(PropertyChangeEvent e) {
+            refirePropertyChanged(e);
         }
-
 	}
 }
