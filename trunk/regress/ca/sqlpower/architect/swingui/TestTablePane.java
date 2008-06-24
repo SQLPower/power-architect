@@ -237,4 +237,25 @@ public class TestTablePane extends TestCase {
         t.removeColumn(0);
         assertFalse(c.getSQLObjectListeners().contains(tp.columnListener));
     }
+    
+    public void testTablePaneMovement() {
+        PlayPenComponentEventCounter eventCounter = new PlayPenComponentEventCounter();
+        tp.addPropertyChangeListener( eventCounter);
+        assertEquals("" +
+                "We started out with the wrong number of events", 0,eventCounter.getEvents() );
+        //component.setMoving(true);
+        //assertEquals("We did not generate a move start event",1,eventCounter.getStarts());
+        pp.startCompoundEdit("Starting move");
+        tp.setLocation(1,1);
+        tp.setLocation(2,2);
+        pp.endCompoundEdit("Ending move");
+        assertEquals("Even in Compound edits should still generate a move event for each setLocation",2,eventCounter.getMoved());
+        //component.setMoving(false);
+        //assertEquals("We did not generate a move end event",1,eventCounter.getEnds());
+        
+        tp.setLocation(3,3);
+        //assertEquals("We did not generate a move start event",2,eventCounter.getStarts());
+        assertEquals("We did not generate move events",3,eventCounter.getMoved());
+        //assertEquals("We did not generate a move end event",2,eventCounter.getEnds());
+    }
 }

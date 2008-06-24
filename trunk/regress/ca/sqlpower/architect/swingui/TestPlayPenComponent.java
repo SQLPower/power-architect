@@ -45,25 +45,15 @@ public class TestPlayPenComponent extends TestCase {
 
 	}
 
+	/*
+	 * Because only movements of a table pane would generate valid operations.
+	 * Movement events are only fired in TablePane.setBounds.
+	 * 
+	 * @see ca.sqlpower.architect.swinggui.TestTablePane.testTablePaneMovement() for 
+	 *         tests involving the movements of tablepanes.
+	 */
+	public void testComponentMovement() {
 	
-	public void testMovement() {
-		component.addPlayPenComponentListener( eventCounter);
-		assertEquals("" +
-				"We started out with the wrong number of events", 0,eventCounter.getEvents() );
-		//component.setMoving(true);
-		//assertEquals("We did not generate a move start event",1,eventCounter.getStarts());
-		pp.startCompoundEdit("Starting move");
-		component.setLocation(1,1);
-		component.setLocation(2,2);
-		pp.endCompoundEdit("Ending move");
-		assertEquals("Even in Compound edits should still generate a move event for each setLocation",2,eventCounter.getMoved());
-		//component.setMoving(false);
-		//assertEquals("We did not generate a move end event",1,eventCounter.getEnds());
-		
-		component.setLocation(3,3);
-		//assertEquals("We did not generate a move start event",2,eventCounter.getStarts());
-		assertEquals("We did not generate move events",3,eventCounter.getMoved());
-		//assertEquals("We did not generate a move end event",2,eventCounter.getEnds());
 	}
 	
 	
