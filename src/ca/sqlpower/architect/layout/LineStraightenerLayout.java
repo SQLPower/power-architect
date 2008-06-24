@@ -29,6 +29,7 @@ import ca.sqlpower.architect.swingui.BasicRelationshipUI;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.RelationshipUI;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 
 /**
  * A layout implementation that leaves all tables in their original
@@ -72,8 +73,10 @@ public class LineStraightenerLayout extends AbstractLayout {
         for (LayoutEdge e : edges) {
             if (e instanceof Relationship) {
                 Relationship r = (Relationship) e;
-                r.fireRelationshipConnectionPointsMovedByUser(r.getPkConnectionPoint(), r.getFkConnectionPoint(), true);
+                Point[] oldConnectionPoints = {r.getPkConnectionPoint(), r.getFkConnectionPoint()};
                 attemptToStraighten(r);
+                r.firePropertyChange(new RelationshipConnectionPointEvent(r, oldConnectionPoints, 
+                        new Point[] {r.getPkConnectionPoint(), r.getFkConnectionPoint()}));
             }
         }
         hasRun = true;

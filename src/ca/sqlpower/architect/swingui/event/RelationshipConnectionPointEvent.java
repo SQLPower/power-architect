@@ -20,7 +20,7 @@
 package ca.sqlpower.architect.swingui.event;
 
 import java.awt.Point;
-import java.util.EventObject;
+import java.beans.PropertyChangeEvent;
 
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.Relationship;
@@ -30,65 +30,23 @@ import ca.sqlpower.architect.swingui.Relationship;
  * @author kaiyi
  *
  */
-public class RelationshipConnectionPointEvent extends EventObject {
+public class RelationshipConnectionPointEvent extends PropertyChangeEvent {
     
-    private Point pkOldPoint;
-    private Point pkNewPoint;
-    private Point fkOldPoint;
-    private Point fkNewPoint;
-    
-    private boolean isStraighteningLine;
-
     public RelationshipConnectionPointEvent(PlayPenComponent source) {
-        super(source);
+        super(source, "Changed connection point", null, null);
     }
     
-    public RelationshipConnectionPointEvent(PlayPenComponent source, Point pkOldPoint, Point fkOldPoint) {
-        super(source);
-        this.pkOldPoint = pkOldPoint;
-        this.fkOldPoint = fkOldPoint;
-    }
-    
-    public RelationshipConnectionPointEvent(PlayPenComponent source, Point pkOldPoint, Point fkOldPoint, boolean isStraighteningLine) {
-        super(source);
-        this.pkOldPoint = pkOldPoint;
-        this.fkOldPoint = fkOldPoint;
-        this.isStraighteningLine = isStraighteningLine;
-    }
-    
-    public void setNewPoints(Point pkPoint, Point fkPoint) {
-        this.pkNewPoint = pkPoint;
-        this.fkNewPoint = fkPoint;
-    }
-    
-    public Point getPkOldPoint() {
-        return pkOldPoint;
-    }
-    
-    public Point getPkNewPoint() {
-        return pkNewPoint;
-    }
-    
-    public Point getFkOldPoint() {
-        return fkOldPoint;
-    }
-    
-    public Point getFkNewPoint() {
-        return fkNewPoint;
+    public RelationshipConnectionPointEvent(PlayPenComponent source, Point[] oldConnectionPoints, Point[] newConnectionPoints) {
+        super(source, "Changed connection point", oldConnectionPoints, newConnectionPoints);
     }
     
     public Relationship getRelationship() {
         return (Relationship) getSource();
     }
     
-    public boolean isStraighteningLine() {
-        return this.isStraighteningLine;
-    }
-    
     @Override
     public String toString() {
-        return "Changing connection points of "+source+" Pk point from "+pkOldPoint +" to "+pkNewPoint +
-        " Fk point from "+fkOldPoint+" to "+fkNewPoint;
+        return "Changing connection points of "+source+" Pk point from "+((Point[])getOldValue())[0] +" to "
+        +((Point[])getNewValue())[0]+" Fk point from "+((Point[])getOldValue())[1]+" to "+((Point[])getNewValue())[1];
     }
-
 }
