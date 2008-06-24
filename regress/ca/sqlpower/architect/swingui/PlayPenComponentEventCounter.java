@@ -18,12 +18,17 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
-import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import ca.sqlpower.architect.swingui.event.PlayPenComponentMovedEvent;
 import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 
-public class PlayPenComponentEventCounter implements PlayPenComponentListener {
+public class PlayPenComponentEventCounter implements PropertyChangeListener {
 	
+    /*
+     * Right now, starts and end events are not implemented. 
+     */
 	private int starts;
 	private int ends;
 	private int moved;
@@ -38,16 +43,13 @@ public class PlayPenComponentEventCounter implements PlayPenComponentListener {
 		return ends;
 	}
 
-
 	public int getMoved() {
 		return moved;
 	}
 
-
 	public int getResized() {
 		return resized;
 	}
-
 
 	public int getStarts() {
 		return starts;
@@ -57,29 +59,20 @@ public class PlayPenComponentEventCounter implements PlayPenComponentListener {
 	    return conPointsMoved;
 	}
 
-	public void componentMoveStart(PlayPenComponentEvent e) {
-		starts++;
-
-	}
-
-	public void componentMoveEnd(PlayPenComponentEvent e) {
-		ends++;
-
-	}
-
-	public void componentMoved(PlayPenComponentEvent e) {
-		moved++;
-
-	}
-
-	public void componentResized(PlayPenComponentEvent e) {
-		resized++;
-
-	}
-
-    public void relationshipConnectionPointsMoved(RelationshipConnectionPointEvent e) {
-       conPointsMoved++;
-        
+	/**
+	 * According to the type of event receives, increase corresponding
+	 * counters.
+	 */
+    public void propertyChange(PropertyChangeEvent evt) {
+        if(evt instanceof RelationshipConnectionPointEvent) {
+            conPointsMoved++;
+        }
+        else if(evt instanceof PlayPenComponentMovedEvent) {
+            moved++;
+        }
+        else if(evt instanceof PlayPenComponent.PlayPenComponentResizedEvent) {
+            resized++;
+        }
     }
 
 }
