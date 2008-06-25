@@ -59,15 +59,10 @@ public class ExportDDLAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(ExportDDLAction.class);
 
 	private static final String GENDDL_WARNINGS_EXPLANATION =
-        "Errors:\n" +
-        "The DDL could not be generated because the following error(s) were detected. " +
-        "You need to correct all the errors before we can generate DDL for you. " +
-        "Some errors may have their 'QuickFix' button enabled; holding the mouse over these buttons will tell you what the " +
-        "suggested quick-fix is. If you are OK with the suggestion, press the QuickFix button, " +
-        "otherwise, make the change yourself using the GUI controls following the message.";
+        Messages.getString("ExportDDLAction.errorsInstructions"); //$NON-NLS-1$
 
 	public ExportDDLAction(ArchitectSwingSession session) {
-		super(session, "Forward Engineer...", "Forward Engineer SQL Script", "fwdSQL");
+		super(session, Messages.getString("ExportDDLAction.name"), Messages.getString("ExportDDLAction.description"), "fwdSQL"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 
 	private JDialog d;
@@ -137,16 +132,16 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                     }
                                 };
                                 String[] options = {
-                                        "QuickFix All",
-                                        "Ignore Warnings",
-                                        "Cancel",
-                                        "Recheck"
+                                        Messages.getString("ExportDDLAction.quickFixAllOption"), //$NON-NLS-1$
+                                        Messages.getString("ExportDDLAction.ignoreWarningsOption"), //$NON-NLS-1$
+                                        Messages.getString("ExportDDLAction.cancelOption"), //$NON-NLS-1$
+                                        Messages.getString("ExportDDLAction.recheckOption") //$NON-NLS-1$
                                 };
 
                                 int dialogChoice = JOptionPane.showOptionDialog(
                                         frame,
                                         dialogPanel.getPanel(),
-                                        "Errors in generated DDL",
+                                        Messages.getString("ExportDDLAction.errorsInDDLDialogTitle"), //$NON-NLS-1$
                                         JOptionPane.DEFAULT_OPTION,
                                         JOptionPane.ERROR_MESSAGE,
                                         null,   // JOptionPane gets icon from owningComponent,
@@ -178,7 +173,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                         
                         SQLDatabase ppdb = new SQLDatabase(ddlPanel.getTargetDB());
                         SQLScriptDialog ssd =
-                            new SQLScriptDialog(d, "Preview SQL Script", "", false,
+                            new SQLScriptDialog(d, Messages.getString("ExportDDLAction.previewSQLScriptDialogTitle"), "", false, //$NON-NLS-1$ //$NON-NLS-2$
                                     ddlg,
                                     ppdb.getDataSource(),
                                     true,
@@ -194,12 +189,12 @@ public class ExportDDLAction extends AbstractArchitectAction {
                 } catch (SQLException ex) {
                     ASUtils.showExceptionDialog
                         (session, 
-                         "An error ocurred while trying to generate" +
-                         " the DDL script.", ex);
+                         Messages.getString("ExportDDLAction.errorGeneratingDDL") + //$NON-NLS-1$
+                         "", ex); //$NON-NLS-1$
                 } catch (Exception ex) {
                     ASUtils.showExceptionDialog
                         (session,
-                         "An error occurred while generating the script.", ex);
+                         Messages.getString("ExportDDLAction.errorGeneratingDDLScript"), ex); //$NON-NLS-1$
                 }
                 return new Boolean(false);
             }
@@ -216,7 +211,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
         d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 ddlPanel,
                 frame,
-                "Forward Engineer SQL Script", "OK",
+                Messages.getString("ExportDDLAction.forwardEngineerSQLDialogTitle"), Messages.getString("ExportDDLAction.okOption"), //$NON-NLS-1$ //$NON-NLS-2$
                 okCall, cancelCall);
 
         d.pack();
@@ -298,14 +293,14 @@ public class ExportDDLAction extends AbstractArchitectAction {
                 con = target.getConnection();
             } catch (Exception ex) {
                 error = ex;
-                errorMessage = "Failed to connect to target database. Please check your connection settings.";
+                errorMessage = Messages.getString("ExportDDLAction.failedToConnectToDb"); //$NON-NLS-1$
                 return;
             } finally {
                 if (con != null) {
                     try {
                         con.close();
                     } catch (SQLException ex) {
-                        logger.error("Failed to close connection. This exception is getting squashed:", ex);
+                        logger.error(Messages.getString("ExportDDLAction.failedToCloseConnection"), ex); //$NON-NLS-1$
                     }
                 }
             }
@@ -315,8 +310,8 @@ public class ExportDDLAction extends AbstractArchitectAction {
 				cr.findConflicting();
 			} catch (Exception ex) {
 				error = ex;
-				errorMessage = "Unexpected exception while searching for existing database objects";
-				logger.error("Unexpected exception setting up DDL generation", ex);
+				errorMessage = Messages.getString("ExportDDLAction.unexpectedException"); //$NON-NLS-1$
+				logger.error("Unexpected exception setting up DDL generation", ex); //$NON-NLS-1$
 			}
 		}
 
@@ -326,28 +321,28 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		 */
 		public void cleanup() {
 			if (!SwingUtilities.isEventDispatchThread()) {
-				logger.error("runFinished is running on the wrong thread!");
+				logger.error("runFinished is running on the wrong thread!"); //$NON-NLS-1$
 			}
 			if (errorMessage != null) {
                 if (error != null) {
                     ASUtils.showExceptionDialogNoReport(parentDialog, errorMessage, error);
                 } else {
-                    JOptionPane.showMessageDialog(parentDialog, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(parentDialog, errorMessage, Messages.getString("ExportDDLAction.errorMessageDialogTitle"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
                 }
 			} else if (!cr.isEmpty()) {
 				Object[] messages = new Object[3];
-				messages[0] = "The following objects in the target database"
-							 +"\nconflict with those you wish to create:";
+				messages[0] = Messages.getString("ExportDDLAction.conflictingObjectsInDatabase") //$NON-NLS-1$
+							 +""; //$NON-NLS-1$
 				JTextArea conflictsPane = new JTextArea(cr.toConflictTree());
 				conflictsPane.setRows(15);
 				conflictsPane.setEditable(false);
 				messages[1] = new JScrollPane(conflictsPane);
-				messages[2] = "Do you want the Architect to drop these objects"
-							 +"\nbefore attempting to create the new ones?";
+				messages[2] = Messages.getString("ExportDDLAction.dropConflictingObjectsConfirmation") //$NON-NLS-1$
+							 +""; //$NON-NLS-1$
 				int choice = JOptionPane.showConfirmDialog(
 						parentDialog,
 						messages,
-						"Conflicting Objects Found",
+						Messages.getString("ExportDDLAction.conflictingObjectsInDatabaseDialogTitle"), //$NON-NLS-1$
 						JOptionPane.YES_NO_CANCEL_OPTION);
 				if (choice == JOptionPane.YES_OPTION) {
 					shouldDropConflicts = true;
@@ -429,8 +424,8 @@ public class ExportDDLAction extends AbstractArchitectAction {
 				try {
 					cr.dropConflicting();
 				} catch (Exception ex) {
-					logger.error("Error while dropping conflicting objects", ex);
-					errorMessage = "Error while dropping conflicting objects:\n\n"+ex.getMessage();
+					logger.error("Error while dropping conflicting objects", ex); //$NON-NLS-1$
+					errorMessage = Messages.getString("ExportDDLAction.errorDroppingConflictingObjects")+ex.getMessage(); //$NON-NLS-1$
 				}
 			}
 		}
@@ -443,7 +438,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		public void cleanup() {
 			if (errorMessage != null) {
 				ASUtils.showExceptionDialogNoReport(parentDialog,
-                    "Error Dropping Conflicts: "+errorMessage, error);
+                    Messages.getString("ExportDDLAction.errorDroppingConflictingObjects")+errorMessage, error); //$NON-NLS-1$
 				setCancelled(true);
 			}
 		}

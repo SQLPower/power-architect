@@ -37,7 +37,7 @@ public class CloseProjectAction extends AbstractArchitectAction {
      * Creates a new close action for the given session.
      */
     public CloseProjectAction(ArchitectSwingSession session) {
-        super(session, "Close Project", "Close", (Icon) null);
+        super(session, Messages.getString("CloseProjectAction.name"), Messages.getString("CloseProjectAction.description"), (Icon) null); //$NON-NLS-1$ //$NON-NLS-2$
         putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_W,
                         Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));

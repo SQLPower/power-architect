@@ -85,8 +85,8 @@ public class AutoLayoutAction extends AbstractArchitectAction {
 			}
 
 			List<? extends LayoutEdge> relationships = playpen.getRelationships();
-			logger.debug("About to do layout. tablePanes="+tablePanes);
-			logger.debug("About to do layout. relationships="+relationships);
+			logger.debug("About to do layout. tablePanes="+tablePanes); //$NON-NLS-1$
+			logger.debug("About to do layout. relationships="+relationships); //$NON-NLS-1$
 
 
 			Rectangle layoutArea = new Rectangle(layoutAreaOffset, layout.getNewArea(tablePanes));

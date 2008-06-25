@@ -81,13 +81,13 @@ public abstract class AbstractArchitectAction extends AbstractAction {
         putValue(SHORT_DESCRIPTION, actionDescription);
 
         this.session = session;
-        if (session == null) throw new NullPointerException("Null session");
+        if (session == null) throw new NullPointerException("Null session"); //$NON-NLS-1$
 
         this.frame = session.getArchitectFrame();
-        if (frame == null) throw new NullPointerException("Null parentFrame");
+        if (frame == null) throw new NullPointerException("Null parentFrame"); //$NON-NLS-1$
         
         this.playpen = frame.getPlayPen();
-        if (playpen == null) throw new NullPointerException("Null playpen");
+        if (playpen == null) throw new NullPointerException("Null playpen"); //$NON-NLS-1$
         
 
     }
