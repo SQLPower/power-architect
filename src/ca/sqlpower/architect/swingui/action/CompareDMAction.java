@@ -31,13 +31,13 @@ public class CompareDMAction extends AbstractArchitectAction {
 	private JDialog d = null;
 	
 	public CompareDMAction(ArchitectSwingSession session, JDialog d) {		
-		super(session, "Compare DM...","Compare Data Models", "compare_DM");
+		super(session, Messages.getString("CompareDMAction.name"),Messages.getString("CompareDMAction.description"), "compare_DM"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		this.d = d;
 	}
 
 	public void actionPerformed(ActionEvent e) {
 		
-		logger.debug("Compare Action started");
+		logger.debug("Compare Action started"); //$NON-NLS-1$
 				
 		// shows the dialog
 		d.setVisible(true);

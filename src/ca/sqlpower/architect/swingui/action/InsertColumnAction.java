@@ -36,7 +36,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
 	private static final Logger logger = Logger.getLogger(InsertColumnAction.class);
 	
 	public InsertColumnAction(ArchitectSwingSession session) {
-        super(session, "New Column...", "New Column (Shortcut C)", "new_column");
+        super(session, Messages.getString("InsertColumnAction.name"), Messages.getString("InsertColumnAction.description"), "new_column"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_C,0));
 		setEnabled(false);
@@ -48,19 +48,19 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         SQLTable st = null;
         int idx = 0;
         if (so instanceof SQLTable) {
-        	logger.debug("user clicked on table, so we shall try to add a column to the end of the table.");
+        	logger.debug("user clicked on table, so we shall try to add a column to the end of the table."); //$NON-NLS-1$
         	st = (SQLTable) so;
         	idx = st.getColumnsFolder().getChildCount();
-        	logger.debug("SQLTable click -- idx set to: " + idx);						
+        	logger.debug("SQLTable click -- idx set to: " + idx);						 //$NON-NLS-1$
         } else if (so instanceof SQLColumn) {
         	// iterate through the column list to figure out what position we are in...
-        	logger.debug("trying to determine insertion index for table.");
+        	logger.debug("trying to determine insertion index for table."); //$NON-NLS-1$
         	SQLColumn sc = (SQLColumn) so;
         	st = sc.getParentTable();
         	idx = st.getColumnIndex(sc);
         	if (idx == -1)  {
         		// not found
-        		logger.debug("did not find column, inserting at start of table.");
+        		logger.debug("did not find column, inserting at start of table."); //$NON-NLS-1$
         		idx = 0;
         	}
         } else {
@@ -86,8 +86,8 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
     @Override
     public void disableAction() {
         setEnabled(false);
-        logger.debug("Disabling Insert Column Action");
-        putValue(SHORT_DESCRIPTION, "Insert Column  (Shortcut C)");
+        logger.debug("Disabling Insert Column Action"); //$NON-NLS-1$
+        putValue(SHORT_DESCRIPTION, Messages.getString("InsertColumnAction.shortDescription")); //$NON-NLS-1$
     }
 
 }

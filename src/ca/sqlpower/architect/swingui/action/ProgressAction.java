@@ -67,12 +67,12 @@ public abstract class ProgressAction extends AbstractArchitectAction {
     public void actionPerformed(ActionEvent e) {
         final JDialog progressDialog;
         final Map<String,Object> properties = new HashMap<String, Object>();
-        progressDialog = new JDialog(frame, "Progress...", false);  
+        progressDialog = new JDialog(frame, Messages.getString("ProgressAction.name"), false);   //$NON-NLS-1$
         progressDialog.setLocationRelativeTo(frame);
         progressDialog.setTitle(getDialogMessage());
         
-        PanelBuilder pb = new PanelBuilder(new FormLayout("4dlu,fill:min(100dlu;default):grow, pref, fill:min(100dlu;default):grow,4dlu",
-                "4dlu,pref,4dlu, pref, 6dlu, pref,4dlu"));
+        PanelBuilder pb = new PanelBuilder(new FormLayout("4dlu,fill:min(100dlu;default):grow, pref, fill:min(100dlu;default):grow,4dlu", //$NON-NLS-1$
+                "4dlu,pref,4dlu, pref, 6dlu, pref,4dlu")); //$NON-NLS-1$
         JLabel label = new JLabel(getDialogMessage());
         JProgressBar progressBar = new JProgressBar();
         final MonitorableImpl monitor = new MonitorableImpl();
@@ -95,7 +95,7 @@ public abstract class ProgressAction extends AbstractArchitectAction {
             @Override
             public void cleanup() throws Exception {
                 if (getDoStuffException() != null) {
-                    ASUtils.showExceptionDialog(session, "An unexpected exception occurred during the export", getDoStuffException());
+                    ASUtils.showExceptionDialog(session, Messages.getString("ProgressAction.unexpectedException"), getDoStuffException()); //$NON-NLS-1$
                 }
                 ProgressAction.this.cleanUp(monitor);
                 monitor.setFinished(true);

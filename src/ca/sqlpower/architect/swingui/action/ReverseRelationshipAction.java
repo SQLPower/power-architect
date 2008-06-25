@@ -103,7 +103,7 @@ public class ReverseRelationshipAction extends AbstractArchitectAction implement
                 playpen.endCompoundEdit("Ending the reversal of a relationship"); //$NON-NLS-1$
             }
         } else {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("ReverseRelationshipAction.noRelationshipSelected")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(playpen, Messages.getString("ReverseRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
         }
         
        

@@ -50,7 +50,7 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 	protected final DBTree dbt; 
 	
 	public EditRelationshipAction(ArchitectSwingSession session) {
-		super(session, "Relationship Properties...", "Relationship Properties", "edit_relationship");
+		super(session, Messages.getString("EditRelationshipAction.name"), Messages.getString("EditRelationshipAction.description"), "edit_relationship"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		setEnabled(false);
         playpen.addSelectionListener(this);
         setupAction(playpen.getSelectedItems());
@@ -61,21 +61,21 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
 			List selection = playpen.getSelectedItems();
 			if (selection.size() < 1) {
-				JOptionPane.showMessageDialog(playpen, "Select a relationship (by clicking on it) and try again.");
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
 			} else if (selection.size() > 1) {
-				JOptionPane.showMessageDialog(playpen, "You have selected multiple items, but you can only edit one at a time.");
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.multipleItemsSelected")); //$NON-NLS-1$
 			} else if (selection.get(0) instanceof Relationship) {
 				Relationship r = (Relationship) selection.get(0);
 				makeDialog(r.getModel());
 			} else {
-				JOptionPane.showMessageDialog(playpen, "Please select the relationship you would like to edit.");
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.5")); //$NON-NLS-1$
 			}
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
 			if (selections.length < 1) {
-				JOptionPane.showMessageDialog(dbt, "Select a relationship (by clicking on it) and try again.");
+				JOptionPane.showMessageDialog(dbt, Messages.getString("EditRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
 			} else if (selections.length > 2) {
-			    JOptionPane.showMessageDialog(playpen, "You have selected multiple items, but you can only edit one at a time.");
+			    JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.multipleItemsSelected")); //$NON-NLS-1$
 			} else {
 			    TreePath tp = selections[0];
 			    SQLObject so = (SQLObject) tp.getLastPathComponent();
@@ -84,7 +84,7 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 			    if (selections.length == 2) {
 			        SQLObject secondObj = (SQLObject) selections[1].getLastPathComponent();
 			        if (!so.equals(secondObj)) {
-			            JOptionPane.showMessageDialog(dbt, "Please select the relationship you would like to edit.");
+			            JOptionPane.showMessageDialog(dbt, Messages.getString("EditRelationshipAction.pleaseSelectRelationship")); //$NON-NLS-1$
 			            return;
 			        }
 			    }
@@ -93,7 +93,7 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 					SQLRelationship sr = (SQLRelationship) so;
 					makeDialog(sr);
 				} else {
-					JOptionPane.showMessageDialog(dbt, "Please select the relationship you would like to edit.");
+					JOptionPane.showMessageDialog(dbt, Messages.getString("EditRelationshipAction.pleaseSelectRelationship")); //$NON-NLS-1$
 				}
 			}
 		} else {
@@ -102,7 +102,7 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 	}
 
 	private void makeDialog(SQLRelationship sqr) {
-		logger.debug("making edit relationship dialog");
+		logger.debug("making edit relationship dialog"); //$NON-NLS-1$
 		
         RelationshipEditPanel editPanel = new RelationshipEditPanel(session);
 		editPanel.setRelationship(sqr);
@@ -110,13 +110,13 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
         ColumnMappingPanel mappingPanel = new ColumnMappingPanel(session, sqr);
         
         TabbedDataEntryPanel panel = new TabbedDataEntryPanel();
-        panel.addTab("Relationship", editPanel);
-        panel.addTab("Mappings", mappingPanel);
+        panel.addTab(Messages.getString("EditRelationshipAction.relationshipTab"), editPanel); //$NON-NLS-1$
+        panel.addTab(Messages.getString("EditRelationshipAction.mappingsTab"), mappingPanel); //$NON-NLS-1$
         
 		final JDialog editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				panel,
 				frame, 
-				"Relationship Properties", "OK");
+				Messages.getString("EditRelationshipAction.dialogTitle"), Messages.getString("EditRelationshipAction.okOption")); //$NON-NLS-1$ //$NON-NLS-2$
 				
 		editPanel.setEditDialog(editDialog);
 		editDialog.pack();
@@ -127,8 +127,8 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 	public void setupAction(List selectedItems) {
 		if (selectedItems.size() == 0) {
 			setEnabled(false);
-			logger.debug("Disabling edit relationship");
-			putValue(SHORT_DESCRIPTION, "Edit Relationship");
+			logger.debug("Disabling edit relationship"); //$NON-NLS-1$
+			putValue(SHORT_DESCRIPTION, Messages.getString("EditRelationshipAction.shortDescription")); //$NON-NLS-1$
 		} else {
 			Selectable item = (Selectable) selectedItems.get(0);
 			if (item instanceof Relationship )				

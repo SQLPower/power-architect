@@ -47,7 +47,7 @@ public class UndoAction extends AbstractArchitectAction {
 	private ChangeListener managerListener = new ManagerListener();
 	
 	public UndoAction(ArchitectSwingSession session, UndoManager manager) {
-        super(session, "Undo", "Undo", "undo_arrow");
+        super(session, Messages.getString("UndoAction.name"), Messages.getString("UndoAction.description"), "undo_arrow"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         this.manager = manager;
@@ -59,9 +59,9 @@ public class UndoAction extends AbstractArchitectAction {
         if (logger.isDebugEnabled()) {
             logger.debug(manager);
             int choice = JOptionPane.showConfirmDialog(null,
-                    "Undo manager state dumped to logger." +
-                    "\n\n" +
-                    "Proceed with undo?");
+                    "Undo manager state dumped to logger." + //$NON-NLS-1$
+                    "\n\n" + //$NON-NLS-1$
+                    "Proceed with undo?"); //$NON-NLS-1$
             if (choice == JOptionPane.YES_OPTION) {
                 manager.undo();
             }

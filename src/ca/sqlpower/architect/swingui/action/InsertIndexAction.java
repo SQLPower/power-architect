@@ -40,7 +40,7 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
     private static final Logger logger = Logger.getLogger(InsertColumnAction.class);
     
     public InsertIndexAction(ArchitectSwingSession session) {
-        super(session, "New Index...", "New Index (Shortcut I)", "new_index");
+        super(session, Messages.getString("InsertIndexAction.name"), Messages.getString("InsertIndexAction.description"), "new_index"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I, 0));
         setEnabled(false);
@@ -50,8 +50,8 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
     @Override
     public void disableAction() {
         setEnabled(false);
-        logger.debug("Disabling New Index Action");
-        putValue(SHORT_DESCRIPTION, "New Index");
+        logger.debug("Disabling New Index Action"); //$NON-NLS-1$
+        putValue(SHORT_DESCRIPTION, Messages.getString("InsertIndexAction.shortDescription")); //$NON-NLS-1$
     }
 
 
@@ -81,7 +81,7 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
   
         d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 editPanel, frame,
-                "Index Properties", "OK");
+                Messages.getString("InsertIndexAction.dialogTitle"), Messages.getString("InsertIndexAction.okOption")); //$NON-NLS-1$ //$NON-NLS-2$
         d.pack();
         d.setLocationRelativeTo(frame);
         d.setVisible(true);

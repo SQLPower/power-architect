@@ -41,7 +41,7 @@ public class Messages {
     public static String getString(String key, String ... params) {
         String message = getString(key);
         for (int i = 0; i < params.length; i++) {
-            message = message.replace("{" + i + "}", params[i]);
+            message = message.replace("{" + i + "}", params[i]); //$NON-NLS-1$ //$NON-NLS-2$
         }
         return message;
     }

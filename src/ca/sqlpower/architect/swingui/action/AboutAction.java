@@ -37,7 +37,7 @@ import ca.sqlpower.swingui.SPSUtils;
 public class AboutAction extends AbstractArchitectAction {
 
     public AboutAction(ArchitectSwingSession session) {
-		super(session, "About Power*Architect...", "About the Power*Architect", "Architect");
+		super(session, Messages.getString("AboutAction.name"), Messages.getString("AboutAction.description"), "Architect"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -45,7 +45,7 @@ public class AboutAction extends AbstractArchitectAction {
 		// with a call to ArchitectPanelBuilder, because an About
 		// box must have only ONE button...
 		final JDialog d = new JDialog(frame,
-									  "About the Power*Architect");
+									  Messages.getString("AboutAction.dialogTitle")); //$NON-NLS-1$
 		JPanel cp = new JPanel(new BorderLayout(12,12));
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		final AboutPanel aboutPanel = new AboutPanel();
@@ -59,7 +59,7 @@ public class AboutAction extends AbstractArchitectAction {
 					d.setVisible(false);
 			}
 		};
-		okAction.putValue(Action.NAME, "OK");
+		okAction.putValue(Action.NAME, Messages.getString("AboutAction.okOption")); //$NON-NLS-1$
 		JDefaultButton okButton = new JDefaultButton(okAction);
 		buttonPanel.add(okButton);
 			

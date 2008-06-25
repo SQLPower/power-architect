@@ -69,22 +69,22 @@ public class EditSelectedIndexAction extends EditIndexAction {
      * @param session The ArchitectSession to which this action belongs.
      */
     public EditSelectedIndexAction(ArchitectSwingSession session) {
-        super(session, "Index Properties...", "Index Properties", "edit_index");
+        super(session, Messages.getString("EditSelectedIndexAction.name"), Messages.getString("EditSelectedIndexAction.description"), "edit_index"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         dbt = frame.getDbTree();
     }
 
     public void actionPerformed(ActionEvent evt) {
         TreePath [] selections = dbt.getSelectionPaths();
-        logger.debug("selections length is: " + selections.length);
+        logger.debug("selections length is: " + selections.length); //$NON-NLS-1$
         if (selections.length != 1) {
-            JOptionPane.showMessageDialog(dbt, "To indicate which index you like edit, please select a single index header.");
+            JOptionPane.showMessageDialog(dbt, Messages.getString("EditSelectedIndexAction.instructions")); //$NON-NLS-1$
         } else {
             TreePath tp = selections[0];
             SQLObject so = (SQLObject) tp.getLastPathComponent();
             SQLIndex si = null;
 
             if (so instanceof SQLIndex) {
-                logger.debug("user clicked on index, so we shall try to edit the index properties.");
+                logger.debug("user clicked on index, so we shall try to edit the index properties."); //$NON-NLS-1$
                 si = (SQLIndex) so;
                 try {
                     makeDialog(si);
@@ -92,7 +92,7 @@ public class EditSelectedIndexAction extends EditIndexAction {
                     throw new ArchitectRuntimeException(e);
                 } 
             } else {
-                JOptionPane.showMessageDialog(dbt, "To indicate which index name you would like to edit, please select a single index header.");
+                JOptionPane.showMessageDialog(dbt, Messages.getString("EditSelectedIndexAction.instructions")); //$NON-NLS-1$
             }
         }
     }

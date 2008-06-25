@@ -32,18 +32,18 @@ public class ProjectSettingsAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
 
 	public ProjectSettingsAction(ArchitectSwingSession session) {
-        super(session, "Project Settings...", "Project Settings");
+        super(session, Messages.getString("ProjectSettingsAction.name"), Messages.getString("ProjectSettingsAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		logger.debug(getValue(SHORT_DESCRIPTION) + " invoked");
+		logger.debug(getValue(SHORT_DESCRIPTION) + " invoked"); //$NON-NLS-1$
 		
 		final ProjectSettingsPanel settingsPanel = new ProjectSettingsPanel(session);
 
 		final JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				settingsPanel,
 				frame,
-				"Project Settings",
+				Messages.getString("ProjectSettingsAction.dialogTitle"), //$NON-NLS-1$
 				DataEntryPanelBuilder.OK_BUTTON_LABEL );		
 
 		d.pack();
