@@ -271,14 +271,19 @@ public class TablePane
                 }
                 for (int i = 0; i < ci.length; i++) {
                     boolean wasSelectedPreviously = (e.getChildren()[i] == mostRecentSelectedRemoval);
+                    final SQLColumn column = (SQLColumn) e.getChildren()[i];
                     if (wasSelectedPreviously) {
-                        selectedColumns.add((SQLColumn) e.getChildren()[i]);
-                        selectColumnOnTree((SQLColumn) e.getChildren()[i]);
+                        selectedColumns.add(column);
+                        SwingUtilities.invokeLater(new Runnable() {
+                            public void run() {
+                                selectColumnOnTree(column);
+                            }
+                        });
                     }
                     // This is only supposed to work if we deselect the columns before selecting them
                     // this if stops the insert from wiping out a highlighted column
-                    if (columnHighlight.get((SQLColumn) e.getChildren()[i]) == null) {
-                        columnHighlight.put((SQLColumn) e.getChildren()[i], new ArrayList<Color>());
+                    if (columnHighlight.get(column) == null) {
+                        columnHighlight.put(column, new ArrayList<Color>());
                     }
                 }
             }
