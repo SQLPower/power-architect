@@ -49,10 +49,10 @@ public class ProfileAction extends AbstractArchitectAction {
     private final ProfileManager profileManager;
 
     public ProfileAction(ArchitectSwingSession session, ProfileManager profileManager) {
-        super(session, "Profile...", "Profile Tables", "Table_profiled");
+        super(session, Messages.getString("ProfileAction.name"), Messages.getString("ProfileAction.desctiption"), "Table_profiled"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         dbTree = frame.getDbTree();
         if (dbTree == null) {
-            throw new NullPointerException("The database tree is null");
+            throw new NullPointerException(Messages.getString("ProfileAction.databaseTreeNull")); //$NON-NLS-1$
         }
         this.profileManager = profileManager; 
     }
@@ -65,9 +65,9 @@ public class ProfileAction extends AbstractArchitectAction {
                 if (targetDBPath.isDescendant(path)) {
     
                     int answer = JOptionPane.showConfirmDialog(session.getArchitectFrame(),
-                            "Cannot perform profiling on the project database." +
-                            "\nDo you want to continue profiling?",
-                            "Continue Profiling",JOptionPane.OK_CANCEL_OPTION);
+                            Messages.getString("ProfileAction.cannotProfileProjectDb") + //$NON-NLS-1$
+                            "", //$NON-NLS-1$
+                            Messages.getString("ProfileAction.continueProfilingOption"),JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
                     if (answer == JOptionPane.CANCEL_OPTION){
                         return;
                     } else {
@@ -87,7 +87,7 @@ public class ProfileAction extends AbstractArchitectAction {
         try {
             Set<SQLObject> sqlObject = new HashSet<SQLObject>();
             for ( TreePath tp : dbTree.getSelectionPaths() ) {
-                logger.debug("Top of first loop, treepath=" + tp);
+                logger.debug("Top of first loop, treepath=" + tp); //$NON-NLS-1$
                 // skip the target db
                 if (targetDBPath.isDescendant(tp)) continue;
                 if ( tp.getLastPathComponent() instanceof SQLDatabase ) {
@@ -159,15 +159,15 @@ public class ProfileAction extends AbstractArchitectAction {
                 }
             }
 
-            logger.debug("Calling profileManager.asynchCreateProfiles(tables)");
+            logger.debug("Calling profileManager.asynchCreateProfiles(tables)"); //$NON-NLS-1$
             profileManager.asynchCreateProfiles(tables);
             JDialog profileDialog = session.getProfileDialog();
             profileDialog.pack();
             profileDialog.setVisible(true);
 
         } catch (Exception ex) {
-            logger.error("Error in Profile Action ", ex);
-            ASUtils.showExceptionDialog(session, "Error during profile run", ex);
+            logger.error("Error in Profile Action ", ex); //$NON-NLS-1$
+            ASUtils.showExceptionDialog(session, Messages.getString("ProfileAction.profileError"), ex); //$NON-NLS-1$
         }
     }
 

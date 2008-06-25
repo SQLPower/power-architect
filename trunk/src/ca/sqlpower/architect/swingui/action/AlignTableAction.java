@@ -64,11 +64,11 @@ public class AlignTableAction extends AbstractArchitectAction implements Selecti
     public void actionPerformed(ActionEvent e) {
         List<TablePane> selection = playpen.getSelectedTables();
         if (selection.size() < 2) {
-            JOptionPane.showMessageDialog(playpen, "Select at least 2 tables.");
+            JOptionPane.showMessageDialog(playpen, Messages.getString("AlignTableAction.selectAtLeastTwoTables")); //$NON-NLS-1$
         } else if (selection.size() >= 2) {
             int min = Integer.MAX_VALUE;
-            playpen.startCompoundEdit("Aligning tables");
-            logger.debug("Starting to align " + selection.size() + "tables");
+            playpen.startCompoundEdit("Aligning tables"); //$NON-NLS-1$
+            logger.debug("Starting to align " + selection.size() + "tables"); //$NON-NLS-1$ //$NON-NLS-2$
             if (!isHorizontal) {
                 for (int i = 0; i < selection.size(); i++) {
                     if (selection.get(i).getX() < min) { 
@@ -88,9 +88,9 @@ public class AlignTableAction extends AbstractArchitectAction implements Selecti
                     selection.get(i).setLocation(selection.get(i).getX(), min);
                 }
             }
-            playpen.endCompoundEdit("Ending the alignment of tables");
+            playpen.endCompoundEdit("Ending the alignment of tables"); //$NON-NLS-1$
         } else {
-            JOptionPane.showMessageDialog(playpen, "Please select at least 2 tables.");
+            JOptionPane.showMessageDialog(playpen, Messages.getString("AlignTableAction.selectAtLeastTwoTables")); //$NON-NLS-1$
         }
 
     }

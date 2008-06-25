@@ -55,7 +55,7 @@ public class FocusToChildOrParentTableAction extends AbstractArchitectAction imp
                 playpen.showSelected();
             }
         } else {
-            JOptionPane.showMessageDialog(playpen, "Select exactly 1 relationship to get to focus on its parent or child table.");
+            JOptionPane.showMessageDialog(playpen, Messages.getString("FocusToChildOrParentTableAction.selectExactlyOneRelationship")); //$NON-NLS-1$
         }
     }
     
