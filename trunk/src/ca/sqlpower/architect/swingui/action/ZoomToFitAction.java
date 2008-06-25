@@ -46,7 +46,7 @@ public class ZoomToFitAction extends AbstractArchitectAction {
      * no modifiers.
      */
     public ZoomToFitAction(ArchitectSwingSession session) {
-        super(session, "Zoom to fit", "Zoom to fit", "zoom_fit");
+        super(session, Messages.getString("ZoomToFitAction.name"), Messages.getString("ZoomToFitAction.description"), "zoom_fit"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         putValue(AbstractAction.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
     }
     
@@ -62,7 +62,7 @@ public class ZoomToFitAction extends AbstractArchitectAction {
         if (playpen == null) {
             // It would be best to throw the NPE here, but the old implementation just
             // silently returned with no side effects when the playpen was missing.
-            logger.error("No playpen for this action!? Doing nothing...");
+            logger.error("No playpen for this action!? Doing nothing..."); //$NON-NLS-1$
             return;
         }
         

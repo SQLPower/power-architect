@@ -36,13 +36,13 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
 
     private static final Logger logger = Logger.getLogger(CheckForUpdateAction.class);
 
-    private static final String VERSION_FILE_URL = "http://power-architect.sqlpower.ca/current_version";
+    private static final String VERSION_FILE_URL = "http://power-architect.sqlpower.ca/current_version"; //$NON-NLS-1$
 
     private ArchitectSwingSession session;
     private String versionPropertyString;
 
     public CheckForUpdateAction(ArchitectSwingSession session) {
-        super(session, "Check for Software Updates", "Check for Software Updates");
+        super(session, Messages.getString("CheckForUpdateAction.name"), Messages.getString("CheckForUpdateAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
         this.session = session;
     }
 
@@ -54,7 +54,7 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
             URL url = new URL(VERSION_FILE_URL);
             HttpURLConnection urlc = (HttpURLConnection) url.openConnection();
             urlc.setAllowUserInteraction(false);
-            urlc.setRequestMethod("GET");
+            urlc.setRequestMethod("GET"); //$NON-NLS-1$
             urlc.setDoInput(true);
             urlc.setDoOutput(false);
             urlc.connect();
@@ -62,7 +62,7 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
             Properties properties = new Properties();
             properties.load(propertyInputStream);
 
-            versionPropertyString = properties.getProperty("app.version");
+            versionPropertyString = properties.getProperty("app.version"); //$NON-NLS-1$
             ArchitectVersion latestVersion = new ArchitectVersion(versionPropertyString);
             ArchitectVersion userVersion = ArchitectVersion.getAppVersionObject();
             
@@ -71,16 +71,16 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
                 return;
             }
             else {
-                JOptionPane.showMessageDialog(this.session.getArchitectFrame(), "Your copy of Power*Architect is up to date.",
-                  "The latest version of Power*Architect is: " + latestVersion.toString(), JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this.session.getArchitectFrame(), Messages.getString("CheckForUpdateAction.upToDate"), //$NON-NLS-1$
+                  Messages.getString("CheckForUpdateAction.latestVersionOfArchitectIs") + latestVersion.toString(), JOptionPane.INFORMATION_MESSAGE); //$NON-NLS-1$
                   setEnabled(false);
                   return;
             }
         } catch(Exception ex) {
-            JOptionPane.showMessageDialog(this.session.getArchitectFrame(), "Failed to check for software updates",
-                    "Your version of Power*Architect is: " + ArchitectVersion.APP_VERSION, JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this.session.getArchitectFrame(), Messages.getString("CheckForUpdateAction.failedToUpdate"), //$NON-NLS-1$
+                    Messages.getString("CheckForUpdateAction.yourVersionIs") + ArchitectVersion.APP_VERSION, JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
             ex.printStackTrace();
-            logger.error("Fail to compare version number");
+            logger.error("Fail to compare version number"); //$NON-NLS-1$
         }
     }
 
@@ -88,8 +88,8 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
      * This method is to be modified later according to specifications of software update
      */
     private void promptUpdate() {
-        JOptionPane.showMessageDialog(this.session.getArchitectFrame(), "An updated version of Power*Architect is available, " +
-                "please visit http://download.sqlpower.ca/architect/current.html for the latest version.", "The latest version of Power*Architect is: " + 
+        JOptionPane.showMessageDialog(this.session.getArchitectFrame(), Messages.getString("CheckForUpdateAction.updatedVersionAvailable") + //$NON-NLS-1$
+                Messages.getString("CheckForUpdateAction.updateInstructions"), Messages.getString("CheckForUpdateAction.latestVersionIs") +  //$NON-NLS-1$ //$NON-NLS-2$
                 versionPropertyString, JOptionPane.INFORMATION_MESSAGE);
 
     }

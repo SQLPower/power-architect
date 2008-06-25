@@ -37,13 +37,13 @@ public class SelectAllAction extends AbstractAction {
 	private final PlayPen pp;
 
 	public SelectAllAction(ArchitectSwingSession session) {
-		super("Select All");
-		putValue(SHORT_DESCRIPTION, "Select All");
+		super(Messages.getString("SelectAllAction.name")); //$NON-NLS-1$
+		putValue(SHORT_DESCRIPTION, Messages.getString("SelectAllAction.description")); //$NON-NLS-1$
         pp = session.getPlayPen();
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		logger.debug(getValue(SHORT_DESCRIPTION) + ": started");
+		logger.debug(getValue(SHORT_DESCRIPTION) + ": started"); //$NON-NLS-1$
 		pp.selectAll();
 	}
 	

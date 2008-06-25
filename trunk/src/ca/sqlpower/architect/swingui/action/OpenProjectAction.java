@@ -52,7 +52,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
     RecentMenu recent;
 
     public OpenProjectAction(ArchitectSwingSession session) {
-        super(session, "Open Project...", "Open", "folder");
+        super(session, Messages.getString("OpenProjectAction.name"), Messages.getString("OpenProjectAction.description"), "folder"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         this.recent = session.getRecentMenu();
         putValue(AbstractAction.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit()
                 .getMenuShortcutKeyMask()));
@@ -68,7 +68,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 OpenProjectAction.openAsynchronously(session.getContext().createSession(false), f, session);
             } catch (ArchitectException ex) {
                 SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
-                        "Failed to open project file", ex);
+                        Messages.getString("OpenProjectAction.failedToOpenProjectFile"), ex); //$NON-NLS-1$
             }
         }
     }
@@ -100,7 +100,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
             worker = new LoadFileWorker(f, newSession, openingSession);
             new Thread(worker).start();
         } catch (Exception e1) {
-            ASUtils.showExceptionDialogNoReport("Error loading file", e1);
+            ASUtils.showExceptionDialogNoReport(Messages.getString("OpenProjectAction.errorLoadingFile"), e1); //$NON-NLS-1$
         }
 
     }
@@ -161,7 +161,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
             // to the architect icon, and use it as the owner of all
             // "unowned" dialogs like this one.
             in = new BufferedInputStream(new ProgressMonitorInputStream(openingSession.getArchitectFrame(),
-                    "Reading " + file.getName(), new FileInputStream(file)));
+                    Messages.getString("OpenProjectAction.reading") + file.getName(), new FileInputStream(file))); //$NON-NLS-1$
         }
 
         @Override
@@ -178,13 +178,13 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 // the user cancelled the file load,
                 // in which ProgressMonitorInputStream throws an
                 // InterruptedIOException with message "progress"
-                if (!(cause instanceof InterruptedIOException) || !(cause.getMessage().equals("progress"))) {
+                if (!(cause instanceof InterruptedIOException) || !(cause.getMessage().equals("progress"))) { //$NON-NLS-1$
                     // We have to use the non-session exception dialogue here,
                     // because there is no session available (we just failed to
                     // create one!)
-                    ASUtils.showExceptionDialogNoReport("Cannot open project file '" + file.getAbsolutePath() + "'",
+                    ASUtils.showExceptionDialogNoReport(Messages.getString("OpenProjectAction.cannotOpenProjectFile") + file.getAbsolutePath(), //$NON-NLS-1$
                             getDoStuffException());
-                    logger.error("Got exception while opening a project", getDoStuffException());
+                    logger.error("Got exception while opening a project", getDoStuffException()); //$NON-NLS-1$
                 }
                 session.removeSwingWorker(this);
                 if (session.getContext().getSessions().size() > 1) {
@@ -203,7 +203,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
                     in.close();
                 }
             } catch (IOException ie) {
-                logger.error("got exception while closing project file", ie);
+                logger.error("got exception while closing project file", ie); //$NON-NLS-1$
             }
         }
     }

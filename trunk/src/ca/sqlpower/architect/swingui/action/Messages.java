@@ -16,40 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
-/**
- * 
- */
+
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.event.ActionEvent;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 
-import javax.swing.AbstractAction;
+public class Messages {
+    private static final String BUNDLE_NAME = "ca.sqlpower.architect.swingui.action.messages"; //$NON-NLS-1$
 
-import org.apache.log4j.Logger;
+    private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
 
-import ca.sqlpower.architect.swingui.PlayPen;
+    private Messages() {
+    }
 
-
-public class CancelAction extends AbstractAction {
-
-	private static final Logger logger = Logger.getLogger(CancelAction.class);
-	/**
-	 * 
-	 */
-	private PlayPen pp;
-	
-	public CancelAction(PlayPen cil) {
-		setPlayPen(cil); // runner-up for the IOJCC 2006
-	}
-	
-	public void actionPerformed(ActionEvent e) {
-		this.pp.fireCancel();
-		logger.debug("Fired cancel action"); //$NON-NLS-1$
-	}
-	public void setPlayPen(PlayPen pp) {
-		this.pp = pp;
-	}
-	
-	
-	
+    public static String getString(String key) {
+        try {
+            return RESOURCE_BUNDLE.getString(key);
+        } catch (MissingResourceException e) {
+            return '!' + key + '!';
+        }
+    }
 }
