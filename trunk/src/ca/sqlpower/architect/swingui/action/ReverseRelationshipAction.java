@@ -57,7 +57,7 @@ public class ReverseRelationshipAction extends AbstractArchitectAction implement
     private ArchitectFrame af;
     
     public ReverseRelationshipAction(ArchitectSwingSession session) {
-        super(session, "Reverse Relationship", "Reverse Relationship", "reverse");
+        super(session, Messages.getString("ReverseRelationshipAction.name"), Messages.getString("ReverseRelationshipAction.description"), "reverse"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         this.af = session.getArchitectFrame();
         setEnabled(true);
         
@@ -72,9 +72,9 @@ public class ReverseRelationshipAction extends AbstractArchitectAction implement
         
         List selection = playpen.getSelectedItems();
         if (selection.size() < 1) {
-            JOptionPane.showMessageDialog(playpen, "Select a relationship (by clicking on it) and try again.");
+            JOptionPane.showMessageDialog(playpen, Messages.getString("ReverseRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
         } else if (selection.size() > 1) {
-            JOptionPane.showMessageDialog(playpen, "You have selected multiple items, but you can only reverse one at a time.");
+            JOptionPane.showMessageDialog(playpen, Messages.getString("ReverseRelationshipAction.multipleItemsSelected")); //$NON-NLS-1$
         } else if (selection.get(0) instanceof Relationship) {
             this.relationship = af.getPlayPen().getSelectedRelationShips().get(0);
             SQLTable fkTable = relationship.getFkTable().getModel();
@@ -82,14 +82,14 @@ public class ReverseRelationshipAction extends AbstractArchitectAction implement
             boolean identify = relationship.getModel().isIdentifying();
             
             try {
-                playpen.startCompoundEdit("Reverse Relationship");
+                playpen.startCompoundEdit("Reverse Relationship"); //$NON-NLS-1$
                 
                 SQLRelationship sr = relationship.getModel();
                 sr.getPkTable().removeExportedKey(sr);
                 SQLRelationship model = new SQLRelationship();
                 // XXX: need to ensure uniqueness of setName(), but 
                 // to_identifier should take care of this...            
-                model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk"); 
+                model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk");  //$NON-NLS-1$ //$NON-NLS-2$
                 model.setIdentifying(identify);
                 model.attachRelationship(fkTable,pkTable,true);
 
@@ -97,13 +97,13 @@ public class ReverseRelationshipAction extends AbstractArchitectAction implement
                 playpen.addRelationship(r);
                 r.revalidate();
             } catch (ArchitectException ex) {
-                logger.error("Couldn't reverse relationship", ex);
-                ASUtils.showExceptionDialogNoReport(playpen, "Couldn't reverse relationship.", ex);
+                logger.error("Couldn't reverse relationship", ex); //$NON-NLS-1$
+                ASUtils.showExceptionDialogNoReport(playpen, Messages.getString("ReverseRelationshipAction.couldNotReverseRelationship"), ex); //$NON-NLS-1$
             } finally {
-                playpen.endCompoundEdit("Ending the reversal of a relationship");
+                playpen.endCompoundEdit("Ending the reversal of a relationship"); //$NON-NLS-1$
             }
         } else {
-            JOptionPane.showMessageDialog(playpen, "Please select the relationship you would like to edit.");
+            JOptionPane.showMessageDialog(playpen, Messages.getString("ReverseRelationshipAction.noRelationshipSelected")); //$NON-NLS-1$
         }
         
        

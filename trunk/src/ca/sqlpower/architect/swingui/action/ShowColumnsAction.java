@@ -45,7 +45,7 @@ public class ShowColumnsAction extends AbstractArchitectAction{
     protected ArchitectSwingSession session;
     
     public ShowColumnsAction(ArchitectSwingSession session) {
-        super(session, "Show Columns...", "Show Columns");
+        super(session, Messages.getString("ShowColumnsAction.name"), Messages.getString("ShowColumnsAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
         this.session = session;
         setEnabled(true);
     }
@@ -61,8 +61,8 @@ public class ShowColumnsAction extends AbstractArchitectAction{
         editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 showColumnsPanel,
                 frame,
-                "Show Columns in Playpen",
-                "OK",
+                Messages.getString("ShowColumnsAction.dialogTitle"), //$NON-NLS-1$
+                Messages.getString("ShowColumnsAction.OkOption"), //$NON-NLS-1$
                 new Callable<Boolean>(){
                     public Boolean call() {
                         return showColumnsPanel.applyChanges();

@@ -38,7 +38,7 @@ public class CreateTableAction extends AbstractArchitectAction {
 	private final ArchitectSwingSession session;
 	
 	public CreateTableAction(ArchitectSwingSession session) {
-        super(session, "New Table...", "New Table (Shortcut T)", "new_table");
+        super(session, Messages.getString("CreateTableAction.name"), Messages.getString("CreateTableAction.description"), "new_table"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         this.session = session;
 		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_T,0));
 	}
@@ -50,10 +50,10 @@ public class CreateTableAction extends AbstractArchitectAction {
             t = new SQLTable();
 			t.initFolders(true);
 		} catch (ArchitectException e) {
-			logger.error("Couldn't add folder to table \""+t.getName()+"\"", e);
-			ASUtils.showExceptionDialog(session, "Failed to add folder to table.", e);
+			logger.error("Couldn't add folder to table \""+t.getName()+"\"", e); //$NON-NLS-1$ //$NON-NLS-2$
+			ASUtils.showExceptionDialog(session, Messages.getString("CreateTableAction.couldNotAddFolder"), e); //$NON-NLS-1$
 		}
-		t.setName("New_Table");
+		t.setName("New_Table"); //$NON-NLS-1$
 		
 		TablePane tp = new TablePane(t, playpen);
 		playpen.addFloating(tp);

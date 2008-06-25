@@ -38,13 +38,13 @@ public class SQLRunnerAction extends AbstractArchitectAction {
     static ConfigurationManager configManager;
 
     public SQLRunnerAction(ArchitectSwingSession session) {
-        super(session, "SQL Runner...", "Run SQL directly", "query");
+        super(session, Messages.getString("SQLRunnerAction.name"), Messages.getString("SQLRunnerAction.description"), "query"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         configManager = new ArchitectSQLRunnerConfigurationManager(session);
     }
 
     public void actionPerformed(ActionEvent e) {
-        logger.debug("Showing SQLRunnerGUI");
-        new SQLRunnerGUI(new ArchitectSQLRunnerConfigurationManager(session),"Power*Architect SQLRunner"); // Sets itself visible; this is all we need here.
+        logger.debug("Showing SQLRunnerGUI"); //$NON-NLS-1$
+        new SQLRunnerGUI(new ArchitectSQLRunnerConfigurationManager(session),Messages.getString("SQLRunnerAction.dialogTitle")); // Sets itself visible; this is all we need here. //$NON-NLS-1$
     }
 
 }

@@ -99,7 +99,7 @@ public class SaveProfileAction extends AbstractAction {
      * XXX this should be a collection of TableProfileResult objects, not a view component that houses them
      */
     public SaveProfileAction(Component dialogOwner, ProfileJTable viewTable) {
-        super("Save...");
+        super(Messages.getString("SaveProfileAction.name")); //$NON-NLS-1$
         this.dialogOwner = dialogOwner;
         this.viewTable = viewTable;
     }
@@ -134,13 +134,13 @@ public class SaveProfileAction extends AbstractAction {
             if ( !fullSelection ) {
                 response = JOptionPane.showOptionDialog(
                         dialogOwner,
-                        "You have selected only part of a table.\nDo you want to save only this portion?",
-                        "Your selection contains partial table(s)",
+                        Messages.getString("SaveProfileAction.saveOnlySelectedPortion"), //$NON-NLS-1$
+                        Messages.getString("SaveProfileAction.saveOnlySelectedPortionDialogTitle"), //$NON-NLS-1$
                         0,
                         JOptionPane.QUESTION_MESSAGE,
                         null,
-                        new String[] {"Save Partial","Save Entire Table"},
-                        "Save Entire Table");
+                        new String[] {Messages.getString("SaveProfileAction.savePartialOption"),Messages.getString("SaveProfileAction.saveEntireTableOption")}, //$NON-NLS-1$ //$NON-NLS-2$
+                        Messages.getString("SaveProfileAction.saveEntireTableOption")); //$NON-NLS-1$
             }
 
             if (response == 1) { // entire table
@@ -203,29 +203,29 @@ public class SaveProfileAction extends AbstractAction {
             } else {
                 // force filename to end with correct extention
                 if (fileFilter == SPSUtils.HTML_FILE_FILTER) {
-                    if (!fileName.endsWith(".html")) {
-                        file = new File(file.getPath()+".html");
+                    if (!fileName.endsWith(".html")) { //$NON-NLS-1$
+                        file = new File(file.getPath()+".html"); //$NON-NLS-1$
                     }
                     type = SaveableFileType.HTML;
                 } else if (fileFilter == SPSUtils.PDF_FILE_FILTER){
-                    if (!fileName.endsWith(".pdf")) {
-                        file = new File(file.getPath()+".pdf");
+                    if (!fileName.endsWith(".pdf")) { //$NON-NLS-1$
+                        file = new File(file.getPath()+".pdf"); //$NON-NLS-1$
                     }
                     type = SaveableFileType.PDF;
                 } else if (fileFilter == SPSUtils.CSV_FILE_FILTER){
-                    if (!fileName.endsWith(".csv")) {
-                        file = new File(file.getPath()+".csv");
+                    if (!fileName.endsWith(".csv")) { //$NON-NLS-1$
+                        file = new File(file.getPath()+".csv"); //$NON-NLS-1$
                     }
                     type = SaveableFileType.CSV;
                 } else {
-                    throw new IllegalStateException("Unexpected file filter chosen");
+                    throw new IllegalStateException(Messages.getString("SaveProfileAction.unexpectedFileFilter")); //$NON-NLS-1$
                 }
             }
             if (file.exists()) {
                 response = JOptionPane.showConfirmDialog(
                         dialogOwner,
-                        "The file\n" + file.getPath() + "\nalready exists. Do you want to overwrite it?",
-                        "File Exists", JOptionPane.YES_NO_OPTION);
+                        Messages.getString("SaveProfileAction.fileAlreadyExists", file.getPath()), //$NON-NLS-1$ //$NON-NLS-2$
+                        Messages.getString("SaveProfileAction.fileAlreadyExistsDialogTitle"), JOptionPane.YES_NO_OPTION); //$NON-NLS-1$
                 if (response != JOptionPane.NO_OPTION) {
                     break;
                 }
@@ -246,7 +246,7 @@ public class SaveProfileAction extends AbstractAction {
                     out = new BufferedOutputStream(new FileOutputStream(file2));
                     switch(type2) {
                     case HTML:
-                        final String encoding = "utf-8";
+                        final String encoding = "utf-8"; //$NON-NLS-1$
                         prf = new ProfileHTMLFormat(encoding);
                         break;
                     case PDF:
@@ -256,13 +256,13 @@ public class SaveProfileAction extends AbstractAction {
                         prf = new ProfileCSVFormat();
                         break;
                     default:
-                        throw new IllegalArgumentException("Unknown type");
+                        throw new IllegalArgumentException(Messages.getString("SaveProfileAction.unknownType")); //$NON-NLS-1$
                     }
                     prf.format(out, objectToSave.getDepthFirstList());
                 } catch (Exception ex) {
                     //FIXME: This should generate and send an error report
                     ASUtils.showExceptionDialogNoReport(dialogOwner,
-                        "Could not generate/save report file", ex);
+                        Messages.getString("SaveProfileAction.couldNotSaveReport"), ex); //$NON-NLS-1$
                 } finally {
                     if ( out != null ) {
                         try {
@@ -271,7 +271,7 @@ public class SaveProfileAction extends AbstractAction {
                         } catch (IOException ex) {
                             //FIXME: This should generate and send an error report
                             ASUtils.showExceptionDialogNoReport(dialogOwner,
-                                "Could not close report file", ex);
+                                Messages.getString("SaveProfileAction.couldNotCloseReport"), ex); //$NON-NLS-1$
                         }
                     }
                 }
