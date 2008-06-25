@@ -35,12 +35,12 @@ public class SearchReplaceAction extends AbstractArchitectAction {
     protected final DBTree dbt;
     
     public SearchReplaceAction(ArchitectSwingSession session) {
-        super(session, "Find/Replace...", "Fine/Replace", "search_replace");
+        super(session, Messages.getString("SearchReplaceAction.name"), Messages.getString("SearchReplaceAction.description"), "search_replace"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         dbt = frame.getDbTree();
     }
     
     public void actionPerformed(ActionEvent evt) {
-    	logger.debug(getValue(SHORT_DESCRIPTION) + ": started");
+    	logger.debug(getValue(SHORT_DESCRIPTION) + ": started"); //$NON-NLS-1$
         SearchReplace sr = new SearchReplace();
         sr.showSearchDialog(playpen);
     }

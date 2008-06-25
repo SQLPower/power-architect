@@ -70,10 +70,10 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
     private final JFrame parentFrame;
     
     public VisualMappingReportAction(JFrame parentFrame, ArchitectSwingSession session) {
-        super(session, "Visual Mapping Report", "Visual Mapping Report");
+        super(session, Messages.getString("VisualMappingReportAction.name"), Messages.getString("VisualMappingReportAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
         this.session = session;
 
-        if (parentFrame == null) throw new NullPointerException("Null parentFrame");
+        if (parentFrame == null) throw new NullPointerException("Null parentFrame"); //$NON-NLS-1$
         this.parentFrame = parentFrame;
     }
 
@@ -87,8 +87,8 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
             } else {
                 if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
                         parentFrame,
-                        "View only the " + playpen.getSelectedTables().size() + " selected tables",
-                        "Show Mapping",
+                        Messages.getString("VisualMappingReportAction.viewOnlySelectedTables", String.valueOf(playpen.getSelectedTables().size())), //$NON-NLS-1$
+                        Messages.getString("VisualMappingReportAction.viewOnlySelectedTablesDialogTitle"), //$NON-NLS-1$
                         JOptionPane.YES_NO_OPTION)) {
                     selectedTables = new ArrayList<SQLTable>();
                     for(TablePane tp: playpen.getSelectedTables()) {
@@ -100,7 +100,7 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
             }
             mr = new MappingReport(session, selectedTables);
 
-            final JFrame f = new JFrame("Mapping Report");
+            final JFrame f = new JFrame(Messages.getString("VisualMappingReportAction.mappingReportDialogTitle")); //$NON-NLS-1$
             f.setIconImage(ASUtils.getFrameIconImage());
 
             // You call this a radar?? -- No sir, we call it Mr. Panel.
@@ -111,9 +111,9 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
                     try {
                         mr.drawHighLevelReport((Graphics2D) g,null);
                     } catch (ArchitectException e1) {
-                        logger.error("ArchitectException while generating mapping diagram", e1);
+                        logger.error("ArchitectException while generating mapping diagram", e1); //$NON-NLS-1$
                         ASUtils.showExceptionDialogNoReport(
-                                "Couldn't generate mapping diagram", e1);
+                                Messages.getString("VisualMappingReportAction.couldNotGenerateMappingDiagram"), e1); //$NON-NLS-1$
                     }
                 }
             };
@@ -133,7 +133,7 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
                         File file = null;
 
                         JFileChooser fileDialog = new JFileChooser(session.getRecentMenu().getMostRecentFile());
-                        fileDialog.setSelectedFile(new File("map.csv"));
+                        fileDialog.setSelectedFile(new File("map.csv")); //$NON-NLS-1$
 
                         if (fileDialog.showSaveDialog(f) == JFileChooser.APPROVE_OPTION){
                             file = fileDialog.getSelectedFile();
@@ -153,14 +153,14 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
                             try {
                                 output.close();
                             } catch (IOException e1) {
-                                logger.error("IO Error", e1);
+                                logger.error("IO Error", e1); //$NON-NLS-1$
                             }
                         }
                     }
                 }
 
             });
-            csv.setText("Export CSV");
+            csv.setText(Messages.getString("VisualMappingReportAction.exportCSVOption")); //$NON-NLS-1$
             buttonBar.addGriddedGrowing(csv);
             JButton close = new JButton(new AbstractAction(){
 
@@ -169,7 +169,7 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
                 }
 
             });
-            close.setText("Close");
+            close.setText(Messages.getString("VisualMappingReportAction.closeOption")); //$NON-NLS-1$
             buttonBar.addRelatedGap();
             buttonBar.addGriddedGrowing(close);
             JPanel basePane = new JPanel(new BorderLayout(5,5));

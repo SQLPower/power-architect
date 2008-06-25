@@ -48,12 +48,12 @@ import com.lowagie.text.pdf.PdfWriter;
 public class ExportPlaypenToPDFAction extends ProgressAction {
     private static final Logger logger = Logger.getLogger(ExportPlaypenToPDFAction.class);
 
-    private static final String FILE_KEY = "FILE_KEY";
+    private static final String FILE_KEY = "FILE_KEY"; //$NON-NLS-1$
     
     private static int OUTSIDE_PADDING = 10; 
 
     public ExportPlaypenToPDFAction(ArchitectSwingSession session) {
-        super(session, "Export Playpen to PDF", "Export Playpen to PDF");
+        super(session, Messages.getString("ExportPlaypenToPDFAction.name"), Messages.getString("ExportPlaypenToPDFAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     /**
@@ -77,15 +77,15 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
             file = chooser.getSelectedFile();
             String fileName = file.getName();
 
-            if (!fileName.endsWith(".pdf")) {
-                file = new File(file.getPath()+".pdf");
+            if (!fileName.endsWith(".pdf")) { //$NON-NLS-1$
+                file = new File(file.getPath()+".pdf"); //$NON-NLS-1$
             }
 
             if (file.exists()) {
                 response = JOptionPane.showConfirmDialog(
                         null,
-                        "The file\n" + file.getPath() + "\nalready exists. Do you want to overwrite it?",
-                        "File Exists", JOptionPane.YES_NO_OPTION);
+                        Messages.getString("ExportPlaypenToPDFAction.fileAlreadyExists", file.getPath()), //$NON-NLS-1$ //$NON-NLS-2$
+                        Messages.getString("ExportPlaypenToPDFAction.fileAlreadyExistsDialogTitle"), JOptionPane.YES_NO_OPTION); //$NON-NLS-1$
                 if (response == JOptionPane.YES_OPTION) {
                     break;
                 }
@@ -93,8 +93,8 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                 break;
             }
         }
-
-        logger.debug("Saving to file: "+file.getName()+" (" +file.getPath()+")");
+        
+        logger.debug("Saving to file: " + file.getName() + "(" + file.getPath() + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     
         properties.put(FILE_KEY,file);
         return true;
@@ -127,9 +127,9 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
             out = new BufferedOutputStream(new FileOutputStream((File)properties.get(FILE_KEY)));
             d = new Document(ppSize);
             
-            d.addTitle("Architect Playpen PDF Export");
-            d.addAuthor(System.getProperty("user.name"));
-            d.addCreator("Power*Architect version "+ArchitectVersion.APP_VERSION);
+            d.addTitle(Messages.getString("ExportPlaypenToPDFAction.PdfTitle")); //$NON-NLS-1$
+            d.addAuthor(System.getProperty("user.name")); //$NON-NLS-1$
+            d.addCreator(Messages.getString("ExportPlaypenToPDFAction.powerArchitectVersion")+ArchitectVersion.APP_VERSION); //$NON-NLS-1$
             
             PdfWriter writer = PdfWriter.getInstance(d, out);
             d.open();
@@ -151,7 +151,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
             g.dispose();
         } catch (Exception ex) {
             ASUtils.showExceptionDialog(session, 
-                    "Could not export the playpen", 
+                    Messages.getString("ExportPlaypenToPDFAction.couldNotExportPlaypen"),  //$NON-NLS-1$
                     ex);
         } finally {
             if (d != null) {
@@ -159,7 +159,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                     d.close();
                 } catch (Exception ex) {
                     ASUtils.showExceptionDialog(session,
-                            "Could not close document for exporting playpen", 
+                            Messages.getString("ExportPlaypenToPDFAction.couldNotCloseDocument"),  //$NON-NLS-1$
                             ex);
                 }
             }
@@ -169,7 +169,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                     out.close();
                 } catch (IOException ex) {
                     ASUtils.showExceptionDialog(session,
-                        "Could not close pdf file for exporting playpen", 
+                        Messages.getString("ExportPlaypenToPDFAction.couldNotClosePdfFile"),  //$NON-NLS-1$
                         ex);
                 }
             }
@@ -178,11 +178,11 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
 
     @Override
     public String getDialogMessage() {
-        return "Creating PDF";
+        return Messages.getString("ExportPlaypenToPDFAction.creatingPdf"); //$NON-NLS-1$
     }
     
     @Override
     public String getButtonText() {
-        return "Run in Background";
+        return Messages.getString("ExportPlaypenToPDFAction.runInBackgroundOption"); //$NON-NLS-1$
     }
 }
