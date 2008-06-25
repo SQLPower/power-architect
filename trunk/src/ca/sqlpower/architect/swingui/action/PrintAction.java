@@ -32,18 +32,18 @@ public class PrintAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(PrintAction.class);
 
 	public PrintAction(ArchitectSwingSession session) {
-		super(session, "Print...", "Print", "printer");
+		super(session, Messages.getString("PrintAction.name"), Messages.getString("PrintAction.description"), "printer"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		logger.debug(getValue(SHORT_DESCRIPTION) + ": started");
+		logger.debug(getValue(SHORT_DESCRIPTION) + ": started"); //$NON-NLS-1$
 		
 		final PrintPanel printPanel = new PrintPanel(session);
 		
 		final JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				printPanel, 
 				frame,
-				"Print", "Print");
+				Messages.getString("PrintAction.dialogTitle"), Messages.getString("PrintAction.printOption")); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		d.pack();
 		d.setLocationRelativeTo(frame);

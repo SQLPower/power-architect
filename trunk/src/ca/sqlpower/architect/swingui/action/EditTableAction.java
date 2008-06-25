@@ -46,7 +46,7 @@ public class EditTableAction extends AbstractArchitectAction {
 	protected final DBTree dbt; 
 	
 	public EditTableAction(ArchitectSwingSession session) {
-	    super(session, "Table Properties...", "Table Properties", "edit_table");
+	    super(session, Messages.getString("EditTableAction.name"), Messages.getString("EditTableAction.description"), "edit_table"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         dbt = frame.getDbTree();
 	}
 
@@ -54,32 +54,32 @@ public class EditTableAction extends AbstractArchitectAction {
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
 			List selection = playpen.getSelectedItems();
 			if (selection.size() < 1) {
-				JOptionPane.showMessageDialog(playpen, "Select a table (by clicking on it) and try again.");
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditTableAction.noTablesSelected")); //$NON-NLS-1$
 			} else if (selection.size() > 1) {
-				JOptionPane.showMessageDialog(playpen, "You have selected multiple items, but you can only edit one at a time.");
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditTableAction.multipleTablesSelected")); //$NON-NLS-1$
 			} else if (selection.get(0) instanceof TablePane) {
 				TablePane tp = (TablePane) selection.get(0);
 				makeDialog(tp.getModel());				
 			} else {
-				JOptionPane.showMessageDialog(playpen, "The selected item type is not recognised");
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditTableAction.cannotRecognizeItem")); //$NON-NLS-1$
 			}
 
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
-			logger.debug("selections length is: " + selections.length);
+			logger.debug("selections length is: " + selections.length); //$NON-NLS-1$
 			if (selections.length != 1) {
-				JOptionPane.showMessageDialog(dbt, "To indicate which table you like edit, please select a single table header.");
+				JOptionPane.showMessageDialog(dbt, Messages.getString("EditTableAction.instructions")); //$NON-NLS-1$
 			} else {
 				TreePath tp = selections[0];
 				SQLObject so = (SQLObject) tp.getLastPathComponent();
 				SQLTable st = null;
 
 				if (so instanceof SQLTable) {
-					logger.debug("user clicked on table, so we shall try to edit the table properties.");
+					logger.debug("user clicked on table, so we shall try to edit the table properties."); //$NON-NLS-1$
 					st = (SQLTable) so;
 					makeDialog(st);	
 				} else {
-					JOptionPane.showMessageDialog(dbt, "To indicate which table you like edit, please select a single table header.");
+					JOptionPane.showMessageDialog(dbt, Messages.getString("EditTableAction.instructions")); //$NON-NLS-1$
 				}
 			}
 		} else {
@@ -112,7 +112,7 @@ public class EditTableAction extends AbstractArchitectAction {
 
 		editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				editPanel, frame,
-				"Table Properties", "OK", okCall, cancelCall);
+				Messages.getString("EditTableAction.dialogTitle"), Messages.getString("EditTableAction.okOption"), okCall, cancelCall); //$NON-NLS-1$ //$NON-NLS-2$
 		editPanel.setEditDialog(editDialog);
 		editDialog.pack();
 		editDialog.setLocationRelativeTo(frame);

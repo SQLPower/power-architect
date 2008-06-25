@@ -64,9 +64,9 @@ public class EditSpecificIndexAction extends EditIndexAction {
      *            once this action is constructed.
      */
     public EditSpecificIndexAction(ArchitectSwingSession session, SQLIndex index){
-        super(session, index.getName() + "...", index.getName(), null);
+        super(session, index.getName() + "...", index.getName(), null); //$NON-NLS-1$
         if (index == null) {
-            throw new NullPointerException("Null index not allowed");
+            throw new NullPointerException("Null index not allowed"); //$NON-NLS-1$
         }
         this.index = index;
     }

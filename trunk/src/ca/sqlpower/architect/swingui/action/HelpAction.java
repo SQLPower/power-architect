@@ -35,13 +35,13 @@ public class HelpAction extends AbstractArchitectAction {
     ArchitectSwingSession session;
     
     public HelpAction(ArchitectSwingSession session) {
-        super(session, "Help", "Help", "help");
+        super(session, Messages.getString("HelpAction.name"), Messages.getString("HelpAction.description"), "help"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         this.session = session;
     }
 
     public void actionPerformed(ActionEvent e) {
         try {
-            String helpHS = "jhelpset.hs";
+            String helpHS = "jhelpset.hs"; //$NON-NLS-1$
             ClassLoader cl = getClass().getClassLoader();
             URL hsURL = HelpSet.findHelpSet(cl, helpHS);
             HelpSet hs = new HelpSet(null, hsURL);
@@ -60,10 +60,7 @@ public class HelpAction extends AbstractArchitectAction {
         } catch (Exception ev) {
             setEnabled(false);
             ASUtils.showExceptionDialog(session,
-                    "Could not load the help file. The ArchitectHelp.jar file either " +
-                    "doesn't exist or isn't in your classpath.\nThis error usually " +
-                    "occurrs because you are running the Architect within an IDE.\n" +
-                    "The Help function is now disabled",
+                    Messages.getString("HelpAction.couldNotLoadHelpFile"), //$NON-NLS-1$
                     ev);
         }         
     }

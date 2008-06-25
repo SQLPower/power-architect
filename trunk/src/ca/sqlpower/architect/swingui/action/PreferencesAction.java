@@ -28,7 +28,7 @@ public class PreferencesAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
 
 	public PreferencesAction(ArchitectSwingSession session) {
-        super(session, "User Preferences...", "User Preferences");
+        super(session, Messages.getString("PreferencesAction.name"), Messages.getString("PreferencesAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**

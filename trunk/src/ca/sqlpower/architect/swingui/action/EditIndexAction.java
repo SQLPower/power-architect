@@ -48,11 +48,11 @@ public abstract class EditIndexAction extends AbstractArchitectAction {
         final JDialog d;
         final IndexEditPanel editPanel = new IndexEditPanel(index, session);
   
-        logger.debug("Showing index edit dialog for " + index);
+        logger.debug("Showing index edit dialog for " + index); //$NON-NLS-1$
         
         d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 editPanel, frame,
-                "Index Properties", "OK");
+                Messages.getString("EditIndexAction.dialogTitle"), Messages.getString("EditIndexAction.okOption")); //$NON-NLS-1$ //$NON-NLS-2$
         d.pack();
         d.setLocationRelativeTo(frame);
         d.setVisible(true);

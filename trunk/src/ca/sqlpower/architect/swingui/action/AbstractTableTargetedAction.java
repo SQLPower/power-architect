@@ -50,7 +50,7 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
         super(session, actionName, actionDescription, iconResourceName);
         
         dbt = frame.getDbTree();
-        if (dbt == null) throw new NullPointerException("Null db tree");
+        if (dbt == null) throw new NullPointerException("Null db tree"); //$NON-NLS-1$
         
         playpen.addSelectionListener(this);
         
@@ -62,19 +62,19 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
             if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
                 List selection = playpen.getSelectedItems();
                 if (selection.size() < 1) {
-                    JOptionPane.showMessageDialog(playpen, "Select a table (by clicking on it) and try again.");
+                    JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.selectAable")); //$NON-NLS-1$
                 } else if (selection.size() > 1) {
-                    JOptionPane.showMessageDialog(playpen, "You have selected multiple items, but you can only edit one at a time.");
+                    JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.multipleItemsSelected")); //$NON-NLS-1$
                 } else if (selection.get(0) instanceof TablePane) {
                     TablePane tp = (TablePane) selection.get(0);
                     processTablePane(tp);
                 } else {
-                    JOptionPane.showMessageDialog(playpen, "The selected item type is not recognised");
+                    JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.selectedItemNotRecognized")); //$NON-NLS-1$
                 }
             } else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
                 TreePath [] selections = dbt.getSelectionPaths();
                 if (selections == null || selections.length != 1) {
-                    JOptionPane.showMessageDialog(dbt, "To indicate where you would like to insert a column, please select a single item.");
+                    JOptionPane.showMessageDialog(dbt, Messages.getString("AbstractTableTargetedAction.instructions")); //$NON-NLS-1$
                 } else {
                     TreePath tp = selections[0];
                     SQLObject so = (SQLObject) tp.getLastPathComponent();
@@ -82,12 +82,12 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
                 }
             } else {
                 JOptionPane.showMessageDialog(
-                        null, "InsertColumnAction: Unknown Action Command \"" + 
-                        evt.getActionCommand() + "\"",
-                        "Internal Architect Error", JOptionPane.ERROR_MESSAGE);
+                        null, "InsertColumnAction: Unknown Action Command \"" +  //$NON-NLS-1$
+                        evt.getActionCommand() + "\"", //$NON-NLS-1$
+                        "Internal Architect Error", JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
             }
         } catch (ArchitectException ex) {
-            ASUtils.showExceptionDialog(session, "Column could not be inserted:\n" + ex.getMessage(), ex);
+            ASUtils.showExceptionDialog(session, Messages.getString("AbstractTableTargetedAction.columnCouldNotBeInserted") + ex.getMessage(), ex); //$NON-NLS-1$
         }
     }
     

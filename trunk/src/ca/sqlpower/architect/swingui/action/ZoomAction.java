@@ -40,15 +40,15 @@ public class ZoomAction extends AbstractArchitectAction implements PropertyChang
 
 	protected double zoomStep;
 
-	public static final String ZOOM_IN = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_IN";
-	public static final String ZOOM_OUT = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_OUT";
-	public static final String ZOOM_ALL = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_ALL";
+	public static final String ZOOM_IN = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_IN"; //$NON-NLS-1$
+	public static final String ZOOM_OUT = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_OUT"; //$NON-NLS-1$
+	public static final String ZOOM_ALL = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_ALL"; //$NON-NLS-1$
 
 	public ZoomAction(ArchitectSwingSession session, double amount) {
         super(session,
-              amount > 0.0 ? "Zoom In" : "Zoom Out",
-              amount > 0.0 ? "Zoom In" : "Zoom Out",
-              amount > 0.0 ? "zoom_in" : "zoom_out");        
+              amount > 0.0 ? Messages.getString("ZoomAction.zoomInActionName") : Messages.getString("ZoomAction.zoomOutActionName"), //$NON-NLS-1$ //$NON-NLS-2$
+              amount > 0.0 ? Messages.getString("ZoomAction.zoomInActionDescription") : Messages.getString("ZoomAction.zoomOutActionDescription"), //$NON-NLS-1$ //$NON-NLS-2$
+              amount > 0.0 ? "zoom_in" : "zoom_out");         //$NON-NLS-1$ //$NON-NLS-2$
 		this.zoomStep = amount;
         playpen.addPropertyChangeListener(this);
         if (amount > 0.0) {
@@ -64,21 +64,21 @@ public class ZoomAction extends AbstractArchitectAction implements PropertyChang
 	}
 		
 	public void actionPerformed(ActionEvent e) {
-		logger.debug("oldZoom="+playpen.getZoom()+",zoomStep="+zoomStep);
+		logger.debug("oldZoom="+playpen.getZoom()+",zoomStep="+zoomStep); //$NON-NLS-1$ //$NON-NLS-2$
 		// 	zoom by a factor of sqrt(2) instead of linear so we can go below 0.1
 
 		// playpen.setZoom(playpen.getZoom() + zoomStep); 
 		playpen.setZoom(playpen.getZoom() * Math.pow(2,zoomStep));
-		logger.debug("newZoom="+playpen.getZoom());
+		logger.debug("newZoom="+playpen.getZoom()); //$NON-NLS-1$
 		Rectangle scrollTo = null;
 		Iterator it = playpen.getSelectedItems().iterator();
 		while (it.hasNext()) {
 			Rectangle bounds = ((PlayPenComponent) it.next()).getBounds();
-			logger.debug("new rectangle, bounds: " + bounds);
+			logger.debug("new rectangle, bounds: " + bounds); //$NON-NLS-1$
 			if (scrollTo == null) {
 				scrollTo = new Rectangle(bounds);
 			} else {
-				logger.debug("added rectangles, new bounds: " + scrollTo); 
+				logger.debug("added rectangles, new bounds: " + scrollTo);  //$NON-NLS-1$
 				scrollTo.add(bounds);
 			}
 		}

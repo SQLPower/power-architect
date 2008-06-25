@@ -32,7 +32,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 public class ZoomResetAction extends AbstractArchitectAction implements Action {
 
     public ZoomResetAction(ArchitectSwingSession session) {
-        super(session, "zoom_reset", "Reset Zoom", "zoom_reset");
+        super(session, Messages.getString("ZoomResetAction.name"), Messages.getString("ZoomResetAction.description"), "zoom_reset"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     }

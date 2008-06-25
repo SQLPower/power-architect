@@ -50,12 +50,12 @@ public class ExportCSVAction extends AbstractAction {
     private final JFrame parentFrame;
     
     public ExportCSVAction(JFrame parentFrame, ArchitectSession session) {
-        super("Export CSV");
+        super(Messages.getString("ExportCSVAction.name")); //$NON-NLS-1$
         
-        if (session == null) throw new NullPointerException("Null session");
+        if (session == null) throw new NullPointerException("Null session"); //$NON-NLS-1$
         this.session = session;
 
-        if (parentFrame == null) throw new NullPointerException("Null parentFrame");
+        if (parentFrame == null) throw new NullPointerException("Null parentFrame"); //$NON-NLS-1$
         this.parentFrame = parentFrame;
     }
     
@@ -67,7 +67,7 @@ public class ExportCSVAction extends AbstractAction {
             File file = null;
 
             JFileChooser fileDialog = new JFileChooser();
-            fileDialog.setSelectedFile(new File("map.csv"));
+            fileDialog.setSelectedFile(new File("map.csv")); //$NON-NLS-1$
 
             if (fileDialog.showSaveDialog(parentFrame) == JFileChooser.APPROVE_OPTION){
                 file = fileDialog.getSelectedFile();
@@ -87,7 +87,7 @@ public class ExportCSVAction extends AbstractAction {
                 try {
                     output.close();
                 } catch (IOException e1) {
-                    logger.error("IO Error", e1);
+                    logger.error("IO Error", e1); //$NON-NLS-1$
                 }
             }
         }

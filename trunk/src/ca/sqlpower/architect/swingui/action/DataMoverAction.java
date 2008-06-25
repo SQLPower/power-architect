@@ -38,14 +38,14 @@ public class DataMoverAction extends AbstractAction {
     private final ArchitectSwingSession architectSession;
     
     public DataMoverAction(JFrame owner, ArchitectSwingSession architectSession) {
-        super("Copy Table Data...");
+        super(Messages.getString("DataMoverAction.name")); //$NON-NLS-1$
         this.owner = owner;
         this.architectSession = architectSession;
     }
     
     public void actionPerformed(ActionEvent e) {
         try {
-            JDialog d = new JDialog(owner, "Copy table data");
+            JDialog d = new JDialog(owner, Messages.getString("DataMoverAction.dialogTitle")); //$NON-NLS-1$
             DataMoverPanel dmp = new DataMoverPanel(architectSession);
             d.add(dmp.getPanel());
             d.pack();
@@ -53,7 +53,7 @@ public class DataMoverAction extends AbstractAction {
             d.setVisible(true);
         } catch (Exception ex) {
             ASUtils.showExceptionDialogNoReport(
-                    owner, "Couldn't start Data Mover", ex);
+                    owner, Messages.getString("DataMoverAction.couldNotStartDataMover"), ex); //$NON-NLS-1$
         }
     }
 }
