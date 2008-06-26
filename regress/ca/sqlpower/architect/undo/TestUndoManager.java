@@ -335,7 +335,7 @@ public class TestUndoManager extends TestCase {
 	/**
 	 * Tests undo/redo of the movement of 1 relationship's connection points.
 	 */
-	public void testRelationshipConnectionPointMovement() throws ArchitectException{
+	public void testUndoRelationshipConnectionPointMovement() throws ArchitectException{
 	    TablePane tp0 = new TablePane(pkTable, pp);
 	    TablePane tp1 = new TablePane(fkTable, pp);
 	    SQLRelationship model = new SQLRelationship();
