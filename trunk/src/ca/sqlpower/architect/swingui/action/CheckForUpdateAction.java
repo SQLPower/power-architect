@@ -72,13 +72,13 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
             }
             else {
                 JOptionPane.showMessageDialog(this.session.getArchitectFrame(), Messages.getString("CheckForUpdateAction.upToDate"), //$NON-NLS-1$
-                  Messages.getString("CheckForUpdateAction.latestVersionOfArchitectIs") + latestVersion.toString(), JOptionPane.INFORMATION_MESSAGE); //$NON-NLS-1$
+                  Messages.getString("CheckForUpdateAction.latestVersionIs", latestVersion.toString()), JOptionPane.INFORMATION_MESSAGE); //$NON-NLS-1$
                   setEnabled(false);
                   return;
             }
         } catch(Exception ex) {
             JOptionPane.showMessageDialog(this.session.getArchitectFrame(), Messages.getString("CheckForUpdateAction.failedToUpdate"), //$NON-NLS-1$
-                    Messages.getString("CheckForUpdateAction.yourVersionIs") + ArchitectVersion.APP_VERSION, JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
+                    Messages.getString("CheckForUpdateAction.yourVersionIs", ArchitectVersion.APP_VERSION), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
             ex.printStackTrace();
             logger.error("Fail to compare version number"); //$NON-NLS-1$
         }
@@ -89,8 +89,8 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
      */
     private void promptUpdate() {
         JOptionPane.showMessageDialog(this.session.getArchitectFrame(), Messages.getString("CheckForUpdateAction.updatedVersionAvailable") + //$NON-NLS-1$
-                Messages.getString("CheckForUpdateAction.updateInstructions"), Messages.getString("CheckForUpdateAction.latestVersionIs") +  //$NON-NLS-1$ //$NON-NLS-2$
-                versionPropertyString, JOptionPane.INFORMATION_MESSAGE);
+                Messages.getString("CheckForUpdateAction.updateInstructions"), Messages.getString("CheckForUpdateAction.latestVersionIs",  //$NON-NLS-1$ //$NON-NLS-2$
+                versionPropertyString), JOptionPane.INFORMATION_MESSAGE);
 
     }
 }
