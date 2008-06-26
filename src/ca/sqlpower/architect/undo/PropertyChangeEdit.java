@@ -60,19 +60,19 @@ public class PropertyChangeEdit extends AbstractUndoableEdit {
     @Override
     public void undo() throws CannotUndoException {
         super.undo();
-        for (PropertyChangeEvent e : list) {
+        for (int i = list.size() - 1; i >= 0; i--) {
             try {
-                Method setter = PropertyUtils.getWriteMethod(PropertyUtils.getPropertyDescriptor(e.getSource(), e.getPropertyName()));
-                setter.invoke(e.getSource(), e.getOldValue());
+                Method setter = PropertyUtils.getWriteMethod(PropertyUtils.getPropertyDescriptor(list.get(i).getSource(), list.get(i).getPropertyName()));
+                setter.invoke(list.get(i).getSource(), list.get(i).getOldValue());
                 
             } catch (IllegalAccessException ex) {
-                logger.error("Exception while trying to undo the changese for" + e.getPropertyName());
+                logger.error("Exception while trying to undo the changes for" + list.get(i).getPropertyName());
                 throw new CannotUndoException();
             } catch (NoSuchMethodException ex) {
-                logger.error("Mutator method not found while trying to undo the changes for" + e.getPropertyName());
+                logger.error("Mutator method not found while trying to undo the changes for" + list.get(i).getPropertyName());
                 throw new CannotUndoException();
             } catch (InvocationTargetException ex) {
-                logger.error("Exception while trying to undo the changese for" + e.getPropertyName());
+                logger.error("Exception while trying to undo the changes for" + list.get(i).getPropertyName());
                 throw new CannotUndoException();
             }
         }
@@ -90,13 +90,13 @@ public class PropertyChangeEdit extends AbstractUndoableEdit {
                 setter.invoke(e.getSource(), e.getNewValue());
                 
             } catch (IllegalAccessException ex) {
-                logger.error("Exception while trying to undo the changese for" + e.getPropertyName());
+                logger.error("Exception while trying to undo the changes for" + e.getPropertyName());
                 throw new CannotUndoException();
             } catch (NoSuchMethodException ex) {
                 logger.error("Mutator method not found while trying to undo the changes for" + e.getPropertyName());
                 throw new CannotUndoException();
             } catch (InvocationTargetException ex) {
-                logger.error("Exception while trying to undo the changese for" + e.getPropertyName());
+                logger.error("Exception while trying to undo the changes for" + e.getPropertyName());
                 throw new CannotUndoException();
             }
         }
@@ -109,6 +109,6 @@ public class PropertyChangeEdit extends AbstractUndoableEdit {
 
     @Override
     public String toString() {
-        return "Changing the properties of "+list;
+        return "Changing " + list.get(0).getPropertyName()  + " of "+list;
     }
 }

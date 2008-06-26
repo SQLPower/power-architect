@@ -61,12 +61,6 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	private SQLRelationship model;
 	private TablePane pkTable;
 	private TablePane fkTable;
-	
-	/**
-	 * This is a Java Bean property. It is accessed
-	 * when performing undo/redo on a RelationshipConnectionPointEvent
-	 */
-	private Point[] connectionPoints;
 
 	private JPopupMenu popup;
 
@@ -525,24 +519,9 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
     }
 
     /**
-     * This method supposedly returns a set of points representing the 
-     * connection points of the relationship.
-     * 
-     * Necessary to make connectionPoints a Java Bean compliant property
-     * 
-     * @return an array size of 2 consisting of 2 points. The first
-     *          point is the pk connection point, and the second is the
-     *          fk connection point.
-     */
-    public Point[] getConnectionPoints() {
-        return new Point[] {getPkConnectionPoint(), getFkConnectionPoint()};
-    }
-
-    /**
      * Sets the connectionPoints of the relationship from an array of
-     * points.
-     * 
-     * Necessary to make connectionPoints a Java bean compliant property.
+     * points. Currently, it's only accessed when undo/redo movement
+     * of relationship connection points.
      * 
      * @param connectionPoints, size of 2. The first element is a point 
      *          representing the pk connection point, and the second
@@ -552,8 +531,8 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
         // XXX This shouldn't be here, but it's here to fix a bug with the relationship
         // orientation when performing undo/redo after moving connection points.
         updateUI();
-        this.setPkConnectionPoint(connectionPoints[0]);
-        this.setFkConnectionPoint(connectionPoints[1]);
+        setPkConnectionPoint(connectionPoints[0]);
+        setFkConnectionPoint(connectionPoints[1]);
     }
 
 }
