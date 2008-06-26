@@ -1245,7 +1245,7 @@ public class TablePane
     
     /**
      * Not only sets the new bounds and the new location
-     * of the tablepane, but also fires specfic events associated with
+     * of the tablepane, but also fires specific events associated with
      * each change.
      */
     @Override
