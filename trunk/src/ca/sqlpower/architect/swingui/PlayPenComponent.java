@@ -41,362 +41,370 @@ import org.apache.log4j.Logger;
  */
 public abstract class PlayPenComponent implements Selectable {
 
-	private static final Logger logger = Logger.getLogger(PlayPenComponent.class);
-	
-	private PlayPenContentPane parent;
-	
-	/**
-     * This is a Java Bean property. It is accessed
-     * when performing undo/redo on a PlayPenComponentMovedEvent
+    private static final Logger logger = Logger.getLogger(PlayPenComponent.class);
+    
+    private PlayPenContentPane parent;
+    private Rectangle bounds = new Rectangle();
+    protected Color backgroundColor;
+    private Insets insets = new Insets(0,0,0,0);
+    private String name;
+    protected Color foregroundColor;
+    private String toolTipText;
+    private boolean opaque;
+    
+    private PlayPenComponentUI ui;
+
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    
+    protected PlayPenComponent(PlayPenContentPane parent) {
+        this.parent = parent;
+    }
+
+    public PlayPen getPlayPen() {
+        if (parent == null) return null;
+        return parent.getOwner();
+    }
+
+    
+    public PlayPenComponentUI getUI() {
+        return ui;
+    }
+
+    public void setUI(PlayPenComponentUI ui) {
+        this.ui = ui;
+        revalidate();
+    }
+
+    /**
+     * Shows the given popup menu on the PlayPen that owns this table
+     * pane because it doesn't work to show it on this component,
+     * which is not really part of the swing hierarchy.
+     *
+     * @param menu the menu to show
+     * @param p the point (relative to this component's top-left
+     * corner) to show it at.
      */
-	private Point location;
-	private Rectangle bounds = new Rectangle();
-	protected Color backgroundColor;
-	private Insets insets = new Insets(0,0,0,0);
-	private String name;
-	protected Color foregroundColor;
-	private String toolTipText;
-	private boolean opaque;
-	
-	private PlayPenComponentUI ui;
-
-	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-	
-	protected PlayPenComponent(PlayPenContentPane parent) {
-		this.parent = parent;
-	}
-
-	public PlayPen getPlayPen() {
-		if (parent == null) return null;
-		return parent.getOwner();
-	}
-
-	
-	public PlayPenComponentUI getUI() {
-		return ui;
-	}
-
-	public void setUI(PlayPenComponentUI ui) {
-		this.ui = ui;
-		revalidate();
-	}
-
-	/**
-	 * Shows the given popup menu on the PlayPen that owns this table
-	 * pane because it doesn't work to show it on this component,
-	 * which is not really part of the swing hierarchy.
-	 *
-	 * @param menu the menu to show
-	 * @param p the point (relative to this component's top-left
-	 * corner) to show it at.
-	 */
-	public void showPopup(JPopupMenu menu, Point p) {
+    public void showPopup(JPopupMenu menu, Point p) {
         final int xAdjust = 5;  // ensure menu doesn't appear directly under pointer
-		p.translate(getX(), getY());
-		getPlayPen().zoomPoint(p);
-		menu.show(getPlayPen(), p.x + xAdjust, p.y);
-	}
-	
-	/**
-	 * Translates this request into a call to
-	 * PlayPen.repaint(Rectangle).  That will eventually cause a call
-	 * to PlayPen.paint(). Painting a TablePane causes it to re-evaluate its
-	 * preferred size, which is what validation is really all about.
-	 */
-	public void revalidate() {
-		PlayPen pp = getPlayPen();
-		if (pp == null) {
-			logger.debug("getPlayPen() returned null.  Not generating repaint request.");
-			return;
-		}
-		Rectangle r = new Rectangle(bounds);
-		PlayPenComponentUI ui = getUI();
-		if (ui != null) {
-			ui.revalidate();
-			Dimension ps = ui.getPreferredSize();
-			if (ps != null) setSize(ps);
-		}
-		pp.zoomRect(r);
-		if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r);
-		pp.repaint(r);
-	}
+        p.translate(getX(), getY());
+        getPlayPen().zoomPoint(p);
+        menu.show(getPlayPen(), p.x + xAdjust, p.y);
+    }
+    
+    /**
+     * Translates this request into a call to
+     * PlayPen.repaint(Rectangle).  That will eventually cause a call
+     * to PlayPen.paint(). Painting a TablePane causes it to re-evaluate its
+     * preferred size, which is what validation is really all about.
+     */
+    public void revalidate() {
+        PlayPen pp = getPlayPen();
+        if (pp == null) {
+            logger.debug("getPlayPen() returned null.  Not generating repaint request.");
+            return;
+        }
+        Rectangle r = new Rectangle(bounds);
+        PlayPenComponentUI ui = getUI();
+        if (ui != null) {
+            ui.revalidate();
+            Dimension ps = ui.getPreferredSize();
+            if (ps != null) setSize(ps);
+        }
+        pp.zoomRect(r);
+        if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r);
+        pp.repaint(r);
+    }
 
-	/**
-	 * Updates the bounds of this component, then issues a repaint to the
-	 * PlayPen which covers the old bounds of this component. This will allow
-	 * newly-exposed sections of the PlayPen to draw themselves in case this
-	 * setBounds call is shrinking this component.  Also ensures the new bounds
-	 * do not remain left of or above the (0,0) point by normalizing the play pen.
-	 * 
-	 * <p>All methods that affect the bounds rectangle should do so by calling this
-	 * method.
-	 */
-	protected void setBoundsImpl(int x, int y, int width, int height) { 
-		Rectangle oldBounds = getBounds(); 
-		PlayPen owner = getPlayPen();
-		if (owner != null) {
-			Rectangle r = getBounds();
-			double zoom = owner.getZoom();
-			owner.repaint((int) Math.floor((double) r.x * zoom),
-						  (int) Math.floor((double) r.y * zoom),
-						  (int) Math.ceil((double) r.width * zoom),
-						  (int) Math.ceil((double) r.height * zoom));
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("[36mUpdating bounds on "+getName()
-						 +" to ["+x+","+y+","+width+","+height+"][0m");
-		}
-		Point oldPoint = new Point(bounds.x,bounds.y);
-		bounds.setBounds(x,y,width,height);
-		
-		/*
-		 * At the moment only the movement of tablepanes' matters to us. So
-		 * here i've moved the firing to TablePane.setbounds(). This also
-		 * allows this class to be more general.
-		 */
-		
-//		if (oldBounds.x != x || oldBounds.y != y) {
-//			firePropertyChange(new PlayPenComponentMovedEvent(this, oldPoint, new Point(x,y)));
-//		}
-//		
-//		if (oldBounds.width != width || oldBounds.height != height) {
-//			firePropertyChange(new PlayPenComponentResizedEvent());
-//		}
-		repaint();
-	}
+    /**
+     * Updates the bounds of this component, then issues a repaint to the
+     * PlayPen which covers the old bounds of this component. This will allow
+     * newly-exposed sections of the PlayPen to draw themselves in case this
+     * setBounds call is shrinking this component.  Also ensures the new bounds
+     * do not remain left of or above the (0,0) point by normalizing the play pen.
+     * 
+     * <p>All methods that affect the bounds rectangle should do so by calling this
+     * method.
+     */
+    protected void setBoundsImpl(int x, int y, int width, int height) { 
+        Rectangle oldBounds = getBounds(); 
+        PlayPen owner = getPlayPen();
+        if (owner != null) {
+            Rectangle r = getBounds();
+            double zoom = owner.getZoom();
+            owner.repaint((int) Math.floor((double) r.x * zoom),
+                          (int) Math.floor((double) r.y * zoom),
+                          (int) Math.ceil((double) r.width * zoom),
+                          (int) Math.ceil((double) r.height * zoom));
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("[36mUpdating bounds on "+getName()
+                         +" to ["+x+","+y+","+width+","+height+"][0m");
+        }
+        Point oldPoint = new Point(bounds.x,bounds.y);
+        bounds.setBounds(x,y,width,height);
+        
+        /*
+         * At the moment only the movement of tablepanes' matters to us. So
+         * here i've moved the firing to TablePane.setbounds(). This also
+         * allows this class to be more general.
+         */
+        
+//      if (oldBounds.x != x || oldBounds.y != y) {
+//          firePropertyChange(new PlayPenComponentMovedEvent(this, oldPoint, new Point(x,y)));
+//      }
+//      
+//      if (oldBounds.width != width || oldBounds.height != height) {
+//          firePropertyChange(new PlayPenComponentResizedEvent());
+//      }
+        repaint();
+    }
 
-	/**
-	 * See setBoundsImpl.
-	 */
-	public void setBounds(int x, int y, int width, int height) {
-		setBoundsImpl(x, y, width, height);
-	}
+    /**
+     * See setBoundsImpl.
+     */
+    public void setBounds(int x, int y, int width, int height) {
+        setBoundsImpl(x, y, width, height);
+    }
 
-	/**
-	 * Returns a copy of this component's bounding rectangle.
-	 */
-	public Rectangle getBounds() {
-		return getBounds(null);
-	}
+    /**
+     * Returns a copy of this component's bounding rectangle.
+     */
+    public Rectangle getBounds() {
+        return getBounds(null);
+    }
 
-	/**
-	 * Sets the given rectangle to be identical to this component's bounding box.
-	 * 
-	 * @param r An existing rectangle.  If null, this method creates a new rectangle for you.
-	 * @return r if r was not null; a new rectangle otherwise.
-	 */
-	public Rectangle getBounds(Rectangle r) {
-		if (r == null) r = new Rectangle();
-		r.setBounds(bounds);
-		return r;
-	}
+    /**
+     * Sets the given rectangle to be identical to this component's bounding box.
+     * 
+     * @param r An existing rectangle.  If null, this method creates a new rectangle for you.
+     * @return r if r was not null; a new rectangle otherwise.
+     */
+    public Rectangle getBounds(Rectangle r) {
+        if (r == null) r = new Rectangle();
+        r.setBounds(bounds);
+        return r;
+    }
 
-	public Dimension getSize() {
-		return new Dimension(bounds.width, bounds.height);
-	}
-	
-	/**
-	 * The revalidate() call uses this to determine the component's
-	 * correct location.  This implementation just returns the current
-	 * location.  Override it if you need to be moved during validation.
-	 */
-	public Point getPreferredLocation() {
-		return getLocation();
-	}
+    public Dimension getSize() {
+        return new Dimension(bounds.width, bounds.height);
+    }
+    
+    /**
+     * The revalidate() call uses this to determine the component's
+     * correct location.  This implementation just returns the current
+     * location.  Override it if you need to be moved during validation.
+     */
+    public Point getPreferredLocation() {
+        return getLocation();
+    }
 
-	public Point getLocation() {
-		return this.bounds.getLocation();
-	}
-	
-	/**
-	 * Updates the on-screen location of this component.  If you try to move this
-	 * component to a negative co-ordinate, it will automatically be normalized (along
-	 * with everything else in the playpen) to non-negative coordinates.
-	 */
-	public void setLocation(Point point) {
-		setBoundsImpl(point.x,point.y, getWidth(), getHeight());
-	}
+    public Point getLocation() {
+        return getLocation(null);
+    }
+    
+    /**
+     * Copies this component's location into the given point object.
+     * 
+     * @param p A point that this method will modify.  If you pass in null, this method will
+     * create a new point for you.
+     * @return p if p was not null; a new point otherwise.
+     */
+    public Point getLocation(Point p) {
+        if (p == null) p = new Point();
+        p.x = bounds.x;
+        p.y = bounds.y;
+        return p;
+    }
+    
+    /**
+     * Updates the on-screen location of this component.  If you try to move this
+     * component to a negative co-ordinate, it will automatically be normalized (along
+     * with everything else in the playpen) to non-negative coordinates.
+     */
+    public void setLocation(Point point) {
+        setBoundsImpl(point.x,point.y, getWidth(), getHeight());
+    }
 
-	/**
-	 * Updates the on-screen location of this component.  If you try to move this
-	 * component to a negative co-ordinate, it will automatically be normalized (along
-	 * with everything else in the playpen) to non-negative coordinates.
-	 */
-	public void setLocation(int x, int y) {
-		setBoundsImpl(x, y, getWidth(), getHeight());
-	}
-	
-	public void setSize(Dimension size) {
-		setBoundsImpl(getX(), getY(), size.width, size.height);
-	}
+    /**
+     * Updates the on-screen location of this component.  If you try to move this
+     * component to a negative co-ordinate, it will automatically be normalized (along
+     * with everything else in the playpen) to non-negative coordinates.
+     */
+    public void setLocation(int x, int y) {
+        setBoundsImpl(x, y, getWidth(), getHeight());
+    }
+    
+    public void setSize(Dimension size) {
+        setBoundsImpl(getX(), getY(), size.width, size.height);
+    }
 
-	/**
-	 * Forwards to {@link #repaint(Rectangle)}.
-	 */
-	public void repaint() {
-		repaint(getBounds());
-	}
+    /**
+     * Forwards to {@link #repaint(Rectangle)}.
+     */
+    public void repaint() {
+        repaint(getBounds());
+    }
 
-	/**
-	 * Forwards to {@link #repaint(long,int,int,int,int)}.
-	 */
-	public void repaint(Rectangle r) {
-		repaint(0, r.x, r.y, r.width, r.height);
-	}
+    /**
+     * Forwards to {@link #repaint(long,int,int,int,int)}.
+     */
+    public void repaint(Rectangle r) {
+        repaint(0, r.x, r.y, r.width, r.height);
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	/**
-	 * Adds a property change listener to the existing list.
-	 */
-	public void addPropertyChangeListener(PropertyChangeListener l) {
-		pcs.addPropertyChangeListener(l);
-	}
-	
-	/**
-	 * Removes a specific property change listener from the existing list.
-	 */
-	public void removePropertyChangeListener(PropertyChangeListener l) {
-		pcs.removePropertyChangeListener(l);
-	}
-	
-	/**
-	 * Notifies property change listeners of a property change event.
-	 */
-	protected void firePropertyChange(String propName, Object oldValue, Object newValue) {
-		pcs.firePropertyChange(propName, oldValue, newValue);
-	}
-	
-	/**
-	 * @see PlayPenComponent.firePropertyChange()
-	 */
-	public void firePropertyChange(PropertyChangeEvent e) {
-	    pcs.firePropertyChange(e);
-	}
-	
-	public int getX() {
-		return bounds.x;
-	}
-	
-	public int getY() {
-		return bounds.y;
-	}
-	
-	public int getWidth() {
-		return bounds.width;
-	}
-	
-	public int getHeight() {
-		return bounds.height;
-	}
-	
-	public Insets getInsets() {
-		return new Insets(insets.top, insets.left, insets.bottom, insets.right);
-	}
+    /**
+     * Adds a property change listener to the existing list.
+     */
+    public void addPropertyChangeListener(PropertyChangeListener l) {
+        pcs.addPropertyChangeListener(l);
+    }
+    
+    /**
+     * Removes a specific property change listener from the existing list.
+     */
+    public void removePropertyChangeListener(PropertyChangeListener l) {
+        pcs.removePropertyChangeListener(l);
+    }
+    
+    /**
+     * Notifies property change listeners of a property change event.
+     */
+    protected void firePropertyChange(String propName, Object oldValue, Object newValue) {
+        pcs.firePropertyChange(propName, oldValue, newValue);
+    }
+    
+    /**
+     * @see PlayPenComponent.firePropertyChange()
+     */
+    public void firePropertyChange(PropertyChangeEvent e) {
+        pcs.firePropertyChange(e);
+    }
+    
+    public int getX() {
+        return bounds.x;
+    }
+    
+    public int getY() {
+        return bounds.y;
+    }
+    
+    public int getWidth() {
+        return bounds.width;
+    }
+    
+    public int getHeight() {
+        return bounds.height;
+    }
+    
+    public Insets getInsets() {
+        return new Insets(insets.top, insets.left, insets.bottom, insets.right);
+    }
 
-	public void setInsets(Insets insets) {
-		this.insets = new Insets(insets.top, insets.left, insets.bottom, insets.right);
-	}
+    public void setInsets(Insets insets) {
+        this.insets = new Insets(insets.top, insets.left, insets.bottom, insets.right);
+    }
 
-	/**
-	 * Tells the owning PlayPen to repaint the given region.  The
-	 * rectangle is manipulated (zoomed) into screen coordinates.
-	 */
-	public void repaint(long tm,
-						int x,
-						int y,
-						int width,
-						int height) {
-		PlayPen owner = getPlayPen();
-		if (owner == null) return;
- 		double zoom = owner.getZoom();
- 		owner.repaint((int) Math.floor((double) x * zoom),
- 					  (int) Math.floor((double) y * zoom),
- 					  (int) Math.ceil((double) width * zoom),
- 					  (int) Math.ceil((double) height * zoom));
-	}
-	
-	public boolean isOpaque() {
-		return opaque;
-	}
+    /**
+     * Tells the owning PlayPen to repaint the given region.  The
+     * rectangle is manipulated (zoomed) into screen coordinates.
+     */
+    public void repaint(long tm,
+                        int x,
+                        int y,
+                        int width,
+                        int height) {
+        PlayPen owner = getPlayPen();
+        if (owner == null) return;
+        double zoom = owner.getZoom();
+        owner.repaint((int) Math.floor((double) x * zoom),
+                      (int) Math.floor((double) y * zoom),
+                      (int) Math.ceil((double) width * zoom),
+                      (int) Math.ceil((double) height * zoom));
+    }
+    
+    public boolean isOpaque() {
+        return opaque;
+    }
 
-	public void setOpaque(boolean opaque) {
-		this.opaque = opaque;
-		revalidate();
-	}
+    public void setOpaque(boolean opaque) {
+        this.opaque = opaque;
+        revalidate();
+    }
 
-	public Color getBackground() {
-		if (backgroundColor == null) {
-			return getPlayPen().getBackground();
-		}
-		return backgroundColor;
-	}
-	
-	public void setBackground(Color c) {
-		backgroundColor = c;
-		revalidate();
-	}
+    public Color getBackground() {
+        if (backgroundColor == null) {
+            return getPlayPen().getBackground();
+        }
+        return backgroundColor;
+    }
+    
+    public void setBackground(Color c) {
+        backgroundColor = c;
+        revalidate();
+    }
 
-	public Color getForeground() {
-		if (foregroundColor == null) {
-			return getPlayPen().getForeground();
-		}
-		return foregroundColor;
-	}
-	
-	public void setForeground(Color c) {
-		foregroundColor = c;
-		revalidate();
-	}
-	
-	public String getToolTipText() {
-		return toolTipText;
-	}
+    public Color getForeground() {
+        if (foregroundColor == null) {
+            return getPlayPen().getForeground();
+        }
+        return foregroundColor;
+    }
+    
+    public void setForeground(Color c) {
+        foregroundColor = c;
+        revalidate();
+    }
+    
+    public String getToolTipText() {
+        return toolTipText;
+    }
 
-	public void setToolTipText(String toolTipText) {
-		if (toolTipText == null && this.toolTipText == null) return;
-		if (toolTipText != null && toolTipText.equals(this.toolTipText)) return;
-		this.toolTipText = toolTipText;
-		logger.debug("ToolTipText changed to "+toolTipText);
-	}
+    public void setToolTipText(String toolTipText) {
+        if (toolTipText == null && this.toolTipText == null) return;
+        if (toolTipText != null && toolTipText.equals(this.toolTipText)) return;
+        this.toolTipText = toolTipText;
+        logger.debug("ToolTipText changed to "+toolTipText);
+    }
 
-	public Font getFont() {
-		return getPlayPen().getFont();
-	}
+    public Font getFont() {
+        return getPlayPen().getFont();
+    }
 
-	public FontMetrics getFontMetrics(Font f) {
-		return getPlayPen().getFontMetrics(f);
-	}
-	
-	public FontRenderContext getFontRenderContext() {
-		return getPlayPen().getFontRenderContext();
-	}
-	
-	public boolean contains(Point p) {
-		return getUI().contains(p);
-	}
+    public FontMetrics getFontMetrics(Font f) {
+        return getPlayPen().getFontMetrics(f);
+    }
+    
+    public FontRenderContext getFontRenderContext() {
+        return getPlayPen().getFontRenderContext();
+    }
+    
+    public boolean contains(Point p) {
+        return getUI().contains(p);
+    }
 
-	public void paint(Graphics2D g2) {
-		getUI().paint(g2);
-		if (logger.isDebugEnabled()) {
+    public void paint(Graphics2D g2) {
+        getUI().paint(g2);
+        if (logger.isDebugEnabled()) {
             Color oldColor = g2.getColor();
-		    g2.setColor(Color.ORANGE);
+            g2.setColor(Color.ORANGE);
             g2.drawRect(0, 0, getWidth(), getHeight());
             g2.setColor(oldColor);
         }
-	}
+    }
 
-	public Dimension getPreferredSize() {
-		return getUI().getPreferredSize();
-	}
+    public Dimension getPreferredSize() {
+        return getUI().getPreferredSize();
+    }
 
-	public abstract Object getModel();
+    public abstract Object getModel();
 
     public PlayPenContentPane getParent() {
         return parent;
@@ -411,4 +419,5 @@ public abstract class PlayPenComponent implements Selectable {
             super(PlayPenComponent.this, "bounds", null, null);
         }
     }
+    
 }
