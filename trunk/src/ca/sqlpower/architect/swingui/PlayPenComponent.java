@@ -44,6 +44,12 @@ public abstract class PlayPenComponent implements Selectable {
 	private static final Logger logger = Logger.getLogger(PlayPenComponent.class);
 	
 	private PlayPenContentPane parent;
+	
+	/**
+     * This is a Java Bean property. It is accessed
+     * when performing undo/redo on a PlayPenComponentMovedEvent
+     */
+	private Point location;
 	private Rectangle bounds = new Rectangle();
 	protected Color backgroundColor;
 	private Insets insets = new Insets(0,0,0,0);
@@ -199,21 +205,7 @@ public abstract class PlayPenComponent implements Selectable {
 	}
 
 	public Point getLocation() {
-		return getLocation(null);
-	}
-	
-	/**
-	 * Copies this component's location into the given point object.
-	 * 
-	 * @param p A point that this method will modify.  If you pass in null, this method will
-	 * create a new point for you.
-	 * @return p if p was not null; a new point otherwise.
-	 */
-	public Point getLocation(Point p) {
-		if (p == null) p = new Point();
-		p.x = bounds.x;
-		p.y = bounds.y;
-		return p;
+		return this.bounds.getLocation();
 	}
 	
 	/**
@@ -419,5 +411,4 @@ public abstract class PlayPenComponent implements Selectable {
             super(PlayPenComponent.this, "bounds", null, null);
         }
     }
-	
 }

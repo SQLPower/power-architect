@@ -26,11 +26,11 @@ import ca.sqlpower.architect.swingui.PlayPenComponent;
 public class PlayPenComponentMovedEvent extends PropertyChangeEvent {
 
 	public PlayPenComponentMovedEvent(PlayPenComponent source) {
-		super(source, "Playpen Component moved", null, null);
+		super(source, "location", null, null);
 	}
 	
 	public PlayPenComponentMovedEvent(PlayPenComponent source, Point oldPoint, Point newPoint) {
-	    super(source, "Playpen Component moved", oldPoint, newPoint);
+	    super(source, "location", oldPoint, newPoint);
 	}
 	
 	public Point getNewPoint() {

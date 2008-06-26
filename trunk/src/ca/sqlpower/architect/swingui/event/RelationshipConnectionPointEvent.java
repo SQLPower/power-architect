@@ -33,11 +33,11 @@ import ca.sqlpower.architect.swingui.Relationship;
 public class RelationshipConnectionPointEvent extends PropertyChangeEvent {
     
     public RelationshipConnectionPointEvent(PlayPenComponent source) {
-        super(source, "Changed connection point", null, null);
+        super(source, "connectionPoints", null, null);
     }
     
     public RelationshipConnectionPointEvent(PlayPenComponent source, Point[] oldConnectionPoints, Point[] newConnectionPoints) {
-        super(source, "Changed connection point", oldConnectionPoints, newConnectionPoints);
+        super(source, "connectionPoints", oldConnectionPoints, newConnectionPoints);
     }
     
     public Relationship getRelationship() {
