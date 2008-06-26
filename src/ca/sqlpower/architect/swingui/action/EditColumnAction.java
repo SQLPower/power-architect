@@ -60,7 +60,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 	protected ArchitectSwingSession session;
 
 	public EditColumnAction(ArchitectSwingSession session) {
-        super(session, "Column Properties...", "Column Properties", "edit_column");
+        super(session, Messages.getString("EditColumnAction.name"), Messages.getString("EditColumnAction.description"), "edit_column"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         this.session = session;
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		setEnabled(false);
@@ -74,45 +74,45 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
 			List selection = playpen.getSelectedItems();
-			logger.debug("selections length is: " + selection.size());			
+			logger.debug("selections length is: " + selection.size());			 //$NON-NLS-1$
 			if (selection.size() < 1) {
 				setEnabled(false);
-				JOptionPane.showMessageDialog(playpen, "Select a column (by clicking on it) and try again.");
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.4")); //$NON-NLS-1$
 			} else if (selection.size() > 1) {
-				JOptionPane.showMessageDialog(playpen, "You have selected multiple items, but you can only edit one at a time.");
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.multipleItemsSelected")); //$NON-NLS-1$
 			} else if (selection.get(0) instanceof TablePane) {
 				setEnabled(true);
 				TablePane tp = (TablePane) selection.get(0);
 				try {
 					List<SQLColumn> selectedCols = tp.getSelectedColumns();
 					if (selectedCols.size() != 1) {
-						JOptionPane.showMessageDialog(playpen, "Please select one and only one column");
-						logger.error("Please select one and only one column");
+						JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.pleaseSelectOnlyOneColumn")); //$NON-NLS-1$
+						logger.error("Please select one and only one column"); //$NON-NLS-1$
 						cleanup();
 						return;
 					}
 					int idx = tp.getSelectedColumnIndex();
 					if (idx < 0) { // header must have been selected
-						logger.error("CantHaplaypenen: idx < 0");
-						JOptionPane.showMessageDialog(playpen, "Please select the column you would like to edit.");						
+						logger.error("CantHaplaypenen: idx < 0"); //$NON-NLS-1$
+						JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.pleaseSelectColumn"));						 //$NON-NLS-1$
 					} else {				
 						makeDialog(tp.getModel(),idx);
 					}
 				} catch (ArchitectException e) {
-					JOptionPane.showMessageDialog(playpen, "Error finding the selected column");
-					logger.error("Error finding the selected column", e);
+					JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.errorFindingSelectedColumn")); //$NON-NLS-1$
+					logger.error("Error finding the selected column", e); //$NON-NLS-1$
 					cleanup();
 				}
 			} else {
-				JOptionPane.showMessageDialog(playpen, "Please select the column you would like to edit.");
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.pleaseSelectColumn")); //$NON-NLS-1$
 				cleanup();
 			}
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
-			logger.debug("selections length is: " + selections.length);
+			logger.debug("selections length is: " + selections.length); //$NON-NLS-1$
 			// both tables and columns are selected on the tree
 			if (selections.length != 2) {
-				JOptionPane.showMessageDialog(dbt, "Please select the column you would like to edit.");
+				JOptionPane.showMessageDialog(dbt, Messages.getString("EditColumnAction.pleaseSelectColumn")); //$NON-NLS-1$
 			} else {
 				SQLObject so = (SQLObject) selections[0].getLastPathComponent();
 				if (so instanceof SQLTable) {
@@ -125,17 +125,17 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 					try {
 						int idx = st.getColumnIndex(sc);
 						if (idx < 0) {
-							JOptionPane.showMessageDialog(dbt, "Error finding the selected column");
+							JOptionPane.showMessageDialog(dbt, Messages.getString("EditColumnAction.errorFindingSelectedColumn")); //$NON-NLS-1$
 						} else {
 							makeDialog(st,idx);
 						}							
 					} catch (ArchitectException ex) {
-						JOptionPane.showMessageDialog(dbt, "Error finding the selected column");
-						logger.error("Error finding the selected column", ex);
+						JOptionPane.showMessageDialog(dbt, Messages.getString("EditColumnAction.errorFindingSelectedColumn")); //$NON-NLS-1$
+						logger.error(Messages.getString("EditColumnAction.errorFindingSelectedColumn"), ex); //$NON-NLS-1$
 						cleanup();
 					}										
 				} else {
-					JOptionPane.showMessageDialog(dbt, "Please select the column you would like to edit.");
+					JOptionPane.showMessageDialog(dbt, Messages.getString("EditColumnAction.pleaseSelectColumn")); //$NON-NLS-1$
 				}
 			}
 		} else {
@@ -152,13 +152,13 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 	        final TablePane tp) throws ArchitectException {
 		if (editDialog != null) {
 			columnEditPanel.editColumn(st.getColumn(colIdx));			
-			editDialog.setTitle("Column Properties of "+st.getName());
+			editDialog.setTitle(Messages.getString("EditColumnAction.dialogTitle", st.getName())); //$NON-NLS-1$
 			editDialog.setVisible(true);				
 			//editDialog.requestFocus();
 			
 		} else {
 				    
-		    logger.debug("Creating new column editor panel");
+		    logger.debug("Creating new column editor panel"); //$NON-NLS-1$
 		    
 			JPanel panel = new JPanel();
 			panel.setLayout(new BorderLayout(12,12));
@@ -172,7 +172,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
                 
                 // XXX it sucks to do this here, but the column can't determine its correct
                 //     sequence name until it has a parent. By then, it will be too late.
-                column.setAutoIncrementSequenceName(st.getName() + "_" + column.getName() + "_seq");
+                column.setAutoIncrementSequenceName(st.getName() + "_" + column.getName() + "_seq"); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			columnEditPanel = new ColumnEditPanel(column, session);
 			
@@ -181,22 +181,22 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
 					columnEditPanel,
 					frame,
-					 "Column Properties of "+st.getName(),
-					 "OK",
+					 Messages.getString("EditColumnAction.columnPropertiesDialogTitle", st.getName()), //$NON-NLS-1$
+					 Messages.getString("EditColumnAction.okOption"), //$NON-NLS-1$
 					 new Callable<Boolean>(){
 						public Boolean call() {
-						    EditColumnAction.this.putValue(SHORT_DESCRIPTION, "Editing "+columnEditPanel.getColName().getText() );
+						    EditColumnAction.this.putValue(SHORT_DESCRIPTION, Messages.getString("EditColumnAction.specificColumnShortDescription", columnEditPanel.getColName().getText())); //$NON-NLS-1$
 						    if (addToTable) {
-						        tp.getModel().startCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'");
+						        tp.getModel().startCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 							    try {
 							        tp.getModel().addColumn(colIdx, column);
 							    } catch (ArchitectException e) {
-							        ASUtils.showExceptionDialog(session, "Error Could not add column to table", e);
+							        ASUtils.showExceptionDialog(session, "Error Could not add column to table", e); //$NON-NLS-1$
 							    }
 							}
 	                        Boolean ret = new Boolean(columnEditPanel.applyChanges());
 	                        if (addToTable) {
-	                            tp.getModel().endCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'");
+	                            tp.getModel().endCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 						    }
 							return ret;
 						}
@@ -229,30 +229,30 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 	private void setupAction(List selectedItems) {
 		if (selectedItems.size() == 0) {
 			setEnabled(false);
-			logger.debug("Disabling EditColumnAction");
-			putValue(SHORT_DESCRIPTION, "Edit Selected Column");
+			logger.debug("Disabling EditColumnAction"); //$NON-NLS-1$
+			putValue(SHORT_DESCRIPTION, Messages.getString("EditColumnAction.shortDescription")); //$NON-NLS-1$
 		} else {
 			Selectable item = (Selectable) selectedItems.get(0);
-			String name = "Selected";
-			logger.debug("Selected Table");
+			String name = Messages.getString("EditColumnAction.selected"); //$NON-NLS-1$
+			logger.debug("Selected Table"); //$NON-NLS-1$
 			if (item instanceof TablePane) {				
 				TablePane tp = (TablePane) item;
 				
 				if (tp.getSelectedColumnIndex() > TablePane.COLUMN_INDEX_TITLE ) {
 					try {						
-						logger.debug ("Enabling EditColumnAction");
+						logger.debug ("Enabling EditColumnAction"); //$NON-NLS-1$
 						setEnabled(true);
 						name = tp.getModel().getColumn(tp.getSelectedColumnIndex()).getName();
 					} catch (ArchitectException ex) {
-						logger.error("Couldn't get selected column name", ex);
+						logger.error("Couldn't get selected column name", ex); //$NON-NLS-1$
 					}
 				} else {
 					name = tp.getModel().toString();
 					setEnabled(false);
-					logger.debug("Disabling EditColumnAction");
+					logger.debug("Disabling EditColumnAction"); //$NON-NLS-1$
 				}
 			} 
-			putValue(SHORT_DESCRIPTION, "Editting "+name);
+			putValue(SHORT_DESCRIPTION, Messages.getString("EditColumnAction.specificColumnShortDescription", name)); //$NON-NLS-1$
 		}
 	}
 		
