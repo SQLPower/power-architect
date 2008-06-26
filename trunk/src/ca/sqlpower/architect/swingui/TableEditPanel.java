@@ -279,6 +279,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
         if(itemDeleted) {
             if(this.editDialog != null) {
                 this.editDialog.setVisible(false);
+                this.editDialog.dispose();
             }
             itemDeleted = false;
         }        

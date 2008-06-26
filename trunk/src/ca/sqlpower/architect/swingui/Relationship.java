@@ -549,7 +549,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
      *          element is a point representing the fk connection point.
      */
     public void setConnectionPoints(Point[] connectionPoints) {
-        // This shouldn't be here, but it's here to fix a bug with the relationship
+        // XXX This shouldn't be here, but it's here to fix a bug with the relationship
         // orientation when performing undo/redo after moving connection points.
         updateUI();
         this.setPkConnectionPoint(connectionPoints[0]);
