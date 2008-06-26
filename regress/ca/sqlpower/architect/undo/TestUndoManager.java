@@ -34,13 +34,16 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.StubSQLObject;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
+import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
+import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.architect.undo.UndoManager.SQLObjectUndoableEventAdapter;
 
@@ -303,5 +306,63 @@ public class TestUndoManager extends TestCase {
 		undoManager.undo();
 		assertEquals(oldLoc, tp2.getLocation());
 	}
+	
+	public void testUndoMultipleTablePaneMovement() {
+	    TablePane tp0 = new TablePane(pkTable, pp);
+	    pp.addTablePane(tp0, new Point(0, 0));
+	    Point oldLoc0 = tp0.getLocation();
+	    TablePane tp1 = new TablePane(fkTable, pp);
+	    pp.addTablePane(tp1, new Point(999, 999));
+	    Point oldLoc1 = tp1.getLocation();
+	    pp.startCompoundEdit("start move");
+	    tp0.setLocation(0, 2);
+	    tp1.setLocation(400, 500);
+	    tp0.setLocation(0, 6);
+	    tp1.setLocation(456, 578);
+	    tp0.setLocation(23, 45);
+	    tp1.setLocation(423, 5);
+	    pp.endCompoundEdit("end move");
+	    assertEquals(new Point(23, 45), tp0.getLocation());
+	    assertEquals(new Point(423, 5), tp1.getLocation());
+	    undoManager.undo();
+	    assertEquals(oldLoc0, tp0.getLocation());
+	    assertEquals(oldLoc1, tp1.getLocation());
+	    undoManager.redo();
+	    assertEquals(new Point(23, 45), tp0.getLocation());
+	    assertEquals(new Point(423, 5), tp1.getLocation());
+	}
+	
+	/**
+	 * Tests undo/redo of the movement of 1 relationship's connection points.
+	 */
+	public void testRelationshipConnectionPointMovement() throws ArchitectException{
+	    TablePane tp0 = new TablePane(pkTable, pp);
+	    TablePane tp1 = new TablePane(fkTable, pp);
+	    SQLRelationship model = new SQLRelationship();
+	    model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk");  //$NON-NLS-1$ //$NON-NLS-2$
+        model.setIdentifying(true);
+        model.attachRelationship(pkTable,fkTable,true);
+	    Relationship rel = new Relationship(pp, model);
 
+	    pp.addTablePane(tp0, new Point(0, 0));
+	    pp.addTablePane(tp1, new Point(0, 200));
+	    pp.addRelationship(rel);
+	    
+	    Point oldPkCon = rel.getPkConnectionPoint();
+	    Point oldFkCon = rel.getFkConnectionPoint();
+	    
+	    rel.setPkConnectionPoint(new Point(oldPkCon.x + 20, oldPkCon.y));
+	    rel.setFkConnectionPoint(new Point(oldFkCon.x - 20, oldFkCon.y));
+	    Point newPkCon = rel.getPkConnectionPoint();
+	    Point newFkCon = rel.getFkConnectionPoint();
+	    
+	    rel.firePropertyChange(new RelationshipConnectionPointEvent(rel, new Point[] {oldPkCon, oldFkCon}, 
+	            new Point[] {rel.getPkConnectionPoint(), rel.getFkConnectionPoint()}));
+	    undoManager.undo();
+	    assertEquals(oldPkCon, rel.getPkConnectionPoint());
+	    assertEquals(oldFkCon, rel.getFkConnectionPoint());
+	    undoManager.redo();
+	    assertEquals(newPkCon, rel.getPkConnectionPoint());
+	    assertEquals(newFkCon, rel.getFkConnectionPoint());
+    }
 }
