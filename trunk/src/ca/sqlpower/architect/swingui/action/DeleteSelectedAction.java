@@ -250,7 +250,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
                     try {
                         List<SQLColumn> selectedColumns = tp.getSelectedColumns();
                         if (selectedColumns.size() > 1) {
-                            name = selectedColumns.size()+Messages.getString("DeleteSelectedAction.numberOfSelectedItems"); //$NON-NLS-1$
+                            name = Messages.getString("DeleteSelectedAction.numberOfSelectedItems", String.valueOf(selectedColumns.size())); //$NON-NLS-1$
                         } else {
                             name = tp.getModel().getColumn(tp.getSelectedColumnIndex()).getName();
                         }
@@ -263,7 +263,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
             } else if (item instanceof Relationship) {
                 name = ((Relationship) item).getModel().getName();
             }
-            Description = Messages.getString("DeleteSelectedAction.deleteItem")+name; //$NON-NLS-1$
+            Description = Messages.getString("DeleteSelectedAction.deleteItem", name); //$NON-NLS-1$
         } else {
             setEnabled(true);
             int numSelectedItems =0;
