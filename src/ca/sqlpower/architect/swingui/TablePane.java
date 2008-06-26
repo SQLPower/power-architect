@@ -214,7 +214,7 @@ public class TablePane
 	public Point getLocationOnScreen() {
 		Point p = new Point();
 		PlayPen pp = getPlayPen();
-		getLocation(p);
+		p = getLocation();
 		pp.zoomPoint(p);
 		SwingUtilities.convertPointToScreen(p, pp);
 		return p;

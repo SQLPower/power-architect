@@ -243,7 +243,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
             }
 
             // add any movements
-            List<PlayPenComponentMovedEvent> condensedMoveEvents = new ArrayList<PlayPenComponentMovedEvent>();
+            List<PropertyChangeEvent> condensedMoveEvents = new ArrayList<PropertyChangeEvent>();
 
             for (Map.Entry<PlayPenComponent, Point> ent : newPositions.entrySet()) {
                 PlayPenComponent ppc = ent.getKey();
@@ -254,7 +254,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 
             if (ce != null) {
                 if (condensedMoveEvents.size() > 0) {
-                    TablePaneLocationEdit tableEdit = new TablePaneLocationEdit(condensedMoveEvents);
+                    PropertyChangeEdit tableEdit = new PropertyChangeEdit(condensedMoveEvents);
                     ce.addEdit(tableEdit);
                 }
                 // make sure the edit is no longer in progress
@@ -272,7 +272,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
                 ce = null;
             } else {
                 if (condensedMoveEvents.size() > 0) {
-                    UndoManager.this.addEdit(new TablePaneLocationEdit(condensedMoveEvents));
+                    UndoManager.this.addEdit(new PropertyChangeEdit(condensedMoveEvents));
                 }
                 newPositions.clear();
             }
@@ -305,7 +305,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
                 }
             } else if (evt instanceof RelationshipConnectionPointEvent) {
                 RelationshipConnectionPointEvent e = (RelationshipConnectionPointEvent) evt;
-                RelationshipConnectionEdit relConnectionEvents = new RelationshipConnectionEdit(e);
+                PropertyChangeEdit relConnectionEvents = new PropertyChangeEdit(e);
                 addEdit(relConnectionEvents);
             }
         }
