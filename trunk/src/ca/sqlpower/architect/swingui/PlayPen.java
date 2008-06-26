@@ -3167,6 +3167,7 @@ public class PlayPen extends JPanel
             if (!selectionPaths.contains(tp)) {
                 selectionPaths.add(tp);
                 addedPaths = true;
+                tree.scrollPathToVisible(tp);
             }
             
             if (comp instanceof TablePane) {
@@ -3175,6 +3176,7 @@ public class PlayPen extends JPanel
                     if (!selectionPaths.contains(tp)) {
                         selectionPaths.add(tp);
                         addedPaths = true;
+                        tree.scrollPathToVisible(tp);
                     }
                 }
             }
