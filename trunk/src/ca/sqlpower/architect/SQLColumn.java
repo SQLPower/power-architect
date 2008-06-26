@@ -714,7 +714,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
         } else try {
             startCompoundEdit("Starting PrimaryKeySeq compound edit");
  
-	        if (argPrimaryKeySeq != null && !this.autoIncrement) {
+	        if (argPrimaryKeySeq != null && !this.autoIncrement) { // FIXME don't worry about autoIncrement
 	            setNullable(DatabaseMetaData.columnNoNulls);	
 	        }
             

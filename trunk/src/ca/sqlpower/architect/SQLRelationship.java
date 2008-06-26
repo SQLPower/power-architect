@@ -846,6 +846,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				ColumnMapping m = getMappingByPkCol(pkcol);
 				removeChild(m);
 				try {
+                    // XXX no magic here? this is suspect
 					m.getFkColumn().setMagicEnabled(false);
 					m.getFkColumn().removeReference();
 				} finally {
