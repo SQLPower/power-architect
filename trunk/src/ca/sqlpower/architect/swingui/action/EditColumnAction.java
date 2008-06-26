@@ -77,7 +77,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			logger.debug("selections length is: " + selection.size());			 //$NON-NLS-1$
 			if (selection.size() < 1) {
 				setEnabled(false);
-				JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.4")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.noColumnSelected")); //$NON-NLS-1$
 			} else if (selection.size() > 1) {
 				JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.multipleItemsSelected")); //$NON-NLS-1$
 			} else if (selection.get(0) instanceof TablePane) {

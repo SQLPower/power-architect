@@ -68,7 +68,7 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 				Relationship r = (Relationship) selection.get(0);
 				makeDialog(r.getModel());
 			} else {
-				JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.5")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.pleaseSelectRelationship")); //$NON-NLS-1$
 			}
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
