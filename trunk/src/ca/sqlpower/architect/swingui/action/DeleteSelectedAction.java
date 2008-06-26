@@ -56,7 +56,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
     protected final DBTree dbt;
 
     public DeleteSelectedAction(ArchitectSwingSession session) throws ArchitectException {
-        super(session, "Delete Selected", "Delete Selected", "delete");
+        super(session, Messages.getString("DeleteSelectedAction.name"), Messages.getString("DeleteSelectedAction.description"), "delete"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
         putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         setEnabled(false);
@@ -76,10 +76,10 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
      *
      */
     public void actionPerformed(ActionEvent evt) {
-        logger.debug("delete action detected!");
-        logger.debug("ACTION COMMAND: " + evt.getActionCommand());
+        logger.debug("delete action detected!"); //$NON-NLS-1$
+        logger.debug("ACTION COMMAND: " + evt.getActionCommand()); //$NON-NLS-1$
 
-        logger.debug("delete action came from playpen");
+        logger.debug("delete action came from playpen"); //$NON-NLS-1$
         List <PlayPenComponent>items = playpen.getSelectedItems();
         List <TablePane> tablesWithColumns = new ArrayList<TablePane>();
                 
@@ -88,7 +88,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 
         
         if (items.size() < 1) {
-            JOptionPane.showMessageDialog(playpen, "No items to delete!");
+            JOptionPane.showMessageDialog(playpen, Messages.getString("DeleteSelectedAction.noItemsToDelete")); //$NON-NLS-1$
         } else {
             // one or more items selected
             int tCount = 0;
@@ -115,14 +115,13 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
                     }
                 }
             } catch (ArchitectException e) {
-                logger.error("Fail to remove tables with column(s) selected from the list");
+                logger.error("Fail to remove tables with column(s) selected from the list"); //$NON-NLS-1$
             }
 
             if (items.size() > 1) {
                 int decision = JOptionPane.showConfirmDialog(frame,
-                        "Are you sure you want to delete these "
-                        +tCount+" tables, " + cCount + " columns and "+rCount+" relationships?",
-                        "Multiple Delete",
+                        Messages.getString("DeleteSelectedAction.multipleDeleteConfirmation", String.valueOf(tCount), String.valueOf(cCount), String.valueOf(rCount)), //$NON-NLS-1$
+                        Messages.getString("DeleteSelectedAction.multipleDeleteDialogTitle"), //$NON-NLS-1$
                         JOptionPane.YES_NO_OPTION);
                 if (decision != JOptionPane.YES_OPTION ) {
                     return;
@@ -130,7 +129,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
             }
         } 
 
-        playpen.startCompoundEdit("Delete");
+        playpen.startCompoundEdit("Delete"); //$NON-NLS-1$
         // prevent tree selection during delete
         playpen.setIgnoreTreeSelection(true);
         try {
@@ -156,7 +155,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
                     }
                 } catch (ArchitectException ae) {
                     ASUtils.showExceptionDialog(session,
-                            "Could not find selected columns." , ae);
+                            Messages.getString("DeleteSelectedAction.couldNotFindSelectedColumns") , ae); //$NON-NLS-1$
                     return;
                 }
             }
@@ -171,18 +170,16 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
                         tablesWithColumns.get(j).getModel().removeColumn(sc);
                     } catch (LockedColumnException ex) {
                         int decision = JOptionPane.showConfirmDialog(playpen,
-                                "Could not delete the column " + sc.getName() + " because it is part of\n" +
-                                "the relationship \""+ex.getLockingRelationship()+"\".\n\n" +
-                                "Continue deleting remaining selected columns?",
-                                "Column is Locked",
+                                Messages.getString("DeleteSelectedAction.couldNotDeleteColumnContinueConfirmation", sc.getName(), ex.getLockingRelationship().toString()), //$NON-NLS-1$
+                                Messages.getString("DeleteSelectedAction.couldNotDeleteColumnDialogTitle"), //$NON-NLS-1$
                                 JOptionPane.YES_NO_OPTION);
                         if (decision == JOptionPane.NO_OPTION) {
                             return;
                         }
                     } catch (ArchitectException e) {
-                        logger.error("Unexpected exception encountered when attempting to delete column '"+
-                                sc+"' of table '"+sc.getParentTable()+"'");
-                        ASUtils.showExceptionDialog(session, "Could not delete the column", e);
+                        logger.error("Unexpected exception encountered when attempting to delete column '"+ //$NON-NLS-1$
+                                sc+"' of table '"+sc.getParentTable()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
+                        ASUtils.showExceptionDialog(session, Messages.getString("DeleteSelectedAction.couldNotDeleteColumn"), e); //$NON-NLS-1$
                     }
                 }
             }
@@ -192,7 +189,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
             // deletes all tables and relationships
             while (it.hasNext()) {
                 Selectable item = (Selectable) it.next();
-                logger.debug("next item for delete is: " + item.getClass().getName());
+                logger.debug("next item for delete is: " + item.getClass().getName()); //$NON-NLS-1$
                 if (item instanceof TablePane) {
                     TablePane tp = (TablePane) item;
                     session.getTargetDatabase().removeChild(tp.getModel());
@@ -201,17 +198,17 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
                     tableNames.remove(remove.toLowerCase());
                 } else if (item instanceof Relationship) {
                     Relationship r = (Relationship) item;
-                    logger.debug("trying to delete relationship " + r);
+                    logger.debug("trying to delete relationship " + r); //$NON-NLS-1$
                     SQLRelationship sr = r.getModel();
                     sr.getPkTable().removeExportedKey(sr);
                 } else {
                     JOptionPane.showMessageDialog((JComponent) item,
-                    "The selected item type is not recognised");
+                    Messages.getString("DeleteSelectedAction.selectedItemTypeNotRecognized")); //$NON-NLS-1$
                 }
 
             } 
         } finally {
-            playpen.endCompoundEdit("Ending multi-select");
+            playpen.endCompoundEdit("Ending multi-select"); //$NON-NLS-1$
             playpen.setIgnoreTreeSelection(false);
         }
     }
@@ -242,23 +239,23 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
         String Description;
         if (selectedItems.size() == 0) {
             setEnabled(false);
-            Description = "Delete Selected";
+            Description = Messages.getString("DeleteSelectedAction.deleteSelected"); //$NON-NLS-1$
         } else if (selectedItems.size() == 1) {
             Selectable item = (Selectable) selectedItems.get(0);
             setEnabled(true);
-            String name = "Selected";
+            String name = Messages.getString("DeleteSelectedAction.selected"); //$NON-NLS-1$
             if (item instanceof TablePane) {
                 TablePane tp = (TablePane) item;
                 if (tp.getSelectedColumnIndex() >= 0) {
                     try {
                         List<SQLColumn> selectedColumns = tp.getSelectedColumns();
                         if (selectedColumns.size() > 1) {
-                            name = selectedColumns.size()+" items";
+                            name = selectedColumns.size()+Messages.getString("DeleteSelectedAction.numberOfSelectedItems"); //$NON-NLS-1$
                         } else {
                             name = tp.getModel().getColumn(tp.getSelectedColumnIndex()).getName();
                         }
                     } catch (ArchitectException ex) {
-                        logger.error("Couldn't get selected column name", ex);
+                        logger.error("Couldn't get selected column name", ex); //$NON-NLS-1$
                     }
                 } else {
                     name = tp.getModel().getName();
@@ -266,7 +263,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
             } else if (item instanceof Relationship) {
                 name = ((Relationship) item).getModel().getName();
             }
-            Description = "Delete "+name;
+            Description = Messages.getString("DeleteSelectedAction.deleteItem")+name; //$NON-NLS-1$
         } else {
             setEnabled(true);
             int numSelectedItems =0;
@@ -279,8 +276,8 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
                     numSelectedItems += Math.max(((TablePane) item).getSelectedColumns().size()-1, 0);
                 }
             }
-            Description = "Delete "+numSelectedItems+" items";
+            Description = Messages.getString("DeleteSelectedAction.deleteNumberOfItems", String.valueOf(numSelectedItems)); //$NON-NLS-1$
         }
-        putValue(SHORT_DESCRIPTION, Description + " (Shortcut delete)");
+        putValue(SHORT_DESCRIPTION, Description + Messages.getString("DeleteSelectedAction.shortcut")); //$NON-NLS-1$
     }
 }

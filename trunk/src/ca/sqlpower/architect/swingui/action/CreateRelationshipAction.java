@@ -61,9 +61,9 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 
 	public CreateRelationshipAction(ArchitectSwingSession session, boolean identifying, CursorManager cm) {
         super(session, 
-              identifying ? "New Identifying Relationship" : "New Non-Identifying Relationship",
-              identifying ? "New Identifying Relationship": "New Non-Identifying Relationship",
-              identifying ? "new_id_relationship" : "new_nonid_relationship");
+              identifying ? Messages.getString("CreateRelationshipAction.createIdentifyingRelationshipActionName") : Messages.getString("CreateRelationshipAction.createNonIdentifyingRelationshipActionName"), //$NON-NLS-1$ //$NON-NLS-2$
+              identifying ? Messages.getString("CreateRelationshipAction.createIdentifyingRelationshipActionDescription"): Messages.getString("CreateRelationshipAction.createNonIdentifyingRelationshipActionDescription"), //$NON-NLS-1$ //$NON-NLS-2$
+              identifying ? "new_id_relationship" : "new_nonid_relationship"); //$NON-NLS-1$ //$NON-NLS-2$
         
 		if (identifying) {
 			putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_R,0));
@@ -72,7 +72,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 		}
 		cursorManager = cm;
 		this.identifying = identifying;
-		logger.debug("(constructor) hashcode is: " + super.hashCode());
+		logger.debug("(constructor) hashcode is: " + super.hashCode()); //$NON-NLS-1$
         
         if (this.playpen != null) {
             this.playpen.addSelectionListener(this);
@@ -87,7 +87,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 		playpen.fireCancel();
 		pkTable = null;
 		fkTable = null;
-		logger.debug("Starting to create relationship, setting active to TRUE!");
+		logger.debug("Starting to create relationship, setting active to TRUE!"); //$NON-NLS-1$
 		active = true;
 		cursorManager.placeModeStarted();
 		//playpen.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
@@ -97,11 +97,11 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 
 	static public void doCreateRelationship(SQLTable pkTable, SQLTable fkTable, PlayPen pp, boolean identifying) {
 		try {
-			pp.startCompoundEdit("Add Relationship");
+			pp.startCompoundEdit("Add Relationship"); //$NON-NLS-1$
 			SQLRelationship model = new SQLRelationship();
 			// XXX: need to ensure uniqueness of setName(), but 
 			// to_identifier should take care of this...			
-			model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk"); 
+			model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk");  //$NON-NLS-1$ //$NON-NLS-2$
 			model.setIdentifying(identifying);
 			model.attachRelationship(pkTable,fkTable,true);
 			
@@ -109,10 +109,10 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 			pp.addRelationship(r);
 			r.revalidate();
 		} catch (ArchitectException ex) {
-			logger.error("Couldn't create relationship", ex);
-			ASUtils.showExceptionDialogNoReport(pp, "Couldn't create relationship.", ex);
+			logger.error("Couldn't create relationship", ex); //$NON-NLS-1$
+			ASUtils.showExceptionDialogNoReport(pp, Messages.getString("CreateRelationshipAction.couldNotCreateRelationship"), ex); //$NON-NLS-1$
 		} finally {
-			pp.endCompoundEdit("Ending the creation of a relationship");
+			pp.endCompoundEdit("Ending the creation of a relationship"); //$NON-NLS-1$
 		}
 	}
 
@@ -130,10 +130,10 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 		if (s instanceof TablePane) {
 			if (pkTable == null) {
 				pkTable = (TablePane) s;
-				logger.debug("Creating relationship: PK Table is "+pkTable);
+				logger.debug("Creating relationship: PK Table is "+pkTable); //$NON-NLS-1$
 			} else {
 				fkTable = (TablePane) s;
-				logger.debug("Creating relationship: FK Table is "+fkTable);
+				logger.debug("Creating relationship: FK Table is "+fkTable); //$NON-NLS-1$
 				try {
 					doCreateRelationship(pkTable.getModel(),fkTable.getModel(),playpen,identifying);  // this might fail, but still set things back to "normal"
 				} finally {
@@ -142,7 +142,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 			}
 		} else {
 			if (logger.isDebugEnabled())
-				logger.debug("The user clicked on a non-table component: "+s);
+				logger.debug("The user clicked on a non-table component: "+s); //$NON-NLS-1$
 		}
 	}
 
