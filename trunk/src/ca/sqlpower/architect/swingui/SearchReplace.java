@@ -103,11 +103,11 @@ public class SearchReplace {
 
         public String getColumnName(int columnIndex) {
             if (columnIndex == 0) {
-                return "Type";
+                return Messages.getString("SearchReplace.typeResultColumnHeader"); //$NON-NLS-1$
             } else if (columnIndex == 1) {
-                return "Name";
+                return Messages.getString("SearchReplace.nameResultColumnHeader"); //$NON-NLS-1$
             } else {
-                return "Invalid column index: "+columnIndex;
+                return Messages.getString("SearchReplace.invalidResultColumnIndex")+columnIndex; //$NON-NLS-1$
             }
         }
 
@@ -124,7 +124,7 @@ public class SearchReplace {
             SQLObject obj = (SQLObject) results.get(rowIndex);
             if (columnIndex == 0) {
                 if (obj instanceof SQLColumn) {
-                    return "Column of "+((SQLColumn) obj).getParentTable().getName();
+                    return Messages.getString("SearchReplace.columnOfTable",((SQLColumn) obj).getParentTable().getName()); //$NON-NLS-1$
                 } else {
                     String className = obj.getClass().getName();
                     return className.substring(className.lastIndexOf('.') + 4);  // the +4 is to skip over ".SQL"
@@ -132,7 +132,7 @@ public class SearchReplace {
             } else if (columnIndex == 1) {
                 return obj.getName();
             } else {
-                return "Invalid column: "+columnIndex;
+                return Messages.getString("SearchReplace.invalidColumnIndex", String.valueOf(columnIndex)); //$NON-NLS-1$
             }
         }
 
@@ -182,12 +182,12 @@ public class SearchReplace {
     public void showSearchDialog(final PlayPen pp) {
     	// XXX need to convert to an ArchitectPanel before switching
     	// this to use ArchitectPanelBuilder.
-        final JDialog d = new JDialog((Frame) SwingUtilities.getAncestorOfClass(JFrame.class, pp), "Find");
+        final JDialog d = new JDialog((Frame) SwingUtilities.getAncestorOfClass(JFrame.class, pp), Messages.getString("SearchReplace.dialogTitle")); //$NON-NLS-1$
 
         ButtonGroup matchType = new ButtonGroup();
-        matchType.add(substringMatch = new JRadioButton("Substring"));
-        matchType.add(exactMatch = new JRadioButton("Exact Match"));
-        matchType.add(regexMatch = new JRadioButton("Regex"));
+        matchType.add(substringMatch = new JRadioButton(Messages.getString("SearchReplace.substringCompareByOption"))); //$NON-NLS-1$
+        matchType.add(exactMatch = new JRadioButton(Messages.getString("SearchReplace.exactMatchCompareByOption"))); //$NON-NLS-1$
+        matchType.add(regexMatch = new JRadioButton(Messages.getString("SearchReplace.regexCompareByOption"))); //$NON-NLS-1$
         JPanel matchTypePanel = new JPanel(new GridLayout(1,3));
         matchTypePanel.add(substringMatch);
         matchTypePanel.add(exactMatch);
@@ -195,10 +195,10 @@ public class SearchReplace {
         substringMatch.setSelected(true);
 
         ButtonGroup searchType = new ButtonGroup();
-        searchType.add(tableSearch = new JRadioButton("Tables"));
-        searchType.add(relationshipSearch = new JRadioButton("Relationships"));
-        searchType.add(columnSearch = new JRadioButton("Columns"));
-        searchType.add(allSearch = new JRadioButton("Anything"));
+        searchType.add(tableSearch = new JRadioButton(Messages.getString("SearchReplace.tablesSearchOption"))); //$NON-NLS-1$
+        searchType.add(relationshipSearch = new JRadioButton(Messages.getString("SearchReplace.relationshipsSearchOption"))); //$NON-NLS-1$
+        searchType.add(columnSearch = new JRadioButton(Messages.getString("SearchReplace.columnsSearchOption"))); //$NON-NLS-1$
+        searchType.add(allSearch = new JRadioButton(Messages.getString("SearchReplace.anythingSearchOption"))); //$NON-NLS-1$
         JPanel searchTypePanel = new JPanel(new GridLayout(4,1));
         searchTypePanel.add(tableSearch);
         searchTypePanel.add(relationshipSearch);
@@ -206,12 +206,12 @@ public class SearchReplace {
         searchTypePanel.add(allSearch);
         allSearch.setSelected(true);
 
-        caseInsensitive = new JCheckBox("Ignoring case");
+        caseInsensitive = new JCheckBox(Messages.getString("SearchReplace.ignoreCaseOption")); //$NON-NLS-1$
         caseInsensitive.setSelected(true);
 
         searchExpression = new JTextField();
 
-        JDefaultButton searchButton = new JDefaultButton("Search");
+        JDefaultButton searchButton = new JDefaultButton(Messages.getString("SearchReplace.searchButton")); //$NON-NLS-1$
         // searchButton.setDefaultCapable(true);
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -219,7 +219,7 @@ public class SearchReplace {
                     showResults(d, pp);
                 } catch (ArchitectException ex) {
                     ASUtils.showExceptionDialogNoReport(
-                        "Encountered a problem during search", ex);
+                        Messages.getString("SearchReplace.problemDuringSearch"), ex); //$NON-NLS-1$
                 }
             }
         });
@@ -243,19 +243,19 @@ public class SearchReplace {
         cp.setLayout(new FormLayout(10, 10));
         cp.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
-        cp.add(new JLabel("Look for"));
+        cp.add(new JLabel(Messages.getString("SearchReplace.lookForLabel"))); //$NON-NLS-1$
         cp.add(searchTypePanel);
 
-        cp.add(new JLabel("Named"));
+        cp.add(new JLabel(Messages.getString("SearchReplace.namedLabel"))); //$NON-NLS-1$
         cp.add(searchExpression);
 
-        cp.add(new JLabel("Comparing by"));
+        cp.add(new JLabel(Messages.getString("SearchReplace.comparingByLabel"))); //$NON-NLS-1$
         cp.add(matchTypePanel);
 
-        cp.add(new JLabel(""));
+        cp.add(new JLabel("")); //$NON-NLS-1$
         cp.add(caseInsensitive);
 
-        cp.add(new JLabel(""));
+        cp.add(new JLabel("")); //$NON-NLS-1$
         cp.add(buttonPanel);
 
         d.getRootPane().setDefaultButton(searchButton);
@@ -275,15 +275,15 @@ public class SearchReplace {
             
 	        // XXX This JDialog has three buttons so we cannot use
 	        // ArchitectPanelBuilder to create it...
-	        final JDialog d = new JDialog(parent, "Search Results");
+	        final JDialog d = new JDialog(parent, Messages.getString("SearchReplace.resultsDialogTitle")); //$NON-NLS-1$
 	        final JTable t = new JTable(new SearchResultsTableModel(results));
 
-	        final JButton renameButton = new JButton("Rename Selected...");
+	        final JButton renameButton = new JButton(Messages.getString("SearchReplace.renameSelectedButton")); //$NON-NLS-1$
 	        renameButton.setEnabled(false);
 	        renameButton.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent e) {
 	            	String newName;
-	         	    newName = JOptionPane.showInputDialog(d, "Enter the new name");
+	         	    newName = JOptionPane.showInputDialog(d, Messages.getString("SearchReplace.renameInstructions")); //$NON-NLS-1$
 	                TableModel m = t.getModel();
 
 	                int selectedRows[] = t.getSelectedRows();
@@ -297,7 +297,7 @@ public class SearchReplace {
 	            }
 	        });
 
-	        final JButton gotoButton = new JButton("Show in Playpen");
+	        final JButton gotoButton = new JButton(Messages.getString("SearchReplace.showInPlaypenButton")); //$NON-NLS-1$
 	        gotoButton.setEnabled(false);
 	        gotoButton.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent e) {
@@ -315,7 +315,7 @@ public class SearchReplace {
 	                    } else if (searchObj instanceof SQLRelationship) {
 	                        searchRelationship = (SQLRelationship) searchObj;
 	                    } else {
-	                        JOptionPane.showMessageDialog(null, "Sorry, the selected search result is of an unknown type!");
+	                        JOptionPane.showMessageDialog(null, Messages.getString("SearchReplace.unknownSearchResultType")); //$NON-NLS-1$
 	                        return;
 	                    }
 
@@ -330,10 +330,10 @@ public class SearchReplace {
 	                            	try {
 	                                tp.selectColumn(searchTable.getColumnIndex(searchColumn));
 	                            	} catch (ArchitectException ex) {
-	                            		logger.error("Failed to select column becuase getColumnIndex" +
-	                            				" threw the following exception:", ex);
+	                            		logger.error("Failed to select column becuase getColumnIndex" + //$NON-NLS-1$
+	                            				" threw the following exception:", ex); //$NON-NLS-1$
 	                            		ASUtils.showExceptionDialogNoReport(parent,
-	                            		        "Sorry, couldn't select the column you asked for.", ex);
+	                            		        Messages.getString("SearchReplace.couldNotSelectColumn"), ex); //$NON-NLS-1$
 	                            	}
 	                            }
 	                        }
@@ -378,7 +378,7 @@ public class SearchReplace {
     	 }
         catch(PatternSyntaxException e){
             ASUtils.showExceptionDialogNoReport(parent,
-             "Regular Expression Error.", e);
+             Messages.getString("SearchReplace.regularExpressionError"), e); //$NON-NLS-1$
         }
     }
 
@@ -390,19 +390,19 @@ public class SearchReplace {
             StringBuffer escapedPat = new StringBuffer();
             for (int i = 0; i < p.length(); i++) {
                 if (! (Character.isLetterOrDigit(p.charAt(i)) || Character.isSpaceChar(p.charAt(i)))) {
-                    escapedPat.append("\\");
+                    escapedPat.append("\\"); //$NON-NLS-1$
                 }
                 escapedPat.append(p.charAt(i));
             }
             if (exactMatch.isSelected()) {
-                pat = "^"+escapedPat+"$";
+                pat = "^"+escapedPat+"$"; //$NON-NLS-1$ //$NON-NLS-2$
             } else {
-                pat = ".*"+escapedPat+".*";
+                pat = ".*"+escapedPat+".*"; //$NON-NLS-1$ //$NON-NLS-2$
             }
         } else if (regexMatch.isSelected()) {
             pat = searchExpression.getText();
         } else {
-            throw new IllegalStateException("Search mode is not substring, exact, or regex.  Don't know what to do.");
+            throw new IllegalStateException(Messages.getString("SearchReplace.unknownSearchMode")); //$NON-NLS-1$
         }
         int patternFlags = 0;
         if (caseInsensitive.isSelected()) {
@@ -414,7 +414,7 @@ public class SearchReplace {
     }
 
     private List recursiveSearch(SQLObject obj, Pattern searchPattern, List appendTo) throws ArchitectException {
-        if (logger.isDebugEnabled()) logger.debug("Matching \""+obj.getName()+"\" against /"+searchPattern.pattern()+"/");
+        if (logger.isDebugEnabled()) logger.debug("Matching \""+obj.getName()+"\" against /"+searchPattern.pattern()+"/"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         if (searchPattern.matcher(obj.getName()).matches() && searchTypeMatches(obj)) {
             appendTo.add(obj);
         }

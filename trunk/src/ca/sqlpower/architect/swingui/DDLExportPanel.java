@@ -69,20 +69,20 @@ public class DDLExportPanel implements DataEntryPanel {
 	private void setup() {		
         panel.setLayout(new FormLayout());
         JPanel panelProperties = new JPanel(new FormLayout());
-        panelProperties.add(new JLabel("Create in:"));
+        panelProperties.add(new JLabel(Messages.getString("DDLExportPanel.createInLabel"))); //$NON-NLS-1$
 
         panelProperties.add(targetDB = new JComboBox());
-        targetDB.setPrototypeDisplayValue("(Target Database)");
+        targetDB.setPrototypeDisplayValue(Messages.getString("DDLExportPanel.targetDatabase")); //$NON-NLS-1$
         ASUtils.setupTargetDBComboBox(session, targetDB);
         
-        newTargetDB = new JButton("Properties");
+        newTargetDB = new JButton(Messages.getString("DDLExportPanel.propertiesButton")); //$NON-NLS-1$
         newTargetDB.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     ASUtils.showTargetDbcsDialog(session.getArchitectFrame(), session, targetDB);
                 }
             });
         
-        panelProperties.add(new JLabel("Generate DDL for Database Type:"));
+        panelProperties.add(new JLabel(Messages.getString("DDLExportPanel.generateDDLForDbType"))); //$NON-NLS-1$
         DDLGenerator ddlg = session.getDDLGenerator();
 		Vector<Class<? extends DDLGenerator>> ddlTypes =
             DDLUtils.getDDLTypes(session.getContext().getPlDotIni());
@@ -98,9 +98,9 @@ public class DDLExportPanel implements DataEntryPanel {
 				}
 			});
         
-        panelProperties.add(catalogLabel = new JLabel("Target Catalog"));
+        panelProperties.add(catalogLabel = new JLabel(Messages.getString("DDLExportPanel.targetCatalog"))); //$NON-NLS-1$
         panelProperties.add(catalogField = new JTextField(ddlg.getTargetCatalog()));
-        panelProperties.add(schemaLabel = new JLabel("Target Schema"));
+        panelProperties.add(schemaLabel = new JLabel(Messages.getString("DDLExportPanel.targetSchema"))); //$NON-NLS-1$
         panelProperties.add(schemaField = new JTextField(ddlg.getTargetSchema()));
         panel.add(panelProperties);
         panel.add(newTargetDB);
@@ -125,7 +125,7 @@ public class DDLExportPanel implements DataEntryPanel {
 				catalogLabel.setEnabled(true);
 				catalogField.setEnabled(true);
 			} else {
-				catalogLabel.setText("(no catalog)");
+				catalogLabel.setText(Messages.getString("DDLExportPanel.noCatalog")); //$NON-NLS-1$
 				catalogLabel.setEnabled(false);
 				catalogField.setText(null);
 				catalogField.setEnabled(false);
@@ -136,15 +136,15 @@ public class DDLExportPanel implements DataEntryPanel {
 				schemaLabel.setEnabled(true);
 				schemaField.setEnabled(true);
 			} else {
-				schemaLabel.setText("(no schema)");
+				schemaLabel.setText(Messages.getString("DDLExportPanel.noSchema")); //$NON-NLS-1$
 				schemaLabel.setEnabled(false);
 				schemaField.setText(null);
 				schemaField.setEnabled(false);
 			}
 		} catch (Exception ex) {
-			String message = "Couldn't create a DDL generator of the selected type";
+			String message = Messages.getString("DDLExportPanel.couldNotCreateDdlGenerator"); //$NON-NLS-1$
 			if (selectedGeneratorClass != null) {
-				message += (":\n"+selectedGeneratorClass.getName());
+				message += (":\n"+selectedGeneratorClass.getName()); //$NON-NLS-1$
 			}
 			logger.error(message, ex);
 			ASUtils.showExceptionDialogNoReport(panel, message, ex);
@@ -161,8 +161,8 @@ public class DDLExportPanel implements DataEntryPanel {
 				ddlg = selectedGeneratorClass.newInstance();
 				session.setDDLGenerator(ddlg);
 			} catch (Exception ex) {
-				logger.error("Problem creating user-selected DDL generator", ex);
-				throw new RuntimeException("Couldn't create a DDL generator of the selected type", ex);
+				logger.error("Problem creating user-selected DDL generator", ex); //$NON-NLS-1$
+				throw new RuntimeException(Messages.getString("DDLExportPanel.couldNotCreateDdlGenerator"), ex); //$NON-NLS-1$
 			}
 		}
 		if (selectedGeneratorClass == GenericDDLGenerator.class) {
@@ -173,8 +173,8 @@ public class DDLExportPanel implements DataEntryPanel {
 				|| dbcs.getDriverClass().length() == 0) {
 
 				JOptionPane.showMessageDialog
-				(panel, "You can't use the Generic JDBC Generator\n"
-						+"until you set up the target database connection.");
+				(panel, Messages.getString("DDLExportPanel.genericDdlGeneratorRequirements") //$NON-NLS-1$
+						+""); //$NON-NLS-1$
 								
 				ASUtils.showTargetDbcsDialog(session.getArchitectFrame(), session, targetDB);
 				
@@ -187,7 +187,7 @@ public class DDLExportPanel implements DataEntryPanel {
 		if (catalogField.isEnabled()) {
 			if (catalogField.getText() == null || catalogField.getText().trim().length() == 0) {
 				JOptionPane.showMessageDialog
-				(panel, "Please provide a valid database catalog.");
+				(panel, Messages.getString("DDLExportPanel.provideValidCatalog")); //$NON-NLS-1$
 				return false;
 			} else {	
 				ddlg.setTargetCatalog(catalogField.getText());
@@ -197,7 +197,7 @@ public class DDLExportPanel implements DataEntryPanel {
 		if (schemaField.isEnabled()) {
 			if (schemaField.getText() == null || schemaField.getText().trim().length() == 0) {
 				JOptionPane.showMessageDialog
-				(panel, "Please provide a valid schema name.");
+				(panel, Messages.getString("DDLExportPanel.provideValidSchema")); //$NON-NLS-1$
 				return false;
 			} else {	
 				ddlg.setTargetSchema(schemaField.getText());
