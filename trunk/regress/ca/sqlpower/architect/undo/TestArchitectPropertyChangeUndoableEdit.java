@@ -188,10 +188,10 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 	    
 	    assertTrue(undoManager.canUndo());
 	    undoManager.undo();
-	    assertEquals("(0, 0)", oldLocation, comp.getLocation());
+	    assertEquals(oldLocation, comp.getLocation());
 	    assertTrue(undoManager.canRedo());
 	    undoManager.redo();
-	    assertEquals("(1, 2)", newLocation, comp.getLocation());
+	    assertEquals(newLocation, comp.getLocation());
 	}
 	
 	/**
@@ -208,10 +208,10 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
         
         assertTrue(undoManager.canUndo());
         undoManager.undo();
-        assertEquals("(10, 10), (100, 100)", oldConnectionPoints, comp.getConnectionPoints());
+        assertEquals(oldConnectionPoints, comp.getConnectionPoints());
         assertTrue(undoManager.canRedo());
         undoManager.redo();
-        assertEquals("(20, 30), (130, 140)", newConnectionPoints, comp.getConnectionPoints());
+        assertEquals(newConnectionPoints, comp.getConnectionPoints());
     }
 
 	public static class TestSQLObject extends StubSQLObject {
@@ -273,10 +273,6 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 
         public void setSelected(boolean v, int multiSelectionType) {
             
-        }
-        
-        public Point getLocation() {
-            return this.getBounds().getLocation();
         }
         
         public void setConnectionPoints(Point[] connectionPoints) {
