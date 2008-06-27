@@ -3161,13 +3161,15 @@ public class PlayPen extends JPanel
         
         List<TreePath> selectionPaths = new ArrayList<TreePath>();
         boolean addedPaths = false;
+        // Keep track of the last tree path
+        TreePath lastPath = null;
         // finds all the TreePaths to select
         for (PlayPenComponent comp : getSelectedItems()) {
             TreePath tp = tree.getTreePathForNode((SQLObject) comp.getModel());
             if (!selectionPaths.contains(tp)) {
                 selectionPaths.add(tp);
                 addedPaths = true;
-                tree.scrollPathToVisible(tp);
+                lastPath = tp;
             }
             
             if (comp instanceof TablePane) {
@@ -3176,11 +3178,15 @@ public class PlayPen extends JPanel
                     if (!selectionPaths.contains(tp)) {
                         selectionPaths.add(tp);
                         addedPaths = true;
-                        tree.scrollPathToVisible(tp);
+                        lastPath = tp;
                     }
                 }
             }
         }
+        
+        // Scroll to last tree path.
+        if(lastPath != null)
+            tree.scrollPathToVisible(lastPath);
         
         tree.setSelectionPaths(selectionPaths.toArray(new TreePath[selectionPaths.size()]));
         if (addedPaths) {
