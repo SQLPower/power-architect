@@ -53,7 +53,7 @@ public class ShowColumnsPanel extends JPanel
     public ShowColumnsPanel(ArchitectSwingSession session) {
         super(new BorderLayout(12,12));
         this.session = session;
-        logger.debug("ShowColumnsPanel called");
+        logger.debug("ShowColumnsPanel called"); //$NON-NLS-1$
         buildUI();
     }
     
@@ -61,21 +61,21 @@ public class ShowColumnsPanel extends JPanel
         
         CellConstraints cc = new CellConstraints();
         
-        FormLayout outerLayout = new FormLayout("pref", "pref,pref");
+        FormLayout outerLayout = new FormLayout("pref", "pref,pref"); //$NON-NLS-1$ //$NON-NLS-2$
         JPanel outerPanel = new JPanel(outerLayout);
         PanelBuilder outerpb = new PanelBuilder(outerLayout, outerPanel);
         
-        outerpb.add(new JLabel("Show only columns which are:"), cc.xy(1, 1));
-        FormLayout innerLayout = new FormLayout("20dlu, pref",
-                "4dlu,pref,2dlu,pref,2dlu,pref,2dlu,pref,2dlu,pref,8dlu");
+        outerpb.add(new JLabel(Messages.getString("ShowColumnsPanel.showOnlyColumnsWhichAre")), cc.xy(1, 1)); //$NON-NLS-1$
+        FormLayout innerLayout = new FormLayout("20dlu, pref", //$NON-NLS-1$
+                "4dlu,pref,2dlu,pref,2dlu,pref,2dlu,pref,2dlu,pref,8dlu"); //$NON-NLS-1$
         JPanel innerPanel = new JPanel(innerLayout);
         PanelBuilder innerpb = new PanelBuilder(innerLayout, innerPanel);
         
-        innerpb.add(showPrimary = new JCheckBox("Primary Keys"), cc.xy(2, 2));
-        innerpb.add(showForeign = new JCheckBox("Foreign Keys"), cc.xy(2, 4));
-        innerpb.add(showUnique = new JCheckBox("Unique"), cc.xy(2, 6));
-        innerpb.add(showIndexed = new JCheckBox("Indexed"), cc.xy(2, 8));
-        innerpb.add(showTheRest = new JCheckBox("None of the above"), cc.xy(2, 10));
+        innerpb.add(showPrimary = new JCheckBox(Messages.getString("ShowColumnsPanel.primaryKeysOption")), cc.xy(2, 2)); //$NON-NLS-1$
+        innerpb.add(showForeign = new JCheckBox(Messages.getString("ShowColumnsPanel.foreignKeysOption")), cc.xy(2, 4)); //$NON-NLS-1$
+        innerpb.add(showUnique = new JCheckBox(Messages.getString("ShowColumnsPanel.uniqueOption")), cc.xy(2, 6)); //$NON-NLS-1$
+        innerpb.add(showIndexed = new JCheckBox(Messages.getString("ShowColumnsPanel.indexedOption")), cc.xy(2, 8)); //$NON-NLS-1$
+        innerpb.add(showTheRest = new JCheckBox(Messages.getString("ShowColumnsPanel.noneOfTheAboveOption")), cc.xy(2, 10)); //$NON-NLS-1$
         
         outerpb.add(innerPanel, cc.xy(1, 2));
         

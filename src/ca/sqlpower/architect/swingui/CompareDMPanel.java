@@ -129,7 +129,7 @@ public class CompareDMPanel extends JPanel {
 		 */
 		private void tryToSelectTheItem(int low, int high) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Looking for '"+selectItemName+"' from index "+low+" to "+high);
+				logger.debug("Looking for '"+selectItemName+"' from index "+low+" to "+high); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			}
 
 			for (int i = low; i <= high; i++) {
@@ -145,11 +145,11 @@ public class CompareDMPanel extends JPanel {
 
 	private static final Logger logger = Logger.getLogger(CompareDMPanel.class);
 
-	private static final String OUTPUT_ENGLISH = "OUTPUT_ENGLISH";
+	private static final String OUTPUT_ENGLISH = "OUTPUT_ENGLISH"; //$NON-NLS-1$
 
-	private static final String OUTPUT_SQL = "OUTPUT_SQL";
+	private static final String OUTPUT_SQL = "OUTPUT_SQL"; //$NON-NLS-1$
 
-	public static final String DBCS_DIALOG_TITLE = "New Database Connection";
+	public static final String DBCS_DIALOG_TITLE = Messages.getString("CompareDMPanel.dbcsDialogTitle"); //$NON-NLS-1$
 
 	private JProgressBar progressBar;
 
@@ -236,7 +236,7 @@ public class CompareDMPanel extends JPanel {
 		 */
 		private SQLDatabase cachedDatabase;
 
-		private Action newConnectionAction = new AbstractAction("New...") {
+		private Action newConnectionAction = new AbstractAction(Messages.getString("CompareDMPanel.newConnectionActionName")) { //$NON-NLS-1$
 			public void actionPerformed(ActionEvent e) {
 
                 final DataSourceCollection plDotIni = session.getContext().getPlDotIni();
@@ -251,7 +251,7 @@ public class CompareDMPanel extends JPanel {
 			}
 		};
 
-		private Action chooseFileAction = new AbstractAction("Choose...") {
+		private Action chooseFileAction = new AbstractAction(Messages.getString("CompareDMPanel.chooseFileActionName")) { //$NON-NLS-1$
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser(session.getRecentMenu().getMostRecentFile());
 				chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
@@ -352,9 +352,9 @@ public class CompareDMPanel extends JPanel {
 
 				} catch (ArchitectException e) {
 					logger.debug(
-						"Unexpected architect exception in ConnectionListener",	e);
+						"Unexpected architect exception in ConnectionListener",	e); //$NON-NLS-1$
                     ASUtils.showExceptionDialogNoReport(CompareDMPanel.this,
-                            "Unexpected architect exception in ConnectionListener", e);
+                            Messages.getString("CompareDMPanel.unexpectedExceptionInConnectionListener"), e); //$NON-NLS-1$
 				}
 			}
 
@@ -372,12 +372,12 @@ public class CompareDMPanel extends JPanel {
 			 */
 			@Override
 			public void cleanup() throws ArchitectException {
-			    setCleanupExceptionMessage("Could not populate catalog dropdown!");
+			    setCleanupExceptionMessage(Messages.getString("CompareDMPanel.couldNotPopulateCatalogDropdown")); //$NON-NLS-1$
 
 				catalogDropdown.removeAllItems();
 				catalogDropdown.setEnabled(false);
-				catalogLabel.setText("");
-				schemaLabel.setText("");
+				catalogLabel.setText(""); //$NON-NLS-1$
+				schemaLabel.setText(""); //$NON-NLS-1$
 
 				// This is either a database, a catalog, or null depending on
 				// how db is structured
@@ -446,7 +446,7 @@ public class CompareDMPanel extends JPanel {
 						 */
 						@Override
 						public void cleanup() throws ArchitectException {
-							setCleanupExceptionMessage("Could not populate schema dropdown!");
+							setCleanupExceptionMessage(Messages.getString("CompareDMPanel.couldNotPopulateSchemaDropdown")); //$NON-NLS-1$
 
 							for (SQLObject item : (List<SQLObject>) finalSchemaParent
 									.getChildren()) {
@@ -463,7 +463,7 @@ public class CompareDMPanel extends JPanel {
 							startCompareAction.setEnabled(isStartable());
 							
 				             //sets to the default schema, iff catalog is null
-			                logger.debug("default schema is: " + schemaSelect);
+			                logger.debug("default schema is: " + schemaSelect); //$NON-NLS-1$
 			                if ( CatalogPopulator.this.schemaSelect != null) {      
 			                    for (int x = 0; x < schemaDropdown.getItemCount(); x++) {
 			                        SQLObject curr = (SQLObject)(schemaDropdown.getItemAt(x));
@@ -481,7 +481,7 @@ public class CompareDMPanel extends JPanel {
 				}
 				
 				//sets to the default catalog
-				logger.debug("default catalog selected " + catalogSelect);
+				logger.debug("default catalog selected " + catalogSelect); //$NON-NLS-1$
 		        if (catalogSelect != null) {      
 		            for (int x = 0; x < catalogDropdown.getItemCount(); x++) {
 		                SQLObject curr = (SQLObject)(catalogDropdown.getItemAt(x));
@@ -538,7 +538,7 @@ public class CompareDMPanel extends JPanel {
 			 * repopulate it (if possible).
 			 */
 			public void actionPerformed(ActionEvent e) {
-				logger.debug("SCHEMA POPULATOR IS ABOUT TO START...");
+				logger.debug("SCHEMA POPULATOR IS ABOUT TO START..."); //$NON-NLS-1$
 				schemaDropdown.removeAllItems();
 				schemaDropdown.setEnabled(false);
 
@@ -555,7 +555,7 @@ public class CompareDMPanel extends JPanel {
 
 			@Override
 			public void doStuff() throws ArchitectException {
-				logger.debug("SCHEMA POPULATOR IS STARTED...");
+				logger.debug("SCHEMA POPULATOR IS STARTED..."); //$NON-NLS-1$
 				ProgressWatcher.watchProgress(progressBar, this);
 				started = true;
 				SQLCatalog catToPopulate = (SQLCatalog) catalogDropdown
@@ -573,8 +573,8 @@ public class CompareDMPanel extends JPanel {
 			 */
 			@Override
 			public void cleanup() throws ArchitectException {
-			    logger.debug("SCHEMA POPULATOR IS ABOUT TO CLEAN UP...");
-				schemaLabel.setText("");
+			    logger.debug("SCHEMA POPULATOR IS ABOUT TO CLEAN UP..."); //$NON-NLS-1$
+				schemaLabel.setText(""); //$NON-NLS-1$
 				SQLCatalog populatedCat = (SQLCatalog) catalogDropdown
 						.getSelectedItem();
 						
@@ -593,7 +593,7 @@ public class CompareDMPanel extends JPanel {
 				startCompareAction.setEnabled(isStartable());
 				
 				//sets the default schema
-                logger.debug("Default Schema: " + select);
+                logger.debug("Default Schema: " + select); //$NON-NLS-1$
                 if (select != null) {      
                     for (int x = 0; x < schemaDropdown.getItemCount(); x++) {
                         SQLObject curr = (SQLObject)(schemaDropdown.getItemAt(x));
@@ -640,7 +640,7 @@ public class CompareDMPanel extends JPanel {
 	        }
 
 	        public String getMessage() {
-	            return "Connecting to database...";
+	            return Messages.getString("CompareDMPanel.connectingToDatabase"); //$NON-NLS-1$
 	        }
 
 	        public boolean hasStarted() {
@@ -659,9 +659,9 @@ public class CompareDMPanel extends JPanel {
 		private void buildPartialUI(DefaultFormBuilder builder,	boolean defaultPlayPen, SchemaPopulator schemaPop, CatalogPopulator catalogPop) {
 			String prefix;
 			if (defaultPlayPen == true) {
-				prefix = "source";
+				prefix = "source"; //$NON-NLS-1$
 			} else {
-				prefix = "target";
+				prefix = "target"; //$NON-NLS-1$
 			}
 			
 			this.isSource = defaultPlayPen;
@@ -672,11 +672,11 @@ public class CompareDMPanel extends JPanel {
 			CellConstraints cc = new CellConstraints();
 			
 			playPenRadio = new JRadioButton();
-			playPenRadio.setName(prefix + "PlayPenRadio");
+			playPenRadio.setName(prefix + "PlayPenRadio"); //$NON-NLS-1$
 			physicalRadio = new JRadioButton();
-			physicalRadio.setName(prefix + "PhysicalRadio");
+			physicalRadio.setName(prefix + "PhysicalRadio"); //$NON-NLS-1$
 			loadRadio = new JRadioButton();
-			loadRadio.setName(prefix + "LoadRadio");
+			loadRadio.setName(prefix + "LoadRadio"); //$NON-NLS-1$
 
 			buttonGroup.add(playPenRadio);
 			buttonGroup.add(physicalRadio);
@@ -684,25 +684,25 @@ public class CompareDMPanel extends JPanel {
 
 			schemaDropdown = new JComboBox();
 			schemaDropdown.setEnabled(false);
-			schemaDropdown.setName(prefix + "SchemaDropdown");
+			schemaDropdown.setName(prefix + "SchemaDropdown"); //$NON-NLS-1$
 
 			catalogDropdown = new JComboBox();
 			catalogDropdown.setEnabled(false);
-			catalogDropdown.setName(prefix + "CatalogDropdown");
+			catalogDropdown.setName(prefix + "CatalogDropdown"); //$NON-NLS-1$
 
 			databaseDropdown = new JComboBox();
-			databaseDropdown.setName(prefix + "DatabaseDropdown");
+			databaseDropdown.setName(prefix + "DatabaseDropdown"); //$NON-NLS-1$
 			databaseDropdown.setModel(new ConnectionComboBoxModel(session.getContext().getPlDotIni()));
 			databaseDropdown.setEnabled(false);
 			databaseDropdown.setRenderer(dataSourceRenderer);
 
 			newConnButton = new JButton();
-			newConnButton.setName(prefix + "NewConnButton");
+			newConnButton.setName(prefix + "NewConnButton"); //$NON-NLS-1$
 			newConnButton.setAction(newConnectionAction);
 			newConnectionAction.setEnabled(false);
 
 			loadFilePath = new JTextField();
-			loadFilePath.setName(prefix + "LoadFilePath");
+			loadFilePath.setName(prefix + "LoadFilePath"); //$NON-NLS-1$
 
 			loadFilePath.setEnabled(false);
 			loadFilePath.getDocument().addDocumentListener(
@@ -720,7 +720,7 @@ public class CompareDMPanel extends JPanel {
 						}
 					});
 			loadFileButton = new JButton();
-			loadFileButton.setName(prefix + "LoadFileButton");
+			loadFileButton.setName(prefix + "LoadFileButton"); //$NON-NLS-1$
 			loadFileButton.setAction(chooseFileAction);
 			chooseFileAction.setEnabled(false);
 
@@ -736,7 +736,7 @@ public class CompareDMPanel extends JPanel {
                         try {
                             sqlTypeDropdown.setSelectedItem(Class.forName(dataSource.getParentType().getDDLGeneratorClass()));
                         } catch (ClassNotFoundException e1) {
-                            logger.error("Error when finding the DDLGenerator class for the selected database!", e1);
+                            logger.error("Error when finding the DDLGenerator class for the selected database!", e1); //$NON-NLS-1$
                         }
                     }
                 }
@@ -756,28 +756,28 @@ public class CompareDMPanel extends JPanel {
 
 			// now give all our shiny new components to the builder
 			builder.append(playPenRadio);
-			builder.append("Current Project [" + session.getName() + "]");
+			builder.append(Messages.getString("CompareDMPanel.currentProject", session.getName())); //$NON-NLS-1$ //$NON-NLS-2$
 			builder.nextLine();
 
-			builder.append(""); // takes up blank space
+			builder.append(""); // takes up blank space //$NON-NLS-1$
 			builder.append(physicalRadio);
-			builder.append("Physical Database");
+			builder.append(Messages.getString("CompareDMPanel.physicalDatabaseLabel")); //$NON-NLS-1$
 			// builder.nextColumn(2);
-			builder.append(catalogLabel = new JLabel("Catalog"));
-			builder.append(schemaLabel = new JLabel("Schema"));
+			builder.append(catalogLabel = new JLabel(Messages.getString("CompareDMPanel.catalogLabel"))); //$NON-NLS-1$
+			builder.append(schemaLabel = new JLabel(Messages.getString("CompareDMPanel.schemaLabel"))); //$NON-NLS-1$
 			builder.appendRow(builder.getLineGapSpec());
-			builder.appendRow("pref");
+			builder.appendRow("pref"); //$NON-NLS-1$
 			builder.nextLine(2);
 			builder.nextColumn(4);
 			builder.append(databaseDropdown);
 			builder.append(catalogDropdown, schemaDropdown, newConnButton);
 			builder.nextLine();
 
-			builder.append("");
+			builder.append(""); //$NON-NLS-1$
 			builder.append(loadRadio);
-			builder.append("From File:");
+			builder.append(Messages.getString("CompareDMPanel.fromFileLabel")); //$NON-NLS-1$
 			builder.nextLine();
-			builder.append(""); // takes up blank space
+			builder.append(""); // takes up blank space //$NON-NLS-1$
 			builder.add(loadFilePath, cc.xyw(5, builder.getRow(), 5));
 			builder.nextColumn(8);
 			builder.append(loadFileButton);
@@ -807,9 +807,9 @@ public class CompareDMPanel extends JPanel {
 					o = getDatabase();
 				} else {
 					throw new IllegalStateException(
-							"You elected to compare a physical database, "
-									+ "but have not selected a "
-									+ "schema, catalog, or database to compare.");
+							Messages.getString("CompareDMPanel.noSchemaCatalogOrDatabaseSelected") //$NON-NLS-1$
+									+ "" //$NON-NLS-1$
+									+ ""); //$NON-NLS-1$
 				}
 
 			} else if (loadRadio.isSelected()) {
@@ -825,7 +825,7 @@ public class CompareDMPanel extends JPanel {
                 
 			} else {
 				throw new IllegalStateException(
-						"Do not know which source to compare from");
+						Messages.getString("CompareDMPanel.doNotKnowWhichSourceToCompare")); //$NON-NLS-1$
 			}
 
 			return o;
@@ -847,7 +847,7 @@ public class CompareDMPanel extends JPanel {
 				return new File(loadFilePath.getText()).canRead();
 			} else {
 				throw new IllegalStateException(
-						"None of the radio buttons are selected!");
+						Messages.getString("CompareDMPanel.noRadioButtonsSelected")); //$NON-NLS-1$
 			}
 		}
 
@@ -923,7 +923,7 @@ public class CompareDMPanel extends JPanel {
 	 * of the GUI form.
 	 */
 	public boolean isStartable() {
-		logger.debug("isStartable is checking...");
+		logger.debug("isStartable is checking..."); //$NON-NLS-1$
 		boolean startable = true;
 		if (sqlButton.isSelected()) {
 		    startable = source.physicalRadio.isSelected() && sqlTypeDropdown.getSelectedItem() != null;
@@ -961,7 +961,7 @@ public class CompareDMPanel extends JPanel {
 
 		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes(session.getContext().getPlDotIni()));
         sqlTypeDropdown.setRenderer(new DDLGeneratorListCellRenderer());
-		sqlTypeDropdown.setName("sqlTypeDropDown");
+		sqlTypeDropdown.setName("sqlTypeDropDown"); //$NON-NLS-1$
 		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown);
         sqlTypeDropdown.setEnabled(false);
 		sqlButton = new JRadioButton();
@@ -971,13 +971,13 @@ public class CompareDMPanel extends JPanel {
 		sqlButton.addActionListener(listener);
 
 		englishButton = new JRadioButton();
-		englishButton.setName("englishButton");
+		englishButton.setName("englishButton"); //$NON-NLS-1$
 		englishButton.setActionCommand(OUTPUT_ENGLISH);
 		englishButton.setSelected(true);
 		englishButton.addActionListener(listener);
         
         showNoChanges = new JCheckBox();
-        showNoChanges.setName("showNoChanges");
+        showNoChanges.setName("showNoChanges"); //$NON-NLS-1$
         showNoChanges.setSelected(false);
 
 		// Group the radio buttons.
@@ -993,10 +993,10 @@ public class CompareDMPanel extends JPanel {
 
 		buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-		FormLayout formLayout = new FormLayout("20dlu, 2dlu, pref, 4dlu," + // 1-4
-				"0:grow, 4dlu, 0:grow, 4dlu," + // 5-8
-				"0:grow, 4dlu, pref", // 9-11
-				"");
+		FormLayout formLayout = new FormLayout("20dlu, 2dlu, pref, 4dlu," + // 1-4 //$NON-NLS-1$
+				"0:grow, 4dlu, 0:grow, 4dlu," + // 5-8 //$NON-NLS-1$
+				"0:grow, 4dlu, pref", // 9-11 //$NON-NLS-1$
+				""); //$NON-NLS-1$
 		formLayout.setColumnGroups(new int[][] { { 5, 7, 9, } });
 		JPanel panel = logger.isDebugEnabled() ? new FormDebugPanel()
 				: new JPanel();
@@ -1005,17 +1005,17 @@ public class CompareDMPanel extends JPanel {
 
 		CellConstraints cc = new CellConstraints();
 
-		builder.appendSeparator("Compare Older");
+		builder.appendSeparator(Messages.getString("CompareDMPanel.olderSeparator")); //$NON-NLS-1$
 		builder.nextLine();
-		builder.append(""); // takes up blank space
+		builder.append(""); // takes up blank space //$NON-NLS-1$
 
 		source.buildPartialUI(builder, true, sourceSchemaPop, sourceCatalogPop);
 
-		builder.appendSeparator("With Newer");
+		builder.appendSeparator(Messages.getString("CompareDMPanel.newerSeparator")); //$NON-NLS-1$
 		builder.appendRow(builder.getLineGapSpec());
-		builder.appendRow("pref");
+		builder.appendRow("pref"); //$NON-NLS-1$
 		builder.nextLine(2);
-		builder.append("");
+		builder.append(""); //$NON-NLS-1$
 
 		target.buildPartialUI(builder, false, targetSchemaPop, targetCatalogPop);
 
@@ -1032,40 +1032,40 @@ public class CompareDMPanel extends JPanel {
 		target.physicalRadio.addActionListener(radioButtonActionEnabler);
 		target.loadRadio.addActionListener(radioButtonActionEnabler);
 
-		builder.appendSeparator("Output Format");
+		builder.appendSeparator(Messages.getString("CompareDMPanel.outpurFormatSeparator")); //$NON-NLS-1$
 		builder.appendRow(builder.getLineGapSpec());
-		builder.appendRow("pref");
+		builder.appendRow("pref"); //$NON-NLS-1$
 		builder.nextLine(2);
 		builder.nextColumn(2);
 		builder.append(sqlButton);
 
 		JPanel ddlTypePanel = new JPanel(new BorderLayout(3, 3));
-		ddlTypePanel.add(new JLabel("SQL for "), BorderLayout.WEST);
+		ddlTypePanel.add(new JLabel(Messages.getString("CompareDMPanel.sqlFor")), BorderLayout.WEST); //$NON-NLS-1$
 		ddlTypePanel.add(sqlTypeDropdown, BorderLayout.CENTER); // ddl generator
 																// type list
-        ddlTypePanel.add(new JLabel(" to make Older look like Newer"), BorderLayout.EAST);
+        ddlTypePanel.add(new JLabel(Messages.getString("CompareDMPanel.makeOlderLookLikeNewer")), BorderLayout.EAST); //$NON-NLS-1$
 		builder.append(ddlTypePanel, 3);
 
 		builder.appendRow(builder.getLineGapSpec());
-		builder.appendRow("pref");
+		builder.appendRow("pref"); //$NON-NLS-1$
 		builder.nextLine(2);
 		builder.nextColumn(2);
 		builder.append(englishButton);
-		builder.append("English descriptions");
+		builder.append(Messages.getString("CompareDMPanel.englishDescriptions")); //$NON-NLS-1$
 
         builder.appendRow(builder.getLineGapSpec());
-        builder.appendRow("pref");
+        builder.appendRow("pref"); //$NON-NLS-1$
         builder.nextLine(2);
         builder.nextColumn(2);
 		builder.append(showNoChanges);
-        builder.append("Suppress similarities");
+        builder.append(Messages.getString("CompareDMPanel.suppressSimilarities")); //$NON-NLS-1$
         builder.nextLine();
 
-		builder.appendSeparator("Status");
+		builder.appendSeparator(Messages.getString("CompareDMPanel.status")); //$NON-NLS-1$
 		builder.appendRow(builder.getLineGapSpec());
-		builder.appendRow("pref");
+		builder.appendRow("pref"); //$NON-NLS-1$
 		builder.nextLine(2);
-		statusLabel = new JLabel("");
+		statusLabel = new JLabel(""); //$NON-NLS-1$
 		builder.add(statusLabel, cc.xy(5, builder.getRow()));
 		builder.add(progressBar, cc.xyw(7, builder.getRow(), 5));
 
@@ -1075,7 +1075,7 @@ public class CompareDMPanel extends JPanel {
 		try {
 			restoreSettingsFromProject();
 		} catch (ArchitectException e) {
-			logger.warn("Failed to save user CompareDM preferences!", e);
+			logger.warn("Failed to save user CompareDM preferences!", e); //$NON-NLS-1$
 		}
 	}
 
@@ -1112,7 +1112,7 @@ public class CompareDMPanel extends JPanel {
 		private Collection<SQLTable> targetTables;
 
 		public StartCompareAction() {
-			super("Start");
+			super(Messages.getString("CompareDMPanel.startCompareActionName")); //$NON-NLS-1$
 		}
 
 		public void actionPerformed(ActionEvent e) {
@@ -1154,11 +1154,11 @@ public class CompareDMPanel extends JPanel {
 						sourceTables);
 			} catch (ArchitectException ex) {
 			    ASUtils.showExceptionDialog(session,
-			            "Could not begin diff process", ex);
+			            Messages.getString("CompareDMPanel.couldNotBeginDiffProcess"), ex); //$NON-NLS-1$
 			    return;
 			} catch (Exception ex) {
-			    ASUtils.showExceptionDialogNoReport(CompareDMPanel.this, "Couldn't read file.", ex);
-				logger.error("Could not read file", ex);
+			    ASUtils.showExceptionDialogNoReport(CompareDMPanel.this, Messages.getString("CompareDMPanel.couldNotReadFile"), ex); //$NON-NLS-1$
+				logger.error("Could not read file", ex); //$NON-NLS-1$
 				return;
 			} finally {
 	             reenableGUIComponents();
@@ -1178,15 +1178,15 @@ public class CompareDMPanel extends JPanel {
 				    reenableGUIComponents();
                     if (getDoStuffException() != null) {
                         Throwable exc = getDoStuffException();
-                        logger.error("Error in doStuff()", exc);
+                        logger.error("Error in doStuff()", exc); //$NON-NLS-1$
                         ASUtils.showExceptionDialog(session,
-                                "Database Comparison Failed!", exc);
+                                Messages.getString("CompareDMPanel.databaseComparisonFailed"), exc); //$NON-NLS-1$
                         return;
                     }
-					logger.debug("cleanup starts");
+					logger.debug("cleanup starts"); //$NON-NLS-1$
                     CompareDMFormatter dmFormat = new CompareDMFormatter(session, parentDialog, session.getCompareDMSettings());
                     dmFormat.format(diff, diff1, left, right);
-                    logger.debug("cleanup finished");
+                    logger.debug("cleanup finished"); //$NON-NLS-1$
 				}
 
 			};
@@ -1370,7 +1370,7 @@ public class CompareDMPanel extends JPanel {
 	 */
 	public class SwapSourceTargetAction extends AbstractAction   {
 	    public SwapSourceTargetAction() {
-	        super("Swap");
+	        super(Messages.getString("CompareDMPanel.swapSourceTargetActionName")); //$NON-NLS-1$
 	    }
 
         public void actionPerformed(ActionEvent e) {

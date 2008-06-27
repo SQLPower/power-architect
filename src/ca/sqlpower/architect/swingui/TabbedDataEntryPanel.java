@@ -69,10 +69,10 @@ public class TabbedDataEntryPanel implements DataEntryPanel {
      * @return True if and only if each panel's applyChanges() returned success.
      */
     public boolean applyChanges() {
-        logger.debug("Applying changes...");
+        logger.debug("Applying changes..."); //$NON-NLS-1$
         boolean success = true;
         for (DataEntryPanel panel : panels) {
-            logger.debug("       ... on " + panel);
+            logger.debug("       ... on " + panel); //$NON-NLS-1$
             success &= panel.applyChanges();
         }
         // FIXME: how can we roll back changes if one of the updates fails?
