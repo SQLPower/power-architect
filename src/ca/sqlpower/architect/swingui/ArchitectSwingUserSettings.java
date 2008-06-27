@@ -26,31 +26,31 @@ import ca.sqlpower.architect.AbstractUserSetting;
 public class ArchitectSwingUserSettings extends AbstractUserSetting {
 
 	public static final String DIVIDER_LOCATION
-		= "SwingUserSettings.DIVIDER_LOCATION";
+		= "SwingUserSettings.DIVIDER_LOCATION"; //$NON-NLS-1$
 
 	public static final String MAIN_FRAME_X
-		= "SwingUserSettings.MAIN_FRAME_X";
+		= "SwingUserSettings.MAIN_FRAME_X"; //$NON-NLS-1$
 
 	public static final String MAIN_FRAME_Y
-		= "SwingUserSettings.MAIN_FRAME_Y";
+		= "SwingUserSettings.MAIN_FRAME_Y"; //$NON-NLS-1$
 
 	public static final String MAIN_FRAME_WIDTH
-		= "SwingUserSettings.MAIN_FRAME_WIDTH";
+		= "SwingUserSettings.MAIN_FRAME_WIDTH"; //$NON-NLS-1$
 
 	public static final String MAIN_FRAME_HEIGHT
-		= "SwingUserSettings.MAIN_FRAME_HEIGHT";
+		= "SwingUserSettings.MAIN_FRAME_HEIGHT"; //$NON-NLS-1$
 
 	public static final String ICON_SIZE
-		= "SwingUserSettings.ICON_SIZE";
+		= "SwingUserSettings.ICON_SIZE"; //$NON-NLS-1$
 
     public static final String PLAYPEN_RENDER_ANTIALIASED
-    		= "SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED";
+    		= "SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED"; //$NON-NLS-1$
 
     public static final String SHOW_WELCOMESCREEN
-            = "SwingUserSettings.SHOW_WELCOMESCREEN";
+            = "SwingUserSettings.SHOW_WELCOMESCREEN"; //$NON-NLS-1$
 
     public static final String LAST_LOGIN_DATA_SOURCE
-            = "last.login.data.source";
+            = "last.login.data.source"; //$NON-NLS-1$
     public static final String LAST_IMPORT_EXPORT_PATH
-            = "last.importexport.path";
+            = "last.importexport.path"; //$NON-NLS-1$
 }

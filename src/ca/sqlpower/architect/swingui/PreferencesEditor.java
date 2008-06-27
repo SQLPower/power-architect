@@ -64,19 +64,19 @@ public class PreferencesEditor {
      * @return The dialog containing the preference editor
      */
     public Window showPreferencesDialog(Window owner, ArchitectSwingSessionContext context) {
-        logger.debug("showPreferencesDialog");
+        logger.debug("showPreferencesDialog"); //$NON-NLS-1$
         
         // XXX Can't easily use ArchitectPanelBuilder since this
         // contains a JTabbedPane which is not an ArchitectPanel.
         if (d == null) {
-            d = SPSUtils.makeOwnedDialog(owner, "User Preferences");
+            d = SPSUtils.makeOwnedDialog(owner, Messages.getString("PreferencesEditor.userPreferencesDialogTitle")); //$NON-NLS-1$
             JPanel cp = new JPanel(new BorderLayout(12,12));
             tp = new JTabbedPane();
             cp.add(tp, BorderLayout.CENTER);
             cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
     
             final PreferencesPanel prefPanel = new PreferencesPanel(context);
-            tp.add("General", prefPanel);
+            tp.add(Messages.getString("PreferencesEditor.generalSection"), prefPanel); //$NON-NLS-1$
     
             final DataSourceTypeEditor dsTypeEditor =
                 new DataSourceTypeEditor(context.getPlDotIni());
@@ -85,9 +85,9 @@ public class PreferencesEditor {
             
             final KettleDataSourceTypeOptionPanel kettleOptsPanel = new KettleDataSourceTypeOptionPanel();
             
-            dsTypeEditor.addTab("Kettle", kettleOptsPanel);
+            dsTypeEditor.addTab(Messages.getString("PreferencesEditor.kettleSection"), kettleOptsPanel); //$NON-NLS-1$
             
-            tp.add("JDBC Drivers", dsTypeEditor.getPanel());
+            tp.add(Messages.getString("PreferencesEditor.jdbcDriversSection"), dsTypeEditor.getPanel()); //$NON-NLS-1$
     
         
             JDefaultButton okButton = new JDefaultButton(DataEntryPanelBuilder.OK_BUTTON_LABEL);

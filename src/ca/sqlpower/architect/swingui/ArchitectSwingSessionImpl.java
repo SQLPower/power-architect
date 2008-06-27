@@ -143,7 +143,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 try {
                     OpenProjectAction.openAsynchronously(getContext().createSession(false), f, ArchitectSwingSessionImpl.this);
                 } catch (ArchitectException ex) {
-                    SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), "Failed to open project file", ex);
+                    SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), Messages.getString("ArchitectSwingSessionImpl.openProjectFileFailed"), ex); //$NON-NLS-1$
                 }
             }
         };
@@ -181,7 +181,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public void initGUI(ArchitectSwingSession openingSession) throws ArchitectException {
         if (!SwingUtilities.isEventDispatchThread()) {
-            throw new IllegalStateException("This method must be called on the Swing Event Dispatch Thread.");
+            throw new IllegalStateException("This method must be called on the Swing Event Dispatch Thread."); //$NON-NLS-1$
         }
 
         // makes the tool tips show up on these components 
@@ -207,7 +207,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             openingSession.close();
         }
         
-        profileDialog = new JDialog(frame, "Table Profiles");
+        profileDialog = new JDialog(frame, Messages.getString("ArchitectSwingSessionImpl.profilesDialogTitle")); //$NON-NLS-1$
         profileManagerView = new ProfileManagerView(delegateSession.getProfileManager());
         delegateSession.getProfileManager().addProfileChangeListener(profileManagerView);
         profileDialog.add(profileManagerView);
@@ -256,35 +256,35 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         AboutAction aboutAction = frame.getAboutAction();
 
         // Whether or not this is OS X, the three actions we're referencing must have been initialized by now.
-        if (exitAction == null) throw new IllegalStateException("Exit action has not been initialized");
-        if (prefAction == null) throw new IllegalStateException("Prefs action has not been initialized");
-        if (aboutAction == null) throw new IllegalStateException("About action has not been initialized");
+        if (exitAction == null) throw new IllegalStateException("Exit action has not been initialized"); //$NON-NLS-1$
+        if (prefAction == null) throw new IllegalStateException("Prefs action has not been initialized"); //$NON-NLS-1$
+        if (aboutAction == null) throw new IllegalStateException("About action has not been initialized"); //$NON-NLS-1$
 
         if (context.isMacOSX()) {
             try {
-                Class osxAdapter = ClassLoader.getSystemClassLoader().loadClass("ca.sqlpower.architect.swingui.OSXAdapter");
+                Class osxAdapter = ClassLoader.getSystemClassLoader().loadClass("ca.sqlpower.architect.swingui.OSXAdapter"); //$NON-NLS-1$
 
                 // The main registration method.  Takes quitAction, prefsAction, aboutAction.
                 Class[] defArgs = { Action.class, Action.class, Action.class };
-                Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs);
+                Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs); //$NON-NLS-1$
                 Object[] args = { exitAction, prefAction, aboutAction };
                 registerMethod.invoke(osxAdapter, args);
 
                 // The enable prefs method.  Takes a boolean.
                 defArgs = new Class[] { boolean.class };
-                Method prefsEnableMethod =  osxAdapter.getDeclaredMethod("enablePrefs", defArgs);
+                Method prefsEnableMethod =  osxAdapter.getDeclaredMethod("enablePrefs", defArgs); //$NON-NLS-1$
                 args = new Object[] {Boolean.TRUE};
                 prefsEnableMethod.invoke(osxAdapter, args);
             } catch (NoClassDefFoundError e) {
                 // This will be thrown first if the OSXAdapter is loaded on a system without the EAWT
                 // because OSXAdapter extends ApplicationAdapter in its def
-                System.err.println("This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
+                System.err.println("This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")"); //$NON-NLS-1$ //$NON-NLS-2$
             } catch (ClassNotFoundException e) {
                 // This shouldn't be reached; if there's a problem with the OSXAdapter we should get the
                 // above NoClassDefFoundError first.
-                System.err.println("This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
+                System.err.println("This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")"); //$NON-NLS-1$ //$NON-NLS-2$
             } catch (Exception e) {
-                System.err.println("Exception while loading the OSXAdapter:");
+                System.err.println("Exception while loading the OSXAdapter:"); //$NON-NLS-1$
                 e.printStackTrace();
             }
         }
@@ -300,9 +300,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     protected boolean promptForUnsavedModifications() {
         if (getProject().isModified()) {
             int response = JOptionPane.showOptionDialog(frame,
-                    "Your project has unsaved changes", "Unsaved Changes",
+                    Messages.getString("ArchitectSwingSessionImpl.projectHasUnsavedChanges"), Messages.getString("ArchitectSwingSessionImpl.unsavedChangesDialogTitle"), //$NON-NLS-1$ //$NON-NLS-2$
                     JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-                    new Object[] {"Don't Save", "Cancel", "Save"}, "Save");
+                    new Object[] {Messages.getString("ArchitectSwingSessionImpl.doNotSaveOption"), Messages.getString("ArchitectSwingSessionImpl.cancelOption"), Messages.getString("ArchitectSwingSessionImpl.saveOption")}, Messages.getString("ArchitectSwingSessionImpl.saveOption")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
             if (response == 0) {
                 return true;
             } else if (response == JOptionPane.CLOSED_OPTION || response == 1) {
@@ -340,14 +340,14 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 return false;
             } else {
                 File file = chooser.getSelectedFile();
-                if (!file.getPath().endsWith(".architect")) {
-                    file = new File(file.getPath()+".architect");
+                if (!file.getPath().endsWith(".architect")) { //$NON-NLS-1$
+                    file = new File(file.getPath()+".architect"); //$NON-NLS-1$
                 }
                 if (file.exists()) {
                     response = JOptionPane.showConfirmDialog(
                             frame,
-                            "The file\n\n"+file.getPath()+"\n\nalready exists. Do you want to overwrite it?",
-                            "File Exists", JOptionPane.YES_NO_OPTION);
+                            Messages.getString("ArchitectSwingSessionImpl.fileAlreadyExists", file.getPath()), //$NON-NLS-1$
+                            Messages.getString("ArchitectSwingSessionImpl.fileAlreadyExistsDialogTitle"), JOptionPane.YES_NO_OPTION); //$NON-NLS-1$
                     if (response == JOptionPane.NO_OPTION) {
                         return saveOrSaveAs(true, separateThread);
                     }
@@ -359,20 +359,20 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 try {
                     file.createNewFile();
                 } catch (Exception e) {
-                    ASUtils.showExceptionDialog(this, "Could not create file", e);
+                    ASUtils.showExceptionDialog(this, Messages.getString("ArchitectSwingSessionImpl.couldNotCreateFile"), e); //$NON-NLS-1$
                     return false;
                 }
                 
                 getRecentMenu().putRecentFileName(file.getAbsolutePath());
                 project.setFile(file);
-                String projName = file.getName().substring(0, file.getName().length()-".architect".length());
+                String projName = file.getName().substring(0, file.getName().length()-".architect".length()); //$NON-NLS-1$
                 setName(projName);
-                frame.setTitle(projName + " - Power*Architect");
+                frame.setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", projName)); //$NON-NLS-1$
             }
         }
         final boolean finalSeparateThread = separateThread;
         final ProgressMonitor pm = new ProgressMonitor
-            (frame, "Saving Project", "", 0, 100);
+            (frame, Messages.getString("ArchitectSwingSessionImpl.saveProgressDialogTitle"), "", 0, 100); //$NON-NLS-1$ //$NON-NLS-2$
 
         class SaverTask implements Runnable {
             boolean success;
@@ -388,7 +388,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                     success = false;
                     ASUtils.showExceptionDialog(
                             ArchitectSwingSessionImpl.this,
-                            "Can't save project: "+ex.getMessage(), ex);
+                            Messages.getString("ArchitectSwingSessionImpl.cannotSaveProject")+ex.getMessage(), ex); //$NON-NLS-1$
                 } finally {
                     project.setSaveInProgress(false);
                 }
@@ -418,9 +418,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         if (getProject().isSaveInProgress()) {
             // project save is in progress, don't allow exit
             JOptionPane.showMessageDialog(frame,
-                    "Project is saving, cannot exit the Power Architect.\n" +
-                    "Please wait for the save to finish, and then try again.",
-                    "Warning", JOptionPane.WARNING_MESSAGE);
+                    Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSaving") + //$NON-NLS-1$
+                    "", //$NON-NLS-1$
+                    Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSavingDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
             return;
         }
 
@@ -438,12 +438,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             }
             
             
-            Object[] options = {"Wait", "Force Quit"};
+            Object[] options = {Messages.getString("ArchitectSwingSessionImpl.waitOption"), Messages.getString("ArchitectSwingSessionImpl.forceQuiteOption")}; //$NON-NLS-1$ //$NON-NLS-2$
             int n = JOptionPane.showOptionDialog(frame, 
-                    "There are still unfinished tasks running on this project.\n" +
-                    "You can either wait for them to finish and try closing again later,\n" +
-                    "or force the project to close. Closing will leave these tasks unfinished.", 
-                    "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, 
+                    Messages.getString("ArchitectSwingSessionImpl.unfinishedTasksRemaining") + //$NON-NLS-1$
+                    "" + //$NON-NLS-1$
+                    "",  //$NON-NLS-1$
+                    Messages.getString("ArchitectSwingSessionImpl.unfinishedTasksDialogTitle"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,  //$NON-NLS-1$
                     null, options, options[0]);
             
             if (n == 0) {
@@ -461,7 +461,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 frame.saveSettings();
             }
         } catch (ArchitectException e) {
-            logger.error("Couldn't save settings: "+e);
+            logger.error("Couldn't save settings: "+e); //$NON-NLS-1$
         }
 
         if (profileDialog != null) {
@@ -480,11 +480,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         // close connections
         try {
             for (SQLDatabase db : (List<SQLDatabase>) getRootObject().getChildren()) {
-                logger.debug ("closing connection: " + db.getName());
+                logger.debug ("closing connection: " + db.getName()); //$NON-NLS-1$
                 db.disconnect();
             }
         } catch (ArchitectException ex) {
-            throw new AssertionError("Got impossible ArchitectException from root object");
+            throw new AssertionError("Got impossible ArchitectException from root object"); //$NON-NLS-1$
         }
 
         // Clear the profile manager (the effect we want is just to cancel running profiles.. clearing is a harmless side effect)
@@ -540,7 +540,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             try {
                 ArchitectUtils.listenToHierarchy(this, getTargetDatabase());
             } catch (ArchitectException e) {
-                logger.error("Can't listen to business model for changes", e);
+                logger.error("Can't listen to business model for changes", e); //$NON-NLS-1$
             }
             PlayPenContentPane ppcp = pp.contentPane;
             ppcp.addPropertyChangeListener(this);
@@ -554,7 +554,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 try {
                     ArchitectUtils.listenToHierarchy(this, newKids[i]);
                 } catch (ArchitectException e1) {
-                    logger.error("Couldn't listen to SQLObject hierarchy rooted at "+newKids[i], e1);
+                    logger.error("Couldn't listen to SQLObject hierarchy rooted at "+newKids[i], e1); //$NON-NLS-1$
                 }
             }
             isNew = false;
@@ -581,7 +581,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             try {
                 ArchitectUtils.listenToHierarchy(this, e.getSQLSource());
             } catch (ArchitectException e1) {
-                logger.error("dbStructureChanged listener: Failed to listen to new project hierarchy", e1);
+                logger.error("dbStructureChanged listener: Failed to listen to new project hierarchy", e1); //$NON-NLS-1$
             }
             isNew = false;
         }
