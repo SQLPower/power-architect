@@ -252,7 +252,6 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
             this.setBounds(0, 0, 100, 100);
         }
 
-        private Point location = new Point(0,0);
 	    private Point[] connectionPoints = {new Point(10,10), new Point(100,100)};
 
         @Override
