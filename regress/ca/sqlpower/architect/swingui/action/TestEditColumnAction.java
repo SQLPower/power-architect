@@ -98,7 +98,7 @@ public class TestEditColumnAction extends TestCase {
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		tp.selectColumn(0);
 		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
-		assertEquals("Editting col1", editColumn.getValue(EditColumnAction.SHORT_DESCRIPTION));		
+		assertEquals("Editing col1", editColumn.getValue(EditColumnAction.SHORT_DESCRIPTION));		
 		tp.selectColumn(1);
 		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enabled", editColumn.isEnabled());		
