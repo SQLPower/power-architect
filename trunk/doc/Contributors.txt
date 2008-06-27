@@ -21,3 +21,7 @@ ARTWORK
 -------
 Giulio Quaglieri
 Mark James (famfamfam.com)
+
+INTERNATIONALIZATION
+--------------------
+Young Woo Kim (Korean)

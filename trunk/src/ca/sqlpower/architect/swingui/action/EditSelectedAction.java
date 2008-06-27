@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
@@ -29,7 +29,11 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.Relationship;
+import ca.sqlpower.architect.swingui.Selectable;
+import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
@@ -39,7 +43,7 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
     private static final Logger logger = Logger.getLogger(EditSelectedAction.class);
     
     public EditSelectedAction(ArchitectSwingSession session) throws ArchitectException {
-        super(session, "Edit Selected", "Edit Selected", "edit_selected");
+        super(session, Messages.getString("EditSelectedAction.name"), Messages.getString("EditSelectedAction.description"), "edit_selected"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         
         this.session = session;
         playpen = session.getPlayPen();
@@ -55,9 +59,9 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
             return;
         }
         if (selection.size() < 1) {
-            JOptionPane.showMessageDialog(playpen, "Please select an item");
+            JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.noItemsSelected")); //$NON-NLS-1$
         } else if (selection.size() > 1) {
-            JOptionPane.showMessageDialog(playpen, "You have selected multiple items, but you can only edit one at a time.");
+            JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.multipleItemsSelected")); //$NON-NLS-1$
         } else if (selection.get(0) instanceof TablePane) {
             TablePane tp = (TablePane) selection.get(0);
             try {
@@ -68,11 +72,11 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
                 } else if (selectedCols.size() == 1) {
                     session.getArchitectFrame().getEditColumnAction().actionPerformed(e);
                 } else {
-                    JOptionPane.showMessageDialog(playpen, "Please select one and only one column");
+                    JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.selectOnlyOneItem")); //$NON-NLS-1$
                     return;
                 }
             } catch (ArchitectException ex) {
-                JOptionPane.showMessageDialog(playpen, "Error opening editor");
+                JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.errorOpeningEditor")); //$NON-NLS-1$
             }
         } else if (selection.get(0) instanceof Relationship) {
             session.getArchitectFrame().getEditRelationshipAction().actionPerformed(e);
@@ -106,23 +110,23 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
         String Description;
         if (selectedItems.size() == 0) {
             setEnabled(false);
-            Description = "Edit Selected";
+            Description = Messages.getString("EditSelectedAction.editSelected"); //$NON-NLS-1$
         } else if (selectedItems.size() == 1) {
             Selectable item = (Selectable) selectedItems.get(0);
             setEnabled(true);
-            String name = "Selected";
+            String name = Messages.getString("EditSelectedAction.selected"); //$NON-NLS-1$
             if (item instanceof TablePane) {
                 TablePane tp = (TablePane) item;
                 if (tp.getSelectedColumnIndex() >= 0) {
                     try {
                         List<SQLColumn> selectedColumns = tp.getSelectedColumns();
                         if (selectedColumns.size() > 1) {
-                            name = selectedColumns.size()+" items";
+                            name = Messages.getString("EditSelectedAction.numberOfitems", String.valueOf(selectedColumns.size())); //$NON-NLS-1$
                         } else {
                             name = tp.getModel().getColumn(tp.getSelectedColumnIndex()).getName();
                         }
                     } catch (ArchitectException ex) {
-                        logger.error("Couldn't get selected column name", ex);
+                        logger.error("Couldn't get selected column name", ex); //$NON-NLS-1$
                     }
                 } else {
                     name = tp.getModel().getName();
@@ -130,7 +134,7 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
             } else if (item instanceof Relationship) {
                 name = ((Relationship) item).getModel().getName();
             }
-            Description = "Edit "+name;
+            Description = Messages.getString("EditSelectedAction.editItem", name); //$NON-NLS-1$
         } else {
             setEnabled(true);
             int numSelectedItems =0;
@@ -143,8 +147,8 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
                     numSelectedItems += Math.max(((TablePane) item).getSelectedColumns().size()-1, 0);
                 }
             }
-            Description = "Edit "+numSelectedItems+" items";
+            Description = Messages.getString("EditSelectedAction.editNumberOfItems", String.valueOf(numSelectedItems)); //$NON-NLS-1$
         }
-        putValue(SHORT_DESCRIPTION, Description + " (Shortcut enter)");
+        putValue(SHORT_DESCRIPTION, Description + Messages.getString("EditSelectedAction.shortcut")); //$NON-NLS-1$
     }
 }
