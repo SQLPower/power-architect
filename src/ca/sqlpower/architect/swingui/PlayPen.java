@@ -68,6 +68,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 import javax.swing.AbstractAction;
@@ -278,7 +279,7 @@ public class PlayPen extends JPanel
 	 * new table names if two tables of the same name are added todrag
 	 * this playpen.
 	 */
-	protected HashSet tableNames;
+	protected Set<String> tableNames;
 
 	/**
 	 * This is the shared popup menu that applies to right-clicks on
@@ -450,6 +451,12 @@ public class PlayPen extends JPanel
 	 */
 	public PlayPen(ArchitectSwingSession session, PlayPen pp) {
 		this(session);
+		
+		this.showPrimary = pp.isShowPrimary();
+		this.showForeign = pp.isShowForeign();
+		this.showIndexed = pp.isShowIndexed();
+		this.showUnique = pp.isShowUnique();
+		this.showTheRest = pp.isShowTheRest();
 		
 		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
 			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
@@ -715,11 +722,11 @@ public class PlayPen extends JPanel
 							    int newIndex = oldIndex;
 							    while (newIndex - 1 >= 0) {
 							        newIndex--;
-							        if (!tp.hiddenColumns.contains(tp.getModel().getColumn(newIndex))) {
+							        if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
 							            break;
 							        }
 							    }
-							    if (!tp.hiddenColumns.contains(tp.getModel().getColumn(newIndex))) {
+							    if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
 							        tp.selectNone();
 							        tp.selectColumn(newIndex);
 							    }
@@ -747,11 +754,11 @@ public class PlayPen extends JPanel
 	                                int newIndex = oldIndex;
 	                                while (newIndex + 1 < tp.getModel().getColumns().size()) {
 	                                    newIndex++;
-	                                    if (!tp.hiddenColumns.contains(tp.getModel().getColumn(newIndex))) {
+	                                    if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
 	                                        break;
 	                                    }
 	                                }
-	                                if (!tp.hiddenColumns.contains(tp.getModel().getColumn(newIndex))) {
+	                                if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
 	                                    tp.selectNone();
 	                                    tp.selectColumn(newIndex);
 	                                }
@@ -1373,7 +1380,7 @@ public class PlayPen extends JPanel
      * Returns the already in use table names. Useful for
      * deleting tables so it can be removed from this list as well.
      */
-    public HashSet getTableNames () {
+    public Set<String> getTableNames () {
         return tableNames;
     }
     

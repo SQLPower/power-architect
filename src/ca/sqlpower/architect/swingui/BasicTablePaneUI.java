@@ -199,30 +199,29 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			    SQLColumn col = (SQLColumn) colNameIt.next();
 			    
 			    // Don't draw the column if it's hidden
-			    if (tp.hiddenColumns.contains(col)) {
-			        i++;
-			        continue;
-			    }
-			    // draws the line in the table that separates primary keys from others
-			    if (col.getPrimaryKeySeq() == null && stillNeedPKLine) {
-			        stillNeedPKLine = false;
-			        currentColor = null;
-			        y += PK_GAP;
-			        g2.setColor(Color.BLACK);
-			        g2.drawLine(0, y+maxDescent-(PK_GAP/2), width-1, y+maxDescent-(PK_GAP/2));
-			    }
-			    if (tp.isColumnSelected(i)) {
-			        if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected");
-			        g2.setColor(selectedColor);
-			        g2.fillRect(BOX_LINE_THICKNESS+tp.getMargin().left, y-ascent+fontHeight,
-			                hwidth, fontHeight);
-			    }
-			    // draws the column
-			    currentColor = tp.getColumnHighlight(i);
-			    g2.setColor(currentColor == null ? Color.BLACK : currentColor);
-			    g2.drawString(col.getShortDisplayName() + getColumnTag(col),
-			            BOX_LINE_THICKNESS+tp.getMargin().left,
-			            y += fontHeight);
+			    if (!tp.getHiddenColumns().contains(col)) {
+			        // draws the line in the table that separates primary keys from others
+			        if (col.getPrimaryKeySeq() == null && stillNeedPKLine) {
+			            stillNeedPKLine = false;
+			            currentColor = null;
+			            y += PK_GAP;
+			            g2.setColor(Color.BLACK);
+			            g2.drawLine(0, y+maxDescent-(PK_GAP/2), width-1, y+maxDescent-(PK_GAP/2));
+			        }
+			        if (tp.isColumnSelected(i)) {
+			            if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected");
+			            g2.setColor(selectedColor);
+			            g2.fillRect(BOX_LINE_THICKNESS+tp.getMargin().left, y-ascent+fontHeight,
+			                    hwidth, fontHeight);
+			        }
+			        // draws the column
+			        currentColor = tp.getColumnHighlight(i);
+			        g2.setColor(currentColor == null ? Color.BLACK : currentColor);
+			        g2.drawString(col.getShortDisplayName() + getColumnTag(col),
+			                BOX_LINE_THICKNESS+tp.getMargin().left,
+			                y += fontHeight);
+			    } 
+			    
 			    i++;
 			}
 			
@@ -295,7 +294,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		try {
 			Insets insets = c.getInsets();
 			List<SQLColumn> columnList = table.getColumns();
-			int cols = columnList.size() - c.hiddenColumns.size();
+			int cols = columnList.size() - c.getHiddenColumns().size();
 			Font font = c.getFont();
 			if (font == null) {
 				logger.error("getPreferredSize(): TablePane is missing font.");
@@ -345,7 +344,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		FontMetrics metrics = tablePane.getFontMetrics(font);
 		int fontHeight = metrics.getHeight();
 
-		int numHiddenCols = tablePane.hiddenColumns.size();
+		int numHiddenCols = tablePane.getHiddenColumns().size();
 		int numHiddenPkCols = tablePane.getHiddenPkCount();
 		
 		int numPkCols = tablePane.getModel().getPkSize() - numHiddenPkCols;
@@ -460,11 +459,11 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
     private int findIndex(int index) {
         int offset = 0;
         try {
-            if (index >= tablePane.getModel().getColumns().size() - tablePane.hiddenColumns.size()) {
+            if (index >= tablePane.getModel().getColumns().size() - tablePane.getHiddenColumns().size()) {
                 throw new IndexOutOfBoundsException();
             }
             for (int i = 0; i < tablePane.getModel().getColumns().size(); i++){
-                if (!tablePane.hiddenColumns.contains(tablePane.getModel().getColumn(i))) {
+                if (!tablePane.getHiddenColumns().contains(tablePane.getModel().getColumn(i))) {
                     offset++;
                     if (offset > index) return i;
                 }

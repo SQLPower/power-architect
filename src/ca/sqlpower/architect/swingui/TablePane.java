@@ -140,8 +140,8 @@ public class TablePane
 	 */
 	protected SQLColumn draggingColumn;
 	
-	protected boolean isRounded;
-	protected boolean isDashed;
+	protected boolean isRounded = false;
+	protected boolean isDashed = false;
 
     private boolean fullyQualifiedNameInHeader = false;
 
@@ -160,7 +160,6 @@ public class TablePane
 		this.dtl = new TablePaneDropListener(this);
 		this.margin = (Insets) tp.margin.clone();
 		this.selectedColumns = new HashSet<SQLColumn>(tp.selectedColumns);
-        this.hiddenColumns = new HashSet<SQLColumn>();
 		this.columnHighlight = new HashMap<SQLColumn,List<Color>>(tp.columnHighlight);
 		try {
 			PlayPenComponentUI newUi = tp.getUI().getClass().newInstance();
@@ -174,7 +173,14 @@ public class TablePane
 		this.insertionPoint = tp.insertionPoint;
 		this.draggingColumn = tp.draggingColumn;
 		this.selected = false;
-	}
+		
+		this.foregroundColor = tp.getForeground();
+		this.backgroundColor = tp.getBackground();
+		this.isDashed = tp.isDashed();
+		this.isRounded = tp.isRounded();
+		
+		this.hiddenColumns = new HashSet<SQLColumn>(tp.getHiddenColumns());
+    }
 
 
 	public TablePane(SQLTable m, PlayPen parentPP) {
@@ -182,7 +188,6 @@ public class TablePane
 	    this.hiddenColumns = new HashSet<SQLColumn>();
 	    this.backgroundColor = new Color(240, 240, 240);
 	    this.foregroundColor = Color.BLACK;
-	    setRounded(false);
 	    setModel(m);
 	    setOpaque(true);
 	    setInsertionPoint(COLUMN_INDEX_NONE);
@@ -1266,5 +1271,9 @@ public class TablePane
     @Override
     public void setBounds(int x, int y, int width, int height) {
         super.setBounds(x, y, width, height);
+    }
+
+    public Set<SQLColumn> getHiddenColumns() {
+        return hiddenColumns;
     }
 }
