@@ -41,7 +41,11 @@ public class Messages {
     public static String getString(String key, String ... params) {
         String message = getString(key);
         for (int i = 0; i < params.length; i++) {
-            message = message.replace("{" + i + "}", params[i]);
+            if (params[i] != null) {
+                message = message.replace("{" + i + "}", params[i]);
+            } else {
+                message = message.replace("{" + i + "}", "null");   
+            }
         }
         return message;
     }
