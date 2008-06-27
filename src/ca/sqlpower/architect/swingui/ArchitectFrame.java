@@ -77,6 +77,7 @@ import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditColumnAction;
 import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
+import ca.sqlpower.architect.swingui.action.EditSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditSelectedIndexAction;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.action.EditTableAction;
