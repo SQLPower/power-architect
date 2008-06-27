@@ -21,9 +21,9 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -193,7 +193,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
                 if (item instanceof TablePane) {
                     TablePane tp = (TablePane) item;
                     session.getTargetDatabase().removeChild(tp.getModel());
-                    HashSet tableNames = playpen.getTableNames();
+                    Set<String> tableNames = playpen.getTableNames();
                     String remove = tp.getName().substring(11,tp.getName().length()-8);
                     tableNames.remove(remove.toLowerCase());
                 } else if (item instanceof Relationship) {
