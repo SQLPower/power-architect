@@ -126,9 +126,9 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 					clip.height--;
 					g2.draw(clip);
 					g2.setColor(tp.getForeground());
-					logger.debug("Clipping region: "+g2.getClip());
+					logger.debug("Clipping region: "+g2.getClip()); //$NON-NLS-1$
 				} else {
-					logger.debug("Null clipping region");
+					logger.debug("Null clipping region"); //$NON-NLS-1$
 				}
 			}
 
@@ -184,7 +184,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			g2.setColor(Color.BLACK);
 			// draw box around columns
 			if (fontHeight < 0) {
-				throw new IllegalStateException("FontHeight is negative");
+				throw new IllegalStateException("FontHeight is negative"); //$NON-NLS-1$
 			}
 			
 			y += GAP + BOX_LINE_THICKNESS + tp.getMargin().top;
@@ -209,7 +209,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			            g2.drawLine(0, y+maxDescent-(PK_GAP/2), width-1, y+maxDescent-(PK_GAP/2));
 			        }
 			        if (tp.isColumnSelected(i)) {
-			            if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected");
+			            if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$
 			            g2.setColor(selectedColor);
 			            g2.fillRect(BOX_LINE_THICKNESS+tp.getMargin().left, y-ascent+fontHeight,
 			                    hwidth, fontHeight);
@@ -276,7 +276,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			
 			g.translate(-insets.left, -insets.top);
 		} catch (ArchitectException e) {
-			logger.warn("BasicTablePaneUI.paint failed", e);
+			logger.warn("BasicTablePaneUI.paint failed", e); //$NON-NLS-1$
 		}
 	}
 
@@ -297,7 +297,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			int cols = columnList.size() - c.getHiddenColumns().size();
 			Font font = c.getFont();
 			if (font == null) {
-				logger.error("getPreferredSize(): TablePane is missing font.");
+				logger.error("getPreferredSize(): TablePane is missing font."); //$NON-NLS-1$
 				return null;
 			}
 			FontRenderContext frc = c.getFontRenderContext();
@@ -305,28 +305,28 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			int fontHeight = metrics.getHeight();
 			height = insets.top + fontHeight + GAP + c.getMargin().top + PK_GAP + cols*fontHeight + BOX_LINE_THICKNESS*2 + c.getMargin().bottom + insets.bottom;
 			width = minimumWidth;
-			logger.debug("starting width is: " + width);
+			logger.debug("starting width is: " + width); //$NON-NLS-1$
 			List<String> itemsToCheck = new ArrayList<String>();
 			for (SQLColumn col : table.getColumns()) {
 				if (col == null) {
-					logger.error("Found null column in table '"+table.getName()+"'");
-					throw new NullPointerException("Found null column in table '"+table.getName()+"'");
+					logger.error("Found null column in table '"+table.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
+					throw new NullPointerException("Found null column in table '"+table.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 				itemsToCheck.add(col.toString() + getColumnTag(col));
 			}
 			itemsToCheck.add(getTitleString(c));   // this works as long as the title uses the same font as the columns
 			for(String item : itemsToCheck) {
-				if (item == null) item = "(null!?)";
+				if (item == null) item = "(null!?)"; //$NON-NLS-1$
 				if (frc == null) {
 				    width = Math.max(width, metrics.stringWidth(item));
 				} else {
 				    width = Math.max(width, (int) font.getStringBounds(item, frc).getWidth());
 				}
-				logger.debug("new width is: " + width);
+				logger.debug("new width is: " + width); //$NON-NLS-1$
 			}
 			width += insets.left + c.getMargin().left + BOX_LINE_THICKNESS*2 + c.getMargin().right + insets.right;
 		} catch (ArchitectException e) {
-			logger.warn("BasicTablePaneUI.getPreferredSize failed due to", e);
+			logger.warn("BasicTablePaneUI.getPreferredSize failed due to", e); //$NON-NLS-1$
 			width = 100;
 			height = 100;
 		}
@@ -352,37 +352,37 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		int firstColStart = fontHeight + GAP + BOX_LINE_THICKNESS + tablePane.getMargin().top;
 		int pkLine = firstColStart + fontHeight*numPkCols;
 
-		if (logger.isDebugEnabled()) logger.debug("p.y = "+p.y);
+		if (logger.isDebugEnabled()) logger.debug("p.y = "+p.y); //$NON-NLS-1$
 		
 		int returnVal;
 		
-		logger.debug("pkLine:" + pkLine + ", numPkCols: " + numPkCols);
-		logger.debug("font height: " + fontHeight + ", firstColStart: " + firstColStart);
+		logger.debug("pkLine:" + pkLine + ", numPkCols: " + numPkCols); //$NON-NLS-1$ //$NON-NLS-2$
+		logger.debug("font height: " + fontHeight + ", firstColStart: " + firstColStart); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		if (p.y < 0) {
-		    logger.debug("y<0");
+		    logger.debug("y<0"); //$NON-NLS-1$
 		    returnVal = TablePane.COLUMN_INDEX_NONE;
 		} else if (p.y <= fontHeight) {
-		    logger.debug("y<=fontHeight = "+fontHeight);
+		    logger.debug("y<=fontHeight = "+fontHeight); //$NON-NLS-1$
 		    returnVal = TablePane.COLUMN_INDEX_TITLE;
 		} else if (numPkCols > 0 && p.y <= pkLine - 1) {
-		    logger.debug("y<=firstColStart + fontHeight*numPkCols - 1= "+(firstColStart + fontHeight*numPkCols));
+		    logger.debug("y<=firstColStart + fontHeight*numPkCols - 1= "+(firstColStart + fontHeight*numPkCols)); //$NON-NLS-1$
 		    returnVal = (p.y - firstColStart) / fontHeight;
 		    returnVal = findIndex(returnVal);
 		} else if (p.y <= pkLine + PK_GAP/2) {
-		    logger.debug("y<=pkLine + pkGap/2 = "+(pkLine + PK_GAP/2));
+		    logger.debug("y<=pkLine + pkGap/2 = "+(pkLine + PK_GAP/2)); //$NON-NLS-1$
 		    returnVal = TablePane.COLUMN_INDEX_END_OF_PK;
 		} else if (p.y <= pkLine + PK_GAP) {
-		    logger.debug("y<=firstColStart + fontHeight*numPkCols + pkGap = "+(firstColStart + fontHeight*numPkCols + PK_GAP));
+		    logger.debug("y<=firstColStart + fontHeight*numPkCols + pkGap = "+(firstColStart + fontHeight*numPkCols + PK_GAP)); //$NON-NLS-1$
 		    returnVal = TablePane.COLUMN_INDEX_START_OF_NON_PK;
 		} else if (p.y < firstColStart + PK_GAP + fontHeight*numCols) {
-		    logger.debug("y<=firstColStart + pkGap + fontHeight*numCols = " + (firstColStart + PK_GAP + fontHeight*numCols));
+		    logger.debug("y<=firstColStart + pkGap + fontHeight*numCols = " + (firstColStart + PK_GAP + fontHeight*numCols)); //$NON-NLS-1$
 		    returnVal = (p.y - firstColStart - PK_GAP) / fontHeight;
 		    returnVal = findIndex(returnVal);
 		} else {
 		    returnVal = TablePane.COLUMN_INDEX_NONE;
 		}
-		logger.debug("pointToColumnIndex return value is " + returnVal);
+		logger.debug("pointToColumnIndex return value is " + returnVal); //$NON-NLS-1$
 		return returnVal;
 	}
 
@@ -400,8 +400,8 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
                 y += PK_GAP;
             }
             if (logger.isDebugEnabled()) {
-                logger.debug("Column " + colidx + " Y value is " + y);
-                logger.debug("gap=" + GAP + "; boxLineThickness=" + BOX_LINE_THICKNESS + "; margin.top=" + tablePane.getMargin().top);
+                logger.debug("Column " + colidx + " Y value is " + y); //$NON-NLS-1$ //$NON-NLS-2$
+                logger.debug("gap=" + GAP + "; boxLineThickness=" + BOX_LINE_THICKNESS + "; margin.top=" + tablePane.getMargin().top); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
             }
             return y;
         } else {
@@ -415,12 +415,12 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	 * rendered visibly repainting necessary).
 	 */
 	public void propertyChange(PropertyChangeEvent e) {
-		logger.debug("BasicTablePaneUI notices change of "+e.getPropertyName()
-					 +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource());
-		if (e.getPropertyName().equals("UI")) return;
-		else if (e.getPropertyName().equals("preferredSize")) return;
-		else if (e.getPropertyName().equals("insertionPoint")) return;
-		else if (e.getPropertyName().equals("model.tableName")) {
+		logger.debug("BasicTablePaneUI notices change of "+e.getPropertyName() //$NON-NLS-1$
+					 +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		if (e.getPropertyName().equals("UI")) return; //$NON-NLS-1$
+		else if (e.getPropertyName().equals("preferredSize")) return; //$NON-NLS-1$
+		else if (e.getPropertyName().equals("insertionPoint")) return; //$NON-NLS-1$
+		else if (e.getPropertyName().equals("model.tableName")) { //$NON-NLS-1$
 			// helps with debugging to keep component names identical with model -- it's not visual
 			tablePane.setName(tablePane.getModel().getName());
 			return;
@@ -478,20 +478,20 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
      * Determines what tag to append to the given column
      */
     private String getColumnTag(SQLColumn col) {
-        String tag = "";
+        String tag = ""; //$NON-NLS-1$
         boolean isPK = col.isPrimaryKey();
         boolean isFK = col.isForeignKey();
         boolean isAK = col.isUniqueIndexed() && !isPK;
         if (isPK && isFK) {
-            tag = "  [ PFK ]";
+            tag = "  [ PFK ]"; //$NON-NLS-1$
         } else if (isAK && isFK) {
-            tag = "  [ AFK ]";
+            tag = "  [ AFK ]"; //$NON-NLS-1$
         } else if (isPK) {
-            tag = "  [ PK ]";
+            tag = "  [ PK ]"; //$NON-NLS-1$
         } else if (isFK) {
-            tag = "  [ FK ]";
+            tag = "  [ FK ]"; //$NON-NLS-1$
         } else if (isAK) {
-            tag = "  [ AK ]";
+            tag = "  [ AK ]"; //$NON-NLS-1$
         }
         return tag;
     }
