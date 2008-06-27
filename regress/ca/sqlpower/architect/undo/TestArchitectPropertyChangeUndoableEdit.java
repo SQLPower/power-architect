@@ -18,19 +18,25 @@
  */
 package ca.sqlpower.architect.undo;
 
+import java.awt.Point;
+
 import junit.framework.TestCase;
 import ca.sqlpower.architect.StubSQLObject;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
+import ca.sqlpower.architect.swingui.event.PlayPenComponentMovedEvent;
+import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 
 public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
-
+    
 	private UndoManager undoManager;
 	
 	private TestSQLObject testObject;
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-	
 		testObject = new TestSQLObject();
 		undoManager = new UndoManager(testObject);
 		
@@ -168,12 +174,51 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 	public void testGetPresentationName() {
 
 	}
+	
+	/**
+	 * Tests undo/redo of playpen component movements
+	 */
+	public void testMovementPropertyChange() {
+	    TestPlayPenComp comp = new TestPlayPenComp(null);
+	    comp.addPropertyChangeListener(undoManager.getEventAdapter());
+	    Point oldLocation = comp.getLocation();
+	    Point newLocation = new Point(1, 2);
+	    comp.setLocation(newLocation);
+	    comp.firePropertyChange(new PlayPenComponentMovedEvent(comp, oldLocation, newLocation));
+	    
+	    assertTrue(undoManager.canUndo());
+	    undoManager.undo();
+	    assertEquals("(0, 0)", oldLocation, comp.getLocation());
+	    assertTrue(undoManager.canRedo());
+	    undoManager.redo();
+	    assertEquals("(1, 2)", newLocation, comp.getLocation());
+	}
+	
+	/**
+	 * Tests undo/redo of connection points changes
+	 */
+	public void testConnectionPointPropertyChange() {
+        TestPlayPenComp comp = new TestPlayPenComp(null);
+        comp.addPropertyChangeListener(undoManager.getEventAdapter());
+        Point[] oldConnectionPoints = comp.getConnectionPoints();
+        Point[] newConnectionPoints = {new Point(oldConnectionPoints[0].x + 10, oldConnectionPoints[0].y + 20), 
+                new Point(oldConnectionPoints[1].x + 30, oldConnectionPoints[1].y + 40)};
+        comp.setConnectionPoints(newConnectionPoints);
+        comp.firePropertyChange(new RelationshipConnectionPointEvent(comp, oldConnectionPoints, newConnectionPoints));
+        
+        assertTrue(undoManager.canUndo());
+        undoManager.undo();
+        assertEquals("(10, 10), (100, 100)", oldConnectionPoints, comp.getConnectionPoints());
+        assertTrue(undoManager.canRedo());
+        undoManager.redo();
+        assertEquals("(20, 30), (130, 140)", newConnectionPoints, comp.getConnectionPoints());
+    }
 
 	public static class TestSQLObject extends StubSQLObject {
 		
 		private int foo;
 		private String bar;
-
+		
 		public String getBar() {
 			return bar;
 		}
@@ -193,6 +238,55 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 			this.foo = foo;
 			fireDbObjectChanged("foo",oldFoo,foo);
 		}
+	}
+	
+	/**
+	 * An instance of this class will have basic property change functionalities
+	 * for testing.
+	 *
+	 */
+	public static class TestPlayPenComp extends PlayPenComponent {
+	    
+	    protected TestPlayPenComp(PlayPenContentPane parent) {
+            super(parent);
+            this.setBounds(0, 0, 100, 100);
+        }
 
+        private Point location = new Point(0,0);
+	    private Point[] connectionPoints = {new Point(10,10), new Point(100,100)};
+
+        @Override
+        public Object getModel() {
+            return null;
+        }
+
+        public void addSelectionListener(SelectionListener l) {
+            
+        }
+
+        public boolean isSelected() {
+            return false;
+        }
+
+        public void removeSelectionListener(SelectionListener l) {
+            
+        }
+
+        public void setSelected(boolean v, int multiSelectionType) {
+            
+        }
+        
+        public Point getLocation() {
+            return this.getBounds().getLocation();
+        }
+        
+        public void setConnectionPoints(Point[] connectionPoints) {
+            this.connectionPoints = connectionPoints;
+        }
+        
+        public Point[] getConnectionPoints() {
+            return connectionPoints;
+        }
+	    
 	}
 }
