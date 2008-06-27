@@ -85,12 +85,12 @@ public class KettleDataSourceOptionsPanel implements DataEntryPanel {
      * with Kettle, and are not already covered on the general pref panel.
      */
     private JPanel buildKettleOptionsPanel() {
-        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref, 4dlu, pref:grow"));
-        builder.append("Hostname", kettleHostName = new JTextField());
-        builder.append("Port", kettlePort = new JTextField());
-        builder.append("Database", kettleDatabase = new JTextField());
-        builder.append("Repository Login &Name", kettleLogin = new JTextField());
-        builder.append("Repository &Password", kettlePassword = new JPasswordField());
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref, 4dlu, pref:grow")); //$NON-NLS-1$
+        builder.append(Messages.getString("KettleDataSourceOptionsPanel.hostname"), kettleHostName = new JTextField()); //$NON-NLS-1$
+        builder.append(Messages.getString("KettleDataSourceOptionsPanel.port"), kettlePort = new JTextField()); //$NON-NLS-1$
+        builder.append(Messages.getString("KettleDataSourceOptionsPanel.database"), kettleDatabase = new JTextField()); //$NON-NLS-1$
+        builder.append(Messages.getString("KettleDataSourceOptionsPanel.repositoryLoginName"), kettleLogin = new JTextField()); //$NON-NLS-1$
+        builder.append(Messages.getString("KettleDataSourceOptionsPanel.repositoryPassword"), kettlePassword = new JPasswordField()); //$NON-NLS-1$
         return builder.getPanel();
     }
 
@@ -100,7 +100,7 @@ public class KettleDataSourceOptionsPanel implements DataEntryPanel {
      */
     public void parentTypeChanged(SPDataSourceType dsType) {
         Map<String, String> map = dsType.retrieveURLDefaults();
-        logger.error(" The map is: " + map);
+        logger.error(" The map is: " + map); //$NON-NLS-1$
         if (map.containsKey(KettleOptions.KETTLE_HOSTNAME)) {
             kettleHostName.setEnabled(false);
         } else {

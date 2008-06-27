@@ -62,8 +62,6 @@ import ca.sqlpower.swingui.table.EditableJTable;
 /**
  * This class will be used to display the columns that are contained in an
  * index. This table will be used by the IndexEditPanel class.
- * 
- * @author Octavian
  */
 public class IndexColumnTable {
 
@@ -246,10 +244,10 @@ public class IndexColumnTable {
          * Returns the column names of this table
          */
         public String getColumnName(int col) {
-            if (col == 0) return "In Index";
-            else if (col == 1) return "Column";
-            else if (col == 2) return "Asc/Des";
-            else throw new ArchitectRuntimeException(new ArchitectException("This table has only 3 columns"));
+            if (col == 0) return IN_INDEX; //$NON-NLS-1$
+            else if (col == 1) return COL_NAME; //$NON-NLS-1$
+            else if (col == 2) return ORDER; //$NON-NLS-1$
+            else throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns.")); //$NON-NLS-1$
         }
 
 
@@ -292,14 +290,14 @@ public class IndexColumnTable {
             if (col == 0) return new Boolean(rowList.get(row).isEnabled());
             else if (col == 1) return rowList.get(row).getSQLColumn();
             else if (col == 2) return rowList.get(row).getOrder();
-            else throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns."));
+            else throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns.")); //$NON-NLS-1$
         }
 
         public void setValueAt(Object value, int row, int col) {
             if (col == 0) rowList.get(row).setEnabled(((Boolean) value).booleanValue());
             else if (col == 1) rowList.get(row).setSQLColumn((SQLColumn) value);
             else if (col == 2) rowList.get(row).setOrder((AscendDescend) value);
-            else throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns."));
+            else throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns.")); //$NON-NLS-1$
             fireTableCellUpdated(row, col);
         }
 
@@ -330,8 +328,8 @@ public class IndexColumnTable {
                 }
 
                 if (rowToRemove == -1) {
-                    throw new IllegalStateException("SQLTable's column " + removedCol + " was just removed, but it " +
-                            "wasn't in the index table model. Creepy!");
+                    throw new IllegalStateException("SQLTable's column " + removedCol + " was just removed, but it " + //$NON-NLS-1$ //$NON-NLS-2$
+                            "wasn't in the index table model. Creepy!"); //$NON-NLS-1$
                 }
                 rowList.remove(rowToRemove);
             }
@@ -343,7 +341,7 @@ public class IndexColumnTable {
         }
 
         public void dbStructureChanged(SQLObjectEvent e) {
-            throw new UnsupportedOperationException("Bad idea.. nothing can cope with dbstructurechanged events.");
+            throw new UnsupportedOperationException("Bad idea.. nothing can cope with dbstructurechanged events."); //$NON-NLS-1$
         }
 
     }
@@ -375,7 +373,7 @@ public class IndexColumnTable {
         }
         
         public String toString() {
-            return new String ("Enabled: " +enabled + " Col:  " + column.getName());
+            return new String ("Enabled: " +enabled + " Col:  " + column.getName()); //$NON-NLS-1$ //$NON-NLS-2$
         }
 
         public void setEnabled(boolean enabled) {
@@ -404,11 +402,11 @@ public class IndexColumnTable {
 
     }
 
-    public static String IN_INDEX = "In Index";
+    public static String IN_INDEX = Messages.getString("IndexColumnTable.IndexColumnTable.indexTableColumnName"); //$NON-NLS-1$
 
-    public static String COL_NAME = "Column";
+    public static String COL_NAME = Messages.getString("IndexColumnTable.IndexColumnTable.columnTableColumnName"); //$NON-NLS-1$
 
-    public static String ORDER = "Asc/Des";
+    public static String ORDER = Messages.getString("IndexColumnTable.IndexColumnTable.ascendingDescendingTableColumnName"); //$NON-NLS-1$
 
     /**
      * This is the table that will display the columns
@@ -503,7 +501,7 @@ public class IndexColumnTable {
      * JTable, otherwise returns false
      */
     private boolean isRowEnabled(int row) {
-        if (table.getValueAt(row, table.getColumnModel().getColumnIndex(IN_INDEX)).toString().equals("true")) {
+        if (table.getValueAt(row, table.getColumnModel().getColumnIndex(IN_INDEX)).toString().equals("true")) { //$NON-NLS-1$
             return true;
         }
         return false;

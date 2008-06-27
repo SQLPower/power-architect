@@ -95,10 +95,10 @@ public class ModalDialogUserPrompter implements UserPrompter {
             JFrame owner, String questionMessage, String okText,
             String notOkText, String cancelText) {
         this.owner = owner;
-        applyToAll = new JCheckBox("Apply to all");
+        applyToAll = new JCheckBox(Messages.getString("ModalDialogUserPrompter.applyToAllOption")); //$NON-NLS-1$
         
         confirmDialog = new JDialog(owner);
-        confirmDialog.setTitle("Overwrite");
+        confirmDialog.setTitle(Messages.getString("ModalDialogUserPrompter.promptDialogTitle")); //$NON-NLS-1$
         
         // this is just filled with the message pattern template to help with sizing
         questionField = new JTextArea(questionMessage);
@@ -108,8 +108,8 @@ public class ModalDialogUserPrompter implements UserPrompter {
         questionFormat = new MessageFormat(questionMessage);
         
         JPanel confirmPanel = new JPanel();
-        FormLayout formLayout = new FormLayout("10dlu, 2dlu, pref:grow, 2dlu, 10dlu"
-                                                , "");
+        FormLayout formLayout = new FormLayout("10dlu, 2dlu, pref:grow, 2dlu, 10dlu" //$NON-NLS-1$
+                                                , ""); //$NON-NLS-1$
         DefaultFormBuilder builder = new DefaultFormBuilder(formLayout, confirmPanel);
         builder.setDefaultDialogBorder();
         
@@ -150,11 +150,11 @@ public class ModalDialogUserPrompter implements UserPrompter {
                 confirmDialog.dispose();
             }
         });
-        builder.append("");
+        builder.append(""); //$NON-NLS-1$
         builder.append(buttonBar.getPanel());
         builder.nextLine();
         
-        builder.append("");
+        builder.append(""); //$NON-NLS-1$
         builder.append(applyToAll);
 
         confirmDialog.setModal(true);
@@ -171,7 +171,7 @@ public class ModalDialogUserPrompter implements UserPrompter {
     public UserPromptResponse promptUser(final Object ... formatArgs) {
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Prompting user. Format Args: " + Arrays.asList(formatArgs));
+            logger.debug("Prompting user. Format Args: " + Arrays.asList(formatArgs)); //$NON-NLS-1$
         }
         
         if (applyToAll.isSelected()) {
@@ -201,10 +201,10 @@ public class ModalDialogUserPrompter implements UserPrompter {
                 SwingUtilities.invokeAndWait(promptUser);
             } catch (InterruptedException e) {
                 ASUtils.showExceptionDialogNoReport(owner,
-                        "Failed to show prompting dialog", e);
+                        Messages.getString("ModalDialogUserPrompter.showPromptDialogFailed"), e); //$NON-NLS-1$
             } catch (InvocationTargetException e) {
                 ASUtils.showExceptionDialogNoReport(owner,
-                        "Failed to show prompting dialog", e);
+                        Messages.getString("ModalDialogUserPrompter.showPromptDialogFailed"), e); //$NON-NLS-1$
             }
         }
         
