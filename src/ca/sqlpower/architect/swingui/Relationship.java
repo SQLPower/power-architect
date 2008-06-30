@@ -92,11 +92,15 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		this.tpbListener = new TablePaneBehaviourListener();
 		this.columnHighlightColour = r.columnHighlightColour;
 		this.selectionListeners = new ArrayList<SelectionListener>();
+		
+		this.foregroundColor = r.getForeground();
+		this.backgroundColor = r.getBackground();
+		
 		try {
 			RelationshipUI ui = (RelationshipUI) r.getUI().getClass().newInstance();
 			ui.installUI(this);
-			ui.setFkConnectionPoint(((RelationshipUI) r.getUI()).getFkConnectionPoint());
-			ui.setPkConnectionPoint(((RelationshipUI) r.getUI()).getPkConnectionPoint());
+			ui.setFkConnectionPoint(new Point(((RelationshipUI) r.getUI()).getFkConnectionPoint()));
+			ui.setPkConnectionPoint(new Point(((RelationshipUI) r.getUI()).getPkConnectionPoint()));
 			ui.setOrientation(((RelationshipUI) r.getUI()).getOrientation());
 			setUI(ui);
 		} catch (InstantiationException e) {

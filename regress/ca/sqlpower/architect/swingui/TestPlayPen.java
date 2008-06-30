@@ -377,8 +377,9 @@ public class TestPlayPen extends TestCase {
 	                } else {
 	                    assertEquals("The two values for property "+property.getDisplayName() + " in " + pp.getClass().getName() + " should be equal",oldVal,copyVal);
 
-	                    // should only be applicable to mutable properties
-	                    assertNotSame("Copy shares mutable property with original, property name: " + property.getDisplayName(), copyVal, oldVal);
+	                    if (isPropertyInstanceMutable(property)) {
+	                        assertNotSame("Copy shares mutable property with original, property name: " + property.getDisplayName(), copyVal, oldVal);
+	                    }
 	                }
 	            } catch (NoSuchMethodException e) {
 	                logger.warn("Skipping non-settable property "+property.getName()+" on "+pp.getClass().getName());
@@ -442,9 +443,41 @@ public class TestPlayPen extends TestCase {
 	    } else {
 	        throw new RuntimeException("This test case lacks a value for "
 	                + property.getName() + " (type "
-	                + property.getPropertyType().getName() + ")");
+	                + property.getPropertyType().getName() + ") in getNewDifferentValue()");
 	    }
 
 	    return newVal;
 	}
+	
+	/**
+     * Returns true if an instance of the given property type is of a mutable class.
+     * Throws an exception if it lacks a case for the given type.
+     * 
+     * @param property The property that should be checked for mutability.
+     */
+	private boolean isPropertyInstanceMutable(PropertyDescriptor property) {
+        if (property.getPropertyType() == String.class) {
+            return false;
+        } else if (property.getPropertyType() == Boolean.class || property.getPropertyType() == Boolean.TYPE) {
+            return false;
+        } else if (property.getPropertyType() == Double.class || property.getPropertyType() == Double.TYPE) {
+            return false;
+        } else if (property.getPropertyType() == Integer.class || property.getPropertyType() == Integer.TYPE) {
+            return false;
+        } else if (property.getPropertyType() == Color.class) {
+            return false;
+        } else if (property.getPropertyType() == Font.class) {
+            return false;
+        } else if (property.getPropertyType() == Set.class) {
+            return true;
+        } else if (property.getPropertyType() == List.class) {
+            return true;
+        } else if (property.getPropertyType() == Point.class) {
+            return true;
+        } else {
+            throw new RuntimeException("This test case lacks a value for "
+                    + property.getName() + " (type "
+                    + property.getPropertyType().getName() + ") in isPropertyInstanceMutable()");
+        }
+    }
 }

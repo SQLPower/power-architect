@@ -63,6 +63,23 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		pk3.setPrimaryKeySeq(3);
 		
 		assertEquals(3, t.getPkSize());
+		
+		
+		copyIgnoreProperties.add("height");
+        copyIgnoreProperties.add("dropTargetListener");
+
+        // selected columns are not to be copied
+        copyIgnoreProperties.add("selectedColumnIndex");
+        
+        // layout node methods that are determined by the model
+        copyIgnoreProperties.add("inboundEdges");
+        copyIgnoreProperties.add("outboundEdges");
+        
+        // same as name
+        copyIgnoreProperties.add("nodeName");
+
+        // used specifically in mapping report to show full name (e.g. db.schema.cat.table)
+        copyIgnoreProperties.add("fullyQualifiedNameInHeader");
 	}
 	
 	public void testInsertColumnAtTop() throws ArchitectException {
@@ -256,26 +273,5 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
     @Override
     protected TablePane getTarget() {
         return tp;
-    }
-    
-    @Override
-    public void testCopyConstructor() throws Exception {
-        copyIgnoreProperties.add("height");
-        copyIgnoreProperties.add("dropTargetListener");
-
-        // selected columns are not to be copied
-        copyIgnoreProperties.add("selectedColumnIndex");
-        
-        // layout node methods that are determined by the model
-        copyIgnoreProperties.add("inboundEdges");
-        copyIgnoreProperties.add("outboundEdges");
-        
-        // same as name
-        copyIgnoreProperties.add("nodeName");
-
-        // used specifically in mapping report to show full name (e.g. db.schema.cat.table)
-        copyIgnoreProperties.add("fullyQualifiedNameInHeader");
-        
-        super.testCopyConstructor();
     }
 }
