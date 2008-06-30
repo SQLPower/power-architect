@@ -112,14 +112,14 @@ public class DataMoverPanel {
         
         PanelBuilder pb = new PanelBuilder(
                 new FormLayout(
-                        "pref:grow,8dlu,pref:grow",
-                        "pref,4dlu,fill:pref:grow,4dlu,pref,4dlu,pref"));
+                        "pref:grow,8dlu,pref:grow", //$NON-NLS-1$
+                        "pref,4dlu,fill:pref:grow,4dlu,pref,4dlu,pref")); //$NON-NLS-1$
         pb.getLayout().addGroupedColumn(1);
         pb.getLayout().addGroupedColumn(3);
         CellConstraints cc = new CellConstraints();
         
-        pb.addLabel("Source", cc.xy(1, 1));
-        pb.addLabel("Destination", cc.xy(3, 1));
+        pb.addLabel(Messages.getString("DataMoverPanel.sourceLabel"), cc.xy(1, 1)); //$NON-NLS-1$
+        pb.addLabel(Messages.getString("DataMoverPanel.destinationLabel"), cc.xy(3, 1)); //$NON-NLS-1$
         
         pb.add(new JScrollPane(sourceTree), cc.xy(1, 3));
         pb.add(new JScrollPane(destTree), cc.xy(3, 3));
@@ -129,20 +129,20 @@ public class DataMoverPanel {
                 try {
                     setupDBTrees();                            
                 } catch (ArchitectException ex) {
-                    SPSUtils.showExceptionDialogNoReport(panel, "Could not get a database from the list of connections.", ex);
+                    SPSUtils.showExceptionDialogNoReport(panel, Messages.getString("DataMoverPanel.couldNotFindDB"), ex); //$NON-NLS-1$
                 }
             }
             public void databaseRemoved(DatabaseListChangeEvent e) {
                 try {
                     setupDBTrees();                            
                 } catch (ArchitectException ex) {
-                    SPSUtils.showExceptionDialogNoReport(panel, "Could not get a database from the list of connections.", ex);
+                    SPSUtils.showExceptionDialogNoReport(panel, Messages.getString("DataMoverPanel.couldNotFindDB"), ex); //$NON-NLS-1$
                 }
             }
         });
 
         pb.add(new JButton(new DatabaseConnectionManagerAction(session)), cc.xy(1, 5));
-        pb.add(truncateDestinationTableBox = new JCheckBox("Truncate Destination Table?"), cc.xy(3, 5));
+        pb.add(truncateDestinationTableBox = new JCheckBox(Messages.getString("DataMoverPanel.truncateDestinationTableOption")), cc.xy(3, 5)); //$NON-NLS-1$
 
         pb.add(ButtonBarFactory.buildOKCancelBar(
                     new JButton(okAction), new JButton(cancelAction)),
@@ -169,23 +169,23 @@ public class DataMoverPanel {
         }
     }
     
-    private Action okAction = new AbstractAction("OK") {
+    private Action okAction = new AbstractAction(Messages.getString("DataMoverPanel.okButton")) { //$NON-NLS-1$
         public void actionPerformed(ActionEvent e) {
             try {
                 doDataMove();
             } catch (Exception ex) {
-                ASUtils.showExceptionDialog(session, "Failed to move data", ex);
+                ASUtils.showExceptionDialog(session, Messages.getString("DataMoverPanel.failedToMoveData"), ex); //$NON-NLS-1$
             }
         }
     };
 
-    private Action cancelAction = new AbstractAction("Cancel") {
+    private Action cancelAction = new AbstractAction(Messages.getString("DataMoverPanel.cancelButton")) { //$NON-NLS-1$
         public void actionPerformed(ActionEvent e) {
             try {
                 Window w = SPSUtils.getWindowInHierarchy(panel);
                 if (w != null) w.dispose();
             } catch (Exception ex) {
-                ASUtils.showExceptionDialog(session, "Failed to move data", ex);
+                ASUtils.showExceptionDialog(session, Messages.getString("DataMoverPanel.failedToMoveData"), ex); //$NON-NLS-1$
             }
         }
     };
@@ -209,7 +209,7 @@ public class DataMoverPanel {
         for (SQLTable sourceTable : dfs.getFinishOrder()) {
             int thisCount = moveSingleTable(sourceTable);
             if (thisCount == -1) {
-                int choice = JOptionPane.showConfirmDialog(panel, "Continue copying remaining tables?");
+                int choice = JOptionPane.showConfirmDialog(panel, Messages.getString("DataMoverPanel.continueCopyingRemainingTablesOption")); //$NON-NLS-1$
                 if (choice != JOptionPane.YES_OPTION) {
                     break;
                 }
@@ -218,7 +218,7 @@ public class DataMoverPanel {
                 rowCount += thisCount;
             }
         }
-        JOptionPane.showMessageDialog(panel, "Copied data from "+tableCount+" tables ("+rowCount+" rows in total)");
+        JOptionPane.showMessageDialog(panel, Messages.getString("DataMoverPanel.dataCopyResults", String.valueOf(tableCount), String.valueOf(rowCount))); //$NON-NLS-1$
     }
     
     /**
@@ -272,9 +272,7 @@ public class DataMoverPanel {
                     destTableName);
 
             if (needToCreate) {
-                int choice = JOptionPane.showConfirmDialog(panel, "The destination table\n" +
-                        destQualifiedName + 
-                        "\nDoes not exist.  Create it?");
+                int choice = JOptionPane.showConfirmDialog(panel, Messages.getString("DataMoverPanel.destinationTableDoesNotExist", destQualifiedName)); //$NON-NLS-1$
                 if (choice != JOptionPane.YES_OPTION) return -1;
                 
                 DDLGenerator ddlg = DDLUtils.createDDLGenerator(destDB.getDataSource());
@@ -302,11 +300,11 @@ public class DataMoverPanel {
             
             return count;
         } catch (InstantiationException ex) {
-            throw new RuntimeException("Couldn't create DDL Generator", ex);
+            throw new RuntimeException("Couldn't create DDL Generator", ex); //$NON-NLS-1$
         } catch (IllegalAccessException ex) {
-            throw new RuntimeException("Couldn't create DDL Generator", ex);
+            throw new RuntimeException("Couldn't create DDL Generator", ex); //$NON-NLS-1$
         } catch (ClassNotFoundException ex) {
-            throw new RuntimeException("Couldn't create DDL Generator", ex);
+            throw new RuntimeException("Couldn't create DDL Generator", ex); //$NON-NLS-1$
         } finally {
             sourceCon.close();
             destCon.close();

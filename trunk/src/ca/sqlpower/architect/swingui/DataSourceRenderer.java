@@ -34,7 +34,7 @@ public final class DataSourceRenderer extends DefaultListCellRenderer {
 		SPDataSource ds = (SPDataSource) value;
 		String label;
 		if (ds == null) {
-			label = "(Choose a Connection)";
+			label = Messages.getString("DataSourceRenderer.chooseConnection"); //$NON-NLS-1$
 		} else {
 			label = ds.getName();
 		}

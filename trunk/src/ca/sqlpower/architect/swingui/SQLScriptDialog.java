@@ -104,7 +104,7 @@ public class SQLScriptDialog extends JDialog {
 		super(owner, title, modal);
         if (modal && owner == null) {
             JOptionPane.showMessageDialog(null,
-                "Debug: This action tried to create a null-parented modal dialog");
+                "Debug: This action tried to create a null-parented modal dialog"); //$NON-NLS-1$
         }
 		statusLabel = new JLabel();
 		parent = owner;
@@ -114,7 +114,7 @@ public class SQLScriptDialog extends JDialog {
 		this.closeParent = closeParent;
         this.session = session;
         this.executeTask = new ExecuteSQLScriptWorker(session);
-		logger.info("The list size is :" + statements.size());
+		logger.info("The list size is :" + statements.size()); //$NON-NLS-1$
 		add(buildPanel());
 		pack();
 		setLocationRelativeTo(parent);
@@ -122,8 +122,8 @@ public class SQLScriptDialog extends JDialog {
 
 	private JPanel buildPanel() {
 		FormLayout sqlLayout = new FormLayout(
-				"4dlu, min:grow, 4dlu", //columns
-				"pref, 4dlu, pref, 6dlu, fill:300dlu:grow,6dlu, pref, 6dlu, pref"); //rows
+				"4dlu, min:grow, 4dlu", //columns //$NON-NLS-1$
+				"pref, 4dlu, pref, 6dlu, fill:300dlu:grow,6dlu, pref, 6dlu, pref"); //rows //$NON-NLS-1$
 
 		CellConstraints cc = new CellConstraints();
 
@@ -137,8 +137,8 @@ public class SQLScriptDialog extends JDialog {
 				sqlDoc.insertString(sqlDoc.getLength(), ddl.getSQLText()+ddl.getSqlTerminator(), att);
 			} catch(BadLocationException e) {
 				ASUtils.showExceptionDialogNoReport(parent,
-						"Could not create document for results", e);
-				logger.error("Could not create document for results", e);
+						Messages.getString("SQLScriptDialog.couldNotCreateDocument"), e); //$NON-NLS-1$
+				logger.error("Could not create document for results", e); //$NON-NLS-1$
 			}
 		}
 		sqlScriptArea = new JTextPane();
@@ -151,7 +151,7 @@ public class SQLScriptDialog extends JDialog {
 		Action copy = new CopyAction(sqlDoc);
 		Action execute = null;
 		
-		logger.debug(targetDataSource.get(SPDataSource.PL_UID) + "");
+		logger.debug(targetDataSource.get(SPDataSource.PL_UID)); //$NON-NLS-1$
 		
 		execute = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
@@ -160,8 +160,8 @@ public class SQLScriptDialog extends JDialog {
 			        ProgressWatcher.watchProgress(progressBar, executeTask, statusLabel);
 			    } else {
 			        JOptionPane.showMessageDialog(SQLScriptDialog.this, 
-			                "Could not execute script because no target database is configured.",
-			                "Could not execute",JOptionPane.ERROR_MESSAGE);
+			                Messages.getString("SQLScriptDialog.noTargetDb"), //$NON-NLS-1$
+			                Messages.getString("SQLScriptDialog.couldNotExecuteDialogTitle"),JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
 			    }
 			}
 		};
@@ -169,7 +169,7 @@ public class SQLScriptDialog extends JDialog {
 		Action save = new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
 
-				logger.info( "SQL_FILE_FILTER:"+ ((FileExtensionFilter) SPSUtils.SQL_FILE_FILTER).toString());
+				logger.info( "SQL_FILE_FILTER:"+ ((FileExtensionFilter) SPSUtils.SQL_FILE_FILTER).toString()); //$NON-NLS-1$
 
 				SPSUtils.saveDocument(parent,sqlDoc,
 						(FileExtensionFilter) SPSUtils.SQL_FILE_FILTER );
@@ -181,26 +181,26 @@ public class SQLScriptDialog extends JDialog {
 
 		ButtonBarBuilder barBuilder = new ButtonBarBuilder();
 		JButton copyButton = new JButton(copy);
-		copyButton.setText("Copy");
+		copyButton.setText(Messages.getString("SQLScriptDialog.copyOption")); //$NON-NLS-1$
 		barBuilder.addGridded (copyButton);
 		barBuilder.addRelatedGap();
 		barBuilder.addGlue();
 
 		JButton executeButton = new JButton(execute);
-		executeButton.setText("Execute");
+		executeButton.setText(Messages.getString("SQLScriptDialog.executeOption")); //$NON-NLS-1$
 		barBuilder.addGridded(executeButton);
 		barBuilder.addRelatedGap();
 		barBuilder.addGlue();
 
 		JButton saveButton = new JButton(save);
-		saveButton.setText("Save");
+		saveButton.setText(Messages.getString("SQLScriptDialog.saveOption")); //$NON-NLS-1$
 		barBuilder.addGridded(saveButton);
 		barBuilder.addRelatedGap();
 		barBuilder.addGlue();
 
 		addWindowListener(new CloseWindowAction());
 		JButton closeButton = new JButton(close);
-		closeButton.setText("Close");
+		closeButton.setText(Messages.getString("SQLScriptDialog.closeOption")); //$NON-NLS-1$
 		barBuilder.addGridded(closeButton);
 
 		PanelBuilder pb;
@@ -211,10 +211,10 @@ public class SQLScriptDialog extends JDialog {
 		pb.add(new JLabel(header), cc.xy(2, 1));
 
 		if (targetDataSource != null) {
-			pb.add(new JLabel("Your Target Database is "+ targetDataSource.getName() ), cc.xy(2, 3));
+			pb.add(new JLabel(Messages.getString("SQLScriptDialog.yourTargetDbIs")+ targetDataSource.getName() ), cc.xy(2, 3)); //$NON-NLS-1$
 		}
 		pb.add(sp, cc.xy(2, 5));
-    		pb.add(barBuilder.getPanel(), cc.xy(2, 7, "c,c"));
+    		pb.add(barBuilder.getPanel(), cc.xy(2, 7, "c,c")); //$NON-NLS-1$
 		pb.add(progressBar, cc.xy(2, 9));
 
 		return pb.getPanel();
@@ -251,7 +251,7 @@ public class SQLScriptDialog extends JDialog {
 				StringSelection selection = new StringSelection(doc.getText(0,doc.getLength()));
 				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection,selection);
 			} catch (BadLocationException e1) {
-				logger.debug("Unable to get the text for copying"+ e1);
+				logger.debug("Unable to get the text for copying"+ e1); //$NON-NLS-1$
 			}
 
 		}
@@ -307,11 +307,11 @@ public class SQLScriptDialog extends JDialog {
 			if (isCanceled() || finished) return;
 
 			SQLDatabase target = new SQLDatabase(targetDataSource);
-			statusLabel.setText("Creating objects in target database " + target.getDataSource() );
+			statusLabel.setText(Messages.getString("SQLScriptDialog.creatingObjectsInTargetDb") + target.getDataSource() ); //$NON-NLS-1$
 			stmtsTried = 0;
 			stmtsCompleted = 0;
 
-			logger.debug("the Target Database is: " + target.getDataSource());
+			logger.debug("the Target Database is: " + target.getDataSource()); //$NON-NLS-1$
 
 			Connection con;
 			Statement stmt;
@@ -321,75 +321,69 @@ public class SQLScriptDialog extends JDialog {
 			} catch (ArchitectException ex) {
 				finished = true;
 				throw new RuntimeException(
-						"Couldn't connect to target database: "+ex.getMessage()
-						+"\nPlease check the connection settings and try again.",
-						ex);
+						Messages.getString("SQLScriptDialog.couldNotConnectToTargetDb", ex.getMessage()), ex); //$NON-NLS-1$
 			} catch (Exception ex) {
 				finished = true;
-				logger.error("Unexpected exception in DDL generation", ex);
-				throw new RuntimeException("You have to specify a target database connection"
-				+"\nbefore executing this script.");
+				logger.error("Unexpected exception in DDL generation", ex); //$NON-NLS-1$
+				throw new RuntimeException(Messages.getString("SQLScriptDialog.specifyATargetDb")); //$NON-NLS-1$
 			}
 
 			try {
-				logger.debug("the connection thinks it is: " + con.getMetaData().getURL());
+				logger.debug("the connection thinks it is: " + con.getMetaData().getURL()); //$NON-NLS-1$
 				stmt = con.createStatement();
 			} catch (SQLException ex) {
 				finished = true;
-				throw new RuntimeException("Couldn't generate DDL statements: "
-						+ex.getMessage()+"\nThe problem was reported by " +
-								"the target database.");
+				throw new RuntimeException(Messages.getString("SQLScriptDialog.couldNotGenerateDDL", ex.getMessage())); //$NON-NLS-1$
 			}
 
 			LogWriter logWriter = null;
 
 			try {
-				logWriter = new LogWriter(session.getUserSettings().getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
+				logWriter = new LogWriter(session.getUserSettings().getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,"")); //$NON-NLS-1$
 			} catch (ArchitectException ex) {
 				finished = true;
 				final Exception fex = ex;
-				throw new RuntimeException("A problem with the DDL log file " +
-					"prevented\n DDL generation from running:\n\n"+fex.getMessage());
+				throw new RuntimeException(Messages.getString("SQLScriptDialog.problemWithDDLLog") //$NON-NLS-1$
+					+ fex.getMessage());
 			}
 
 			try {
-				logWriter.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis()));
-				logWriter.info("Database Target: " + target.getDataSource());
-				logWriter.info("Playpen Dump: " + target.getDataSource());
+				logWriter.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis())); //$NON-NLS-1$
+				logWriter.info("Database Target: " + target.getDataSource()); //$NON-NLS-1$
+				logWriter.info("Playpen Dump: " + target.getDataSource()); //$NON-NLS-1$
 				Iterator it = statements.iterator();
 				while (it.hasNext() && !finished && !isCanceled()) {
 					DDLStatement ddlStmt = (DDLStatement) it.next();
 					try {
 						stmtsTried++;
-						logWriter.info("executing: " + ddlStmt.getSQLText());
+						logWriter.info("executing: " + ddlStmt.getSQLText()); //$NON-NLS-1$
 						stmt.executeUpdate(ddlStmt.getSQLText());
 						stmtsCompleted++;
 					} catch (SQLException ex) {
 						final Exception fex = ex;
 						final String fsql = ddlStmt.getSQLText();
 						final LogWriter fLogWriter = logWriter;
-						logWriter.info("sql statement failed: " + ex.getMessage());
+						logWriter.info("sql statement failed: " + ex.getMessage()); //$NON-NLS-1$
 						try {
 							SwingUtilities.invokeAndWait(new Runnable() {
 								public void run() {
 									JTextArea jta = new JTextArea(fsql,25,40);
 									jta.setEditable(false);
 									JScrollPane jsp = new JScrollPane(jta);
-									JLabel errorLabel = new JLabel("<html>This SQL statement failed: "+fex.getMessage()
-											+"<p>Do you want to continue?</html>");
+									JLabel errorLabel = new JLabel("<html>" + Messages.getString("SQLScriptDialog.sqlStatementFailed", fex.getMessage() + "<p>") + "</html>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 									JPanel jp = new JPanel(new BorderLayout());
 									jp.add(jsp,BorderLayout.CENTER);
 									jp.add(errorLabel,BorderLayout.SOUTH);
 									int decision = JOptionPane.showConfirmDialog
-									(SQLScriptDialog.this, jp, "SQL Failure", JOptionPane.YES_NO_OPTION);
+									(SQLScriptDialog.this, jp, Messages.getString("SQLScriptDialog.sqlFailure"), JOptionPane.YES_NO_OPTION); //$NON-NLS-1$
 									if (decision == JOptionPane.NO_OPTION) {
-										fLogWriter.info("Export cancelled by user.");
+										fLogWriter.info("Export cancelled by user."); //$NON-NLS-1$
 										cancelJob();
 									}
 								}
 							});
 						} catch (InterruptedException ex2) {
-							logger.warn("DDL Worker was interrupted during InvokeAndWait", ex2);
+							logger.warn("DDL Worker was interrupted during InvokeAndWait", ex2); //$NON-NLS-1$
 						} catch (InvocationTargetException ex2) {
 							throw new RuntimeException(ex2);
 						}
@@ -402,16 +396,15 @@ public class SQLScriptDialog extends JDialog {
 				}
 
 			} catch (Exception exc){
-				logWriter.info("Caught Unexpected Exception " + exc);
+				logWriter.info("Caught Unexpected Exception " + exc); //$NON-NLS-1$
 				ASUtils.showExceptionDialog(
 						session,
-						"Couldn't finish running this SQL Script",
+						Messages.getString("SQLScriptDialog.couldNotFinishSQL"), //$NON-NLS-1$
 						exc);
 			} finally {
 				final String resultsMessage =
-					(stmtsCompleted == 0 ? "Did not execute any out of " :
-						"Successfully executed " + stmtsCompleted + " out of ") +
-					stmtsTried + " statements.";
+					(stmtsCompleted == 0 ? Messages.getString("SQLScriptDialog.didNotExecute", String.valueOf(stmtsTried)) : //$NON-NLS-1$
+						Messages.getString("SQLScriptDialog.successfullyExecuted", String.valueOf(stmtsTried), String.valueOf(stmtsCompleted))); //$NON-NLS-1$
 				logWriter.info(resultsMessage);
 				JOptionPane.showMessageDialog(SQLScriptDialog.this, resultsMessage);
 				// flush and close the LogWriter
@@ -420,12 +413,12 @@ public class SQLScriptDialog extends JDialog {
 				try {
 					if (stmt != null) stmt.close();
 				} catch (SQLException ex) {
-					logger.error("SQLException while closing statement", ex);
+					logger.error("SQLException while closing statement", ex); //$NON-NLS-1$
 				}
 				try {
 					if (con != null) con.close();
 				} catch (SQLException ex) {
-					logger.error("Couldn't close connection", ex);
+					logger.error("Couldn't close connection", ex); //$NON-NLS-1$
 				}
 			}
 

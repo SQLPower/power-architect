@@ -69,12 +69,12 @@ public class CompareDMFrame extends JDialog {
 	public CompareDMFrame(Dialog owner, AbstractDocument sourceOutputText, AbstractDocument targetOutputText, 
 						String leftTitle, String rightTitle)
 	{
-		super(owner, "Data Model Comparison");	
+		super(owner, Messages.getString("CompareDMFrame.title"));	 //$NON-NLS-1$
 		
 		this.sourceOutputText = sourceOutputText;
 		this.targetOutputText = targetOutputText;
-		this.title = "Comparing " + leftTitle+ " to " + rightTitle;
-        whatTheHeckIsGoingOn ="The following changes need to be done to make one into the other:";	
+		this.title = Messages.getString("CompareDMFrame.comparing", leftTitle, rightTitle); //$NON-NLS-1$
+        whatTheHeckIsGoingOn =Messages.getString("CompareDMFrame.necessaryChanges");	 //$NON-NLS-1$
 		panel = mainFrame();
 		getContentPane().add(panel);
 		
@@ -84,8 +84,8 @@ public class CompareDMFrame extends JDialog {
 		StyleConstants.setFontSize(att,leftOutputArea.getFont().getSize() * 2);
 
 		try {
-			sourceOutputText.insertString(0,leftTitle + "\n\n",att);
-			targetOutputText.insertString(0,rightTitle + "\n\n",att);
+			sourceOutputText.insertString(0,leftTitle + "\n\n",att); //$NON-NLS-1$
+			targetOutputText.insertString(0,rightTitle + "\n\n",att); //$NON-NLS-1$
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
@@ -97,8 +97,8 @@ public class CompareDMFrame extends JDialog {
 	public JComponent mainFrame() {		
 		
 		FormLayout layout = new FormLayout(
-				"4dlu,fill:min(150dlu;default):grow, 6dlu, fill:min(150dlu;default):grow, 4dlu", // columns
-				" min(300dlu;default), 6dlu, min(300dlu;default), 6dlu,  min(300dlu;default), 3dlu, fill:min(300dlu;default):grow, 3dlu, 20dlu,6dlu,20dlu"); // rows
+				"4dlu,fill:min(150dlu;default):grow, 6dlu, fill:min(150dlu;default):grow, 4dlu", // columns //$NON-NLS-1$
+				" min(300dlu;default), 6dlu, min(300dlu;default), 6dlu,  min(300dlu;default), 3dlu, fill:min(300dlu;default):grow, 3dlu, 20dlu,6dlu,20dlu"); // rows //$NON-NLS-1$
 		
 
 		CellConstraints cc = new CellConstraints();
@@ -129,7 +129,7 @@ public class CompareDMFrame extends JDialog {
 		
 		ButtonBarBuilder sourcebbBuilder = new ButtonBarBuilder();
 		JButton copySource = new JButton(sourceCopy);
-		copySource.setText("Copy");
+		copySource.setText(Messages.getString("CompareDMFrame.copy")); //$NON-NLS-1$
 		sourcebbBuilder.addGridded (copySource);
 		sourcebbBuilder.addRelatedGap();
 		sourcebbBuilder.addGlue();
@@ -138,13 +138,13 @@ public class CompareDMFrame extends JDialog {
 			
 		
 		JButton sourceSaveButton = new JButton(sourceSave);
-		sourceSaveButton.setText("Save");
+		sourceSaveButton.setText(Messages.getString("CompareDMFrame.save")); //$NON-NLS-1$
 		sourcebbBuilder.addGridded(sourceSaveButton);
 		sourcebbBuilder.addRelatedGap();
 		sourcebbBuilder.addGlue();		
 		ButtonBarBuilder closeBar = new ButtonBarBuilder(); 
 		JButton closeButton = new JButton(close);
-		closeButton.setText("Close");
+		closeButton.setText(Messages.getString("CompareDMFrame.close")); //$NON-NLS-1$
 		closeBar.addGridded(closeButton);
 		PanelBuilder pb;
 
@@ -167,7 +167,7 @@ public class CompareDMFrame extends JDialog {
 		//Sets the target Buttons
 		ButtonBarBuilder targetbbBuilder = new ButtonBarBuilder();
 		JButton copyTarget = new JButton(targetCopy);
-		copyTarget.setText("Copy");
+		copyTarget.setText(Messages.getString("CompareDMFrame.copy")); //$NON-NLS-1$
 		targetbbBuilder.addGridded (copyTarget);
 		targetbbBuilder.addRelatedGap();
 		targetbbBuilder.addGlue();					
@@ -183,20 +183,20 @@ public class CompareDMFrame extends JDialog {
 		
 
 		JButton targetSave = new JButton(targetSaveAction);
-		targetSave.setText("Save");
+		targetSave.setText(Messages.getString("CompareDMFrame.save")); //$NON-NLS-1$
 		targetbbBuilder.addGridded(targetSave);
 		targetbbBuilder.addRelatedGap();
 		targetbbBuilder.addGlue();
 
 		
-		pb.add(titleLabel, cc.xyw(2, 1, 3,"c,c"));
-        pb.add(subTitleLabel,cc.xyw(2, 3, 3,"c,c"));
-		pb.add(new JLabel("Older"), cc.xy(2,5));
-		pb.add(new JLabel("Newer"), cc.xy(4,5));
+		pb.add(titleLabel, cc.xyw(2, 1, 3,"c,c")); //$NON-NLS-1$
+        pb.add(subTitleLabel,cc.xyw(2, 3, 3,"c,c")); //$NON-NLS-1$
+		pb.add(new JLabel(Messages.getString("CompareDMFrame.older")), cc.xy(2,5)); //$NON-NLS-1$
+		pb.add(new JLabel(Messages.getString("CompareDMFrame.newer")), cc.xy(4,5)); //$NON-NLS-1$
 		pb.add(sp, cc.xyw(2, 7,3));
-		pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 9, "l,c"));
-		pb.add(targetbbBuilder.getPanel(), cc.xy(4, 9, "r,c"));
-		pb.add(closeBar.getPanel(), cc.xy(4,11, "r,c"));
+		pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 9, "l,c")); //$NON-NLS-1$
+		pb.add(targetbbBuilder.getPanel(), cc.xy(4, 9, "r,c")); //$NON-NLS-1$
+		pb.add(closeBar.getPanel(), cc.xy(4,11, "r,c")); //$NON-NLS-1$
 	
 		return pb.getPanel();
 	}
@@ -216,7 +216,7 @@ public class CompareDMFrame extends JDialog {
 				StringSelection selection = new StringSelection(doc.getText(0,doc.getLength()));
 				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection,selection);
 			} catch (BadLocationException e1) {
-				logger.debug("Unable to get the text for copying"+ e1);
+				logger.debug("Unable to get the text for copying"+ e1); //$NON-NLS-1$
 			}
 			
 		}			
@@ -236,7 +236,7 @@ public class CompareDMFrame extends JDialog {
 				StringSelection selection = new StringSelection(doc.getText(0,doc.getLength()));
 				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection,selection);
 			} catch (BadLocationException e1) {
-				logger.debug("Unable to get the text for copying"+ e1);
+				logger.debug("Unable to get the text for copying"+ e1); //$NON-NLS-1$
 			}
 			
 		}			
@@ -267,11 +267,11 @@ public class CompareDMFrame extends JDialog {
 	public void pack() {
 		super.pack();
 		Dimension d =Toolkit.getDefaultToolkit().getScreenSize();
-		logger.debug("Before change: Window width ="+getWidth() + " screen width ="+d.width);
+		logger.debug("Before change: Window width ="+getWidth() + " screen width ="+d.width); //$NON-NLS-1$ //$NON-NLS-2$
 		if (getWidth() > d.width - getX()) {
 			setSize(d.width-getX(),getHeight());
 		}
-		logger.debug("Before change: Window height ="+getHeight() + " screen height ="+d.height);
+		logger.debug("Before change: Window height ="+getHeight() + " screen height ="+d.height); //$NON-NLS-1$ //$NON-NLS-2$
 		if (getHeight() > d.height-getY()) {
 			setSize(getWidth(),d.height-getY());
 		}

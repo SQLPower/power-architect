@@ -97,7 +97,7 @@ public class ProfileResultsViewer {
     private final ProfileChangeListener profileChangeListener = new ProfileChangeListener() {
         public void profilesAdded(ProfileChangeEvent e) {
             List<ProfileResult> profileResult = e.getProfileResults();
-            logger.debug("ProfileResultsViewer.inner.profileAdded()"  + profileResult);
+            logger.debug("ProfileResultsViewer.inner.profileAdded()"  + profileResult); //$NON-NLS-1$
             // XXX this doesn't get invoked!?
         }
 
@@ -150,7 +150,7 @@ public class ProfileResultsViewer {
                     JTable t = (JTable)obj;
                     SQLColumn col = (SQLColumn)t.getValueAt(t.getSelectedRow(),
                             t.convertColumnIndexToView(
-                                    ProfileColumn.valueOf("COLUMN").ordinal()));
+                                    ProfileColumn.valueOf("COLUMN").ordinal())); //$NON-NLS-1$
                     profilePanel.getTableSelector().setSelectedItem(col.getParentTable());
                     profilePanel.getColumnSelector().setSelectedValue(col,true);
                     tabPane.setSelectedIndex(1);
@@ -174,7 +174,7 @@ public class ProfileResultsViewer {
     public ProfileResultsViewer(ProfileManager profileManager) {
         this.profileManager = profileManager;
         this.results = new ArrayList<TableProfileResult>();
-        this.frame = new JFrame("Table Profiles");
+        this.frame = new JFrame(Messages.getString("ProfileResultsViewer.frameTitle")); //$NON-NLS-1$
         frame.setIconImage(ASUtils.getFrameIconImage());
         
         JTabbedPane tabPane = new JTabbedPane();
@@ -216,20 +216,20 @@ public class ProfileResultsViewer {
         p.setViewTable(viewTable);
         p.setTabPane(tabPane);
         p.setTableModel(tm);
-        tabPane.addTab("Graph View",p);
+        tabPane.addTab(Messages.getString("ProfileResultsViewer.graphViewTab"),p); //$NON-NLS-1$
         
         JPanel tableViewPane = new JPanel(new BorderLayout());
 
         tableViewPane.add(editorScrollPane,BorderLayout.CENTER);
 
-        JLabel searchLabel = new JLabel("Search:");
-        JTextField searchField = new JTextField(searchDecorator.getDoc(),"",25);
+        JLabel searchLabel = new JLabel(Messages.getString("ProfileResultsViewer.search")); //$NON-NLS-1$
+        JTextField searchField = new JTextField(searchDecorator.getDoc(),"",25); //$NON-NLS-1$
         searchField.setEditable(true);
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         searchPanel.add(searchLabel);
         searchPanel.add(searchField);
         tableViewPane.add(searchPanel,BorderLayout.NORTH);
-        tabPane.addTab("Table View", tableViewPane );
+        tabPane.addTab(Messages.getString("ProfileResultsViewer.tableViewTab"), tableViewPane ); //$NON-NLS-1$
         
 
         profilePanelMouseListener.setProfilePanel(p);
@@ -238,7 +238,7 @@ public class ProfileResultsViewer {
         if ( viewTable.getRowCount() > 0 ) {
             SQLColumn col = (SQLColumn)viewTable.getValueAt(0,
                     viewTable.convertColumnIndexToView(
-                            ProfileColumn.valueOf("COLUMN").ordinal()));
+                            ProfileColumn.valueOf("COLUMN").ordinal())); //$NON-NLS-1$
             p.getTableSelector().setSelectedItem(col.getParentTable());
             p.getColumnSelector().setSelectedValue(col,true);
         }
@@ -249,7 +249,7 @@ public class ProfileResultsViewer {
         JButton save = new JButton(
                 new SaveProfileAction(frame, viewTable));
         bottomPanel.add(save);
-        JButton closeButton = new JButton("Close");
+        JButton closeButton = new JButton(Messages.getString("ProfileResultsViewer.closeButton")); //$NON-NLS-1$
         bottomPanel.add(closeButton);
         frame.add(bottomPanel,BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);

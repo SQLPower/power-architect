@@ -104,9 +104,9 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 			ui.setOrientation(((RelationshipUI) r.getUI()).getOrientation());
 			setUI(ui);
 		} catch (InstantiationException e) {
-			throw new RuntimeException("Woops, couldn't invoke no-args constructor of "+r.getUI().getClass().getName());
+			throw new RuntimeException("Woops, couldn't invoke no-args constructor of "+r.getUI().getClass().getName()); //$NON-NLS-1$
 		} catch (IllegalAccessException e) {
-			throw new RuntimeException("Woops, couldn't access no-args constructor of "+r.getUI().getClass().getName());
+			throw new RuntimeException("Woops, couldn't access no-args constructor of "+r.getUI().getClass().getName()); //$NON-NLS-1$
 		}
 	}
 
@@ -156,7 +156,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
         mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         popup.add(mi);
         
-        JMenu setFocusToRelatedTables = new JMenu("Set Focus to...");
+        JMenu setFocusToRelatedTables = new JMenu(Messages.getString("Relationship.setFocusMenu")); //$NON-NLS-1$
         mi = new JMenuItem();
         mi.setAction(af.getFocusToParentAction()); 
         mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
@@ -168,13 +168,13 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
         popup.add(setFocusToRelatedTables);
         
         if (logger.isDebugEnabled()) {
-            mi = new JMenuItem(new AbstractAction("Show Mappings") {
+            mi = new JMenuItem(new AbstractAction("Show Mappings") { //$NON-NLS-1$
 
                 public void actionPerformed(ActionEvent e) {
                     StringBuffer componentList = new StringBuffer();
                     for ( ColumnMapping columnMap : getModel().getMappings()) {
                         
-                        componentList.append(columnMap).append("\n");
+                        componentList.append(columnMap).append("\n"); //$NON-NLS-1$
                     }
                     JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JTextArea(componentList.toString())));
                 }
@@ -191,7 +191,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	
 	@Override
 	public String toString() {
-		return "Relationship: "+model;
+		return "Relationship: "+model; //$NON-NLS-1$
 	}
 
 	// -------------------- PlayPenComponent overrides --------------------
@@ -215,8 +215,8 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	
 	protected void fireSelectionEvent(SelectionEvent e) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Notifying "+selectionListeners.size()
-						 +" listeners of selection change");
+			logger.debug("Notifying "+selectionListeners.size() //$NON-NLS-1$
+						 +" listeners of selection change"); //$NON-NLS-1$
 		}
 		Iterator it = selectionListeners.iterator();
 		if (e.getType() == SelectionEvent.SELECTION_EVENT) {
@@ -228,7 +228,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 				((SelectionListener) it.next()).itemDeselected(e);
 			}
 		} else {
-			throw new IllegalStateException("Unknown selection event type "+e.getType());
+			throw new IllegalStateException("Unknown selection event type "+e.getType()); //$NON-NLS-1$
 		}
 	}
 
@@ -248,7 +248,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
                     }
 		        }
 		    } catch (ArchitectException e) {
-		        logger.error("Couldn't modify highlights for columns in the mapping", e);
+		        logger.error("Couldn't modify highlights for columns in the mapping", e); //$NON-NLS-1$
 		    }
 			selected = isSelected;
 			fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
@@ -323,7 +323,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
              */
             if(evt instanceof PlayPenComponentMovedEvent) {
                 PlayPenComponentMovedEvent e = (PlayPenComponentMovedEvent)evt;
-                logger.debug("Component "+e.getPPComponent().getName()+" moved");
+                logger.debug("Component "+e.getPPComponent().getName()+" moved"); //$NON-NLS-1$ //$NON-NLS-2$
                 if (e.getPPComponent() == pkTable || e.getPPComponent() == fkTable) {
                     revalidate();
                 }
@@ -334,7 +334,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
              */
             else if(evt instanceof PlayPenComponent.PlayPenComponentResizedEvent) {
                 PlayPenComponentResizedEvent e = (PlayPenComponentResizedEvent)evt;
-                logger.debug("Component "+((PlayPenComponent)e.getSource()).getName()+" changed size");
+                logger.debug("Component "+((PlayPenComponent)e.getSource()).getName()+" changed size"); //$NON-NLS-1$ //$NON-NLS-2$
                 if (((PlayPenComponent)e.getSource()) == pkTable) {
                     setPkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(true, getPkConnectionPoint())); // true == PK
                 }
@@ -466,11 +466,11 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 
 	public void dbObjectChanged(SQLObjectEvent e) {
 		if (e.getPropertyName() != null) {
-			if (e.getPropertyName().equals("name")) {
+			if (e.getPropertyName().equals("name")) { //$NON-NLS-1$
 				setToolTipText(model.getName());
-			} else if (e.getPropertyName().equals("identifying")
-					   || e.getPropertyName().equals("pkCardinality")
-					   || e.getPropertyName().equals("fkCardinality")) {
+			} else if (e.getPropertyName().equals("identifying") //$NON-NLS-1$
+					   || e.getPropertyName().equals("pkCardinality") //$NON-NLS-1$
+					   || e.getPropertyName().equals("fkCardinality")) { //$NON-NLS-1$
 				repaint();
 			}
 		}

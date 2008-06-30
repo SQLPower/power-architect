@@ -248,7 +248,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         JPanel topPanel = new JPanel();
         add(topPanel, BorderLayout.NORTH);
         
-        topPanel.add(new JLabel("Search"));
+        topPanel.add(new JLabel(Messages.getString("ProfileManagerView.search"))); //$NON-NLS-1$
         searchText = new JTextField(10);
         searchText.addKeyListener(pageListener);
         searchText.addKeyListener(new KeyListener() {
@@ -263,24 +263,24 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         });
         topPanel.add(searchText);
 
-        JButton clearSearchButton = new JButton("Clear Search");
+        JButton clearSearchButton = new JButton(Messages.getString("ProfileManagerView.clearSearch")); //$NON-NLS-1$
         clearSearchButton.addKeyListener(pageListener);
         clearSearchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                searchText.setText("");
-                doSearch("");
+                searchText.setText(""); //$NON-NLS-1$
+                doSearch(""); //$NON-NLS-1$
             }
         });
         topPanel.add(clearSearchButton);
         
         comparator = new TableProfileNameComparator();
         
-        JLabel orderByLabel = new JLabel("Order by");
+        JLabel orderByLabel = new JLabel(Messages.getString("ProfileManagerView.orderBy")); //$NON-NLS-1$
         topPanel.add(orderByLabel);
-        final JRadioButton nameRadioButton = new JRadioButton("Name");
+        final JRadioButton nameRadioButton = new JRadioButton(Messages.getString("ProfileManagerView.nameOption")); //$NON-NLS-1$
         topPanel.add(nameRadioButton);
         nameRadioButton.addKeyListener(pageListener);
-        final JRadioButton dateRadioButton = new JRadioButton("Date");
+        final JRadioButton dateRadioButton = new JRadioButton(Messages.getString("ProfileManagerView.dateOption")); //$NON-NLS-1$
         topPanel.add(dateRadioButton);
         dateRadioButton.addKeyListener(pageListener);
         ActionListener radioListener = new ActionListener() {
@@ -300,11 +300,11 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         nameRadioButton.setSelected(true);
         resultListPanel = new ResultListPanel();
         resultListPanel.addKeyListener(pageListener);
-        resultListPanel.setBackground(UIManager.getColor("List.background"));
+        resultListPanel.setBackground(UIManager.getColor("List.background")); //$NON-NLS-1$
         resultListPanel.setLayout(new GridLayout(0, 1));
 
         // populate this panel with MyRowComponents
-        logger.debug("Populating profile manager view from profile manager " + System.identityHashCode(pm));
+        logger.debug("Populating profile manager view from profile manager " + System.identityHashCode(pm)); //$NON-NLS-1$
         for (TableProfileResult result : pm.getResults()) {
             ProfileRowComponent myRowComponent = new ProfileRowComponent(result, pm);
             list.add(myRowComponent);
@@ -322,7 +322,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         add(bottomPanel, BorderLayout.SOUTH);
         
  
-        Action viewAllAction = new AbstractAction("View All") {
+        Action viewAllAction = new AbstractAction(Messages.getString("ProfileManagerView.viewAllActionName")) { //$NON-NLS-1$
             public void actionPerformed(ActionEvent e) {
                 ProfileResultsViewer profileResultsViewer = 
                     new ProfileResultsViewer(pm);
@@ -337,7 +337,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         };
         bottomPanel.add(new JButton(viewAllAction));
         
-        Action viewSelectedAction = new AbstractAction("View Selected") {
+        Action viewSelectedAction = new AbstractAction(Messages.getString("ProfileManagerView.viewSelectedActionName")) { //$NON-NLS-1$
 
             public void actionPerformed(ActionEvent e) {
                 ProfileResultsViewer profileResultsViewer = 
@@ -359,11 +359,11 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         updateStatus();
         bottomPanel.add(statusText);
 
-        Action deleteAllAction = new AbstractAction("Delete All") {
+        Action deleteAllAction = new AbstractAction(Messages.getString("ProfileManagerView.deleteAllActionName")) { //$NON-NLS-1$
             public void actionPerformed(ActionEvent e) {
                 int confirm = JOptionPane.showConfirmDialog(scrollPane,
-                        "Are you sure you want to delete all your profile data?\n" +
-                        "(this cannot be undone)", "Delete All?" , JOptionPane.YES_NO_OPTION);
+                        Messages.getString("ProfileManagerView.confirmDeleteProfileData") + //$NON-NLS-1$
+                        "", Messages.getString("ProfileManagerView.deleteAllButton") , JOptionPane.YES_NO_OPTION); //$NON-NLS-1$ //$NON-NLS-2$
                 if (confirm == 0) { // 0 == the first Option, which is Yes
                     resultListPanel.removeAll();
                     list.clear();
@@ -375,7 +375,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         };
         bottomPanel.add(new JButton(deleteAllAction));
 
-        JButton closeButton = new JButton("Close");
+        JButton closeButton = new JButton(Messages.getString("ProfileManagerView.closeButton")); //$NON-NLS-1$
         closeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Component c = ProfileManagerView.this.getParent();
@@ -393,7 +393,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
     private void updateStatus() {
         int totalNumber = list.size();
         int numberShowing = showingRows.size();
-        statusText.setText(String.format("Showing %d of %d Profiles", 
+        statusText.setText(String.format(Messages.getString("ProfileManagerView.profileDisplayStatus"),  //$NON-NLS-1$
                                             numberShowing, 
                                             totalNumber));
     }
@@ -443,7 +443,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
      * to create a corresponding ProfileRowComponent and add it to the view.
      */
     public void profilesAdded(ProfileChangeEvent e) {
-        logger.debug("ProfileManagerView.profileAdded(): table profile added");
+        logger.debug("ProfileManagerView.profileAdded(): table profile added"); //$NON-NLS-1$
         List<ProfileResult> profileResult = new ArrayList<ProfileResult>(e.getProfileResults());
         List<TableProfileResult> tpr = new ArrayList<TableProfileResult>();
         for (ProfileResult pr : profileResult) {
@@ -455,7 +455,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
                 tpr.add((TableProfileResult) pr);
                 pm.setProcessingOrder(tpr);
             } else {
-                logger.debug("Cannot create a component based on the profile result " + pr);
+                logger.debug("Cannot create a component based on the profile result " + pr); //$NON-NLS-1$
             }
         }
         doSearch(searchText.getText());
@@ -467,7 +467,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
      */
     public void profilesRemoved(ProfileChangeEvent e) {
         List<ProfileResult> profileResults = e.getProfileResults();
-        logger.debug("ProfileManagerView.profileRemoved(): " + profileResults + ": profiles deleted");
+        logger.debug(Messages.getString("ProfileManagerView.19") + profileResults + ": profiles deleted"); //$NON-NLS-1$ //$NON-NLS-2$
         for (ProfileResult profileResult: profileResults) {
             for (ProfileRowComponent view : list) {
                 if (view.getResult().equals(profileResult)) {
@@ -490,6 +490,6 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
     }
 
     public void profileListChanged(ProfileChangeEvent e) {
-        logger.debug("ProfileChanged method not yet implemented.");
+        logger.debug("ProfileChanged method not yet implemented."); //$NON-NLS-1$
     }    
 }
