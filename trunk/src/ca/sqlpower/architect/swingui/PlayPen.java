@@ -453,6 +453,12 @@ public class PlayPen extends JPanel
 		this.showIndexed = pp.isShowIndexed();
 		this.showUnique = pp.isShowUnique();
 		this.showTheRest = pp.isShowTheRest();
+
+		this.antialiasSetting = pp.antialiasSetting;
+		
+		setFont(pp.getFont());
+		this.setForeground(pp.getForeground());
+		this.setBackground(pp.getBackground());
 		
 		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
 			PlayPenComponent ppc = pp.getContentPane().getComponent(i);

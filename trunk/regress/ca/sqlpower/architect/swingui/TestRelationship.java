@@ -55,6 +55,17 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         sqlrel.addMapping(t1.getColumnByName("pkcol_1"), 
                 t2.getColumnByName("fkcol"));
 		rel = new Relationship(pp, sqlrel);
+		
+		
+		// layoutNode properties determined by model
+        copyIgnoreProperties.add("headNode");
+        copyIgnoreProperties.add("tailNode");
+        
+        // popup can be shared between copy and original
+        copySameInstanceIgnoreProperties.add("popup");
+        
+        copySameInstanceIgnoreProperties.add("fkTable");
+        copySameInstanceIgnoreProperties.add("pkTable");
 	}
 	
     public void testHighlightWithRelationshipTypeChange() throws ArchitectException {               
@@ -152,20 +163,5 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
     @Override
     protected Relationship getTarget() {
         return rel;
-    }
-    
-    @Override
-    public void testCopyConstructor() throws Exception {
-        // layoutNode properties determined by model
-        copyIgnoreProperties.add("headNode");
-        copyIgnoreProperties.add("tailNode");
-        
-        // popup can be shared between copy and original
-        copySameInstanceIgnoreProperties.add("popup");
-        
-        copySameInstanceIgnoreProperties.add("fkTable");
-        copySameInstanceIgnoreProperties.add("pkTable");
-
-        super.testCopyConstructor();
     }
 }

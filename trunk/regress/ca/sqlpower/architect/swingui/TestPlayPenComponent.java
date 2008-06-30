@@ -29,6 +29,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.JPopupMenu;
+
 import junit.framework.TestCase;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -112,9 +114,16 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends T
 	    copyIgnoreProperties.add("width");
 	    copyIgnoreProperties.add("x");
 	    copyIgnoreProperties.add("y");
-	    
-	    // copy and original should point to same business object
+        
+        // no setters for this and it depends on the playpen's font
+        copyIgnoreProperties.add("font");
+        
+        // not so sure if this should be duplicated, it's changed as the model properties changes
+        copyIgnoreProperties.add("name");
+        
+        // copy and original should point to same business object
         copySameInstanceIgnoreProperties.add("model");
+        
 	    
         // First pass: set all settable properties, because testing the duplication of
         //             an object with all its properties at their defaults is not a
@@ -149,8 +158,7 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends T
 	            } else {
 	                assertEquals("The two values for property "+property.getDisplayName() + " in " + comp.getClass().getName() + " should be equal",oldVal,copyVal);
 
-                    // should only be applicable to mutable properties
-	                if (!copySameInstanceIgnoreProperties.contains(property.getName())) {
+	                if (isPropertyInstanceMutable(property) && !copySameInstanceIgnoreProperties.contains(property.getName())) {
 	                    assertNotSame("Copy shares mutable property with original, property name: " + property.getDisplayName(), copyVal, oldVal);
 	                }
 	            }
@@ -161,6 +169,47 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends T
 	}
 
 	/**
+	 * Returns true if an instance of the given property type is of a mutable class.
+	 * Throws an exception if it lacks a case for the given type.
+	 * 
+	 * @param property The property that should be checked for mutability.
+	 */
+	private boolean isPropertyInstanceMutable(PropertyDescriptor property) {
+	    if (property.getPropertyType() == String.class) {
+            return false;
+        } else if (property.getPropertyType() == Boolean.class || property.getPropertyType() == Boolean.TYPE) {
+            return false;
+        } else if (property.getPropertyType() == Integer.class || property.getPropertyType() == Integer.TYPE) {
+            return false;
+        } else if (property.getPropertyType() == Color.class) {
+            return false;
+        } else if (property.getPropertyType() == Font.class) {
+            return false;
+        } else if (property.getPropertyType() == Point.class) {
+            return true;
+        } else if (property.getPropertyType() == Insets.class) {
+            return true;
+        } else if (property.getPropertyType() == Set.class) {
+            return true;
+        } else if (property.getPropertyType() == List.class) {
+            return true;
+        } else if (property.getPropertyType() == TablePane.class) {
+            return true;
+        } else if (property.getPropertyType() == SQLTable.class) {
+            return true;
+        } else if (property.getPropertyType() == JPopupMenu.class) {
+            return true;
+        }
+	    if (property.getName().equals("model")) {
+	        return true;
+	    }
+	    throw new RuntimeException("This test case lacks a value for "
+	            + property.getName() + " (type "
+	            + property.getPropertyType().getName() + ") in isPropertyInstanceMutable()");
+    }
+
+
+    /**
      * Returns a new value that is not equal to oldVal. The
      * returned object will be a new instance compatible with oldVal.  
      * 
@@ -237,7 +286,7 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends T
 	    } else {
 	        throw new RuntimeException("This test case lacks a value for "
 	        + property.getName() + " (type "
-	        + property.getPropertyType().getName() + ")");
+	        + property.getPropertyType().getName() + ") in getNewDifferentValue()");
 	    }
 
 	    return newVal;
