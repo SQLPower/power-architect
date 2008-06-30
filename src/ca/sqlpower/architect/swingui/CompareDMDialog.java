@@ -51,7 +51,7 @@ public class CompareDMDialog extends JDialog {
         // because the current CompareDMPanel is not an ArchitectPanel
         // (and has no intention of becoming one, without some work).
         
-        super(session.getArchitectFrame(),"Compare Data Models");
+        super(session.getArchitectFrame(),Messages.getString("CompareDMDialog.compareDmDialogTitle")); //$NON-NLS-1$
         JPanel cp = new JPanel(new BorderLayout(12,12));
         cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
                 

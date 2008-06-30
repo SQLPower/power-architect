@@ -55,7 +55,7 @@ public class SQLTableListModel implements ListModel, SQLObjectListener {
 		try {
 			return table.getColumnsFolder().getChildCount();
 		} catch (ArchitectException ex) {
-			throw new RuntimeException("Couldn't get child count", ex);
+			throw new RuntimeException("Couldn't get child count", ex); //$NON-NLS-1$
 		}
 	}
 
@@ -66,7 +66,7 @@ public class SQLTableListModel implements ListModel, SQLObjectListener {
 		try {
 			return table.getColumnsFolder().getChild(index);
 		} catch (ArchitectException ex) {
-			throw new RuntimeException("Couldn't get child "+index, ex);
+			throw new RuntimeException("Couldn't get child "+index, ex); //$NON-NLS-1$
 		}
 	}
 
@@ -128,7 +128,7 @@ public class SQLTableListModel implements ListModel, SQLObjectListener {
 			int[] changedIndices = e.getChangedIndices();
 			for (int i = 0; i < changedIndices.length; i++) {
 				// XXX: should group contiguous regions into one event!
-				logger.debug("Firing contentsChanged event for index "+i);
+				logger.debug("Firing contentsChanged event for index "+i); //$NON-NLS-1$
 				fireContentsChanged(changedIndices[i], changedIndices[i]);
 			}
 		} else if (e.getSource() instanceof SQLColumn) {
@@ -139,10 +139,10 @@ public class SQLTableListModel implements ListModel, SQLObjectListener {
 					fireContentsChanged(index, index);
 				}
 			} catch (ArchitectException ex) {
-				logger.error("Exception in dbObjectChanged",ex);
+				logger.error("Exception in dbObjectChanged",ex); //$NON-NLS-1$
 			}
 		} else {
-			logger.warn("Unexpected SQLObjectEvent: "+e);
+			logger.warn("Unexpected SQLObjectEvent: "+e); //$NON-NLS-1$
 		}
 	}
 

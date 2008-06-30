@@ -84,7 +84,7 @@ public abstract class RecentMenu extends JMenu {
     
 	public final static int DEFAULT_MAX_RECENT_FILES = 5;
 	private final int maxRecentFiles;
-	private static final String PREFS_KEY = "recentFile";
+	private static final String PREFS_KEY = "recentFile"; //$NON-NLS-1$
 	
 	/** The List of recent files */
 	private List<String> recentFileNames = new ArrayList<String>();
@@ -97,12 +97,12 @@ public abstract class RecentMenu extends JMenu {
 	 * @param max
 	 */
 	public RecentMenu(Class <?> mainClass, int max) {
-		super("Recent Items");		
+		super(Messages.getString("RecentMenu.recentItems"));		 //$NON-NLS-1$
 
 		prefs = getUserPrefsNode(mainClass);
 		prefs.addPreferenceChangeListener(recentListener);
 		maxRecentFiles = max;
-		logger.debug("Called from Recent menu constructor");
+		logger.debug("Called from Recent menu constructor"); //$NON-NLS-1$
 		loadRecentMenu();
 	}
 
@@ -147,7 +147,7 @@ public abstract class RecentMenu extends JMenu {
 			try {
 				openFile(mi.getText());
 			} catch (IOException e1) {
-			    ASUtils.showExceptionDialogNoReport("Couldn't open file.", e1);
+			    ASUtils.showExceptionDialogNoReport(Messages.getString("RecentMenu.couldNotOpenFile"), e1); //$NON-NLS-1$
 			}
 		}
 	};
@@ -158,7 +158,7 @@ public abstract class RecentMenu extends JMenu {
      */
     private PreferenceChangeListener recentListener = new PreferenceChangeListener() {
         public void preferenceChange(PreferenceChangeEvent evt) {
-           logger.debug("Called from pref change");
+           logger.debug("Called from pref change"); //$NON-NLS-1$
            
            //Invoke later is used because the preference change events
            //are called on a separate thread (at least in Windows)
@@ -182,7 +182,7 @@ public abstract class RecentMenu extends JMenu {
             if (file == null) {    // Stop on first missing
                 break;
             }
-            if (file.equals("Clear Recent Items")) {
+            if (file.equals("Clear Recent Items")) { //$NON-NLS-1$
                 break;
             }
             if (new File(file).exists()) {
@@ -208,11 +208,11 @@ public abstract class RecentMenu extends JMenu {
 		// Now save from List into Prefs
 		for (int i = 0; i < recentFileNames.size(); i++) {
 		    String t = recentFileNames.get(i);
-		    logger.debug("put " + t);
+		    logger.debug("put " + t); //$NON-NLS-1$
 			prefs.put(PREFS_KEY + i, t);
 		}
 		
-		logger.debug("Called from putFileName");
+		logger.debug("Called from putFileName"); //$NON-NLS-1$
 		// Finally, load menu again.
 		loadRecentMenu();
 	}
@@ -234,7 +234,7 @@ public abstract class RecentMenu extends JMenu {
 			}
 			
 			//stops the loop if it passes the end
-			if (f.equals("Clear Recent Items")) {
+			if (f.equals("Clear Recent Items")) { //$NON-NLS-1$
 			    break;
 			}
 			
@@ -254,13 +254,13 @@ public abstract class RecentMenu extends JMenu {
         
         //Add in the clear item to the menu
         this.addSeparator();
-        JMenuItem clearItem = new JMenuItem("Clear Recent Files");
+        JMenuItem clearItem = new JMenuItem(Messages.getString("RecentMenu.clearRecentFiles")); //$NON-NLS-1$
         clearItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 clear();
             }
         });
-        recentFileNames.add("Clear Recent Items");
+        recentFileNames.add("Clear Recent Items"); //$NON-NLS-1$
         this.add(clearItem);
 	}
 	

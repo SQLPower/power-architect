@@ -33,7 +33,7 @@ public class MultiDragTreeUI extends BasicTreeUI {
 		private int x1, y1;
 		
 		public void mousePressed(MouseEvent e) {
-			logger.debug("mousePressed was called");
+			logger.debug("mousePressed was called"); //$NON-NLS-1$
 			x1 = e.getX();
 			y1 = e.getY();
 			int[] rows = tree.getSelectionRows();
@@ -42,7 +42,7 @@ public class MultiDragTreeUI extends BasicTreeUI {
 				for (int i = 0; i < rows.length; i++) {
 					Rectangle rect3 = tree.getRowBounds(rows[i]);
 					if (rect3.contains(x1, y1)) {
-						logger.debug("consuming click event from already selected node...");
+						logger.debug("consuming click event from already selected node..."); //$NON-NLS-1$
 						e.consume();
 						break;
 					}

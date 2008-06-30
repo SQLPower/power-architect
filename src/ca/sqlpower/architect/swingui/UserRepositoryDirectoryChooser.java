@@ -67,22 +67,22 @@ public class UserRepositoryDirectoryChooser implements KettleRepositoryDirectory
      */
     public RepositoryDirectory selectDirectory(Repository repo) {
         final JDialog chooserDialog = new JDialog(parent);
-        chooserDialog.setTitle("Select Repository Directory");
-        FormLayout layout = new FormLayout("10dlu, 2dlu, fill:pref:grow, 12dlu", "pref, fill:pref:grow, pref");
+        chooserDialog.setTitle(Messages.getString("UserRepositoryDirectoryChooser.selectRepositoryDialogTitle")); //$NON-NLS-1$
+        FormLayout layout = new FormLayout("10dlu, 2dlu, fill:pref:grow, 12dlu", "pref, fill:pref:grow, pref"); //$NON-NLS-1$ //$NON-NLS-2$
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
         builder.nextColumn(2);
-        builder.append("Choose the directory to save in");
+        builder.append(Messages.getString("UserRepositoryDirectoryChooser.chooseDirectory")); //$NON-NLS-1$
         builder.nextLine();
         DefaultMutableTreeNode root = populateTree(repo.getDirectoryTree());
         final JTree tree = new JTree(root);
-        builder.append("");
+        builder.append(""); //$NON-NLS-1$
         JScrollPane scrollPane = new JScrollPane(tree);
         scrollPane.setPreferredSize(new Dimension(200, 350));
         builder.append(scrollPane);
         ButtonBarBuilder buttonBar = new ButtonBarBuilder();
         buttonBar.addGlue();
-        JButton okButton = new JButton("OK");
+        JButton okButton = new JButton(Messages.getString("UserRepositoryDirectoryChooser.okOption")); //$NON-NLS-1$
         okButton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
                 if (tree.getSelectionPath() == null) {
@@ -94,7 +94,7 @@ public class UserRepositoryDirectoryChooser implements KettleRepositoryDirectory
         });
         buttonBar.addGridded(okButton);
         buttonBar.addRelatedGap();
-        JButton cancelButton = new JButton("Cancel");
+        JButton cancelButton = new JButton(Messages.getString("UserRepositoryDirectoryChooser.cancelOption")); //$NON-NLS-1$
         cancelButton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
                 directory = null;
@@ -103,7 +103,7 @@ public class UserRepositoryDirectoryChooser implements KettleRepositoryDirectory
         });
         buttonBar.addGridded(cancelButton);
         builder.nextLine();
-        builder.append("");
+        builder.append(""); //$NON-NLS-1$
         builder.add(buttonBar.getPanel());
         
         chooserDialog.add(builder.getPanel());
@@ -123,9 +123,9 @@ public class UserRepositoryDirectoryChooser implements KettleRepositoryDirectory
             try {
                 SwingUtilities.invokeAndWait(promptUser);
             } catch (InterruptedException e) {
-                ASUtils.showExceptionDialogNoReport(parent, "While queing the dialog's pack, setVisible and setLocation, we were interrupted", e);
+                ASUtils.showExceptionDialogNoReport(parent, "While queing the dialog's pack, setVisible and setLocation, we were interrupted", e); //$NON-NLS-1$
             } catch (InvocationTargetException e) {
-                ASUtils.showExceptionDialogNoReport(parent, "While queing the dialog's pack, setVisible and setLocation, an InvocationTargetException was thrown", e);
+                ASUtils.showExceptionDialogNoReport(parent, "While queing the dialog's pack, setVisible and setLocation, an InvocationTargetException was thrown", e); //$NON-NLS-1$
             }
         }  
         return directory;
@@ -140,7 +140,7 @@ public class UserRepositoryDirectoryChooser implements KettleRepositoryDirectory
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(rootDir);
         int numIterations = rootDir.getNrSubdirectories();
         for (int i = 0; i < numIterations; i++) {
-            logger.debug("Populating the tree: on iteration " + i + " of " + numIterations);
+            logger.debug("Populating the tree: on iteration " + i + " of " + numIterations); //$NON-NLS-1$ //$NON-NLS-2$
             RepositoryDirectory childDir = rootDir.getSubdirectory(i);
             DefaultMutableTreeNode child = populateTree(childDir);
             root.add(child);

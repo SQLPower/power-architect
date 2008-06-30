@@ -40,7 +40,7 @@ public class LayoutAnimator implements ActionListener {
 	}
 	
     public void startAnimation() {
-        pp.startCompoundEdit("Auto Layout");
+        pp.startCompoundEdit("Auto Layout"); //$NON-NLS-1$
         if (!animationEnabled) {
             layout.done();
         } else {
@@ -54,7 +54,7 @@ public class LayoutAnimator implements ActionListener {
 		if (layout.isDone()) {
 			timer.stop();
 			layout.done();
-			pp.endCompoundEdit("Layout animation finished");
+			pp.endCompoundEdit("Layout animation finished"); //$NON-NLS-1$
 		} else {
 			layout.nextFrame();
 			pp.revalidate();

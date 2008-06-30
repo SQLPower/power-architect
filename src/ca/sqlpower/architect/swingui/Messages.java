@@ -42,9 +42,9 @@ public class Messages {
         String message = getString(key);
         for (int i = 0; i < params.length; i++) {
             if (params[i] != null) {
-                message = message.replace("{" + i + "}", params[i]);
+                message = message.replace("{" + i + "}", params[i]); //$NON-NLS-1$ //$NON-NLS-2$
             } else {
-                message = message.replace("{" + i + "}", "null");   
+                message = message.replace("{" + i + "}", "null");    //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
             }
         }
         return message;

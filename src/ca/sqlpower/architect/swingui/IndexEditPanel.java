@@ -80,18 +80,18 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     /**
      * Identifier for the default index type.
      */
-    private static String DEFAULT_INDEX_TYPE = "<Platform Default>";
+    private static String DEFAULT_INDEX_TYPE = Messages.getString("IndexEditPanel.defaultIndexType"); //$NON-NLS-1$
 
     public IndexEditPanel(SQLIndex index, ArchitectSwingSession session) throws ArchitectException {
-        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref",
-                "pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
+        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref", //$NON-NLS-1$
+                "pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu")); //$NON-NLS-1$
         this.session = session;
         createGUI(index, index.getParentTable(), session);
     }
 
     public IndexEditPanel(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws ArchitectException {
-        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref",
-                "pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
+        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref", //$NON-NLS-1$
+                "pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu")); //$NON-NLS-1$
         this.session = session;
         createGUI(index, parent, session);
     }
@@ -101,16 +101,16 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         addUndoEventListener(session.getUndoManager().getEventAdapter());
         PanelBuilder pb = new PanelBuilder((FormLayout) this.getLayout(), this);
         CellConstraints cc = new CellConstraints();
-        pb.add(new JLabel("Index Name"), cc.xy(1, 1));
-        pb.add(name = new JTextField("", 30), cc.xyw(3, 1, 4));
-        unique = new JCheckBox("Unique");
+        pb.add(new JLabel(Messages.getString("IndexEditPanel.indexName")), cc.xy(1, 1)); //$NON-NLS-1$
+        pb.add(name = new JTextField("", 30), cc.xyw(3, 1, 4)); //$NON-NLS-1$
+        unique = new JCheckBox(Messages.getString("IndexEditPanel.uniqueIndex")); //$NON-NLS-1$
         pb.add(unique, cc.xy(3, 3));
-        primaryKey = new JCheckBox("Primary Key");
+        primaryKey = new JCheckBox(Messages.getString("IndexEditPanel.primaryKeyIndex")); //$NON-NLS-1$
         pb.add(primaryKey, cc.xy(3, 5));
-        clustered = new JCheckBox("Clustered");
+        clustered = new JCheckBox(Messages.getString("IndexEditPanel.clusteredIndex")); //$NON-NLS-1$
         clustered.setSelected(index.isClustered());
         pb.add(clustered, cc.xy(3, 7));
-        pb.add(new JLabel("Index Type"), cc.xy(1, 9));
+        pb.add(new JLabel(Messages.getString("IndexEditPanel.indexType")), cc.xy(1, 9)); //$NON-NLS-1$
 
         indexType = new JComboBox();
         //add the platform default type
@@ -127,14 +127,14 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
 
         // we want the buttons at their natural sizes, and the buttonbarbuilder wasn't doing that
         JPanel upDownPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        upDownPanel.add(new JButton(new AbstractAction(null, SPSUtils.createIcon("chevrons_up1", null)) {
+        upDownPanel.add(new JButton(new AbstractAction(null, SPSUtils.createIcon("chevrons_up1", null)) { //$NON-NLS-1$
 
             public void actionPerformed(ActionEvent e) {
                 columnsTable.moveRow(true);
             }
 
         }));
-        upDownPanel.add(new JButton(new AbstractAction(null, SPSUtils.createIcon("chevrons_down1", null)) {
+        upDownPanel.add(new JButton(new AbstractAction(null, SPSUtils.createIcon("chevrons_down1", null)) { //$NON-NLS-1$
             public void actionPerformed(ActionEvent e) {
                 columnsTable.moveRow(false);
             }
@@ -179,9 +179,9 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
      */
     private String generateName(int number) {
         if (number == 0) {
-            return new String(parent.getName() + "_idx");
+            return new String(parent.getName() + "_idx"); //$NON-NLS-1$
         } else {
-            return new String(parent.getName() + "_idx" + Integer.toString(number));
+            return new String(parent.getName() + "_idx" + Integer.toString(number)); //$NON-NLS-1$
         }
     }
 
@@ -193,7 +193,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         List<SPDataSourceType> dsTypes = this.session.getContext().getPlDotIni().getDataSourceTypes();
         for (SPDataSourceType dsType : dsTypes) {
             for (int dataTypeCount = 0;; dataTypeCount += 1) {
-                String supportedType = dsType.getProperty(SQLIndex.INDEX_TYPE_DESCRIPTOR + "_" + dataTypeCount);
+                String supportedType = dsType.getProperty(SQLIndex.INDEX_TYPE_DESCRIPTOR + "_" + dataTypeCount); //$NON-NLS-1$
                 if (supportedType == null)
                     break;
                 if (!indexTypes.contains(supportedType)) {
@@ -245,26 +245,26 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     public boolean applyChanges() {
         columnsTable.cleanUp();
         columnsTable.finalizeIndex();
-        startCompoundEdit("Index Properties Change");
+        startCompoundEdit("Index Properties Change"); //$NON-NLS-1$
         try {
             StringBuffer warnings = new StringBuffer();
             //We need to check if the index name and/or primary key name is empty or not
             //if they are, we need to warn the user since it will mess up the SQLScripts we create
             if (name.getText().trim().length() == 0) {
-                warnings.append("The index cannot be assigned a blank name \n");
+                warnings.append(Messages.getString("IndexEditPanel.blankIndexName")); //$NON-NLS-1$
 
             }
             if (index.isPrimaryKeyIndex()) {
                 for (Column c : (List<Column>) indexCopy.getChildren()) {
                     if (c.getColumn() == null) {
-                        warnings.append("Can only add columns to the primary key\n");
+                        warnings.append(Messages.getString("IndexEditPanel.onlyAddColumnsToPK")); //$NON-NLS-1$
                         break;
                     }
                 }
             }
 
             if (indexType.getSelectedItem() == null) {
-                warnings.append("An index type must be selected\n");
+                warnings.append(Messages.getString("IndexEditPanel.mustSelectIndexType")); //$NON-NLS-1$
             }
 
             if (warnings.toString().length() == 0) {
@@ -314,7 +314,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         } finally {
-            endCompoundEdit("Ending new compound edit event in index edit panel");
+            endCompoundEdit("Ending new compound edit event in index edit panel"); //$NON-NLS-1$
         }
     }
 

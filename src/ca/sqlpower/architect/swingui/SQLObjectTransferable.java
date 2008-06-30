@@ -31,7 +31,7 @@ public class SQLObjectTransferable implements Transferable, java.io.Serializable
 	private static final Logger logger = Logger.getLogger(SQLObjectTransferable.class);
 
 	public static final DataFlavor SQLOBJECT_FLAVOR = new DataFlavor
-		(SQLObject.class, "Database objects");
+		(SQLObject.class, "Database objects"); //$NON-NLS-1$
 	
 	protected SQLObject data;
 	
@@ -50,9 +50,9 @@ public class SQLObjectTransferable implements Transferable, java.io.Serializable
 	public Object getTransferData(DataFlavor flavor)
 		throws UnsupportedFlavorException, IOException {
 		if (flavor != SQLOBJECT_FLAVOR) {
-			throw new IllegalArgumentException("Unsupported flavor "+flavor);
+			throw new IllegalArgumentException("Unsupported flavor "+flavor); //$NON-NLS-1$
 		}
-		logger.debug("getTransferData returns '"+data.getName()+"'"+data.getClass().getName()+"@"+data.hashCode());
+		logger.debug("getTransferData returns '"+data.getName()+"'"+data.getClass().getName()+"@"+data.hashCode()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		return data;
 	}
 }
