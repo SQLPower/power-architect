@@ -151,12 +151,8 @@ public class PlayPen extends JPanel
 
         public void dbChildrenPreRemove(SQLObjectPreEvent e) {
             UserPrompter up = session.createUserPrompter(
-                    "{0} objects in the PlayPen were reverse engineered from\n" +
-                    "the database {1}, which you''re trying to remove.\n" +
-                    "\n" +
-                    "If you proceed, you will lose ETL lineage information for\n" +
-                    "the objects originally sourced from that database.",
-                    "Forget Lineage", "Keep Source Connection", "Cancel");
+                    Messages.getString("PlayPen.removingETLLineageWarning"), //$NON-NLS-1$
+                    Messages.getString("PlayPen.forgetLineageOption"), Messages.getString("PlayPen.keepSourceConnectionOption"), Messages.getString("PlayPen.cancelOption")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
             for (SQLObject so : e.getChildren()) {
                 SQLDatabase db = (SQLDatabase) so;
                 try {
@@ -196,7 +192,7 @@ public class PlayPen extends JPanel
 	 * object in this TablePane.
 	 */
 	public static final String KEY_DELETE_SELECTED
-		= "ca.sqlpower.architect.swingui.PlayPen.KEY_DELETE_SELECTED";
+		= "ca.sqlpower.architect.swingui.PlayPen.KEY_DELETE_SELECTED"; //$NON-NLS-1$
 
 	public enum MouseModeType {IDLE,
 						CREATING_TABLE,
@@ -410,14 +406,14 @@ public class PlayPen extends JPanel
      *            The session this play pen belongs to. Null is not allowed.
      */
 	public PlayPen(ArchitectSwingSession session) {
-        if (session == null) throw new NullPointerException("A null session is not allowed here.");
+        if (session == null) throw new NullPointerException("A null session is not allowed here."); //$NON-NLS-1$
 		this.session = session;
 		setDatabase(session.getTargetDatabase());
         zoom = 1.0;
         viewportPosition = new Point(0, 0);
 		setBackground(java.awt.Color.white);
 		contentPane = new PlayPenContentPane(this);
-		setName("Play Pen");
+		setName("Play Pen"); //$NON-NLS-1$
 		setMinimumSize(new Dimension(1,1));
 		dt = new DropTarget(this, new PlayPenDropListener());
 		bringToFrontAction = new BringToFrontAction(this);
@@ -430,7 +426,7 @@ public class PlayPen extends JPanel
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
 		ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
-		logger.debug("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));
+		logger.debug("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold")); //$NON-NLS-1$ //$NON-NLS-2$
 		fontRenderContext = null;
         
         session.getRootObject().addSQLObjectPreEventListener(new DatabaseRemovalWatcher());
@@ -494,7 +490,7 @@ public class PlayPen extends JPanel
         try {
             removeHierarcyListeners(session.getTargetDatabase());
         } catch (ArchitectException ex) {
-            logger.error("Couldn't unlisten this playpen from the database", ex);
+            logger.error("Couldn't unlisten this playpen from the database", ex); //$NON-NLS-1$
         }
     }
 
@@ -510,21 +506,21 @@ public class PlayPen extends JPanel
     }
 
 	private final void setDatabase(SQLDatabase newdb) {
-		if (newdb == null) throw new NullPointerException("db must be non-null");
+		if (newdb == null) throw new NullPointerException("db must be non-null"); //$NON-NLS-1$
 		
 		// Note, this also happens in CoreProject, but that's only helpful when loading a project file
 		// And you get fireworks if you call setDataSource() on a non-playpen connection
 		newdb.setPlayPenDatabase(true);
 
 		SPDataSource dbcs = new SPDataSource(session.getContext().getPlDotIni());
-        dbcs.setName("Not Configured");
-        dbcs.setDisplayName("Not Configured");
+        dbcs.setName(Messages.getString("PlayPen.notConfiguredDbcsName")); //$NON-NLS-1$
+        dbcs.setDisplayName(Messages.getString("PlayPen.notConfiguredDbcsName")); //$NON-NLS-1$
         newdb.setDataSource(dbcs);
 
 		try {
 			ArchitectUtils.listenToHierarchy(this, newdb);
 		} catch (ArchitectException ex) {
-			logger.error("Couldn't listen to database", ex);
+			logger.error("Couldn't listen to database", ex); //$NON-NLS-1$
 		}
 		tableNames = new HashSet();
 	}
@@ -562,8 +558,8 @@ public class PlayPen extends JPanel
         tablePanePopup.add(mi);
         try {
             if (table != null && table.getIndicesFolder().getChildCount() > 0) {
-                JMenu menu = new JMenu("Index Properties");
-                menu.setIcon(SPSUtils.createIcon("edit_index", "Edit Index", ArchitectSwingSessionContext.ICON_SIZE));
+                JMenu menu = new JMenu(Messages.getString("PlayPen.indexPropertiesMenu")); //$NON-NLS-1$
+                menu.setIcon(SPSUtils.createIcon("edit_index", Messages.getString("PlayPen.editIndexTooltip"), ArchitectSwingSessionContext.ICON_SIZE)); //$NON-NLS-1$ //$NON-NLS-2$
                 for (SQLIndex index : table.getIndices()) {
                     JMenuItem menuItem = new JMenuItem(new EditSpecificIndexAction(session, index));
                     menuItem.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
@@ -606,7 +602,7 @@ public class PlayPen extends JPanel
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
-		JMenu align = new JMenu("Align Tables");
+		JMenu align = new JMenu(Messages.getString("PlayPen.alignTablesMenu")); //$NON-NLS-1$
 		mi = new JMenuItem();
 		mi.setAction(af.getAlignTableHorizontalAction()); 
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
@@ -629,7 +625,7 @@ public class PlayPen extends JPanel
 
 		if (logger.isDebugEnabled()) {
 			tablePanePopup.addSeparator();
-			mi = new JMenuItem("Show listeners");
+			mi = new JMenuItem("Show listeners"); //$NON-NLS-1$
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
@@ -638,13 +634,13 @@ public class PlayPen extends JPanel
 							TablePane tp = (TablePane) selection.get(0);
 							JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(tp.getModel().getSQLObjectListeners()))));
 						} else {
-							JOptionPane.showMessageDialog(PlayPen.this, "You can only show listeners on one item at a time");
+							JOptionPane.showMessageDialog(PlayPen.this, "You can only show listeners on one item at a time"); //$NON-NLS-1$
 						}
 					}
 				});
 			tablePanePopup.add(mi);
 
-			mi = new JMenuItem("Show Selection List");
+			mi = new JMenuItem("Show Selection List"); //$NON-NLS-1$
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
@@ -653,7 +649,7 @@ public class PlayPen extends JPanel
 							TablePane tp = (TablePane) selection.get(0);
 							JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(tp.selectedColumns))));
 						} else {
-							JOptionPane.showMessageDialog(PlayPen.this, "You can only show selected columns on one item at a time");
+							JOptionPane.showMessageDialog(PlayPen.this, "You can only show selected columns on one item at a time"); //$NON-NLS-1$
 						}
 					}
 				});
@@ -669,41 +665,41 @@ public class PlayPen extends JPanel
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), KEY_DELETE_SELECTED);
 		getActionMap().put(KEY_DELETE_SELECTED, af.getDeleteSelectedAction());
-		if (af.getDeleteSelectedAction() == null) logger.warn("af.deleteSelectedAction is null!");
+		if (af.getDeleteSelectedAction() == null) logger.warn("af.deleteSelectedAction is null!"); //$NON-NLS-1$
 
-		getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL");
-		getActionMap().put("CANCEL", new CancelAction(this));
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL"); //$NON-NLS-1$
+		getActionMap().put("CANCEL", new CancelAction(this)); //$NON-NLS-1$
 
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomToFitAction().getValue(Action.ACCELERATOR_KEY), "ZOOM TO FIT");
-        getActionMap().put("ZOOM TO FIT", af.getZoomToFitAction());
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomToFitAction().getValue(Action.ACCELERATOR_KEY), "ZOOM TO FIT"); //$NON-NLS-1$
+        getActionMap().put("ZOOM TO FIT", af.getZoomToFitAction()); //$NON-NLS-1$
 
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomInAction().getValue(Action.ACCELERATOR_KEY), "ZOOM IN");
-        getActionMap().put("ZOOM IN", af.getZoomInAction());
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomInAction().getValue(Action.ACCELERATOR_KEY), "ZOOM IN"); //$NON-NLS-1$
+        getActionMap().put("ZOOM IN", af.getZoomInAction()); //$NON-NLS-1$
 
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomOutAction().getValue(Action.ACCELERATOR_KEY), "ZOOM OUT");
-        getActionMap().put("ZOOM OUT", af.getZoomOutAction());
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomOutAction().getValue(Action.ACCELERATOR_KEY), "ZOOM OUT"); //$NON-NLS-1$
+        getActionMap().put("ZOOM OUT", af.getZoomOutAction()); //$NON-NLS-1$
 
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomResetAction().getValue(Action.ACCELERATOR_KEY), "ZOOM RESET");
-        getActionMap().put("ZOOM RESET", af.getZoomResetAction());
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomResetAction().getValue(Action.ACCELERATOR_KEY), "ZOOM RESET"); //$NON-NLS-1$
+        getActionMap().put("ZOOM RESET", af.getZoomResetAction()); //$NON-NLS-1$
 
-		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateTableAction().getValue(Action.ACCELERATOR_KEY), "NEW TABLE");
-		getActionMap().put("NEW TABLE", af.getCreateTableAction());
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateTableAction().getValue(Action.ACCELERATOR_KEY), "NEW TABLE"); //$NON-NLS-1$
+		getActionMap().put("NEW TABLE", af.getCreateTableAction()); //$NON-NLS-1$
 
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getInsertColumnAction().getValue(Action.ACCELERATOR_KEY), "NEW COLUMN");
-        getActionMap().put("NEW COLUMN", af.getInsertColumnAction());
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getInsertColumnAction().getValue(Action.ACCELERATOR_KEY), "NEW COLUMN"); //$NON-NLS-1$
+        getActionMap().put("NEW COLUMN", af.getInsertColumnAction()); //$NON-NLS-1$
 
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getInsertIndexAction().getValue(Action.ACCELERATOR_KEY), "NEW INDEX");
-        getActionMap().put("NEW INDEX", af.getInsertIndexAction());
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getInsertIndexAction().getValue(Action.ACCELERATOR_KEY), "NEW INDEX"); //$NON-NLS-1$
+        getActionMap().put("NEW INDEX", af.getInsertIndexAction()); //$NON-NLS-1$
 
-		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY), "NEW IDENTIFYING RELATION");
-		getActionMap().put("NEW IDENTIFYING RELATION", af.getCreateIdentifyingRelationshipAction());
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY), "NEW IDENTIFYING RELATION"); //$NON-NLS-1$
+		getActionMap().put("NEW IDENTIFYING RELATION", af.getCreateIdentifyingRelationshipAction()); //$NON-NLS-1$
 
-		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateNonIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY), "NEW NON IDENTIFYING RELATION");
-		getActionMap().put("NEW NON IDENTIFYING RELATION", af.getCreateNonIdentifyingRelationshipAction());
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateNonIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY), "NEW NON IDENTIFYING RELATION"); //$NON-NLS-1$
+		getActionMap().put("NEW NON IDENTIFYING RELATION", af.getCreateNonIdentifyingRelationshipAction()); //$NON-NLS-1$
 
-		final Object KEY_SELECT_UPWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_UPWARD";
-		final Object KEY_SELECT_DOWNWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_DOWNWARD";
-		final Object KEY_EDIT_SELECTION = "ca.sqlpower.architect.PlayPen.KEY_EDIT_SELECTION";
+		final Object KEY_SELECT_UPWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_UPWARD"; //$NON-NLS-1$
+		final Object KEY_SELECT_DOWNWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_DOWNWARD"; //$NON-NLS-1$
+		final Object KEY_EDIT_SELECTION = "ca.sqlpower.architect.PlayPen.KEY_EDIT_SELECTION"; //$NON-NLS-1$
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), KEY_SELECT_UPWARD);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), KEY_SELECT_DOWNWARD);
@@ -767,7 +763,7 @@ public class PlayPen extends JPanel
 	                            }
 							}
 						} catch (ArchitectException e1) {
-							logger.error("Could not get columns of "+ tp.getName(), e1);
+							logger.error("Could not get columns of "+ tp.getName(), e1); //$NON-NLS-1$
 						}
 					}
 				}
@@ -895,7 +891,7 @@ public class PlayPen extends JPanel
 		if (newZoom != zoom) {
 			double oldZoom = zoom;
 			zoom = newZoom;
-			firePropertyChange("zoom", oldZoom, newZoom);
+			firePropertyChange("zoom", oldZoom, newZoom); //$NON-NLS-1$
 			revalidate();
 			repaint();
 		}
@@ -948,16 +944,16 @@ public class PlayPen extends JPanel
 		}
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("minsize is: " + getMinimumSize());
-			logger.debug("unzoomed userDim is: " + unzoomPoint(new Point(usedSpace.width,usedSpace.height)));
-			logger.debug("zoom="+zoom+",usedSpace size is " + usedSpace);
+			logger.debug("minsize is: " + getMinimumSize()); //$NON-NLS-1$
+			logger.debug("unzoomed userDim is: " + unzoomPoint(new Point(usedSpace.width,usedSpace.height))); //$NON-NLS-1$
+			logger.debug("zoom="+zoom+",usedSpace size is " + usedSpace); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		if (ppSize != null) {
-			logger.debug("preferred size is ppSize (viewport size was null): " + ppSize);
+			logger.debug("preferred size is ppSize (viewport size was null): " + ppSize); //$NON-NLS-1$
 			return ppSize;
 		} else {
-			logger.debug("preferred size is usedSpace: " + usedSpace);
+			logger.debug("preferred size is usedSpace: " + usedSpace); //$NON-NLS-1$
 			return usedSpace;
 		}
 	}
@@ -983,10 +979,10 @@ public class PlayPen extends JPanel
 		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
 		if (c != null) {
 			JViewport jvp = (JViewport) c;
-			logger.debug("viewport size is: " + jvp.getSize());
+			logger.debug("viewport size is: " + jvp.getSize()); //$NON-NLS-1$
 			return jvp.getSize();
 		} else {
-			logger.debug("viewport size is NULL");
+			logger.debug("viewport size is NULL"); //$NON-NLS-1$
 			return null;
 		}
 	}
@@ -997,7 +993,7 @@ public class PlayPen extends JPanel
 		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
 		if (c != null) {
 			JViewport jvp = (JViewport) c;
-			logger.debug("viewport size set to: " + width + "," + height);
+			logger.debug("viewport size set to: " + width + "," + height); //$NON-NLS-1$ //$NON-NLS-2$
 			jvp.setSize(width,height);
 		}
 	}
@@ -1044,7 +1040,7 @@ public class PlayPen extends JPanel
 		if (c != null) {
 			JViewport jvp = (JViewport) c;
 			Point viewPosition = jvp.getViewPosition();
-			logger.debug("view position is: " + viewPosition);
+			logger.debug("view position is: " + viewPosition); //$NON-NLS-1$
 			return viewPosition;
 		} else {
 			return new Point(0, 0);
@@ -1056,7 +1052,7 @@ public class PlayPen extends JPanel
 		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
 		if (c != null) {
 			JViewport jvp = (JViewport) c;
-			logger.debug("view position set to: " + p);
+			logger.debug("view position set to: " + p); //$NON-NLS-1$
 			if (p != null) {
 			    jvp.setViewPosition(p);
 			}
@@ -1082,7 +1078,7 @@ public class PlayPen extends JPanel
 	public void paintComponent(Graphics g) {
 	    if (!paintingEnabled) return;
 
-		logger.debug("start of paintComponent, width="+getWidth()+",height="+getHeight());
+		logger.debug("start of paintComponent, width="+getWidth()+",height="+getHeight()); //$NON-NLS-1$ //$NON-NLS-2$
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setColor(getBackground());
 		g2.fillRect(0, 0, getWidth(), getHeight());
@@ -1096,9 +1092,9 @@ public class PlayPen extends JPanel
 				clip.height--;
 				g2.draw(clip);
 				g2.setColor(getBackground());
-				logger.debug("Clipping region: "+g2.getClip());
+				logger.debug("Clipping region: "+g2.getClip()); //$NON-NLS-1$
 			} else {
-				logger.debug("Null clipping region");
+				logger.debug("Null clipping region"); //$NON-NLS-1$
 			}
 		}
 
@@ -1112,17 +1108,17 @@ public class PlayPen extends JPanel
 			PlayPenComponent c = contentPane.getComponent(i);
 			c.getBounds(bounds);
 			if ( g2.hitClip(bounds.x, bounds.y, bounds.width, bounds.height)) {
-				if (logger.isDebugEnabled()) logger.debug("Painting visible component "+c);
+				if (logger.isDebugEnabled()) logger.debug("Painting visible component "+c); //$NON-NLS-1$
 				g2.translate(c.getLocation().x, c.getLocation().y);
 				c.paint(g2);
 				g2.setTransform(zoomedOrigin);
 			} else {
-				if (logger.isDebugEnabled()) logger.debug("paint: SKIPPING "+c);
+				if (logger.isDebugEnabled()) logger.debug("paint: SKIPPING "+c); //$NON-NLS-1$
 			}
 		}
 
 		if (rubberBand != null && !rubberBand.isEmpty()) {
-			if (logger.isDebugEnabled()) logger.debug("painting rubber band "+rubberBand);
+			if (logger.isDebugEnabled()) logger.debug("painting rubber band "+rubberBand); //$NON-NLS-1$
 			g2.setColor(rubberBandColor);
 			Composite backupComp = g2.getComposite();
 			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
@@ -1133,12 +1129,12 @@ public class PlayPen extends JPanel
 
 		g2.setTransform(backup);
 
-		logger.debug("end of paintComponent, width="+getWidth()+",height="+getHeight());
+		logger.debug("end of paintComponent, width="+getWidth()+",height="+getHeight()); //$NON-NLS-1$ //$NON-NLS-2$
 
 	}
 
 	protected void addImpl(Component c, Object constraints, int index) {
-		throw new UnsupportedOperationException("You can't add swing component for argument");
+		throw new UnsupportedOperationException("You can't add swing component for argument"); //$NON-NLS-1$
 	}
 
 	/**
@@ -1160,18 +1156,18 @@ public class PlayPen extends JPanel
 				c.setLocation((Point) constraints);
 				contentPane.add(c, 0);
 			} else {
-				throw new IllegalArgumentException("Constraints must be a Point");
+				throw new IllegalArgumentException("Constraints must be a Point"); //$NON-NLS-1$
 			}
 			// Makes drag and dropped tables show the proper columns
 			((TablePane) c).updateHiddenColumns();
 		} else {
-			throw new IllegalArgumentException("PlayPen can't contain components of type "
+			throw new IllegalArgumentException("PlayPen can't contain components of type " //$NON-NLS-1$
 											   +c.getClass().getName());
 		}
 		Dimension size = c.getPreferredSize();
 		c.setSize(size);
-		logger.debug("Set size to "+size);
-		logger.debug("Final state looks like "+c);
+		logger.debug("Set size to "+size); //$NON-NLS-1$
+		logger.debug("Final state looks like "+c); //$NON-NLS-1$
 	}
 
 	public void addRelationship(Relationship r) {
@@ -1240,8 +1236,8 @@ public class PlayPen extends JPanel
 		playPenPopup.add(mi);
 
         mi = new JMenuItem();
-        Icon icon = new ImageIcon(ClassLoader.getSystemResource("icons/famfamfam/wrench.png"));
-        AutoLayoutAction layoutAction = new AutoLayoutAction(session, "Straighten Lines", "Sraighten Relationship Lines Where Possible", icon);
+        Icon icon = new ImageIcon(ClassLoader.getSystemResource("icons/famfamfam/wrench.png")); //$NON-NLS-1$
+        AutoLayoutAction layoutAction = new AutoLayoutAction(session, Messages.getString("PlayPen.straightenLinesActionName"), Messages.getString("PlayPen.straightenLinesActionDescription"), icon); //$NON-NLS-1$ //$NON-NLS-2$
         layoutAction.setLayout(new LineStraightenerLayout());
         mi.setAction(layoutAction);
         playPenPopup.add(mi);
@@ -1253,7 +1249,7 @@ public class PlayPen extends JPanel
         
 		if (logger.isDebugEnabled()) {
 			playPenPopup.addSeparator();
-			mi = new JMenuItem("Show Relationships");
+			mi = new JMenuItem("Show Relationships"); //$NON-NLS-1$
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
 						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(getRelationships()))));
@@ -1261,21 +1257,21 @@ public class PlayPen extends JPanel
 				});
 			playPenPopup.add(mi);
 
-			mi = new JMenuItem("Show PlayPen Components");
+			mi = new JMenuItem("Show PlayPen Components"); //$NON-NLS-1$
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
 						StringBuffer componentList = new StringBuffer();
 						for (int i = 0; i < contentPane.getComponentCount(); i++) {
 							PlayPenComponent c = contentPane.getComponent(i);
-							componentList.append(c).append("["+c.getModel()+"]\n");
+							componentList.append(c).append("["+c.getModel()+"]\n"); //$NON-NLS-1$ //$NON-NLS-2$
 						}
 						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JTextArea(componentList.toString())));
 					}
 				});
 			playPenPopup.add(mi);
 
-			mi = new JMenuItem("Show Undo Vector");
+			mi = new JMenuItem("Show Undo Vector"); //$NON-NLS-1$
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
@@ -1408,21 +1404,21 @@ public class PlayPen extends JPanel
 		int newSuffix = 0;
 
 		// ensure tablename is unique
-		if (logger.isDebugEnabled()) logger.debug("before add: " + tableNames);
+		if (logger.isDebugEnabled()) logger.debug("before add: " + tableNames); //$NON-NLS-1$
 		if (!tableNames.add(key)) {
 			boolean done = false;
 			while (!done) {
 				newSuffix++;
-				done = tableNames.add(key+"_"+newSuffix);
+				done = tableNames.add(key+"_"+newSuffix); //$NON-NLS-1$
 			}
-			newTable.setName(source.getName()+"_"+newSuffix);
+			newTable.setName(source.getName()+"_"+newSuffix); //$NON-NLS-1$
 			isAlreadyOnPlaypen = true;
 		}
-		if (logger.isDebugEnabled()) logger.debug("after add: " + tableNames);
+		if (logger.isDebugEnabled()) logger.debug("after add: " + tableNames); //$NON-NLS-1$
 
 		TablePane tp = new TablePane(newTable, this);
 
-		logger.info("adding table "+newTable);
+		logger.info("adding table "+newTable); //$NON-NLS-1$
 		addImpl(tp, preferredLocation,getPPComponentCount());
 		tp.revalidate();
 
@@ -1471,7 +1467,7 @@ public class PlayPen extends JPanel
 			if (r.getFkTable().equals(r.getPkTable()) && !isPrimaryKeyTableNew) continue;
 			
 			if (logger.isInfoEnabled()) {
-				logger.info("Looking for fk table "+r.getFkTable().getName()+" in playpen");
+				logger.info("Looking for fk table "+r.getFkTable().getName()+" in playpen"); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 
             TablePane tablePane =  null;
@@ -1485,14 +1481,14 @@ public class PlayPen extends JPanel
             }
             else {
                 if (isPrimaryKeyTableNew){
-                    tablePane =findTablePaneByName(r.getFkTable().getName()+"_"+suffix);
+                    tablePane =findTablePaneByName(r.getFkTable().getName()+"_"+suffix); //$NON-NLS-1$
                 } else {
-                    tablePane =findTablePaneByName(r.getPkTable().getName()+"_"+suffix);
+                    tablePane =findTablePaneByName(r.getPkTable().getName()+"_"+suffix); //$NON-NLS-1$
                 }
             }
 
 			if (tablePane != null) {
-				logger.info("FOUND IT!");
+				logger.info("FOUND IT!"); //$NON-NLS-1$
 
 				SQLRelationship newRel = new SQLRelationship();
 				newRel.setName(r.getName());
@@ -1524,7 +1520,7 @@ public class PlayPen extends JPanel
 					setupMapping(newTable, oldTable, newRel, m,isPrimaryKeyTableNew);
 				}
 			} else {
-				logger.info("NOT FOUND");
+				logger.info("NOT FOUND"); //$NON-NLS-1$
 			}
 		}
     }
@@ -1539,7 +1535,7 @@ public class PlayPen extends JPanel
 
             if (pkCol == null) {
                 // this shouldn't happen
-                throw new IllegalStateException("Couldn't find pkCol "+m.getPkColumn().getName()+" in new table");
+                throw new IllegalStateException("Couldn't find pkCol "+m.getPkColumn().getName()+" in new table"); //$NON-NLS-1$ //$NON-NLS-2$
             }
             if (fkCol == null) {
                 // this might reasonably happen (user deleted the column)
@@ -1550,7 +1546,7 @@ public class PlayPen extends JPanel
             fkCol=newTable.getColumnByName(m.getFkColumn().getName());
             if (fkCol == null) {
                 // this shouldn't happen
-                throw new IllegalStateException("Couldn't find fkCol "+m.getFkColumn().getName()+" in new table");
+                throw new IllegalStateException("Couldn't find fkCol "+m.getFkColumn().getName()+" in new table"); //$NON-NLS-1$ //$NON-NLS-2$
             }
             if (pkCol == null) {
                 // this might reasonably happen (user deleted the column)
@@ -1572,14 +1568,14 @@ public class PlayPen extends JPanel
 	public synchronized void addObjects(List list, Point preferredLocation, SPSwingWorker nextProcess) throws ArchitectException {
 		ProgressMonitor pm
 		 = new ProgressMonitor(this,
-		                      "Copying objects to the playpen",
-		                      "...",
+		                      Messages.getString("PlayPen.copyingObjectsToThePlaypen"), //$NON-NLS-1$
+		                      "...", //$NON-NLS-1$
 		                      0,
 			                  100);
 		AddObjectsTask t = new AddObjectsTask(list,
 				preferredLocation, pm, session);
 		t.setNextProcess(nextProcess);
-		new Thread(t, "Objects-Adder").start();
+		new Thread(t, "Objects-Adder").start(); //$NON-NLS-1$
 	}
 
 	protected class AddObjectsTask extends MonitorableWorker {
@@ -1634,7 +1630,7 @@ public class PlayPen extends JPanel
 		 * Makes sure all the stuff we want to add is populated.
 		 */
 		public void doStuff () {
-			logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName());
+			logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName()); //$NON-NLS-1$
 
 			try {
 				hasStarted = true;
@@ -1649,11 +1645,11 @@ public class PlayPen extends JPanel
 
 				ensurePopulated(sqlObjects);
 			} catch (ArchitectException e) {
-				logger.error("Unexpected exception during populate", e);
+				logger.error("Unexpected exception during populate", e); //$NON-NLS-1$
                 setDoStuffException(e);
-				errorMessage = "Unexpected exception during populate: " + e.getMessage();
+				errorMessage = "Unexpected exception during populate: " + e.getMessage(); //$NON-NLS-1$
 			} 
-			logger.info("AddObjectsTask done");
+			logger.info("AddObjectsTask done"); //$NON-NLS-1$
 		}
 
 		/**
@@ -1671,9 +1667,9 @@ public class PlayPen extends JPanel
 					if (so instanceof SQLTable) progress++;
 					ensurePopulated(so.getChildren());
 				} catch (ArchitectException e) {
-                    errorMessage = "Couldn't get children of " + so;
+                    errorMessage = "Couldn't get children of " + so; //$NON-NLS-1$
                     setDoStuffException(e);
-					logger.error("Couldn't get children of " + so, e);
+					logger.error("Couldn't get children of " + so, e); //$NON-NLS-1$
 				}
 			}
 		}
@@ -1693,7 +1689,7 @@ public class PlayPen extends JPanel
 				}
 			}
 
-			session.getPlayPen().startCompoundEdit("Drag to Playpen");
+			session.getPlayPen().startCompoundEdit("Drag to Playpen"); //$NON-NLS-1$
 
 			try {
 
@@ -1749,16 +1745,16 @@ public class PlayPen extends JPanel
 							}
 						}
 					} else {
-						logger.error("Unknown object dropped in PlayPen: "+someData);
+						logger.error("Unknown object dropped in PlayPen: "+someData); //$NON-NLS-1$
 					}
 				}
 			} catch (ArchitectException e) {
 				ASUtils.showExceptionDialog(session,
-                    "Unexpected Exception During Import", e);
+                    "Unexpected Exception During Import", e); //$NON-NLS-1$
 			} finally {
 				finished = true;
 				hasStarted = false;
-				session.getPlayPen().endCompoundEdit("Ending multi-select");
+				session.getPlayPen().endCompoundEdit("Ending multi-select"); //$NON-NLS-1$
 			}
 			
 			// deals with bug 1333, when the user tries to add inaccessible objects to the PlayPen
@@ -1766,7 +1762,7 @@ public class PlayPen extends JPanel
 	            SwingUtilities.invokeLater(new Runnable() {
 	                public void run() {
 	                    JOptionPane.showMessageDialog(session.getArchitectFrame(),
-	                            "Could not find any objects to add to the PlayPen.", "No objects added",
+	                            Messages.getString("PlayPen.noObjectsToImportFound"), Messages.getString("PlayPen.noObjectsToImportFoundDialogTitle"), //$NON-NLS-1$ //$NON-NLS-2$
 	                            JOptionPane.WARNING_MESSAGE);
 	                }
 	            });
@@ -1817,14 +1813,14 @@ public class PlayPen extends JPanel
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbChildrenInserted(SQLObjectEvent e) {
-		logger.debug("SQLObject children got inserted: "+e);
+		logger.debug("SQLObject children got inserted: "+e); //$NON-NLS-1$
 		boolean fireEvent = false;
 		SQLObject[] c = e.getChildren();
 		for (int i = 0; i < c.length; i++) {
 			try {
 				addHierarcyListeners(c[i]);
 			} catch (ArchitectException ex) {
-				logger.error("Couldn't listen to added object", ex);
+				logger.error("Couldn't listen to added object", ex); //$NON-NLS-1$
 			}
 			if (c[i] instanceof SQLTable
 				|| (c[i] instanceof SQLRelationship
@@ -1844,7 +1840,7 @@ public class PlayPen extends JPanel
 		}
 
 		if (fireEvent) {
-			firePropertyChange("model.children", null, null);
+			firePropertyChange("model.children", null, null); //$NON-NLS-1$
 			revalidate();
 		}
 	}
@@ -1856,14 +1852,14 @@ public class PlayPen extends JPanel
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbChildrenRemoved(SQLObjectEvent e) {
-		logger.debug("SQLObject children got removed: "+e);
+		logger.debug("SQLObject children got removed: "+e); //$NON-NLS-1$
 		boolean foundRemovedComponent = false;
 		SQLObject[] c = e.getChildren();
 		for (int i = 0; i < c.length; i++) {
 			try {
 				removeHierarcyListeners(c[i]);
 			} catch (ArchitectException ex) {
-				logger.error("Couldn't unlisten to removed object", ex);
+				logger.error("Couldn't unlisten to removed object", ex); //$NON-NLS-1$
 			}
 
 			if (c[i] instanceof SQLTable) {
@@ -1893,7 +1889,7 @@ public class PlayPen extends JPanel
 		}
 
 		if (foundRemovedComponent) {
-			firePropertyChange("model.children", null, null);
+			firePropertyChange("model.children", null, null); //$NON-NLS-1$
 			repaint();
 		}
 	}
@@ -1905,7 +1901,7 @@ public class PlayPen extends JPanel
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbObjectChanged(SQLObjectEvent e) {
-		firePropertyChange("model."+e.getPropertyName(), null, null);
+		firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
 		revalidate();
 	}
 
@@ -1918,7 +1914,7 @@ public class PlayPen extends JPanel
 	 * <p>NOTE: This is not currently implemented.
 	 */
 	public void dbStructureChanged(SQLObjectEvent e) {
-		logger.debug("Playpen has recieved a db structure change this is unsupported at the moment");
+		logger.debug("Playpen has recieved a db structure change this is unsupported at the moment"); //$NON-NLS-1$
 		//throw new UnsupportedOperationException
 		//	("FIXME: we have to make sure we're listening to the right objects now!");
 		//firePropertyChange("model.children", null, null);
@@ -2055,7 +2051,7 @@ public class PlayPen extends JPanel
 				((SelectionListener) it.next()).itemDeselected(e);
 			}
 		} else {
-			throw new IllegalStateException("Unknown selection event type "+e.getType());
+			throw new IllegalStateException("Unknown selection event type "+e.getType()); //$NON-NLS-1$
 		}
 	}
 	
@@ -2133,7 +2129,7 @@ public class PlayPen extends JPanel
 		 * DropTarget registered with this listener.
 		 */
 		public void dragEnter(DropTargetDragEvent dtde) {
-			logger.debug("Drag enter");
+			logger.debug("Drag enter"); //$NON-NLS-1$
 			dragOver(dtde);
 		}
 
@@ -2143,7 +2139,7 @@ public class PlayPen extends JPanel
 		 * DropTarget registered with this listener or escape has been pressed
 		 */
 		public void dragExit(DropTargetEvent dte) {
-			logger.debug("Drag exit");
+			logger.debug("Drag exit"); //$NON-NLS-1$
             if (tpTarget != null) {
             		tpTarget.getDropTargetListener().dragExit(dte);
             }
@@ -2182,7 +2178,7 @@ public class PlayPen extends JPanel
 		 * or current target TablePane if there is one.
 		 */
 		public void drop(DropTargetDropEvent dtde) {
-			logger.info("Drop: I am over dtde="+dtde);
+			logger.info("Drop: I am over dtde="+dtde); //$NON-NLS-1$
 			if (tpTarget != null) {
 				tpTarget.getDropTargetListener().drop(dtde);
 				return;
@@ -2208,7 +2204,7 @@ public class PlayPen extends JPanel
 						if (oo instanceof SQLObject) {
 							sqlObjects.add(oo);
 						} else {
-							logger.error("Unknown object dropped in PlayPen: "+oo);
+							logger.error("Unknown object dropped in PlayPen: "+oo); //$NON-NLS-1$
 						}
 					}
 
@@ -2238,7 +2234,7 @@ public class PlayPen extends JPanel
 		 * Called if the user has modified the current drop gesture.
 		 */
 		public void dropActionChanged(DropTargetDragEvent dtde) {
-			logger.debug("Drop Action Changed");
+			logger.debug("Drop Action Changed"); //$NON-NLS-1$
             // we don't care
 		}
 
@@ -2252,25 +2248,25 @@ public class PlayPen extends JPanel
 		 */
 		public DataFlavor bestImportFlavor(JComponent c, DataFlavor[] flavors) {
 			DataFlavor best = null;
-			logger.debug("PlayPenTransferHandler: can I import "+Arrays.asList(flavors));
+			logger.debug("PlayPenTransferHandler: can I import "+Arrays.asList(flavors)); //$NON-NLS-1$
  			for (int i = 0; i < flavors.length; i++) {
 				String cls = flavors[i].getDefaultRepresentationClassAsString();
-				logger.debug("representation class = "+cls);
-				logger.debug("mime type = "+flavors[i].getMimeType());
-				logger.debug("type = "+flavors[i].getPrimaryType());
-				logger.debug("subtype = "+flavors[i].getSubType());
-				logger.debug("class = "+flavors[i].getParameter("class"));
-				logger.debug("isSerializedObject = "+flavors[i].isFlavorSerializedObjectType());
-				logger.debug("isInputStream = "+flavors[i].isRepresentationClassInputStream());
-				logger.debug("isRemoteObject = "+flavors[i].isFlavorRemoteObjectType());
-				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType));
+				logger.debug("representation class = "+cls); //$NON-NLS-1$
+				logger.debug("mime type = "+flavors[i].getMimeType()); //$NON-NLS-1$
+				logger.debug("type = "+flavors[i].getPrimaryType()); //$NON-NLS-1$
+				logger.debug("subtype = "+flavors[i].getSubType()); //$NON-NLS-1$
+				logger.debug("class = "+flavors[i].getParameter("class")); //$NON-NLS-1$ //$NON-NLS-2$
+				logger.debug("isSerializedObject = "+flavors[i].isFlavorSerializedObjectType()); //$NON-NLS-1$
+				logger.debug("isInputStream = "+flavors[i].isRepresentationClassInputStream()); //$NON-NLS-1$
+				logger.debug("isRemoteObject = "+flavors[i].isFlavorRemoteObjectType()); //$NON-NLS-1$
+				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType)); //$NON-NLS-1$
 
 
  				if (flavors[i].equals(DnDTreePathTransferable.TREEPATH_ARRAYLIST_FLAVOR)) {
-					logger.debug("YES");
+					logger.debug("YES"); //$NON-NLS-1$
 					best = flavors[i];
 				} else {
-					logger.debug("NO!");
+					logger.debug("NO!"); //$NON-NLS-1$
 				}
  			}
  			return best;
@@ -2292,8 +2288,8 @@ public class PlayPen extends JPanel
 
 			if (draggingTablePanes) {
 				logger.debug(
-						"TablePaneDragGestureListener: ignoring drag event " +
-						"because draggingTablePanes is true");
+						"TablePaneDragGestureListener: ignoring drag event " + //$NON-NLS-1$
+						"because draggingTablePanes is true"); //$NON-NLS-1$
 				return;
 			}
 
@@ -2315,30 +2311,30 @@ public class PlayPen extends JPanel
 
 				// ignore drag events if we're in the middle of a createRelationship
 				if (session.getArchitectFrame().createRelationshipIsActive()) {
-					logger.debug("CreateRelationship() is active, short circuiting DnD.");
+					logger.debug("CreateRelationship() is active, short circuiting DnD."); //$NON-NLS-1$
 					return;
 				}
 
 				try {
 					colIndex = tp.pointToColumnIndex(dragOrigin);
 				} catch (ArchitectException e) {
-					logger.error("Got exception while translating drag point", e);
+					logger.error("Got exception while translating drag point", e); //$NON-NLS-1$
 				}
-				logger.debug("Recognized drag gesture on "+tp.getName()+"! origin="+dragOrigin
-							 +"; col="+colIndex);
+				logger.debug("Recognized drag gesture on "+tp.getName()+"! origin="+dragOrigin //$NON-NLS-1$ //$NON-NLS-2$
+							 +"; col="+colIndex); //$NON-NLS-1$
 
 				try {
-					logger.debug("DGL: colIndex="+colIndex+",columnsSize="+tp.getModel().getColumns().size());
+					logger.debug("DGL: colIndex="+colIndex+",columnsSize="+tp.getModel().getColumns().size()); //$NON-NLS-1$ //$NON-NLS-2$
 					if (colIndex == TablePane.COLUMN_INDEX_TITLE) {
 						// we don't use this because it often misses drags
 						// that start near the edge of the titlebar
 //						logger.debug("Discarding drag on titlebar (handled by mousePressed())");
 //						draggingTablePanes = true;
-						throw new UnsupportedOperationException("We don't use DnD for dragging table panes");
+						throw new UnsupportedOperationException("We don't use DnD for dragging table panes"); //$NON-NLS-1$
 					} else if (colIndex >= 0 && colIndex < tp.getModel().getColumns().size()) {
 						// export column as DnD event
 						if (logger.isDebugEnabled()) {
-							logger.debug("Exporting column "+colIndex+" with DnD");
+							logger.debug("Exporting column "+colIndex+" with DnD"); //$NON-NLS-1$ //$NON-NLS-2$
 						}
 
 						tp.draggingColumn = tp.getModel().getColumn(colIndex);
@@ -2351,15 +2347,15 @@ public class PlayPen extends JPanel
                                 StringBuffer array = new StringBuffer();
                                 for (int i = 0; i < path.length; i++) {
                                     array.append(path[i]);
-                                    array.append(",");
+                                    array.append(","); //$NON-NLS-1$
                                 }
-                                logger.debug("Path to dragged node: "+array);
+                                logger.debug("Path to dragged node: "+array); //$NON-NLS-1$
                             }
                             // export list of DnD-type tree paths
                             paths.add(path);
                         }
-						logger.info("TablePaneDragGestureListener: exporting "+paths.size()+"-item list of DnD-type tree path");
-						JLabel label = new JLabel(tp.getModel().getName()+"."+tp.draggingColumn.getName());
+						logger.info("TablePaneDragGestureListener: exporting "+paths.size()+"-item list of DnD-type tree path"); //$NON-NLS-1$ //$NON-NLS-2$
+						JLabel label = new JLabel(tp.getModel().getName()+"."+tp.draggingColumn.getName()); //$NON-NLS-1$
 						Dimension labelSize = label.getPreferredSize();
 						label.setSize(labelSize);  // because a LayoutManager would normally do this
 						BufferedImage dragImage = new BufferedImage(labelSize.width, labelSize.height,
@@ -2372,8 +2368,8 @@ public class PlayPen extends JPanel
 													new DnDTreePathTransferable(paths), tp);
 					}
 				} catch (ArchitectException ex) {
-					logger.error("Couldn't drag column", ex);
-					ASUtils.showExceptionDialog(session, "Couldn't drag column.", ex);
+					logger.error("Couldn't drag column", ex); //$NON-NLS-1$
+					ASUtils.showExceptionDialog(session, Messages.getString("PlayPen.couldNotDragColumn"), ex); //$NON-NLS-1$
 				}
 			} else {
 				return;
@@ -2441,7 +2437,7 @@ public class PlayPen extends JPanel
 				                }
 				            }
 				        } else if(evt.getClickCount()==1) {
-				            logger.debug("Col index "+selectedColIndex);
+				            logger.debug("Col index "+selectedColIndex); //$NON-NLS-1$
 				            if (selectedColIndex > TablePane.COLUMN_INDEX_TITLE && componentPreviouslySelected){
 				                ((TablePane)c).deselectColumn(selectedColIndex);
 				            } else if (c.isSelected()&& componentPreviouslySelected) {
@@ -2449,7 +2445,7 @@ public class PlayPen extends JPanel
 				            }
 				        }
 				    } catch (ArchitectException e) {
-				        logger.error("Exception converting point to column", e);
+				        logger.error("Exception converting point to column", e); //$NON-NLS-1$
 				    }
 				}
 			} else {
@@ -2562,29 +2558,29 @@ public class PlayPen extends JPanel
 
 					if (clickCol == TablePane.COLUMN_INDEX_TITLE && !session.getArchitectFrame().createRelationshipIsActive()) {
 						Iterator it = pp.getSelectedTables().iterator();
-						logger.debug("event point: " + p);
-						logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p)));
+						logger.debug("event point: " + p); //$NON-NLS-1$
+						logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
 						draggingTablePanes = true;
 
 						while (it.hasNext()) {
 							// create FloatingTableListener for each selected item
 							TablePane t3 = (TablePane)it.next();
-							logger.debug("(" + t3.getModel().getName() + ") zoomed selected table point: " + t3.getLocationOnScreen());
-							logger.debug("(" + t3.getModel().getName() + ") unzoomed selected table point: " + pp.unzoomPoint(t3.getLocationOnScreen()));
+							logger.debug("(" + t3.getModel().getName() + ") zoomed selected table point: " + t3.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
+							logger.debug("(" + t3.getModel().getName() + ") unzoomed selected table point: " + pp.unzoomPoint(t3.getLocationOnScreen())); //$NON-NLS-1$ //$NON-NLS-2$
 							/* the floating table listener expects zoomed handles which are relative to
 	                           the location of the table column which was clicked on.  */
 							Point clickedColumn = tp.getLocationOnScreen();
 							Point otherTable = t3.getLocationOnScreen();
 							Point handle = pp.zoomPoint(new Point(p));
-							logger.debug("(" + t3.getModel().getName() + ") translation x="
-	                                      + (otherTable.getX() - clickedColumn.getX()) + ",y="
+							logger.debug("(" + t3.getModel().getName() + ") translation x=" //$NON-NLS-1$ //$NON-NLS-2$
+	                                      + (otherTable.getX() - clickedColumn.getX()) + ",y=" //$NON-NLS-1$
 	                                      + (otherTable.getY() - clickedColumn.getY()));
 							handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY()));
 							new PlayPen.FloatingTableListener(pp, t3, handle,false);
 						}
 					}
 				} catch (ArchitectException e) {
-					logger.error("Exception converting point to column", e);
+					logger.error("Exception converting point to column", e); //$NON-NLS-1$
 				}
 			} else {
 				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0  && !evt.isPopupTrigger()) {
@@ -2697,7 +2693,7 @@ public class PlayPen extends JPanel
 				TablePane tp = (TablePane) c;
 				if (evt.isPopupTrigger() && !evt.isConsumed()) {
 					PlayPen pp = tp.getPlayPen();
-					logger.debug("about to show playpen tablepane popup...");
+					logger.debug("about to show playpen tablepane popup..."); //$NON-NLS-1$
 					setupTablePanePopup(tp.getModel());
 					tp.showPopup(pp.tablePanePopup, p);
 					return true;
@@ -2768,7 +2764,7 @@ public class PlayPen extends JPanel
 
 			Point startLocation = pi.getLocation();
 			SwingUtilities.convertPointFromScreen(startLocation,pp);
-			logger.debug("Adding floating table at:"+ startLocation);
+			logger.debug("Adding floating table at:"+ startLocation); //$NON-NLS-1$
 			p = pp.zoomPoint(startLocation);
 
 			this.tp = tp;
@@ -2785,7 +2781,7 @@ public class PlayPen extends JPanel
 				pp.cursorManager.placeModeStarted();
 			} else {
                 pp.cursorManager.tableDragStarted();
-				pp.startCompoundEdit("Move"+tp.getName());
+				pp.startCompoundEdit("Move"+tp.getName()); //$NON-NLS-1$
 			}
 		}
 
@@ -2873,7 +2869,7 @@ public class PlayPen extends JPanel
 			try {
 				if (addToPP && !cancelled) {
 					pp.unzoomPoint(p);
-					logger.debug("Placing table at: " + p);
+					logger.debug("Placing table at: " + p); //$NON-NLS-1$
 					pp.addImpl(tp, p, pp.getPPComponentCount());
 					try {
 						pp.getSession().getTargetDatabase().addChild(tp.getModel());
@@ -2893,20 +2889,20 @@ public class PlayPen extends JPanel
 	                    
 						JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 						        editPanel, frame,
-						        "Table Properties", "OK");
+						        Messages.getString("PlayPen.tablePropertiesDialogTitle"), Messages.getString("PlayPen.okOption")); //$NON-NLS-1$ //$NON-NLS-2$
 						
 						d.pack();
 						d.setLocationRelativeTo(frame);
 						d.setVisible(true);
 					} catch (ArchitectException e) {
-						logger.error("Couldn't add table \"" + tp.getModel() + "\" to play pen:", e);
-						SPSUtils.showExceptionDialogNoReport(pp.getSession().getArchitectFrame(), "Failed to add table.", e);
+						logger.error("Couldn't add table \"" + tp.getModel() + "\" to play pen:", e); //$NON-NLS-1$ //$NON-NLS-2$
+						SPSUtils.showExceptionDialogNoReport(pp.getSession().getArchitectFrame(), Messages.getString("PlayPen.addTableFailed"), e); //$NON-NLS-1$
 						return;
 					}
 				}
 			} finally {
 				if (!addToPP) {
-					pp.endCompoundEdit("Ending move for table "+tp.getName());
+					pp.endCompoundEdit("Ending move for table "+tp.getName()); //$NON-NLS-1$
 				}
 			}
 
@@ -2926,7 +2922,7 @@ public class PlayPen extends JPanel
 		protected PlayPen pp;
 
 		public BringToFrontAction(PlayPen pp) {
-			super("Bring to Front");
+			super(Messages.getString("PlayPen.bringToFrontActionName")); //$NON-NLS-1$
 			this.pp = pp;
 		}
 
@@ -2951,7 +2947,7 @@ public class PlayPen extends JPanel
 		protected PlayPen pp;
 
 		public SendToBackAction(PlayPen pp) {
-			super("Send to Back");
+			super(Messages.getString("PlayPen.sendToBackActionName")); //$NON-NLS-1$
 			this.pp = pp;
 		}
 
@@ -3016,7 +3012,7 @@ public class PlayPen extends JPanel
         } else {
             frc = fontRenderContext;
         }
-        if (logger.isDebugEnabled()) logger.debug("Returning frc="+frc);
+        if (logger.isDebugEnabled()) logger.debug("Returning frc="+frc); //$NON-NLS-1$
         return frc;
     }
     
@@ -3035,7 +3031,7 @@ public class PlayPen extends JPanel
         if (ignoreTreeSelection) return;
         ignoreTreeSelection = true;
 
-        logger.debug("selecting: " + selections);
+        logger.debug("selecting: " + selections); //$NON-NLS-1$
         DBTree tree = session.getSourceDatabases();
         
         // tables to add to select because of column selection 
@@ -3099,8 +3095,8 @@ public class PlayPen extends JPanel
             }
         }
         
-        logger.debug("selectObjects ignoring: " + ignoredObjs);
-        logger.debug("selectObjects adding tables selections: " + colTables);
+        logger.debug("selectObjects ignoring: " + ignoredObjs); //$NON-NLS-1$
+        logger.debug("selectObjects adding tables selections: " + colTables); //$NON-NLS-1$
         
         // deselects all other playpen components
         for (PlayPenComponent comp : getSelectedItems()) {
