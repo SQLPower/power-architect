@@ -40,8 +40,8 @@ public class AboutPanel extends AbstractNoEditDataEntryPanel {
 
 	public AboutPanel() {
         JTabbedPane tabs = new JTabbedPane();
-        tabs.add("About", initAboutTab());
-        tabs.add("System Properties", new JScrollPane(initSysPropsTab()));
+        tabs.add(Messages.getString("AboutPanel.aboutTab"), initAboutTab()); //$NON-NLS-1$
+        tabs.add(Messages.getString("AboutPanel.systemPropertiesTab"), new JScrollPane(initSysPropsTab())); //$NON-NLS-1$
 
         tabs.setSelectedIndex(0);
         add(tabs);
@@ -52,18 +52,18 @@ public class AboutPanel extends AbstractNoEditDataEntryPanel {
 		pan.setLayout(new FlowLayout());
 
         // Include the Power*Architect Icon!
-        String realPath = "/icons/architect128.png";
+        String realPath = "/icons/architect128.png"; //$NON-NLS-1$
         java.net.URL imgURL = ASUtils.class.getResource(realPath);
 
         if (imgURL != null) {
-            ImageIcon imageIcon = new ImageIcon(imgURL, "Architect Logo");
+            ImageIcon imageIcon = new ImageIcon(imgURL, "Architect Logo"); //$NON-NLS-1$
             pan.add(new JLabel(imageIcon));
         }
 
-		content = new JLabel("<html>Power*Architect "+
-		                    ArchitectVersion.APP_VERSION+"<br><br>" +
-							"Copyright 2003-2008 SQL Power Group Inc.<br>" +
-							"</html>");
+		content = new JLabel("<html>Power*Architect "+ //$NON-NLS-1$
+		                    ArchitectVersion.APP_VERSION+"<br><br>" + //$NON-NLS-1$
+							Messages.getString("AboutPanel.copyright") + "<br>" + //$NON-NLS-1$ //$NON-NLS-2$
+							"</html>"); //$NON-NLS-1$
 		pan.add(content);
         return pan;
 	}
@@ -92,16 +92,16 @@ public class AboutPanel extends AbstractNoEditDataEntryPanel {
             switch(column) {
             case 0: return keys[row];
             case 1: return props.get(keys[row]);
-            default: throw new IllegalArgumentException("Column count");
+            default: throw new IllegalArgumentException("Column count"); //$NON-NLS-1$
             }
         }
 
         @Override
         public String getColumnName(int column) {
             switch(column) {
-            case 0: return "Property";
-            case 1: return "Value";
-            default: throw new IllegalArgumentException("Column count");
+            case 0: return Messages.getString("AboutPanel.systemProperty"); //$NON-NLS-1$
+            case 1: return Messages.getString("AboutPanel.systemPropertyValue"); //$NON-NLS-1$
+            default: throw new IllegalArgumentException("Column count"); //$NON-NLS-1$
             }
         }
     }

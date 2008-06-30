@@ -58,7 +58,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     
     private static final Logger logger = Logger.getLogger(ArchitectSwingSessionContextImpl.class);
     
-    private static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
+    private static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x")); //$NON-NLS-1$ //$NON-NLS-2$
     
     /**
      * A more structured interface to the prefs node.  Might be going away soon.
@@ -115,15 +115,15 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     ArchitectSwingSessionContextImpl() throws ArchitectException {
         delegateContext = new ArchitectSessionContextImpl();
         
-        System.setProperty("apple.laf.useScreenMenuBar", "true");
+        System.setProperty("apple.laf.useScreenMenuBar", "true"); //$NON-NLS-1$ //$NON-NLS-2$
         
         userSettings = new CoreUserSettings(getPrefs());
 
         // this doesn't appear to have any effect on the motion threshold
         // in the Playpen, but it does seem to work on the DBTree...
-        logger.debug("current motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
-        System.setProperty("awt.dnd.drag.threshold","10");
-        logger.debug("new motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
+        logger.debug("current motion threshold is: " + System.getProperty("awt.dnd.drag.threshold")); //$NON-NLS-1$ //$NON-NLS-2$
+        System.setProperty("awt.dnd.drag.threshold","10"); //$NON-NLS-1$ //$NON-NLS-2$
+        logger.debug("new motion threshold is: " + System.getProperty("awt.dnd.drag.threshold")); //$NON-NLS-1$ //$NON-NLS-2$
 
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
         
@@ -150,7 +150,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * not called on the Event Dispatch Thread.
      */
     public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, IOException {
-        ArchitectSwingSession session = createSessionImpl("Loading...", false, null);
+        ArchitectSwingSession session = createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.projectLoadingDialogTitle"), false, null); //$NON-NLS-1$
         
         try {
             session.getProject().load(in, getPlDotIni());
@@ -164,21 +164,21 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             try {
                 session.close();
             } catch (Exception e) {
-                logger.error("Session cleanup failed after botched read. Eating this secondary exception:", e);
+                logger.error("Session cleanup failed after botched read. Eating this secondary exception:", e); //$NON-NLS-1$
             }
             throw ex;
         } catch (IOException ex) {
             try {
                 session.close();
             } catch (Exception e) {
-                logger.error("Session cleanup failed after botched read. Eating this secondary exception:", e);
+                logger.error("Session cleanup failed after botched read. Eating this secondary exception:", e); //$NON-NLS-1$
             }
             throw ex;
         } catch (Exception ex) {
             try {
                 session.close();
             } catch (Exception e) {
-                logger.error("Session cleanup failed after botched read. Eating this secondary exception:", e);
+                logger.error("Session cleanup failed after botched read. Eating this secondary exception:", e); //$NON-NLS-1$
             }
             throw new RuntimeException(ex);
         }
@@ -191,7 +191,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
     /* javadoc inherited from interface */
     public ArchitectSwingSession createSession(boolean showGUI) throws ArchitectException {
-        return createSessionImpl("New Project", showGUI, null);
+        return createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.defaultNewProjectName"), showGUI, null); //$NON-NLS-1$
     }
     
     /* javadoc inherited from interface */
@@ -200,7 +200,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     }
 
     public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws ArchitectException {
-        return createSessionImpl("New Project", true, openingSession);
+        return createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.defaultNewProjectName"), true, openingSession); //$NON-NLS-1$
     }
     
     /**
@@ -217,13 +217,13 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * not called on the Event Dispatch Thread.
      */
     private ArchitectSwingSession createSessionImpl(String projectName, boolean showGUI, ArchitectSwingSession openingSession) throws ArchitectException {
-        logger.debug("About to create a new session for project \"" + projectName + "\"");
+        logger.debug("About to create a new session for project \"" + projectName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
         ArchitectSwingSessionImpl session = new ArchitectSwingSessionImpl(this, projectName);
         getSessions().add(session);
         session.addSessionLifecycleListener(sessionLifecycleListener);
         
         if (showGUI) {
-            logger.debug("Creating the Architect frame...");
+            logger.debug("Creating the Architect frame..."); //$NON-NLS-1$
             session.initGUI(openingSession);
         
             if (getSessions().size() == 1) {

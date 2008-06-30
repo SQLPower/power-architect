@@ -101,7 +101,7 @@ public class ColumnEditPanel extends JPanel
 
 	public ColumnEditPanel(SQLColumn col, ArchitectSwingSession session) throws ArchitectException {
 		super(new BorderLayout(12,12));
-		logger.debug("ColumnEditPanel called");
+		logger.debug("ColumnEditPanel called"); //$NON-NLS-1$
         buildUI();
 		editColumn(col);
 		ArchitectUtils.listenToHierarchy(this, session.getRootObject());
@@ -114,42 +114,42 @@ public class ColumnEditPanel extends JPanel
 		JPanel centerPanel = new JPanel();
 		centerPanel.setLayout(new FormLayout(5, 5));
 
-		centerPanel.add(new JLabel("Source Database"));
+		centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.sourceDb"))); //$NON-NLS-1$
 		centerPanel.add(sourceDB = new JLabel());
 
-		centerPanel.add(new JLabel("Source Table.Column"));
+		centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.sourceDbColumn"))); //$NON-NLS-1$
 		centerPanel.add(sourceTableCol = new JLabel());
 
-		centerPanel.add(new JLabel("Name"));
+		centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.name"))); //$NON-NLS-1$
 		centerPanel.add(colName = new JTextField());
 
 
-		centerPanel.add(new JLabel("Type"));
+		centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.type"))); //$NON-NLS-1$
 		centerPanel.add(colType = createColTypeEditor());
 		colType.addActionListener(this);
 
-		centerPanel.add(new JLabel("Precision"));
+		centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.precision"))); //$NON-NLS-1$
 		centerPanel.add(colPrec = createPrecisionEditor());
 		
-		centerPanel.add(new JLabel("Scale"));
+		centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.scale"))); //$NON-NLS-1$
 		centerPanel.add(colScale = createScaleEditor());
 
-		centerPanel.add(new JLabel("In Primary Key"));
+		centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.inPrimaryKey"))); //$NON-NLS-1$
 		centerPanel.add(colInPK = new JCheckBox());
 		colInPK.addActionListener(this);
 
-		centerPanel.add(new JLabel("Allows Nulls"));
+		centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.allowsNulls"))); //$NON-NLS-1$
 		centerPanel.add(colNullable = new JCheckBox());
 		colNullable.addActionListener(this);
 
-        centerPanel.add(new JLabel("Auto Increment"));
+        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.autoIncrement"))); //$NON-NLS-1$
         centerPanel.add(colAutoInc = new JCheckBox());
         colAutoInc.addActionListener(this);
 
-        centerPanel.add(new JLabel("Sequence Name"));
+        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.sequenceName"))); //$NON-NLS-1$
         centerPanel.add(colAutoIncSequenceName = new JTextField());
-        centerPanel.add(new JLabel(""));
-        centerPanel.add(new JLabel("Only applies to target platforms that use sequences"));
+        centerPanel.add(new JLabel("")); //$NON-NLS-1$
+        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.noteOnSequences"))); //$NON-NLS-1$
         
         // Listener to update the sequence name when the column name changes
         colName.getDocument().addDocumentListener(new DocumentListener() {
@@ -167,7 +167,7 @@ public class ColumnEditPanel extends JPanel
         colAutoIncSequenceName.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
-                if (colAutoIncSequenceName.getText().trim().equals("")) {
+                if (colAutoIncSequenceName.getText().trim().equals("")) { //$NON-NLS-1$
                     colAutoIncSequenceName.setText(column.getAutoIncrementSequenceName());
                     discoverSequenceNamePattern(column.getName());
                     syncSequenceName();
@@ -178,10 +178,10 @@ public class ColumnEditPanel extends JPanel
         });
         
         
-		centerPanel.add(new JLabel("Remarks"));
+		centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.remarks"))); //$NON-NLS-1$
 		centerPanel.add(colRemarks = new JTextField());
 	
-		centerPanel.add(new JLabel("Default Value"));
+		centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.defaultValue"))); //$NON-NLS-1$
 		centerPanel.add(colDefaultValue = new JTextField());
 		colDefaultValue.addActionListener(this);
 		
@@ -214,23 +214,23 @@ public class ColumnEditPanel extends JPanel
      * @param col The column to edit
 	 */
 	public void editColumn(SQLColumn col) throws ArchitectException {
-		logger.debug("Edit Column '"+col+"' is being called");
-        if (col == null) throw new NullPointerException("Edit null column is not allowed");
+		logger.debug("Edit Column '"+col+"' is being called"); //$NON-NLS-1$ //$NON-NLS-2$
+        if (col == null) throw new NullPointerException("Edit null column is not allowed"); //$NON-NLS-1$
         column = col;
 		if (col.getSourceColumn() == null) {
-			sourceDB.setText("None Specified");
-			sourceTableCol.setText("None Specified");
+			sourceDB.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
+			sourceTableCol.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
 		} else {
 			StringBuffer sourceDBSchema = new StringBuffer();
 			SQLObject so = col.getSourceColumn().getParentTable().getParent();
 			while (so != null) {
 				sourceDBSchema.insert(0, so.getName());
-				sourceDBSchema.insert(0, ".");
+				sourceDBSchema.insert(0, "."); //$NON-NLS-1$
 				so = so.getParent();
 			}
 			sourceDB.setText(sourceDBSchema.toString().substring(1));
 			sourceTableCol.setText(col.getSourceColumn().getParentTable().getName()
-								   +"."+col.getSourceColumn().getName());
+								   +"."+col.getSourceColumn().getName()); //$NON-NLS-1$
 		}
 		colName.setText(col.getName());
 		colType.setSelectedItem(SQLType.getType(col.getType()));
@@ -284,7 +284,7 @@ public class ColumnEditPanel extends JPanel
 	 * Implementation of ActionListener.
 	 */
 	public void actionPerformed(ActionEvent e) {
-		logger.debug("action event "+e);
+		logger.debug("action event "+e); //$NON-NLS-1$
 		updateComponents();
 	}
 
@@ -292,7 +292,7 @@ public class ColumnEditPanel extends JPanel
 	 * Implementation of ChangeListener.
 	 */
 	public void stateChanged(ChangeEvent e) {
-		logger.debug("State change event "+e);
+		logger.debug("State change event "+e); //$NON-NLS-1$
 	}
 	
 	/**
@@ -321,7 +321,7 @@ public class ColumnEditPanel extends JPanel
 		}
 		
 		if (colAutoInc.isSelected()) {
-		    colDefaultValue.setText("");
+		    colDefaultValue.setText(""); //$NON-NLS-1$
 		    colDefaultValue.setEnabled(false);
 		} else {
 		    colDefaultValue.setEnabled(true);
@@ -337,12 +337,12 @@ public class ColumnEditPanel extends JPanel
      * @return A list of error messages if the update was not successful.
 	 */
     private List<String> updateModel() {
-        logger.debug("Updating model");
+        logger.debug("Updating model"); //$NON-NLS-1$
         List<String> errors = new ArrayList<String>();
         try {
-            column.startCompoundEdit("Column Edit Panel Changes");
+            column.startCompoundEdit("Column Edit Panel Changes"); //$NON-NLS-1$
             if (colName.getText().trim().length() == 0) {
-                errors.add("Column name is required");
+                errors.add(Messages.getString("ColumnEditPanel.columnNameRequired")); //$NON-NLS-1$
             } else {
                 column.setName(colName.getText());
             }
@@ -353,7 +353,7 @@ public class ColumnEditPanel extends JPanel
                     ? DatabaseMetaData.columnNullable
                             : DatabaseMetaData.columnNoNulls);
             column.setRemarks(colRemarks.getText());
-            if (!(column.getDefaultValue() == null && colDefaultValue.getText().equals("")))
+            if (!(column.getDefaultValue() == null && colDefaultValue.getText().equals(""))) //$NON-NLS-1$
             {
                 column.setDefaultValue(colDefaultValue.getText());
             }
@@ -367,7 +367,7 @@ public class ColumnEditPanel extends JPanel
             }
             column.setAutoIncrementSequenceName(colAutoIncSequenceName.getText());
         } finally {
-            column.endCompoundEdit("Column Edit Panel Changes");
+            column.endCompoundEdit("Column Edit Panel Changes"); //$NON-NLS-1$
         }
         return errors;
     }
@@ -458,12 +458,12 @@ public class ColumnEditPanel extends JPanel
      * delegate) with a ChangeEvent.
      */
     public void dbChildrenInserted(SQLObjectEvent e) {
-        logger.debug("SQLObject children got inserted: "+e);
+        logger.debug("SQLObject children got inserted: "+e); //$NON-NLS-1$
     }
 
     public void dbChildrenRemoved(SQLObjectEvent e) {
         
-        logger.debug("SQLObject children got removed: "+e);
+        logger.debug("SQLObject children got removed: "+e); //$NON-NLS-1$
         boolean itemDeleted = false;
         SQLObject[] c = e.getChildren();
 
@@ -486,7 +486,7 @@ public class ColumnEditPanel extends JPanel
                     }
                 }
             } catch (Exception ex) {
-                logger.error("Could not compare the removed sql objects.", ex);
+                logger.error("Could not compare the removed sql objects.", ex); //$NON-NLS-1$
             }
         }
         if(itemDeleted) {

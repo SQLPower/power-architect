@@ -23,7 +23,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 
 public abstract class RelationshipUI implements PlayPenComponentUI, java.io.Serializable {
-	public static final String UI_CLASS_ID = "RelationshipUI";
+	public static final String UI_CLASS_ID = "RelationshipUI"; //$NON-NLS-1$
 
     /**
      * A bitmask of the constants (PARENT|CHILD)_FACES_(LEFT|RIGHT|TOP|BOTTOM).

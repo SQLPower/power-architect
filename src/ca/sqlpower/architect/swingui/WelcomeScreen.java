@@ -53,28 +53,26 @@ public class WelcomeScreen {
 
     public WelcomeScreen(ArchitectSwingSessionContext context) {
         this.context = context;
-        imageLabel = new JLabel(SPSUtils.createIcon("architect_welcome_heading", "Large Architect Logo"));
+        imageLabel = new JLabel(SPSUtils.createIcon("architect_welcome_heading", "Large Architect Logo")); //$NON-NLS-1$ //$NON-NLS-2$
     }
     
     /**
      * The contents of the Welcome Screen text.
      */
     final static String welcomeHTMLstuff =
-        "<html><head><style type=\"text/css\">body {margin-left: 100px; margin-right: 100px;}</style></head>" +
-        "<body>" +
-        "<h1 align=\"center\">Power*Architect " + ArchitectVersion.APP_VERSION + "</h1>" +
-        "<br><br><br>" +
-        "<p>Please visit our <a href=\"" + SPSUtils.FORUM_URL + "\">support forum</a>" +
-        "   if you have any questions, comments, suggestions, or if you just need a friend." +
-        "<br><br>" +
-        "<p>Check out the JDBC drivers section under <i>How to Use Power*Architect</i> in the " +
-        "help for configuring JDBC drivers." +
-        "<br>" +
-        "<p>Need help finding the JDBC drivers? Visit our <a href=\"" + ArchitectSwingSessionContext.DRIVERS_URL + "\">forum thread</a>." +
-        "<br><br><br>";
+        "<html><head><style type=\"text/css\">body {margin-left: 100px; margin-right: 100px;}</style></head>" + //$NON-NLS-1$
+        "<body>" + //$NON-NLS-1$
+        "<h1 align=\"center\">Power*Architect " + ArchitectVersion.APP_VERSION + "</h1>" + //$NON-NLS-1$ //$NON-NLS-2$
+        "<br><br><br>" + //$NON-NLS-1$
+        "<p>" + Messages.getString("WelcomeScreen.forumInfo", SPSUtils.FORUM_URL) + //$NON-NLS-1$ //$NON-NLS-2$
+        "<br><br>" + //$NON-NLS-1$
+        "<p>" + Messages.getString("WelcomeScreen.jdbcDriversHelp") + //$NON-NLS-1$ //$NON-NLS-2$
+        "<br>" + //$NON-NLS-1$
+        "<p>" + Messages.getString("WelcomeScreen.helpFindingJdbcDrivers", ArchitectSwingSessionContext.DRIVERS_URL) + //$NON-NLS-1$ //$NON-NLS-2$
+        "<br><br><br>"; //$NON-NLS-1$
 
     public void showWelcomeDialog(Component dialogOwner) {
-        final JDialog d = SPSUtils.makeOwnedDialog(dialogOwner, "Welcome to the Power*Architect");
+        final JDialog d = SPSUtils.makeOwnedDialog(dialogOwner, Messages.getString("WelcomeScreen.welcomeScreenTitle")); //$NON-NLS-1$
         d.setLayout(new BorderLayout(0, 12));
         
         d.add(imageLabel, BorderLayout.NORTH);
@@ -96,17 +94,17 @@ public class WelcomeScreen {
                     try {
                         BrowserUtil.launch(url.toString());
                     } catch (IOException e1) {
-                        throw new RuntimeException("Unexpected error in launch", e1);
+                        throw new RuntimeException(Messages.getString("WelcomeScreen.unexpectedError"), e1); //$NON-NLS-1$
                     }
                 }
             }
         });
         d.add(htmlComponent, BorderLayout.CENTER);
         
-        showPrefsAgain = new JCheckBox("Show this Welcome Screen in future");
+        showPrefsAgain = new JCheckBox(Messages.getString("WelcomeScreen.showWelcomeInFuture")); //$NON-NLS-1$
         showPrefsAgain.setSelected(true);
 
-        JButton closeButton = new JButton("Close");
+        JButton closeButton = new JButton(Messages.getString("WelcomeScreen.closeButton")); //$NON-NLS-1$
         closeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 context.getUserSettings().getSwingSettings().setBoolean(
