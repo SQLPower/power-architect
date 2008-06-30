@@ -18,21 +18,49 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Insets;
+import java.awt.Point;
+import java.beans.PropertyDescriptor;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import junit.framework.TestCase;
 
-public class TestPlayPenComponent extends TestCase {
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.PropertyUtils;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLTable;
+
+import sun.font.FontManager;
+
+public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends TestCase {
 	
-	PlayPenComponentImpl component;
-	PlayPen pp;
-	PlayPenComponentEventCounter eventCounter;
+	protected PlayPen pp;
+	protected ArchitectSwingSession session;
+	
+	/**
+	 * List of properties that differ in value between copy and original of this component.
+	 */
+	protected Set<String> copyIgnoreProperties = new HashSet<String>();
+	
+	/**
+	 * List of properties that are shared (as same instance) between copy
+	 * and original of this component.
+	 */
+	protected Set<String> copySameInstanceIgnoreProperties = new HashSet<String>();
 
 	protected void setUp() throws Exception {
 		super.setUp();
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-        ArchitectSwingSession session = context.createSession();
-		pp = new PlayPen(session);
-		component = new PlayPenComponentImpl(pp.getPlayPenContentPane() );
-		eventCounter = new PlayPenComponentEventCounter();
+        session = context.createSession();
+		pp = session.getPlayPen();
 	}
 
 	
@@ -40,23 +68,181 @@ public class TestPlayPenComponent extends TestCase {
 	 * Test method for 'ca.sqlpower.architect.swingui.PlayPenComponent.getPlayPen()'
 	 */
 	public void testGetPlayPen() {
-		
-		assertEquals("Wrong playpen added ", pp,component.getPlayPen());
-
+		assertEquals("Wrong playpen added ", pp, getTarget().getPlayPen());
 	}
-
-	/*
-	 * Because only movements of a table pane would generate valid operations.
-	 * Movement events are only fired in TablePane.setBounds.
-	 * 
-	 * @see ca.sqlpower.architect.swinggui.TestTablePane.testTablePaneMovement() for 
-	 *         tests involving the movements of tablepanes.
+	
+	/**
+	 * Returns the object under test. 
 	 */
-	public void testComponentMovement() {
+	protected abstract T getTarget();
+
+	/**
+	 * Returns an object from a call to the copy constructor of the target. 
+	 */
+	protected abstract T getTargetCopy();
 	
+	/**
+     * Checks that the properties of an instance from the copy constructor are equal to the original.
+     * In the case of a mutable property, it also checks that they don't share the same instance.
+     * 
+     * @throws Exception
+     */
+	public void testCopyConstructor() throws Exception {
+	    PlayPenComponent comp = getTarget();
+	    
+	    List<PropertyDescriptor> settableProperties = Arrays.asList(PropertyUtils.getPropertyDescriptors(comp.getClass()));
+	    
+	    copyIgnoreProperties.add("UI");
+	    copyIgnoreProperties.add("UIClassID");
+	    copyIgnoreProperties.add("background");
+	    copyIgnoreProperties.add("bounds");
+	    copyIgnoreProperties.add("class");
+	    copyIgnoreProperties.add("fontRenderContext");
+	    copyIgnoreProperties.add("height");
+	    copyIgnoreProperties.add("insets");
+	    copyIgnoreProperties.add("location");
+	    copyIgnoreProperties.add("opaque");
+	    copyIgnoreProperties.add("parent");
+	    copyIgnoreProperties.add("playPen");
+	    copyIgnoreProperties.add("preferredLocation");
+	    copyIgnoreProperties.add("preferredSize");
+	    copyIgnoreProperties.add("selected");
+	    copyIgnoreProperties.add("size");
+	    copyIgnoreProperties.add("toolTipText");
+	    copyIgnoreProperties.add("width");
+	    copyIgnoreProperties.add("x");
+	    copyIgnoreProperties.add("y");
+	    
+	    // copy and original should point to same business object
+        copySameInstanceIgnoreProperties.add("model");
+	    
+        // First pass: set all settable properties, because testing the duplication of
+        //             an object with all its properties at their defaults is not a
+        //             very convincing test of duplication!
+	    for (PropertyDescriptor property : settableProperties) {
+	        if (copyIgnoreProperties.contains(property.getName())) continue;
+	        Object oldVal;
+	        try {
+	            oldVal = PropertyUtils.getSimpleProperty(comp, property.getName());
+	            // check for a setter
+	            if (property.getWriteMethod() != null)
+	            {
+	                Object newVal = getNewDifferentValue(property, oldVal);
+	                BeanUtils.copyProperty(comp, property.getName(), newVal);
+	            }
+	        } catch (NoSuchMethodException e) {
+	            System.out.println("Skipping non-settable property "+property.getName()+" on "+comp.getClass().getName());
+	        }
+	    }
+	    // Second pass get a copy make sure all of 
+	    // the origional mutable objects returned from getters are different
+	    // between the two objects, but have the same values. 
+	    PlayPenComponent duplicate = getTargetCopy();
+	    for (PropertyDescriptor property : settableProperties) {
+	        if (copyIgnoreProperties.contains(property.getName())) continue;
+	        Object oldVal;
+	        try {
+	            oldVal = PropertyUtils.getSimpleProperty(comp, property.getName());
+	            Object copyVal = PropertyUtils.getSimpleProperty(duplicate, property.getName());
+	            if (oldVal == null) {
+	                throw new NullPointerException("We forgot to set "+property.getName());
+	            } else {
+	                assertEquals("The two values for property "+property.getDisplayName() + " in " + comp.getClass().getName() + " should be equal",oldVal,copyVal);
+
+                    // should only be applicable to mutable properties
+	                if (!copySameInstanceIgnoreProperties.contains(property.getName())) {
+	                    assertNotSame("Copy shares mutable property with original, property name: " + property.getDisplayName(), copyVal, oldVal);
+	                }
+	            }
+	        } catch (NoSuchMethodException e) {
+	            System.out.println("Skipping non-settable property "+property.getName()+" on "+comp.getClass().getName());
+	        }
+	    }
 	}
-	
-	
+
+	/**
+     * Returns a new value that is not equal to oldVal. The
+     * returned object will be a new instance compatible with oldVal.  
+     * 
+     * @param property The property that should be modified.
+     * @param oldVal The existing value of the property to modify.  The returned value
+     * will not equal this one at the time this method was first called.
+     */
+	private Object getNewDifferentValue(PropertyDescriptor property, Object oldVal) throws ArchitectException {
+	    Object newVal; // don't init here so compiler can warn if the
+	    // following code doesn't always give it a value
+	    if (property.getPropertyType() == String.class) {
+	        newVal = "new " + oldVal;
+	    } else if (property.getPropertyType() == Boolean.class || property.getPropertyType() == Boolean.TYPE) {
+	        if (oldVal == null){
+	            newVal = new Boolean(false);
+	        } else {
+	            newVal = new Boolean(!((Boolean) oldVal).booleanValue());
+	        }
+	    } else if (property.getPropertyType() == Integer.class || property.getPropertyType() == Integer.TYPE) {
+	        if (oldVal == null) {
+	            newVal = new Integer(0);
+	        } else {
+	            newVal = new Integer(((Integer) oldVal).intValue() + 1);
+	        }
+	    } else if (property.getPropertyType() == Color.class) {
+	        if (oldVal == null) {
+	            newVal = new Color(0xFAC157);
+	        } else {
+	            Color oldColor = (Color) oldVal;
+	            newVal = new Color( (oldColor.getRGB()+0xF00) % 0x1000000);
+	        }
+	    } else if (property.getPropertyType() == Font.class) {
+	        if (oldVal == null) {
+	            newVal = FontManager.getDefaultPhysicalFont();
+	        } else {
+	            Font oldFont = (Font) oldVal;
+                newVal = new Font(oldFont.getFontName(), oldFont.getSize() + 2, oldFont.getStyle());
+	        }
+	    } else if (property.getPropertyType() == Point.class) {
+	        if (oldVal == null) {
+	            newVal = new Point();
+	        } else {
+	            Point oldPoint = (Point) oldVal;
+	            newVal = new Point(oldPoint.x + 10, oldPoint.y + 10);
+	        }
+	    } else if (property.getPropertyType() == Insets.class) {
+	        if (oldVal == null) {
+	            newVal = new Insets(0,0,0,0);
+	        } else {
+	            Insets oldInsets = (Insets) oldVal;
+	            newVal = new Insets(oldInsets.top + 10, oldInsets.left + 10, oldInsets.bottom + 10, oldInsets.right + 10);
+	        }
+	    } else if (property.getPropertyType() == Set.class) {
+	        newVal = new HashSet();
+	        if (property.getName().equals("hiddenColumns")) {
+	            ((Set) newVal).add(new SQLColumn());
+	        } else {
+	            ((Set) newVal).add("Test");
+	        }
+	    } else if (property.getPropertyType() == List.class) {
+	        newVal = new ArrayList();
+	        if (property.getName().equals("selectedColumns")) {
+	            ((List) newVal).add(new SQLColumn());
+	        } else {
+	            ((List) newVal).add("Test");
+	        }
+	    } else if (property.getPropertyType() == TablePane.class) {
+	        SQLTable t = new SQLTable();
+	        t.initFolders(true);
+	        newVal = new TablePane(t, pp);
+	    } else if (property.getPropertyType() == SQLTable.class) {
+	        newVal = new SQLTable();
+	        ((SQLTable)newVal).initFolders(true);
+	    } else {
+	        throw new RuntimeException("This test case lacks a value for "
+	        + property.getName() + " (type "
+	        + property.getPropertyType().getName() + ")");
+	    }
+
+	    return newVal;
+	}
+
 	//TODO Add test cases for these functions
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.PlayPenComponent.getUI()'

@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
@@ -33,17 +32,13 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 
-public class TestTablePane extends TestCase {
+public class TestTablePane extends TestPlayPenComponent<TablePane> {
 
 	private SQLTable t;
 	private TablePane tp;
-	private PlayPen pp;
-	ArchitectSwingSession session;
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-        session = context.createSession();
 		t = new SQLTable(session.getTargetDatabase(), true);
 		t.setName("Test Table");
 		SQLColumn pk1 = new SQLColumn(t, "PKColumn1", Types.INTEGER, 10,0);
@@ -238,24 +233,49 @@ public class TestTablePane extends TestCase {
         assertFalse(c.getSQLObjectListeners().contains(tp.columnListener));
     }
     
-    public void testTablePaneMovement() {
+    public void testSetLocationFiresEvents() {
         PlayPenComponentEventCounter eventCounter = new PlayPenComponentEventCounter();
         tp.addPropertyChangeListener( eventCounter);
         assertEquals("" +
                 "We started out with the wrong number of events", 0,eventCounter.getEvents() );
-        //component.setMoving(true);
-        //assertEquals("We did not generate a move start event",1,eventCounter.getStarts());
         pp.startCompoundEdit("Starting move");
         tp.setLocation(1,1);
         tp.setLocation(2,2);
         pp.endCompoundEdit("Ending move");
-        assertEquals("Even in Compound edits should still generate a move event for each setLocation",2,eventCounter.getMoved());
-        //component.setMoving(false);
-        //assertEquals("We did not generate a move end event",1,eventCounter.getEnds());
+        assertEquals("Compound edit did not fire a move event for each setLocation",2,eventCounter.getMoved());
         
         tp.setLocation(3,3);
-        //assertEquals("We did not generate a move start event",2,eventCounter.getStarts());
-        assertEquals("We did not generate move events",3,eventCounter.getMoved());
-        //assertEquals("We did not generate a move end event",2,eventCounter.getEnds());
+        assertEquals("Single edit did not fire move event!",3,eventCounter.getMoved());
+    }
+
+    @Override
+    protected TablePane getTargetCopy() {
+        return new TablePane(tp, tp.getParent());
+    }
+
+    @Override
+    protected TablePane getTarget() {
+        return tp;
+    }
+    
+    @Override
+    public void testCopyConstructor() throws Exception {
+        copyIgnoreProperties.add("height");
+        copyIgnoreProperties.add("dropTargetListener");
+
+        // selected columns are not to be copied
+        copyIgnoreProperties.add("selectedColumnIndex");
+        
+        // layout node methods that are determined by the model
+        copyIgnoreProperties.add("inboundEdges");
+        copyIgnoreProperties.add("outboundEdges");
+        
+        // same as name
+        copyIgnoreProperties.add("nodeName");
+
+        // used specifically in mapping report to show full name (e.g. db.schema.cat.table)
+        copyIgnoreProperties.add("fullyQualifiedNameInHeader");
+        
+        super.testCopyConstructor();
     }
 }
