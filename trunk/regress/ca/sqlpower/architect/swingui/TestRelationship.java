@@ -20,10 +20,8 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
 import java.awt.Point;
-import java.io.IOException;
 import java.sql.Types;
 
-import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -31,18 +29,14 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 
-public class TestRelationship extends TestCase {
+public class TestRelationship extends TestPlayPenComponent<Relationship> {
 
 	Relationship rel;
-	PlayPen pp;
     TablePane tp1;
     TablePane tp2;
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-        ArchitectSwingSession session = context.createSession();
-		pp = session.getPlayPen();
 		SQLTable t1 = new SQLTable(session.getTargetDatabase(), true);
         t1.addColumn(new SQLColumn(t1, "pkcol_1", Types.INTEGER, 10,0));
         t1.addColumn(new SQLColumn(t1, "fkcol_1", Types.INTEGER, 10,0));
@@ -63,19 +57,6 @@ public class TestRelationship extends TestCase {
 		rel = new Relationship(pp, sqlrel);
 	}
 	
-	public void testCopyConstructor() throws ArchitectException, IOException {
-        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-        ArchitectSwingSession session = context.createSession();
-		PlayPen newpp = new PlayPen(session);
-        
-		Relationship rel2 = new Relationship(rel, newpp.getContentPane());
-        
-		assertNotSame("The new relationship component should not have the same UI delegate as the original",
-                rel.getUI(), rel2.getUI());
-        assertEquals(rel.isStraightLine(), rel2.isStraightLine());
-        assertSame(rel.getModel(), rel2.getModel());
-	}
-
     public void testHighlightWithRelationshipTypeChange() throws ArchitectException {               
         rel.setSelected(true,SelectionEvent.SINGLE_SELECT);
         assertEquals(Color.RED,tp1.getColumnHighlight(0));
@@ -163,4 +144,28 @@ public class TestRelationship extends TestCase {
         assertEquals (2, FkPane2.getModel().getColumn(0).getReferenceCount());        
     }
 
+    @Override
+    protected Relationship getTargetCopy() {
+        return new Relationship(rel, rel.getParent());
+    }
+
+    @Override
+    protected Relationship getTarget() {
+        return rel;
+    }
+    
+    @Override
+    public void testCopyConstructor() throws Exception {
+        // layoutNode properties determined by model
+        copyIgnoreProperties.add("headNode");
+        copyIgnoreProperties.add("tailNode");
+        
+        // popup can be shared between copy and original
+        copySameInstanceIgnoreProperties.add("popup");
+        
+        copySameInstanceIgnoreProperties.add("fkTable");
+        copySameInstanceIgnoreProperties.add("pkTable");
+
+        super.testCopyConstructor();
+    }
 }
