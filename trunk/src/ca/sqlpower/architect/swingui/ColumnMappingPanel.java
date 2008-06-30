@@ -116,9 +116,9 @@ public class ColumnMappingPanel implements DataEntryPanel {
                         int pky = lhsTable.columnIndexToCentreY(colidx);
                         int fky = rhsTable.columnIndexToCentreY(fkTable.getColumnIndex(fkCol));
                         if (logger.isDebugEnabled()) {
-                            logger.debug("Drawing Line" +
-                                    " from " + pkTable.getColumn(colidx).getName() + " (y=" + pky + ")" +
-                                    " to " + fkCol.getName() + " (y=" + fky + ")");
+                            logger.debug("Drawing Line" + //$NON-NLS-1$
+                                    " from " + pkTable.getColumn(colidx).getName() + " (y=" + pky + ")" + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                                    " to " + fkCol.getName() + " (y=" + fky + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
                         }
                         if (fkCol == draggingHandle) {
                             Point offsetDragPoint = new Point(draggingPoint.x - handleLength / 2, draggingPoint.y);
@@ -171,7 +171,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
         public void setDraggingHandle(SQLColumn newHandle) {
             if (newHandle != draggingHandle) {
                 draggingHandle = newHandle;
-                logger.debug("DraggingHandle changed to " + draggingHandle);
+                logger.debug("DraggingHandle changed to " + draggingHandle); //$NON-NLS-1$
                 repaint();
             }
         }
@@ -233,7 +233,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
                     }
                     
                     if (oldEntry == null) {
-                        throw new IllegalStateException("Couldn't find existing mapping at end of drag operation!");
+                        throw new IllegalStateException("Couldn't find existing mapping at end of drag operation!"); //$NON-NLS-1$
                     }
                     SQLColumn pkCol = oldEntry.getKey();
                     mappings.remove(pkCol);
@@ -362,17 +362,17 @@ public class ColumnMappingPanel implements DataEntryPanel {
      */
     public void updateRelationshipFromMappings() throws ArchitectException {
         try {
-            r.startCompoundEdit("Modify Column Mappings");
-            logger.debug("Removing all mappings from relationship...");
+            r.startCompoundEdit("Modify Column Mappings"); //$NON-NLS-1$
+            logger.debug("Removing all mappings from relationship..."); //$NON-NLS-1$
             while (r.getChildren().size() > 0) {
                 r.removeChild(r.getChildren().size() - 1);
             }
             for (Map.Entry<SQLColumn, SQLColumn> entry : mappings.entrySet()) {
-                logger.debug("Adding mapping " + entry.getKey() + " -> " + entry.getValue());
+                logger.debug("Adding mapping " + entry.getKey() + " -> " + entry.getValue()); //$NON-NLS-1$ //$NON-NLS-2$
                 r.addMapping(entry.getKey(), entry.getValue());
             }
         } finally {
-            r.endCompoundEdit("Modify Column Mappings");
+            r.endCompoundEdit("Modify Column Mappings"); //$NON-NLS-1$
         }
     }
 

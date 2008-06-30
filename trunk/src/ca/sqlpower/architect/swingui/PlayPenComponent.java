@@ -100,7 +100,7 @@ public abstract class PlayPenComponent implements Selectable {
     public void revalidate() {
         PlayPen pp = getPlayPen();
         if (pp == null) {
-            logger.debug("getPlayPen() returned null.  Not generating repaint request.");
+            logger.debug("getPlayPen() returned null.  Not generating repaint request."); //$NON-NLS-1$
             return;
         }
         Rectangle r = new Rectangle(bounds);
@@ -111,7 +111,7 @@ public abstract class PlayPenComponent implements Selectable {
             if (ps != null) setSize(ps);
         }
         pp.zoomRect(r);
-        if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r);
+        if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$
         pp.repaint(r);
     }
 
@@ -137,8 +137,8 @@ public abstract class PlayPenComponent implements Selectable {
                           (int) Math.ceil((double) r.height * zoom));
         }
         if (logger.isDebugEnabled()) {
-            logger.debug("[36mUpdating bounds on "+getName()
-                         +" to ["+x+","+y+","+width+","+height+"][0m");
+            logger.debug("[36mUpdating bounds on "+getName() //$NON-NLS-1$
+                         +" to ["+x+","+y+","+width+","+height+"][0m"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
         }
         Point oldPoint = new Point(bounds.x,bounds.y);
         bounds.setBounds(x,y,width,height);
@@ -371,7 +371,7 @@ public abstract class PlayPenComponent implements Selectable {
         if (toolTipText == null && this.toolTipText == null) return;
         if (toolTipText != null && toolTipText.equals(this.toolTipText)) return;
         this.toolTipText = toolTipText;
-        logger.debug("ToolTipText changed to "+toolTipText);
+        logger.debug("ToolTipText changed to "+toolTipText); //$NON-NLS-1$
     }
 
     public Font getFont() {
@@ -416,7 +416,7 @@ public abstract class PlayPenComponent implements Selectable {
      */
     public class PlayPenComponentResizedEvent extends PropertyChangeEvent {
         public PlayPenComponentResizedEvent() {
-            super(PlayPenComponent.this, "bounds", null, null);
+            super(PlayPenComponent.this, "bounds", null, null); //$NON-NLS-1$
         }
     }
     

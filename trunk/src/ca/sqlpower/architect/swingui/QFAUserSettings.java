@@ -23,7 +23,7 @@ import ca.sqlpower.architect.AbstractUserSetting;
 public class QFAUserSettings extends AbstractUserSetting {
     
     public static final String EXCEPTION_REPORTING 
-            = "QFAUserSettings.EXCEPTION_REPORTING";
+            = "QFAUserSettings.EXCEPTION_REPORTING"; //$NON-NLS-1$
     
     public QFAUserSettings() {
         super();
