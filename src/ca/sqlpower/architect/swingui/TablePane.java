@@ -161,6 +161,18 @@ public class TablePane
 		this.margin = (Insets) tp.margin.clone();
 		this.selectedColumns = new HashSet<SQLColumn>(tp.selectedColumns);
 		this.columnHighlight = new HashMap<SQLColumn,List<Color>>(tp.columnHighlight);
+		
+		this.insertionPoint = tp.insertionPoint;
+		this.draggingColumn = tp.draggingColumn;
+		this.selected = false;
+
+		this.hiddenColumns = new HashSet<SQLColumn>(tp.getHiddenColumns());
+		
+		this.foregroundColor = tp.getForeground();
+		this.backgroundColor = tp.getBackground();
+		this.isDashed = tp.isDashed();
+		this.isRounded = tp.isRounded();
+		
 		try {
 			PlayPenComponentUI newUi = tp.getUI().getClass().newInstance();
 			newUi.installUI(this);
@@ -170,16 +182,6 @@ public class TablePane
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException("Woops, couldn't access no-args constructor of "+tp.getUI().getClass().getName());
 		}
-		this.insertionPoint = tp.insertionPoint;
-		this.draggingColumn = tp.draggingColumn;
-		this.selected = false;
-		
-		this.foregroundColor = tp.getForeground();
-		this.backgroundColor = tp.getBackground();
-		this.isDashed = tp.isDashed();
-		this.isRounded = tp.isRounded();
-		
-		this.hiddenColumns = new HashSet<SQLColumn>(tp.getHiddenColumns());
     }
 
 
