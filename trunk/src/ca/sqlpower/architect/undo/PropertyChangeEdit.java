@@ -109,6 +109,6 @@ public class PropertyChangeEdit extends AbstractUndoableEdit {
 
     @Override
     public String toString() {
-        return "Changing " + list.get(0).getPropertyName()  + " of "+list;
+        return "Changing property: \"" + list.get(0).getPropertyName() + "\" by "+list;
     }
 }
