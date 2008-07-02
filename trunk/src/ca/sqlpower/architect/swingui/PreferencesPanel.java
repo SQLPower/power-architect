@@ -78,59 +78,59 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
 	public void setup() {
 		setLayout(new FormLayout(5,5));
 		// line 1
-		add(new JLabel("PL.INI File"));
+		add(new JLabel(Messages.getString("PreferencesPanel.plDotIniFileLabel"))); //$NON-NLS-1$
 		JPanel plIniPanel = new JPanel();
 		plIniPanel.setLayout(new BorderLayout());
-		plIniPanel.add(plIniName = new JTextField("",35), BorderLayout.WEST);
+		plIniPanel.add(plIniName = new JTextField("",35), BorderLayout.WEST); //$NON-NLS-1$
 		plIniPanel.add(plIniButton = new JButton(), BorderLayout.EAST);
-		plIniButton.setAction(new ChooseFileAction(plIniName,SPSUtils.INI_FILE_FILTER,"Browse..."));
+		plIniButton.setAction(new ChooseFileAction(plIniName,SPSUtils.INI_FILE_FILTER,Messages.getString("PreferencesPanel.browseButton"))); //$NON-NLS-1$
 		add(plIniPanel);
 		// line 2
-		add(new JLabel("ETL Log File"));
+		add(new JLabel(Messages.getString("PreferencesPanel.etlLogFileLabel"))); //$NON-NLS-1$
 		JPanel etlLogFilePanel = new JPanel();
 		etlLogFilePanel.setLayout(new BorderLayout());
-		etlLogFilePanel.add(etlLogFileName = new JTextField("",35), BorderLayout.WEST);
+		etlLogFilePanel.add(etlLogFileName = new JTextField("",35), BorderLayout.WEST); //$NON-NLS-1$
 		etlLogFilePanel.add(etlLogFileButton = new JButton(), BorderLayout.EAST);
-		etlLogFileButton.setAction(new ChooseFileAction(etlLogFileName,SPSUtils.LOG_FILE_FILTER,"Browse..."));
+		etlLogFileButton.setAction(new ChooseFileAction(etlLogFileName,SPSUtils.LOG_FILE_FILTER,Messages.getString("PreferencesPanel.browseButton"))); //$NON-NLS-1$
 		add(etlLogFilePanel);
 
 		// line 3
-		add(new JLabel("Forward Engineering Log File"));
+		add(new JLabel(Messages.getString("PreferencesPanel.forwardEngineeringLogFileLabel"))); //$NON-NLS-1$
 		JPanel ddlLogFilePanel = new JPanel();
 		ddlLogFilePanel.setLayout(new BorderLayout());
-		ddlLogFilePanel.add(ddlLogFileName = new JTextField("",35), BorderLayout.WEST);
+		ddlLogFilePanel.add(ddlLogFileName = new JTextField("",35), BorderLayout.WEST); //$NON-NLS-1$
 		ddlLogFilePanel.add(ddlLogFileButton = new JButton(), BorderLayout.EAST);
-		ddlLogFileButton.setAction(new ChooseFileAction(ddlLogFileName,SPSUtils.LOG_FILE_FILTER,"Browse..."));
+		ddlLogFileButton.setAction(new ChooseFileAction(ddlLogFileName,SPSUtils.LOG_FILE_FILTER,Messages.getString("PreferencesPanel.browseButton"))); //$NON-NLS-1$
 		add(ddlLogFilePanel);
 
 		// line 4
-		add(new JLabel("Antialiased Rendering in PlayPen"));
+		add(new JLabel(Messages.getString("PreferencesPanel.playpenAntialiasingLabel"))); //$NON-NLS-1$
 		JPanel playPenAntialiasPanel = new JPanel();
 		playPenAntialiasPanel.setLayout(new FlowLayout());
 		ButtonGroup playPenAntialiasGroup = new ButtonGroup();
-		playPenAntialiasGroup.add(playPenAntialiasOn = new JRadioButton("On"));
-		playPenAntialiasGroup.add(playPenAntialiasOff = new JRadioButton("Off"));
+		playPenAntialiasGroup.add(playPenAntialiasOn = new JRadioButton(Messages.getString("PreferencesPanel.onOption"))); //$NON-NLS-1$
+		playPenAntialiasGroup.add(playPenAntialiasOff = new JRadioButton(Messages.getString("PreferencesPanel.offOption"))); //$NON-NLS-1$
 		playPenAntialiasPanel.add(playPenAntialiasOn);
 		playPenAntialiasPanel.add(playPenAntialiasOff);
 		add(playPenAntialiasPanel);
 
         //line 5
-        add(new JLabel("Error Reporting"));
+        add(new JLabel(Messages.getString("PreferencesPanel.errorReportingLabel"))); //$NON-NLS-1$
         JPanel exceptionReportPanel = new JPanel();
         exceptionReportPanel.setLayout(new FlowLayout());
         ButtonGroup exceptionReportGroup = new ButtonGroup();
-        exceptionReportGroup.add(exceptionReportOn = new JRadioButton("On"));
-        exceptionReportGroup.add(exceptionReportOff = new JRadioButton("Off"));
+        exceptionReportGroup.add(exceptionReportOn = new JRadioButton(Messages.getString("PreferencesPanel.onOption"))); //$NON-NLS-1$
+        exceptionReportGroup.add(exceptionReportOff = new JRadioButton(Messages.getString("PreferencesPanel.offOption"))); //$NON-NLS-1$
         exceptionReportPanel.add(exceptionReportOn);
         exceptionReportPanel.add(exceptionReportOff);
         add(exceptionReportPanel);
         //line 6
-        add(new JLabel("Show Welcome Screen"));
+        add(new JLabel(Messages.getString("PreferencesPanel.showWelcomScreenLabel"))); //$NON-NLS-1$
         JPanel showWelcomePanel = new JPanel();
         showWelcomePanel.setLayout(new FlowLayout());
         ButtonGroup showWelcomeGroup = new ButtonGroup();
-        showWelcomeGroup.add(showWelcomeOn = new JRadioButton("Yes"));
-        showWelcomeGroup.add(showWelcomeOff = new JRadioButton("No"));
+        showWelcomeGroup.add(showWelcomeOn = new JRadioButton(Messages.getString("PreferencesPanel.yesOption"))); //$NON-NLS-1$
+        showWelcomeGroup.add(showWelcomeOff = new JRadioButton(Messages.getString("PreferencesPanel.noOption"))); //$NON-NLS-1$
         showWelcomePanel.add(showWelcomeOn);
         showWelcomePanel.add(showWelcomeOff);
         add(showWelcomePanel);
@@ -138,8 +138,8 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
 
 	protected void revertToUserSettings() {
 		plIniName.setText(context.getPlDotIniPath());
-		etlLogFileName.setText(us.getETLUserSettings().getString(ETLUserSettings.PROP_ETL_LOG_PATH,""));
-		ddlLogFileName.setText(us.getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
+		etlLogFileName.setText(us.getETLUserSettings().getString(ETLUserSettings.PROP_ETL_LOG_PATH,"")); //$NON-NLS-1$
+		ddlLogFileName.setText(us.getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,"")); //$NON-NLS-1$
 		if (us.getSwingSettings().getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false)) {
 		    playPenAntialiasOn.setSelected(true);
 		} else {

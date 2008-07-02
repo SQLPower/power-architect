@@ -161,7 +161,7 @@ public class KettleJobPanel implements DataEntryPanel {
         databaseComboBox = new JComboBox();
         ASUtils.setupTargetDBComboBox(session, databaseComboBox);
         newDatabaseButton = new JButton();
-        newDatabaseButton.setText("Properties...");
+        newDatabaseButton.setText(Messages.getString("KettleJobPanel.propertiesButton")); //$NON-NLS-1$
         newDatabaseButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Window parentWindow = SPSUtils.getWindowInHierarchy(panel);
@@ -171,7 +171,7 @@ public class KettleJobPanel implements DataEntryPanel {
         
         schemaName = new JTextField(settings.getSchemaName());
         
-        saveFileRadioButton = new JRadioButton("Save Job to File", settings.isSavingToFile());
+        saveFileRadioButton = new JRadioButton(Messages.getString("KettleJobPanel.saveJobToFileOption"), settings.isSavingToFile()); //$NON-NLS-1$
         
         filePath = new JTextField(settings.getFilePath());
         filePath.getDocument().addDocumentListener(new DocumentListener(){
@@ -188,12 +188,12 @@ public class KettleJobPanel implements DataEntryPanel {
                File file = new File(filePath.getText());
                if (file != null) { 
                    File parentFile = file.getParentFile();
-                   transformationPath.setText("     " + ((parentFile == null || parentFile.getPath() == null)?"":parentFile.getPath()));
+                   transformationPath.setText("     " + ((parentFile == null || parentFile.getPath() == null)?"":parentFile.getPath())); //$NON-NLS-1$ //$NON-NLS-2$
                }
            }
         });
         browseFilePath = new JButton();
-        browseFilePath.setText("Browse...");
+        browseFilePath.setText(Messages.getString("KettleJobPanel.browseButton")); //$NON-NLS-1$
         browseFilePath.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser chooser = new JFileChooser(session.getProject().getFile());
@@ -206,7 +206,7 @@ public class KettleJobPanel implements DataEntryPanel {
                     File parentFile = file.getParentFile();
                     filePath.setText(file.getPath());
                     if (parentFile != null) {
-                        transformationPath.setText("     " + parentFile.getPath());
+                        transformationPath.setText("     " + parentFile.getPath()); //$NON-NLS-1$
                     }
                 }
             }
@@ -214,12 +214,12 @@ public class KettleJobPanel implements DataEntryPanel {
         
         File parentFile = new File(settings.getFilePath()).getParentFile();
         if (settings == null || parentFile == null || parentFile.getPath() == null) {
-            transformationPath = new JLabel("");
+            transformationPath = new JLabel(""); //$NON-NLS-1$
         } else {
-            transformationPath = new JLabel("     " + parentFile.getPath());
+            transformationPath = new JLabel("     " + parentFile.getPath()); //$NON-NLS-1$
         }
         
-        saveReposRadioButton = new JRadioButton("Save Job to Repository", !settings.isSavingToFile());
+        saveReposRadioButton = new JRadioButton(Messages.getString("KettleJobPanel.saveJobToRepositoryOption"), !settings.isSavingToFile()); //$NON-NLS-1$
 
         Object[] connectionArray = session.getContext().getConnections().toArray();
         reposDB = new JComboBox(connectionArray);
@@ -227,7 +227,7 @@ public class KettleJobPanel implements DataEntryPanel {
             reposDB.setSelectedIndex(0);
         }
         reposPropertiesButton = new JButton();
-        reposPropertiesButton.setText("Properties...");
+        reposPropertiesButton.setText(Messages.getString("KettleJobPanel.propertiesButton")); //$NON-NLS-1$
         reposPropertiesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Window parentWindow = SPSUtils.getWindowInHierarchy(panel);
@@ -245,55 +245,55 @@ public class KettleJobPanel implements DataEntryPanel {
         }
         defaultJoinType.setSelectedIndex(settings.getKettleJoinType());
         
-        FormLayout formLayout = new FormLayout("10dlu, 2dlu, pref, 4dlu," + //1-4
-                "0:grow, 4dlu, pref", //5-7
-                "");
+        FormLayout formLayout = new FormLayout("10dlu, 2dlu, pref, 4dlu," + //1-4 //$NON-NLS-1$
+                "0:grow, 4dlu, pref", //5-7 //$NON-NLS-1$
+                ""); //$NON-NLS-1$
         DefaultFormBuilder builder = new DefaultFormBuilder(formLayout, panel);
         builder.nextColumn(2);
-        builder.append("Job Name: ");
+        builder.append(Messages.getString("KettleJobPanel.jobNameLabel")); //$NON-NLS-1$
         builder.append(nameField, 3);
         builder.nextLine();
-        builder.append("");
-        builder.append("Target Database: ");
+        builder.append(""); //$NON-NLS-1$
+        builder.append(Messages.getString("KettleJobPanel.targetDatabaseLabel")); //$NON-NLS-1$
         builder.append(databaseComboBox);
         builder.append(newDatabaseButton);
         builder.nextLine();
-        builder.append("");
-        builder.append("Schema Name: ");
+        builder.append(""); //$NON-NLS-1$
+        builder.append(Messages.getString("KettleJobPanel.schemaNameLabel")); //$NON-NLS-1$
         builder.append(schemaName, 3);
         builder.nextLine();
-        builder.append("");
-        builder.append("Default Join Type: ");
+        builder.append(""); //$NON-NLS-1$
+        builder.append(Messages.getString("KettleJobPanel.defaultJoinTypeLabel")); //$NON-NLS-1$
         builder.append(defaultJoinType);
         builder.nextLine();
-        builder.append("");
+        builder.append(""); //$NON-NLS-1$
         builder.append(saveFileRadioButton, 3);
         builder.nextLine();
-        builder.append("");
-        builder.append("Path: ");
+        builder.append(""); //$NON-NLS-1$
+        builder.append(Messages.getString("KettleJobPanel.pathLabel")); //$NON-NLS-1$
         builder.append(filePath);
         builder.append(browseFilePath);
         builder.nextLine();
-        builder.append("");
-        builder.append("");
-        JLabel transPathLabel = new JLabel("The transformations will be stored in:");
+        builder.append(""); //$NON-NLS-1$
+        builder.append(""); //$NON-NLS-1$
+        JLabel transPathLabel = new JLabel(Messages.getString("KettleJobPanel.transfomationsPathLabel")); //$NON-NLS-1$
         builder.append(transPathLabel, 3);
         builder.nextLine();
-        builder.append("");
-        builder.append("");
+        builder.append(""); //$NON-NLS-1$
+        builder.append(""); //$NON-NLS-1$
         builder.append(transformationPath, 3);
         builder.nextLine();
-        builder.append("");
+        builder.append(""); //$NON-NLS-1$
         builder.append(saveReposRadioButton, 3);
         builder.nextLine();
-        builder.append("");
-        builder.append("Repository: ");
+        builder.append(""); //$NON-NLS-1$
+        builder.append(Messages.getString("KettleJobPanel.repositoryLabel")); //$NON-NLS-1$
         builder.append(reposDB);
         builder.append(reposPropertiesButton);
         builder.nextLine();
-        builder.append("");
+        builder.append(""); //$NON-NLS-1$
         //TODO use CompareDM to check if the target database and the playpen are the same
-        JLabel check = new JLabel("Check that the target database is the same as the play pen.");
+        JLabel check = new JLabel(Messages.getString("KettleJobPanel.checkTargetSameAsPlaypenWarning")); //$NON-NLS-1$
         builder.append(check, 5);
         
     }
@@ -304,11 +304,11 @@ public class KettleJobPanel implements DataEntryPanel {
      */
     public boolean applyChanges() {
         copySettingsToProject();
-        if (nameField.getText().equals("")) {
-            JOptionPane.showMessageDialog(panel, "The job name was not set.\nThe Kettle job was not created.");
+        if (nameField.getText().equals("")) { //$NON-NLS-1$
+            JOptionPane.showMessageDialog(panel, Messages.getString("KettleJobPanel.jobNameNotSetError")); //$NON-NLS-1$
             return false;
-        } else if (filePath.getText().equals("") && saveFileRadioButton.isSelected()) {
-            JOptionPane.showMessageDialog(panel, "The job path was not set.\n The Kettle job was not created.");
+        } else if (filePath.getText().equals("") && saveFileRadioButton.isSelected()) { //$NON-NLS-1$
+            JOptionPane.showMessageDialog(panel, Messages.getString("KettleJobPanel.jobPathNotSetError")); //$NON-NLS-1$
             return false;
         }
         return true;
@@ -350,7 +350,7 @@ public class KettleJobPanel implements DataEntryPanel {
      * Copies the settings to the project by storing them in the KettleJob instance.
      */
     private void copySettingsToProject() {
-        logger.debug("Saving settings to the project...");
+        logger.debug("Saving settings to the project..."); //$NON-NLS-1$
         KettleJob settings = session.getKettleJob();
         settings.setJobName(nameField.getText());
         settings.setSchemaName(schemaName.getText());
