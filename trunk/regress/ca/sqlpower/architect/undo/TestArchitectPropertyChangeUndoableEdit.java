@@ -176,6 +176,42 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 	}
 	
 	/**
+	 * Tests PropertyChangeEdit functionalities
+	 */
+	public void testPropertyChangeEdit() {
+	    TestPlayPenComp comp = new TestPlayPenComp(null);
+	    PlayPenComponentMovedEvent e = new PlayPenComponentMovedEvent(comp);
+	    PropertyChangeEdit edit = new PropertyChangeEdit(e);
+	    assertEquals("property change edit", edit.getPresentationName());
+	    assertEquals("Changing property: \"location\" by Moving testComp from null to null", edit.toString());
+	    Point oldLocation = new Point(1, 2) {
+	        @Override
+	        public String toString() {
+	            return "(" + this.x + ", " + this.y + ")"; 
+	        }
+	    };
+	    Point newLocation = new Point(3, 4) {
+	        @Override
+            public String toString() {
+	            return "(" + this.x + ", " + this.y + ")";
+            }
+        };
+        comp.setLocation(oldLocation);
+        comp.setLocation(newLocation);
+        e = new PlayPenComponentMovedEvent(comp, oldLocation, newLocation);
+        edit = new PropertyChangeEdit(e);
+        assertEquals("Changing property: \"location\" by Moving testComp from (1, 2) to (3, 4)", edit.toString());
+        assertTrue(edit.canUndo());
+        edit.undo();
+        assertEquals(oldLocation, comp.getLocation());
+        assertFalse(edit.canUndo());
+        assertTrue(edit.canRedo());
+        edit.redo();
+        assertEquals(newLocation, comp.getLocation());
+        assertFalse(edit.canRedo());
+	}
+	
+	/**
 	 * Tests undo/redo of playpen component movements
 	 */
 	public void testMovementPropertyChange() {
@@ -213,6 +249,7 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
         undoManager.redo();
         assertEquals(newConnectionPoints, comp.getConnectionPoints());
     }
+	
 
 	public static class TestSQLObject extends StubSQLObject {
 		
@@ -281,6 +318,11 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
         
         public Point[] getConnectionPoints() {
             return connectionPoints;
+        }
+        
+        @Override
+        public String toString() {
+            return "testComp";
         }
 	    
 	}
