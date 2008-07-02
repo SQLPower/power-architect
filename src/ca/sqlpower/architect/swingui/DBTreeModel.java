@@ -90,19 +90,19 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 		        public void profilesAdded(ProfileChangeEvent e) {
 		            for (ProfileResult pr : e.getProfileResults()) {
-		                if (logger.isDebugEnabled()) logger.debug("Removing profile "+pr);
-		                SQLObjectEvent soe = new SQLObjectEvent(pr.getProfiledObject(),"profile");
+		                if (logger.isDebugEnabled()) logger.debug("Removing profile "+pr); //$NON-NLS-1$
+		                SQLObjectEvent soe = new SQLObjectEvent(pr.getProfiledObject(),"profile"); //$NON-NLS-1$
 		                processSQLObjectChanged(soe);
 		            }
 		        }
 
 		        public void profilesRemoved(ProfileChangeEvent e) {
 		            for (ProfileResult pr : e.getProfileResults()) {
-		                if (logger.isDebugEnabled()) logger.debug("Removing profile "+pr);
+		                if (logger.isDebugEnabled()) logger.debug("Removing profile "+pr); //$NON-NLS-1$
 
 		                // FIXME here's a crazy idea: if you want something to be a bound property of
 		                //       SQLTable, why not make it one?
-		                SQLObjectEvent soe = new SQLObjectEvent(pr.getProfiledObject(),"profile");
+		                SQLObjectEvent soe = new SQLObjectEvent(pr.getProfiledObject(),"profile"); //$NON-NLS-1$
 
 		                processSQLObjectChanged(soe);
 		            }
@@ -113,14 +113,14 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	public Object getRoot() {
-		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getRoot: returning "+root);
+		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getRoot: returning "+root); //$NON-NLS-1$
 		return root;
 	}
 
 	public Object getChild(Object parent, int index) {
-		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChild("+parent+","+index+")");
+		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChild("+parent+","+index+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		try {
-			if (logger.isDebugEnabled()) logger.debug("returning "+((SQLObject) parent).getChild(index));
+			if (logger.isDebugEnabled()) logger.debug("returning "+((SQLObject) parent).getChild(index)); //$NON-NLS-1$
 			return ((SQLObject) parent).getChild(index);
 		} catch (Exception e) {
 			SQLExceptionNode fakeChild = putExceptionNodeUnder((SQLObject) parent, e);
@@ -129,9 +129,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	public int getChildCount(Object parent) {
-		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChildCount("+parent+")");
+		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChildCount("+parent+")"); //$NON-NLS-1$ //$NON-NLS-2$
 		try {
-			if (logger.isDebugEnabled()) logger.debug("returning "+((SQLObject) parent).getChildCount());
+			if (logger.isDebugEnabled()) logger.debug("returning "+((SQLObject) parent).getChildCount()); //$NON-NLS-1$
 			return ((SQLObject) parent).getChildCount();
 		} catch (Exception e) {
 			putExceptionNodeUnder((SQLObject) parent, e);
@@ -140,17 +140,17 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	public boolean isLeaf(Object parent) {
-		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.isLeaf("+parent+"): returning "+!((SQLObject) parent).allowsChildren());
+		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.isLeaf("+parent+"): returning "+!((SQLObject) parent).allowsChildren()); //$NON-NLS-1$ //$NON-NLS-2$
 		return !((SQLObject) parent).allowsChildren();
 	}
 
 	public void valueForPathChanged(TreePath path, Object newValue) {
-		throw new UnsupportedOperationException("model doesn't support editting yet");
+		throw new UnsupportedOperationException("model doesn't support editting yet"); //$NON-NLS-1$
 	}
 
 	public int getIndexOfChild(Object parent, Object child) {
 		try {
-			if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getIndexOfChild("+parent+","+child+"): returning "+((SQLObject) parent).getChildren().indexOf(child));
+			if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getIndexOfChild("+parent+","+child+"): returning "+((SQLObject) parent).getChildren().indexOf(child)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			return ((SQLObject) parent).getChildren().indexOf(child);
 		} catch (ArchitectException e) {
 			//logger.error("Couldn't get index of child "+child, e);
@@ -171,7 +171,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	protected void fireTreeNodesInserted(TreeModelEvent e) {
-		if (logger.isDebugEnabled()) logger.debug("Firing treeNodesInserted event: "+e);
+		if (logger.isDebugEnabled()) logger.debug("Firing treeNodesInserted event: "+e); //$NON-NLS-1$
 		final TreeModelEvent ev =e; 
 		Runnable notifier = new Runnable(){
 			public void run() {
@@ -187,7 +187,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 	
 	protected void fireTreeNodesRemoved(TreeModelEvent e) {
-		if (logger.isDebugEnabled()) logger.debug("Firing treeNodesRemoved event "+e);
+		if (logger.isDebugEnabled()) logger.debug("Firing treeNodesRemoved event "+e); //$NON-NLS-1$
 		final TreeModelEvent ev =e; 
 		Runnable notifier = new Runnable(){
 			public void run() {
@@ -219,7 +219,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	protected void fireTreeStructureChanged(TreeModelEvent e) {
-		logger.debug("firing TreeStructuredChanged. source="+e.getSource());
+		logger.debug("firing TreeStructuredChanged. source="+e.getSource()); //$NON-NLS-1$
 		final TreeModelEvent ev =e; 		
 		Runnable notifier = new Runnable(){
 			public void run() {
@@ -246,7 +246,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	 */
 	public SQLObject[] getPathToNode(SQLObject node) {
 		if (node instanceof SQLRelationship) {
-			throw new IllegalArgumentException("This method does not work for SQLRelationship. Use getPkPathToRelationship() and getFkPathToRelationship() instead.");
+			throw new IllegalArgumentException("This method does not work for SQLRelationship. Use getPkPathToRelationship() and getFkPathToRelationship() instead."); //$NON-NLS-1$
 		}
 		LinkedList path = new LinkedList();
 		while (node != null && node != root) {
@@ -303,7 +303,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	 */
 	protected SQLExceptionNode putExceptionNodeUnder(final SQLObject parent, Throwable ex) {
 		// dig for root cause and message
-		logger.info("Adding exception node under "+parent, ex);
+		logger.info("Adding exception node under "+parent, ex); //$NON-NLS-1$
 		String message = ex.getMessage();
 		Throwable cause = ex;
 		while (cause.getCause() != null) {
@@ -314,7 +314,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		}
 		
 		if (message == null || message.length() == 0) {
-			message = "Check application log for details";
+			message = "Check application log for details"; //$NON-NLS-1$
 		}
 		
 		final SQLExceptionNode excNode = new SQLExceptionNode(ex, message);
@@ -324,7 +324,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		try {
 			parent.getChildCount();
 		} catch (ArchitectException e) {
-			logger.error("Couldn't populate parent node of exception");
+			logger.error("Couldn't populate parent node of exception"); //$NON-NLS-1$
 		}
 
 		try {
@@ -333,8 +333,8 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			}
 			parent.addChild(excNode);
 		} catch (ArchitectException e) {
-			logger.error("Couldn't add SQLExceptionNode \""+excNode.getName()+"\" to tree model:", e);
-			ASUtils.showExceptionDialogNoReport("Failed to add SQLExceptionNode to tree model.", e);
+			logger.error("Couldn't add SQLExceptionNode \""+excNode.getName()+"\" to tree model:", e); //$NON-NLS-1$ //$NON-NLS-2$
+			ASUtils.showExceptionDialogNoReport("Failed to add SQLExceptionNode to tree model.", e); //$NON-NLS-1$
 		}
 		return excNode;
 	}
@@ -342,19 +342,19 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	// --------------------- SQLObject listener support -----------------------
 	public void dbChildrenInserted(SQLObjectEvent e) {
         if (logger.isDebugEnabled()) {
-            logger.debug("dbChildrenInserted. source="+e.getSource()
-                    +" indices: "+Arrays.asList(e.getChangedIndices())
-                    +" children: "+Arrays.asList(e.getChildren()));
+            logger.debug("dbChildrenInserted. source="+e.getSource() //$NON-NLS-1$
+                    +" indices: "+Arrays.asList(e.getChangedIndices()) //$NON-NLS-1$
+                    +" children: "+Arrays.asList(e.getChildren())); //$NON-NLS-1$
         }
 		if (logger.isDebugEnabled()) {
 			if (e.getSQLSource() instanceof SQLRelationship) {
 				SQLRelationship r = (SQLRelationship) e.getSQLSource();
-				logger.debug("dbChildrenInserted SQLObjectEvent: "+e
-							 +"; pk path="+Arrays.asList(getPkPathToRelationship(r))
-							 +"; fk path="+Arrays.asList(getFkPathToRelationship(r)));
+				logger.debug("dbChildrenInserted SQLObjectEvent: "+e //$NON-NLS-1$
+							 +"; pk path="+Arrays.asList(getPkPathToRelationship(r)) //$NON-NLS-1$
+							 +"; fk path="+Arrays.asList(getFkPathToRelationship(r))); //$NON-NLS-1$
 			} else {
-				logger.debug("dbChildrenInserted SQLObjectEvent: "+e
-							 +"; tree path="+Arrays.asList(getPathToNode(e.getSQLSource())));
+				logger.debug("dbChildrenInserted SQLObjectEvent: "+e //$NON-NLS-1$
+							 +"; tree path="+Arrays.asList(getPathToNode(e.getSQLSource()))); //$NON-NLS-1$
 			}
 		}
 		try {
@@ -363,11 +363,11 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 				ArchitectUtils.listenToHierarchy(this, newEventSources[i]);
 			}
 		} catch (ArchitectException ex) {
-			logger.error("Error listening to added object", ex);
+			logger.error("Error listening to added object", ex); //$NON-NLS-1$
 		}
 
         if ((!SwingUtilities.isEventDispatchThread()) && (!testMode)) {
-            logger.debug("Not refiring because this is not the EDT.");
+            logger.debug("Not refiring because this is not the EDT."); //$NON-NLS-1$
             return;
         }
 
@@ -398,22 +398,22 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 	public void dbChildrenRemoved(SQLObjectEvent e) {
         if (logger.isDebugEnabled()) {
-            logger.debug("dbchildrenremoved. source="+e.getSource()
-                    +" indices: "+Arrays.asList(e.getChangedIndices())
-                    +" children: "+Arrays.asList(e.getChildren()));
+            logger.debug("dbchildrenremoved. source="+e.getSource() //$NON-NLS-1$
+                    +" indices: "+Arrays.asList(e.getChangedIndices()) //$NON-NLS-1$
+                    +" children: "+Arrays.asList(e.getChildren())); //$NON-NLS-1$
         }
-		if (logger.isDebugEnabled()) logger.debug("dbChildrenRemoved SQLObjectEvent: "+e);
+		if (logger.isDebugEnabled()) logger.debug("dbChildrenRemoved SQLObjectEvent: "+e); //$NON-NLS-1$
 		try {
 			SQLObject[] oldEventSources = e.getChildren();
 			for (int i = 0; i < oldEventSources.length; i++) {
 				ArchitectUtils.unlistenToHierarchy(this, oldEventSources[i]);
 			}
 		} catch (ArchitectException ex) {
-			logger.error("Error unlistening to removed object", ex);
+			logger.error("Error unlistening to removed object", ex); //$NON-NLS-1$
 		}
 
         if ((!SwingUtilities.isEventDispatchThread()) && (!testMode)) {
-            logger.debug("Not refiring because this is not the EDT.");
+            logger.debug("Not refiring because this is not the EDT."); //$NON-NLS-1$
             return;
         }
 
@@ -442,12 +442,12 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 	
 	public void dbObjectChanged(SQLObjectEvent e) {
-		logger.debug("dbObjectChanged. source="+e.getSource());
+		logger.debug("dbObjectChanged. source="+e.getSource()); //$NON-NLS-1$
         if ((!SwingUtilities.isEventDispatchThread()) && (!testMode)) {
-            logger.debug("Not refiring because this is not the EDT.");
+            logger.debug("Not refiring because this is not the EDT."); //$NON-NLS-1$
             return;
         }
-		if (logger.isDebugEnabled()) logger.debug("dbObjectChanged SQLObjectEvent: "+e);
+		if (logger.isDebugEnabled()) logger.debug("dbObjectChanged SQLObjectEvent: "+e); //$NON-NLS-1$
 		processSQLObjectChanged(e);
 	}
 
@@ -456,9 +456,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
      * So we need to get around the check.
      */
     private void processSQLObjectChanged(SQLObjectEvent e) {
-        if (e.getPropertyName().equals("name") && 
+        if (e.getPropertyName().equals("name") &&  //$NON-NLS-1$
 				!e.getNewValue().equals(e.getSQLSource().getName()) ) {
-			logger.error("Name change event has wrong new value. new="+e.getNewValue()+"; real="+e.getSQLSource().getName());
+			logger.error("Name change event has wrong new value. new="+e.getNewValue()+"; real="+e.getSQLSource().getName()); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		SQLObject source = e.getSQLSource();
 		if (source instanceof SQLRelationship) {
@@ -471,14 +471,14 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
     }
 
 	public void dbStructureChanged(SQLObjectEvent e) {
-		logger.debug("dbStructureChanged. source="+e.getSource());
+		logger.debug("dbStructureChanged. source="+e.getSource()); //$NON-NLS-1$
 		try {			
 			ArchitectUtils.listenToHierarchy(this, e.getSQLSource());
 		} catch (ArchitectException ex) {
-			logger.error("Couldn't listen to hierarchy rooted at "+e.getSQLSource(), ex);
+			logger.error("Couldn't listen to hierarchy rooted at "+e.getSQLSource(), ex); //$NON-NLS-1$
 		}
         if ((!SwingUtilities.isEventDispatchThread()) && (!testMode)) {
-            logger.debug("Not refiring because this is not the EDT.");
+            logger.debug("Not refiring because this is not the EDT."); //$NON-NLS-1$
             return;
         }
 		TreeModelEvent tme = new TreeModelEvent(this, getPathsToNode(e.getSQLSource()).get(0));

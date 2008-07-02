@@ -40,7 +40,7 @@ public class PlayPenContentPane {
 	public PlayPenContentPane(PlayPen owner) {
 		this.owner = owner;
 		propertyChangeEventPassthrough = new PropertyChangeEventPassthrough();
-		owner.addPropertyChangeListener("zoom", new ZoomFixer());
+		owner.addPropertyChangeListener("zoom", new ZoomFixer()); //$NON-NLS-1$
 	}
 	
 	
@@ -63,7 +63,7 @@ public class PlayPenContentPane {
 	 * Returns true.
 	 */
 	public boolean isValidateRoot() {
-		logger.debug("isValidateRoot returning true");
+		logger.debug("isValidateRoot returning true"); //$NON-NLS-1$
 		return true;
 	}
 
@@ -77,7 +77,7 @@ public class PlayPenContentPane {
 		if (c != null) {
 			text = c.getToolTipText();
 		}
-		logger.debug("Checking for tooltip component at "+e.getPoint()+" is "+c+". tooltipText is "+text);
+		logger.debug("Checking for tooltip component at "+e.getPoint()+" is "+c+". tooltipText is "+text); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		return text;
 	}
 

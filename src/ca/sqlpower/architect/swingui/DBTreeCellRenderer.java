@@ -49,20 +49,20 @@ import ca.sqlpower.swingui.SPSUtils;
  * @version $Id$
  */
 public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
-	public static final ImageIcon dbIcon = SPSUtils.createIcon("Database", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon dbProfiledIcon = SPSUtils.createIcon("Database_profiled", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE);
-	public static final ImageIcon targetIcon = SPSUtils.createIcon("Database_target", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE);
-	public static final ImageIcon cataIcon = SPSUtils.createIcon("Catalog", "SQL Catalog", ArchitectSwingSessionContext.ICON_SIZE);
-	public static final ImageIcon schemaIcon = SPSUtils.createIcon("Schema", "SQL Schema", ArchitectSwingSessionContext.ICON_SIZE);
-	public static final ImageIcon tableIcon = SPSUtils.createIcon("Table", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon tableProfiledIcon = SPSUtils.createIcon("Table_profiled", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE);
-	public static final ImageIcon exportedKeyIcon = SPSUtils.createIcon("ExportedKey", "Exported key", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon importedKeyIcon = SPSUtils.createIcon("ImportedKey", "Imported key", ArchitectSwingSessionContext.ICON_SIZE);
-	public static final ImageIcon ownerIcon = SPSUtils.createIcon("Owner", "Owner", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon indexIcon = SPSUtils.createIcon("Index", "Index", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon pkIndexIcon = SPSUtils.createIcon("Index_key", "Primary Key Index", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon uniqueIndexIcon = SPSUtils.createIcon("Index_unique", "Unique Index", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon columnIcon = SPSUtils.createIcon("Column", "Column", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon dbIcon = SPSUtils.createIcon("Database", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon dbProfiledIcon = SPSUtils.createIcon("Database_profiled", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final ImageIcon targetIcon = SPSUtils.createIcon("Database_target", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final ImageIcon cataIcon = SPSUtils.createIcon("Catalog", "SQL Catalog", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final ImageIcon schemaIcon = SPSUtils.createIcon("Schema", "SQL Schema", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final ImageIcon tableIcon = SPSUtils.createIcon("Table", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon tableProfiledIcon = SPSUtils.createIcon("Table_profiled", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final ImageIcon exportedKeyIcon = SPSUtils.createIcon("ExportedKey", "Exported key", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon importedKeyIcon = SPSUtils.createIcon("ImportedKey", "Imported key", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final ImageIcon ownerIcon = SPSUtils.createIcon("Owner", "Owner", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon indexIcon = SPSUtils.createIcon("Index", "Index", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon pkIndexIcon = SPSUtils.createIcon("Index_key", "Primary Key Index", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon uniqueIndexIcon = SPSUtils.createIcon("Index_unique", "Unique Index", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon columnIcon = SPSUtils.createIcon("Column", "Column", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
     private final ArchitectSession session;
    
     
@@ -84,22 +84,22 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 			SQLDatabase db = (SQLDatabase) value;
 			if (db.isPlayPenDatabase()) {
 				setIcon(targetIcon);
-                setText("Project");
+                setText(Messages.getString("DBTreeCellRenderer.playpenNodeText")); //$NON-NLS-1$
 			} else {
 				setIcon(dbIcon);
 			}
 		} else if (value instanceof SQLCatalog) {
-			if (((SQLCatalog) value).getNativeTerm().equals("owner")) {
+			if (((SQLCatalog) value).getNativeTerm().equals("owner")) { //$NON-NLS-1$
 				setIcon(ownerIcon);
-			} else if (((SQLCatalog) value).getNativeTerm().equals("database")) {
+			} else if (((SQLCatalog) value).getNativeTerm().equals("database")) { //$NON-NLS-1$
 				setIcon(dbIcon);
-			} else if (((SQLCatalog) value).getNativeTerm().equals("schema")) {
+			} else if (((SQLCatalog) value).getNativeTerm().equals("schema")) { //$NON-NLS-1$
 				setIcon(schemaIcon);
 			} else {
 				setIcon(cataIcon);
 			}
 		} else if (value instanceof SQLSchema) {
-			if (((SQLSchema) value).getNativeTerm().equals("owner")) {
+			if (((SQLSchema) value).getNativeTerm().equals("owner")) { //$NON-NLS-1$
 				setIcon(ownerIcon);
 			} else {
 				setIcon(schemaIcon);
@@ -113,7 +113,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
                 setIcon(tableIcon);
             }
             if ((table).getObjectType() != null) {
-			    setText((table).getName()+" ("+(table).getObjectType()+")");
+			    setText((table).getName()+" ("+(table).getObjectType()+")"); //$NON-NLS-1$ //$NON-NLS-2$
 			} else {
 			    setText((table).getName());
 			}
@@ -162,20 +162,20 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
      * Determines what tag to append to the given column
      */
     private void tagColumn(SQLColumn col) {
-        String append = "";
+        String append = ""; //$NON-NLS-1$
         boolean isPK = col.isPrimaryKey();
         boolean isFK = col.isForeignKey();
         boolean isAK = col.isUniqueIndexed() && !isPK;
         if (isPK && isFK) {
-            append = "  [ PFK ]";
+            append = "  [ PFK ]"; //$NON-NLS-1$
         } else if (isAK && isFK) {
-            append = "  [ AFK ]";
+            append = "  [ AFK ]"; //$NON-NLS-1$
         } else if (isPK) {
-            append = "  [ PK ]";
+            append = "  [ PK ]"; //$NON-NLS-1$
         } else if (isFK) {
-            append = "  [ FK ]";
+            append = "  [ FK ]"; //$NON-NLS-1$
         } else if (isAK) {
-            append = "  [ AK ]";
+            append = "  [ AK ]"; //$NON-NLS-1$
         }
         setText(getText() + append);
     }
