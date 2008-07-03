@@ -46,10 +46,8 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.Relationship;
-import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class ReverseRelationshipAction extends AbstractArchitectAction implements SelectionListener{
+public class ReverseRelationshipAction extends AbstractArchitectAction {
     
     private static final Logger logger = Logger.getLogger(ReverseRelationshipAction.class);
     
@@ -59,8 +57,6 @@ public class ReverseRelationshipAction extends AbstractArchitectAction implement
         super(session, Messages.getString("ReverseRelationshipAction.name"), Messages.getString("ReverseRelationshipAction.description"), "reverse"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         this.af = session.getArchitectFrame();
         setEnabled(true);
-        
-        playpen.addSelectionListener(this);
     }
 
     /**
@@ -113,13 +109,5 @@ public class ReverseRelationshipAction extends AbstractArchitectAction implement
         } finally {
             playpen.endCompoundEdit("Ending the reversal of a relationship");
         }
-    }
-    
-    public void itemDeselected(SelectionEvent e) {
-        // TODO Auto-generated method stub
-    }
-
-    public void itemSelected(SelectionEvent e) {
-        // TODO Auto-generated method stub
     }
 }
