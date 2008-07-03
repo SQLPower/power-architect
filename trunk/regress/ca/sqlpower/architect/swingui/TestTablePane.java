@@ -252,7 +252,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
     
     public void testSetLocationFiresEvents() {
         PlayPenComponentEventCounter eventCounter = new PlayPenComponentEventCounter();
-        tp.addPropertyChangeListener( eventCounter);
+        tp.addPropertyChangeListener("location", eventCounter);
         assertEquals("" +
                 "We started out with the wrong number of events", 0,eventCounter.getEvents() );
         pp.startCompoundEdit("Starting move");
