@@ -3,6 +3,7 @@
 
 = Introduction =
 *****THIS DOCUMENT IS A WORK IN PROGRESS*****
+
 This document intends to outline the details of future planned releases of the Power*Architect. Details included planned features, bug fixes, and enhancements, and estimated release dates.
 
 
