@@ -53,7 +53,6 @@ public class ReverseRelationshipAction extends AbstractArchitectAction implement
     
     private static final Logger logger = Logger.getLogger(ReverseRelationshipAction.class);
     
-    private Relationship relationship;
     private ArchitectFrame af;
     
     public ReverseRelationshipAction(ArchitectSwingSession session) {
@@ -76,39 +75,46 @@ public class ReverseRelationshipAction extends AbstractArchitectAction implement
         } else if (selection.size() > 1) {
             JOptionPane.showMessageDialog(playpen, Messages.getString("ReverseRelationshipAction.multipleItemsSelected")); //$NON-NLS-1$
         } else if (selection.get(0) instanceof Relationship) {
-            this.relationship = af.getPlayPen().getSelectedRelationShips().get(0);
-            SQLTable fkTable = relationship.getFkTable().getModel();
-            SQLTable pkTable = relationship.getPkTable().getModel();
-            boolean identify = relationship.getModel().isIdentifying();
-            
-            try {
-                playpen.startCompoundEdit("Reverse Relationship"); //$NON-NLS-1$
-                
-                SQLRelationship sr = relationship.getModel();
-                sr.getPkTable().removeExportedKey(sr);
-                SQLRelationship model = new SQLRelationship();
-                // XXX: need to ensure uniqueness of setName(), but 
-                // to_identifier should take care of this...            
-                model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk");  //$NON-NLS-1$ //$NON-NLS-2$
-                model.setIdentifying(identify);
-                model.attachRelationship(fkTable,pkTable,true);
-
-                Relationship r = new Relationship(playpen, model);
-                playpen.addRelationship(r);
-                r.revalidate();
-            } catch (ArchitectException ex) {
-                logger.error("Couldn't reverse relationship", ex); //$NON-NLS-1$
-                ASUtils.showExceptionDialogNoReport(playpen, Messages.getString("ReverseRelationshipAction.couldNotReverseRelationship"), ex); //$NON-NLS-1$
-            } finally {
-                playpen.endCompoundEdit("Ending the reversal of a relationship"); //$NON-NLS-1$
-            }
+            reverseRelationship(af.getPlayPen().getSelectedRelationShips().get(0));
         } else {
             JOptionPane.showMessageDialog(playpen, Messages.getString("ReverseRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
         }
-        
-       
-    }
+    }        
 
+    public void reverseRelationship(Relationship relationship) {
+        SQLTable fkTable = relationship.getFkTable().getModel();
+        SQLTable pkTable = relationship.getPkTable().getModel();
+        boolean identify = relationship.getModel().isIdentifying();
+        
+        try {
+            playpen.startCompoundEdit("Reverse Relationship");
+            
+            SQLRelationship sr = relationship.getModel();
+            sr.getPkTable().removeExportedKey(sr);
+            SQLRelationship model = new SQLRelationship();  
+            model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk"); 
+            model.setIdentifying(identify);
+            
+            // swaps the fkTable and pkTable around, resulting in reversing the relationship
+            model.attachRelationship(fkTable,pkTable,true);
+
+            model.setDeferrability(sr.getDeferrability());
+            // since the relationship is already reversed, then you can setFkCardinality
+            // to whatever the fkCardinality was before, rather than the pkCardinality
+            model.setFkCardinality(sr.getFkCardinality());
+            model.setPkCardinality(sr.getPkCardinality());
+            
+            Relationship r = new Relationship(playpen, model);
+            playpen.addRelationship(r);
+            r.revalidate();
+        } catch (ArchitectException ex) {
+            logger.error("Couldn't reverse relationship", ex);
+            ASUtils.showExceptionDialogNoReport(playpen, "Couldn't reverse relationship.", ex);
+        } finally {
+            playpen.endCompoundEdit("Ending the reversal of a relationship");
+        }
+    }
+    
     public void itemDeselected(SelectionEvent e) {
         // TODO Auto-generated method stub
     }
