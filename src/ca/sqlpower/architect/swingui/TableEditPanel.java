@@ -51,7 +51,6 @@ import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.swingui.DataEntryPanel;
-import ca.sqlpower.util.WebColour;
 
 public class TableEditPanel extends JPanel implements SQLObjectListener, DataEntryPanel {
     
@@ -89,13 +88,13 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		
 		add(new JLabel("Table Colour"));
 		ColorCellRenderer renderer = new ColorCellRenderer();
-		bgColor = new JComboBox(ColorScheme.BREWER_SET19);
+		bgColor = new JComboBox(ColorScheme.BACKGROUND_COLOURS);
         bgColor.setRenderer(renderer);
         bgColor.addItem(new Color(240, 240, 240));
 		add(bgColor);
 		
 		add(new JLabel("Text Colour"));
-		fgColor = new JComboBox(ColorScheme.BREWER_SET19);
+		fgColor = new JComboBox(ColorScheme.FOREGROUND_COLOURS);
         fgColor.setRenderer(renderer);
         fgColor.addItem(Color.BLACK);
         add(fgColor);
@@ -299,25 +298,6 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
         this.editDialog = editDialog;
     }
     
-    public static class ColorScheme {
-
-        /**
-         * Brewer Colour Scheme "set19".  A nice collection of colours for colour coding
-         * sets of information with up to 9 elements.
-         */
-        public static final WebColour[] BREWER_SET19 = {
-            new WebColour("#e41a1c"),
-            new WebColour("#377eb8"),
-            new WebColour("#4daf4a"),
-            new WebColour("#80b1d3"),
-            new WebColour("#984ea3"),
-            new WebColour("#ff7f00"),
-            new WebColour("#ffff33"),
-            new WebColour("#a65628"),
-            new WebColour("#f781bf"),
-            new WebColour("#999999")
-        };
-    }
     /**
      * Renders a rectangle of colour in a list cell.  The colour is determined
      * by the list item value, which must be of type java.awt.Color.
