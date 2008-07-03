@@ -32,6 +32,7 @@
 
 package ca.sqlpower.architect.swingui.action;
 
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
@@ -44,20 +45,21 @@ import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class AlignTableAction extends AbstractArchitectAction implements SelectionListener{
-   
+public class AlignTableAction extends AbstractArchitectAction implements SelectionListener {
+
     private static final Logger logger = Logger.getLogger(AlignTableAction.class);
-    
+
     private boolean isHorizontal;
-    
-    public AlignTableAction(ArchitectSwingSession session, String actionName, String actionDescription, boolean isHorizontal) {
+
+    public AlignTableAction(ArchitectSwingSession session, String actionName, String actionDescription,
+            boolean isHorizontal) {
         super(session, actionName, actionDescription);
         this.isHorizontal = isHorizontal;
         setEnabled(true);
-        
+
         playpen.addSelectionListener(this);
     }
-    
+
     /**
      * The action for aligning tables either horizontally or vertically.
      */
@@ -67,11 +69,12 @@ public class AlignTableAction extends AbstractArchitectAction implements Selecti
             JOptionPane.showMessageDialog(playpen, Messages.getString("AlignTableAction.selectAtLeastTwoTables")); //$NON-NLS-1$
         } else if (selection.size() >= 2) {
             int min = Integer.MAX_VALUE;
+            Point oldLocation;
             playpen.startCompoundEdit("Aligning tables"); //$NON-NLS-1$
             logger.debug("Starting to align " + selection.size() + "tables"); //$NON-NLS-1$ //$NON-NLS-2$
             if (!isHorizontal) {
                 for (int i = 0; i < selection.size(); i++) {
-                    if (selection.get(i).getX() < min) { 
+                    if (selection.get(i).getX() < min) {
                         min = (selection.get(i)).getX();
                     }
                 }
@@ -80,7 +83,7 @@ public class AlignTableAction extends AbstractArchitectAction implements Selecti
                 }
             } else {
                 for (int i = 0; i < selection.size(); i++) {
-                    if (selection.get(i).getY() < min) { 
+                    if (selection.get(i).getY() < min) {
                         min = (selection.get(i)).getY();
                     }
                 }
@@ -96,11 +99,9 @@ public class AlignTableAction extends AbstractArchitectAction implements Selecti
     }
 
     public void itemDeselected(SelectionEvent e) {
-        // TODO Auto-generated method stub
     }
 
     public void itemSelected(SelectionEvent e) {
-        // TODO Auto-generated method stub
     }
 
 }
