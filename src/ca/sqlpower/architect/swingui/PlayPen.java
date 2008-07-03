@@ -505,7 +505,7 @@ public class PlayPen extends JPanel
      * be your own private (shallow) copy, so you are free to modify it.
      */
     public List<SQLTable> getTables() throws ArchitectException {
-        List<SQLTable> tables = new ArrayList();
+        List<SQLTable> tables = new ArrayList<SQLTable>();
         ArchitectUtils.extractTables(session.getTargetDatabase(),tables);
         return tables;
 
@@ -528,7 +528,7 @@ public class PlayPen extends JPanel
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't listen to database", ex); //$NON-NLS-1$
 		}
-		tableNames = new HashSet();
+		tableNames = new HashSet<String>();
 	}
 
     protected void setDatabaseConnection(SPDataSource dbcs){
@@ -743,9 +743,9 @@ public class PlayPen extends JPanel
 
 		getActionMap().put(KEY_SELECT_DOWNWARD, new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
-				List items = getSelectedItems();
+				List<PlayPenComponent> items = getSelectedItems();
 				if (items.size() == 1) {
-					PlayPenComponent item = (PlayPenComponent) items.get(0);
+					PlayPenComponent item = items.get(0);
 					if (item instanceof TablePane) {
 						TablePane tp = (TablePane) item;
 						int oldIndex = tp.getSelectedColumnIndex();
@@ -1016,9 +1016,7 @@ public class PlayPen extends JPanel
 		normalizing=true;
 		int minX = 0;
 		int minY = 0;
-		Iterator it = getTablePanes().iterator();
-		while (it.hasNext()) {
-			TablePane tp = (TablePane) it.next();
+		for (TablePane tp : getTablePanes()) {
 			minX = Math.min(minX, tp.getX());
 			minY = Math.min(minY, tp.getY());
 		}
@@ -1026,9 +1024,7 @@ public class PlayPen extends JPanel
 		//Readjusts the table pane, since minX and min <= 0,
 		//the adjustments of subtracting minX and/or minY makes sense.
 		if ( minX < 0 || minY < 0 ) {
-			it = getTablePanes().iterator();
-			while (it.hasNext()) {
-				TablePane tp = (TablePane) it.next();
+			for (TablePane tp : getTablePanes()) {
 				tp.setLocation(tp.getX()-minX, tp.getY()-minY);
 			}
 
@@ -2933,10 +2929,7 @@ public class PlayPen extends JPanel
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			List items = pp.getSelectedItems();
-			Iterator it = items.iterator();
-			while (it.hasNext()) {
-				PlayPenComponent c = (PlayPenComponent) it.next();
+			for (PlayPenComponent c : pp.getSelectedItems()) {
 				pp.contentPane.remove(c);
 				if (c instanceof Relationship) {
 					pp.contentPane.add(c,pp.contentPane.getFirstRelationIndex());
@@ -2958,10 +2951,7 @@ public class PlayPen extends JPanel
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			List items = pp.getSelectedItems();
-			Iterator it = items.iterator();
-			while (it.hasNext()) {
-				PlayPenComponent c = (PlayPenComponent) it.next();
+			for (PlayPenComponent c : pp.getSelectedItems()) {
 				pp.contentPane.remove(c);
 				if (c instanceof Relationship) {
 					pp.contentPane.add(c,pp.contentPane.getComponentCount());
@@ -3194,8 +3184,9 @@ public class PlayPen extends JPanel
         }
         
         // Scroll to last tree path.
-        if(lastPath != null)
+        if (lastPath != null) {
             tree.scrollPathToVisible(lastPath);
+        }
         
         tree.setSelectionPaths(selectionPaths.toArray(new TreePath[selectionPaths.size()]));
         if (addedPaths) {

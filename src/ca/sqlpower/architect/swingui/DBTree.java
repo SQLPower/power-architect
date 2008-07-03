@@ -999,28 +999,6 @@ public class DBTree extends JTree implements DragSourceListener {
     }
     
     /**
-     * Returns an array of TreePaths for the given SQLObject. Currently only
-     * SQLRelationships are handled for multiple TreePaths.
-     * 
-     * @param obj SQLObject to build TreePath upon.
-     * @return array of TreePaths for given object.
-     */
-    public TreePath[] getTreePathsForNode(SQLObject obj) {
-        List<TreePath> treePaths = new ArrayList<TreePath>();
-
-        treePaths.add(getTreePathForNode(obj));
-        
-        // SQLRelationship's have two nodes on the Tree, under pkTable and fkTable.
-        if (obj instanceof SQLRelationship) {
-            SQLTable fkTable = ((SQLRelationship) obj).getFkTable();
-            TreePath tp = getTreePathForNode(fkTable.getImportedKeysFolder());
-            treePaths.add(tp.pathByAddingChild(obj));
-        }
-        
-        return treePaths.toArray(new TreePath[treePaths.size()]);
-    }
-    
-    /**
      * Returns the TreePath built from the getParent() of the given SQLObject.
      * 
      * @param obj SQLObject to build TreePath upon.
@@ -1029,7 +1007,7 @@ public class DBTree extends JTree implements DragSourceListener {
     public TreePath getTreePathForNode(SQLObject obj) {
         List<SQLObject> path = new ArrayList<SQLObject>();
         
-        while(obj != null) {
+        while (obj != null) {
             path.add(0, obj);
             obj = obj.getParent();
         }
