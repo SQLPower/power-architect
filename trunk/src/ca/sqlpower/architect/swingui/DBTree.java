@@ -1088,7 +1088,7 @@ public class DBTree extends JTree implements DragSourceListener {
     }
     
     /**
-     * Adds to select all child tables of the current table
+     * Adds to selection all child tables of the current table
      */
     protected class SelectAllChildTablesAction extends AbstractAction {
         public SelectAllChildTablesAction() {
@@ -1108,8 +1108,8 @@ public class DBTree extends JTree implements DragSourceListener {
                         DBTree.this.addSelectionPath(getTreePathForNode(childTable));
                     }
                 }
-            } catch (Exception e1) {
-                e1.printStackTrace();
+            } catch (ArchitectException ex) {
+                ex.printStackTrace();
                 return;
             }
         }

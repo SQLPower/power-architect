@@ -292,51 +292,40 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 
 
     public boolean hasUnsavedChanges() {
-        // TODO return whether this panel has been changed
         return true;
     }
 
-    // -----------------Methods from SQLObjectListener------------------- //
-
     public void dbChildrenInserted(SQLObjectEvent e) {
-        // TODO Auto-generated method stub
         
     }
 
 
+    /**
+     * Checks to see if its respective relationship is removed from
+     * playpen. If yes, exit the editing dialog window.
+     */
     public void dbChildrenRemoved(SQLObjectEvent e) {
         logger.debug("SQLObject children got removed: "+e);
-        boolean itemDeleted = false;
         SQLObject[] c = e.getChildren();
-        
-        for (int i = 0; i < c.length; i++) {
-            
-            try {
-                if(this.relationship.equals(c[i])) {
-                    itemDeleted = true;
-                    break;
+
+        for (SQLObject obj : c) {
+            if(relationship.equals(obj)) {
+                if(editDialog != null) {
+                    editDialog.setVisible(false);
+                    editDialog.dispose();
                 }
-            } catch (Exception ex) {
-                logger.error("Could not compare the removed sql objects.", ex);
+                break;
             }
-        }
-        if(itemDeleted) {
-            if(this.editDialog != null) {
-                this.editDialog.setVisible(false);
-            }
-            itemDeleted = false;
         }
     }
 
 
     public void dbObjectChanged(SQLObjectEvent e) {
-        // TODO Auto-generated method stub
         
     }
 
 
     public void dbStructureChanged(SQLObjectEvent e) {
-        // TODO Auto-generated method stub
         
     }
     

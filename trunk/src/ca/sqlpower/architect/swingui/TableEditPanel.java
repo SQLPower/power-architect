@@ -151,7 +151,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                     pkName.getText().trim().length() == 0) {
                 warnings.append(Messages.getString("TableEditPanel.blankPkNameWarning"));                 //$NON-NLS-1$
             }
-            
+
             if (warnings.toString().length() == 0) {
                 
                 // important: set the primary key name first, because if the primary
@@ -253,59 +253,50 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
         return true;
     }
 
-    // -----------------Methods from SQLObjectListener------------------- //
-    
     public void dbChildrenInserted(SQLObjectEvent e) {
-        // TODO Auto-generated method stub
-        
+
     }
 
+    /**
+     * Checks to see if its respective table is removed from playpen. If yes,
+     * exit the editing dialog window.
+     */
     public void dbChildrenRemoved(SQLObjectEvent e) {
-        logger.debug("SQLObject children got removed: "+e); //$NON-NLS-1$
-        boolean itemDeleted = false;
+        logger.debug("SQLObject children got removed: " + e);
         SQLObject[] c = e.getChildren();
-        
-        for (int i = 0; i < c.length; i++) {            
-            try {
-                if(this.table.equals(c[i])) {
-                    itemDeleted = true;
-                    break;
+
+        for (SQLObject obj : c) {
+            if (table.equals(obj)) {
+                if (editDialog != null) {
+                    editDialog.setVisible(false);
+                    editDialog.dispose();
                 }
-            } catch (Exception ex) {
-                logger.error("Could not compare the removed sql objects.", ex); //$NON-NLS-1$
+                break;
             }
         }
-        if(itemDeleted) {
-            if(this.editDialog != null) {
-                this.editDialog.setVisible(false);
-                this.editDialog.dispose();
-            }
-            itemDeleted = false;
-        }        
     }
 
     public void dbObjectChanged(SQLObjectEvent e) {
-        // TODO Auto-generated method stub
-        
+
     }
 
     public void dbStructureChanged(SQLObjectEvent e) {
-        // TODO Auto-generated method stub
-        
+
     }
-    
+
     public void setEditDialog(JDialog editDialog) {
         this.editDialog = editDialog;
     }
-    
+
     /**
-     * Renders a rectangle of colour in a list cell.  The colour is determined
-     * by the list item value, which must be of type java.awt.Color.
+     * Renders a rectangle of colour in a list cell. The colour is determined by
+     * the list item value, which must be of type java.awt.Color.
      */
     private class ColorCellRenderer extends DefaultListCellRenderer {
         @Override
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            super.getListCellRendererComponent(list, "", index, isSelected, cellHasFocus); //$NON-NLS-1$
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+                boolean cellHasFocus) {
+            super.getListCellRendererComponent(list, "", index, isSelected, cellHasFocus);
             if (value == null) {
                 value = Color.BLACK;
             }
@@ -316,29 +307,30 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
             return this;
         }
     }
-    
+
     /**
-     * This class converts a Color into an icon that has width of 85 pixels
-     * and height of 50 pixels.
+     * This class converts a Color into an icon that has width of 85 pixels and
+     * height of 50 pixels.
      */
     private class ColorIcon implements Icon {
         private int HEIGHT = 20;
+
         private int WIDTH = 40;
-        
+
         private Color colour;
-     
+
         public ColorIcon(Color colour) {
             this.colour = colour;
         }
-     
+
         public int getIconHeight() {
             return HEIGHT;
         }
-     
+
         public int getIconWidth() {
             return WIDTH;
         }
-     
+
         public void paintIcon(Component c, Graphics g, int x, int y) {
             g.setColor(colour);
             g.fillRect(x, y, WIDTH - 1, HEIGHT - 1);
