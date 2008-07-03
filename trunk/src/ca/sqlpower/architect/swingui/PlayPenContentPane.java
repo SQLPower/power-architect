@@ -23,6 +23,7 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class PlayPenContentPane {
 	protected PlayPen owner;
 	private List<PlayPenComponent> children = new ArrayList<PlayPenComponent>();
 	private List<Relationship> relations = new ArrayList<Relationship>();
-	private List<PropertyChangeListener> propertyChangeListeners = new ArrayList<PropertyChangeListener>();
+	private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	private PropertyChangeEventPassthrough propertyChangeEventPassthrough;
 
 
@@ -190,17 +191,19 @@ public class PlayPenContentPane {
 	// ----------------- PropertyChangeListener Passthrough stuff ---------------------------
 	
 	public void addPropertyChangeListener(PropertyChangeListener l) {
-	    propertyChangeListeners.add(l);
+	    pcs.addPropertyChangeListener(l);
+	}
+	
+	public void addPropertyChangeListener(String propertyName, PropertyChangeListener l) {
+	    pcs.addPropertyChangeListener(propertyName, l);
 	}
 	
 	public void removePropertyChangeListener(PropertyChangeListener l) {
-	    propertyChangeListeners.remove(l);
+	    pcs.removePropertyChangeListener(l);
 	}
 	
 	private void refirePropertyChanged(PropertyChangeEvent e) {
-	    for (PropertyChangeListener l : propertyChangeListeners) {
-	        l.propertyChange(e);
-	    }
+	    pcs.firePropertyChange(e);
 	}
 	
 	private class PropertyChangeEventPassthrough implements PropertyChangeListener {

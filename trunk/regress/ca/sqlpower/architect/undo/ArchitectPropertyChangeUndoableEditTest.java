@@ -29,7 +29,7 @@ import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 
-public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
+public class ArchitectPropertyChangeUndoableEditTest extends TestCase {
     
 	private UndoManager undoManager;
 	
@@ -216,7 +216,7 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 	 */
 	public void testMovementPropertyChange() {
 	    TestPlayPenComp comp = new TestPlayPenComp(null);
-	    comp.addPropertyChangeListener(undoManager.getEventAdapter());
+	    comp.addPropertyChangeListener("location", undoManager.getEventAdapter());
 	    Point oldLocation = comp.getLocation();
 	    Point newLocation = new Point(1, 2);
 	    comp.setLocation(newLocation);
@@ -235,7 +235,7 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 	 */
 	public void testConnectionPointPropertyChange() {
         TestPlayPenComp comp = new TestPlayPenComp(null);
-        comp.addPropertyChangeListener(undoManager.getEventAdapter());
+        comp.addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter());
         Point[] oldConnectionPoints = comp.getConnectionPoints();
         Point[] newConnectionPoints = {new Point(oldConnectionPoints[0].x + 10, oldConnectionPoints[0].y + 20), 
                 new Point(oldConnectionPoints[1].x + 30, oldConnectionPoints[1].y + 40)};

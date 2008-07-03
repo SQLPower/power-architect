@@ -19,13 +19,10 @@
 
 package ca.sqlpower.architect.undo;
 
-import java.awt.Point;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -43,10 +40,6 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.PlayPenComponent;
-import ca.sqlpower.architect.swingui.Relationship;
-import ca.sqlpower.architect.swingui.event.PlayPenComponentMovedEvent;
-import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 
 public class UndoManager extends javax.swing.undo.UndoManager {
 
@@ -57,7 +50,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
      * into specific edits and adds them to an UndoManager.
      */
     public class SQLObjectUndoableEventAdapter implements UndoCompoundEventListener, SQLObjectListener,
-            PropertyChangeListener {
+    PropertyChangeListener {
 
         private final class CompEdit extends CompoundEdit {
 
@@ -109,16 +102,10 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 
         private int compoundEditStackCount;
 
-        private HashMap<PlayPenComponent, Point> newPositions;
-
-        private HashMap<PlayPenComponent, Point> originalPositions;
-
         public SQLObjectUndoableEventAdapter() {
 
             ce = null;
             compoundEditStackCount = 0;
-            newPositions = new HashMap<PlayPenComponent, Point>();
-            originalPositions = new HashMap<PlayPenComponent, Point>();
         }
 
         /**
@@ -234,33 +221,26 @@ public class UndoManager extends javax.swing.undo.UndoManager {
         }
 
         /**
+         * Packs property change event into PropertyChangeEdit and then adds
+         * to the undo manager.
+         */
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (UndoManager.this.isUndoOrRedoing()) {
+                return;
+            }
+            PropertyChangeEdit edit = new PropertyChangeEdit(evt);
+            addEdit(edit);
+        }
+
+        /**
          * Return to a single edit state from a compound edit state
-         * 
          */
         private void returnToEditState() {
             if (compoundEditStackCount != 0) {
                 throw new IllegalStateException("The compound edit stack (" + compoundEditStackCount + ") should be 0");
             }
-
-            // add any movements
-            List<PropertyChangeEvent> condensedMoveEvents = new ArrayList<PropertyChangeEvent>();
-
-            for (Map.Entry<PlayPenComponent, Point> ent : newPositions.entrySet()) {
-                PlayPenComponent ppc = ent.getKey();
-                Point oldPos = originalPositions.get(ppc);
-                Point newPos = ent.getValue();
-                condensedMoveEvents.add(new PlayPenComponentMovedEvent(ppc, oldPos, newPos));
-            }
-
             if (ce != null) {
-                if (condensedMoveEvents.size() > 0) {
-                    PropertyChangeEdit tableEdit = new PropertyChangeEdit(condensedMoveEvents);
-                    ce.addEdit(tableEdit);
-                }
-                // make sure the edit is no longer in progress
                 ce.end();
-
-                newPositions.clear();
                 if (ce.canUndo()) {
                     if (logger.isDebugEnabled())
                         logger.debug("Adding compound edit " + ce + " to undo manager");
@@ -270,44 +250,9 @@ public class UndoManager extends javax.swing.undo.UndoManager {
                         logger.debug("Compound edit " + ce + " is not undoable so we are not adding it");
                 }
                 ce = null;
-            } else {
-                if (condensedMoveEvents.size() > 0) {
-                    UndoManager.this.addEdit(new PropertyChangeEdit(condensedMoveEvents));
-                }
-                newPositions.clear();
             }
             fireStateChanged();
             logger.debug("Returning to regular state");
-        }
-
-        /**
-         * Packs property change events into various edits and then adds
-         * to the undo manager.
-         */
-        public void propertyChange(PropertyChangeEvent evt) {
-            if (UndoManager.this.isUndoOrRedoing())
-                return;
-            /*
-             * PlaypenComponentMovedEvent(TablePane movements) are handle differently
-             * here because it would be faster when trying to undo auto layout when
-             * dealing with a large number of tables. The events are first packed into
-             * a list and then into 1 edit rather than a series of edits, each containing
-             * 1 event.
-             */
-            else if (evt instanceof PlayPenComponentMovedEvent) {
-                if (evt.getSource() instanceof Relationship) return;
-                PlayPenComponentMovedEvent e = (PlayPenComponentMovedEvent) evt;
-                if (newPositions.put(e.getPPComponent(), e.getNewPoint()) == null) {
-                    originalPositions.put(e.getPPComponent(), e.getOldPoint());
-                }
-                if (ce == null) {
-                    returnToEditState();
-                }
-            } else if (evt instanceof RelationshipConnectionPointEvent) {
-                RelationshipConnectionPointEvent e = (RelationshipConnectionPointEvent) evt;
-                PropertyChangeEdit relConnectionEvents = new PropertyChangeEdit(e);
-                addEdit(relConnectionEvents);
-            }
         }
 
         public void compoundEditStart(UndoCompoundEvent e) {
@@ -356,7 +301,8 @@ public class UndoManager extends javax.swing.undo.UndoManager {
         ArchitectUtils.addUndoListenerToHierarchy(eventAdapter, sqlObjectRoot);
         if (playPen != null) {
             playPen.addUndoEventListener(eventAdapter);
-            playPen.getPlayPenContentPane().addPropertyChangeListener(eventAdapter);
+            playPen.getPlayPenContentPane().addPropertyChangeListener("location", eventAdapter);
+            playPen.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", eventAdapter);
         }
     }
 
