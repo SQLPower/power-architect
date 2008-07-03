@@ -31,8 +31,8 @@ This document intends to outline the details of future planned releases of the P
   * Expand all and collapse all options on the DB Tree
   * List of source connections in the top menu bar now updates properly
   * Columns in the Playpen are specially marked if they are a primary key, a foreign key, or an alternate key
-  * 1548, BLOB and CLOB no longer specify precision/size in Oracle DDL
-  * 1542, Column insertion point correction during addition/removal
-  * 1301, Sorting tables by date in the Profile Manager now works properly
-  * 1580, Sorting tables by date is done dynamically during profiling
-  * 1161, Tables are now created in the correct location after changing the zoom level
+  * Bug 1548: BLOB and CLOB no longer specify precision/size in Oracle DDL
+  * Bug 1542: Column insertion point correction during addition/removal
+  * Bug 1301: Sorting tables by date in the Profile Manager now works properly
+  * Bug 1580: Sorting tables by date is done dynamically during profiling
+  * Bug 1161: Tables are now created in the correct location after changing the zoom level
