@@ -1110,7 +1110,7 @@ public class DBTree extends JTree implements DragSourceListener {
                 }
             } catch (ArchitectException ex) {
                 ex.printStackTrace();
-                return;
+                throw new ArchitectRuntimeException(ex);
             }
         }
     }
