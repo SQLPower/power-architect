@@ -7,6 +7,7 @@
 This document intends to outline the details of future planned releases of the Power*Architect. Details included planned features, bug fixes, and enhancements, and estimated release dates.
 
 
+
 = Details =
 == Release 0.9.11 ==
 
@@ -19,7 +20,7 @@ This document intends to outline the details of future planned releases of the P
   * Undo/Redo now work with relationships, including moving connection points, and straigtening lines.
   * Pption to hide certain types columns
   * Ability to change the colour of tables and their text, and the ability to display them with rounded edges.
-  * Auto-scrolling for playpen
+  * Auto-scrolling for the Playpen
   * Ability to reverse the direction of a relationship
   * Ability to focus on either the parent or child table of a relationship from its right-click menu
   * Ability to delete columns when columns and relationships are selected at the same time
