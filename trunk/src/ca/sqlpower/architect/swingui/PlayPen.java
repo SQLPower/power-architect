@@ -1782,7 +1782,7 @@ public class PlayPen extends JPanel
 	 * user clicks.
 	 */
 	public void addFloating(TablePane tp) {
-	    new FloatingTableListener(this, tp, this.unzoomPoint(new Point(0,0)),true);
+	    new FloatingTableListener(this, tp, zoomPoint(new Point(tp.getSize().width/2,0)),true);
 	}
 
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
@@ -2732,6 +2732,7 @@ public class PlayPen extends JPanel
 	 * follows the mouse.  When the user lifts the mouse button, it
 	 * stops moving the component, and unregisters itself as a
 	 * listener.
+	 * 
 	 */
 	public static class FloatingTableListener extends  MouseInputAdapter implements CancelableListener  {
 	    
@@ -2767,7 +2768,7 @@ public class PlayPen extends JPanel
 			Point startLocation = pi.getLocation();
 			SwingUtilities.convertPointFromScreen(startLocation,pp);
 			logger.debug("Adding floating table at:"+ startLocation); //$NON-NLS-1$
-			p = pp.zoomPoint(startLocation);
+			p = new Point(startLocation.x - handle.x, startLocation.y - handle.y);
 
 			this.tp = tp;
 			this.handle = handle;
@@ -2793,7 +2794,7 @@ public class PlayPen extends JPanel
 
 		public void mouseDragged(MouseEvent e) {
 			pp.zoomPoint(e.getPoint());
-			p = new Point(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
+			p.setLocation(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
 			pp.setChildPosition(tp, p);
 			JViewport viewport = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, pp);
 	        if(viewport==null || pp.getSelectedItems().size() < 1) 
