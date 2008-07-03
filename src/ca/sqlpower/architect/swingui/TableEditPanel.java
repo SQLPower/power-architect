@@ -77,31 +77,31 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		this.session = session;
 		this.tp = session.getPlayPen().findTablePane(t);
 		addUndoEventListener(session.getUndoManager().getEventAdapter());
-		add(new JLabel("Table Name"));
-		add(name = new JTextField("", 30));
-		add(new JLabel("Primary Key Name"));
-		add(pkName = new JTextField("", 30));
-		add(new JLabel("Remarks"));
+		add(new JLabel(Messages.getString("TableEditPanel.tableNameLabel"))); //$NON-NLS-1$
+		add(name = new JTextField("", 30)); //$NON-NLS-1$
+		add(new JLabel(Messages.getString("TableEditPanel.primaryKeyNameLabel"))); //$NON-NLS-1$
+		add(pkName = new JTextField("", 30)); //$NON-NLS-1$
+		add(new JLabel(Messages.getString("TableEditPanel.remarksLabel"))); //$NON-NLS-1$
 		add(new JScrollPane(remarks = new JTextArea(4, 30)));
 		remarks.setLineWrap(true);
 		remarks.setWrapStyleWord(true);
 		
-		add(new JLabel("Table Colour"));
+		add(new JLabel(Messages.getString("TableEditPanel.tableColourLabel"))); //$NON-NLS-1$
 		ColorCellRenderer renderer = new ColorCellRenderer();
 		bgColor = new JComboBox(ColorScheme.BACKGROUND_COLOURS);
         bgColor.setRenderer(renderer);
         bgColor.addItem(new Color(240, 240, 240));
 		add(bgColor);
 		
-		add(new JLabel("Text Colour"));
+		add(new JLabel(Messages.getString("TableEditPanel.textColourLabel"))); //$NON-NLS-1$
 		fgColor = new JComboBox(ColorScheme.FOREGROUND_COLOURS);
         fgColor.setRenderer(renderer);
         fgColor.addItem(Color.BLACK);
         add(fgColor);
         
-        add(new JLabel("Dashed Lines"));
+        add(new JLabel(Messages.getString("TableEditPanel.dashedLinesLabel"))); //$NON-NLS-1$
         add(dashed = new JCheckBox());
-        add(new JLabel("Rounded Corners"));
+        add(new JLabel(Messages.getString("TableEditPanel.roundedCornersLabel"))); //$NON-NLS-1$
         add(rounded = new JCheckBox());        
         
 		editTable(t);
@@ -138,18 +138,18 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
-		startCompoundEdit("Table Properties Change");		
+		startCompoundEdit("Table Properties Change");		 //$NON-NLS-1$
         try {	
 		    StringBuffer warnings = new StringBuffer();
             //We need to check if the table name and/or primary key name is empty or not
             //if they are, we need to warn the user since it will mess up the SQLScripts we create
             if (name.getText().trim().length() == 0) {
-                warnings.append("The table cannot be assigned a blank name \n");
+                warnings.append(Messages.getString("TableEditPanel.blankTableNameWarning")); //$NON-NLS-1$
                 
             }
             if (pkName.isEnabled() &&
                     pkName.getText().trim().length() == 0) {
-                warnings.append("The primary key cannot be assigned a blank name");                
+                warnings.append(Messages.getString("TableEditPanel.blankPkNameWarning"));                 //$NON-NLS-1$
             }
             
             if (warnings.toString().length() == 0) {
@@ -183,7 +183,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		} catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         } finally {
-			endCompoundEdit("Ending new compound edit event in table edit panel");
+			endCompoundEdit("Ending new compound edit event in table edit panel"); //$NON-NLS-1$
 		}
 	}
 
@@ -261,7 +261,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
     }
 
     public void dbChildrenRemoved(SQLObjectEvent e) {
-        logger.debug("SQLObject children got removed: "+e);
+        logger.debug("SQLObject children got removed: "+e); //$NON-NLS-1$
         boolean itemDeleted = false;
         SQLObject[] c = e.getChildren();
         
@@ -272,7 +272,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                     break;
                 }
             } catch (Exception ex) {
-                logger.error("Could not compare the removed sql objects.", ex);
+                logger.error("Could not compare the removed sql objects.", ex); //$NON-NLS-1$
             }
         }
         if(itemDeleted) {
@@ -305,7 +305,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
     private class ColorCellRenderer extends DefaultListCellRenderer {
         @Override
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            super.getListCellRendererComponent(list, "", index, isSelected, cellHasFocus);
+            super.getListCellRendererComponent(list, "", index, isSelected, cellHasFocus); //$NON-NLS-1$
             if (value == null) {
                 value = Color.BLACK;
             }
