@@ -65,26 +65,26 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 
 	public void setup() {
 		setLayout(new FormLayout());
-		add(new JLabel("Snapshot Entire Source Database in Project File?"));
+		add(new JLabel(Messages.getString("ProjectSettingsPanel.snapshotSourceDbOption"))); //$NON-NLS-1$
 		add(saveEntireSource = new JCheckBox());
 
-        add(new JLabel("Number of Common Values in Profiles:"));
-        add(numberOfFreqValues = new JTextField("",6));
+        add(new JLabel(Messages.getString("ProjectSettingsPanel.numCommonProfileValues"))); //$NON-NLS-1$
+        add(numberOfFreqValues = new JTextField("",6)); //$NON-NLS-1$
         
-        add(new JLabel("Profile Creator Mode:"));
+        add(new JLabel(Messages.getString("ProjectSettingsPanel.profileMode"))); //$NON-NLS-1$
         add(profileMode = new JComboBox(session.getProfileManager().getProfileCreators().toArray()));
         
-        add(new JLabel("Draw Relationships With:"));
-        add(rectilinearRelationships = new JRadioButton("Rectilinear Lines"));
+        add(new JLabel(Messages.getString("ProjectSettingsPanel.relationshipLineStyle"))); //$NON-NLS-1$
+        add(rectilinearRelationships = new JRadioButton(Messages.getString("ProjectSettingsPanel.rectilinearLineOption"))); //$NON-NLS-1$
         add(new JLabel());
-        add(directRelationships = new JRadioButton("Direct Lines"));
+        add(directRelationships = new JRadioButton(Messages.getString("ProjectSettingsPanel.directLineOption"))); //$NON-NLS-1$
         ButtonGroup lineStyleGroup = new ButtonGroup();
         lineStyleGroup.add(rectilinearRelationships);
         lineStyleGroup.add(directRelationships);
 	}
 
 	private void revertToProjectSettings() {
-        logger.debug("Reverting project options");
+        logger.debug("Reverting project options"); //$NON-NLS-1$
         numberOfFreqValues.setText(String.valueOf(session.getProfileManager().getDefaultProfileSettings().getTopNCount()));
         profileMode.setSelectedItem(session.getProfileManager().getCreator());
 		saveEntireSource.setSelected(session.isSavingEntireSource());
@@ -103,7 +103,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
                 session.getProfileManager().getDefaultProfileSettings().setTopNCount(Integer.valueOf(numberOfFreqValues.getText()));
             } catch ( NumberFormatException e ) {
                 ASUtils.showExceptionDialogNoReport(this,
-                        "Number Format Error", e);
+                        "Number Format Error", e); //$NON-NLS-1$
             }
         }
         
