@@ -119,35 +119,35 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 		pageFormat.getPaper().setImageableArea(50, 50, pageFormat.getWidth()-(50*2), pageFormat.getHeight()-(50*2));
 
 		JPanel formPanel = new JPanel(new FormLayout());
-		formPanel.add(new JLabel("Printer"));
+		formPanel.add(new JLabel(Messages.getString("PrintPanel.printerLabel"))); //$NON-NLS-1$
 		formPanel.add(printerBox = new JComboBox(PrinterJob.lookupPrintServices()));
 		printerBox.setSelectedItem(getPreferredPrinter(session));				
 
-		formPanel.add(new JLabel("Page Format"));
+		formPanel.add(new JLabel(Messages.getString("PrintPanel.pageFormateLabel"))); //$NON-NLS-1$
 		String pf = paperToPrintable(pageFormat);
 		formPanel.add(pageFormatLabel = new JLabel(pf.toString()));
 		
-		formPanel.add(new JLabel("Number of Copies"));
+		formPanel.add(new JLabel(Messages.getString("PrintPanel.numCopiesLabel"))); //$NON-NLS-1$
 		numOfCopies = new JSpinner(new SpinnerNumberModel(1, 1, null, 1));
 		formPanel.add(numOfCopies);
 		
-		formPanel.add(new JLabel("Change Page Format"));
-		formPanel.add(pageFormatButton = new JButton("Change Page Format"));
+		formPanel.add(new JLabel(Messages.getString("PrintPanel.changePageFormatLabel"))); //$NON-NLS-1$
+		formPanel.add(pageFormatButton = new JButton(Messages.getString("PrintPanel.changePageFormatLabel"))); //$NON-NLS-1$
 		pageFormatButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					setPageFormat(job.pageDialog(pageFormat));
 				}
 		});
-		formPanel.add(zoomLabel = new JLabel("Scaling = 100%"));
+		formPanel.add(zoomLabel = new JLabel(Messages.getString("PrintPanel.scalingLabel"))); //$NON-NLS-1$
 		formPanel.add(zoomSlider = new JSlider(JSlider.HORIZONTAL, 1, 300, 100));
 		
-		formPanel.add(new JLabel(""));
-		formPanel.add(printPageNumbersBox = new JCheckBox("Print Page Numbers in Top Margin"));
+		formPanel.add(new JLabel("")); //$NON-NLS-1$
+		formPanel.add(printPageNumbersBox = new JCheckBox(Messages.getString("PrintPanel.printPageNumbersOption"))); //$NON-NLS-1$
 		printPageNumbersBox.setSelected(true);
 		
 		setZoom(1.0);
 		zoomSlider.addChangeListener(this);
-		pageCountLabel = new JLabel("Page Count: "+getNumberOfPages());
+		pageCountLabel = new JLabel(Messages.getString("PrintPanel.pageCountLabel", String.valueOf(getNumberOfPages()))); //$NON-NLS-1$
 		formPanel.add(pageCountLabel);
 		add(formPanel);		
 	}
@@ -160,15 +160,15 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 	public static String paperToPrintable(PageFormat pageFormat) {
 		StringBuffer pf = new StringBuffer();
 		Paper paper = pageFormat.getPaper();
-		pf.append(String.format("%.1f", paper.getWidth()/72));
+		pf.append(String.format("%.1f", paper.getWidth()/72)); //$NON-NLS-1$
 		pf.append('x');
-		pf.append(String.format("%.1f", paper.getHeight()/72));
+		pf.append(String.format("%.1f", paper.getHeight()/72)); //$NON-NLS-1$
 		pf.append('-');
 		switch(pageFormat.getOrientation()){
-		case PageFormat.PORTRAIT: pf.append("(portrait)"); break;
-		case PageFormat.LANDSCAPE: pf.append("(landscape)"); break;
-		case PageFormat.REVERSE_LANDSCAPE: pf.append("(rev. landscape)"); break;
-		default: pf.append("(?)");
+		case PageFormat.PORTRAIT: pf.append("(portrait)"); break; //$NON-NLS-1$
+		case PageFormat.LANDSCAPE: pf.append("(landscape)"); break; //$NON-NLS-1$
+		case PageFormat.REVERSE_LANDSCAPE: pf.append("(rev. landscape)"); break; //$NON-NLS-1$
+		default: pf.append("(?)"); //$NON-NLS-1$
 		}
 		return pf.toString();
 	}
@@ -200,7 +200,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			if (pf != oldPF) {
 				validateLayout();
 				pageFormatLabel.setText(paperToPrintable(pageFormat));
-				firePropertyChange("pageFormat", oldPF, pageFormat);
+				firePropertyChange("pageFormat", oldPF, pageFormat); //$NON-NLS-1$
 			}
 		}
 	}
@@ -221,14 +221,14 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 		
 		pagesAcross = (int) Math.ceil(zoom * ppWidth / paperWidth);
 		pagesDown = (int) Math.ceil(zoom * ppHeight / paperHeight);
-		pageCountLabel.setText("Page Count: "+getNumberOfPages());
+		pageCountLabel.setText(Messages.getString("PrintPanel.pageCountLabel", String.valueOf(getNumberOfPages()))); //$NON-NLS-1$
 	}
 
 	public void setZoom(double newZoom) {
 		double oldZoom = zoom;
 		zoom = newZoom;
-		zoomLabel.setText("Scaling = "+((int) (newZoom*100.0))+"%");
-		firePropertyChange("zoom", oldZoom, zoom);
+		zoomLabel.setText(Messages.getString("PrintPanel.zoomLabel", String.valueOf((int)(newZoom*100.0)))); //$NON-NLS-1$
+		firePropertyChange("zoom", oldZoom, zoom); //$NON-NLS-1$
 	}
 
 	// ---- change listener interface (for the slider) ----
@@ -272,8 +272,8 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			int col = pageIndex % pagesAcross;
 			int row = pageIndex / pagesAcross;
 			
-			logger.debug("Printing page "+(pageIndex+1)+" of "+(pagesAcross*pagesDown)
-					+" at ["+col+","+row+"]");
+			logger.debug("Printing page "+(pageIndex+1)+" of "+(pagesAcross*pagesDown) //$NON-NLS-1$ //$NON-NLS-2$
+					+" at ["+col+","+row+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 			AffineTransform backupXform = g2.getTransform();
 			g2.translate(leftMargin - col*width, topMargin - row*height);
@@ -282,7 +282,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			
 			g2.setTransform(backupXform);
 			if (printPageNumbersBox.isSelected()) {
-				g2.drawString("Page "+(pageIndex+1)+" of "+(pagesAcross*pagesDown),
+				g2.drawString(Messages.getString("PrintPanel.pageNumber", String.valueOf(pageIndex+1), String.valueOf(pagesAcross*pagesDown)), //$NON-NLS-1$ //$NON-NLS-2$
 						(float) (leftMargin+10.0), (float) (topMargin+10.0));
 			
 			}
@@ -307,8 +307,8 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			job.setCopies((Integer) numOfCopies.getValue());
 			job.print(jobAttributes);
 		} catch (PrinterException ex) {
-			logger.error("Printing failure", ex);
-			ASUtils.showExceptionDialogNoReport(PrintPanel.this, "Failed to print.", ex);
+			logger.error("Printing failure", ex); //$NON-NLS-1$
+			ASUtils.showExceptionDialogNoReport(PrintPanel.this, Messages.getString("PrintPanel.printFailed"), ex); //$NON-NLS-1$
 			return false;
 		}
 		return true;
@@ -402,12 +402,12 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			g2.setColor(pp.getForeground());
 			for (int i = 0; i <= pagesAcross; i++) {
 				g2.drawLine((int) (i * iW), 0, (int) (i * iW), (int) (scaledHeight*PrintPanel.this.zoom));
-				if (logger.isDebugEnabled()) logger.debug("Drew page separator at x="+(i*iW));
+				if (logger.isDebugEnabled()) logger.debug("Drew page separator at x="+(i*iW)); //$NON-NLS-1$
 			}
 
 			for (int i = 0; i <= pagesDown; i++) {
 				g2.drawLine(0, (int) (i * iH), (int) (scaledWidth*PrintPanel.this.zoom), (int) (i * iH));
-				if (logger.isDebugEnabled()) logger.debug("Drew page separator at y="+(i*iH));
+				if (logger.isDebugEnabled()) logger.debug("Drew page separator at y="+(i*iH)); //$NON-NLS-1$
 			}		
 		}
 
@@ -415,8 +415,8 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName() == null) {
 				return;
-			} else if (e.getPropertyName().equals("zoom")
-					   || e.getPropertyName().equals("pageFormat")) {
+			} else if (e.getPropertyName().equals("zoom") //$NON-NLS-1$
+					   || e.getPropertyName().equals("pageFormat")) { //$NON-NLS-1$
 				repaint();
 			}
 		}
