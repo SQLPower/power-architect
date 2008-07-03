@@ -349,11 +349,22 @@ public class DBTree extends JTree implements DragSourceListener {
         newMenu.add(new JMenuItem(collapseAllAction));
 
 		if (!isTargetDatabaseNode(p) && isTargetDatabaseChild(p)) {
-	        newMenu.add(new JMenuItem(showInPlayPenAction));
+		    JMenuItem mi;
+		    
+		    newMenu.addSeparator();
+
+		    mi = new JMenuItem(showInPlayPenAction);
+	        newMenu.add(mi);
+	           if (p.getLastPathComponent() instanceof SQLTable ||
+	                   p.getLastPathComponent() instanceof SQLColumn ||
+	                   p.getLastPathComponent() instanceof SQLRelationship) {
+	                mi.setEnabled(true);
+	            } else {
+	                mi.setEnabled(false);
+	            }
 
 			newMenu.addSeparator();
 			ArchitectFrame af = session.getArchitectFrame();
-			JMenuItem mi;
             
             mi = new JMenuItem();
             mi.setAction(af.getInsertIndexAction());
@@ -419,6 +430,8 @@ public class DBTree extends JTree implements DragSourceListener {
                 mi.setEnabled(false);
             }            
 
+            newMenu.addSeparator();
+            
 			mi = new JMenuItem();
 			mi.setAction(af.getDeleteSelectedAction());
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
