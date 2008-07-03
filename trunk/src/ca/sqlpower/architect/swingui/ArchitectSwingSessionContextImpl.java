@@ -202,19 +202,28 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws ArchitectException {
         return createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.defaultNewProjectName"), true, openingSession); //$NON-NLS-1$
     }
-    
+
     /**
-     * This is the one createSession() implementation to which all other overloads of
-     * createSession() actually delegate their work.
+     * This is the one createSession() implementation to which all other
+     * overloads of createSession() actually delegate their work.
      * <p>
-     * This method tracks all sessions that have been successfully created in the
-     * {@link #sessions} field.
+     * This method tracks all sessions that have been successfully created in
+     * the {@link #sessions} field.
      * 
      * @param projectName
-     * @return
+     *            The name of the project being opened in the new sesssion
+     * @param showGUI
+     *            If true, then displays the GUI. If false, do not show the GUI
+     * @param openingSession
+     *            If showGUI is true, then positions the new session window
+     *            relative to the openingSession's window. If null, then just
+     *            positions the new windows according to the most recently
+     *            stored user preference.
+     * @return An new ArchitectSwingSession with the given project name.
      * @throws ArchitectException
-     * @throws IllegalStateException if showGUI==true and this method was
-     * not called on the Event Dispatch Thread.
+     * @throws IllegalStateException
+     *             if showGUI==true and this method was not called on the Event
+     *             Dispatch Thread.
      */
     private ArchitectSwingSession createSessionImpl(String projectName, boolean showGUI, ArchitectSwingSession openingSession) throws ArchitectException {
         logger.debug("About to create a new session for project \"" + projectName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
@@ -226,7 +235,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             logger.debug("Creating the Architect frame..."); //$NON-NLS-1$
             session.initGUI(openingSession);
         
-            if (getSessions().size() == 1) {
+            if (openingSession == null && getSessions().size() == 1) {
                 showWelcomeScreen(session.getArchitectFrame());
             }
         }
