@@ -144,9 +144,9 @@ public abstract class PlayPenComponent implements Selectable {
         bounds.setBounds(x,y,width,height);
         
         /*
-         * At the moment only the movement of tablepanes' matters to us. So
+         * At the moment only the movement of tablepanes' is meaningful. So
          * here i've moved the firing to TablePane.setbounds(). This also
-         * allows this class to be more general.
+         * allows this class to be more generic.
          */
         
 //      if (oldBounds.x != x || oldBounds.y != y) {
@@ -265,6 +265,13 @@ public abstract class PlayPenComponent implements Selectable {
      */
     public void addPropertyChangeListener(PropertyChangeListener l) {
         pcs.addPropertyChangeListener(l);
+    }
+    
+    /**
+     * Adds a property change listener for a specific property.
+     */
+    public void addPropertyChangeListener(String propertyName, PropertyChangeListener l) {
+        pcs.addPropertyChangeListener(propertyName, l);
     }
     
     /**
