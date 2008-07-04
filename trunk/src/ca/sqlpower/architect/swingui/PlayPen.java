@@ -367,12 +367,6 @@ public class PlayPen extends JPanel
 	private DragSource ds;
 
 	private boolean normalizing;
-	
-	protected boolean showPrimary = true;
-    protected boolean showForeign = true;
-    protected boolean showIndexed = true;
-    protected boolean showUnique = true;
-    protected boolean showTheRest = true;
 
     /**
      * The session that contains this playpen
@@ -447,12 +441,6 @@ public class PlayPen extends JPanel
 	 */
 	public PlayPen(ArchitectSwingSession session, PlayPen pp) {
 		this(session);
-		
-		this.showPrimary = pp.isShowPrimary();
-		this.showForeign = pp.isShowForeign();
-		this.showIndexed = pp.isShowIndexed();
-		this.showUnique = pp.isShowUnique();
-		this.showTheRest = pp.isShowTheRest();
 
 		this.antialiasSetting = pp.antialiasSetting;
 		
@@ -2732,7 +2720,6 @@ public class PlayPen extends JPanel
 	 * follows the mouse.  When the user lifts the mouse button, it
 	 * stops moving the component, and unregisters itself as a
 	 * listener.
-	 * 
 	 */
 	public static class FloatingTableListener extends  MouseInputAdapter implements CancelableListener  {
 	    
@@ -3235,79 +3222,6 @@ public class PlayPen extends JPanel
         }
         
         scrollRectToVisible(zoomRect(r));
-    }
-    
-    /**
-     * Indicates whether the playPen should show primary keys. 
-     */
-    public boolean isShowPrimary() {
-        return showPrimary;
-    }
-
-    /**
-     * Sets whether primary keys should be shown.
-     */
-    public void setShowPrimary(boolean showPrimary) {
-        this.showPrimary = showPrimary;
-    }
-
-    /**
-     * Indicates whether the playPen should show foreign keys. 
-     */
-    public boolean isShowForeign() {
-        return showForeign;
-    }
-
-    /**
-     * Sets whether foreign keys should be shown.
-     */
-    public void setShowForeign(boolean showForeign) {
-        this.showForeign = showForeign;
-    }
-
-    /**
-     * Indicates whether the playPen should show keys that are
-     * indexed. 
-     */
-    public boolean isShowIndexed() {
-        return showIndexed;
-    }
-
-    /**
-     * Sets whether indexed keys should be shown.
-     */
-    public void setShowIndexed(boolean showIndexed) {
-        this.showIndexed = showIndexed;
-    }
-
-    /**
-     * Indicates whether the playPen should show unique keys. 
-     */
-    public boolean isShowUnique() {
-        return showUnique;
-    }
-
-    /**
-     * Sets whether unique keys should be shown.
-     */
-    public void setShowUnique(boolean showUnique) {
-        this.showUnique = showUnique;
-    }
-
-    /**
-     * Indicates whether the playPen should show all columns 
-     * except primary , foreign, unique and indexed keys. 
-     */
-    public boolean isShowTheRest() {
-        return showTheRest;
-    }
-
-    /**
-     * Sets whether all columns should be shown except primary,
-     * foreign, unique and indexed keys.
-     */
-    public void setShowTheRest(boolean showTheRest) {
-        this.showTheRest = showTheRest;
     }
     
     public void updateHiddenColumns() {

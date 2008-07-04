@@ -191,24 +191,50 @@ public class SwingUIProject extends CoreProject {
         	// default values in playpen are true
         	String showPrimary = attributes.getValue("showPrimary"); //$NON-NLS-1$
         	if (showPrimary != null) {
-        	    getSession().getPlayPen().setShowPrimary(Boolean.valueOf(showPrimary));
+        	    getSession().setShowPrimary(Boolean.valueOf(showPrimary));
         	}
         	String showForeign = attributes.getValue("showForeign"); //$NON-NLS-1$
         	if (showForeign != null) {
-        	    getSession().getPlayPen().setShowForeign(Boolean.valueOf(showForeign));
-        	}
+        	    getSession().setShowForeign(Boolean.valueOf(showForeign));        	}
         	String showIndexed = attributes.getValue("showIndexed"); //$NON-NLS-1$
         	if (showIndexed != null) {
-        	    getSession().getPlayPen().setShowIndexed(Boolean.valueOf(showIndexed));
+        	    getSession().setShowIndexed(Boolean.valueOf(showIndexed));
         	}
         	String showUnique = attributes.getValue("showUnique"); //$NON-NLS-1$
         	if (showUnique != null) {
-        	    getSession().getPlayPen().setShowUnique(Boolean.valueOf(showUnique));
+        	    getSession().setShowUnique(Boolean.valueOf(showUnique));
         	}
         	String showTheRest = attributes.getValue("showTheRest"); //$NON-NLS-1$
         	if (showTheRest != null) {
-        	    getSession().getPlayPen().setShowTheRest(Boolean.valueOf(showTheRest));
+        	    getSession().setShowTheRest(Boolean.valueOf(showTheRest));
         	}
+        	
+        	String showPrimaryTag = attributes.getValue("showPrimaryTag"); //$NON-NLS-1$
+        	if (showPrimaryTag == null) {
+        	    getSession().setShowPkTag(true);
+        	} else if (!Boolean.valueOf(showPrimaryTag)) {
+        	    getSession().setShowPkTag(false);
+        	} else {
+        	    getSession().setShowPkTag(true);
+        	}
+        	
+        	String showForeignTag = attributes.getValue("showForeignTag"); //$NON-NLS-1$
+            if (showForeignTag == null) {
+                getSession().setShowFkTag(true);
+            } else if (!Boolean.valueOf(showForeignTag)) {
+                getSession().setShowFkTag(false);
+            } else {
+                getSession().setShowFkTag(true);
+            }
+            
+            String showAlternateTag = attributes.getValue("showAlternateTag"); //$NON-NLS-1$
+            if (showAlternateTag == null) {
+                getSession().setShowAkTag(true);
+            } else if (!Boolean.valueOf(showAlternateTag)) {
+                getSession().setShowAkTag(false);
+            } else {
+                getSession().setShowAkTag(true);
+            }
         	
         	String relStyle = attributes.getValue("relationship-style"); //$NON-NLS-1$
             boolean direct;
@@ -613,11 +639,14 @@ public class SwingUIProject extends CoreProject {
         		"\" viewportX=\"" + getSession().getPlayPen().getViewPosition().x +  //$NON-NLS-1$
         		"\" viewportY=\"" + getSession().getPlayPen().getViewPosition().y +  //$NON-NLS-1$
         		"\" relationship-style="+quote(relStyle) + //$NON-NLS-1$
-        		" showPrimary=\"" + getSession().getPlayPen().isShowPrimary() + //$NON-NLS-1$
-        		"\" showForeign=\"" + getSession().getPlayPen().isShowForeign() + //$NON-NLS-1$
-        		"\" showIndexed=\"" + getSession().getPlayPen().isShowIndexed() + //$NON-NLS-1$
-        		"\" showUnique=\"" + getSession().getPlayPen().isShowUnique() + //$NON-NLS-1$
-        		"\" showTheRest=\"" + getSession().getPlayPen().isShowTheRest() + "\">"); //$NON-NLS-1$ //$NON-NLS-2$
+        		" showPrimaryTag=\"" + getSession().isShowPkTag() + //$NON-NLS-1$
+        		"\" showForeignTag=\"" + getSession().isShowFkTag() + //$NON-NLS-1$
+        		"\" showAlternateTag=\"" + getSession().isShowAkTag() + //$NON-NLS-1$
+        		"\" showPrimary=\"" + getSession().isShowPrimary() + //$NON-NLS-1$
+        		"\" showForeign=\"" + getSession().isShowForeign() + //$NON-NLS-1$
+        		"\" showIndexed=\"" + getSession().isShowIndexed() + //$NON-NLS-1$
+        		"\" showUnique=\"" + getSession().isShowUnique() + //$NON-NLS-1$
+        		"\" showTheRest=\"" + getSession().isShowTheRest() + "\">"); //$NON-NLS-1$ //$NON-NLS-2$
         ioo.indent++;
         for(int i = getSession().getPlayPen().getTablePanes().size()-1; i>= 0; i--) {
             TablePane tp = getSession().getPlayPen().getTablePanes().get(i);

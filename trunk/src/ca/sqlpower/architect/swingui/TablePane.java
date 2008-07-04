@@ -124,7 +124,7 @@ public class TablePane
 	protected Set<SQLColumn> selectedColumns;
 	
 	/**
-	 * Tracks which columns in this table are currently selected.
+	 * Tracks which columns in this table are currently hidden.
 	 */
 	protected Set<SQLColumn> hiddenColumns;
 
@@ -629,25 +629,26 @@ public class TablePane
 	public void updateHiddenColumns() {
 	    try {
 	        hiddenColumns.clear();
-
+	        ArchitectSwingSession session = getPlayPen().getSession();
+	        
 	        // if all the boxes are checked, then hide no columns, only these 3 need be
 	        // checked. Draw a truth table if you don't believe me.
-	        if (!(getPlayPen().isShowForeign() && getPlayPen().isShowIndexed() 
-	                && getPlayPen().isShowTheRest())) {
+	        if (!(session.isShowForeign() && session.isShowIndexed() 
+	                && session.isShowTheRest())) {
 	            
 	            // start with a list of all the columns, then remove the ones that 
 	            // should be shown
 	            hiddenColumns.addAll(getModel().getColumns());
 	            for (SQLColumn col : getModel().getColumns()) {
-	                if (getPlayPen().isShowPrimary() && col.isPrimaryKey()) {
+	                if (session.isShowPrimary() && col.isPrimaryKey()) {
 	                    hiddenColumns.remove(col);
-	                } else if (getPlayPen().isShowForeign() && col.isForeignKey()) {
+	                } else if (session.isShowForeign() && col.isForeignKey()) {
 	                    hiddenColumns.remove(col);
-	                } else if (getPlayPen().isShowIndexed() && col.isIndexed()) {
+	                } else if (session.isShowIndexed() && col.isIndexed()) {
 	                    hiddenColumns.remove(col);
-	                } else if (getPlayPen().isShowUnique() && col.isUniqueIndexed()) {
+	                } else if (session.isShowUnique() && col.isUniqueIndexed()) {
 	                    hiddenColumns.remove(col);
-	                } else if (getPlayPen().isShowTheRest() && !(col.isPrimaryKey() || col.isForeignKey() 
+	                } else if (session.isShowTheRest() && !(col.isPrimaryKey() || col.isForeignKey() 
 	                        || col.isIndexed())) {
 	                    // unique index not checked because it is a subset of index
 	                    hiddenColumns.remove(col);
@@ -949,11 +950,11 @@ public class TablePane
                     }
 
                     try {
-                        for(int i = 0; i < importedKeys.size(); i++) {
+                        for (int i = 0; i < importedKeys.size(); i++) {
                             // Not dealing with self-referencing tables right now.
-                            if(importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
-                            for(int j = 0; j < droppedItems.size(); j++) {
-                                if(importedKeys.get(i).containsFkColumn((SQLColumn)(droppedItems.get(j)))) {
+                            if (importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
+                            for (int j = 0; j < droppedItems.size(); j++) {
+                                if (importedKeys.get(i).containsFkColumn((SQLColumn)(droppedItems.get(j)))) {
                                     importedKeys.get(i).setIdentifying(newColumnsInPk);
                                     break;
                                 }
@@ -1274,7 +1275,34 @@ public class TablePane
     public void setBounds(int x, int y, int width, int height) {
         super.setBounds(x, y, width, height);
     }
-
+    
+    public boolean isShowPkTag(){
+        PlayPen pp = getPlayPen();
+        if (pp != null) {
+            ArchitectSwingSession session = pp.getSession();
+            if (session != null) return session.isShowPkTag();
+        }
+        return true;
+    }
+    
+    public boolean isShowFkTag(){
+        PlayPen pp = getPlayPen();
+        if (pp != null) {
+            ArchitectSwingSession session = pp.getSession();
+            if (session != null) return session.isShowFkTag();
+        }
+        return true;
+    }
+    
+    public boolean isShowAkTag(){
+        PlayPen pp = getPlayPen();
+        if (pp != null) {
+            ArchitectSwingSession session = pp.getSession();
+            if (session != null) return session.isShowAkTag();
+        }
+        return true;
+    }
+    
     public Set<SQLColumn> getHiddenColumns() {
         return hiddenColumns;
     }

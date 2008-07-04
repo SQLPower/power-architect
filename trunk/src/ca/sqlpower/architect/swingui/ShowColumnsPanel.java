@@ -79,11 +79,11 @@ public class ShowColumnsPanel extends JPanel
         
         outerpb.add(innerPanel, cc.xy(1, 2));
         
-        showPrimary.setSelected(session.getPlayPen().isShowPrimary());
-        showForeign.setSelected(session.getPlayPen().isShowForeign());
-        showIndexed.setSelected(session.getPlayPen().isShowIndexed());
-        showUnique.setSelected(session.getPlayPen().isShowUnique());
-        showTheRest.setSelected(session.getPlayPen().isShowTheRest());
+        showPrimary.setSelected(session.isShowPrimary());
+        showForeign.setSelected(session.isShowForeign());
+        showIndexed.setSelected(session.isShowIndexed());
+        showUnique.setSelected(session.isShowUnique());
+        showTheRest.setSelected(session.isShowTheRest());
         
         add(outerPanel, BorderLayout.CENTER);
     }
@@ -91,11 +91,11 @@ public class ShowColumnsPanel extends JPanel
 
     public boolean applyChanges() {
         
-        session.getPlayPen().setShowPrimary(showPrimary.isSelected());
-        session.getPlayPen().setShowForeign(showForeign.isSelected());
-        session.getPlayPen().setShowIndexed(showIndexed.isSelected());
-        session.getPlayPen().setShowUnique(showUnique.isSelected());
-        session.getPlayPen().setShowTheRest(showTheRest.isSelected());
+        session.setShowPrimary(showPrimary.isSelected());
+        session.setShowForeign(showForeign.isSelected());
+        session.setShowIndexed(showIndexed.isSelected());
+        session.setShowUnique(showUnique.isSelected());
+        session.setShowTheRest(showTheRest.isSelected());
         
         // Refresh the playPen to hide/show columns
         session.getPlayPen().updateHiddenColumns();
