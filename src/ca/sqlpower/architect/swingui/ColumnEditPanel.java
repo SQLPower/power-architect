@@ -116,10 +116,9 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
     public ColumnEditPanel(SQLColumn col, ArchitectSwingSession session) throws ArchitectException {
         super(new BorderLayout(12, 12));
         logger.debug("ColumnEditPanel called"); //$NON-NLS-1$
+        this.session = session;
         buildUI();
         editColumn(col);
-        this.session = session;
-        ArchitectUtils.listenToHierarchy(this, session.getRootObject());
     }
 
     private void buildUI() {
@@ -272,6 +271,7 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
         discoverSequenceNamePattern(col.getName());
         colName.requestFocus();
         colName.selectAll();
+        ArchitectUtils.listenToHierarchy(this, session.getRootObject());
     }
 
     /**
@@ -403,6 +403,11 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
      * enter on a text field.
      */
     public boolean applyChanges() {
+        try {
+            ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
         List<String> errors = updateModel();
         if (!errors.isEmpty()) {
             JOptionPane.showMessageDialog(this, errors.toString());
@@ -416,6 +421,11 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
      * Does nothing. The column's properties will not have been modified.
      */
     public void discardChanges() {
+        try {
+            ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
     }
 
     public JPanel getPanel() {
@@ -488,6 +498,7 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
         for (int i = 0; i < c.length; i++) {
             try {
                 if (column.equals(c[i])) {
+                    ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
                     if (editDialog != null) {
                         editDialog.setVisible(false);
                         editDialog.dispose();
@@ -495,6 +506,7 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
                     break;
                 } else if (c[i] instanceof SQLTable) {
                     if (((SQLTable) c[i]).getColumns().contains(column)) {
+                        ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
                         if (editDialog != null) {
                             editDialog.setVisible(false);
                             editDialog.dispose();

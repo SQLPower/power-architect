@@ -32,6 +32,8 @@ import javax.swing.JTextField;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
@@ -89,12 +91,15 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
     private JRadioButton initiallyDeferred;
     private JRadioButton initiallyImmediate;
     
+    private ArchitectSession session;
+    
 	public RelationshipEditPanel(ArchitectSwingSession session) {
 
         // XXX this looks suspicious. why does it work? shouldn't the events come
         //     straight from the SQLRelationship object?
         addUndoEventListener(session.getArchitectFrame().getUndoManager().getEventAdapter());
         
+        this.session = session;
         FormLayout layout = new FormLayout("pref, 4dlu, pref:grow");
         DefaultFormBuilder fb = new DefaultFormBuilder(layout);
         
@@ -149,13 +154,6 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         
         fb.setDefaultDialogBorder();
         panel = fb.getPanel();
-        
-        try {
-            ArchitectUtils.listenToHierarchy(this, session.getRootObject());
-        } catch (ArchitectException e) {
-            logger.error("Fail to add sql object listener to the edit panel.");
-            e.printStackTrace();
-        }
 	}
 
 
@@ -197,11 +195,24 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         }
         
 		relationshipName.selectAll();
+		
+		try {
+            ArchitectUtils.listenToHierarchy(this, session.getRootObject());
+        } catch (ArchitectException e) {
+            logger.error("Fail to add sql object listener to the edit panel.");
+            e.printStackTrace();
+            throw new ArchitectRuntimeException(e);
+        }
 	}
 
 	// ------------------ ARCHITECT PANEL INTERFACE ---------------------
 	
 	public boolean applyChanges() {
+	    try {
+	        ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+	    } catch (ArchitectException e) {
+	        throw new ArchitectRuntimeException(e);
+	    }
 		startCompoundEdit("Relationship Properties Change");
 		try {
 			relationship.setName(relationshipName.getText());
@@ -245,6 +256,11 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 
 	public void discardChanges() {
         // TODO revert the changes made
+	    try {
+            ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
 	}
 	
 	/**
@@ -310,11 +326,16 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 
         for (SQLObject obj : c) {
             if(relationship.equals(obj)) {
-                if(editDialog != null) {
-                    editDialog.setVisible(false);
-                    editDialog.dispose();
+                try {
+                    ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+                    if(editDialog != null) {
+                        editDialog.setVisible(false);
+                        editDialog.dispose();
+                    }
+                    break;
+                } catch (ArchitectException ex) {
+                    throw new ArchitectRuntimeException(ex);
                 }
-                break;
             }
         }
     }
