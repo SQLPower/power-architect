@@ -62,6 +62,16 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private RecentMenu recent;
     private ArchitectSession delegateSession;
     
+    private boolean showPkTag = true;
+    private boolean showFkTag = true;
+    private boolean showAkTag = true;
+    
+    protected boolean showPrimary = true;
+    protected boolean showForeign = true;
+    protected boolean showIndexed = true;
+    protected boolean showUnique = true;
+    protected boolean showTheRest = true;
+    
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws ArchitectException {
         this.context = context;
         this.recent = new RecentMenu(this.getClass()) {
@@ -247,4 +257,79 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
         return new AlwaysOKUserPrompter();
     }
+
+    public boolean isShowPkTag() {
+        return showPkTag;
+    }
+
+    public void setShowPkTag(boolean showPkTag) {
+        this.showPkTag = showPkTag;
+        for (TablePane tp : getPlayPen().getTablePanes()) {
+            tp.revalidate();
+        }
+    }
+
+    public boolean isShowFkTag() {
+        return showFkTag;
+    }
+
+    public void setShowFkTag(boolean showFkTag) {
+        this.showFkTag = showFkTag;
+        for (TablePane tp : getPlayPen().getTablePanes()) {
+            tp.revalidate();
+        }
+    }
+
+    public boolean isShowAkTag() {
+        return showAkTag;
+    }
+
+    public void setShowAkTag(boolean showAkTag) {
+        this.showAkTag = showAkTag;
+        for (TablePane tp : getPlayPen().getTablePanes()) {
+            tp.revalidate();
+        }
+    }
+    
+    public boolean isShowPrimary() {
+        return showPrimary;
+    }
+
+    public void setShowPrimary(boolean showPrimary) {
+        this.showPrimary = showPrimary;
+    }
+
+    public boolean isShowForeign() {
+        return showForeign;
+    }
+
+    public void setShowForeign(boolean showForeign) {
+        this.showForeign = showForeign;
+    }
+
+    public boolean isShowIndexed() {
+        return showIndexed;
+    }
+
+    public void setShowIndexed(boolean showIndexed) {
+        this.showIndexed = showIndexed;
+    }
+
+    public boolean isShowUnique() {
+        return showUnique;
+    }
+
+    public void setShowUnique(boolean showUnique) {
+        this.showUnique = showUnique;
+    }
+
+    public boolean isShowTheRest() {
+        return showTheRest;
+    }
+
+    public void setShowTheRest(boolean showTheRest) {
+        this.showTheRest = showTheRest;
+    }
+
+
 }

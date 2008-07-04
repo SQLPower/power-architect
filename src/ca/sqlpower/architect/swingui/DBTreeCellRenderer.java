@@ -162,21 +162,31 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
      * Determines what tag to append to the given column
      */
     private void tagColumn(SQLColumn col) {
-        String append = ""; //$NON-NLS-1$
+        StringBuffer tag = new StringBuffer();
+        StringBuffer fullTag = new StringBuffer();
         boolean isPK = col.isPrimaryKey();
         boolean isFK = col.isForeignKey();
         boolean isAK = col.isUniqueIndexed() && !isPK;
-        if (isPK && isFK) {
-            append = "  [ PFK ]"; //$NON-NLS-1$
-        } else if (isAK && isFK) {
-            append = "  [ AFK ]"; //$NON-NLS-1$
-        } else if (isPK) {
-            append = "  [ PK ]"; //$NON-NLS-1$
-        } else if (isFK) {
-            append = "  [ FK ]"; //$NON-NLS-1$
-        } else if (isAK) {
-            append = "  [ AK ]"; //$NON-NLS-1$
+        boolean emptyTag = true;
+        if (isPK) {
+            tag.append("P"); //$NON-NLS-1$
+            emptyTag = false;
+        } 
+        if (isFK) {
+            tag.append("F"); //$NON-NLS-1$
+            emptyTag = false;
         }
-        setText(getText() + append);
+        if (isAK) {
+            tag.append("A"); //$NON-NLS-1$
+            emptyTag = false;
+        }
+        
+        if (!emptyTag) {
+            tag.append("K"); //$NON-NLS-1$
+            fullTag.append("  [ "); //$NON-NLS-1$
+            fullTag.append(tag);
+            fullTag.append(" ]"); //$NON-NLS-1$
+            setText(getText() + fullTag.toString());
+        }
     }
 }

@@ -199,29 +199,30 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			    SQLColumn col = (SQLColumn) colNameIt.next();
 			    
 			    // Don't draw the column if it's hidden
-			    if (!tp.getHiddenColumns().contains(col)) {
-			        // draws the line in the table that separates primary keys from others
-			        if (col.getPrimaryKeySeq() == null && stillNeedPKLine) {
-			            stillNeedPKLine = false;
-			            currentColor = null;
-			            y += PK_GAP;
-			            g2.setColor(Color.BLACK);
-			            g2.drawLine(0, y+maxDescent-(PK_GAP/2), width-1, y+maxDescent-(PK_GAP/2));
-			        }
-			        if (tp.isColumnSelected(i)) {
-			            if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$
-			            g2.setColor(selectedColor);
-			            g2.fillRect(BOX_LINE_THICKNESS+tp.getMargin().left, y-ascent+fontHeight,
-			                    hwidth, fontHeight);
-			        }
-			        // draws the column
-			        currentColor = tp.getColumnHighlight(i);
-			        g2.setColor(currentColor == null ? Color.BLACK : currentColor);
-			        g2.drawString(col.getShortDisplayName() + getColumnTag(col),
-			                BOX_LINE_THICKNESS+tp.getMargin().left,
-			                y += fontHeight);
-			    } 
-			    
+			    if (tp.hiddenColumns.contains(col)) {
+			        i++;
+			        continue;
+			    }
+			    // draws the line in the table that separates primary keys from others
+			    if (col.getPrimaryKeySeq() == null && stillNeedPKLine) {
+			        stillNeedPKLine = false;
+			        currentColor = null;
+			        y += PK_GAP;
+			        g2.setColor(Color.BLACK);
+			        g2.drawLine(0, y+maxDescent-(PK_GAP/2), width-1, y+maxDescent-(PK_GAP/2));
+			    }
+			    if (tp.isColumnSelected(i)) {
+			        if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$
+			        g2.setColor(selectedColor);
+			        g2.fillRect(BOX_LINE_THICKNESS+tp.getMargin().left, y-ascent+fontHeight,
+			                hwidth, fontHeight);
+			    }
+			    // draws the column
+			    currentColor = tp.getColumnHighlight(i);
+			    g2.setColor(currentColor == null ? Color.BLACK : currentColor);
+			    g2.drawString(col.getShortDisplayName() + getColumnTag(col, tp),
+			            BOX_LINE_THICKNESS+tp.getMargin().left,
+			            y += fontHeight);
 			    i++;
 			}
 			
@@ -312,7 +313,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 					logger.error("Found null column in table '"+table.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
 					throw new NullPointerException("Found null column in table '"+table.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
 				}
-				itemsToCheck.add(col.toString() + getColumnTag(col));
+				itemsToCheck.add(col.toString() + getColumnTag(col, c));
 			}
 			itemsToCheck.add(getTitleString(c));   // this works as long as the title uses the same font as the columns
 			for(String item : itemsToCheck) {
@@ -477,22 +478,34 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
     /**
      * Determines what tag to append to the given column
      */
-    private String getColumnTag(SQLColumn col) {
-        String tag = ""; //$NON-NLS-1$
+    private String getColumnTag(SQLColumn col, TablePane tp) {
+        StringBuffer tag = new StringBuffer();
+        StringBuffer fullTag = new StringBuffer();
         boolean isPK = col.isPrimaryKey();
         boolean isFK = col.isForeignKey();
         boolean isAK = col.isUniqueIndexed() && !isPK;
-        if (isPK && isFK) {
-            tag = "  [ PFK ]"; //$NON-NLS-1$
-        } else if (isAK && isFK) {
-            tag = "  [ AFK ]"; //$NON-NLS-1$
-        } else if (isPK) {
-            tag = "  [ PK ]"; //$NON-NLS-1$
-        } else if (isFK) {
-            tag = "  [ FK ]"; //$NON-NLS-1$
-        } else if (isAK) {
-            tag = "  [ AK ]"; //$NON-NLS-1$
+        boolean emptyTag = true;
+        if (tp.isShowPkTag() && isPK) {
+            tag.append("P"); //$NON-NLS-1$
+            emptyTag = false;
+        } 
+        if (tp.isShowFkTag() && isFK) {
+            tag.append("F"); //$NON-NLS-1$
+            emptyTag = false;
         }
-        return tag;
+        if (tp.isShowAkTag() && isAK) {
+            tag.append("A"); //$NON-NLS-1$
+            emptyTag = false;
+        }
+        
+        if (emptyTag) {
+            return ""; //$NON-NLS-1$
+        } else {
+            tag.append("K"); //$NON-NLS-1$
+            fullTag.append("  [ "); //$NON-NLS-1$
+            fullTag.append(tag);
+            fullTag.append(" ]"); //$NON-NLS-1$
+            return fullTag.toString();
+        }
     }
 }

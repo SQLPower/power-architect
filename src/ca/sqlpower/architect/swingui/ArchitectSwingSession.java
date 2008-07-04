@@ -180,4 +180,85 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * in this session's play pen to have their line style updated.
      */
     public void setRelationshipLinesDirect(boolean direct);
+    
+    /**
+     * Returns whether the PK Tags will be shown
+     */
+    public boolean isShowPkTag();
+    
+    /**
+     * Sets whether the PK Tags will be shown
+     */
+    public void setShowPkTag(boolean showPkTag);
+    
+    /**
+     * Returns whether the FK Tags will be shown
+     */
+    public boolean isShowFkTag();
+    
+    /**
+     * Sets whether the FK Tags will be shown
+     */
+    public void setShowFkTag(boolean showFkTag);
+    
+    /**
+     * Returns whether the AK Tags will be shown
+     */
+    public boolean isShowAkTag();
+    
+    /**
+     * Sets whether the AK Tags will be shown
+     */
+    public void setShowAkTag(boolean showAkTag);
+   
+    /**
+     * Indicates whether PK Columns will be shown. 
+     */
+    public boolean isShowPrimary();
+    
+    /**
+     * Sets whether PK Columns should be shown.
+     */
+    public void setShowPrimary(boolean showPrimary);
+    
+    /**
+     * Indicates whether FK Columns will be shown. 
+     */
+    public boolean isShowForeign();
+    
+    /**
+     * Sets whether FK Columns should be shown.
+     */
+    public void setShowForeign(boolean showForeign);
+    
+    /**
+     * Indicates whether Unique Columns will be shown. 
+     */
+    public boolean isShowUnique();
+    
+    /**
+     * Sets whether Unique Columns should be shown.
+     */
+    public void setShowUnique(boolean showUnique);
+    
+    /**
+     * Indicates whether Indexed Columns will be shown. 
+     */
+    public boolean isShowIndexed();
+    
+    /**
+     * Sets whether Indexed Columns should be shown.
+     */
+    public void setShowIndexed(boolean showIndexed);
+    
+    /**
+     * Indicates whether Columns that are not PK, FK, Unique or Indexed will be shown. 
+     */
+    public boolean isShowTheRest();
+    
+    /**
+     * Sets whether Columns that are not PK, FK, Unique or Indexed should be shown.
+     */
+    public void setShowTheRest(boolean showTheRest);
+    
 }

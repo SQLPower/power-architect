@@ -24,12 +24,15 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.profile.TableProfileCreator;
 import ca.sqlpower.swingui.DataEntryPanel;
+
+import com.jgoodies.forms.layout.CellConstraints;
 
 public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
     private static final Logger logger = Logger.getLogger(ProjectSettingsPanel.class);
@@ -57,6 +60,15 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
     private JRadioButton rectilinearRelationships;
     private JRadioButton directRelationships;
     
+    private JCheckBox showPkTag;
+    private JCheckBox showFkTag;
+    private JCheckBox showAkTag;
+    private JCheckBox showPrimary;
+    private JCheckBox showForeign;
+    private JCheckBox showIndexed;
+    private JCheckBox showUnique;
+    private JCheckBox showTheRest;
+    
 	public ProjectSettingsPanel(ArchitectSwingSession session) {
 		this.session = session;
 		setup();
@@ -64,23 +76,61 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 	}
 
 	public void setup() {
-		setLayout(new FormLayout());
-		add(new JLabel(Messages.getString("ProjectSettingsPanel.snapshotSourceDbOption"))); //$NON-NLS-1$
-		add(saveEntireSource = new JCheckBox());
+	    CellConstraints cc = new CellConstraints();
+	    com.jgoodies.forms.layout.FormLayout layout = new com.jgoodies.forms.layout.FormLayout(
+	            "pref,pref",  //$NON-NLS-1$
+                "pref,4dlu,pref,4dlu,pref,4dlu,4dlu,pref,pref,4dlu,pref,pref,pref,pref,pref,pref"); //$NON-NLS-1$
+		setLayout(layout);
+		int row = 1;
+		add(new JLabel(Messages.getString("ProjectSettingsPanel.snapshowSourceDbOption")), cc.xy(1, row)); //$NON-NLS-1$
+		add(saveEntireSource = new JCheckBox(), cc.xy(2, row));
 
-        add(new JLabel(Messages.getString("ProjectSettingsPanel.numCommonProfileValues"))); //$NON-NLS-1$
-        add(numberOfFreqValues = new JTextField("",6)); //$NON-NLS-1$
+		row+=2;
+        add(new JLabel(Messages.getString("ProjectSettingsPanel.numCommonProfileValues")), cc.xy(1, row)); //$NON-NLS-1$
+        add(numberOfFreqValues = new JTextField("",6), cc.xy(2, row)); //$NON-NLS-1$
         
-        add(new JLabel(Messages.getString("ProjectSettingsPanel.profileMode"))); //$NON-NLS-1$
-        add(profileMode = new JComboBox(session.getProfileManager().getProfileCreators().toArray()));
+        row+=2;
+        add(new JLabel(Messages.getString("ProjectSettingsPanel.profileMode")), cc.xy(1, row)); //$NON-NLS-1$
+        add(profileMode = new JComboBox(session.getProfileManager().getProfileCreators().toArray()), cc.xy(2, row));
         
-        add(new JLabel(Messages.getString("ProjectSettingsPanel.relationshipLineStyle"))); //$NON-NLS-1$
-        add(rectilinearRelationships = new JRadioButton(Messages.getString("ProjectSettingsPanel.rectilinearLineOption"))); //$NON-NLS-1$
-        add(new JLabel());
-        add(directRelationships = new JRadioButton(Messages.getString("ProjectSettingsPanel.directLineOption"))); //$NON-NLS-1$
+        row+=2;
+        add(new JSeparator(), cc.xyw(1, row, 2));
+        
+        row++;
+        add(new JLabel(Messages.getString("ProjectSettingsPanel.relationshipLineStyle")), cc.xy(1, row)); //$NON-NLS-1$
+        add(rectilinearRelationships = new JRadioButton(Messages.getString("ProjectSettingsPanel.rectilinearLineOption")), cc.xy(2, row)); //$NON-NLS-1$
+        
+        row++;
+        add(new JLabel(), cc.xy(1, row));
+        add(directRelationships = new JRadioButton(Messages.getString("ProjectSettingsPanel.directLineOption")), cc.xy(2, row)); //$NON-NLS-1$
         ButtonGroup lineStyleGroup = new ButtonGroup();
         lineStyleGroup.add(rectilinearRelationships);
         lineStyleGroup.add(directRelationships);
+        
+        row++;
+        add(new JSeparator(), cc.xyw(1, row, 2));
+        
+        row++;
+        add(showPrimary = new JCheckBox(Messages.getString("ProjectSettingsPanel.showPrimaryKeyColumns")), cc.xy(1, row)); //$NON-NLS-1$
+        add(showPkTag = new JCheckBox(Messages.getString("ProjectSettingsPanel.showPKTags")), cc.xy(2, row)); //$NON-NLS-1$
+        
+        row++;
+        add(showForeign = new JCheckBox(Messages.getString("ProjectSettingsPanel.showForeignKeyColumns")), cc.xy(1, row)); //$NON-NLS-1$
+        add(showFkTag = new JCheckBox(Messages.getString("ProjectSettingsPanel.showFKTags")), cc.xy(2, row)); //$NON-NLS-1$
+        
+        row++;
+        add(showIndexed = new JCheckBox(Messages.getString("ProjectSettingsPanel.showIndexedColumns")), cc.xy(1, row)); //$NON-NLS-1$
+        add(showAkTag = new JCheckBox(Messages.getString("ProjectSettingsPanel.showAKTags")), cc.xy(2, row)); //$NON-NLS-1$
+        
+        row++;
+        add(showUnique = new JCheckBox(Messages.getString("ProjectSettingsPanel.showUniqueColumns")), cc.xy(1, row)); //$NON-NLS-1$
+        add(new JLabel(), cc.xy(2, row));
+        
+        row++;
+        add(showTheRest = new JCheckBox(Messages.getString("ProjectSettingsPanel.showRemainingColumns")), cc.xy(1, row)); //$NON-NLS-1$
+        add(new JLabel(), cc.xy(2, row));
+        /*
+        */
 	}
 
 	private void revertToProjectSettings() {
@@ -93,6 +143,14 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         } else {
             rectilinearRelationships.setSelected(true);
         }
+            showPkTag.setSelected(session.isShowPkTag());
+            showFkTag.setSelected(session.isShowFkTag());
+            showAkTag.setSelected(session.isShowAkTag());
+            showPrimary.setSelected(session.isShowPrimary());
+            showForeign.setSelected(session.isShowForeign());
+            showIndexed.setSelected(session.isShowIndexed());
+            showUnique.setSelected(session.isShowUnique());
+            showTheRest.setSelected(session.isShowTheRest());
 	}
 
 	public boolean applyChanges() {
@@ -114,8 +172,18 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         } else {
             session.setRelationshipLinesDirect(false);
         }
+        session.setShowPkTag(showPkTag.isSelected());
+        session.setShowFkTag(showFkTag.isSelected());
+        session.setShowAkTag(showAkTag.isSelected());
+        session.setShowPrimary(showPrimary.isSelected());
+        session.setShowForeign(showForeign.isSelected());
+        session.setShowIndexed(showIndexed.isSelected());
+        session.setShowUnique(showUnique.isSelected());
+        session.setShowTheRest(showTheRest.isSelected());
+
+        session.getPlayPen().updateHiddenColumns();
         
-		return true;
+        return true;
 	}
 
 	public void discardChanges() {
