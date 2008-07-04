@@ -273,14 +273,14 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 
         for (SQLObject obj : c) {
             try {
-            if (table.equals(obj)) {
-                ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-                if (editDialog != null) {
-                    editDialog.setVisible(false);
-                    editDialog.dispose();
+                if (table.equals(obj)) {
+                    ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+                    if (editDialog != null) {
+                        editDialog.setVisible(false);
+                        editDialog.dispose();
+                    }
+                    break;
                 }
-                break;
-            }
             } catch (ArchitectException ex) {
                 throw new ArchitectRuntimeException(ex);
             }
