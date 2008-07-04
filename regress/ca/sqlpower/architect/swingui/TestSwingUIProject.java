@@ -167,7 +167,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         " <source-stuff datastoreTypeAsString='PROJECT' connectName='Arthur_test' " +
         " schema='ARCHITECT_REGRESS' filepath='' />"+
         "<target-stuff datastoreTypeAsString='FILE' filePath='Testpath' /> </compare-dm-settings>"+
-        " <play-pen zoom=\"12.3\" viewportX=\"200\" viewportY=\"20\">" +
+        " <play-pen zoom=\"12.3\" viewportX=\"200\" viewportY=\"20\" relationship-style=\"rectilinear\" showPrimaryTag=\"true\" showForeignTag=\"true\" showAlternateTag=\"true\" showPrimary=\"true\" showForeign=\"true\" showIndexed=\"true\" showUnique=\"true\" showTheRest=\"true\">" +
         "  <table-pane table-ref='TAB0' x='85' y='101' />" +
         "  <table-pane table-ref='TAB6' x='196' y='38' />" +
         "  <table-link relationship-ref='REL12' pk-x='76' pk-y='60' fk-x='114' fk-y='30' />" +
@@ -1112,6 +1112,15 @@ public class TestSwingUIProject extends ArchitectTestCase {
         PlayPen oldPP = session.getPlayPen();
         oldPP.setZoom(123.45);
         oldPP.setViewPosition(new Point(5,4));
+        session.setRelationshipLinesDirect(false);
+        session.setShowPkTag(false);
+        session.setShowFkTag(false);
+        session.setShowAkTag(false);
+        session.setShowPrimary(false);
+        session.setShowForeign(false);
+        session.setShowIndexed(false);
+        session.setShowUnique(false);
+        session.setShowTheRest(false);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream, ENCODING);
 
@@ -1121,10 +1130,19 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         PlayPen newPP = project2.getSession().getPlayPen();
-        
+        ArchitectSwingSession newSession = project2.getSession();
         assertEquals(oldPP.getZoom(), newPP.getZoom());
         assertEquals(oldPP.getViewPosition().getX(), newPP.getViewPosition().getX());
         assertEquals(oldPP.getViewPosition().getY(), newPP.getViewPosition().getY());
+        assertEquals("Relationship Line Style", session.getRelationshipLinesDirect(), newSession.getRelationshipLinesDirect());
+        assertEquals("PK Tag", session.isShowPkTag(), newSession.isShowPkTag());
+        assertEquals("FK Tag", session.isShowFkTag(), newSession.isShowFkTag());
+        assertEquals("AK Tag", session.isShowAkTag(), newSession.isShowAkTag());
+        assertEquals("Primary Column", session.isShowPrimary(), newSession.isShowPrimary());
+        assertEquals("Foreign Column", session.isShowForeign(), newSession.isShowForeign());
+        assertEquals("Indexed Column", session.isShowIndexed(), newSession.isShowIndexed());
+        assertEquals("Unique Column", session.isShowUnique(), newSession.isShowUnique());
+        assertEquals("The Rest of the Columns", session.isShowTheRest(), newSession.isShowTheRest());
         
     }
     
@@ -1138,7 +1156,15 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertEquals(12.3, oldPP.getZoom());
         assertEquals(20, oldPP.getViewPosition().y);
         assertEquals(200, oldPP.getViewPosition().x);
-        
+        assertEquals("Relationship Line Style", false, session.getRelationshipLinesDirect());
+        assertEquals("PK Tag", true, session.isShowPkTag());
+        assertEquals("FK Tag", true, session.isShowFkTag());
+        assertEquals("AK Tag", true, session.isShowAkTag());
+        assertEquals("Primary Column", true, session.isShowPrimary());
+        assertEquals("Foreign Column", true, session.isShowForeign());
+        assertEquals("Indexed Column", true, session.isShowIndexed());
+        assertEquals("Unique Column", true, session.isShowUnique());
+        assertEquals("The Rest of the Columns", true, session.isShowTheRest());
     }
     
     /**
