@@ -199,8 +199,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 		try {
             ArchitectUtils.listenToHierarchy(this, session.getRootObject());
         } catch (ArchitectException e) {
-            logger.error("Fail to add sql object listener to the edit panel.");
-            e.printStackTrace();
+            logger.error("Fail to add sql object listener to the edit panel.", e);
             throw new ArchitectRuntimeException(e);
         }
 	}
@@ -325,11 +324,10 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         SQLObject[] c = e.getChildren();
 
         for (SQLObject obj : c) {
-            if(relationship.equals(obj)) {
+            if (relationship.equals(obj)) {
                 try {
                     ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-                    if(editDialog != null) {
-                        editDialog.setVisible(false);
+                    if (editDialog != null) {
                         editDialog.dispose();
                     }
                     break;

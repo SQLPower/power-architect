@@ -26,6 +26,7 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.Box;
@@ -53,7 +54,6 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLType;
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -184,10 +184,8 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
         });
 
         // Listener to rediscover the sequence naming convention, and reset the
-        // sequence name
-        // to its original (according to the column's own sequence name) naming
-        // convention when
-        // the user clears the sequence name field
+        // sequence name to its original (according to the column's own sequence
+        // name) naming convention when the user clears the sequence name field
         colAutoIncSequenceName.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
@@ -239,8 +237,9 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
      */
     public void editColumn(SQLColumn col) throws ArchitectException {
         logger.debug("Edit Column '" + col + "' is being called"); //$NON-NLS-1$ //$NON-NLS-2$
-        if (col == null)
+        if (col == null) {
             throw new NullPointerException("Edit null column is not allowed"); //$NON-NLS-1$
+        }
         column = col;
         if (col.getSourceColumn() == null) {
             sourceDB.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
@@ -491,31 +490,16 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
      * playpen. If yes, exit the editing dialog window.
      */
     public void dbChildrenRemoved(SQLObjectEvent e) {
-
         logger.debug("SQLObject children got removed: " + e); //$NON-NLS-1$
-        SQLObject[] c = e.getChildren();
+        List<SQLObject> removedChildren = Arrays.asList(e.getChildren());
 
-        for (int i = 0; i < c.length; i++) {
+        if (removedChildren.contains(column) || removedChildren.contains(column.getParentTable())) {
             try {
-                if (column.equals(c[i])) {
-                    ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-                    if (editDialog != null) {
-                        editDialog.setVisible(false);
-                        editDialog.dispose();
-                    }
-                    break;
-                } else if (c[i] instanceof SQLTable) {
-                    if (((SQLTable) c[i]).getColumns().contains(column)) {
-                        ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-                        if (editDialog != null) {
-                            editDialog.setVisible(false);
-                            editDialog.dispose();
-                        }
-                        break;
-                    }
+                ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+                if (editDialog != null) {
+                    editDialog.dispose();
                 }
             } catch (ArchitectException ex) {
-                logger.error("Could not compare the removed sql objects.", ex); //$NON-NLS-1$
                 throw new ArchitectRuntimeException(ex);
             }
         }
