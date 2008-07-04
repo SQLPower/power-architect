@@ -1156,7 +1156,7 @@ public class CompareDMPanel extends JPanel {
 			    ASUtils.showExceptionDialog(session,
 			            Messages.getString("CompareDMPanel.couldNotBeginDiffProcess"), ex); //$NON-NLS-1$
 			    return;
-			} catch (Exception ex) {
+			} catch (IOException ex) {
 			    ASUtils.showExceptionDialogNoReport(CompareDMPanel.this, Messages.getString("CompareDMPanel.couldNotReadFile"), ex); //$NON-NLS-1$
 				logger.error("Could not read file", ex); //$NON-NLS-1$
 				return;
