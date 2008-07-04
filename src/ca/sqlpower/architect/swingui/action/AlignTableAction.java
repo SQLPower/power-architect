@@ -32,7 +32,6 @@
 
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
@@ -69,7 +68,6 @@ public class AlignTableAction extends AbstractArchitectAction implements Selecti
             JOptionPane.showMessageDialog(playpen, Messages.getString("AlignTableAction.selectAtLeastTwoTables")); //$NON-NLS-1$
         } else if (selection.size() >= 2) {
             int min = Integer.MAX_VALUE;
-            Point oldLocation;
             playpen.startCompoundEdit("Aligning tables"); //$NON-NLS-1$
             logger.debug("Starting to align " + selection.size() + "tables"); //$NON-NLS-1$ //$NON-NLS-2$
             if (!isHorizontal) {
