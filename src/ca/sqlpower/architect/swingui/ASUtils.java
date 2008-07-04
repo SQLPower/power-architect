@@ -89,7 +89,7 @@ public class ASUtils {
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException ex) {
-                        logger.warn("Interrupted in sleep");
+                        logger.warn("Interrupted in sleep"); //$NON-NLS-1$
 					}
 				}
 				focusDebuggerThread = null;
@@ -160,7 +160,7 @@ public class ASUtils {
         
         d.addWindowListener(new WindowAdapter(){
                 public void windowClosed(WindowEvent e){
-                    session.getTargetDatabase().getDataSource().setName("(Target Database)");
+                    session.getTargetDatabase().getDataSource().setName(Messages.getString("ASUtils.targetDatabase")); //$NON-NLS-1$
                     ASUtils.setupTargetDBComboBox(session, targetDB);
                 }
             });
@@ -209,7 +209,7 @@ public class ASUtils {
     
         JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 dbcsPanel, parentWindow,
-                "Database Connection: " + dataSource.getDisplayName(),
+                Messages.getString("ASUtils.databaseConnectionDialogTitle", dataSource.getDisplayName()), //$NON-NLS-1$
                 DataEntryPanelBuilder.OK_BUTTON_LABEL,
                 okCall, cancelCall);
     
@@ -231,8 +231,8 @@ public class ASUtils {
         final KettleDataSourceOptionsPanel kettlePanel = new KettleDataSourceOptionsPanel(ds);
 
         TabbedDataEntryPanel p = new TabbedDataEntryPanel();
-        p.addTab("General", generalPanel);
-        p.addTab("Kettle", kettlePanel);
+        p.addTab(Messages.getString("ASUtils.datasourceOptionsGeneralTab"), generalPanel); //$NON-NLS-1$
+        p.addTab(Messages.getString("ASUtils.datasourceOptionsKettleTab"), kettlePanel); //$NON-NLS-1$
         
         // update kettle fields if/when user picks new driver
         generalPanel.getDataSourceTypeBox().addItemListener(new ItemListener() {
@@ -247,7 +247,7 @@ public class ASUtils {
     }
 
     public static String lineToString(Line2D.Double l) {
-		return "[("+l.x1+","+l.y1+") - ("+l.x2+","+l.y2+")]";
+		return "[("+l.x1+","+l.y1+") - ("+l.x2+","+l.y2+")]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 	}
 
 	/**
@@ -276,8 +276,8 @@ public class ASUtils {
 				myLine.y2 = myCoords[1];
 			} else {
 				throw new IllegalStateException(
-						"Unsupported my PathIterator type "+mySegType+
-						". Current myLine is "+lineToString(myLine));
+						"Unsupported my PathIterator type "+mySegType+ //$NON-NLS-1$
+						". Current myLine is "+lineToString(myLine)); //$NON-NLS-1$
 			}
 			myPI.next();
 
@@ -304,8 +304,8 @@ public class ASUtils {
 					otherLine.y2 = otherCoords[1];
 				} else {
 					throw new IllegalStateException(
-							"Unsupported other PathIterator type "+otherSegType+
-							". Current otherLine is "+lineToString(otherLine));
+							"Unsupported other PathIterator type "+otherSegType+ //$NON-NLS-1$
+							". Current otherLine is "+lineToString(otherLine)); //$NON-NLS-1$
 				}
 				otherPI.next();
 
@@ -375,7 +375,7 @@ public class ASUtils {
 		}
 
 		JMenu parentMenu = input;
-		JMenu subMenu = new JMenu("More...");
+		JMenu subMenu = new JMenu(Messages.getString("ASUtils.moreSubmenu")); //$NON-NLS-1$
 		parentMenu.add(subMenu);
 
 		while (input.getItemCount() > rowsPerSubMenu + 1) {
@@ -385,7 +385,7 @@ public class ASUtils {
 			if (subMenu.getItemCount() >= rowsPerSubMenu &&
 				input.getItemCount() > rowsPerSubMenu + 1 ) {
 				parentMenu = subMenu;
-				subMenu = new JMenu("More...");
+				subMenu = new JMenu(Messages.getString("ASUtils.moreSubmenu")); //$NON-NLS-1$
 				parentMenu.add(subMenu);
 			}
 		}
@@ -409,7 +409,7 @@ public class ASUtils {
      * in the Architect.
      */
     public static Image getFrameIconImage() {
-        return SPSUtils.createIcon("Architect", "Architect Logo", ArchitectSwingSessionContext.ICON_SIZE).getImage();
+        return SPSUtils.createIcon("Architect", "Architect Logo", ArchitectSwingSessionContext.ICON_SIZE).getImage(); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     /**
@@ -433,7 +433,7 @@ public class ASUtils {
                 context = new ArchitectSwingSessionContextImpl();
                 context.setExitAfterAllSessionsClosed(true);
             } catch (ArchitectException e) {
-                showExceptionDialogNoReport("Couldn't launch the Power*Architect.", e);
+                showExceptionDialogNoReport(Messages.getString("ASUtils.couldNotLaunchPowerArchitect"), e); //$NON-NLS-1$
                 System.exit(1);
             }
         }        
@@ -489,27 +489,27 @@ public class ASUtils {
         try {
             UserSettings settings = context.getUserSettings().getQfaUserSettings();
             if (!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
-            ExceptionReport report = new ExceptionReport(t, ExceptionHandler.DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, "Architect");
+            ExceptionReport report = new ExceptionReport(t, ExceptionHandler.DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, "Architect"); //$NON-NLS-1$
             
             if (session != null &&
                     session.getProject() != null &&
                     session.getPlayPen() != null &&
                     session.getSourceDatabases() != null) {
                 PlayPen pp = session.getPlayPen();
-                report.addAdditionalInfo("Number of objects in the play pen", "" + pp.getTablePanes().size() + pp.getRelationships().size());
-                report.addAdditionalInfo("Number of source connections", "" + session.getSourceDatabases().getDatabaseList().size()); 
+                report.addAdditionalInfo("Number of objects in the play pen", "" + pp.getTablePanes().size() + pp.getRelationships().size()); //$NON-NLS-1$ //$NON-NLS-2$
+                report.addAdditionalInfo("Number of source connections", "" + session.getSourceDatabases().getDatabaseList().size());  //$NON-NLS-1$ //$NON-NLS-2$
                 logger.debug(report.toString());
                 report.send();
             }
         } catch (Throwable seriousProblem) {
-            logger.error("Couldn't generate and send exception report!  Note that this is not the primary problem; it's a side effect of trying to report the real problem.", seriousProblem);
-            JOptionPane.showMessageDialog(null, "Error reporting failed: "+seriousProblem.getMessage()+"\nAdditional information is available in the application log.");
+            logger.error("Couldn't generate and send exception report!  Note that this is not the primary problem; it's a side effect of trying to report the real problem.", seriousProblem); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(null, "Error reporting failed: "+seriousProblem.getMessage()+"\nAdditional information is available in the application log."); //$NON-NLS-1$ //$NON-NLS-2$
         } finally {
             JFrame owner = null;
             if (session != null) {
                 owner = session.getArchitectFrame();
             } else {
-                logger.error("got a null session in showExceptionDialog()");
+                logger.error("got a null session in showExceptionDialog()"); //$NON-NLS-1$
             }
             SPSUtils.showExceptionDialogNoReport(owner, message, t);
         }
