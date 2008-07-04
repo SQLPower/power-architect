@@ -18,7 +18,7 @@ This document intends to outline the details of future planned releases of the P
   * Item selection is now synchronized between the DB Tree and the Playpen. When something is selected in the Playpen, its corresponding item is selected on DB Tree.
   * Feature to check availability of newer releases
   * Undo/Redo now work with relationships, including moving connection points, and straigtening lines.
-  * Pption to hide certain types columns
+  * Option to hide certain types columns
   * Ability to change the colour of tables and their text, and the ability to display them with rounded edges.
   * Auto-scrolling for the Playpen
   * Ability to reverse the direction of a relationship
