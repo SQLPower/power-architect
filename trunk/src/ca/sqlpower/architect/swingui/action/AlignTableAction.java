@@ -41,11 +41,9 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class AlignTableAction extends AbstractArchitectAction implements SelectionListener {
-
+public class AlignTableAction extends AbstractArchitectAction{
+   
     private static final Logger logger = Logger.getLogger(AlignTableAction.class);
 
     private boolean isHorizontal;
@@ -55,8 +53,6 @@ public class AlignTableAction extends AbstractArchitectAction implements Selecti
         super(session, actionName, actionDescription);
         this.isHorizontal = isHorizontal;
         setEnabled(true);
-
-        playpen.addSelectionListener(this);
     }
 
     /**
@@ -93,13 +89,5 @@ public class AlignTableAction extends AbstractArchitectAction implements Selecti
         } else {
             JOptionPane.showMessageDialog(playpen, Messages.getString("AlignTableAction.selectAtLeastTwoTables")); //$NON-NLS-1$
         }
-
     }
-
-    public void itemDeselected(SelectionEvent e) {
-    }
-
-    public void itemSelected(SelectionEvent e) {
-    }
-
 }
