@@ -970,10 +970,7 @@ public class TablePane
                                 "Column is Locked",
                                 JOptionPane.CLOSED_OPTION);
                         success = false;
-                    } catch (IndexOutOfBoundsException ex) {
-                        ex.printStackTrace();
-                    }
-
+                    } 
 
 					if (success) {
 						dtde.acceptDrop(DnDConstants.ACTION_COPY); // XXX: not always true
@@ -993,6 +990,8 @@ public class TablePane
                         tp.getModel().normalizePrimaryKey();
                     } catch (ArchitectException e) {
                         logger.error("Error processing normalize PrimaryKey", e);
+                        ASUtils.showExceptionDialogNoReport(tp.getParent().getOwner(),
+                                "Error processing normalize PrimaryKey after processing drop operation", e);
                     }
 
 					// put the undo event adapter into a regular state
