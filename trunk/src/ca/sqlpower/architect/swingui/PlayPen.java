@@ -1232,11 +1232,6 @@ public class PlayPen extends JPanel
         mi.setAction(layoutAction);
         playPenPopup.add(mi);
         
-        mi = new JMenuItem();
-        mi.setAction(af.getShowColumnsAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        playPenPopup.add(mi);
-        
 		if (logger.isDebugEnabled()) {
 			playPenPopup.addSeparator();
 			mi = new JMenuItem("Show Relationships"); //$NON-NLS-1$
