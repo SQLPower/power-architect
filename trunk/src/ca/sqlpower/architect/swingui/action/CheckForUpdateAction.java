@@ -20,6 +20,7 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -30,24 +31,34 @@ import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectVersion;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.util.BrowserUtil;
 
+/**
+ * Checks for a newer version available and prompts user to update when a newer version is found.
+ *
+ */
 public class CheckForUpdateAction extends AbstractArchitectAction {
 
     private static final Logger logger = Logger.getLogger(CheckForUpdateAction.class);
 
     private static final String VERSION_FILE_URL = "http://power-architect.sqlpower.ca/current_version"; //$NON-NLS-1$
 
+    private static final String UPDATE_URL = "http://download.sqlpower.ca/architect/current.html"; //$NON-NLS-1$
+
     private ArchitectSwingSession session;
     private String versionPropertyString;
 
     public CheckForUpdateAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("CheckForUpdateAction.name"), Messages.getString("CheckForUpdateAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
+        super(session, Messages.getString("CheckForUpdateAction.name"), //$NON-NLS-1$
+                Messages.getString("CheckForUpdateAction.description")); //$NON-NLS-1$
         this.session = session;
     }
 
     /**
-     * This sends a request to get access to architect.version.properties
+     * Sends request to website to check for current version and displays result
+     * message as appropriate.
      */
     public void actionPerformed(ActionEvent e) {
         try {
@@ -64,33 +75,38 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
 
             versionPropertyString = properties.getProperty("app.version"); //$NON-NLS-1$
             ArchitectVersion latestVersion = new ArchitectVersion(versionPropertyString);
-            ArchitectVersion userVersion = ArchitectVersion.getAppVersionObject();
-            
-            if (userVersion.compareTo(latestVersion) == -1) {
+            ArchitectVersion userVersion = ArchitectVersion.APP_VERSION;
+
+            if (userVersion.compareTo(latestVersion) < 0) {
                 promptUpdate();
-                return;
+            } else {
+                JOptionPane.showMessageDialog(session.getArchitectFrame(), 
+                        Messages.getString("CheckForUpdateAction.upToDate"), //$NON-NLS-1$
+                        Messages.getString("CheckForUpdateAction.name"), //$NON-NLS-1$
+                        JOptionPane.INFORMATION_MESSAGE);
             }
-            else {
-                JOptionPane.showMessageDialog(this.session.getArchitectFrame(), Messages.getString("CheckForUpdateAction.upToDate"), //$NON-NLS-1$
-                  Messages.getString("CheckForUpdateAction.latestVersionIs", latestVersion.toString()), JOptionPane.INFORMATION_MESSAGE); //$NON-NLS-1$
-                  setEnabled(false);
-                  return;
-            }
-        } catch(Exception ex) {
-            JOptionPane.showMessageDialog(this.session.getArchitectFrame(), Messages.getString("CheckForUpdateAction.failedToUpdate"), //$NON-NLS-1$
-                    Messages.getString("CheckForUpdateAction.yourVersionIs", ArchitectVersion.APP_VERSION), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
-            ex.printStackTrace();
-            logger.error("Fail to compare version number"); //$NON-NLS-1$
+        } catch (IOException ex) {
+            logger.error("Fail to retrieve current version number!"); //$NON-NLS-1$
+            ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+                    Messages.getString("CheckForUpdateAction.failedToCheckForUpdate"), ex); //$NON-NLS-1$
         }
     }
 
     /**
-     * This method is to be modified later according to specifications of software update
+     * Prompts the user for update and opens browser to current version if accepted.
      */
     private void promptUpdate() {
-        JOptionPane.showMessageDialog(this.session.getArchitectFrame(), Messages.getString("CheckForUpdateAction.updatedVersionAvailable") + //$NON-NLS-1$
-                Messages.getString("CheckForUpdateAction.updateInstructions"), Messages.getString("CheckForUpdateAction.latestVersionIs",  //$NON-NLS-1$ //$NON-NLS-2$
-                versionPropertyString), JOptionPane.INFORMATION_MESSAGE);
-
+        int response = JOptionPane.showConfirmDialog(session.getArchitectFrame(),
+                Messages.getString("CheckForUpdateAction.newerVersionAvailable"), //$NON-NLS-1$
+                Messages.getString("CheckForUpdateAction.name"), //$NON-NLS-1$
+                JOptionPane.YES_NO_OPTION);
+        if (response == JOptionPane.YES_OPTION) {
+            try {
+                BrowserUtil.launch(UPDATE_URL);
+            } catch (IOException e) {
+                ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+                        Messages.getString("CheckForUpdateAction.failedToUpdate"), e); //$NON-NLS-1$
+            }
+        }
     }
 }

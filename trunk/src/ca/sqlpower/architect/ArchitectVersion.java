@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
  * also used during the build process in order to determine which version
  * number to put in the archive file names.
  * <p>
- * It is extremely important that this class has no dependancies aside
+ * It is extremely important that this class has no dependencies aside
  * from the standard Java libraries.
  */
 public class ArchitectVersion implements Comparable<ArchitectVersion> {
@@ -71,12 +71,11 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
      * brackets are not part of the version string; they indicate that the hyphen and
      * suffix are omitted when there is no suffix.
      */
-    public static final String APP_VERSION = APP_VERSION_MAJOR + "." +
-                                            APP_VERSION_MINOR + "." +
-                                            APP_VERSION_TINY +
+    public static final ArchitectVersion APP_VERSION = new ArchitectVersion(APP_VERSION_MAJOR + "." +
+                                            APP_VERSION_MINOR + "." + APP_VERSION_TINY +
                                             (APP_VERSION_SUFFIX.length() > 0
                                               ? "-" + APP_VERSION_SUFFIX
-                                              : "");
+                                              : ""));
     
     /**
      * The components of this version, from most major to least major. Parts
@@ -86,14 +85,15 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
     private Object[] parts;
 
     /**
-     * Creates a new Version object from the given string. The format is
-     * <tt>a1.a2.a3-[suffix]</tt>.  Examples: <tt>1.2.3-alpha</tt>
-     * or <tt>1.3.0</tt> or <tt>2.0.0</tt>.  The version number must have exactly
-     * 3 numeric components.
+     * Creates a new ArchitectVersion object from the given string. The format is
+     * <tt>a1.a2.(...).aN[suffix]</tt>.  Examples: <tt>1.2.3-alpha</tt>
+     * or <tt>1.3</tt> or <tt>2</tt>.  The version number must have at
+     * least one numeric component, so <tt>1suffix</tt> is legal but
+     * <tt>suffix</tt> on its own is not.
      * 
      * @param version The version string
      */
-    public ArchitectVersion(String version) throws Exception{
+    public ArchitectVersion(String version) {
         String[] rawParts = version.split("\\.");
         List<Object> parsedParts = new ArrayList<Object>();
         Pattern p = Pattern.compile("[0-9]+");
@@ -102,20 +102,19 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
             if (m.matches()) {
                 parsedParts.add(Integer.parseInt(rawParts[i]));
             } else if (i == rawParts.length - 1) {
-                Pattern suffixPattern = Pattern.compile("([0-9]+)(-)(.+)");
+                Pattern suffixPattern = Pattern.compile("([0-9]+)(.+)");
                 Matcher suffixMatcher = suffixPattern.matcher((String) rawParts[i]);
                 if (suffixMatcher.matches()) {
                     parsedParts.add(Integer.parseInt(suffixMatcher.group(1)));
-                    parsedParts.add(suffixMatcher.group(3));
+                    parsedParts.add(suffixMatcher.group(2));
                 } else {
-                    throw new Exception("Bad version format \""+version+"\"");
+                    throw new ArchitectVersionParseException(version);
                 }
             } else {
-                throw new Exception("Bad version format \""+version+"\"");
+                throw new ArchitectVersionParseException(version);
             }
         }
         parts = parsedParts.toArray();
-        if (parts.length != 3 && parts.length != 4) throw new Exception("Bad version format \""+version+"\"");
     }
     
     /**
@@ -125,48 +124,61 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        
-        sb.append(parts[0]);
-        sb.append("." + parts[1]);
-        sb.append("." + parts[2]);
-        
-        if (parts.length == 3) return sb.toString();
-        
-        sb.append("-" + parts[3]);
-        
+        boolean first = true;
+        for (Object part : parts) {
+            if (!first && part instanceof Integer) {
+                sb.append(".");
+            }
+            sb.append(part);
+            first = false;
+        }
         return sb.toString();
+    }
+    
+    /**
+     * Returns an array of the parts represented by this ArchitectVersion, contents
+     * are either Integer or String.
+     *
+     */
+    public Object[] getParts() {
+        return parts;
     }
 
     /**
+     * ArchitectVersion numbers are mutually comparable even if they have different
+     * numbers of parts, and in that case, version <tt>2.0</tt> is older
+     * than <tt>2.0.0</tt> or <tt>2.0.1</tt> but still newer than
+     * <tt>1.0.0</tt>.
+     * <p>
      * If two versions differ only as far as one having a suffix and the other
      * not having a suffix, the one without the suffix is considered newer. This
      * allows the natural idea that the following are in chronological order:
      * <ul>
-     *  <li>1.0.0-alpha
-     *  <li>1.0.0-beta
-     *  <li>1.0.0-rc1
-     *  <li>1.0.0-rc2
-     *  <li>1.0.0
-     *  <li>1.1.0-alpha
-     *  <li>1.1.0
+     *  <li>1.0-alpha
+     *  <li>1.0-beta
+     *  <li>1.0-rc1
+     *  <li>1.0-rc2
+     *  <li>1.0
+     *  <li>1.1-alpha
+     *  <li>1.1
      * </ul>
      */
-    public int compareTo(ArchitectVersion version) {
+    public int compareTo(ArchitectVersion o) {
         int i;
-        for (i = 0; i < parts.length && i < version.parts.length; i++) {
-            if (parts[i] instanceof Integer && version.parts[i] instanceof Integer) {
+        for (i = 0; i < parts.length && i < o.parts.length; i++) {
+            if (parts[i] instanceof Integer && o.parts[i] instanceof Integer) {
                 int v = (Integer) parts[i];
-                int ov = (Integer) version.parts[i];
+                int ov = (Integer) o.parts[i];
                 if (v > ov) return 1;
                 if (v < ov) return -1;
-            } else if (parts[i] instanceof String && version.parts[i] instanceof String) {
+            } else if (parts[i] instanceof String && o.parts[i] instanceof String) {
                 String v = (String) parts[i];
-                String ov = (String) version.parts[i];
+                String ov = (String) o.parts[i];
                 int diff = v.compareTo(ov);
                 if (diff != 0) return diff;
-            } else if (parts[i] instanceof Integer && version.parts[i] instanceof String) {
+            } else if (parts[i] instanceof Integer && o.parts[i] instanceof String) {
                 return 1;
-            } else if (parts[i] instanceof String && version.parts[i] instanceof Integer) {
+            } else if (parts[i] instanceof String && o.parts[i] instanceof Integer) {
                 return -1;
             } else {
                 throw new IllegalStateException("Found a version part that's not a String or Integer");
@@ -174,23 +186,14 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
         }
         
         // check for special case where comparing 1.0a to 1.0 (1.0 should be newer)
-        if (parts.length == version.parts.length + 1 && parts[parts.length-1] instanceof String) return -1;
-        if (version.parts.length == parts.length + 1 && version.parts[version.parts.length-1] instanceof String) return 1;
+        if (parts.length == o.parts.length + 1 && parts[parts.length-1] instanceof String) return -1;
+        if (o.parts.length == parts.length + 1 && o.parts[o.parts.length-1] instanceof String) return 1;
         
         // otherwise if one version has more integer parts, it's newer.
-        if (parts.length > version.parts.length) return 1;
-        if (parts.length < version.parts.length) return -1;
+        if (parts.length > o.parts.length) return 1;
+        if (parts.length < o.parts.length) return -1;
         
         // they're actually the same
         return 0;
     }
-    
-    /**
-     * Initializes and returns an ArchitectVersion object based on its own version number.
-     * It uses the constant APP_VERSION declared above
-     */
-    public static ArchitectVersion getAppVersionObject() throws Exception{
-        return new ArchitectVersion(APP_VERSION);
-    }
-
 }

@@ -85,7 +85,7 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
         ASUtils.showExceptionDialogNoReport("An unexpected exception has occured: ", e);
         UserSettings settings = context.getUserSettings().getQfaUserSettings();
         if (!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
-        ExceptionReport report = new ExceptionReport(e, DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, "Architect");
+        ExceptionReport report = new ExceptionReport(e, DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION.toString(), "Architect");
         
         StringBuffer remarks = new StringBuffer();
         Collection<ArchitectSession> sessions = context.getSessions();
