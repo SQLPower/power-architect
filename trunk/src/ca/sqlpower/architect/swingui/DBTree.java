@@ -1099,9 +1099,9 @@ public class DBTree extends JTree implements DragSourceListener {
         public void actionPerformed(ActionEvent e) {
             TreePath selected = getSelectionPath();
             try {
-                if(selected == null) 
+                if (selected == null) {
                     return;
-                else {
+				} else {
                     SQLTable centralTable = (SQLTable)selected.getLastPathComponent();
                     List<SQLRelationship> exportedKeys = centralTable.getExportedKeys();
                     for(int i = 0; i < exportedKeys.size(); i++) {
@@ -1110,7 +1110,7 @@ public class DBTree extends JTree implements DragSourceListener {
                     }
                 }
             } catch (ArchitectException ex) {
-                ex.printStackTrace();
+                logger.debug("Failed to select all child tables", ex);
                 throw new ArchitectRuntimeException(ex);
             }
         }
