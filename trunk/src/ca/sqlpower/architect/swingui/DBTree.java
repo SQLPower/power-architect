@@ -691,6 +691,7 @@ public class DBTree extends JTree implements DragSourceListener {
                     plDotIni.addDataSource(dataSource);
                 }
             };
+            dataSource.setDisplayName(Messages.getString("DBTree.newConnectionName")); //$NON-NLS-1$
             ASUtils.showDbcsDialog(session.getArchitectFrame(), dataSource, onAccept);
             
 			panelHoldsNewDBCS = true;
