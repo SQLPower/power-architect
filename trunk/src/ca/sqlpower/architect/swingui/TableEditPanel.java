@@ -105,11 +105,6 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
         add(rounded = new JCheckBox());        
         
 		editTable(t);
-		try {
-            ArchitectUtils.listenToHierarchy(this, session.getRootObject());
-        } catch (ArchitectException e) {
-            e.printStackTrace();
-        }
 	}
 
 	public void editTable(SQLTable t) {
@@ -122,6 +117,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                 pkName.setText(t.getPrimaryKeyName());
                 pkName.setEnabled(true);
             }
+            ArchitectUtils.listenToHierarchy(this, session.getRootObject());
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         }
@@ -138,6 +134,11 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
+	    try {
+            ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
 		startCompoundEdit("Table Properties Change");		 //$NON-NLS-1$
         try {	
 		    StringBuffer warnings = new StringBuffer();
@@ -189,6 +190,11 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 
 	public void discardChanges() {
 	    // TODO revert the changes made
+	    try {
+            ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
 	}
 	
 	/**
@@ -266,12 +272,17 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
         SQLObject[] c = e.getChildren();
 
         for (SQLObject obj : c) {
+            try {
             if (table.equals(obj)) {
+                ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
                 if (editDialog != null) {
                     editDialog.setVisible(false);
                     editDialog.dispose();
                 }
                 break;
+            }
+            } catch (ArchitectException ex) {
+                throw new ArchitectRuntimeException(ex);
             }
         }
     }
