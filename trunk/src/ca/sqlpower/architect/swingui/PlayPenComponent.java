@@ -421,7 +421,7 @@ public abstract class PlayPenComponent implements Selectable {
      * An instance is fired when playpen component gets resized.
      * @author kaiyi
      */
-    public class PlayPenComponentResizedEvent extends PropertyChangeEvent {
+    protected class PlayPenComponentResizedEvent extends PropertyChangeEvent {
         public PlayPenComponentResizedEvent() {
             super(PlayPenComponent.this, "bounds", null, null); //$NON-NLS-1$
         }
