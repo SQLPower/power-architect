@@ -28,6 +28,7 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
@@ -67,20 +68,23 @@ public class EditTableAction extends AbstractArchitectAction {
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
 			logger.debug("selections length is: " + selections.length); //$NON-NLS-1$
-			if (selections.length != 1) {
-				JOptionPane.showMessageDialog(dbt, Messages.getString("EditTableAction.instructions")); //$NON-NLS-1$
-			} else {
-				TreePath tp = selections[0];
-				SQLObject so = (SQLObject) tp.getLastPathComponent();
-				SQLTable st = null;
+			if (selections.length == 1 || selections.length == 2) {
+                SQLObject so = (SQLObject) selections[0].getLastPathComponent();
+                SQLTable st = null;
+                
+                if (so instanceof SQLColumn && selections.length == 2) {
+                    so = (SQLObject) selections[1].getLastPathComponent();
+                }
 
-				if (so instanceof SQLTable) {
-					logger.debug("user clicked on table, so we shall try to edit the table properties."); //$NON-NLS-1$
-					st = (SQLTable) so;
-					makeDialog(st);	
-				} else {
-					JOptionPane.showMessageDialog(dbt, Messages.getString("EditTableAction.instructions")); //$NON-NLS-1$
-				}
+                if (so instanceof SQLTable) {
+                    logger.debug("user clicked on table, so we shall try to edit the table properties."); //$NON-NLS-1$
+                    st = (SQLTable) so;
+                    makeDialog(st); 
+                } else {
+                    JOptionPane.showMessageDialog(dbt, Messages.getString("EditTableAction.instructions")); //$NON-NLS-1$
+                }
+			} else {
+			    JOptionPane.showMessageDialog(dbt, Messages.getString("EditTableAction.instructions")); //$NON-NLS-1$
 			}
 		} else {
 	  		// unknown action command source, do nothing
