@@ -16,6 +16,9 @@ Thomas McKee
 Ben Ko
 Kevin Chan
 Sean Oczkowski
+Octavian Sichin
+Jonathan Sweetman
+Kaiyi Li
 
 ARTWORK
 -------
