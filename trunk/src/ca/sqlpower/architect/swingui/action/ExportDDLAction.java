@@ -196,7 +196,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                         (session,
                          Messages.getString("ExportDDLAction.errorGeneratingDDLScript"), ex); //$NON-NLS-1$
                 }
-                return new Boolean(false);
+                return Boolean.FALSE;
             }
         };
 
@@ -205,7 +205,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
         cancelCall = new Callable<Boolean>() {
             public Boolean call() {
                 ddlPanel.discardChanges();
-                return new Boolean(true);
+                return Boolean.TRUE;
             }
         };
         d = DataEntryPanelBuilder.createDataEntryPanelDialog(

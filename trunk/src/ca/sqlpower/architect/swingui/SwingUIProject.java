@@ -834,7 +834,7 @@ public class SwingUIProject extends CoreProject {
             propNames.put("remarks", ((SQLColumn) o).getRemarks()); //$NON-NLS-1$
             propNames.put("defaultValue", ((SQLColumn) o).getDefaultValue()); //$NON-NLS-1$
             propNames.put("primaryKeySeq", ((SQLColumn) o).getPrimaryKeySeq()); //$NON-NLS-1$
-            propNames.put("autoIncrement", new Boolean(((SQLColumn) o).isAutoIncrement())); //$NON-NLS-1$
+            propNames.put("autoIncrement", Boolean.valueOf(((SQLColumn) o).isAutoIncrement())); //$NON-NLS-1$
             propNames.put("referenceCount", new Integer(((SQLColumn)o).getReferenceCount())); //$NON-NLS-1$
             if (((SQLColumn) o).isAutoIncrementSequenceNameSet()) {
                 propNames.put("autoIncrementSequenceName", ((SQLColumn) o).getAutoIncrementSequenceName()); //$NON-NLS-1$
@@ -849,7 +849,7 @@ public class SwingUIProject extends CoreProject {
             propNames.put("deferrability", new Integer(((SQLRelationship) o).getDeferrability().getCode())); //$NON-NLS-1$
             propNames.put("pkCardinality", new Integer(((SQLRelationship) o).getPkCardinality())); //$NON-NLS-1$
             propNames.put("fkCardinality", new Integer(((SQLRelationship) o).getFkCardinality())); //$NON-NLS-1$
-            propNames.put("identifying", new Boolean(((SQLRelationship) o).isIdentifying())); //$NON-NLS-1$
+            propNames.put("identifying", Boolean.valueOf(((SQLRelationship) o).isIdentifying())); //$NON-NLS-1$
         } else if (o instanceof SQLRelationship.ColumnMapping) {
             id = "CMP"+objectIdMap.size(); //$NON-NLS-1$
             type = "column-mapping"; //$NON-NLS-1$

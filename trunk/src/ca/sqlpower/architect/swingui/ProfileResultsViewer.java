@@ -145,16 +145,14 @@ public class ProfileResultsViewer {
 
         public void mouseClicked(MouseEvent evt) {
             Object obj = evt.getSource();
-            if (evt.getClickCount() == 2) {
-                if ( obj instanceof JTable ) {
-                    JTable t = (JTable)obj;
-                    SQLColumn col = (SQLColumn)t.getValueAt(t.getSelectedRow(),
-                            t.convertColumnIndexToView(
-                                    ProfileColumn.valueOf("COLUMN").ordinal())); //$NON-NLS-1$
-                    profilePanel.getTableSelector().setSelectedItem(col.getParentTable());
-                    profilePanel.getColumnSelector().setSelectedValue(col,true);
-                    tabPane.setSelectedIndex(1);
-                }
+            if (evt.getClickCount() == 2 && obj instanceof JTable) {
+                JTable t = (JTable)obj;
+                SQLColumn col = (SQLColumn)t.getValueAt(t.getSelectedRow(),
+                        t.convertColumnIndexToView(
+                                ProfileColumn.valueOf("COLUMN").ordinal())); //$NON-NLS-1$
+                profilePanel.getTableSelector().setSelectedItem(col.getParentTable());
+                profilePanel.getColumnSelector().setSelectedValue(col,true);
+                tabPane.setSelectedIndex(1);
             }
         }
 

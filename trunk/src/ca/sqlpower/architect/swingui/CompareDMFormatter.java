@@ -256,7 +256,7 @@ public class CompareDMFormatter {
                     throw new IllegalStateException("DiffChunk is an unexpected type.");
                 }
             } else {
-
+                throw new IllegalStateException("DiffChunk is an invalid type.");
             }
         }
     }

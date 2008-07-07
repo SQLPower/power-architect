@@ -194,16 +194,16 @@ public class ASUtils {
                     if (onAccept != null) {
                         onAccept.run();
                     }
-                    return new Boolean(true);
+                    return Boolean.TRUE;
                 }
-                return new Boolean(false);
+                return Boolean.FALSE;
             }
         };
     
         Callable<Boolean> cancelCall = new Callable<Boolean>() {
             public Boolean call() {
                 dbcsPanel.discardChanges();
-                return new Boolean(true);
+                return Boolean.TRUE;
             }
         };
     

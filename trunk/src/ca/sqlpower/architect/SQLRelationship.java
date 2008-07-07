@@ -732,7 +732,8 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 						if (prop == null
 								|| prop.equals("parent")
-								|| prop.equals("remarks")) {
+								|| prop.equals("remarks")
+								|| prop.equals("autoIncrement")) {
 							// don't care
 						} else if (prop.equals("sourceColumn")) {
 							m.getFkColumn().setSourceColumn(m.getPkColumn().getSourceColumn());
@@ -753,8 +754,6 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 							m.getFkColumn().setNullable(m.getPkColumn().getNullable());
 						} else if (prop.equals("defaultValue")) {
 							m.getFkColumn().setDefaultValue(m.getPkColumn().getDefaultValue());
-						} else if (prop.equals("autoIncrement")) {
-						    //do nothing
 						} else {
 							logger.warn("Warning: unknown column property "+prop
 									+" changed while monitoring pkTable");
@@ -766,7 +765,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 						pkTable.removeExportedKey(SQLRelationship.this);
 					}
 				}
-			}finally {
+			} finally {
 				endCompoundEdit("End Object change handler");
 			}
 		}

@@ -21,7 +21,6 @@ package ca.sqlpower.architect.swingui.action;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 
-import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
@@ -47,7 +46,7 @@ public abstract class AbstractArchitectAction extends AbstractAction {
      * @param actionName The name for this action. This will appear in menu items.
      * @param actionDescription This action's description. Appears in tooltips.
      * @param iconResourceName The resource name of the icon. See
-     * {@link ASUtils#createIcon(String, String)} for details.
+     * {@link SPSUtils#createIcon(String, String, int))} for details.
      */
     public AbstractArchitectAction(
             ArchitectSwingSession session,
@@ -100,7 +99,7 @@ public abstract class AbstractArchitectAction extends AbstractAction {
      * @param session The session that this action will operate on. Must not be null.
      * @param actionName The name for this action. This will appear in menu items.
      * @param actionDescription This action's description. Appears in tooltips.
-     * {@link ASUtils#createIcon(String, String)} for details.
+     * {@link SPSUtils#createIcon(String, String)} for details.
      */
     public AbstractArchitectAction(
             ArchitectSwingSession session,

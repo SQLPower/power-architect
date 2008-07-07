@@ -187,7 +187,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * 
      * @param tables the tables the generated script should create.
      * @return the list of DDL statements in the order they should be executed
-	 * @see ca.sqlpower.architect.ddl.DDLGenerator#generateDDLStatements(ca.sqlpower.architect.SQLDatabase)
+	 * @see ca.sqlpower.architect.ddl.DDLGenerator#generateDDLStatements(Collection)
 	 */
 	public final List<DDLStatement> generateDDLStatements(Collection<SQLTable> tables) throws SQLException, ArchitectException {
         warnings = new ArrayList();
