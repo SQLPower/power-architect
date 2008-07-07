@@ -38,3 +38,19 @@ This document intends to outline the details of future planned releases of the P
   * Bug 1301: Sorting tables by date in the Profile Manager now works properly
   * Bug 1580: Sorting tables by date is done dynamically during profiling
   * Bug 1161: Tables are now created in the correct location after changing the zoom level
+
+== Release 0.9.12 ==
+=== Proposed Changelist ===
+  * Bug 1274: SQL Runner runs out of connections if running SQL Statements repeatedly (reproducible on PostgreSQL 8.x). Possible alternative is to switch to another SQL tool, ex. SQL Workbench
+
+== Release 1.0 ==
+=== Proposed Changelist ===
+  * Bug 945: Implement critics/proofreaders system
+  * Bug 1180: Datasource settings in the application should update to recognize changes made to the pl.ini/xml file done done externally from the Power*Architect
+  * Bug 1181: Stop using SQLExceptionNode
+  * Bug 1313: Add feature to view contents of a source database table (ex. right-click menu option in DB Tree)
+  * Bug 1184: Properly implement support for views, and have Compare DM feature distinguish between the two
+  * Bug 1316: Driver class doesn't auto-update according to the class name you clicked in the JDBC driver package view
+  * Bug 1231: Automate release process as much as possible (May also consider converting the build process to use Apache Maven)
+
+  
