@@ -82,7 +82,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
                 "pref,4dlu,pref,4dlu,pref,4dlu,4dlu,pref,pref,4dlu,pref,pref,pref,pref,pref,pref"); //$NON-NLS-1$
 		setLayout(layout);
 		int row = 1;
-		add(new JLabel(Messages.getString("ProjectSettingsPanel.snapshowSourceDbOption")), cc.xy(1, row)); //$NON-NLS-1$
+		add(new JLabel(Messages.getString("ProjectSettingsPanel.snapshotSourceDbOption")), cc.xy(1, row)); //$NON-NLS-1$
 		add(saveEntireSource = new JCheckBox(), cc.xy(2, row));
 
 		row+=2;
