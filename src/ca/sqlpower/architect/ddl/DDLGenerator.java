@@ -26,7 +26,6 @@ import java.util.Map;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
@@ -137,7 +136,7 @@ public interface DDLGenerator {
     
     /**
      * Returns the list of DDL statements that have been created so far.  Call
-     * {@link #generateDDLStatements(SQLDatabase)} to populate this list.
+     * {@link #generateDDLStatements(Collection)} to populate this list.
      */
     public List<DDLStatement> getDdlStatements();
 

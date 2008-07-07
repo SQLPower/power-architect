@@ -513,9 +513,6 @@ public class CompareSQL implements Monitorable {
 				} else {
 					sourceColContinue = false;
 				}
-				if (!sourceColContinue || !targetColContinue) {
-					
-				}
 			}
 		}
 		while (sourceColContinue) {

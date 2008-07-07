@@ -37,8 +37,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-
 /**
  * The BasicRelationshipUI is responsible for drawing the lines
  * between tables.  Subclasses decorate the ends of the lines.
@@ -850,8 +848,6 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	/**
 	 * Compute bounds should only be called by objects in this package or from regress.
-	 * @throws ArchitectException 
-	 *
 	 */
 	protected Rectangle computeBounds() {
         logger.debug("computeBounds()");

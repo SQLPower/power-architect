@@ -2401,7 +2401,9 @@ public class PlayPen extends JPanel
 							ActionEvent.ACTION_PERFORMED,
 							ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
 				} else if(evt.getClickCount()==1 && evt.getButton() == MouseEvent.BUTTON1){
-				    if (c.isSelected()&& componentPreviouslySelected)c.setSelected(false,SelectionEvent.SINGLE_SELECT);
+				    if (c.isSelected()&& componentPreviouslySelected) {
+				        c.setSelected(false,SelectionEvent.SINGLE_SELECT);
+				    }
                 }
           		session.getArchitectFrame().getCreateIdentifyingRelationshipAction().cancel();
 				session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
@@ -2460,14 +2462,12 @@ public class PlayPen extends JPanel
 				Relationship r = (Relationship) c;
 				PlayPen pp = (PlayPen) r.getPlayPen();
 
-				if ( mouseMode == MouseModeType.CREATING_RELATIONSHIP ) {
-				} else {
-
-					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0) {
+				if (mouseMode != MouseModeType.CREATING_RELATIONSHIP) {
+					if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0) {
 						mouseMode = MouseModeType.MULTI_SELECT;
 					} else {
 						mouseMode = MouseModeType.SELECT_RELATIONSHIP;
-						if ( !r.isSelected() ) {
+						if (!r.isSelected()) {
 							pp.selectNone();
 						}
 					}
@@ -2492,32 +2492,29 @@ public class PlayPen extends JPanel
 				try {
 					int clickCol = tp.pointToColumnIndex(p);
 
-					if ( mouseMode == MouseModeType.CREATING_TABLE ) {
-					}
-					else {
-						if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-							if ( !tp.isSelected() || mouseMode == MouseModeType.IDLE ) {
+					if (mouseMode != MouseModeType.CREATING_TABLE) {
+						if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
+							if (!tp.isSelected() || mouseMode == MouseModeType.IDLE) {
 								mouseMode = MouseModeType.SELECT_TABLE;
 								pp.selectNone();
 							}
-						}
-						else {
+						} else {
 							mouseMode = MouseModeType.MULTI_SELECT;
 						}
 
                         // Alt-click drags table no matter where you clicked
-                        if ( (evt.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0) {
+                        if ((evt.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0) {
                             clickCol = TablePane.COLUMN_INDEX_TITLE;
                         }
                         
-						if ( clickCol > TablePane.COLUMN_INDEX_TITLE &&
+						if (clickCol > TablePane.COLUMN_INDEX_TITLE &&
 							 clickCol < tp.getModel().getColumns().size()) {
 
-							if ( (evt.getModifiersEx() &
+							if ((evt.getModifiersEx() &
 									(InputEvent.SHIFT_DOWN_MASK |
 									 InputEvent.CTRL_DOWN_MASK)) == 0) {
 
-								if ( !tp.isColumnSelected(clickCol) ){
+								if (!tp.isColumnSelected(clickCol) ){
 									tp.deSelectEverythingElse(evt);
 									tp.selectNone();
 								}
@@ -2529,7 +2526,7 @@ public class PlayPen extends JPanel
                                 tp.selectColumn(clickCol);
                             }
 
-							tp.fireSelectionEvent(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
+                            tp.fireSelectionEvent(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
 							tp.repaint();
 						}
                         if (tp.isSelected()&& clickCol == TablePane.COLUMN_INDEX_TITLE){
@@ -2579,21 +2576,19 @@ public class PlayPen extends JPanel
 
 		public void mouseReleased(MouseEvent evt) {
 			draggingTablePanes = false;
-			if (rubberBand != null) {
-				if (evt.getButton() == MouseEvent.BUTTON1) {
-					Rectangle dirtyRegion = rubberBand;
+			if (rubberBand != null && evt.getButton() == MouseEvent.BUTTON1) {
+			    Rectangle dirtyRegion = rubberBand;
 
-					rubberBandOrigin = null;
-					rubberBand = null;
+			    rubberBandOrigin = null;
+			    rubberBand = null;
 
-					zoomRect(dirtyRegion);
-					repaintRubberBandRegion(dirtyRegion);
-					if ( getSelectedItems().size() > 0 ) {
-						mouseMode = MouseModeType.MULTI_SELECT;
-					} else {
-						mouseMode = MouseModeType.IDLE;
-					}
-				}
+			    zoomRect(dirtyRegion);
+			    repaintRubberBandRegion(dirtyRegion);
+			    if ( getSelectedItems().size() > 0 ) {
+			        mouseMode = MouseModeType.MULTI_SELECT;
+			    } else {
+			        mouseMode = MouseModeType.IDLE;
+			    }
 			}
 			maybeShowPopup(evt);
 			repaint();

@@ -79,7 +79,7 @@ public class KettleJobAction extends AbstractArchitectAction {
             
             public Boolean call() {
                 if (!kettleETLPanel.applyChanges()) {
-                    return new Boolean(false);
+                    return Boolean.FALSE;
                 }
                 KettleRepositoryDirectoryChooser chooser = new UserRepositoryDirectoryChooser(architectFrame);
                 final KettleJob kettleJob = session.getKettleJob();
@@ -176,13 +176,13 @@ public class KettleJobAction extends AbstractArchitectAction {
                 
                 new Thread(compareWorker).start();
                 ProgressWatcher.watchProgress(progressBar, kettleJob);
-                return new Boolean(true);
+                return Boolean.TRUE;
             }
         };
         
         cancelCall = new Callable<Boolean>() {
             public Boolean call() {
-                return new Boolean(true);
+                return Boolean.TRUE;
             }
         };
         

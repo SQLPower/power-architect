@@ -287,7 +287,7 @@ public class IndexColumnTable {
         }
 
         public Object getValueAt(int row, int col) {
-            if (col == 0) return new Boolean(rowList.get(row).isEnabled());
+            if (col == 0) return Boolean.valueOf(rowList.get(row).isEnabled());
             else if (col == 1) return rowList.get(row).getSQLColumn();
             else if (col == 2) return rowList.get(row).getOrder();
             else throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns.")); //$NON-NLS-1$

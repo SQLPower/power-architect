@@ -194,7 +194,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 							        ASUtils.showExceptionDialog(session, "Error Could not add column to table", e); //$NON-NLS-1$
 							    }
 							}
-	                        Boolean ret = new Boolean(columnEditPanel.applyChanges());
+	                        Boolean ret = Boolean.valueOf(columnEditPanel.applyChanges());
 	                        if (addToTable) {
 	                            tp.getModel().endCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 						    }
@@ -204,7 +204,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 					new Callable<Boolean>(){
                         public Boolean call() {
 							columnEditPanel.discardChanges();
-							return new Boolean(true);
+							return Boolean.TRUE;
 						}
 					});
 			columnEditPanel.setEditDialog(editDialog);

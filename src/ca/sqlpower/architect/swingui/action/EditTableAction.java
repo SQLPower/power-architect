@@ -97,7 +97,7 @@ public class EditTableAction extends AbstractArchitectAction {
 				//We need to see if the operation is successful, if
                 //successful, we close down the dialog, if not, we need 
                 //to return the dialog (hence why it is setVisible(!success))
-                return new Boolean(editPanel.applyChanges());
+                return Boolean.valueOf(editPanel.applyChanges());
 				// XXX: also apply changes on mapping tab                
 			}
 		};
@@ -106,7 +106,7 @@ public class EditTableAction extends AbstractArchitectAction {
 			public Boolean call() {
 				editPanel.discardChanges();
 				// XXX: also discard changes on mapping tab
-				return new Boolean(true);
+				return Boolean.TRUE;
 			}
 		};
 
