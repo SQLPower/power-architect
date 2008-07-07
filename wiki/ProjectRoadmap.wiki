@@ -39,9 +39,11 @@ This document intends to outline the details of future planned releases of the P
   * Bug 1580: Sorting tables by date is done dynamically during profiling
   * Bug 1161: Tables are now created in the correct location after changing the zoom level
 
+
 == Release 0.9.12 ==
 === Proposed Changelist ===
   * Bug 1274: SQL Runner runs out of connections if running SQL Statements repeatedly (reproducible on PostgreSQL 8.x). Possible alternative is to switch to another SQL tool, ex. SQL Workbench
+
 
 == Release 1.0 ==
 === Proposed Changelist ===
