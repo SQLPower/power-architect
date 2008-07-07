@@ -18,7 +18,8 @@ Good luck with the release!
 *Update the ca.sqlpower.architect.ArchitectVersion class to reflect the correct
  release number.  Normally, this will mean setting the suffix to "" for a full
  release, or "beta", "rc1", etc for a pre-release.
-*Run the ArchitectMegaTestSuite. It should pass with a flying colour (green)
+*Update the doc/ReleaseNotes.txt file with the latest features and bugfixes.
+*Run the LibraryMegaTest and ArchitectMegaTestSuite. It should pass with a flying colour (green)
 *Read the formatted documentation, noting what's missing or incorrect. Then update
  the documentation.
 *Generate the JUnit and Clover test reports (run the 'clover.test.and.report' build.xml
