@@ -79,6 +79,7 @@ import ca.sqlpower.architect.swingui.action.EditColumnAction;
 import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
 import ca.sqlpower.architect.swingui.action.EditSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditSelectedIndexAction;
+import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.action.EditTableAction;
 import ca.sqlpower.architect.swingui.action.ExportCSVAction;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction;
@@ -159,7 +160,7 @@ public class ArchitectFrame extends JFrame {
     
     /**
      * Edits the index which is currently selected in the DBTree.
-     * For PlayPen purposes, see {@link EditSelectedIndexAction}.
+     * For PlayPen purposes, see {@link EditSpecificIndexAction}.
      */
     private EditSelectedIndexAction editIndexAction;
     
@@ -790,7 +791,7 @@ public class ArchitectFrame extends JFrame {
 
     /**
      * Returns the action that edits the index which is currently selected in
-     * the DBTree. For PlayPen purposes, see {@link EditSelectedIndexAction}.
+     * the DBTree. For PlayPen purposes, see {@link EditSpecificIndexAction}.
      */
     public EditSelectedIndexAction getEditIndexAction() {
         return editIndexAction;
