@@ -24,13 +24,14 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class FocusToChildOrParentTableAction extends AbstractArchitectAction implements SelectionListener{
+public class FocusToChildOrParentTableAction extends AbstractArchitectAction{
     
     private boolean isToFocusParentTable;
 
@@ -47,21 +48,25 @@ public class FocusToChildOrParentTableAction extends AbstractArchitectAction imp
                 playpen.selectNone();
                 parentTable.setSelected(true, SelectionEvent.SINGLE_SELECT);
                 playpen.showSelected();
+                try {
+                    playpen.updateDBTree();
+                } catch (ArchitectException ex) {
+                    throw new ArchitectRuntimeException(ex);
+                }
             }
             else {
                 TablePane childTable = selection.get(0).getFkTable();
                 playpen.selectNone();
                 childTable.setSelected(true, SelectionEvent.SINGLE_SELECT);
                 playpen.showSelected();
+                try {
+                    playpen.updateDBTree();
+                } catch (ArchitectException ex) {
+                    throw new ArchitectRuntimeException(ex);
+                }
             }
         } else {
             JOptionPane.showMessageDialog(playpen, Messages.getString("FocusToChildOrParentTableAction.selectExactlyOneRelationship")); //$NON-NLS-1$
         }
-    }
-    
-    public void itemDeselected(SelectionEvent e) {
-    }
-
-    public void itemSelected(SelectionEvent e) {
     }
 }
