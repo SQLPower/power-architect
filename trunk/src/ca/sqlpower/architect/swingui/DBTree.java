@@ -406,6 +406,16 @@ public class DBTree extends JTree implements DragSourceListener {
 			newMenu.add(mi);
 			if (p.getLastPathComponent() instanceof SQLTable) {
 				mi.setEnabled(true);
+				newMenu.addSeparator();
+                JMenu alignTables = new JMenu(Messages.getString("PlayPen.alignTablesMenu"));
+                mi = new JMenuItem();
+                mi.setAction(af.getAlignTableHorizontalAction());
+                alignTables.add(mi);
+                mi = new JMenuItem();
+                mi.setAction(af.getAlignTableVerticalAction());
+                alignTables.add(mi);
+                newMenu.add(alignTables);
+                newMenu.addSeparator();
 			} else {
 				mi.setEnabled(false);
 			}
@@ -416,6 +426,16 @@ public class DBTree extends JTree implements DragSourceListener {
 			newMenu.add(mi);
 			if (p.getLastPathComponent() instanceof SQLRelationship) {
 				mi.setEnabled(true);
+				newMenu.addSeparator();
+				JMenu setFocus = new JMenu(Messages.getString("Relationship.setFocusMenu"));
+				mi = new JMenuItem();
+				mi.setAction(af.getFocusToParentAction());
+				setFocus.add(mi);
+				mi = new JMenuItem();
+				mi.setAction(af.getFocusToChildAction());
+				setFocus.add(mi);
+				newMenu.add(setFocus);
+				newMenu.addSeparator();
 			} else {
 				mi.setEnabled(false);
 			}

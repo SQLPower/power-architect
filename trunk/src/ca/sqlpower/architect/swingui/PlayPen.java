@@ -3133,7 +3133,7 @@ public class PlayPen extends JPanel
      * @throws ArchitectException 
      * 
      */
-    private void updateDBTree() throws ArchitectException {
+    public void updateDBTree() throws ArchitectException {
         if (ignoreTreeSelection) return;
         ignoreTreeSelection = true;
         DBTree tree = session.getSourceDatabases();
