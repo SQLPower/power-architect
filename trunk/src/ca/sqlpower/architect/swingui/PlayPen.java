@@ -389,7 +389,7 @@ public class PlayPen extends JPanel
 	 * Flag to prevent recursive selections for selectObjects()
 	 */
 	private boolean ignoreTreeSelection = false;
-    
+	
 	/**
      * Creates a play pen with reasonable defaults.  If you are creating
      * this PlayPen for temporary use (as opposed to creating a session's
@@ -2730,7 +2730,7 @@ public class PlayPen extends JPanel
 		private TablePane tp;
 		private Point handle;
 		private Point p;
-
+		
 		/**
 		 * If true, we will add the given TablePane to the play pen once the user clicks,
 		 * and add its model to the playpen's database.
@@ -2777,8 +2777,8 @@ public class PlayPen extends JPanel
 	        if(viewport==null || pp.getSelectedItems().size() < 1) 
 	            return; 
 	        
-	        // Theoretically should re-validate at the end of autoscrolling. But this would make the selected sqlObject fall off
-	        // the border.
+	        // Theoretically should re-validate after each scroll. But that would 
+	        // cause the selected component to fall off the border.
 	        pp.revalidate();
 	        Point viewPos = viewport.getViewPosition(); 
 	        Rectangle view = viewport.getViewRect();
