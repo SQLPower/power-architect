@@ -25,6 +25,9 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -41,6 +44,8 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -123,6 +128,7 @@ public class ArchitectFrame extends JFrame {
 	private JMenuBar menuBar = null;
 	JSplitPane splitPane = null;
 	private PlayPen playpen = null;
+	private JDialog navigator;
 	DBTree dbTree = null;
 	private CompareDMDialog comapareDMDialog = null;
 	private int oldWidth;
@@ -221,7 +227,20 @@ public class ArchitectFrame extends JFrame {
 
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(new JScrollPane(dbTree));
-        splitPane.setRightComponent(new JScrollPane(playpen));
+        JScrollPane playpenScrollPane = new JScrollPane(playpen);
+        
+        // Notify the overview navigator when viewport changes
+        playpenScrollPane.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener(){
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                firePropertyChange("viewPort", null, null);
+            }
+        });
+        playpenScrollPane.getHorizontalScrollBar().addAdjustmentListener(new AdjustmentListener(){
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                firePropertyChange("viewPort", null, null);
+            }
+        });
+        splitPane.setRightComponent(playpenScrollPane);
         playpen.setInitialViewPosition();
 
         final Preferences prefs = context.getPrefs();
@@ -505,6 +524,31 @@ public class ArchitectFrame extends JFrame {
         menuBar.add(profileMenu);
 
         JMenu windowMenu = new JMenu(Messages.getString("ArchitectFrame.windowMenu")); //$NON-NLS-1$
+        final JCheckBoxMenuItem navigatorMenuItem = new JCheckBoxMenuItem(Messages.getString("ArchitectFrame.navigator")); //$NON-NLS-1$
+        navigatorMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (navigatorMenuItem.isSelected()) {
+                    if (ArchitectFrame.this.playpen != null) {
+                        ArchitectFrame.this.navigator = new JDialog(ArchitectFrame.this, Messages.getString("ArchitectFrame.navigator")); //$NON-NLS-1$
+                        ArchitectFrame.this.navigator.getContentPane().add(new Navigator(ArchitectFrame.this.playpen));
+                        ArchitectFrame.this.navigator.setLocation(ArchitectFrame.this.getLocation());
+                        ArchitectFrame.this.navigator.setVisible(true);
+                        ArchitectFrame.this.navigator.pack();
+                        ArchitectFrame.this.navigator.setResizable(false);
+                        ArchitectFrame.this.navigator.addWindowListener(new WindowAdapter(){
+                            public void windowClosing(WindowEvent e) {
+                                navigatorMenuItem.setSelected(false);
+                                ArchitectFrame.this.navigator.dispose();
+                            }
+                        });
+                    }
+                } else {
+                    ArchitectFrame.this.navigator.setVisible(false);
+                    ArchitectFrame.this.navigator.dispose();
+                }
+            }
+        });
+        windowMenu.add(navigatorMenuItem);
         windowMenu.add(new DatabaseConnectionManagerAction(session));
         windowMenu.add(new AbstractAction(Messages.getString("ArchitectFrame.profileManager")) { //$NON-NLS-1$
             public void actionPerformed(ActionEvent e) {
