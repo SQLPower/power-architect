@@ -2880,19 +2880,22 @@ public class PlayPen extends JPanel
 						return;
 					}
 				}
+
+	            pp.cursorManager.placeModeFinished();
+	            pp.cursorManager.tableDragFinished();
+	            pp.removeMouseMotionListener(this);
+	            pp.removeMouseListener(this);
+	            pp.removeCancelableListener(this);
+	            
+	            // normalize changes to table panes are part
+	            // of this compound edit, refer to bug 1592.
+				pp.normalize();
+				pp.revalidate();
 			} finally {
 				if (!addToPP) {
 					pp.endCompoundEdit("Ending move for table "+tp.getName()); //$NON-NLS-1$
 				}
 			}
-
-            pp.cursorManager.placeModeFinished();
-            pp.cursorManager.tableDragFinished();
-			pp.removeMouseMotionListener(this);
-			pp.removeMouseListener(this);
-			pp.removeCancelableListener(this);
-            pp.normalize();
-			pp.revalidate();
 		}
 	}
 
