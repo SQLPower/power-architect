@@ -72,7 +72,7 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
                 throw new ArchitectRuntimeException(ex);
             }
             pp.getPlayPenContentPane().addPropertyChangeListener("location", this);
-            pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoins", this);
+            pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", this);
             pp.getSession().getArchitectFrame().addPropertyChangeListener("viewPort", this);
         }
         addMouseListener(new MouseAdapter() {
@@ -154,7 +154,7 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
                 pp.setViewPosition(new Point(0, pointOnPlaypen.y));
                 repaint();
             } else if (pointOnPlaypen.y + viewSize.height > usedArea.height && pointOnPlaypen.y - viewSize.height >= 0) {
-                pp.setViewPosition(new Point(0, usedArea.height - viewSize.height));
+                pp.setViewPosition(new Point(0, usedArea.height - viewSize.height < 0 ? 0 : usedArea.height - viewSize.height));
                 repaint();
             } else {
                 return;
@@ -164,27 +164,30 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
                 pp.setViewPosition(new Point(pointOnPlaypen.x, 0));
                 repaint();
             } else if (pointOnPlaypen.x + viewSize.width > usedArea.width && pointOnPlaypen.x - viewSize.width >= 0) {
-                pp.setViewPosition(new Point(usedArea.width - viewSize.width, 0));
+                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width, 0));
                 repaint();
             } else {
                 return;
             }
         } else if (pointOnPlaypen.x + viewSize.width > usedArea.width) {
             if (pointOnPlaypen.y + viewSize.height <= usedArea.height) {
-                pp.setViewPosition(new Point(usedArea.width - viewSize.width, pointOnPlaypen.y));
+                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width
+                        , pointOnPlaypen.y));
                 repaint();
             } else if (pointOnPlaypen.y + viewSize.height > usedArea.height && pointOnPlaypen.y - viewSize.height >= 0) {
-                pp.setViewPosition(new Point(usedArea.width - viewSize.width, usedArea.height - viewSize.height));
+                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 :usedArea.width - viewSize.width,
+                        usedArea.height - viewSize.height < 0 ? 0 : usedArea.height - viewSize.height));
                 repaint();
             } else {
                 return;
             }
         } else if (pointOnPlaypen.y + viewSize.height > usedArea.height) {
             if (pointOnPlaypen.x + viewSize.width <= usedArea.width) {
-                pp.setViewPosition(new Point(pointOnPlaypen.x, usedArea.height - viewSize.height));
+                pp.setViewPosition(new Point(pointOnPlaypen.x, usedArea.height - viewSize.height < 0 ? 0 : usedArea.height - viewSize.height));
                 repaint();
             } else if (pointOnPlaypen.x + viewSize.width > usedArea.width && pointOnPlaypen.x - viewSize.width >= 0) {
-                pp.setViewPosition(new Point(usedArea.width - viewSize.width, usedArea.height - viewSize.height));
+                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width,
+                        usedArea.height - viewSize.height < 0 ? 0 : usedArea.height - viewSize.height));
                 repaint();
             } else {
                 return;
@@ -220,7 +223,7 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
     }
 
     public void dbObjectChanged(SQLObjectEvent e) {
-
+        repaint();
     }
 
     public void dbStructureChanged(SQLObjectEvent e) {
