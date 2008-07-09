@@ -22,6 +22,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -531,9 +532,11 @@ public class ArchitectFrame extends JFrame {
                     if (ArchitectFrame.this.playpen != null) {
                         ArchitectFrame.this.navigator = new JDialog(ArchitectFrame.this, Messages.getString("ArchitectFrame.navigator")); //$NON-NLS-1$
                         ArchitectFrame.this.navigator.getContentPane().add(new Navigator(ArchitectFrame.this.playpen));
-                        ArchitectFrame.this.navigator.setLocation(ArchitectFrame.this.getLocation());
-                        ArchitectFrame.this.navigator.setVisible(true);
                         ArchitectFrame.this.navigator.pack();
+                        Point location = ArchitectFrame.this.getLocation();
+                        location.translate(ArchitectFrame.this.splitPane.getWidth() - ArchitectFrame.this.navigator.getWidth() - 25, 75);
+                        ArchitectFrame.this.navigator.setLocation(location);
+                        ArchitectFrame.this.navigator.setVisible(true);
                         ArchitectFrame.this.navigator.setResizable(false);
                         ArchitectFrame.this.navigator.addWindowListener(new WindowAdapter(){
                             public void windowClosing(WindowEvent e) {
@@ -543,7 +546,6 @@ public class ArchitectFrame extends JFrame {
                         });
                     }
                 } else {
-                    ArchitectFrame.this.navigator.setVisible(false);
                     ArchitectFrame.this.navigator.dispose();
                 }
             }
