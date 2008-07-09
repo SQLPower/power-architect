@@ -47,6 +47,13 @@ This document intends to outline the details of future planned releases of the P
   * Bug 1588: Fix Print Dialog
   * Bug 1099: Add Labels and text regions. Also allow labels to be associated with particular tables.
   * Bug 1139: Open up connection properties dialog if trying to connect to a database with incomplete connection parameters
+  * Bug 1070: Allow specifying of physical names for database objects
+  * Bug 1371: Visualization of indexes. Suggestions include colouring, a separate 'index' checkbox column, or a column tag (like the PK and FK tags)
+  * Bug 1441: Fix SAXException when canceling loading a project
+  * Bug 1510: Automatic update checking (and downloading?)
+  * Bug 1512: Implement a proper DDL Preferences GUI
+  * Bug 1553: Allow enabling/disabling foreign key constraints
+ 
 
 == Release 1.0 ==
 === Proposed Changelist ===
@@ -68,3 +75,31 @@ This document intends to outline the details of future planned releases of the P
   * Bug 1132: Allow altering column type, precision, and scale without using the properties editor. Suggestions include a minimalized properties toolbar, or a right-click menu option.
   * Bug 1156: Parent property should be maintained only by parent objects
   * Bug 1168: Check consistency of formatting in Compare DM-generated DDL statements. (spacing, indentation, etc)
+  * Bug 1179: Support for refreshing source databases
+  * Bug 1190: Allow case-sensitive Compare DM
+  * Bug 1192: Use different cursors for create table and create relationship
+  * Bug 1234: Properly display exception messages in profile PDF reports
+  * 1277: Implement a Connection Monitor that shows all open connections, statements run through them, and what state they are in.
+  * 1297: Retain profile data types when loading profile results saved in the project
+  * 1316: JDBC driver class should update according to the classname selected in the JDBC driver tree
+  * 1326: Allow user to choose whether or not to save username and password fields in DB connection settings
+  * 1329: Add option to show only schemas owned by the user (especially for Oracle and SQL Server)
+  * 1334: Use validation framework in the SQL Power Library to explain why Compare DM is disabling the Start button.
+  * 1342: Add a feature to allow users to compare data of subsets of tables.
+  * 1344: Make PDF export progress bar fill up more accurately.
+  * 1351: DDL should not specify precsion with Image and Text data types when Forward Engineering to SQL Server
+  * 1354: DDL validation should catch foreign keys with no columns (perhaps something for the critics/proofreaders system?)
+  * 1372: Allow selecting target catalog when creating Kettle jobs
+  * 1381: Fix license formatting on installers
+  * 1388: Make sure absolutely NO windows have the Java coffee cup logo in the top left corner
+  * 1393: For PostgreSQL, ignore precision of DATE data types when doing comparison
+  * 1394: Do not show Compare DM statements that have no effect
+  * 1398: Add top N values to the HTML report
+  * 1403: Allow drag-n-drop in the Playpen to copy objects (with a modifier key)
+  * 1432: Cleanup CoreUserSettings Preferences API
+  * 1433: Allow the user to toggle column hijacking
+  * 1434: Fix corrupt CSV reports when profile data contains CSV characters (commas for example)
+  * 1436: Adding new columns to a table with existing relationship
+  * 1439: Add critic to monitor for relationships with no columns
+  * 1450: Reverse engineering a TIMESTAMP column from Oracle should return the TIMESTAMP data type
+  * 1451: Reverse engineering a UTF-8 column from Oracle should set the column length to number of characters, not number of bytes
