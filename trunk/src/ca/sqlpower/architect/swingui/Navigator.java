@@ -33,6 +33,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.JPanel;
+import javax.swing.RepaintManager;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
@@ -100,15 +101,22 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
         scaleFactor = Math.min(SCALED_IMAGE_WIDTH / playpenArea.getWidth(), SCALED_IMAGE_HEIGHT /
                 playpenArea.getHeight());
         ((Graphics2D) g).scale(scaleFactor, scaleFactor);
-        if (pp.isRenderingAntialiased() == true) {
-            try {
-                pp.setRenderingAntialiased(false);
+        RepaintManager currentManager = 
+            RepaintManager.currentManager(this);
+        try {
+            currentManager.setDoubleBufferingEnabled(false);
+            if (pp.isRenderingAntialiased() == true) {
+                try {
+                    pp.setRenderingAntialiased(false);
+                    pp.paint(g);
+                } finally {
+                    pp.setRenderingAntialiased(true);
+                }
+            } else {
                 pp.paint(g);
-            } finally {
-                pp.setRenderingAntialiased(true);
             }
-        } else {
-            pp.paint(g);
+        } finally {
+            currentManager.setDoubleBufferingEnabled(true);
         }
         if (playpenArea.width < SCALED_IMAGE_WIDTH || playpenArea.height < SCALED_IMAGE_HEIGHT) {
             return;
