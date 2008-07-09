@@ -43,7 +43,7 @@ import ca.sqlpower.architect.SQLObjectListener;
 
 /**
  * Navigator defines the behaviours of the overview navigation panel. It
- * captures the whole Playpen and scales it down so that a user can easily 
+ * captures the whole Playpen and scales it down so that a user can easily
  * navigate to parts of the Playpen.
  * 
  * @author kaiyi
@@ -101,8 +101,7 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
         scaleFactor = Math.min(SCALED_IMAGE_WIDTH / playpenArea.getWidth(), SCALED_IMAGE_HEIGHT /
                 playpenArea.getHeight());
         ((Graphics2D) g).scale(scaleFactor, scaleFactor);
-        RepaintManager currentManager = 
-            RepaintManager.currentManager(this);
+        RepaintManager currentManager = RepaintManager.currentManager(this);
         try {
             currentManager.setDoubleBufferingEnabled(false);
             if (pp.isRenderingAntialiased() == true) {
@@ -136,7 +135,7 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
     }
 
     /**
-     * Adjusts and moves the view portion of the playpen given a destination 
+     * Adjusts and moves the view portion of the playpen given a destination
      * point on the Navigator
      */
     private void adjustViewPort(Point pointOnNavigator) {
@@ -152,50 +151,37 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
         } else if (pointOnPlaypen.x < 0) {
             if (pointOnPlaypen.y + viewSize.height <= usedArea.height) {
                 pp.setViewPosition(new Point(0, pointOnPlaypen.y));
-                repaint();
             } else if (pointOnPlaypen.y + viewSize.height > usedArea.height && pointOnPlaypen.y - viewSize.height >= 0) {
-                pp.setViewPosition(new Point(0, usedArea.height - viewSize.height < 0 ? 0 : usedArea.height - viewSize.height));
-                repaint();
-            } else {
-                return;
+                pp.setViewPosition(new Point(0, usedArea.height - viewSize.height < 0 ? 0 : usedArea.height -
+                        viewSize.height));
             }
         } else if (pointOnPlaypen.y < 0) {
             if (pointOnPlaypen.x + viewSize.width <= usedArea.width) {
                 pp.setViewPosition(new Point(pointOnPlaypen.x, 0));
-                repaint();
             } else if (pointOnPlaypen.x + viewSize.width > usedArea.width && pointOnPlaypen.x - viewSize.width >= 0) {
-                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width, 0));
-                repaint();
-            } else {
-                return;
+                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width,
+                        0));
             }
         } else if (pointOnPlaypen.x + viewSize.width > usedArea.width) {
             if (pointOnPlaypen.y + viewSize.height <= usedArea.height) {
-                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width
-                        , pointOnPlaypen.y));
-                repaint();
+                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width,
+                        pointOnPlaypen.y));
             } else if (pointOnPlaypen.y + viewSize.height > usedArea.height && pointOnPlaypen.y - viewSize.height >= 0) {
-                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 :usedArea.width - viewSize.width,
+                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width,
                         usedArea.height - viewSize.height < 0 ? 0 : usedArea.height - viewSize.height));
-                repaint();
-            } else {
-                return;
             }
         } else if (pointOnPlaypen.y + viewSize.height > usedArea.height) {
             if (pointOnPlaypen.x + viewSize.width <= usedArea.width) {
-                pp.setViewPosition(new Point(pointOnPlaypen.x, usedArea.height - viewSize.height < 0 ? 0 : usedArea.height - viewSize.height));
-                repaint();
+                pp.setViewPosition(new Point(pointOnPlaypen.x, usedArea.height - viewSize.height < 0 ? 0
+                        : usedArea.height - viewSize.height));
             } else if (pointOnPlaypen.x + viewSize.width > usedArea.width && pointOnPlaypen.x - viewSize.width >= 0) {
                 pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width,
                         usedArea.height - viewSize.height < 0 ? 0 : usedArea.height - viewSize.height));
-                repaint();
-            } else {
-                return;
             }
         } else {
             pp.setViewPosition(pointOnPlaypen);
-            repaint();
         }
+        repaint();
     }
 
     /**
