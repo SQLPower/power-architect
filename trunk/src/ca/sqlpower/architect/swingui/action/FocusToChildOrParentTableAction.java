@@ -43,29 +43,21 @@ public class FocusToChildOrParentTableAction extends AbstractArchitectAction{
     public void actionPerformed(ActionEvent e) {
         List<Relationship> selection = playpen.getSelectedRelationShips();
         if (selection.size() == 1) {
+            TablePane focusingTable;
             if(isToFocusParentTable) {
-                TablePane parentTable = selection.get(0).getPkTable();
-                playpen.selectNone();
-                parentTable.setSelected(true, SelectionEvent.SINGLE_SELECT);
-                playpen.showSelected();
-                try {
-                    playpen.updateDBTree();
-                } catch (ArchitectException ex) {
-                    throw new ArchitectRuntimeException(ex);
-                }
+                focusingTable = selection.get(0).getPkTable();
+            } else {
+                focusingTable = selection.get(0).getFkTable();
             }
-            else {
-                TablePane childTable = selection.get(0).getFkTable();
-                playpen.selectNone();
-                childTable.setSelected(true, SelectionEvent.SINGLE_SELECT);
-                playpen.showSelected();
-                try {
-                    playpen.updateDBTree();
-                } catch (ArchitectException ex) {
-                    throw new ArchitectRuntimeException(ex);
-                }
+            playpen.selectNone();
+            focusingTable.setSelected(true, SelectionEvent.SINGLE_SELECT);
+            playpen.showSelected();
+            try {
+                playpen.updateDBTree();
+            } catch (ArchitectException ex) {
+                throw new ArchitectRuntimeException(ex);
             }
-        } else {
+        }else {
             JOptionPane.showMessageDialog(playpen, Messages.getString("FocusToChildOrParentTableAction.selectExactlyOneRelationship")); //$NON-NLS-1$
         }
     }
