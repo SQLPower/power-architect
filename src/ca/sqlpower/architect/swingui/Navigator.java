@@ -144,20 +144,16 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
         Dimension usedArea = pp.getUsedArea();
         pointOnPlaypen.translate(-(int) (viewSize.width / 2), -(int) (viewSize.height / 2));
 
-        if (pointOnPlaypen.x < 0 && pointOnPlaypen.y < 0) {
-            pp.setViewPosition(new Point(0, 0));
-            repaint();
-            return;
-        } else if (pointOnPlaypen.x < 0) {
+        if (pointOnPlaypen.x < 0) {
             if (pointOnPlaypen.y + viewSize.height <= usedArea.height) {
-                pp.setViewPosition(new Point(0, pointOnPlaypen.y));
+                pp.setViewPosition(new Point(0, pointOnPlaypen.y < 0 ? 0 : pointOnPlaypen.y));
             } else if (pointOnPlaypen.y + viewSize.height > usedArea.height && pointOnPlaypen.y - viewSize.height >= 0) {
                 pp.setViewPosition(new Point(0, usedArea.height - viewSize.height < 0 ? 0 : usedArea.height -
                         viewSize.height));
             }
         } else if (pointOnPlaypen.y < 0) {
             if (pointOnPlaypen.x + viewSize.width <= usedArea.width) {
-                pp.setViewPosition(new Point(pointOnPlaypen.x, 0));
+                pp.setViewPosition(new Point(pointOnPlaypen.x < 0 ? 0 : pointOnPlaypen.x, 0));
             } else if (pointOnPlaypen.x + viewSize.width > usedArea.width && pointOnPlaypen.x - viewSize.width >= 0) {
                 pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width,
                         0));
