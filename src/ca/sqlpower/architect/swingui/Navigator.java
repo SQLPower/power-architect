@@ -142,37 +142,35 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
         Point pointOnPlaypen = getPointOnPlaypen(pointOnNavigator);
         Dimension viewSize = pp.getViewportSize();
         Dimension usedArea = pp.getUsedArea();
+
+        int widthEdgeCorrection = usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width;
+        int heightEdgeCorrection = usedArea.height - viewSize.height < 0 ? 0 : usedArea.height - viewSize.height;
+
         pointOnPlaypen.translate(-(int) (viewSize.width / 2), -(int) (viewSize.height / 2));
 
         if (pointOnPlaypen.x < 0) {
-            if (pointOnPlaypen.y + viewSize.height <= usedArea.height) {
+            if (pointOnPlaypen.y <= heightEdgeCorrection) {
                 pp.setViewPosition(new Point(0, pointOnPlaypen.y < 0 ? 0 : pointOnPlaypen.y));
-            } else if (pointOnPlaypen.y + viewSize.height > usedArea.height && pointOnPlaypen.y - viewSize.height >= 0) {
-                pp.setViewPosition(new Point(0, usedArea.height - viewSize.height < 0 ? 0 : usedArea.height -
-                        viewSize.height));
+            } else if (pointOnPlaypen.y > heightEdgeCorrection && pointOnPlaypen.y - viewSize.height >= 0) {
+                pp.setViewPosition(new Point(0, heightEdgeCorrection));
             }
         } else if (pointOnPlaypen.y < 0) {
-            if (pointOnPlaypen.x + viewSize.width <= usedArea.width) {
+            if (pointOnPlaypen.x <= widthEdgeCorrection) {
                 pp.setViewPosition(new Point(pointOnPlaypen.x < 0 ? 0 : pointOnPlaypen.x, 0));
-            } else if (pointOnPlaypen.x + viewSize.width > usedArea.width && pointOnPlaypen.x - viewSize.width >= 0) {
-                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width,
-                        0));
+            } else if (pointOnPlaypen.x > widthEdgeCorrection && pointOnPlaypen.x - viewSize.width >= 0) {
+                pp.setViewPosition(new Point(widthEdgeCorrection, 0));
             }
-        } else if (pointOnPlaypen.x + viewSize.width > usedArea.width) {
-            if (pointOnPlaypen.y + viewSize.height <= usedArea.height) {
-                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width,
-                        pointOnPlaypen.y));
-            } else if (pointOnPlaypen.y + viewSize.height > usedArea.height && pointOnPlaypen.y - viewSize.height >= 0) {
-                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width,
-                        usedArea.height - viewSize.height < 0 ? 0 : usedArea.height - viewSize.height));
+        } else if (pointOnPlaypen.x > widthEdgeCorrection) {
+            if (pointOnPlaypen.y <= heightEdgeCorrection) {
+                pp.setViewPosition(new Point(widthEdgeCorrection, pointOnPlaypen.y));
+            } else if (pointOnPlaypen.y > heightEdgeCorrection && pointOnPlaypen.y - viewSize.height >= 0) {
+                pp.setViewPosition(new Point(widthEdgeCorrection, heightEdgeCorrection));
             }
-        } else if (pointOnPlaypen.y + viewSize.height > usedArea.height) {
-            if (pointOnPlaypen.x + viewSize.width <= usedArea.width) {
-                pp.setViewPosition(new Point(pointOnPlaypen.x, usedArea.height - viewSize.height < 0 ? 0
-                        : usedArea.height - viewSize.height));
-            } else if (pointOnPlaypen.x + viewSize.width > usedArea.width && pointOnPlaypen.x - viewSize.width >= 0) {
-                pp.setViewPosition(new Point(usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width,
-                        usedArea.height - viewSize.height < 0 ? 0 : usedArea.height - viewSize.height));
+        } else if (pointOnPlaypen.y > heightEdgeCorrection) {
+            if (pointOnPlaypen.x <= widthEdgeCorrection) {
+                pp.setViewPosition(new Point(pointOnPlaypen.x, heightEdgeCorrection));
+            } else if (pointOnPlaypen.x > widthEdgeCorrection && pointOnPlaypen.x - viewSize.width >= 0) {
+                pp.setViewPosition(new Point(widthEdgeCorrection, heightEdgeCorrection));
             }
         } else {
             pp.setViewPosition(pointOnPlaypen);
