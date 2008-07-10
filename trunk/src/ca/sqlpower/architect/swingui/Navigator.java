@@ -94,8 +94,8 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
      * indicating the current view portion on the Playpen.
      */
     @Override
-    public void paint(Graphics g) {
-        super.paint(g);
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
         Dimension playpenArea = pp.getUsedArea();
 
         scaleFactor = Math.min(SCALED_IMAGE_WIDTH / playpenArea.getWidth(), SCALED_IMAGE_HEIGHT /
@@ -107,12 +107,12 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
             if (pp.isRenderingAntialiased() == true) {
                 try {
                     pp.setRenderingAntialiased(false);
-                    pp.paint(g);
+                    pp.paintComponent(g);
                 } finally {
                     pp.setRenderingAntialiased(true);
                 }
             } else {
-                pp.paint(g);
+                pp.paintComponent(g);
             }
         } finally {
             currentManager.setDoubleBufferingEnabled(true);
@@ -143,38 +143,29 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
         Dimension viewSize = pp.getViewportSize();
         Dimension usedArea = pp.getUsedArea();
 
-        int widthEdgeCorrection = usedArea.width - viewSize.width < 0 ? 0 : usedArea.width - viewSize.width;
-        int heightEdgeCorrection = usedArea.height - viewSize.height < 0 ? 0 : usedArea.height - viewSize.height;
-
-        pointOnPlaypen.translate(-(int) (viewSize.width / 2), -(int) (viewSize.height / 2));
-
-        if (pointOnPlaypen.x < 0) {
-            if (pointOnPlaypen.y <= heightEdgeCorrection) {
-                pp.setViewPosition(new Point(0, pointOnPlaypen.y < 0 ? 0 : pointOnPlaypen.y));
-            } else if (pointOnPlaypen.y > heightEdgeCorrection && pointOnPlaypen.y - viewSize.height >= 0) {
-                pp.setViewPosition(new Point(0, heightEdgeCorrection));
-            }
-        } else if (pointOnPlaypen.y < 0) {
-            if (pointOnPlaypen.x <= widthEdgeCorrection) {
-                pp.setViewPosition(new Point(pointOnPlaypen.x < 0 ? 0 : pointOnPlaypen.x, 0));
-            } else if (pointOnPlaypen.x > widthEdgeCorrection && pointOnPlaypen.x - viewSize.width >= 0) {
-                pp.setViewPosition(new Point(widthEdgeCorrection, 0));
-            }
-        } else if (pointOnPlaypen.x > widthEdgeCorrection) {
-            if (pointOnPlaypen.y <= heightEdgeCorrection) {
-                pp.setViewPosition(new Point(widthEdgeCorrection, pointOnPlaypen.y));
-            } else if (pointOnPlaypen.y > heightEdgeCorrection && pointOnPlaypen.y - viewSize.height >= 0) {
-                pp.setViewPosition(new Point(widthEdgeCorrection, heightEdgeCorrection));
-            }
-        } else if (pointOnPlaypen.y > heightEdgeCorrection) {
-            if (pointOnPlaypen.x <= widthEdgeCorrection) {
-                pp.setViewPosition(new Point(pointOnPlaypen.x, heightEdgeCorrection));
-            } else if (pointOnPlaypen.x > widthEdgeCorrection && pointOnPlaypen.x - viewSize.width >= 0) {
-                pp.setViewPosition(new Point(widthEdgeCorrection, heightEdgeCorrection));
-            }
-        } else {
-            pp.setViewPosition(pointOnPlaypen);
+        // makes the given point the center of the resulting viewport
+        pointOnPlaypen.translate(-(viewSize.width / 2), -(viewSize.height / 2));
+        
+        int x = pointOnPlaypen.x;
+        int y = pointOnPlaypen.y;
+        
+        int xBoundary = Math.max(0, usedArea.width - viewSize.width);
+        int yBoundary = Math.max(0, usedArea.height - viewSize.height);
+        
+        if (x < 0) {
+            x = 0;
+        } else if (x > xBoundary) {
+            x = xBoundary;
         }
+        
+        if (y < 0) {
+            y = 0;
+        } else if (y > yBoundary) {
+            y = yBoundary;
+        }
+        
+        pp.setViewPosition(new Point(x, y));
+        
         repaint();
     }
 
