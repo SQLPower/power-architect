@@ -95,10 +95,8 @@ public class TestUndoManager extends TestCase {
 		tp2 = new TablePane(pkTable,pp);
 		pp.addTablePane(tp2,new Point(1,1));
 		undoManager = new UndoManager(pp);
-		if (pp != null) {
-            pp.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
-            pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter());
-        }
+		pp.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
+		pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter());
 		pkTable.addColumn(new SQLColumn());
 		pkTable.addColumn(new SQLColumn());
 		pkTable.getColumn(0).setPrimaryKeySeq(1);
@@ -118,12 +116,10 @@ public class TestUndoManager extends TestCase {
 		// TODO: add a change listener to the undo manager and make sure it fires events when it changes
 		
 		undoManager = new UndoManager(pp);
-		if (pp != null) {
-            pp.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
-            pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter());
-        }
+		pp.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
+		pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter());
 		UndoableEdit stubEdit = new AbstractUndoableEdit() {
-			public String getPresentationName() { return "cows"; }
+		    public String getPresentationName() { return "cows"; }
 		};
 		
 			

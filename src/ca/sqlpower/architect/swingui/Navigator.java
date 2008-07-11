@@ -73,22 +73,21 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
     public Navigator(ArchitectSwingSession session, Point location) {
         super(session.getArchitectFrame(), Messages.getString("Navigator.name")); //$NON-NLS-1$
         this.pp = session.getPlayPen();
-        if (pp != null) {
-            try {
-                ArchitectUtils.listenToHierarchy(this, pp.getSession().getTargetDatabase());
-            } catch (ArchitectException ex) {
-                throw new ArchitectRuntimeException(ex);
-            }
-            
-            pp.getSession().getArchitectFrame().addPropertyChangeListener("viewPort", this);
-            
-            pp.getPlayPenContentPane().addPropertyChangeListener("location", this);
-            pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", this);
-            pp.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", this);
-            pp.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", this);
-            pp.getPlayPenContentPane().addPropertyChangeListener("dashed", this);
-            pp.getPlayPenContentPane().addPropertyChangeListener("rounded", this);
+        
+        try {
+            ArchitectUtils.listenToHierarchy(this, pp.getSession().getTargetDatabase());
+        } catch (ArchitectException ex) {
+            throw new ArchitectRuntimeException(ex);
         }
+
+        pp.getSession().getArchitectFrame().addPropertyChangeListener("viewPort", this);
+
+        pp.getPlayPenContentPane().addPropertyChangeListener("location", this);
+        pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", this);
+        pp.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", this);
+        pp.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", this);
+        pp.getPlayPenContentPane().addPropertyChangeListener("dashed", this);
+        pp.getPlayPenContentPane().addPropertyChangeListener("rounded", this);
         
         final JPanel panel = new JPanel() {
             @Override
