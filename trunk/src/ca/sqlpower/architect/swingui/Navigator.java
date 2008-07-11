@@ -82,6 +82,10 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
             pp.getPlayPenContentPane().addPropertyChangeListener("location", this);
             pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", this);
             pp.getSession().getArchitectFrame().addPropertyChangeListener("viewPort", this);
+            pp.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", this);
+            pp.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", this);
+            pp.getPlayPenContentPane().addPropertyChangeListener("dashed", this);
+            pp.getPlayPenContentPane().addPropertyChangeListener("rounded", this);
         }
         
         final JPanel panel = new JPanel() {
