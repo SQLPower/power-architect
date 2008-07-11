@@ -279,10 +279,10 @@ public class ArchitectFrame extends JFrame {
             }
 
             public void componentResized(ComponentEvent e) {
-                ArchitectFrame.this.oldWidth = prefWidth;
-                ArchitectFrame.this.oldHeight = prefHeight;
-                ArchitectFrame.this.prefWidth = ArchitectFrame.this.getWidth();
-                ArchitectFrame.this.prefHeight = ArchitectFrame.this.getHeight();
+                oldWidth = prefWidth;
+                oldHeight = prefHeight;
+                prefWidth = getWidth();
+                prefHeight = getHeight();
             }
 
             public void componentShown(ComponentEvent e) {
@@ -292,8 +292,8 @@ public class ArchitectFrame extends JFrame {
         addWindowStateListener(new WindowStateListener() {
             public void windowStateChanged(WindowEvent e) {
                 if(e.getNewState() == ArchitectFrame.MAXIMIZED_BOTH) {
-                    ArchitectFrame.this.prefWidth = oldWidth;
-                    ArchitectFrame.this.prefHeight = oldHeight;
+                    prefWidth = oldWidth;
+                    prefHeight = oldHeight;
                 }
             }
         });
@@ -529,24 +529,24 @@ public class ArchitectFrame extends JFrame {
         navigatorMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (navigatorMenuItem.isSelected()) {
-                    if (ArchitectFrame.this.playpen != null) {
-                        ArchitectFrame.this.navigator = new JDialog(ArchitectFrame.this, Messages.getString("ArchitectFrame.navigator")); //$NON-NLS-1$
-                        ArchitectFrame.this.navigator.getContentPane().add(new Navigator(ArchitectFrame.this.playpen));
-                        ArchitectFrame.this.navigator.pack();
-                        Point location = ArchitectFrame.this.getLocation();
-                        location.translate(ArchitectFrame.this.splitPane.getWidth() - ArchitectFrame.this.navigator.getWidth() - 25, 75);
-                        ArchitectFrame.this.navigator.setLocation(location);
-                        ArchitectFrame.this.navigator.setVisible(true);
-                        ArchitectFrame.this.navigator.setResizable(false);
-                        ArchitectFrame.this.navigator.addWindowListener(new WindowAdapter(){
+                    if (playpen != null) {
+                        navigator = new JDialog(ArchitectFrame.this, Messages.getString("ArchitectFrame.navigator")); //$NON-NLS-1$
+                        navigator.getContentPane().add(new Navigator(playpen));
+                        navigator.pack();
+                        Point location = getLocation();
+                        location.translate(splitPane.getWidth() - getWidth() - 25, 75);
+                        navigator.setLocation(location);
+                        navigator.setVisible(true);
+                        navigator.setResizable(false);
+                        navigator.addWindowListener(new WindowAdapter(){
                             public void windowClosing(WindowEvent e) {
                                 navigatorMenuItem.setSelected(false);
-                                ArchitectFrame.this.navigator.dispose();
+                                navigator.dispose();
                             }
                         });
                     }
                 } else {
-                    ArchitectFrame.this.navigator.dispose();
+                    navigator.dispose();
                 }
             }
         });
