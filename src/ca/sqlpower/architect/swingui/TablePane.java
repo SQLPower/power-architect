@@ -140,8 +140,8 @@ public class TablePane
 	 */
 	protected SQLColumn draggingColumn;
 	
-	protected boolean isRounded = false;
-	protected boolean isDashed = false;
+	private boolean rounded = false;
+	private boolean dashed = false;
 
     private boolean fullyQualifiedNameInHeader = false;
 
@@ -168,10 +168,10 @@ public class TablePane
 
 		this.hiddenColumns = new HashSet<SQLColumn>(tp.getHiddenColumns());
 		
-		this.foregroundColor = tp.getForeground();
-		this.backgroundColor = tp.getBackground();
-		this.isDashed = tp.isDashed();
-		this.isRounded = tp.isRounded();
+		this.foregroundColor = tp.getForegroundColor();
+		this.backgroundColor = tp.getBackgroundColor();
+		this.dashed = tp.isDashed();
+		this.rounded = tp.isRounded();
 		
 		try {
 			PlayPenComponentUI newUi = tp.getUI().getClass().newInstance();
@@ -1153,7 +1153,7 @@ public class TablePane
     public Color getColumnHighlight(SQLColumn column) {
         logger.debug("Checking column "+column);
         if (columnHighlight.get(column).isEmpty()) {
-            return getForeground();
+            return getForegroundColor();
         } else {
             float[] rgbsum = new float[3];
             for (Color c : columnHighlight.get(column)) {
@@ -1213,28 +1213,32 @@ public class TablePane
      * Indicates whether the corners are rounded. 
      */
     public boolean isRounded() {
-        return isRounded;
+        return rounded;
     }
 
     /**
      * Sets whether the corners are rounded. 
      */
     public void setRounded(boolean isRounded) {
-        this.isRounded = isRounded;
+        boolean oldValue = rounded;
+        rounded = isRounded;
+        firePropertyChange("rounded", oldValue, isRounded);
     }
 
     /**
      * Indicates whether the lines are dashed/normal. 
      */
     public boolean isDashed() {
-        return isDashed;
+        return dashed;
     }
 
     /**
      * Sets whether the lines are dashed. 
      */
     public void setDashed(boolean isDashed) {
-        this.isDashed = isDashed;
+        boolean oldValue = dashed;
+        dashed = isDashed;
+        firePropertyChange("dashed", oldValue, isDashed);
     }
 
     /**

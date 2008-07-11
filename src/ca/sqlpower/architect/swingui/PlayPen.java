@@ -76,6 +76,7 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -580,13 +581,78 @@ public class PlayPen extends JPanel
 		tablePanePopup.addSeparator();
 
 		mi = new JMenuItem();
-		mi.setAction(af.getEditTableAction());
-		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		tablePanePopup.add(mi);
+        mi.setAction(af.getEditTableAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tablePanePopup.add(mi);
 
-		tablePanePopup.addSeparator();
-		
-		mi = new JMenuItem();
+        JMenu tableAppearance = new JMenu(Messages.getString("PlayPen.tableAppearances")); //$NON-NLS-1$
+        JMenu backgroundColours = new JMenu(Messages.getString("TableEditPanel.tableColourLabel")); //$NON-NLS-1$
+        JMenu foregrondColours = new JMenu(Messages.getString("TableEditPanel.textColourLabel")); //$NON-NLS-1$
+        for (final Color colour : ColorScheme.BACKGROUND_COLOURS) {
+            Icon icon = new TableEditPanel.ColorIcon(colour);
+            mi = new JMenuItem(icon);
+            mi.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    List<TablePane> tables = getSelectedTables();
+                    startCompoundEdit("Started setting table colour"); //$NON-NLS-1$
+                    for (TablePane tp : tables) {
+                        tp.setBackgroundColor(colour);
+                    }
+                    endCompoundEdit("Finished setting table colour"); //$NON-NLS-1$
+                }
+            });
+            backgroundColours.add(mi);
+        }
+        for (final Color colour : ColorScheme.FOREGROUND_COLOURS) {
+            Icon icon = new TableEditPanel.ColorIcon(colour);
+            mi = new JMenuItem(icon);
+            mi.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    List<TablePane> tables = getSelectedTables();
+                    startCompoundEdit("Started setting text colour"); //$NON-NLS-1$
+                    for (TablePane tp : tables) {
+                        tp.setForegroundColor(colour);
+                    }
+                    endCompoundEdit("Finished setting text colour"); //$NON-NLS-1$
+                }
+            });
+            foregrondColours.add(mi);
+        }
+        tableAppearance.add(backgroundColours);
+        tableAppearance.add(foregrondColours);
+        if (findTablePane(table) != null) {
+            JCheckBoxMenuItem cmi = new JCheckBoxMenuItem(
+                    Messages.getString("TableEditPanel.dashedLinesLabel"), findTablePane(table).isDashed()); //$NON-NLS-1$
+            cmi.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    List<TablePane> tables = getSelectedTables();
+                    startCompoundEdit("Started setting dashed lines."); //$NON-NLS-1$
+                    for (TablePane tp : tables) {
+                        tp.setDashed(((JCheckBoxMenuItem) (e.getSource())).isSelected());
+                    }
+                    endCompoundEdit("Finished setting dashed lines."); //$NON-NLS-1$
+                }
+            });
+            tableAppearance.add(cmi);
+            cmi = new JCheckBoxMenuItem(
+                    Messages.getString("TableEditPanel.roundedCornersLabel"), findTablePane(table).isRounded()); //$NON-NLS-1$
+            cmi.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    List<TablePane> tables = getSelectedTables();
+                    startCompoundEdit("Started setting rounded edges."); //$NON-NLS-1$
+                    for (TablePane tp : tables) {
+                        tp.setRounded(((JCheckBoxMenuItem) (e.getSource())).isSelected());
+                    }
+                    endCompoundEdit("Finished setting rounded edges."); //$NON-NLS-1$
+                }
+            });
+            tableAppearance.add(cmi);
+        }
+        tablePanePopup.add(tableAppearance);
+
+        tablePanePopup.addSeparator();
+
+        mi = new JMenuItem();
 		mi.setAction(bringToFrontAction);
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);

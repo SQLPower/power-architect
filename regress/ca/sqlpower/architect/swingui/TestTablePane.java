@@ -218,7 +218,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
         tp.removeColumnHighlight(col, Color.RED);
         assertEquals(Color.GREEN, tp.getColumnHighlight(col));
         tp.removeColumnHighlight(col, Color.GREEN);
-        assertEquals(tp.getForeground(), tp.getColumnHighlight(col));
+        assertEquals(tp.getForegroundColor(), tp.getColumnHighlight(col));
     }
     
     /**

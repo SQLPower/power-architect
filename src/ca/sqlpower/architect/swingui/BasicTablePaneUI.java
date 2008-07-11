@@ -125,7 +125,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 					clip.width--;
 					clip.height--;
 					g2.draw(clip);
-					g2.setColor(tp.getForeground());
+					g2.setColor(tp.getForegroundColor());
 					logger.debug("Clipping region: "+g2.getClip()); //$NON-NLS-1$
 				} else {
 					logger.debug("Null clipping region"); //$NON-NLS-1$
@@ -165,9 +165,9 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 
 			// highlight title if table is selected
 			if (tp.selected == true) {
-				g2.setColor(tp.getBackground().darker());
+				g2.setColor(tp.getBackgroundColor().darker());
 			} else {
-				g2.setColor(tp.getBackground());
+				g2.setColor(tp.getBackgroundColor());
 			}
 			
 			if (tp.isRounded()) {
@@ -176,7 +176,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			    g2.fillRect(0, 0, c.getWidth(), fontHeight);
 			}
 			
-			g2.setColor(tp.getForeground());
+			g2.setColor(tp.getForegroundColor());
 
 			// print table name
 			g2.drawString(getTitleString(tablePane), 0, y += ascent);

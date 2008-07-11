@@ -46,9 +46,9 @@ public abstract class PlayPenComponent implements Selectable {
     private PlayPenContentPane parent;
     private Rectangle bounds = new Rectangle();
     protected Color backgroundColor;
+    protected Color foregroundColor;
     private Insets insets = new Insets(0,0,0,0);
     private String name;
-    protected Color foregroundColor;
     private String toolTipText;
     private boolean opaque;
     
@@ -143,19 +143,6 @@ public abstract class PlayPenComponent implements Selectable {
         Point oldPoint = new Point(bounds.x,bounds.y);
         bounds.setBounds(x,y,width,height);
         
-        /*
-         * At the moment only the movement of tablepanes' is meaningful. So
-         * here i've moved the firing to TablePane.setbounds(). This also
-         * allows this class to be more generic.
-         */
-        
-//      if (oldBounds.x != x || oldBounds.y != y) {
-//          firePropertyChange(new PlayPenComponentMovedEvent(this, oldPoint, new Point(x,y)));
-//      }
-//      
-//      if (oldBounds.width != width || oldBounds.height != height) {
-//          firePropertyChange(new PlayPenComponentResizedEvent());
-//      }
         repaint();
     }
 
@@ -346,28 +333,32 @@ public abstract class PlayPenComponent implements Selectable {
         revalidate();
     }
 
-    public Color getBackground() {
+    public Color getBackgroundColor() {
         if (backgroundColor == null) {
             return getPlayPen().getBackground();
         }
         return backgroundColor;
     }
     
-    public void setBackground(Color c) {
+    public void setBackgroundColor(Color c) {
+        Color oldColor = backgroundColor;
         backgroundColor = c;
         revalidate();
+        firePropertyChange("backgroundColor", oldColor, backgroundColor);
     }
 
-    public Color getForeground() {
+    public Color getForegroundColor() {
         if (foregroundColor == null) {
             return getPlayPen().getForeground();
         }
         return foregroundColor;
     }
     
-    public void setForeground(Color c) {
+    public void setForegroundColor(Color c) {
+        Color oldColor = foregroundColor;
         foregroundColor = c;
         revalidate();
+        firePropertyChange("foregroundColor", oldColor, foregroundColor);
     }
     
     public String getToolTipText() {
