@@ -179,14 +179,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.sourceDatabases = new DBTree(this);
         
         undoManager = new UndoManager(playPen);
-        if (playPen != null) {
-            playPen.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
-            playPen.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter());
-            playPen.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", undoManager.getEventAdapter());
-            playPen.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", undoManager.getEventAdapter());
-            playPen.getPlayPenContentPane().addPropertyChangeListener("dashed", undoManager.getEventAdapter());
-            playPen.getPlayPenContentPane().addPropertyChangeListener("rounded", undoManager.getEventAdapter());
-        }
+        playPen.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
+        playPen.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter());
+        playPen.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", undoManager.getEventAdapter());
+        playPen.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", undoManager.getEventAdapter());
+        playPen.getPlayPenContentPane().addPropertyChangeListener("dashed", undoManager.getEventAdapter());
+        playPen.getPlayPenContentPane().addPropertyChangeListener("rounded", undoManager.getEventAdapter());
         
         lifecycleListener = new ArrayList<SessionLifecycleListener<ArchitectSwingSession>>();
         

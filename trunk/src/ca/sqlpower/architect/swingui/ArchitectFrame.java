@@ -528,19 +528,17 @@ public class ArchitectFrame extends JFrame {
         navigatorMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (navigatorMenuItem.isSelected()) {
-                    if (playpen != null) {
-                        Point location = getLocation();
-                        location.translate(splitPane.getWidth() - 25, 75);
+                    Point location = getLocation();
+                    location.translate(splitPane.getWidth() - 25, 75);
 
-                        navigatorDialog = new Navigator(session, location);
-                        
-                        navigatorDialog.addWindowListener(new WindowAdapter(){
-                            public void windowClosing(WindowEvent e) {
-                                navigatorMenuItem.setSelected(false);
-                                navigatorDialog.dispose();
-                            }
-                        });
-                    }
+                    navigatorDialog = new Navigator(session, location);
+
+                    navigatorDialog.addWindowListener(new WindowAdapter(){
+                        public void windowClosing(WindowEvent e) {
+                            navigatorMenuItem.setSelected(false);
+                            navigatorDialog.dispose();
+                        }
+                    });
                 } else {
                     navigatorDialog.dispose();
                 }
