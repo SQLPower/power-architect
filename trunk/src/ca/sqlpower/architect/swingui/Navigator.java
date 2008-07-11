@@ -32,24 +32,25 @@ import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import javax.swing.JPanel;
+import javax.swing.JDialog;
 import javax.swing.RepaintManager;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 
 /**
- * Navigator defines the behaviours of the overview navigation panel. It
+ * Navigator defines the behaviours of the overview navigation dialog. It
  * captures the whole Playpen and scales it down so that a user can easily
  * navigate to parts of the Playpen.
  * 
  * @author kaiyi
  * 
  */
-public class Navigator extends JPanel implements PropertyChangeListener, SQLObjectListener {
+public class Navigator extends JDialog implements PropertyChangeListener, SQLObjectListener {
 
     private static final int SCALED_IMAGE_WIDTH = 200;
 
@@ -62,9 +63,15 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
      */
     private double scaleFactor;
 
-    public Navigator(PlayPen pp) {
-        super();
-        this.pp = pp;
+    /**
+     * Creates a Navigator dialog that displays a scaled down version of the playpen.
+     * 
+     * @param session Session of the architect frame creating this dialog.
+     * @param location Top right corner where this dialog should be placed.
+     */
+    public Navigator(ArchitectSwingSession session, Point location) {
+        super(session.getArchitectFrame(), Messages.getString("Navigator.name")); //$NON-NLS-1$
+        this.pp = session.getPlayPen();
         if (pp != null) {
             try {
                 ArchitectUtils.listenToHierarchy(this, pp.getSession().getTargetDatabase());
@@ -86,7 +93,20 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
                 adjustViewPort(e.getPoint());
             }
         });
+        
         setPreferredSize(new Dimension(SCALED_IMAGE_WIDTH, SCALED_IMAGE_HEIGHT));
+        
+        pack();
+        location.translate(-getWidth(), 0);
+        setLocation(location);
+        setResizable(false);
+        setVisible(true);
+    }
+    
+    @Override
+    public void dispose() {
+        super.dispose();
+        cleanup();
     }
 
     /**
@@ -94,12 +114,12 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
      * indicating the current view portion on the Playpen.
      */
     @Override
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Dimension playpenArea = pp.getUsedArea();
+    public void paint(Graphics g) {
+        super.paint(g);
+        double width = Math.max(pp.getUsedArea().getWidth(), pp.getViewportSize().getWidth());
+        double height = Math.max(pp.getUsedArea().getHeight(), pp.getViewportSize().getHeight());
 
-        scaleFactor = Math.min(SCALED_IMAGE_WIDTH / playpenArea.getWidth(), SCALED_IMAGE_HEIGHT /
-                playpenArea.getHeight());
+        scaleFactor = Math.min(SCALED_IMAGE_WIDTH / width, SCALED_IMAGE_HEIGHT / height);
         ((Graphics2D) g).scale(scaleFactor, scaleFactor);
         RepaintManager currentManager = RepaintManager.currentManager(this);
         try {
@@ -117,9 +137,7 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
         } finally {
             currentManager.setDoubleBufferingEnabled(true);
         }
-        if (playpenArea.width < SCALED_IMAGE_WIDTH || playpenArea.height < SCALED_IMAGE_HEIGHT) {
-            return;
-        }
+
         Rectangle view = pp.getVisibleRect();
         g.setColor(Color.GREEN);
         ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
@@ -144,7 +162,7 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
         Dimension usedArea = pp.getUsedArea();
 
         // makes the given point the center of the resulting viewport
-        pointOnPlaypen.translate(-(viewSize.width / 2), -(viewSize.height / 2));
+        pointOnPlaypen.translate(-viewSize.width / 2, -viewSize.height / 2);
         
         int x = pointOnPlaypen.x;
         int y = pointOnPlaypen.y;
@@ -182,7 +200,15 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
      */
     public void dbChildrenInserted(SQLObjectEvent e) {
         repaint();
-
+        
+        SQLObject[] children = e.getChildren();
+        for (SQLObject child : children) {
+            try {
+                ArchitectUtils.listenToHierarchy(this, child);
+            } catch (ArchitectException ex) {
+                throw new ArchitectRuntimeException(ex);
+            }
+        }
     }
 
     /**
@@ -190,7 +216,15 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
      */
     public void dbChildrenRemoved(SQLObjectEvent e) {
         repaint();
-
+        
+        SQLObject[] children = e.getChildren();
+        for (SQLObject child : children) {
+            try {
+                ArchitectUtils.unlistenToHierarchy(this, child);
+            } catch (ArchitectException ex) {
+                throw new ArchitectRuntimeException(ex);
+            }
+        }
     }
 
     public void dbObjectChanged(SQLObjectEvent e) {
@@ -198,6 +232,19 @@ public class Navigator extends JPanel implements PropertyChangeListener, SQLObje
     }
 
     public void dbStructureChanged(SQLObjectEvent e) {
-
+    }
+    
+    /**
+     * Removes this listener from connected objects.
+     */
+    public void cleanup() {
+        try {
+            ArchitectUtils.unlistenToHierarchy(this, pp.getSession().getTargetDatabase());
+        } catch (ArchitectException ex) {
+            throw new ArchitectRuntimeException(ex);
+        }
+        pp.getPlayPenContentPane().removePropertyChangeListener(this);
+        pp.getPlayPenContentPane().removePropertyChangeListener(this);
+        pp.getSession().getArchitectFrame().removePropertyChangeListener(this);
     }
 }

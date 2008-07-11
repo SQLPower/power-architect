@@ -46,7 +46,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -129,8 +128,8 @@ public class ArchitectFrame extends JFrame {
 	private JMenuBar menuBar = null;
 	JSplitPane splitPane = null;
 	private PlayPen playpen = null;
-	private JDialog navigator;
 	DBTree dbTree = null;
+	private Navigator navigatorDialog;
 	private CompareDMDialog comapareDMDialog = null;
 	private int oldWidth;
     private int oldHeight;
@@ -525,28 +524,25 @@ public class ArchitectFrame extends JFrame {
         menuBar.add(profileMenu);
 
         JMenu windowMenu = new JMenu(Messages.getString("ArchitectFrame.windowMenu")); //$NON-NLS-1$
-        final JCheckBoxMenuItem navigatorMenuItem = new JCheckBoxMenuItem(Messages.getString("ArchitectFrame.navigator")); //$NON-NLS-1$
+        final JCheckBoxMenuItem navigatorMenuItem = new JCheckBoxMenuItem(Messages.getString("ArchitectFrame.navigatorMenu")); //$NON-NLS-1$
         navigatorMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (navigatorMenuItem.isSelected()) {
                     if (playpen != null) {
-                        navigator = new JDialog(ArchitectFrame.this, Messages.getString("ArchitectFrame.navigator")); //$NON-NLS-1$
-                        navigator.getContentPane().add(new Navigator(playpen));
-                        navigator.pack();
                         Point location = getLocation();
-                        location.translate(splitPane.getWidth() - getWidth() - 25, 75);
-                        navigator.setLocation(location);
-                        navigator.setVisible(true);
-                        navigator.setResizable(false);
-                        navigator.addWindowListener(new WindowAdapter(){
+                        location.translate(splitPane.getWidth() - 25, 75);
+
+                        navigatorDialog = new Navigator(session, location);
+                        
+                        navigatorDialog.addWindowListener(new WindowAdapter(){
                             public void windowClosing(WindowEvent e) {
                                 navigatorMenuItem.setSelected(false);
-                                navigator.dispose();
+                                navigatorDialog.dispose();
                             }
                         });
                     }
                 } else {
-                    navigator.dispose();
+                    navigatorDialog.dispose();
                 }
             }
         });
