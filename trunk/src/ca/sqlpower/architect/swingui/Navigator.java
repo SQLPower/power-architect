@@ -33,6 +33,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.JDialog;
+import javax.swing.JPanel;
 import javax.swing.RepaintManager;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -82,19 +83,56 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
             pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", this);
             pp.getSession().getArchitectFrame().addPropertyChangeListener("viewPort", this);
         }
-        addMouseListener(new MouseAdapter() {
+        
+        final JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                
+                double width = Math.max(pp.getUsedArea().getWidth(), pp.getViewportSize().getWidth());
+                double height = Math.max(pp.getUsedArea().getHeight(), pp.getViewportSize().getHeight());
+
+                scaleFactor = Math.min(SCALED_IMAGE_WIDTH / width, SCALED_IMAGE_HEIGHT / height);
+                ((Graphics2D) g).scale(scaleFactor, scaleFactor);
+                RepaintManager currentManager = RepaintManager.currentManager(this);
+                try {
+                    currentManager.setDoubleBufferingEnabled(false);
+                    if (pp.isRenderingAntialiased() == true) {
+                        try {
+                            pp.setRenderingAntialiased(false);
+                            pp.paintComponent(g);
+                        } finally {
+                            pp.setRenderingAntialiased(true);
+                        }
+                    } else {
+                        pp.paintComponent(g);
+                    }
+                } finally {
+                    currentManager.setDoubleBufferingEnabled(true);
+                }
+
+                Rectangle view = pp.getVisibleRect();
+                g.setColor(Color.GREEN);
+                ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
+                g.drawRect(view.x, view.y, view.width, view.height-5);
+            }
+        };
+        
+        panel.addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent e) {
                 adjustViewPort(e.getPoint());
             }
         });
 
-        addMouseMotionListener(new MouseMotionAdapter() {
+        panel.addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseDragged(MouseEvent e) {
                 adjustViewPort(e.getPoint());
             }
         });
         
-        setPreferredSize(new Dimension(SCALED_IMAGE_WIDTH, SCALED_IMAGE_HEIGHT));
+        panel.setPreferredSize(new Dimension(SCALED_IMAGE_WIDTH, SCALED_IMAGE_HEIGHT));
+        setContentPane(panel);
+        
         
         pack();
         location.translate(-getWidth(), 0);
@@ -107,41 +145,6 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
     public void dispose() {
         super.dispose();
         cleanup();
-    }
-
-    /**
-     * Paints the scaled Playpen contents and an unfilled green rectangle
-     * indicating the current view portion on the Playpen.
-     */
-    @Override
-    public void paint(Graphics g) {
-        super.paint(g);
-        double width = Math.max(pp.getUsedArea().getWidth(), pp.getViewportSize().getWidth());
-        double height = Math.max(pp.getUsedArea().getHeight(), pp.getViewportSize().getHeight());
-
-        scaleFactor = Math.min(SCALED_IMAGE_WIDTH / width, SCALED_IMAGE_HEIGHT / height);
-        ((Graphics2D) g).scale(scaleFactor, scaleFactor);
-        RepaintManager currentManager = RepaintManager.currentManager(this);
-        try {
-            currentManager.setDoubleBufferingEnabled(false);
-            if (pp.isRenderingAntialiased() == true) {
-                try {
-                    pp.setRenderingAntialiased(false);
-                    pp.paintComponent(g);
-                } finally {
-                    pp.setRenderingAntialiased(true);
-                }
-            } else {
-                pp.paintComponent(g);
-            }
-        } finally {
-            currentManager.setDoubleBufferingEnabled(true);
-        }
-
-        Rectangle view = pp.getVisibleRect();
-        g.setColor(Color.GREEN);
-        ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
-        g.drawRect(view.x, view.y, view.width, view.height);
     }
 
     /**
