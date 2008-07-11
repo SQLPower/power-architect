@@ -263,12 +263,12 @@ public class SwingUIProject extends CoreProject {
             String bgColorString = attributes.getValue("bgColor"); //$NON-NLS-1$
             if (bgColorString != null) {
                 Color bgColor = Color.decode(bgColorString);
-                tp.setBackground(bgColor);
+                tp.setBackgroundColor(bgColor);
             }
             String fgColorString = attributes.getValue("fgColor"); //$NON-NLS-1$
             if (fgColorString != null) {
                 Color fgColor = Color.decode(fgColorString);
-                tp.setForeground(fgColor);
+                tp.setForegroundColor(fgColor);
             }
             
             boolean rounded = "true".equals(attributes.getValue("rounded")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -652,9 +652,9 @@ public class SwingUIProject extends CoreProject {
             TablePane tp = getSession().getPlayPen().getTablePanes().get(i);
             Point p = tp.getLocation();
             
-            Color bgColor = tp.getBackground();
+            Color bgColor = tp.getBackgroundColor();
             String bgColorString = String.format("0x%02x%02x%02x", bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue()); //$NON-NLS-1$
-            Color fgColor = tp.getForeground();
+            Color fgColor = tp.getForegroundColor();
             String fgColorString = String.format("0x%02x%02x%02x", fgColor.getRed(), fgColor.getGreen(), fgColor.getBlue()); //$NON-NLS-1$
             
             ioo.println(out, "<table-pane table-ref="+quote(objectIdMap.get(tp.getModel()).toString())+"" //$NON-NLS-1$ //$NON-NLS-2$

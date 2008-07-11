@@ -125,8 +125,8 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		name.selectAll();
 		
 		if (tp != null) {
-    		bgColor.setSelectedItem(tp.getBackground());
-    		fgColor.setSelectedItem(tp.getForeground());
+    		bgColor.setSelectedItem(tp.getBackgroundColor());
+    		fgColor.setSelectedItem(tp.getForegroundColor());
     		dashed.setSelected(tp.isDashed());
     		rounded.setSelected(tp.isRounded());
 		}
@@ -170,13 +170,21 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                 table.setRemarks(remarks.getText());   
                 
                 if (tp != null) {
-                    tp.setBackground((Color)bgColor.getSelectedItem());
-                    tp.setForeground((Color)fgColor.getSelectedItem());
-                    tp.setDashed(dashed.isSelected());
-                    tp.setRounded(rounded.isSelected());
+                    if (!tp.getBackgroundColor().equals((Color)bgColor.getSelectedItem())) {
+                        tp.setBackgroundColor((Color)bgColor.getSelectedItem());
+                    } 
+                    if (!tp.getForegroundColor().equals((Color)fgColor.getSelectedItem())) {
+                        tp.setForegroundColor((Color)fgColor.getSelectedItem());
+                    } 
+                    if (tp.isDashed() != dashed.isSelected()) {
+                        tp.setDashed(dashed.isSelected());
+                    } 
+                    if (tp.isRounded() != rounded.isSelected()) {
+                        tp.setRounded(rounded.isSelected());
+                    }
                 }
                 return true;
-            } else{
+            } else {
                 JOptionPane.showMessageDialog(this,warnings.toString());
                 //this is done so we can go back to this dialog after the error message
                 return false;
@@ -322,7 +330,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
      * This class converts a Color into an icon that has width of 85 pixels and
      * height of 50 pixels.
      */
-    private class ColorIcon implements Icon {
+    public static class ColorIcon implements Icon {
         private int HEIGHT = 20;
 
         private int WIDTH = 40;

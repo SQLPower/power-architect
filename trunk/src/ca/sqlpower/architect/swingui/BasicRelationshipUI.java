@@ -124,11 +124,11 @@ public class BasicRelationshipUI extends RelationshipUI
 		g2.translate(c.getX() * -1, c.getY() * -1); // playpen coordinate space
 
 		if (logger.isDebugEnabled()) {
-			g2.setColor(c.getBackground());
+			g2.setColor(c.getBackgroundColor());
 			Rectangle bounds = c.getBounds();
 			g2.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
 			logger.debug("Relationship bounds " + bounds);
-			g2.setColor(c.getForeground());
+			g2.setColor(c.getForegroundColor());
 		}
 
 		try {

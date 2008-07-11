@@ -93,8 +93,8 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		this.columnHighlightColour = r.columnHighlightColour;
 		this.selectionListeners = new ArrayList<SelectionListener>();
 		
-		this.foregroundColor = r.getForeground();
-		this.backgroundColor = r.getBackground();
+		this.foregroundColor = r.getForegroundColor();
+		this.backgroundColor = r.getBackgroundColor();
 		
 		try {
 			RelationshipUI ui = (RelationshipUI) r.getUI().getClass().newInstance();
@@ -130,7 +130,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	protected void setup() {
 		updateUI();
 		setOpaque(false);
-		setBackground(Color.green);
+		setBackgroundColor(Color.green);
 		model.addSQLObjectListener(this);
 		setToolTipText(model.getName());
 		

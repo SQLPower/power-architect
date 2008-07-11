@@ -301,8 +301,6 @@ public class UndoManager extends javax.swing.undo.UndoManager {
         ArchitectUtils.addUndoListenerToHierarchy(eventAdapter, sqlObjectRoot);
         if (playPen != null) {
             playPen.addUndoEventListener(eventAdapter);
-            playPen.getPlayPenContentPane().addPropertyChangeListener("location", eventAdapter);
-            playPen.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", eventAdapter);
         }
     }
 

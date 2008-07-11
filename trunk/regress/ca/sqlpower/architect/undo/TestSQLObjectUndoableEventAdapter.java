@@ -67,6 +67,9 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 		TablePane tp = new TablePane(table,pp);
 		pp.addTablePane(tp, new Point());
 		UndoManager undoManager = new UndoManager(pp);
+		if (pp != null) {
+		    pp.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
+        }
 		Point location;
 		Point newLocation;
 		location = tp.getLocation();
@@ -101,6 +104,9 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 		Point newLocation2;
 		location2 = tp2.getLocation();
 		UndoManager undoManager = new UndoManager(pp);
+		if (pp != null) {
+            pp.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
+        }
 		assertTrue("Moved to the right location", location2.equals(tp2.getLocation() ));
 		assertTrue("Moved to the right location", location.equals(tp.getLocation() ));
 		newLocation = location.getLocation();
@@ -127,6 +133,14 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
     public void testCompoundEditEvent() throws ArchitectException{
         PlayPen pp = new PlayPen(session);
         UndoManager manager = new UndoManager(pp);
+        if (pp != null) {
+            pp.getPlayPenContentPane().addPropertyChangeListener("location", manager.getEventAdapter());
+            pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", manager.getEventAdapter());
+            pp.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", manager.getEventAdapter());
+            pp.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", manager.getEventAdapter());
+            pp.getPlayPenContentPane().addPropertyChangeListener("dashed", manager.getEventAdapter());
+            pp.getPlayPenContentPane().addPropertyChangeListener("rounded", manager.getEventAdapter());
+        }
         StateChangeTestListner listner = new StateChangeTestListner();
         manager.addChangeListener(listner);
         UndoManager.SQLObjectUndoableEventAdapter adapter = manager.getEventAdapter();
