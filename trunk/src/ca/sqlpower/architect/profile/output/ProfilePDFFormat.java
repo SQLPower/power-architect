@@ -89,7 +89,6 @@ public class ProfilePDFFormat implements ProfileFormat {
             "Top N Values",
             "Count"
     };
-    private int maxCharsInTopN = 50;
     
     private List<String> columnsToTruncate = new ArrayList<String>();
     
@@ -105,12 +104,6 @@ public class ProfilePDFFormat implements ProfileFormat {
         columnsToTruncate.add("Max Value");
         columnsToTruncate.add("Top N Values");
     }
-
-    /**
-     * This is the maximum number of characters that can appear in a "top n" value.
-     * Anything in excess of this number of characters will be truncated and replaced
-     * by an ellipsis.
-     */
 
     /**
      * Outputs a PDF file report of the data in drs to the given
