@@ -20,7 +20,7 @@
 	<classpathentry kind="lib" path="lib/commons-vfs-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/darwinsys.jar"/>
 	<classpathentry kind="lib" path="lib/edtftpj-1.5.4.jar"/>
-	<classpathentry kind="lib" path="lib/forms-1.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/forms-1.1.0.jar" sourcepath="libsrc/forms-1.1.0_src.zip"/>
 	<classpathentry kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon-1.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart-1.0.1.jar"/>
