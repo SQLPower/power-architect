@@ -44,6 +44,7 @@ import org.xml.sax.SAXException;
 
 import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
+import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
@@ -63,6 +64,7 @@ public class CoreProject {
      */
     static {
         ConvertUtils.register(new DeferrabilityConverter(), Deferrability.class);
+        ConvertUtils.register(new UpdateDeleteRuleConverter(), UpdateDeleteRule.class);
     }
     
 //  ---------------- persistent properties -------------------
