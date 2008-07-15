@@ -18,7 +18,6 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import java.awt.FlowLayout;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -40,12 +39,14 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
+import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
+import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.FormLayout;
 
 public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel {
@@ -91,6 +92,20 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
     private JRadioButton initiallyDeferred;
     private JRadioButton initiallyImmediate;
     
+    private ButtonGroup updateRuleGroup;
+    private JRadioButton updateCascade;
+    private JRadioButton updateRestrict;
+    private JRadioButton updateSetNull;
+    private JRadioButton updateNoAction;
+    private JRadioButton updateSetDefault;
+
+    private ButtonGroup deleteRuleGroup;
+    private JRadioButton deleteCascade;
+    private JRadioButton deleteRestrict;
+    private JRadioButton deleteSetNull;
+    private JRadioButton deleteNoAction;
+    private JRadioButton deleteSetDefault;
+
     private ArchitectSession session;
     
 	public RelationshipEditPanel(ArchitectSwingSession session) {
@@ -100,57 +115,88 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         addUndoEventListener(session.getArchitectFrame().getUndoManager().getEventAdapter());
         
         this.session = session;
-        FormLayout layout = new FormLayout("pref, 4dlu, pref:grow");
-        DefaultFormBuilder fb = new DefaultFormBuilder(layout);
+        FormLayout layout = new FormLayout("pref, 4dlu, pref:grow, 4dlu, pref, 4dlu, pref:grow");
+        layout.setColumnGroups(new int[][] { { 3, 7 } });
+        DefaultFormBuilder fb = new DefaultFormBuilder(layout, logger.isDebugEnabled() ? new FormDebugPanel() : new JPanel());
         
-        fb.append("Relationship Name", relationshipName = new JTextField());
+        fb.append("Relationship Name", relationshipName = new JTextField(), 5);
 
-		JPanel typePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
 		identifyingGroup = new ButtonGroup();
-		typePanel.add(identifyingButton = new JRadioButton("Identifying"));
+		fb.append("Relationship Type", identifyingButton = new JRadioButton("Identifying"), 5);
 		identifyingGroup.add(identifyingButton);
-		typePanel.add(nonIdentifyingButton = new JRadioButton("Non-Identifying"));
+		fb.append("", nonIdentifyingButton = new JRadioButton("Non-Identifying"), 5);
 		identifyingGroup.add(nonIdentifyingButton);
-		fb.append("Relationship Type", typePanel);
 
 		fb.nextLine();
         fb.appendUnrelatedComponentsGapRow();
+
+        pkTypeGroup = new ButtonGroup();
+        fkTypeGroup = new ButtonGroup();
         fb.nextLine();
         fb.append("Cardinality", pkTableName = new JLabel("PK Table: Unknown"));
-		pkTypeGroup = new ButtonGroup();
+        fb.append("", fkTableName = new JLabel("FK Table: Unknown"));
+
         fb.append("", pkTypeZeroToMany = new JRadioButton("Zero or More"));
 		pkTypeGroup.add(pkTypeZeroToMany);
-        fb.append("", pkTypeOneToMany = new JRadioButton("One or More"));
-		pkTypeGroup.add(pkTypeOneToMany);
-		fb.append("", pkTypeZeroOne = new JRadioButton("Zero or One"));
-		pkTypeGroup.add(pkTypeZeroOne);
-		fb.append("", pkTypeOne = new JRadioButton("Exactly One"));
-		pkTypeGroup.add(pkTypeOne);
-
-		fb.nextLine();
-        fb.appendRelatedComponentsGapRow();
-        fb.nextLine();
-		fb.append("", fkTableName = new JLabel("FK Table: Unknown"));
-		fkTypeGroup = new ButtonGroup();
 		fb.append("", fkTypeZeroToMany = new JRadioButton("Zero or More"));
 		fkTypeGroup.add(fkTypeZeroToMany);
+
+		fb.append("", pkTypeOneToMany = new JRadioButton("One or More"));
+		pkTypeGroup.add(pkTypeOneToMany);
 		fb.append("", fkTypeOneToMany = new JRadioButton("One or More"));
 		fkTypeGroup.add(fkTypeOneToMany);
+
+		fb.append("", pkTypeZeroOne = new JRadioButton("Zero or One"));
+		pkTypeGroup.add(pkTypeZeroOne);
 		fb.append("", fkTypeZeroOne = new JRadioButton("Zero or One"));
 		fkTypeGroup.add(fkTypeZeroOne);
+
+		fb.append("", pkTypeOne = new JRadioButton("Exactly One"));
+		pkTypeGroup.add(pkTypeOne);
 
 		fb.nextLine();
         fb.appendUnrelatedComponentsGapRow();
         fb.nextLine();
         deferrabilityGroup = new ButtonGroup();
-        fb.append("Deferrability", notDeferrable = new JRadioButton("Not Deferrable"));
+        fb.append("Deferrability", notDeferrable = new JRadioButton("Not Deferrable"), 5);
         deferrabilityGroup.add(notDeferrable);
-        fb.append("", initiallyDeferred = new JRadioButton("Deferrable, Initially Deferred"));
+        fb.append("", initiallyDeferred = new JRadioButton("Deferrable, Initially Deferred"), 5);
         deferrabilityGroup.add(initiallyDeferred);
-        fb.append("", initiallyImmediate = new JRadioButton("Deferrable, Initially Immediate"));
+        fb.append("", initiallyImmediate = new JRadioButton("Deferrable, Initially Immediate"), 5);
         deferrabilityGroup.add(initiallyImmediate);
+
+        fb.nextLine();
+        fb.appendUnrelatedComponentsGapRow();
+
+        updateRuleGroup = new ButtonGroup();
+        deleteRuleGroup = new ButtonGroup();
+        fb.nextLine();
+        fb.append("Update Rule", updateCascade = new JRadioButton("Cascade"));
+        updateRuleGroup.add(updateCascade);
+        fb.append("Delete Rule", deleteCascade = new JRadioButton("Cascade"));
+        deleteRuleGroup.add(deleteCascade);
         
-		relationshipName.selectAll();
+        fb.append("", updateRestrict = new JRadioButton("Restrict"));
+        updateRuleGroup.add(updateRestrict);
+        fb.append("", deleteRestrict = new JRadioButton("Restrict"));
+        deleteRuleGroup.add(deleteRestrict);
+
+        fb.append("", updateNoAction = new JRadioButton("No Action"));
+        updateRuleGroup.add(updateNoAction);
+        fb.append("", deleteNoAction = new JRadioButton("No Action"));
+        deleteRuleGroup.add(deleteNoAction);
+
+        fb.append("", updateSetNull = new JRadioButton("Set Null"));
+        updateRuleGroup.add(updateSetNull);
+        fb.append("", deleteSetNull = new JRadioButton("Set Null"));
+        deleteRuleGroup.add(deleteSetNull);
+
+        fb.append("", updateSetDefault = new JRadioButton("Set Default"));
+        updateRuleGroup.add(updateSetDefault);
+        fb.append("", deleteSetDefault = new JRadioButton("Set Default"));
+        deleteRuleGroup.add(deleteSetDefault);
+
+        relationshipName.selectAll();
         
         fb.setDefaultDialogBorder();
         panel = fb.getPanel();
@@ -194,6 +240,30 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
             initiallyImmediate.setSelected(true);
         }
         
+        if (r.getUpdateRule() == UpdateDeleteRule.CASCADE) {
+            updateCascade.setSelected(true);
+        } else if (r.getUpdateRule() == UpdateDeleteRule.NO_ACTION) {
+            updateNoAction.setSelected(true);
+        } else if (r.getUpdateRule() == UpdateDeleteRule.RESTRICT) {
+            updateRestrict.setSelected(true);
+        } else if (r.getUpdateRule() == UpdateDeleteRule.SET_DEFAULT) {
+            updateSetDefault.setSelected(true);
+        } else if (r.getUpdateRule() == UpdateDeleteRule.SET_NULL) {
+            updateSetNull.setSelected(true);
+        }
+
+        if (r.getDeleteRule() == UpdateDeleteRule.CASCADE) {
+            deleteCascade.setSelected(true);
+        } else if (r.getDeleteRule() == UpdateDeleteRule.NO_ACTION) {
+            deleteNoAction.setSelected(true);
+        } else if (r.getDeleteRule() == UpdateDeleteRule.RESTRICT) {
+            deleteRestrict.setSelected(true);
+        } else if (r.getDeleteRule() == UpdateDeleteRule.SET_DEFAULT) {
+            deleteSetDefault.setSelected(true);
+        } else if (r.getDeleteRule() == UpdateDeleteRule.SET_NULL) {
+            deleteSetNull.setSelected(true);
+        }
+
 		relationshipName.selectAll();
 		
 		try {
@@ -247,6 +317,30 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
                 relationship.setDeferrability(Deferrability.INITIALLY_IMMEDIATE);
             }
             
+            if (updateCascade.isSelected()) {
+                relationship.setUpdateRule(UpdateDeleteRule.CASCADE);
+            } else if (updateNoAction.isSelected()) {
+                relationship.setUpdateRule(UpdateDeleteRule.NO_ACTION);
+            } else if (updateRestrict.isSelected()) {
+                relationship.setUpdateRule(UpdateDeleteRule.RESTRICT);
+            } else if (updateSetDefault.isSelected()) {
+                relationship.setUpdateRule(UpdateDeleteRule.SET_DEFAULT);
+            } else if (updateSetNull.isSelected()) {
+                relationship.setUpdateRule(UpdateDeleteRule.SET_NULL);
+            }
+
+            if (deleteCascade.isSelected()) {
+                relationship.setDeleteRule(UpdateDeleteRule.CASCADE);
+            } else if (deleteNoAction.isSelected()) {
+                relationship.setDeleteRule(UpdateDeleteRule.NO_ACTION);
+            } else if (deleteRestrict.isSelected()) {
+                relationship.setDeleteRule(UpdateDeleteRule.RESTRICT);
+            } else if (deleteSetDefault.isSelected()) {
+                relationship.setDeleteRule(UpdateDeleteRule.SET_DEFAULT);
+            } else if (deleteSetNull.isSelected()) {
+                relationship.setDeleteRule(UpdateDeleteRule.SET_NULL);
+            }
+
 		} finally {
 			endCompoundEdit("Ending new compound edit event in relationship edit panel");
 		}
