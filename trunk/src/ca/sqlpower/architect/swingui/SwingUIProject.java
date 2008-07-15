@@ -844,8 +844,8 @@ public class SwingUIProject extends CoreProject {
             type = "relationship"; //$NON-NLS-1$
             propNames.put("pk-table-ref", objectIdMap.get(((SQLRelationship) o).getPkTable())); //$NON-NLS-1$
             propNames.put("fk-table-ref", objectIdMap.get(((SQLRelationship) o).getFkTable())); //$NON-NLS-1$
-            propNames.put("updateRule", new Integer(((SQLRelationship) o).getUpdateRule())); //$NON-NLS-1$
-            propNames.put("deleteRule", new Integer(((SQLRelationship) o).getDeleteRule())); //$NON-NLS-1$
+            propNames.put("updateRule", new Integer(((SQLRelationship) o).getUpdateRule().getCode())); //$NON-NLS-1$
+            propNames.put("deleteRule", new Integer(((SQLRelationship) o).getDeleteRule().getCode())); //$NON-NLS-1$
             propNames.put("deferrability", new Integer(((SQLRelationship) o).getDeferrability().getCode())); //$NON-NLS-1$
             propNames.put("pkCardinality", new Integer(((SQLRelationship) o).getPkCardinality())); //$NON-NLS-1$
             propNames.put("fkCardinality", new Integer(((SQLRelationship) o).getFkCardinality())); //$NON-NLS-1$

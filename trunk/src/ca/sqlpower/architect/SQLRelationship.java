@@ -130,6 +130,76 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
         }
     }
     
+    /**
+     * Enumeration of the various rules allowed for (foreign/imported/child)
+     * columns when their parent value is updated or deleted.
+     */
+    public static enum UpdateDeleteRule {
+        
+        /**
+         * When parent value changes, child value should be modified to
+         * match new parent value.
+         */
+        CASCADE(DatabaseMetaData.importedKeyCascade),
+        
+        /**
+         * Modifying or deleting the parent value should fail if
+         * there are child records. Appears to have the same meaning
+         * as {@link #NO_ACTION}, but is defined separately in the JDBC
+         * API.
+         */
+        RESTRICT(DatabaseMetaData.importedKeyRestrict),
+        
+        /**
+         * The child value will be set to SQL NULL if the parent value
+         * is modified or deleted.
+         */
+        SET_NULL(DatabaseMetaData.importedKeySetNull),
+        
+        /**
+         * Modifying or deleting the parent value should fail if
+         * there are child records. Appears to have the same meaning
+         * as {@link #RESTRICT}, but is defined separately in the JDBC
+         * API.
+         */
+        NO_ACTION(DatabaseMetaData.importedKeyNoAction),
+        
+        /**
+         * Modifying or deleting the parent value should cause the child
+         * value to be set to its default.
+         */
+        SET_DEFAULT(DatabaseMetaData.importedKeySetDefault);
+        
+        /**
+         * The JDBC code for this update/delete rule.
+         */
+        private final int code;
+        
+        private UpdateDeleteRule(int code) {
+            this.code = code;
+        }
+        
+        /**
+         * Returns the update/delete rule associated with the given code number.
+         * The code numbers are defined in the JDBC specification.
+         * 
+         * @throws IllegalArgumentException if the given code number is not valid.
+         */
+        public static UpdateDeleteRule ruleForCode(int code) {
+            for (UpdateDeleteRule r : values()) {
+                if (r.code == code) return r;
+            }
+            throw new IllegalArgumentException("No such update/delete rule code " + code);
+        }
+        
+        /**
+         * Returns the JDBC code number for this update/delete rule.
+         */
+        public int getCode() {
+            return code;
+        }
+    }
+    
 	public static final int ZERO = 1;
 	public static final int ONE = 2;
 	public static final int MANY = 4;
@@ -139,8 +209,17 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	protected SQLTable pkTable;
 	protected SQLTable fkTable;
 
-	protected int updateRule;
-	protected int deleteRule;
+	/**
+	 * The rule for what the DBMS should do to the child (imported) key value when its
+	 * parent table (exported) key value changes.
+	 */
+	protected UpdateDeleteRule updateRule = UpdateDeleteRule.RESTRICT;
+	
+    /**
+     * The rule for what the DBMS should do to the child (imported) key value when its
+     * parent table (exported) row is deleted.
+     */
+	protected UpdateDeleteRule deleteRule = UpdateDeleteRule.RESTRICT;
     
     /**
      * The deferrability rule for constraint checking on this relationship.
@@ -475,8 +554,8 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 					throw new ArchitectException("relationship.populate.nullFkColumn");
 				}
 				// column 9 (currentKeySeq) handled above
-				r.updateRule = crs.getInt(10);
-				r.deleteRule = crs.getInt(11);
+				r.updateRule = UpdateDeleteRule.ruleForCode(crs.getInt(10));
+				r.deleteRule = UpdateDeleteRule.ruleForCode(crs.getInt(11));
 				r.setName(crs.getString(12));
                 try {
                     r.deferrability = Deferrability.ruleForCode(crs.getInt(14));
@@ -938,44 +1017,24 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	// ----------------- accessors and mutators -------------------
 
-	/**
-	 * Gets the value of updateRule
-	 *
-	 * @return the value of updateRule
-	 */
-	public int getUpdateRule()  {
+	public UpdateDeleteRule getUpdateRule()  {
 		return this.updateRule;
 	}
 
-	/**
-	 * Sets the value of updateRule
-	 *
-	 * @param argUpdateRule Value to assign to this.updateRule
-	 */
-	public void setUpdateRule(int argUpdateRule) {
-		int oldUpdateRule = this.updateRule;
-		this.updateRule = argUpdateRule;
-		fireDbObjectChanged("updateRule",oldUpdateRule,argUpdateRule);
+	public void setUpdateRule(UpdateDeleteRule rule) {
+	    UpdateDeleteRule oldRule = updateRule;
+	    updateRule = rule;
+		fireDbObjectChanged("updateRule", oldRule, rule);
 	}
 
-	/**
-	 * Gets the value of deleteRule
-	 *
-	 * @return the value of deleteRule
-	 */
-	public int getDeleteRule()  {
+	public UpdateDeleteRule getDeleteRule()  {
 		return this.deleteRule;
 	}
 
-	/**
-	 * Sets the value of deleteRule
-	 *
-	 * @param argDeleteRule Value to assign to this.deleteRule
-	 */
-	public void setDeleteRule(int argDeleteRule) {
-		int oldDeleteRule = this.deleteRule;
-		this.deleteRule = argDeleteRule;
-		fireDbObjectChanged("deleteRule",oldDeleteRule,argDeleteRule);
+	public void setDeleteRule(UpdateDeleteRule rule) {
+        UpdateDeleteRule oldRule = deleteRule;
+        deleteRule = rule;
+        fireDbObjectChanged("deleteRule", oldRule, rule);
 	}
 
 	public Deferrability getDeferrability()  {

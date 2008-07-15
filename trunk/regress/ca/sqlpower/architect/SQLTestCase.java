@@ -171,6 +171,12 @@ public abstract class SQLTestCase extends ArchitectTestCase {
                 } else {
                     newVal = SQLRelationship.Deferrability.INITIALLY_DEFERRED;
                 }
+            } else if ( property.getPropertyType() == SQLRelationship.UpdateDeleteRule.class){
+                if (oldVal == SQLRelationship.UpdateDeleteRule.CASCADE) {
+                    newVal = SQLRelationship.UpdateDeleteRule.RESTRICT;
+                } else {
+                    newVal = SQLRelationship.UpdateDeleteRule.CASCADE;
+                }
             } else {
 				throw new RuntimeException("This test case lacks a value for "+
 						property.getName()+
