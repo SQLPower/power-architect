@@ -58,6 +58,8 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
     private static final int SCALED_IMAGE_HEIGHT = 125;
 
     private PlayPen pp;
+    
+    private JPanel navigationPanel;
 
     /**
      * The factor which the entire Playpen is scaled down to
@@ -89,7 +91,7 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
         pp.getPlayPenContentPane().addPropertyChangeListener("dashed", this);
         pp.getPlayPenContentPane().addPropertyChangeListener("rounded", this);
         
-        final JPanel panel = new JPanel() {
+        navigationPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -123,20 +125,20 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
             }
         };
         
-        panel.addMouseListener(new MouseAdapter() {
+        navigationPanel.addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent e) {
                 adjustViewPort(e.getPoint());
             }
         });
 
-        panel.addMouseMotionListener(new MouseMotionAdapter() {
+        navigationPanel.addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseDragged(MouseEvent e) {
                 adjustViewPort(e.getPoint());
             }
         });
         
-        panel.setPreferredSize(new Dimension(SCALED_IMAGE_WIDTH, SCALED_IMAGE_HEIGHT));
-        setContentPane(panel);
+        navigationPanel.setPreferredSize(new Dimension(SCALED_IMAGE_WIDTH, SCALED_IMAGE_HEIGHT));
+        getContentPane().add(navigationPanel);
         
         
         pack();
@@ -199,7 +201,7 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
      * Refreshes the navigator upon a visible property change
      */
     public void propertyChange(PropertyChangeEvent evt) {
-        repaint();
+        navigationPanel.repaint();
 
     }
 
@@ -207,7 +209,7 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
      * Refreshes the navigator upon the addition of a new PlaypenComponent
      */
     public void dbChildrenInserted(SQLObjectEvent e) {
-        repaint();
+        navigationPanel.repaint();
         
         SQLObject[] children = e.getChildren();
         for (SQLObject child : children) {
@@ -223,7 +225,7 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
      * Refreshes the navigator upon the removal of a PlaypenComponent
      */
     public void dbChildrenRemoved(SQLObjectEvent e) {
-        repaint();
+        navigationPanel.repaint();
         
         SQLObject[] children = e.getChildren();
         for (SQLObject child : children) {
@@ -236,7 +238,7 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
     }
 
     public void dbObjectChanged(SQLObjectEvent e) {
-        repaint();
+        navigationPanel.repaint();
     }
 
     public void dbStructureChanged(SQLObjectEvent e) {
