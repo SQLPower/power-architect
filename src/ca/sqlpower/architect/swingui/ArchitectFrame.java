@@ -229,15 +229,19 @@ public class ArchitectFrame extends JFrame {
         splitPane.setLeftComponent(new JScrollPane(dbTree));
         JScrollPane playpenScrollPane = new JScrollPane(playpen);
         
-        // Notify the overview navigator when viewport changes
+        // Refreshes the overview navigator when viewport changes
         playpenScrollPane.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener(){
             public void adjustmentValueChanged(AdjustmentEvent e) {
-                firePropertyChange("viewPort", null, null);
+                if (navigatorDialog != null) {
+                    navigatorDialog.refresh();
+                }
             }
         });
         playpenScrollPane.getHorizontalScrollBar().addAdjustmentListener(new AdjustmentListener(){
             public void adjustmentValueChanged(AdjustmentEvent e) {
-                firePropertyChange("viewPort", null, null);
+                if (navigatorDialog != null) {
+                    navigatorDialog.refresh();
+                }
             }
         });
         splitPane.setRightComponent(playpenScrollPane);
