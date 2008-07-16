@@ -82,8 +82,6 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
             throw new ArchitectRuntimeException(ex);
         }
 
-        pp.getSession().getArchitectFrame().addPropertyChangeListener("viewPort", this);
-
         pp.getPlayPenContentPane().addPropertyChangeListener("location", this);
         pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", this);
         pp.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", this);
@@ -255,5 +253,12 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
         }
         pp.getPlayPenContentPane().removePropertyChangeListener(this);
         pp.getSession().getArchitectFrame().removePropertyChangeListener(this);
+    }
+    
+    /**
+     * Refreshes the navigator panel.
+     */
+    public void refresh() {
+        navigationPanel.repaint();
     }
 }
