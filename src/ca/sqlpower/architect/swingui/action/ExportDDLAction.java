@@ -189,8 +189,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                 } catch (SQLException ex) {
                     ASUtils.showExceptionDialog
                         (session, 
-                         Messages.getString("ExportDDLAction.errorGeneratingDDL") + //$NON-NLS-1$
-                         "", ex); //$NON-NLS-1$
+                         Messages.getString("ExportDDLAction.errorGeneratingDDL"), ex); //$NON-NLS-1$
                 } catch (Exception ex) {
                     ASUtils.showExceptionDialog
                         (session,
@@ -331,14 +330,12 @@ public class ExportDDLAction extends AbstractArchitectAction {
                 }
 			} else if (!cr.isEmpty()) {
 				Object[] messages = new Object[3];
-				messages[0] = Messages.getString("ExportDDLAction.conflictingObjectsInDatabase") //$NON-NLS-1$
-							 +""; //$NON-NLS-1$
+				messages[0] = Messages.getString("ExportDDLAction.conflictingObjectsInDatabase"); //$NON-NLS-1$
 				JTextArea conflictsPane = new JTextArea(cr.toConflictTree());
 				conflictsPane.setRows(15);
 				conflictsPane.setEditable(false);
 				messages[1] = new JScrollPane(conflictsPane);
-				messages[2] = Messages.getString("ExportDDLAction.dropConflictingObjectsConfirmation") //$NON-NLS-1$
-							 +""; //$NON-NLS-1$
+				messages[2] = Messages.getString("ExportDDLAction.dropConflictingObjectsConfirmation"); //$NON-NLS-1$
 				int choice = JOptionPane.showConfirmDialog(
 						parentDialog,
 						messages,
