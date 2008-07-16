@@ -266,11 +266,4 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
         pp.getPlayPenContentPane().removePropertyChangeListener(this);
         pp.getSession().getArchitectFrame().removePropertyChangeListener(this);
     }
-    
-    /**
-     * Refreshes the navigator panel.
-     */
-    public void refresh() {
-        navigationPanel.repaint();
-    }
 }
