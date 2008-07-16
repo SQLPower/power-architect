@@ -65,8 +65,7 @@ public class ProfileAction extends AbstractArchitectAction {
                 if (targetDBPath.isDescendant(path)) {
     
                     int answer = JOptionPane.showConfirmDialog(session.getArchitectFrame(),
-                            Messages.getString("ProfileAction.cannotProfileProjectDb") + //$NON-NLS-1$
-                            "", //$NON-NLS-1$
+                            Messages.getString("ProfileAction.cannotProfileProjectDb"), //$NON-NLS-1$
                             Messages.getString("ProfileAction.continueProfilingOption"),JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
                     if (answer == JOptionPane.CANCEL_OPTION){
                         return;

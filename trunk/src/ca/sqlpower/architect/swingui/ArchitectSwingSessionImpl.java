@@ -436,8 +436,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         if (getProject().isSaveInProgress()) {
             // project save is in progress, don't allow exit
             JOptionPane.showMessageDialog(frame,
-                    Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSaving") + //$NON-NLS-1$
-                    "", //$NON-NLS-1$
+                    Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSaving"), //$NON-NLS-1$
                     Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSavingDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
             return;
         }
@@ -458,9 +457,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             
             Object[] options = {Messages.getString("ArchitectSwingSessionImpl.waitOption"), Messages.getString("ArchitectSwingSessionImpl.forceQuiteOption")}; //$NON-NLS-1$ //$NON-NLS-2$
             int n = JOptionPane.showOptionDialog(frame, 
-                    Messages.getString("ArchitectSwingSessionImpl.unfinishedTasksRemaining") + //$NON-NLS-1$
-                    "" + //$NON-NLS-1$
-                    "",  //$NON-NLS-1$
+                    Messages.getString("ArchitectSwingSessionImpl.unfinishedTasksRemaining"),  //$NON-NLS-1$
                     Messages.getString("ArchitectSwingSessionImpl.unfinishedTasksDialogTitle"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,  //$NON-NLS-1$
                     null, options, options[0]);
             

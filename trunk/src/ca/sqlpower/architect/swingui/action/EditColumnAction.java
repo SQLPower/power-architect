@@ -131,7 +131,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 						}							
 					} catch (ArchitectException ex) {
 						JOptionPane.showMessageDialog(dbt, Messages.getString("EditColumnAction.errorFindingSelectedColumn")); //$NON-NLS-1$
-						logger.error(Messages.getString("EditColumnAction.errorFindingSelectedColumn"), ex); //$NON-NLS-1$
+						logger.error("Error finding the selected column", ex); //$NON-NLS-1$
 						cleanup();
 					}										
 				} else {

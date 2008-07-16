@@ -362,8 +362,8 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         Action deleteAllAction = new AbstractAction(Messages.getString("ProfileManagerView.deleteAllActionName")) { //$NON-NLS-1$
             public void actionPerformed(ActionEvent e) {
                 int confirm = JOptionPane.showConfirmDialog(scrollPane,
-                        Messages.getString("ProfileManagerView.confirmDeleteProfileData") + //$NON-NLS-1$
-                        "", Messages.getString("ProfileManagerView.deleteAllButton") , JOptionPane.YES_NO_OPTION); //$NON-NLS-1$ //$NON-NLS-2$
+                        Messages.getString("ProfileManagerView.confirmDeleteProfileData"), //$NON-NLS-1$
+                        Messages.getString("ProfileManagerView.deleteAllButton") , JOptionPane.YES_NO_OPTION); //$NON-NLS-1$
                 if (confirm == 0) { // 0 == the first Option, which is Yes
                     resultListPanel.removeAll();
                     list.clear();
@@ -467,7 +467,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
      */
     public void profilesRemoved(ProfileChangeEvent e) {
         List<ProfileResult> profileResults = e.getProfileResults();
-        logger.debug(Messages.getString("ProfileManagerView.19") + profileResults + ": profiles deleted"); //$NON-NLS-1$ //$NON-NLS-2$
+        logger.debug("ProfileManagerView.profileRemoved(): " + profileResults + ": profiles deleted"); //$NON-NLS-1$ //$NON-NLS-2$
         for (ProfileResult profileResult: profileResults) {
             for (ProfileRowComponent view : list) {
                 if (view.getResult().equals(profileResult)) {

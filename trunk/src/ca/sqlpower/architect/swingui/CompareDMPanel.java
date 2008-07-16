@@ -807,9 +807,7 @@ public class CompareDMPanel extends JPanel {
 					o = getDatabase();
 				} else {
 					throw new IllegalStateException(
-							Messages.getString("CompareDMPanel.noSchemaCatalogOrDatabaseSelected") //$NON-NLS-1$
-									+ "" //$NON-NLS-1$
-									+ ""); //$NON-NLS-1$
+							Messages.getString("CompareDMPanel.noSchemaCatalogOrDatabaseSelected")); //$NON-NLS-1$
 				}
 
 			} else if (loadRadio.isSelected()) {
