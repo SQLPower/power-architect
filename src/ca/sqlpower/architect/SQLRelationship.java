@@ -144,9 +144,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
         
         /**
          * Modifying or deleting the parent value should fail if
-         * there are child records. Appears to have the same meaning
-         * as {@link #NO_ACTION}, but is defined separately in the JDBC
-         * API.
+         * there are child records. This is different from {@link #NO_ACTION}
+         * in that the constraint check will not be deferrable on some
+         * platforms.
          */
         RESTRICT(DatabaseMetaData.importedKeyRestrict),
         
@@ -158,9 +158,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
         
         /**
          * Modifying or deleting the parent value should fail if
-         * there are child records. Appears to have the same meaning
-         * as {@link #RESTRICT}, but is defined separately in the JDBC
-         * API.
+         * there are child records. This is different from {@link #RESTRICT}
+         * in that the constraint checking will be deferrable on some platforms.
+         * This is the default update and delete rule on most database platforms.
          */
         NO_ACTION(DatabaseMetaData.importedKeyNoAction),
         
@@ -213,13 +213,13 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * The rule for what the DBMS should do to the child (imported) key value when its
 	 * parent table (exported) key value changes.
 	 */
-	protected UpdateDeleteRule updateRule = UpdateDeleteRule.RESTRICT;
+	protected UpdateDeleteRule updateRule = UpdateDeleteRule.NO_ACTION;
 	
     /**
      * The rule for what the DBMS should do to the child (imported) key value when its
      * parent table (exported) row is deleted.
      */
-	protected UpdateDeleteRule deleteRule = UpdateDeleteRule.RESTRICT;
+	protected UpdateDeleteRule deleteRule = UpdateDeleteRule.NO_ACTION;
     
     /**
      * The deferrability rule for constraint checking on this relationship.
