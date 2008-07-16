@@ -300,7 +300,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                     try {
                         con.close();
                     } catch (SQLException ex) {
-                        logger.error(Messages.getString("ExportDDLAction.failedToCloseConnection"), ex); //$NON-NLS-1$
+                        logger.error("Failed to close connection. This exception is getting squashed:", ex); //$NON-NLS-1$
                     }
                 }
             }
