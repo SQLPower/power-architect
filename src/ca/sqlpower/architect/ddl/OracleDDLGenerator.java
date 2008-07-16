@@ -31,8 +31,10 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSequence;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 
 public class OracleDDLGenerator extends GenericDDLGenerator {
@@ -384,5 +386,55 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         }
         
         super.addTable(t);
+    }
+    
+    @Override
+    public boolean supportsDeleteAction(SQLRelationship r) {
+        UpdateDeleteRule action = r.getDeleteRule();
+        return (action != UpdateDeleteRule.SET_DEFAULT);
+    }
+    
+    @Override
+    public String getDeleteActionClause(SQLRelationship r) {
+        UpdateDeleteRule action = r.getDeleteRule();
+        if (action == UpdateDeleteRule.CASCADE) {
+            return "ON DELETE CASCADE";
+        } else if (action == UpdateDeleteRule.SET_NULL) {
+            return "ON DELETE SET NULL";
+        } else if (action == UpdateDeleteRule.RESTRICT) {
+            return "";
+        } else if (action == UpdateDeleteRule.NO_ACTION) {
+            return "";
+        } else {
+            throw new IllegalArgumentException("Oracle does not support this delete action: " + action);
+        }
+    }
+    
+    /**
+     * Oracle does not support any explicit ON UPDATE clause in FK constraints,
+     * but the default behaviour is basically the same as NO ACTION or RESTRICT
+     * of other platforms. So this method claims those rules are supported,
+     * but the others are not.
+     */
+    @Override
+    public boolean supportsUpdateAction(SQLRelationship r) {
+        UpdateDeleteRule action = r.getUpdateRule();
+        return (action == UpdateDeleteRule.NO_ACTION) || (action == UpdateDeleteRule.RESTRICT);
+    }
+
+    /**
+     * Only returns the empty string for supported update actions (see
+     * {@link #supportsUpdateAction(SQLRelationship)}), and throws an
+     * {@link IllegalArgumentException} if the update rule is not supported.
+     */
+    @Override
+    public String getUpdateActionClause(SQLRelationship r) {
+        UpdateDeleteRule action = r.getUpdateRule();
+        if (!supportsUpdateAction(r)) {
+            throw new IllegalArgumentException(
+                    "This update action is not supported in Oracle: " + action);
+        } else {
+            return "";
+        }
     }
 }
