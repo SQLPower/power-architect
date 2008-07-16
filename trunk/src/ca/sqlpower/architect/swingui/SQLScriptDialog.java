@@ -404,7 +404,7 @@ public class SQLScriptDialog extends JDialog {
 			} finally {
 				final String resultsMessage =
 					(stmtsCompleted == 0 ? Messages.getString("SQLScriptDialog.didNotExecute", String.valueOf(stmtsTried)) : //$NON-NLS-1$
-						Messages.getString("SQLScriptDialog.successfullyExecuted", String.valueOf(stmtsTried), String.valueOf(stmtsCompleted))); //$NON-NLS-1$
+						Messages.getString("SQLScriptDialog.successfullyExecuted", String.valueOf(stmtsCompleted), String.valueOf(stmtsTried))); //$NON-NLS-1$
 				logWriter.info(resultsMessage);
 				JOptionPane.showMessageDialog(SQLScriptDialog.this, resultsMessage);
 				// flush and close the LogWriter
