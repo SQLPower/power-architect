@@ -37,6 +37,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
+import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 
 public class MySqlDDLGenerator extends GenericDDLGenerator {
 
@@ -491,6 +492,34 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             throw new IllegalArgumentException("Unknown deferrability policy: " + r.getDeferrability());
         } else {
             return r.getDeferrability() == Deferrability.NOT_DEFERRABLE;
+        }
+    }
+    
+    @Override
+    public boolean supportsDeleteAction(SQLRelationship r) {
+        return r.getDeleteRule() != UpdateDeleteRule.SET_DEFAULT;
+    }
+
+    @Override
+    public String getDeleteActionClause(SQLRelationship r) {
+        if (r.getDeleteRule() == UpdateDeleteRule.SET_DEFAULT) {
+            throw new IllegalArgumentException("Unsupported delete action: " + r.getDeleteRule());
+        } else {
+            return super.getDeleteActionClause(r);
+        }
+    }
+    
+    @Override
+    public boolean supportsUpdateAction(SQLRelationship r) {
+        return r.getUpdateRule() != UpdateDeleteRule.SET_DEFAULT;
+    }
+
+    @Override
+    public String getUpdateActionClause(SQLRelationship r) {
+        if (r.getUpdateRule() == UpdateDeleteRule.SET_DEFAULT) {
+            throw new IllegalArgumentException("Unsupported update action: " + r.getUpdateRule());
+        } else {
+            return super.getUpdateActionClause(r);
         }
     }
 
