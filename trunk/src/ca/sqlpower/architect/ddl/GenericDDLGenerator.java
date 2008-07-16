@@ -405,7 +405,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 		// adds to error msg if the deferrability was not a supported feature,
 		// add the deferrability clause otherwise.
 		if (supportsDeferrabilityPolicy(r)) {
-		    sql.append("\n").append(getDeferrabilityClause(r));
+		    String deferrabilityClause = getDeferrabilityClause(r);
+		    
+		    // avoid useless newline when clause is empty
+		    if (deferrabilityClause.length() > 0) {
+		        sql.append("\n").append(deferrabilityClause);
+		    }
 		} else {
 		    warnings.add(new UnsupportedFeatureDDLWarning(
                     getName() + " does not support " + r.getName() + "'s deferrability policy", r));
