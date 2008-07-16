@@ -107,10 +107,10 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
      * @throws ArchitectException
      */
     private void setupAction(List selectedItems) throws ArchitectException {
-        String Description;
+        String description;
         if (selectedItems.size() == 0) {
             setEnabled(false);
-            Description = Messages.getString("EditSelectedAction.editSelected"); //$NON-NLS-1$
+            description = Messages.getString("EditSelectedAction.editSelected"); //$NON-NLS-1$
         } else if (selectedItems.size() == 1) {
             Selectable item = (Selectable) selectedItems.get(0);
             setEnabled(true);
@@ -134,7 +134,7 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
             } else if (item instanceof Relationship) {
                 name = ((Relationship) item).getModel().getName();
             }
-            Description = Messages.getString("EditSelectedAction.editItem", name); //$NON-NLS-1$
+            description = Messages.getString("EditSelectedAction.editItem", name); //$NON-NLS-1$
         } else {
             setEnabled(true);
             int numSelectedItems =0;
@@ -147,8 +147,8 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
                     numSelectedItems += Math.max(((TablePane) item).getSelectedColumns().size()-1, 0);
                 }
             }
-            Description = Messages.getString("EditSelectedAction.editNumberOfItems", String.valueOf(numSelectedItems)); //$NON-NLS-1$
+            description = Messages.getString("EditSelectedAction.editNumberOfItems", String.valueOf(numSelectedItems)); //$NON-NLS-1$
         }
-        putValue(SHORT_DESCRIPTION, Description + Messages.getString("EditSelectedAction.shortcut")); //$NON-NLS-1$
+        putValue(SHORT_DESCRIPTION, description + Messages.getString("EditSelectedAction.shortcut")); //$NON-NLS-1$
     }
 }

@@ -236,10 +236,10 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
      * @throws ArchitectException
      */
     private void setupAction(List selectedItems) throws ArchitectException {
-        String Description;
+        String description;
         if (selectedItems.size() == 0) {
             setEnabled(false);
-            Description = Messages.getString("DeleteSelectedAction.deleteSelected"); //$NON-NLS-1$
+            description = Messages.getString("DeleteSelectedAction.deleteSelected"); //$NON-NLS-1$
         } else if (selectedItems.size() == 1) {
             Selectable item = (Selectable) selectedItems.get(0);
             setEnabled(true);
@@ -263,7 +263,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
             } else if (item instanceof Relationship) {
                 name = ((Relationship) item).getModel().getName();
             }
-            Description = Messages.getString("DeleteSelectedAction.deleteItem", name); //$NON-NLS-1$
+            description = Messages.getString("DeleteSelectedAction.deleteItem", name); //$NON-NLS-1$
         } else {
             setEnabled(true);
             int numSelectedItems =0;
@@ -276,8 +276,8 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
                     numSelectedItems += Math.max(((TablePane) item).getSelectedColumns().size()-1, 0);
                 }
             }
-            Description = Messages.getString("DeleteSelectedAction.deleteNumberOfItems", String.valueOf(numSelectedItems)); //$NON-NLS-1$
+            description = Messages.getString("DeleteSelectedAction.deleteNumberOfItems", String.valueOf(numSelectedItems)); //$NON-NLS-1$
         }
-        putValue(SHORT_DESCRIPTION, Description + Messages.getString("DeleteSelectedAction.shortcut")); //$NON-NLS-1$
+        putValue(SHORT_DESCRIPTION, description + Messages.getString("DeleteSelectedAction.shortcut")); //$NON-NLS-1$
     }
 }
