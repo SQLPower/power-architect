@@ -375,7 +375,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
 		
 		if (supportsDeleteAction(r)) {
-		    sql.append("\n").append(getDeleteActionClause(r));
+		    String deleteActionClause = getDeleteActionClause(r);
+		    
+		    // avoid useless newline for empty clause
+		    if (deleteActionClause.length() > 0) {
+		        sql.append("\n").append(deleteActionClause);
+		    }
 		} else {
 		    warnings.add(new UnsupportedFeatureDDLWarning(
 		            getName() + " does not support " + r.getName() + "'s delete action", r));
@@ -384,7 +389,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
 		
 		if (supportsUpdateAction(r)) {
-            sql.append("\n").append(getUpdateActionClause(r));
+            String updateActionClause = getUpdateActionClause(r);
+            
+            // avoid useless newline for empty clause
+            if (updateActionClause.length() > 0) {
+                sql.append("\n").append(updateActionClause);
+            }
 		} else {
             warnings.add(new UnsupportedFeatureDDLWarning(
                     getName() + " does not support " + r.getName() + "'s update action", r));
@@ -433,6 +443,9 @@ public class GenericDDLGenerator implements DDLGenerator {
     /**
      * Returns the ON DELETE clause for the given relationship, with no
      * extra whitespace or newline characters around it.
+     * <p>
+     * If you are overriding this method for a platform-specific DDL generator
+     * and you need this clause to be empty, return the empty string--not null.
      * 
      * @param r The relationship whose delete action clause to generate
      * @return The delete action clause
@@ -475,6 +488,9 @@ public class GenericDDLGenerator implements DDLGenerator {
     /**
      * Returns the ON UPDATE clause for the given relationship, with no
      * extra whitespace or newline characters around it.
+     * <p>
+     * If you are overriding this method for a platform-specific DDL generator
+     * and you need this clause to be empty, return the empty string--not null.
      * 
      * @param r The relationship whose update action clause to generate
      * @return The update action clause
