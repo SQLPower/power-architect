@@ -27,8 +27,6 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -128,6 +126,7 @@ public class ArchitectFrame extends JFrame {
 	private JMenuBar menuBar = null;
 	JSplitPane splitPane = null;
 	private PlayPen playpen = null;
+	private JScrollPane playpenScrollPane;
 	DBTree dbTree = null;
 	private Navigator navigatorDialog;
 	private CompareDMDialog comapareDMDialog = null;
@@ -227,23 +226,8 @@ public class ArchitectFrame extends JFrame {
 
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(new JScrollPane(dbTree));
-        JScrollPane playpenScrollPane = new JScrollPane(playpen);
+        playpenScrollPane = new JScrollPane(playpen);
         
-        // Refreshes the overview navigator when viewport changes
-        playpenScrollPane.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener(){
-            public void adjustmentValueChanged(AdjustmentEvent e) {
-                if (navigatorDialog != null) {
-                    navigatorDialog.refresh();
-                }
-            }
-        });
-        playpenScrollPane.getHorizontalScrollBar().addAdjustmentListener(new AdjustmentListener(){
-            public void adjustmentValueChanged(AdjustmentEvent e) {
-                if (navigatorDialog != null) {
-                    navigatorDialog.refresh();
-                }
-            }
-        });
         splitPane.setRightComponent(playpenScrollPane);
         playpen.setInitialViewPosition();
 
@@ -543,6 +527,12 @@ public class ArchitectFrame extends JFrame {
                             navigatorDialog.dispose();
                         }
                     });
+
+                    // Refreshes the overview navigator when viewport changes
+                    if (playpenScrollPane != null) {
+                        playpenScrollPane.getVerticalScrollBar().addAdjustmentListener(navigatorDialog);
+                        playpenScrollPane.getHorizontalScrollBar().addAdjustmentListener(navigatorDialog);
+                    }
                 } else {
                     navigatorDialog.dispose();
                 }

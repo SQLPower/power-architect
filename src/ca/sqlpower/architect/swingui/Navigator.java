@@ -26,6 +26,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -51,7 +53,7 @@ import ca.sqlpower.architect.SQLObjectListener;
  * @author kaiyi
  * 
  */
-public class Navigator extends JDialog implements PropertyChangeListener, SQLObjectListener {
+public class Navigator extends JDialog implements PropertyChangeListener, SQLObjectListener, AdjustmentListener {
 
     private static final int SCALED_IMAGE_WIDTH = 200;
 
@@ -243,6 +245,13 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
     }
 
     public void dbStructureChanged(SQLObjectEvent e) {
+    }
+    
+    /**
+     * Refreshes the navigator upon scrolling
+     */
+    public void adjustmentValueChanged(AdjustmentEvent e) {
+        navigationPanel.repaint();
     }
     
     /**
