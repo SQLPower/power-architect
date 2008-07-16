@@ -47,6 +47,7 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
+import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 
 public class GenericDDLGenerator implements DDLGenerator {
@@ -314,8 +315,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 	    sql.append("\nALTER TABLE ");
 		sql.append( toQualifiedName(r.getFkTable()) );
 		sql.append(" ADD CONSTRAINT ");
-		sql.append(createPhysicalName(topLevelNames, r) + "\n");
-		sql.append("FOREIGN KEY (");
+		sql.append(createPhysicalName(topLevelNames, r));
+		sql.append("\nFOREIGN KEY (");
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject> ();
 		boolean firstColumn = true;
 
@@ -333,9 +334,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 				colNameMap.put(c.getName(), c);
 			}
 		}
-		sql.append(")\n");
+		sql.append(")");
         
-        sql.append("REFERENCES ");
+        sql.append("\nREFERENCES ");
 		sql.append(toQualifiedName(r.getPkTable()));
 		sql.append(" (");
 		colNameMap.clear();
@@ -365,7 +366,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			i++;
 		}
 
-		sql.append(")\n");
+		sql.append(")");
 
 		// adds to error msg if there were types mismatch
 		if (typesMismatchMsg.length() != 0) {
@@ -373,15 +374,33 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    errorMsg.append(typesMismatchMsg.toString());
 		}
 		
+		if (supportsDeleteAction(r)) {
+		    sql.append("\n").append(getDeleteActionClause(r));
+		} else {
+		    warnings.add(new UnsupportedFeatureDDLWarning(
+		            getName() + " does not support " + r.getName() + "'s delete action", r));
+		    errorMsg.append("Warning: " + getName() + " does not support this relationship's " + 
+		            "delete action (" + r.getDeleteRule() + ").\n");
+		}
+		
+		if (supportsUpdateAction(r)) {
+            sql.append("\n").append(getUpdateActionClause(r));
+		} else {
+            warnings.add(new UnsupportedFeatureDDLWarning(
+                    getName() + " does not support " + r.getName() + "'s update action", r));
+            errorMsg.append("Warning: " + getName() + " does not support this relationship's " + 
+                    "update action (" + r.getUpdateRule() + ").\n");
+		}
+		
 		// adds to error msg if the deferrability was not a supported feature,
 		// add the deferrability clause otherwise.
 		if (supportsDeferrabilityPolicy(r)) {
-		    sql.append(getDeferrabilityClause(r));
+		    sql.append("\n").append(getDeferrabilityClause(r));
 		} else {
 		    warnings.add(new UnsupportedFeatureDDLWarning(
                     getName() + " does not support " + r.getName() + "'s deferrability policy", r));
 		    errorMsg.append("Warning: " + getName() + " does not support this relationship's " + 
-		            "deferrability policy (" + r.getDeferrability() + ").");
+		            "deferrability policy (" + r.getDeferrability() + ").\n");
 		}
              
 		// properly comment the relationship create statement,
@@ -400,6 +419,69 @@ public class GenericDDLGenerator implements DDLGenerator {
 		endStatement(DDLStatement.StatementType.CREATE, r);
 
 	}
+
+    /**
+     * Returns true if this DDL generator supports the given relationship's
+     * delete action. The generic DDL generator claims to support all delete
+     * actions, so specific platforms that don't support all delete actions
+     * should override this method.
+     */
+    public boolean supportsDeleteAction(SQLRelationship r) {
+        return true;
+    }
+
+    /**
+     * Returns the ON DELETE clause for the given relationship, with no
+     * extra whitespace or newline characters around it.
+     * 
+     * @param r The relationship whose delete action clause to generate
+     * @return The delete action clause
+     */
+    public String getDeleteActionClause(SQLRelationship r) {
+        return "ON DELETE " + getUpdateDeleteRule(r.getDeleteRule());
+    }
+
+    /**
+     * Returns the words for the given update or delete action.
+     */
+    private String getUpdateDeleteRule(UpdateDeleteRule rule) {
+        String action;
+        if (rule == UpdateDeleteRule.CASCADE) {
+            action = "CASCADE";
+        } else if (rule == UpdateDeleteRule.NO_ACTION) {
+            action = "NO ACTION";
+        } else if (rule == UpdateDeleteRule.RESTRICT) {
+            action = "RESTRICT";
+        } else if (rule == UpdateDeleteRule.SET_DEFAULT) {
+            action = "SET DEFAULT";
+        } else if (rule == UpdateDeleteRule.SET_NULL) {
+            action = "SET NULL";
+        } else {
+            throw new IllegalArgumentException("Unknown enum value: " + rule);
+        }
+        return action;
+    }
+    
+    /**
+     * Returns true if this DDL generator supports the given relationship's
+     * update action. The generic DDL generator claims to support all update
+     * actions, so specific platforms that don't support all update actions
+     * should override this method.
+     */
+    public boolean supportsUpdateAction(SQLRelationship r) {
+        return true;
+    }
+
+    /**
+     * Returns the ON UPDATE clause for the given relationship, with no
+     * extra whitespace or newline characters around it.
+     * 
+     * @param r The relationship whose update action clause to generate
+     * @return The update action clause
+     */
+    public String getUpdateActionClause(SQLRelationship r) {
+        return "ON UPDATE " + getUpdateDeleteRule(r.getUpdateRule());
+    }
 
     /**
      * Returns the correct syntax for setting the deferrability of a foreign
