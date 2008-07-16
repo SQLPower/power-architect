@@ -192,7 +192,7 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
         
         pp.setViewPosition(new Point(x, y));
         
-        repaint();
+        navigationPanel.repaint();
     }
 
     /**
