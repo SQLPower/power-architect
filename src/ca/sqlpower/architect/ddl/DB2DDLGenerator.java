@@ -23,6 +23,10 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
 
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLRelationship.Deferrability;
+import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
+
 // TODO: override to_identifier routine to ensure identifier names are legal
 // and unique for DB2.  See the Oracle, SQL Server, and Postgres DDL generators
 // for hints on how it should be written.  Development of this stuff has been
@@ -74,11 +78,11 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
 	}
 
 	/**
-	 * Returns the string "Database".
+	 * No catalogs in DB2.
 	 */
     @Override
 	public String getCatalogTerm() {
-		return "Database";
+		return null;
 	}
 
 	/**
@@ -88,4 +92,34 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
 	public String getSchemaTerm() {
 		return "Schema";
 	}
+    
+    @Override
+    public boolean supportsDeleteAction(SQLRelationship r) {
+        return r.getDeleteRule() != UpdateDeleteRule.SET_DEFAULT;
+    }
+
+    @Override
+    public boolean supportsUpdateAction(SQLRelationship r) {
+        return (r.getUpdateRule() == UpdateDeleteRule.RESTRICT)
+            || (r.getUpdateRule() == UpdateDeleteRule.NO_ACTION);
+    }
+    
+    /**
+     * DB2 does not support a deferrability clause on FK constraints, but its
+     * default behaviour is like DEFERRABLE on other platforms. So this method
+     * says DEFERRABLE is supported, and the other options are not.
+     */
+    @Override
+    public boolean supportsDeferrabilityPolicy(SQLRelationship r) {
+        return r.getDeferrability() == Deferrability.NOT_DEFERRABLE;
+    }
+    
+    @Override
+    public String getDeferrabilityClause(SQLRelationship r) {
+        if (!supportsDeferrabilityPolicy(r)) {
+            throw new IllegalArgumentException("DB2 does not support deferrability option: " + r.getDeferrability());
+        } else {
+            return "";
+        }
+    }
 }
