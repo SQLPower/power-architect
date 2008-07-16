@@ -397,6 +397,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 SwingUIProject project = getProject();
                 try {
                     success = false;
+                    getArchitectFrame().setEnableSaveOption(false);
                     project.setSaveInProgress(true);
                     project.save(finalSeparateThread ? pm : null);
                     success = true;
@@ -407,6 +408,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                             Messages.getString("ArchitectSwingSessionImpl.cannotSaveProject")+ex.getMessage(), ex); //$NON-NLS-1$
                 } finally {
                     project.setSaveInProgress(false);
+                    getArchitectFrame().setEnableSaveOption(true);
                 }
             }
         }
