@@ -707,6 +707,14 @@ public class ArchitectFrame extends JFrame {
             logger.error("Couldn't save PL.INI file!", e); //$NON-NLS-1$
         }
 	}
+	
+	/**
+	 * Disables/Re-enables the option to 'save' and 'save as'
+	 */
+	public void setEnableSaveOption(boolean isEnable) {
+	    saveProjectAction.setEnabled(isEnable);
+	    saveProjectAsAction.setEnabled(isEnable);
+	}
 
 	/**
 	 * Creates an ArchitectFrame and sets it visible.  This method is
