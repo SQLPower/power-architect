@@ -233,7 +233,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 
     @Override
 	public void writeHeader() {
-		println("-- Created by SQLPower SQLServer 2000 DDL Generator "+GENERATOR_VERSION+" --");
+		println("-- Created by SQLPower SQLServer (all versions) DDL Generator "+GENERATOR_VERSION+" --");
 	}
 
     @Override
@@ -446,5 +446,13 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
         } else {
             return r.getDeferrability() == Deferrability.NOT_DEFERRABLE;
         }
+    }
+    
+    @Override
+    public String makeDropForeignKeySQL(String fkTable, String fkName) {
+        return "ALTER TABLE "
+        +toQualifiedName(fkTable)
+        +" DROP CONSTRAINT "
+        +fkName;
     }
 }
