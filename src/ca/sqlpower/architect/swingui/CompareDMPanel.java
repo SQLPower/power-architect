@@ -731,12 +731,15 @@ public class CompareDMPanel extends JPanel {
                     if (!isSource) {
                         return;
                     }
-                    SPDataSource dataSource = (SPDataSource)((JComboBox)e.getSource()).getSelectedItem();  
+                    SPDataSource dataSource = (SPDataSource) databaseDropdown.getSelectedItem();  
                     if (dataSource != null) {
-                        try {
-                            sqlTypeDropdown.setSelectedItem(Class.forName(dataSource.getParentType().getDDLGeneratorClass()));
-                        } catch (ClassNotFoundException e1) {
-                            logger.error("Error when finding the DDLGenerator class for the selected database!", e1); //$NON-NLS-1$
+                        String generatorClass = dataSource.getParentType().getDDLGeneratorClass();
+                        if (generatorClass != null) {
+                            try {
+                                sqlTypeDropdown.setSelectedItem(Class.forName(generatorClass));
+                            } catch (ClassNotFoundException ex) {
+                                logger.error("Error when finding the DDLGenerator class for the selected database!", ex); //$NON-NLS-1$
+                            }
                         }
                     }
                 }
