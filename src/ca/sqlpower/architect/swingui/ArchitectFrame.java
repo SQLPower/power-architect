@@ -702,8 +702,8 @@ public class ArchitectFrame extends JFrame {
 	 * Disables/Re-enables the option to 'save' and 'save as'
 	 */
 	public void setEnableSaveOption(boolean isEnable) {
-	    saveProjectAction.setEnabled(isEnable);
-	    saveProjectAsAction.setEnabled(isEnable);
+	        saveProjectAction.setEnabled(isEnable);
+            saveProjectAsAction.setEnabled(isEnable);
 	}
 
 	/**
