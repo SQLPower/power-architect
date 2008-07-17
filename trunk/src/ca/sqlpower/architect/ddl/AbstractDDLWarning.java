@@ -24,7 +24,7 @@ import ca.sqlpower.architect.SQLObject;
 
 public abstract class AbstractDDLWarning implements DDLWarning {
 
-    protected List<SQLObject> involvedObjects;
+    protected List<? extends SQLObject> involvedObjects;
     protected String message;
     protected boolean fixed;
     protected boolean isQuickFixable;
@@ -42,7 +42,7 @@ public abstract class AbstractDDLWarning implements DDLWarning {
     protected String quickFixPropertyName;
     
     public AbstractDDLWarning(
-            List<SQLObject> involvedObjects,
+            List<? extends SQLObject> involvedObjects,
             String message,
             boolean isQuickFixable,
             String quickFixMesssage,
@@ -63,7 +63,7 @@ public abstract class AbstractDDLWarning implements DDLWarning {
     }
 
 
-    public List<SQLObject> getInvolvedObjects() {
+    public List<? extends SQLObject> getInvolvedObjects() {
         return involvedObjects;
     }
 
