@@ -301,13 +301,6 @@ public class TestSQLColumn extends SQLTestCase {
 	
 	public void testGetDerivedInstance() throws Exception {
 		SQLColumn origCol = table1pk.getColumn(0);
-        origCol.setAutoIncrementSequenceName("custom_sequence_name");  // supress auto-generate behaviour
-		SQLColumn derivCol = SQLColumn.getDerivedInstance(origCol, table3pk);
-		
-		// These should be the only differences between origCol and derivCol
-		assertEquals(table3pk, derivCol.getParentTable());
-		assertEquals(origCol, derivCol.getSourceColumn());
-		assertEquals("NUMERIC", derivCol.getSourceDataTypeName());
 
 		Set<String> propsToIgnore = new HashSet<String>();
 		propsToIgnore.add("parentTable");
@@ -317,7 +310,20 @@ public class TestSQLColumn extends SQLTestCase {
 		propsToIgnore.add("SQLObjectListeners");
 		propsToIgnore.add("foreignKey");
 		propsToIgnore.add("indexed");
-		propsToIgnore.add("uniqueIndexed");
+        propsToIgnore.add("uniqueIndexed");
+        propsToIgnore.add("magicEnabled");
+        propsToIgnore.add("referenceCount");
+
+		TestUtils.setAllInterestingProperties(origCol, propsToIgnore);
+		origCol.setSourceDataTypeName("NUMERIC");
+		
+		origCol.setAutoIncrementSequenceName("custom_sequence_name");  // supress auto-generate behaviour
+		SQLColumn derivCol = SQLColumn.getDerivedInstance(origCol, table3pk);
+		
+		// These should be the only differences between origCol and derivCol
+		assertEquals(table3pk, derivCol.getParentTable());
+		assertEquals(origCol, derivCol.getSourceColumn());
+		assertEquals("NUMERIC", derivCol.getSourceDataTypeName());
         
         Map<String,Object> origProps = (Map<String,Object>) BeanUtils.describe(origCol);
         Map<String,Object> derivProps = (Map<String,Object>) BeanUtils.describe(derivCol);

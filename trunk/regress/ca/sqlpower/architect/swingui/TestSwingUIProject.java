@@ -19,7 +19,6 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
-import java.beans.PropertyDescriptor;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -27,10 +26,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.Types;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -40,14 +37,12 @@ import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.filters.StringInputStream;
 
 import ca.sqlpower.ArchitectTestCase;
-import ca.sqlpower.architect.AlwaysOKUserPrompter;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
@@ -62,12 +57,10 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.StubSQLObject;
+import ca.sqlpower.architect.TestUtils;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
-import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
-import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
-import ca.sqlpower.architect.etl.kettle.RootRepositoryDirectoryChooser;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -379,99 +372,6 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		System.out.println("Parsed OK");
 	}
 	
-	/**
-	 * Sets all the settable properties on the given target object
-	 * which are not in the given ignore set.
-	 * 
-	 * @param target The object to change the properties of
-	 * @param propertiesToIgnore The properties of target not to modify or read
-	 * @return A Map describing the new values of all the non-ignored, readable 
-	 * properties in target.
-	 */
-	private static Map<String,Object> setAllInterestingProperties(Object target,
-			Set<String> propertiesToIgnore) throws Exception {
-		
-		PropertyDescriptor props[] = PropertyUtils.getPropertyDescriptors(target);
-		for (int i = 0; i < props.length; i++) {
-			Object oldVal = null;
-			if (PropertyUtils.isReadable(target, props[i].getName()) &&
-					props[i].getReadMethod() != null &&
-					!propertiesToIgnore.contains(props[i].getName())) {
-				oldVal = PropertyUtils.getProperty(target, props[i].getName());
-			}
-			if (PropertyUtils.isWriteable(target, props[i].getName()) &&
-					props[i].getWriteMethod() != null &&
-					!propertiesToIgnore.contains(props[i].getName())) {
-				
-				// XXX: factor this (and the same thing in SQLTestCase) 
-				//      out into a changeValue() method in some util class.
-				
-				Object newVal;  // don't init here so compiler can warn if the following code doesn't always give it a value
-				if (props[i].getPropertyType() == Integer.TYPE) {
-					newVal = ((Integer)oldVal)+1;
-				} else if (props[i].getPropertyType() == Integer.class) {
-					if (oldVal == null) {
-						newVal = new Integer(1);
-					} else {
-						newVal = new Integer((Integer)oldVal+1);
-					}
-				} else if (props[i].getPropertyType() == String.class) {
-					// make sure it's unique
-					newVal ="new " + oldVal;
-				} else if (props[i].getPropertyType() == Boolean.TYPE){
-					newVal = new Boolean(! ((Boolean) oldVal).booleanValue());
-				} else if (props[i].getPropertyType() == SQLColumn.class) {
-					newVal = new SQLColumn();
-					((SQLColumn) newVal).setName("testing!");
-                } else if (props[i].getPropertyType() == SQLIndex.class) {
-                    newVal = new SQLIndex();
-                    ((SQLIndex) newVal).setName("a new index");
-                } else if (props[i].getPropertyType() == File.class) {
-                    newVal = new File("temp" + System.currentTimeMillis());
-                } else if (props[i].getPropertyType() == UserPrompter.class) {
-                    newVal = new AlwaysOKUserPrompter();
-                } else if (props[i].getPropertyType() == KettleRepositoryDirectoryChooser.class) {
-                    newVal = new RootRepositoryDirectoryChooser();
-                } else if (props[i].getPropertyType() == SPDataSource.class) {
-                    newVal = new SPDataSource(new PlDotIni());
-                    ((SPDataSource)newVal).setName("Testing data source");
-				} else {
-					throw new RuntimeException("This test case lacks a value for "+
-							props[i].getName()+
-							" (type "+props[i].getPropertyType().getName()+")");
-				}
-
-                System.out.println("Changing property \""+props[i].getName()+"\" to \""+newVal+"\"");
-				PropertyUtils.setProperty(target, props[i].getName(), newVal);
-			}
-		}
-		
-		// read them all back at the end in case there were dependencies between properties
-		return getAllInterestingProperties(target, propertiesToIgnore);
-	}
-	
-	/**
-	 * Gets all the settable properties on the given target object
-	 * which are not in the given ignore set, and stuffs them into a Map.
-	 * 
-	 * @param target The object to change the properties of
-	 * @param propertiesToIgnore The properties of target not to modify or read
-	 * @return The aforementioned stuffed map
-	 */
-	private static Map<String, Object> getAllInterestingProperties(Object target, Set<String> propertiesToIgnore) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-		Map<String,Object> newDescription = new HashMap<String,Object>();
-		PropertyDescriptor[] props = PropertyUtils.getPropertyDescriptors(target);
-		for (int i = 0; i < props.length; i++) {
-			if (PropertyUtils.isReadable(target, props[i].getName()) &&
-					props[i].getReadMethod() != null &&
-					!propertiesToIgnore.contains(props[i].getName())) {
-				newDescription.put(props[i].getName(),
-						PropertyUtils.getProperty(target, props[i].getName()));
-			}
-		}
-		return newDescription;
-	}
-	
 	public void testSaveCoversAllDatabaseProperties() throws Exception {
 		testLoad();
 		DBTree dbTree = session.getSourceDatabases();
@@ -507,7 +407,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("magicEnabled");
 		
 		Map<String,Object> oldDescription =
-			setAllInterestingProperties(db, propertiesToIgnore);
+			TestUtils.setAllInterestingProperties(db, propertiesToIgnore);
 		
 		
 		File tmp = File.createTempFile("test", ".architect");
@@ -527,7 +427,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		db = (SQLDatabase) session2.getSourceDatabases().getDatabaseList().get(1);
 		
 		Map<String, Object> newDescription =
-			getAllInterestingProperties(db, propertiesToIgnore);
+			TestUtils.getAllInterestingProperties(db, propertiesToIgnore);
 		
 		assertEquals("loaded-in version of database doesn't match the original!",
 				oldDescription.toString(), newDescription.toString());
@@ -574,7 +474,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("magicEnabled");
 
 		Map<String,Object> oldDescription =
-			setAllInterestingProperties(target, propertiesToIgnore);
+			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
 		
 		
 		File tmp = File.createTempFile("test", ".architect");
@@ -596,7 +496,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		target = (SQLCatalog) db.getChild(0);
 		
 		Map<String, Object> newDescription =
-			getAllInterestingProperties(target, propertiesToIgnore);
+			TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
 		
 		assertMapsEqual(oldDescription, newDescription);
 	}
@@ -627,7 +527,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("magicEnabled");
 
 		Map<String,Object> oldDescription =
-			setAllInterestingProperties(target, propertiesToIgnore);
+			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
 		
 		
 		File tmp = File.createTempFile("test", ".architect");
@@ -649,7 +549,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		target = (SQLSchema) db.getChild(0);
 		
 		Map<String, Object> newDescription =
-			getAllInterestingProperties(target, propertiesToIgnore);
+			TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
 		
 		assertMapsEqual(oldDescription, newDescription);
 	}
@@ -681,7 +581,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("magicEnabled");
 
 		Map<String,Object> oldDescription =
-			setAllInterestingProperties(target, propertiesToIgnore);
+			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
 		
 		
 		File tmp = File.createTempFile("test", ".architect");
@@ -703,7 +603,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		target = (SQLTable) db.getChild(0);
 		
 		Map<String, Object> newDescription =
-			getAllInterestingProperties(target, propertiesToIgnore);
+			TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
 		
 		assertMapsEqual(oldDescription, newDescription);
 	}
@@ -732,7 +632,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("magicEnabled");
 
 		Map<String,Object> oldDescription =
-			setAllInterestingProperties(target, propertiesToIgnore);
+			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
 		
 		// need to set sourceColumn manually because it has to exist in the database.
 		{
@@ -777,7 +677,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		target = ((SQLTable) ppdb.getTableByName(tableName)).getColumn(0);
 		
 		Map<String, Object> newDescription =
-			getAllInterestingProperties(target, propertiesToIgnore);
+			TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
 		
 		assertMapsEqual(oldDescription, newDescription);
 	}
@@ -806,7 +706,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("class");
 
         Map<String,Object> oldDescription =
-            setAllInterestingProperties(target, propertiesToIgnore);
+            TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
         
         File tmp = File.createTempFile("test", ".architect");
         if (deleteOnExit) {
@@ -844,7 +744,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         target = (SQLIndex) (targetTable).getIndicesFolder().getChild(1);
         
         Map<String, Object> newDescription =
-            getAllInterestingProperties(target, propertiesToIgnore);
+            TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }
@@ -872,7 +772,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("class");
 
         Map<String,Object> oldDescription =
-            setAllInterestingProperties(index, propertiesToIgnore);
+            TestUtils.setAllInterestingProperties(index, propertiesToIgnore);
         propertiesToIgnore.remove("primaryKeyIndex");
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream,ENCODING);
@@ -889,7 +789,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
         
         Map<String, Object> newDescription =
-            getAllInterestingProperties(index, propertiesToIgnore);
+            TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }
@@ -933,7 +833,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertSame(index, table.getPrimaryKeyIndex());
 
         Map<String,Object> oldDescription =
-            setAllInterestingProperties(index, propertiesToIgnore);
+            TestUtils.setAllInterestingProperties(index, propertiesToIgnore);
         
         assertSame(index, table.getPrimaryKeyIndex());
         
@@ -951,7 +851,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
         
         Map<String, Object> newDescription =
-            getAllInterestingProperties(index, propertiesToIgnore);
+            TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }
@@ -979,7 +879,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("class");
 
         Map<String,Object> oldDescription =
-            setAllInterestingProperties(index, propertiesToIgnore);
+            TestUtils.setAllInterestingProperties(index, propertiesToIgnore);
         
         File tmp = File.createTempFile("test", ".architect");
         if (deleteOnExit) {
@@ -1005,7 +905,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(1);
         
         Map<String, Object> newDescription =
-            getAllInterestingProperties(index, propertiesToIgnore);
+            TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }
@@ -1091,7 +991,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("repository"); //TODO add test cases for repository
 
         Map<String,Object> oldDescription =
-            setAllInterestingProperties(session.getKettleJob(), propertiesToIgnore);
+            TestUtils.setAllInterestingProperties(session.getKettleJob(), propertiesToIgnore);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream, ENCODING);
 
@@ -1101,7 +1001,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         Map<String, Object> newDescription =
-            getAllInterestingProperties(session.getKettleJob(), propertiesToIgnore);
+            TestUtils.getAllInterestingProperties(session.getKettleJob(), propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }
