@@ -83,12 +83,12 @@ public class ReverseRelationshipAction extends AbstractArchitectAction {
         boolean identify = relationship.getModel().isIdentifying();
         
         try {
-            playpen.startCompoundEdit("Reverse Relationship");
+            playpen.startCompoundEdit("Reverse Relationship"); //$NON-NLS-1$
             
             SQLRelationship sr = relationship.getModel();
             sr.getPkTable().removeExportedKey(sr);
             SQLRelationship model = new SQLRelationship();  
-            model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk"); 
+            model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk"); //$NON-NLS-1$ //$NON-NLS-2$
             model.setIdentifying(identify);
             
             // swaps the fkTable and pkTable around, resulting in reversing the relationship
@@ -104,10 +104,11 @@ public class ReverseRelationshipAction extends AbstractArchitectAction {
             playpen.addRelationship(r);
             r.revalidate();
         } catch (ArchitectException ex) {
-            logger.error("Couldn't reverse relationship", ex);
-            ASUtils.showExceptionDialogNoReport(playpen, "Couldn't reverse relationship.", ex);
+            logger.error("Couldn't reverse relationship", ex); //$NON-NLS-1$
+            ASUtils.showExceptionDialogNoReport(playpen,
+                    Messages.getString("ReverseRelationshipAction.couldNotReverseRelationship"), ex); //$NON-NLS-1$
         } finally {
-            playpen.endCompoundEdit("Ending the reversal of a relationship");
+            playpen.endCompoundEdit("Ending the reversal of a relationship"); //$NON-NLS-1$
         }
     }
 }
