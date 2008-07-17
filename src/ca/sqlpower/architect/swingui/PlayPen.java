@@ -1541,9 +1541,7 @@ public class PlayPen extends JPanel
 			if (tablePane != null) {
 				logger.info("FOUND IT!"); //$NON-NLS-1$
 
-				SQLRelationship newRel = new SQLRelationship();
-				newRel.setName(r.getName());
-				newRel.setIdentifying(r.determineIdentifyingStatus());
+				SQLRelationship newRel = new SQLRelationship(r);
 				
 				SQLTable oldTable;
 				

@@ -267,6 +267,27 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 
 	/**
+     * A copy constructor that returns a copy of the provided SQLRelationship
+     * with the following properties copied: 
+     * <li> Name </li>
+     * <li> Identifying status </li>
+     * <li> Update rule </li>
+     * <li> Delete rule </li>
+     * <li> Deferrability </li>
+     * 
+     * @param relationshipToCopy
+     *            The SQLRelationship object to copy
+     */
+	public SQLRelationship(SQLRelationship relationshipToCopy) throws ArchitectException {
+	    this();
+        setName(relationshipToCopy.getName());
+        setIdentifying(relationshipToCopy.determineIdentifyingStatus());
+        setUpdateRule(relationshipToCopy.getUpdateRule());
+        setDeleteRule(relationshipToCopy.getDeleteRule());
+        setDeferrability(relationshipToCopy.getDeferrability());
+	}
+	
+	/**
 	 *  Adds a counter to the end of the default column name until
 	 *  it is unique in the given table.
 	 */
