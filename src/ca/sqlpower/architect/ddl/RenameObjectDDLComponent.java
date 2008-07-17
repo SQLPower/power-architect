@@ -73,7 +73,7 @@ public class RenameObjectDDLComponent extends GenericDDLWarningComponent {
         component.add(new JLabel(warning.getMessage()));
         if (warning.getQuickFixPropertyName() != null) {
             component.add(new JLabel(" Change " + warning.getQuickFixPropertyName() + ": "));
-            List<SQLObject> list = warning.getInvolvedObjects();
+            List<? extends SQLObject> list = warning.getInvolvedObjects();
             for (SQLObject obj : list) {
                 final JTextField jtf = new JTextField(obj.getName());
                 obj.addSQLObjectListener(new SQLObjectListener() {

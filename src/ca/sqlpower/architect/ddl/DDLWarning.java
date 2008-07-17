@@ -39,7 +39,7 @@ public interface DDLWarning {
 	 * duplicate table names, the SQLTable objects with the duplicate
 	 * names will be the "involved objects".
 	 */
-	public List<SQLObject> getInvolvedObjects();
+	public List<? extends SQLObject> getInvolvedObjects();
 
 	/** Return true if the user has repaired or quickfixed the problem */
 	public boolean isFixed();
