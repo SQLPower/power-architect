@@ -309,8 +309,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 	    boolean skipStatement = false;
 
 	    StringBuilder typesMismatchMsg = new StringBuilder();
-	    // list of fk columns for checking types mismatch
-	    List<SQLColumn> fkCols = new ArrayList<SQLColumn>();
 
 	    sql.append("\nALTER TABLE ");
 		sql.append( toQualifiedName(r.getFkTable()) );
@@ -322,7 +320,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 		for (ColumnMapping cm : r.getMappings()) {
 			SQLColumn c = cm.getFkColumn();
-			fkCols.add(c);
 			// make sure this is unique
 			if (colNameMap.get(c.getName()) == null) {
 				if (firstColumn) {
@@ -342,10 +339,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 		colNameMap.clear();
 		firstColumn = true;
 
-		int i = 0;
 		for (ColumnMapping cm : r.getMappings()) {
 			SQLColumn c = cm.getPkColumn();
-			SQLColumn fkCol = fkCols.get(i);
+			SQLColumn fkCol = cm.getFkColumn();
 			
 			// checks the fk column and pk column are the same type,
 			// generates DDLWarning if not the same.
@@ -363,7 +359,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 				}
 				colNameMap.put(c.getName(), c);
 			}
-			i++;
 		}
 
 		sql.append(")");
@@ -374,6 +369,18 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    errorMsg.append(typesMismatchMsg.toString());
 		}
 		
+		// sanity check for SET NULL and SET DEFAULT delete rules, whether or not DB supports them
+        for (SQLRelationship.ColumnMapping cm : r.getMappings()) {
+            UpdateDeleteRule deleteRule = r.getDeleteRule();
+            SQLColumn fkcol = cm.getFkColumn();
+            if (deleteRule == UpdateDeleteRule.SET_NULL && !fkcol.isDefinitelyNullable()) {
+                warnings.add(new SetNullOnNonNullableColumnWarning(fkcol));
+            } else if (deleteRule == UpdateDeleteRule.SET_DEFAULT &&
+                       (fkcol.getDefaultValue() == null || fkcol.getDefaultValue().length() == 0)) {
+                warnings.add(new SetDefaultOnColumnWithNoDefaultWarning(fkcol));
+            }
+        }
+
 		if (supportsDeleteAction(r)) {
 		    String deleteActionClause = getDeleteActionClause(r);
 		    
@@ -387,6 +394,18 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    errorMsg.append("Warning: " + getName() + " does not support this relationship's " + 
 		            "delete action (" + r.getDeleteRule() + ").\n");
 		}
+		
+		// sanity check for SET NULL and SET DEFAULT update rules, whether or not DB supports them
+        for (SQLRelationship.ColumnMapping cm : r.getMappings()) {
+            UpdateDeleteRule updateRule = r.getUpdateRule();
+            SQLColumn fkcol = cm.getFkColumn();
+            if (updateRule == UpdateDeleteRule.SET_NULL && !fkcol.isDefinitelyNullable()) {
+                warnings.add(new SetNullOnNonNullableColumnWarning(fkcol));
+            } else if (updateRule == UpdateDeleteRule.SET_DEFAULT &&
+                       (fkcol.getDefaultValue() == null || fkcol.getDefaultValue().length() == 0)) {
+                warnings.add(new SetDefaultOnColumnWithNoDefaultWarning(fkcol));
+            }
+        }
 		
 		if (supportsUpdateAction(r)) {
             String updateActionClause = getUpdateActionClause(r);
