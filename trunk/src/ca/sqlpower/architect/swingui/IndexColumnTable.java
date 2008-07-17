@@ -402,11 +402,11 @@ public class IndexColumnTable {
 
     }
 
-    public static String IN_INDEX = Messages.getString("IndexColumnTable.IndexColumnTable.indexTableColumnName"); //$NON-NLS-1$
+    public static String IN_INDEX = Messages.getString("IndexColumnTable.indexTableColumnName"); //$NON-NLS-1$
 
-    public static String COL_NAME = Messages.getString("IndexColumnTable.IndexColumnTable.columnTableColumnName"); //$NON-NLS-1$
+    public static String COL_NAME = Messages.getString("IndexColumnTable.columnTableColumnName"); //$NON-NLS-1$
 
-    public static String ORDER = Messages.getString("IndexColumnTable.IndexColumnTable.ascendingDescendingTableColumnName"); //$NON-NLS-1$
+    public static String ORDER = Messages.getString("IndexColumnTable.ascendingDescendingTableColumnName"); //$NON-NLS-1$
 
     /**
      * This is the table that will display the columns
