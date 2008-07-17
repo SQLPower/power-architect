@@ -188,39 +188,32 @@ public class CompareDMFormatter {
 
     }
 
-    private void sqlScriptGenerator(Map<DiffType, AttributeSet> styles,
-            List<DiffChunk<SQLObject>> diff,
-            DDLGenerator gen)
-    throws ArchitectDiffException, SQLException,
-    ArchitectException, BadLocationException,
-    InstantiationException, IllegalAccessException {
+    private void sqlScriptGenerator(Map<DiffType, AttributeSet> styles, List<DiffChunk<SQLObject>> diff,
+            DDLGenerator gen) throws ArchitectDiffException, SQLException, ArchitectException, BadLocationException,
+            InstantiationException, IllegalAccessException {
         for (DiffChunk<SQLObject> chunk : diff) {
             if (chunk.getType() == DiffType.KEY_CHANGED) {
-                if(chunk.getData() instanceof SQLTable)
-                {
+                if(chunk.getData() instanceof SQLTable) {
                     SQLTable t = (SQLTable) chunk.getData();
                     if (hasKey(t)) {
                         gen.addPrimaryKey(t);
                     }
                 }
             } else if (chunk.getType() == DiffType.DROP_KEY) {
-                if(chunk.getData() instanceof SQLTable)
-                {
+                if(chunk.getData() instanceof SQLTable) {
                     SQLTable t = (SQLTable) chunk.getData();
                     if (hasKey(t)) {
                         gen.dropPrimaryKey(t);
                     }
                 }
-            } else if (chunk.getType() == DiffType.LEFTONLY)
-            {
-                if (chunk.getData() instanceof SQLTable)
-                {
+            } else if (chunk.getType() == DiffType.LEFTONLY) {
+                if (chunk.getData() instanceof SQLTable) {
                     SQLTable t = (SQLTable) chunk.getData();
                     gen.dropTable(t);
-                }else if (chunk.getData() instanceof SQLColumn){
+                } else if (chunk.getData() instanceof SQLColumn) {
                     SQLColumn c = (SQLColumn) chunk.getData();
                     gen.dropColumn(c);
-                } else if (chunk.getData() instanceof SQLRelationship){
+                } else if (chunk.getData() instanceof SQLRelationship) {
                     SQLRelationship r = (SQLRelationship)chunk.getData();
                     gen.dropRelationship(r);
 
@@ -228,33 +221,31 @@ public class CompareDMFormatter {
                     throw new IllegalStateException("DiffChunk is an unexpected type.");
                 }
 
-            } else if (chunk.getType() == DiffType.RIGHTONLY){
-                if (chunk.getData() instanceof SQLTable)
-                {
+            } else if (chunk.getType() == DiffType.RIGHTONLY) {
+                if (chunk.getData() instanceof SQLTable) {
                     SQLTable t = (SQLTable) chunk.getData();
                     if (t == null ) throw new NullPointerException();
-                    if(t.getObjectType().equals("TABLE")) {
+                    if (t.getObjectType().equals("TABLE")) {
                         gen.addTable(t);
                     }
-                }else if (chunk.getData() instanceof SQLColumn){
+                } else if (chunk.getData() instanceof SQLColumn) {
                     SQLColumn c = (SQLColumn) chunk.getData();
                     gen.addColumn(c);
-                }else if (chunk.getData() instanceof SQLRelationship){
+                } else if (chunk.getData() instanceof SQLRelationship) {
                     SQLRelationship r = (SQLRelationship)chunk.getData();
                     gen.addRelationship(r);
-                }else {
+                } else {
                     throw new IllegalStateException("DiffChunk is an unexpected type.");
                 }
-            }
-            else if (chunk.getType() == DiffType.MODIFIED)
-            {
-                if (chunk.getData() instanceof SQLColumn)
-                {
+            } else if (chunk.getType() == DiffType.MODIFIED) {
+                if (chunk.getData() instanceof SQLColumn) {
                     SQLColumn c = (SQLColumn) chunk.getData();
                     gen.modifyColumn(c);
                 } else {
                     throw new IllegalStateException("DiffChunk is an unexpected type.");
                 }
+            } else if (chunk.getType() == DiffType.SAME) {
+                // do nothing when they're the same.
             } else {
                 throw new IllegalStateException("DiffChunk is an invalid type.");
             }
