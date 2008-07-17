@@ -20,6 +20,8 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -72,6 +74,22 @@ public class DDLExportPanel implements DataEntryPanel {
         panelProperties.add(new JLabel(Messages.getString("DDLExportPanel.createInLabel"))); //$NON-NLS-1$
 
         panelProperties.add(targetDB = new JComboBox());
+        targetDB.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                SPDataSource dataSource = (SPDataSource) targetDB.getSelectedItem();  
+                if (dataSource != null) {
+                    String generatorClass = dataSource.getParentType().getDDLGeneratorClass();
+                    if (generatorClass != null) {
+                        try {
+                            dbType.setSelectedItem(Class.forName(generatorClass));
+                        } catch (ClassNotFoundException ex) {
+                            logger.error("Error when finding the DDLGenerator class for the selected database!", ex); //$NON-NLS-1$
+                        }
+                    }
+                }
+            }
+            
+        });
         targetDB.setPrototypeDisplayValue(Messages.getString("DDLExportPanel.targetDatabase")); //$NON-NLS-1$
         ASUtils.setupTargetDBComboBox(session, targetDB);
         
@@ -172,9 +190,8 @@ public class DDLExportPanel implements DataEntryPanel {
 				|| dbcs.getDriverClass() == null
 				|| dbcs.getDriverClass().length() == 0) {
 
-				JOptionPane.showMessageDialog
-				(panel, Messages.getString("DDLExportPanel.genericDdlGeneratorRequirements") //$NON-NLS-1$
-						+""); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(panel,
+				        Messages.getString("DDLExportPanel.genericDdlGeneratorRequirements")); //$NON-NLS-1$
 								
 				ASUtils.showTargetDbcsDialog(session.getArchitectFrame(), session, targetDB);
 				
