@@ -244,9 +244,7 @@ public class CompareDMFormatter {
                 } else {
                     throw new IllegalStateException("DiffChunk is an unexpected type.");
                 }
-            } else if (chunk.getType() == DiffType.SAME) {
-                // do nothing when they're the same.
-            } else {
+            } else if (chunk.getType() != DiffType.SAME) {
                 throw new IllegalStateException("DiffChunk is an invalid type.");
             }
         }
