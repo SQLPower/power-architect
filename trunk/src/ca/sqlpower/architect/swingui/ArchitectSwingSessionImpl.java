@@ -68,9 +68,9 @@ import ca.sqlpower.swingui.event.SessionLifecycleListener;
 public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     private static final Logger logger = Logger.getLogger(ArchitectSwingSessionImpl.class);
-    
+
     private final ArchitectSwingSessionContext context;
-    
+
     /**
      * This is the core session that some tasks are delegated to.
      */
@@ -85,53 +85,53 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * The menu of recently-opened project files on this system.
      */
     private RecentMenu recent;
-    
+
     /** the dialog that contains the small ProfileManagerView */
     private JDialog profileDialog;
-    
+
     /**
      * Keeps track of whether or not the profile manager dialog has been packed yet.
      * We only want to do this the first time we make it visible, since doing it over
      * and over will annoy users.
      */
     private boolean profileDialogPacked = false;
-    
+
     private PlayPen playPen;
-    
+
     /** the small dialog that lists the profiles */
     private ProfileManagerView profileManagerView;
-    
+
     private CompareDMSettings compareDMSettings;
 
     private UndoManager undoManager;
-    
+
     private boolean savingEntireSource;
-    
+
     private boolean isNew;
-    
+
     private DBTree sourceDatabases;
-    
+
     private KettleJob kettleJob;
     // END STUFF BROUGHT IN FROM SwingUIProject
-    
+
     private List<SessionLifecycleListener<ArchitectSwingSession>> lifecycleListener;
-    
+
     private Set<SPSwingWorker> swingWorkers;
-    
+
     private ProjectModificationWatcher projectModificationWatcher;
-    
+
     private boolean relationshipLinesDirect;
-    
+
     private boolean showPkTag = true;
     private boolean showFkTag = true;
     private boolean showAkTag = true;
-    
+
     protected boolean showPrimary = true;
     protected boolean showForeign = true;
     protected boolean showIndexed = true;
     protected boolean showUnique = true;
     protected boolean showTheRest = true;
-    
+
     /**
      * Creates a new swing session, including a new visible architect frame, with
      * the given parent context and the given name.
@@ -157,27 +157,27 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 }
             }
         };
-        
+
         // Make sure we can load the pl.ini file so we can handle exceptions
         // XXX this is probably redundant now, since the context owns the pl.ini
         getContext().getPlDotIni();
 
         setProject(new SwingUIProject(this));
-        
+
         compareDMSettings = new CompareDMSettings();
-        
+
         kettleJob = new KettleJob(this);
-        
+
         playPen = new PlayPen(this);
         UserSettings sprefs = getUserSettings().getSwingSettings();
         if (sprefs != null) {
             playPen.setRenderingAntialiased(sprefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
         }
         projectModificationWatcher = new ProjectModificationWatcher(playPen);
-        
+
         delegateSession.getRootObject().addChild(getTargetDatabase());
         this.sourceDatabases = new DBTree(this);
-        
+
         undoManager = new UndoManager(playPen);
         playPen.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
         playPen.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter());
@@ -185,9 +185,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         playPen.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", undoManager.getEventAdapter());
         playPen.getPlayPenContentPane().addPropertyChangeListener("dashed", undoManager.getEventAdapter());
         playPen.getPlayPenContentPane().addPropertyChangeListener("rounded", undoManager.getEventAdapter());
-        
+
         lifecycleListener = new ArrayList<SessionLifecycleListener<ArchitectSwingSession>>();
-        
+
         swingWorkers = new HashSet<SPSwingWorker>();
     }
 
@@ -203,7 +203,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         // makes the tool tips show up on these components 
         ToolTipManager.sharedInstance().registerComponent(playPen);
         ToolTipManager.sharedInstance().registerComponent(sourceDatabases);
-        
+
         if (openingSession != null) {
             Rectangle bounds = openingSession.getArchitectFrame().getBounds();
             if (!openingSession.isNew()) {
@@ -214,7 +214,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         } else {
             frame = new ArchitectFrame(this, null);
         }
-        
+
         // MUST be called after constructed to set up the actions
         frame.init(); 
         frame.setVisible(true);
@@ -222,27 +222,27 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         if (openingSession != null && openingSession.isNew()) {
             openingSession.close();
         }
-        
+
         profileDialog = new JDialog(frame, Messages.getString("ArchitectSwingSessionImpl.profilesDialogTitle")); //$NON-NLS-1$
         profileManagerView = new ProfileManagerView(delegateSession.getProfileManager());
         delegateSession.getProfileManager().addProfileChangeListener(profileManagerView);
         profileDialog.add(profileManagerView);
-        
-        
+
+
         // This has to be called after frame.init() because playPen gets the keyboard actions from frame,
         // which only get set up after calling frame.init().
         playPen.setupKeyboardActions();
         sourceDatabases.setupKeyboardActions();
-        
+
         macOSXRegistration(frame);
-        
+
         profileDialog.setLocationRelativeTo(frame);
     }
-    
+
     public SwingUIProject getProject() {
         return (SwingUIProject) delegateSession.getProject();
     }
-    
+
     public void setProject(CoreProject project) {
         delegateSession.setProject(project);
     }
@@ -258,15 +258,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public ArchitectFrame getArchitectFrame() {
         return frame;
     }
-    
+
     /**
      * Registers this application in Mac OS X if we're running on that platform.
      *
      * <p>This code came from Apple's "OS X Java Adapter" example.
      */
     private void macOSXRegistration(ArchitectFrame frame) {
-        
-        
+
+
         Action exitAction = frame.getExitAction();
         PreferencesAction prefAction = frame.getPrefAction();
         AboutAction aboutAction = frame.getAboutAction();
@@ -305,7 +305,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             }
         }
     }
-    
+
     /**
      * Checks if the project is modified, and if so presents the user with the option to save
      * the existing project.  This is useful to use in actions that are about to get rid of
@@ -347,7 +347,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      */
     public boolean saveOrSaveAs(boolean showChooser, boolean separateThread) {
         SwingUIProject project = getProject();
-        
+
         if (project.getFile() == null || showChooser) {
             JFileChooser chooser = new JFileChooser(project.getFile());
             chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
@@ -368,8 +368,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                         return saveOrSaveAs(true, separateThread);
                     }
                 }
-                
-                
+
+
                 //creates an empty file if "file" does not exist 
                 //so that the new file can be found by the recent menu
                 try {
@@ -378,7 +378,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                     ASUtils.showExceptionDialog(this, Messages.getString("ArchitectSwingSessionImpl.couldNotCreateFile"), e); //$NON-NLS-1$
                     return false;
                 }
-                
+
                 getRecentMenu().putRecentFileName(file.getAbsolutePath());
                 project.setFile(file);
                 String projName = file.getName().substring(0, file.getName().length()-".architect".length()); //$NON-NLS-1$
@@ -388,7 +388,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
         final boolean finalSeparateThread = separateThread;
         final ProgressMonitor pm = new ProgressMonitor
-            (frame, Messages.getString("ArchitectSwingSessionImpl.saveProgressDialogTitle"), "", 0, 100); //$NON-NLS-1$ //$NON-NLS-2$
+        (frame, Messages.getString("ArchitectSwingSessionImpl.saveProgressDialogTitle"), "", 0, 100); //$NON-NLS-1$ //$NON-NLS-2$
 
         class SaverTask implements Runnable {
             boolean success;
@@ -397,11 +397,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 SwingUIProject project = getProject();
                 try {
                     success = false;
-                    SwingUtilities.invokeAndWait(new Runnable() {
-                        public void run() {
-                            getArchitectFrame().setEnableSaveOption(false);
-                        }
-                    });
+                    if (finalSeparateThread) {
+                        SwingUtilities.invokeAndWait(new Runnable() {
+                            public void run() {
+                                getArchitectFrame().setEnableSaveOption(false);
+                            }
+                        });
+                    } else {
+                        getArchitectFrame().setEnableSaveOption(false);
+                    }
                     project.setSaveInProgress(true);
                     project.save(finalSeparateThread ? pm : null);
                     success = true;
@@ -412,11 +416,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                             Messages.getString("ArchitectSwingSessionImpl.cannotSaveProject")+ex.getMessage(), ex); //$NON-NLS-1$
                 } finally {
                     project.setSaveInProgress(false);
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            getArchitectFrame().setEnableSaveOption(true);
-                        }
-                    });
+                    if (finalSeparateThread) {
+                        SwingUtilities.invokeLater(new Runnable() {
+                            public void run() {
+                                getArchitectFrame().setEnableSaveOption(true);
+                            }
+                        });
+                    } else {
+                        getArchitectFrame().setEnableSaveOption(true);
+                    }
                 }
             }
         }
@@ -431,7 +439,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
 
     // STUFF BROUGHT IN FROM SwingUIProject
-    
+
     /**
      * This is a common handler for all actions that must occur when switching
      * projects, e.g., prompting to save any unsaved changes, disposing dialogs,
@@ -440,7 +448,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public void close() {
 
         // IMPORTANT NOTE: If the GUI hasn't been initialized, frame will be null.
-        
+
         if (getProject().isSaveInProgress()) {
             // project save is in progress, don't allow exit
             JOptionPane.showMessageDialog(frame,
@@ -452,7 +460,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         if (!promptForUnsavedModifications()) {
             return;
         }
-        
+
         // If we still have ArchitectSwingWorker threads running, 
         // tell them to cancel, and then ask the user to try again later.
         // Note that it is not safe to force threads to stop, so we will
@@ -461,14 +469,14 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             for (SPSwingWorker currentWorker : swingWorkers) {
                 currentWorker.setCancelled(true);
             }
-            
-            
+
+
             Object[] options = {Messages.getString("ArchitectSwingSessionImpl.waitOption"), Messages.getString("ArchitectSwingSessionImpl.forceQuiteOption")}; //$NON-NLS-1$ //$NON-NLS-2$
             int n = JOptionPane.showOptionDialog(frame, 
                     Messages.getString("ArchitectSwingSessionImpl.unfinishedTasksRemaining"),  //$NON-NLS-1$
                     Messages.getString("ArchitectSwingSessionImpl.unfinishedTasksDialogTitle"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,  //$NON-NLS-1$
                     null, options, options[0]);
-            
+
             if (n == 0) {
                 return;
             } else {
@@ -477,7 +485,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 }
             }
         }
-        
+
         try {
             if (frame != null) {
                 // XXX this could/should be done by the frame with a session closing listener
@@ -491,7 +499,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             // XXX this could/should be done by the profile dialog with a session closing listener
             profileDialog.dispose();
         }
-        
+
         // It is possible this method will be called again via indirect recursion
         // because the frame has a windowClosing listener that calls session.close().
         // It should be harmless to have this close() method invoked a second time.
@@ -513,10 +521,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         // Clear the profile manager (the effect we want is just to cancel running profiles.. clearing is a harmless side effect)
         // XXX this could/should be done by the profile manager with a session closing listener
         delegateSession.getProfileManager().clear();
-        
+
         fireSessionClosing();
     }
-    
+
     /**
      * Gets the value of sourceDatabases
      *
@@ -525,7 +533,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public DBTree getSourceDatabases()  {
         return this.sourceDatabases;
     }
-    
+
     /**
      * Sets the value of sourceDatabases
      *
@@ -545,7 +553,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public SQLDatabase getTargetDatabase()  {
         return delegateSession.getTargetDatabase();
     }
-    
+
     /**
      * The ProjectModificationWatcher watches a PlayPen's components and
      * business model for changes.  When it detects any, it marks the
@@ -615,10 +623,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         public void propertyChange(PropertyChangeEvent evt) {
             getProject().setModified(true);
             isNew = false;
-            
+
         }
     }
-    
+
     /**
      * Gets the value of name
      *
@@ -636,7 +644,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public void setName(String argName) {
         delegateSession.setName(argName);
     }
-    
+
     /**
      * Gets the value of playPen
      *
@@ -661,7 +669,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public void setCompareDMSettings(CompareDMSettings compareDMSettings) {
         this.compareDMSettings = compareDMSettings;
     }
-    
+
     public UndoManager getUndoManager() {
         return undoManager;
     }
@@ -669,7 +677,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public ProfileManager getProfileManager() {
         return delegateSession.getProfileManager();
     }
-    
+
     public JDialog getProfileDialog() {
         if (!profileDialogPacked) {
             profileDialog.pack();
@@ -695,11 +703,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public void setSavingEntireSource(boolean argSavingEntireSource) {
         this.savingEntireSource = argSavingEntireSource;
     }
-    
+
     public KettleJob getKettleJob() {
         return kettleJob;
     }
-    
+
     public void setKettleJob(KettleJob kettleJob) {
         this.kettleJob = kettleJob;
     }
@@ -708,7 +716,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener) {
         lifecycleListener.add(listener);
     }
-    
+
     public void fireSessionClosing() {
         SessionLifecycleEvent<ArchitectSwingSession> evt = new SessionLifecycleEvent<ArchitectSwingSession>(this);
         for (SessionLifecycleListener<ArchitectSwingSession> listener: lifecycleListener) {
@@ -745,7 +753,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.relationshipLinesDirect = relationshipLinesDirect;
         getPlayPen().repaint();
     }
-    
+
     public boolean getRelationshipLinesDirect() {
         return relationshipLinesDirect;
     }
@@ -761,7 +769,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public void setDDLGenerator(DDLGenerator generator) {
         delegateSession.setDDLGenerator(generator);
     }
-    
+
     /**
      * Creates a new user prompter that uses a modal dialog to pose the given question.
      * 
@@ -803,7 +811,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             tp.revalidate();
         }
     }
-    
+
     public boolean isShowPrimary() {
         return showPrimary;
     }
