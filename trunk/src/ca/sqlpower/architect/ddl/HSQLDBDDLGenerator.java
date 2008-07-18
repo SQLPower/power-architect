@@ -28,6 +28,7 @@ import java.util.HashMap;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
+import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 
 /**
  * Implements the quirks required for successful DDL generation that targets
@@ -112,5 +113,33 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
         typeMap.put(Integer.valueOf(Types.TINYINT), new GenericTypeDescriptor("TINYINT", Types.TINYINT, 16, null, null, DatabaseMetaData.columnNullable, false, false));
         typeMap.put(Integer.valueOf(Types.VARBINARY), new GenericTypeDescriptor("VARBINARY", Types.VARBINARY, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
         typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 4000000000L, "'", "'", DatabaseMetaData.columnNullable, true, false));
+    }
+    
+    @Override
+    public boolean supportsUpdateAction(SQLRelationship r) {
+        return r.getUpdateRule() != UpdateDeleteRule.RESTRICT;
+    }
+    
+    @Override
+    public String getUpdateActionClause(SQLRelationship r) {
+        if (r.getUpdateRule() == UpdateDeleteRule.RESTRICT) {
+            throw new IllegalArgumentException("Unsupported update action: " + r.getUpdateRule());
+        } else {
+            return super.getUpdateActionClause(r);
+        }
+    }
+    
+    @Override
+    public boolean supportsDeleteAction(SQLRelationship r) {
+        return r.getDeleteRule() != UpdateDeleteRule.RESTRICT;
+    }
+    
+    @Override
+    public String getDeleteActionClause(SQLRelationship r) {
+        if (r.getDeleteRule() == UpdateDeleteRule.RESTRICT) {
+            throw new IllegalArgumentException("Unsupported update action: " + r.getDeleteRule());
+        } else {
+            return super.getDeleteActionClause(r);
+        }
     }
 }
