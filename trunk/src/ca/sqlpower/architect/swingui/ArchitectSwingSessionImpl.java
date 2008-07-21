@@ -403,8 +403,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                                 getArchitectFrame().setEnableSaveOption(false);
                             }
                         });
-                    } else {
-                        getArchitectFrame().setEnableSaveOption(false);
                     }
                     project.setSaveInProgress(true);
                     project.save(finalSeparateThread ? pm : null);
@@ -422,9 +420,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                                 getArchitectFrame().setEnableSaveOption(true);
                             }
                         });
-                    } else {
-                        getArchitectFrame().setEnableSaveOption(true);
-                    }
+                    } 
                 }
             }
         }
