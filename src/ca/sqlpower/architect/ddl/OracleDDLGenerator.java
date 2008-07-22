@@ -437,4 +437,9 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
             return "";
         }
     }
+
+    @Override
+    public boolean supportsRollback() {
+        return false;
+    }
 }
