@@ -28,3 +28,4 @@ Mark James (famfamfam.com)
 INTERNATIONALIZATION
 --------------------
 Young Woo Kim (Korean)
+Misha Sivan (Russian)
