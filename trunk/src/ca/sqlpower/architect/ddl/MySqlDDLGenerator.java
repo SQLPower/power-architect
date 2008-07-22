@@ -533,4 +533,9 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         print(columnDefinition(c, colNameMap));
         endStatement(DDLStatement.StatementType.MODIFY, c);
     }
+    
+    @Override
+    public boolean supportsRollback() {
+        return false;
+    }
 }

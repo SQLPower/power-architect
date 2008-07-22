@@ -1281,4 +1281,12 @@ public class GenericDDLGenerator implements DDLGenerator {
         endStatement(DDLStatement.StatementType.CREATE, index);
     }
 
+    /**
+     * The generic DDL generator claims to support rollback
+     * operation, so specific platforms that don't support it
+     * should override this method.
+     */
+    public boolean supportsRollback() {
+        return true;
+    }
 }

@@ -266,4 +266,9 @@ public interface DDLGenerator {
      */
     public String columnType(SQLColumn col);
     
+    /**
+     * Returns true if this DDL generator supports the rollback operation to
+     * return the database to some previous state.
+     */
+    public boolean supportsRollback();
 }
