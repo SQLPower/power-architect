@@ -63,7 +63,7 @@ public class TestPlayPen extends TestCase {
 	public void testUndoAddTable() throws ArchitectException {
 		SQLTable t = new SQLTable(ppdb, "test_me", "", "TABLE", true);
 
-		TablePane tp = new TablePane(t, pp);
+		TablePane tp = new TablePane(t, pp.getContentPane());
 		ppdb.addChild(t);
 
 		pp.addTablePane(tp, new Point(99,98));
@@ -82,7 +82,7 @@ public class TestPlayPen extends TestCase {
 	public void testRedoAddTable() throws ArchitectException {
 		SQLTable t = new SQLTable(ppdb, "test_me", "", "TABLE", true);
 
-		TablePane tp = new TablePane(t, pp);
+		TablePane tp = new TablePane(t, pp.getContentPane());
 
 		ppdb.addChild(t);
 		pp.addTablePane(tp, new Point(99,98));

@@ -47,21 +47,21 @@ public class TestPlayPenContentPane extends TestCase {
 		pp = session.getPlayPen();
 		SQLTable t1 = new SQLTable(session.getTargetDatabase(), true);
 		session.getTargetDatabase().addChild(t1);
-		tp1 = new TablePane(t1,pp);
+		tp1 = new TablePane(t1,pp.getContentPane());
 		pp.addTablePane(tp1, new Point(0,-10));
 		SQLTable t2 = new SQLTable(session.getTargetDatabase(), true);
 		session.getTargetDatabase().addChild(t2);
-		tp2 =new TablePane(t2, pp);
+		tp2 =new TablePane(t2, pp.getContentPane());
 		pp.addTablePane(tp2, new Point(-10,0));
 		SQLRelationship sqlrel = new SQLRelationship();
 		sqlrel.attachRelationship(t1, t2, false);
 		ppcp= new PlayPenContentPane(pp);
-		rel1 = new Relationship(pp,sqlrel);
-		rel2 = new Relationship(pp,sqlrel);
-		rel3 = new Relationship(pp,sqlrel);
-		rel4 = new Relationship(pp,sqlrel);
+		rel1 = new Relationship(sqlrel,pp.getContentPane());
+		rel2 = new Relationship(sqlrel,pp.getContentPane());
+		rel3 = new Relationship(sqlrel,pp.getContentPane());
+		rel4 = new Relationship(sqlrel,pp.getContentPane());
 		
-		tp3 = new TablePane(t1,pp);
+		tp3 = new TablePane(t1,pp.getContentPane());
 	}
 
 	/*

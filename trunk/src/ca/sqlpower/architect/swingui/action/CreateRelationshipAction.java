@@ -105,7 +105,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 			model.setIdentifying(identifying);
 			model.attachRelationship(pkTable,fkTable,true);
 			
-			Relationship r = new Relationship(pp, model);
+			Relationship r = new Relationship(model, pp.getContentPane());
 			pp.addRelationship(r);
 			r.revalidate();
 		} catch (ArchitectException ex) {

@@ -115,8 +115,8 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	 * the given SQLRelationship and adds it to the playpen.  It
 	 * doesn't maniuplate the model at all.
 	 */
-	public Relationship(PlayPen parentPP, SQLRelationship model) throws ArchitectException {
-		super(parentPP.getPlayPenContentPane());
+	public Relationship(SQLRelationship model, PlayPenContentPane parent) throws ArchitectException {
+		super(parent);
 		this.model = model;
 		setPkTable(getPlayPen().findTablePane(model.getPkTable()));
 		setFkTable(getPlayPen().findTablePane(model.getFkTable()));

@@ -45,7 +45,7 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 		db = new SQLDatabase();
 		pp = new PlayPen(context.createSession());
 		table1= new SQLTable(db,true);
-		tp = new TablePane(table1,pp);
+		tp = new TablePane(table1,pp.getContentPane());
 		pp.addTablePane(tp,new Point(10,10));
 		layout = new FruchtermanReingoldForceLayout();
 		frame = new Rectangle(new Point(),layout.getNewArea(pp.getTablePanes()));
@@ -69,7 +69,7 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 	
 	public void testDone() throws ArchitectException {
 		SQLTable sqlTable2 = new SQLTable(db,true);
-		TablePane t2 =new TablePane(sqlTable2,pp);
+		TablePane t2 =new TablePane(sqlTable2,pp.getContentPane());
 		pp.addTablePane(t2,new Point(23,243));
 		layout.setup(pp.getTablePanes(),pp.getRelationships(),frame);
 		assertFalse(layout.isDone());

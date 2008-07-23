@@ -193,10 +193,10 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         SQLRelationship sr = new SQLRelationship();
         sr.attachRelationship(t1, t2, false);
         
-        session.getPlayPen().addTablePane(new TablePane(t1, session.getPlayPen()), new Point(0,0));
-        session.getPlayPen().addTablePane(new TablePane(t2, session.getPlayPen()), new Point(0,0));
+        session.getPlayPen().addTablePane(new TablePane(t1, session.getPlayPen().getContentPane()), new Point(0,0));
+        session.getPlayPen().addTablePane(new TablePane(t2, session.getPlayPen().getContentPane()), new Point(0,0));
         
-        Relationship r = new Relationship(session.getPlayPen(), sr);
+        Relationship r = new Relationship(sr, session.getPlayPen().getContentPane());
         session.getPlayPen().addRelationship(r);
         
         session.setRelationshipLinesDirect(true);

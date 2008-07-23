@@ -45,10 +45,10 @@ public class TestCreateRelationshipAction extends TestCase {
         ArchitectSwingSession session = context.createSession();
 		pp = new PlayPen(session);
 		fkTable = new SQLTable(db,true);
-		TablePane tp = new TablePane(fkTable,pp);
+		TablePane tp = new TablePane(fkTable,pp.getContentPane());
 		pp.addTablePane(tp,new Point(1,1));
 		 pkTable = new SQLTable(db,true);
-		TablePane tp2 = new TablePane(pkTable,pp);
+		TablePane tp2 = new TablePane(pkTable,pp.getContentPane());
 		pp.addTablePane(tp2,new Point(1,1));
 		pkTable.addColumn(new SQLColumn());
 		pkTable.addColumn(new SQLColumn());

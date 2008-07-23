@@ -64,7 +64,7 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	public void testMove() throws ArchitectException, IOException {
 		PlayPen pp = new PlayPen(session);
 		SQLTable table = new SQLTable(session.getTargetDatabase(),true);
-		TablePane tp = new TablePane(table,pp);
+		TablePane tp = new TablePane(table,pp.getContentPane());
 		pp.addTablePane(tp, new Point());
 		UndoManager undoManager = new UndoManager(pp);
 		pp.getPlayPenContentPane().addPropertyChangeListener(undoManager.getEventAdapter());
@@ -90,9 +90,9 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 		PlayPen pp = new PlayPen(session);
 		SQLDatabase db = session.getTargetDatabase();
 		SQLTable table = new SQLTable(db,true);
-		TablePane tp = new TablePane(table,pp);
+		TablePane tp = new TablePane(table,pp.getContentPane());
 		SQLTable table2 = new SQLTable(db,true);
-		TablePane tp2 = new TablePane(table2,pp);
+		TablePane tp2 = new TablePane(table2,pp.getContentPane());
 		Point location;
 		pp.addTablePane(tp,new Point());
 		Point newLocation;

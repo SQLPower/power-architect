@@ -319,8 +319,8 @@ public class ColumnMappingPanel implements DataEntryPanel {
         this.session = session;
         this.r = r;
         PlayPen pp = new PlayPen(session);
-        lhsTable = new TablePane(r.getPkTable(), pp);
-        rhsTable = new TablePane(r.getFkTable(), pp);
+        lhsTable = new TablePane(r.getPkTable(), pp.getContentPane());
+        rhsTable = new TablePane(r.getFkTable(), pp.getContentPane());
         
         // The playpen constructor hooks the playpen in as a hierarchy listener
         // on the entire SQLObject tree.  Since we're not even using the playpen,

@@ -56,13 +56,13 @@ public class AlignTableActionTest extends TestCase {
         alignActionVert = new AlignTableAction(session, Messages.getString("ArchitectFrame.alignTablesVerticallyActionName"), Messages.getString("ArchitectFrame.alignTablesVerticallyActionDescription"), false);
         pp = session.getPlayPen();
         t1 = new SQLTable(db,true);
-        tp = new TablePane(t1,pp);
+        tp = new TablePane(t1,pp.getContentPane());
         pp.addTablePane(tp,new Point(100,71));
         t2 = new SQLTable(db,true);
-        tp2 = new TablePane(t2,pp);
+        tp2 = new TablePane(t2,pp.getContentPane());
         pp.addTablePane(tp2,new Point(1,1));
         t3 = new SQLTable(db,true);
-        tp3 = new TablePane(t3,pp);
+        tp3 = new TablePane(t3,pp.getContentPane());
         pp.addTablePane(tp3,new Point(21,43));
     }
     

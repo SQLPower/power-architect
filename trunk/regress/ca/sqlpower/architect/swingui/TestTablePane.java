@@ -56,7 +56,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		t.addColumn(5,at3);
         
 		pp = session.getPlayPen();
-		tp = new TablePane(t, pp);
+		tp = new TablePane(t, pp.getContentPane());
 		
 		pk1.setPrimaryKeySeq(1);
 		pk2.setPrimaryKeySeq(2);
@@ -194,7 +194,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		SQLColumn c1 = new SQLColumn(t, "PK1", Types.BIT, 1, 0);
 		t.addColumn(0, c1);
 		
-		TablePane tp = new TablePane(t, pp);
+		TablePane tp = new TablePane(t, pp.getContentPane());
 		
 		assertEquals(1, t.getColumns().size());
 		t.removeLastColumnNoEvent();
@@ -226,7 +226,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
      */
     public void testDragDropParentPKToChildTable() throws Exception {
         SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
-        TablePane tp2 = new TablePane(t2, pp);
+        TablePane tp2 = new TablePane(t2, pp.getContentPane());
         
         SQLRelationship r = new SQLRelationship();
         r.attachRelationship(t, t2, true);

@@ -60,7 +60,7 @@ public class BasicTablePaneUITest extends TestCase {
         t.addColumn(1, at1);
 
         pp = session.getPlayPen();
-        tp = new TablePane(t, pp);
+        tp = new TablePane(t, pp.getContentPane());
 
         ui = new BasicTablePaneUI();
         ui.installUI(tp);
