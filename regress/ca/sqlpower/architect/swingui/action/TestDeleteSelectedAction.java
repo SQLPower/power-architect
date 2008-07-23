@@ -47,12 +47,12 @@ public class TestDeleteSelectedAction extends TestCase {
         ArchitectSwingSession session = context.createSession();
 		deleteAction = new DeleteSelectedAction(session);
 		pp = session.getPlayPen();
-		tp = new TablePane(new SQLTable(session.getTargetDatabase(),true),pp);
+		tp = new TablePane(new SQLTable(session.getTargetDatabase(),true),pp.getContentPane());
 		tp.getModel().setName("Table1");
 		tp.getModel().addColumn(new SQLColumn(tp.getModel(),"col1",Types.INTEGER,1,1));
 		tp.getModel().addColumn(new SQLColumn(tp.getModel(),"col2",Types.INTEGER,1,1));
 		
-		tp2 = new TablePane(new SQLTable(session.getTargetDatabase(),true),pp);
+		tp2 = new TablePane(new SQLTable(session.getTargetDatabase(),true),pp.getContentPane());
 		tp2.getModel().setName("Table2");
 		tp2.getModel().addColumn(new SQLColumn(tp.getModel(),"col1",Types.INTEGER,1,1));
 		tp2.getModel().addColumn(new SQLColumn(tp.getModel(),"col2",Types.INTEGER,1,1));
@@ -61,7 +61,7 @@ public class TestDeleteSelectedAction extends TestCase {
 		pp.addTablePane(tp,new Point());
 		pp.addTablePane(tp2, new Point());
 		sqlRelationship.attachRelationship(tp.getModel(),tp.getModel(),false);
-		r = new Relationship(pp,sqlRelationship);
+		r = new Relationship(sqlRelationship,pp.getContentPane());
 		pp.addRelationship(r);
 		
 	}

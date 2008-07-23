@@ -258,7 +258,7 @@ public class SwingUIProject extends CoreProject {
             int x = Integer.parseInt(attributes.getValue("x")); //$NON-NLS-1$
             int y = Integer.parseInt(attributes.getValue("y")); //$NON-NLS-1$
             SQLTable tab = (SQLTable) objectIdMap.get(attributes.getValue("table-ref")); //$NON-NLS-1$
-            TablePane tp = new TablePane(tab, getSession().getPlayPen());
+            TablePane tp = new TablePane(tab, getSession().getPlayPen().getContentPane());
             
             String bgColorString = attributes.getValue("bgColor"); //$NON-NLS-1$
             if (bgColorString != null) {
@@ -288,7 +288,7 @@ public class SwingUIProject extends CoreProject {
             try {
                 SQLRelationship rel =
                     (SQLRelationship) objectIdMap.get(attributes.getValue("relationship-ref")); //$NON-NLS-1$
-                r = new Relationship(getSession().getPlayPen(), rel);
+                r = new Relationship(rel, getSession().getPlayPen().getContentPane());
                 getSession().getPlayPen().addRelationship(r);
                 r.updateUI();
 

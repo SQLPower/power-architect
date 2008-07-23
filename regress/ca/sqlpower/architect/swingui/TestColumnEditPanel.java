@@ -174,7 +174,7 @@ public class TestColumnEditPanel extends TestCase {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
         PlayPen pp = new PlayPen(session);        
-        TablePane tp = new TablePane(table, pp);
+        TablePane tp = new TablePane(table, pp.getContentPane());
         tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
         tp.selectColumn(table.getColumnIndex(col3));        
         ColumnEditPanel ce = new ColumnEditPanel(col3, session);        

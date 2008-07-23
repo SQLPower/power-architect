@@ -49,14 +49,14 @@ public class MappingReport {
         mappings = ETLUtils.findTableLevelMappings(targetTables);
         for (SQLTable sourceTable : mappings.keySet()) {
             if (sourceTable == null) continue;
-            TablePane stp = new TablePane(sourceTable, pp);
+            TablePane stp = new TablePane(sourceTable, pp.getContentPane());
             stp.setFullyQualifiedNameInHeader(true);
             panes.put(sourceTable, stp);
             maxSourceWidth = Math.max(maxSourceWidth, stp.getPreferredSize().width);
         }
 
         for (SQLTable targetTable : targetTables) {
-            TablePane ttp = new TablePane(targetTable, pp);
+            TablePane ttp = new TablePane(targetTable, pp.getContentPane());
             panes.put(targetTable, ttp);
             maxTargetWidth = Math.max(maxTargetWidth, ttp.getPreferredSize().width);
         }

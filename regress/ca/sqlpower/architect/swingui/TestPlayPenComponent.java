@@ -279,7 +279,7 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends T
 	    } else if (property.getPropertyType() == TablePane.class) {
 	        SQLTable t = new SQLTable();
 	        t.initFolders(true);
-	        newVal = new TablePane(t, pp);
+	        newVal = new TablePane(t, pp.getContentPane());
 	    } else if (property.getPropertyType() == SQLTable.class) {
 	        newVal = new SQLTable();
 	        ((SQLTable)newVal).initFolders(true);

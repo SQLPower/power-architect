@@ -34,6 +34,7 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.MouseEvent;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -71,7 +72,7 @@ import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 public class TablePane
 	extends PlayPenComponent
-	implements java.io.Serializable, Selectable, DragSourceListener, LayoutNode {
+	implements Serializable, Selectable, DragSourceListener, LayoutNode {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
 
@@ -185,8 +186,8 @@ public class TablePane
     }
 
 
-	public TablePane(SQLTable m, PlayPen parentPP) {
-	    super(parentPP.getPlayPenContentPane());
+	public TablePane(SQLTable m, PlayPenContentPane parent) {
+	    super(parent);
 	    this.hiddenColumns = new HashSet<SQLColumn>();
 	    this.backgroundColor = new Color(240, 240, 240);
 	    this.foregroundColor = Color.BLACK;

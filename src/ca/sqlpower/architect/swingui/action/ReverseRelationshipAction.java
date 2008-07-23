@@ -100,7 +100,7 @@ public class ReverseRelationshipAction extends AbstractArchitectAction {
             model.setFkCardinality(sr.getFkCardinality());
             model.setPkCardinality(sr.getPkCardinality());
             
-            Relationship r = new Relationship(playpen, model);
+            Relationship r = new Relationship(model, playpen.getContentPane());
             playpen.addRelationship(r);
             r.revalidate();
         } catch (ArchitectException ex) {

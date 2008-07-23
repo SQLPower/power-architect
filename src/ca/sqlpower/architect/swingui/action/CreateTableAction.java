@@ -55,7 +55,7 @@ public class CreateTableAction extends AbstractArchitectAction {
 		}
 		t.setName("New_Table"); //$NON-NLS-1$
 		
-		TablePane tp = new TablePane(t, playpen);
+		TablePane tp = new TablePane(t, playpen.getContentPane());
 		playpen.addFloating(tp);
 		playpen.setMouseMode(PlayPen.MouseModeType.CREATING_TABLE);
 	}

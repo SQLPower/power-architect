@@ -64,8 +64,8 @@ public class TestAutoLayoutAction extends TestCase {
 		SQLTable t1 = new SQLTable(ppdb, "This is the name of the first table", "", "TABLE", true);
 		SQLTable t2 = new SQLTable(ppdb, "This table is way cooler than the first one", "", "TABLE", true);
 		
-		TablePane tp1 = new TablePane(t1, pp);
-		TablePane tp2 = new TablePane(t2, pp);
+		TablePane tp1 = new TablePane(t1, pp.getContentPane());
+		TablePane tp2 = new TablePane(t2, pp.getContentPane());
 		
 		pp.addTablePane(tp1, new Point(10,10));
 		pp.addTablePane(tp2, new Point(20,20));
@@ -88,7 +88,7 @@ public class TestAutoLayoutAction extends TestCase {
 		
 		for (int i = 0; i < tables.length; i++) {
 			tables[i] = new SQLTable(ppdb, "Table "+i, "", "TABLE", true);
-			tablePanes[i] = new TablePane(tables[i], pp);
+			tablePanes[i] = new TablePane(tables[i], pp.getContentPane());
 		}
 		
 		pp.addTablePane(tablePanes[0], new Point(100, 0));
@@ -103,8 +103,8 @@ public class TestAutoLayoutAction extends TestCase {
 		sr2.attachRelationship(tables[1],tables[3],false);
 
 		pp.setVisible(true);
-		Relationship r1 = new Relationship(pp, sr1);
-		Relationship r2 = new Relationship(pp, sr2);
+		Relationship r1 = new Relationship(sr1, pp.getContentPane());
+		Relationship r2 = new Relationship(sr2, pp.getContentPane());
 		
 		pp.addRelationship(r1);
 		pp.addRelationship(r2);

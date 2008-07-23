@@ -88,11 +88,11 @@ public class TestUndoManager extends TestCase {
 		SQLDatabase db = session.getTargetDatabase();
 		fkTable = new SQLTable(db,true);
 		fkTable.setName("child");
-		TablePane tp = new TablePane(fkTable,pp);
+		TablePane tp = new TablePane(fkTable,pp.getContentPane());
 		pp.addTablePane(tp,new Point(1,1));
 		pkTable = new SQLTable(db,true);
 		pkTable.setName("parent");
-		tp2 = new TablePane(pkTable,pp);
+		tp2 = new TablePane(pkTable,pp.getContentPane());
 		pp.addTablePane(tp2,new Point(1,1));
 		undoManager = new UndoManager(pp);
 		pp.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
@@ -312,10 +312,10 @@ public class TestUndoManager extends TestCase {
 	}
 	
 	public void testUndoMultipleTablePaneMovement() {
-	    TablePane tp0 = new TablePane(pkTable, pp);
+	    TablePane tp0 = new TablePane(pkTable, pp.getContentPane());
 	    pp.addTablePane(tp0, new Point(0, 0));
 	    Point oldLoc0 = tp0.getLocation();
-	    TablePane tp1 = new TablePane(fkTable, pp);
+	    TablePane tp1 = new TablePane(fkTable, pp.getContentPane());
 	    pp.addTablePane(tp1, new Point(999, 999));
 	    Point oldLoc1 = tp1.getLocation();
 	    pp.startCompoundEdit("start move");
@@ -340,13 +340,13 @@ public class TestUndoManager extends TestCase {
 	 * Tests undo/redo of the movement of 1 relationship's connection points.
 	 */
 	public void testUndoRelationshipConnectionPointMovement() throws ArchitectException{
-	    TablePane tp0 = new TablePane(pkTable, pp);
-	    TablePane tp1 = new TablePane(fkTable, pp);
+	    TablePane tp0 = new TablePane(pkTable, pp.getContentPane());
+	    TablePane tp1 = new TablePane(fkTable, pp.getContentPane());
 	    SQLRelationship model = new SQLRelationship();
 	    model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk");  //$NON-NLS-1$ //$NON-NLS-2$
         model.setIdentifying(true);
         model.attachRelationship(pkTable,fkTable,true);
-	    Relationship rel = new Relationship(pp, model);
+	    Relationship rel = new Relationship(model, pp.getContentPane());
 
 	    pp.addTablePane(tp0, new Point(0, 0));
 	    pp.addTablePane(tp1, new Point(0, 200));

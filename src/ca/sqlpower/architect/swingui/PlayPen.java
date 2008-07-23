@@ -1467,8 +1467,8 @@ public class PlayPen extends JPanel
 		}
 		if (logger.isDebugEnabled()) logger.debug("after add: " + tableNames); //$NON-NLS-1$
 
-		TablePane tp = new TablePane(newTable, this);
-
+		TablePane tp = new TablePane(newTable, getContentPane());
+		
 		logger.info("adding table "+newTable); //$NON-NLS-1$
 		addImpl(tp, preferredLocation,getPPComponentCount());
 		tp.revalidate();
@@ -1560,7 +1560,7 @@ public class PlayPen extends JPanel
 				    newRel.attachRelationship(oldTable,newTable,false);
 				}
 				
-				addImpl(new Relationship(this, newRel),null,getPPComponentCount());
+				addImpl(new Relationship(newRel, getContentPane()),null,getPPComponentCount());
 
 				Iterator mappings = r.getChildren().iterator();
 				while (mappings.hasNext()) {

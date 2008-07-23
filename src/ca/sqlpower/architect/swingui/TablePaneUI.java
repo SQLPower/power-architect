@@ -26,7 +26,7 @@ public abstract class TablePaneUI implements PlayPenComponentUI, java.io.Seriali
 	public static final String UI_CLASS_ID = "TablePaneUI";
 
 	/**
-	 * This delegate method is specified by {@link TablePane#pointToColumnIndex(Point))}.
+	 * This delegate method is specified by {@link TablePane#pointToColumnIndex(Point)}
 	 */
 	public abstract int pointToColumnIndex(Point p) throws ArchitectException;
 
