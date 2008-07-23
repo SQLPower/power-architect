@@ -407,7 +407,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			if (p.getLastPathComponent() instanceof SQLTable) {
 				mi.setEnabled(true);
 				newMenu.addSeparator();
-                JMenu alignTables = new JMenu(Messages.getString("PlayPen.alignTablesMenu"));
+                JMenu alignTables = new JMenu(Messages.getString("TablePane.alignTablesMenu"));
                 mi = new JMenuItem();
                 mi.setAction(af.getAlignTableHorizontalAction());
                 alignTables.add(mi);

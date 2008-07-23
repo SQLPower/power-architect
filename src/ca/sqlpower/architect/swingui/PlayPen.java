@@ -76,12 +76,10 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -106,7 +104,6 @@ import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLExceptionNode;
-import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
@@ -121,7 +118,6 @@ import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CancelAction;
-import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
@@ -278,11 +274,6 @@ public class PlayPen extends JPanel
 	 */
 	protected Set<String> tableNames;
 
-	/**
-	 * This is the shared popup menu that applies to right-clicks on
-	 * any TablePane in the PlayPen.
-	 */
-	protected JPopupMenu tablePanePopup;
 
 	protected JPopupMenu playPenPopup;
 
@@ -531,191 +522,6 @@ public class PlayPen extends JPanel
         tSpec.setPlDbType(dbcs.getPlDbType());
         tSpec.setOdbcDsn(dbcs.getOdbcDsn());
     }
-
-	/**
-	 * This routine is called by the PlayPen constructor after it has
-	 * set up all the Action instances.  It adds all the necessary
-	 * items and action listeners to the TablePane popup menu.
-     *
-     * Note: if an action is shared with the DBTree, make sure you
-     * set the action command in its parent menu item so that the
-     * action can figure out what the source of the Action was.
-	 */
-	void setupTablePanePopup(SQLTable table) {
-		ArchitectFrame af = session.getArchitectFrame();
-		tablePanePopup = new JPopupMenu();
-		
-		JMenuItem mi;
-        
-        mi = new JMenuItem();
-        mi.setAction(af.getInsertIndexAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        tablePanePopup.add(mi);
-        try {
-            if (table != null && table.getIndicesFolder().getChildCount() > 0) {
-                JMenu menu = new JMenu(Messages.getString("PlayPen.indexPropertiesMenu")); //$NON-NLS-1$
-                menu.setIcon(SPSUtils.createIcon("edit_index", Messages.getString("PlayPen.editIndexTooltip"), ArchitectSwingSessionContext.ICON_SIZE)); //$NON-NLS-1$ //$NON-NLS-2$
-                for (SQLIndex index : table.getIndices()) {
-                    JMenuItem menuItem = new JMenuItem(new EditSpecificIndexAction(session, index));
-                    menuItem.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-                    menu.add(menuItem);
-                }
-                tablePanePopup.add(menu);
-            }
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
-        }
-
-        tablePanePopup.addSeparator();
-
-        mi = new JMenuItem();
-        mi.setAction(af.getEditColumnAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		tablePanePopup.add(mi);
-
-		mi = new JMenuItem();
-		mi.setAction(af.getInsertColumnAction());
-		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		tablePanePopup.add(mi);
-
-		tablePanePopup.addSeparator();
-
-		mi = new JMenuItem();
-        mi.setAction(af.getEditTableAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        tablePanePopup.add(mi);
-
-        JMenu tableAppearance = new JMenu(Messages.getString("PlayPen.tableAppearances")); //$NON-NLS-1$
-        JMenu backgroundColours = new JMenu(Messages.getString("TableEditPanel.tableColourLabel")); //$NON-NLS-1$
-        JMenu foregrondColours = new JMenu(Messages.getString("TableEditPanel.textColourLabel")); //$NON-NLS-1$
-        for (final Color colour : ColorScheme.BACKGROUND_COLOURS) {
-            Icon icon = new TableEditPanel.ColorIcon(colour);
-            mi = new JMenuItem(icon);
-            mi.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    List<TablePane> tables = getSelectedTables();
-                    startCompoundEdit("Started setting table colour"); //$NON-NLS-1$
-                    for (TablePane tp : tables) {
-                        tp.setBackgroundColor(colour);
-                    }
-                    endCompoundEdit("Finished setting table colour"); //$NON-NLS-1$
-                }
-            });
-            backgroundColours.add(mi);
-        }
-        for (final Color colour : ColorScheme.FOREGROUND_COLOURS) {
-            Icon icon = new TableEditPanel.ColorIcon(colour);
-            mi = new JMenuItem(icon);
-            mi.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    List<TablePane> tables = getSelectedTables();
-                    startCompoundEdit("Started setting text colour"); //$NON-NLS-1$
-                    for (TablePane tp : tables) {
-                        tp.setForegroundColor(colour);
-                    }
-                    endCompoundEdit("Finished setting text colour"); //$NON-NLS-1$
-                }
-            });
-            foregrondColours.add(mi);
-        }
-        tableAppearance.add(backgroundColours);
-        tableAppearance.add(foregrondColours);
-        if (findTablePane(table) != null) {
-            JCheckBoxMenuItem cmi = new JCheckBoxMenuItem(
-                    Messages.getString("TableEditPanel.dashedLinesLabel"), findTablePane(table).isDashed()); //$NON-NLS-1$
-            cmi.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    List<TablePane> tables = getSelectedTables();
-                    startCompoundEdit("Started setting dashed lines."); //$NON-NLS-1$
-                    for (TablePane tp : tables) {
-                        tp.setDashed(((JCheckBoxMenuItem) (e.getSource())).isSelected());
-                    }
-                    endCompoundEdit("Finished setting dashed lines."); //$NON-NLS-1$
-                }
-            });
-            tableAppearance.add(cmi);
-            cmi = new JCheckBoxMenuItem(
-                    Messages.getString("TableEditPanel.roundedCornersLabel"), findTablePane(table).isRounded()); //$NON-NLS-1$
-            cmi.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    List<TablePane> tables = getSelectedTables();
-                    startCompoundEdit("Started setting rounded edges."); //$NON-NLS-1$
-                    for (TablePane tp : tables) {
-                        tp.setRounded(((JCheckBoxMenuItem) (e.getSource())).isSelected());
-                    }
-                    endCompoundEdit("Finished setting rounded edges."); //$NON-NLS-1$
-                }
-            });
-            tableAppearance.add(cmi);
-        }
-        tablePanePopup.add(tableAppearance);
-
-        tablePanePopup.addSeparator();
-
-        mi = new JMenuItem();
-		mi.setAction(bringToFrontAction);
-		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		tablePanePopup.add(mi);
-
-		mi = new JMenuItem();
-		mi.setAction(sendToBackAction);
-		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		tablePanePopup.add(mi);
-
-		JMenu align = new JMenu(Messages.getString("PlayPen.alignTablesMenu")); //$NON-NLS-1$
-		mi = new JMenuItem();
-		mi.setAction(af.getAlignTableHorizontalAction()); 
-		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		align.add(mi);
-		
-		
-		mi = new JMenuItem();
-		mi.setAction(af.getAlignTableVerticalAction());
-		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		align.add(mi);
-		tablePanePopup.add(align);
-		
-		tablePanePopup.addSeparator();
-		
-		mi = new JMenuItem();
-		mi.setAction(af.getDeleteSelectedAction());
-		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		tablePanePopup.add(mi);
-		
-
-		if (logger.isDebugEnabled()) {
-			tablePanePopup.addSeparator();
-			mi = new JMenuItem("Show listeners"); //$NON-NLS-1$
-			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-			mi.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent evt) {
-						List selection = getSelectedItems();
-						if (selection.size() == 1) {
-							TablePane tp = (TablePane) selection.get(0);
-							JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(tp.getModel().getSQLObjectListeners()))));
-						} else {
-							JOptionPane.showMessageDialog(PlayPen.this, "You can only show listeners on one item at a time"); //$NON-NLS-1$
-						}
-					}
-				});
-			tablePanePopup.add(mi);
-
-			mi = new JMenuItem("Show Selection List"); //$NON-NLS-1$
-			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-			mi.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent evt) {
-						List selection = getSelectedItems();
-						if (selection.size() == 1) {
-							TablePane tp = (TablePane) selection.get(0);
-							JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(tp.selectedColumns))));
-						} else {
-							JOptionPane.showMessageDialog(PlayPen.this, "You can only show selected columns on one item at a time"); //$NON-NLS-1$
-						}
-					}
-				});
-			tablePanePopup.add(mi);
-		}
-	}
 
 	void setupKeyboardActions() {
 		ArchitectFrame af = session.getArchitectFrame();
@@ -2776,7 +2582,6 @@ public class PlayPen extends JPanel
 		 */
 		public boolean maybeShowPopup(MouseEvent evt) {
 		    
-			setupTablePanePopup(null);
 			setupPlayPenPopup();
 
 			Point p = evt.getPoint();
@@ -2795,8 +2600,7 @@ public class PlayPen extends JPanel
 				if (evt.isPopupTrigger() && !evt.isConsumed()) {
 					PlayPen pp = tp.getPlayPen();
 					logger.debug("about to show playpen tablepane popup..."); //$NON-NLS-1$
-					setupTablePanePopup(tp.getModel());
-					tp.showPopup(pp.tablePanePopup, p);
+					tp.showPopup(tp.getPopup(), p);
 					return true;
 				}
 			} else {
@@ -2906,46 +2710,15 @@ public class PlayPen extends JPanel
 	        int viewHeight = viewport.getExtentSize().height; 
 	        int viewWidth = viewport.getExtentSize().width; 
 	        
-	        // TODO: slow down scrolling. 
-	        // perform scrolling 
+	        // performs scrolling 
 	        if ((p.y - viewPos.y) < scrollUnits.top && viewPos.y > 0) { // scroll up 
 	            view.y = tp.getBounds().y;
-	            /*
-	            view.y -= AUTO_SCROLL_SPEED;
-	            if (tp != null) {
-	                tp.setLocation(tp.getX(), tp.getY() - AUTO_SCROLL_SPEED);
-	            }
-	            */
-	            
 	        } if ((viewPos.y + viewHeight - p.y) < scrollUnits.bottom) { // scroll down 
 	            view.y = tp.getBounds().y + tp.getBounds().height - viewHeight;
-	            /*
-	            scrollUnits.bottom += AUTO_SCROLL_SPEED;
-	            pp.revalidate();
-	            view.y += AUTO_SCROLL_SPEED;          
-	            if (tp != null) {
-	                tp.setLocation(tp.getX(), tp.getY() + AUTO_SCROLL_SPEED);
-	            }
-	            */
 	        } if ((p.x - viewPos.x) < scrollUnits.left && viewPos.x > 0) { // scroll left 
 	            view.x = tp.getBounds().x;
-	            /*
-	            view.x -= AUTO_SCROLL_SPEED;
-	            if (tp != null) {
-	                tp.setLocation(tp.getX() - AUTO_SCROLL_SPEED, tp.getY());
-	            }
-	            */
-	            
 	        } if ((viewPos.x + viewWidth - p.x) < scrollUnits.right) { // scroll right 
 	            view.x = tp.getBounds().x + tp.getBounds().width - viewWidth;
-	            /*
-	            scrollUnits.right += AUTO_SCROLL_SPEED;
-	            pp.revalidate();
-	            view.x += AUTO_SCROLL_SPEED;
-	            if (tp != null) {
-	                tp.setLocation(tp.getX() + AUTO_SCROLL_SPEED, tp.getY());
-	            }
-	            */
 	        } 
 	        logger.debug(viewport.getViewPosition());
 	        pp.scrollRectToVisible(view);
