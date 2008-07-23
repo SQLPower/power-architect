@@ -19,19 +19,13 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Graphics;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -50,6 +44,7 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
+import ca.sqlpower.swingui.ColorCellRenderer;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class TableEditPanel extends JPanel implements SQLObjectListener, DataEntryPanel {
@@ -87,7 +82,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		remarks.setWrapStyleWord(true);
 		
 		add(new JLabel(Messages.getString("TableEditPanel.tableColourLabel"))); //$NON-NLS-1$
-		ColorCellRenderer renderer = new ColorCellRenderer();
+		ColorCellRenderer renderer = new ColorCellRenderer(40, 20);
 		bgColor = new JComboBox(ColorScheme.BACKGROUND_COLOURS);
         bgColor.setRenderer(renderer);
         bgColor.addItem(new Color(240, 240, 240));
@@ -304,54 +299,5 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 
     public void setEditDialog(JDialog editDialog) {
         this.editDialog = editDialog;
-    }
-
-    /**
-     * Renders a rectangle of colour in a list cell. The colour is determined by
-     * the list item value, which must be of type java.awt.Color.
-     */
-    private class ColorCellRenderer extends DefaultListCellRenderer {
-        @Override
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
-                boolean cellHasFocus) {
-            super.getListCellRendererComponent(list, "", index, isSelected, cellHasFocus);
-            if (value == null) {
-                value = Color.BLACK;
-            }
-            setBackground((Color) value);
-            setOpaque(true);
-            setPreferredSize(new Dimension(40, 20));
-            setIcon(new ColorIcon((Color) value));
-            return this;
-        }
-    }
-
-    /**
-     * This class converts a Color into an icon that has width of 85 pixels and
-     * height of 50 pixels.
-     */
-    public static class ColorIcon implements Icon {
-        private int HEIGHT = 20;
-
-        private int WIDTH = 40;
-
-        private Color colour;
-
-        public ColorIcon(Color colour) {
-            this.colour = colour;
-        }
-
-        public int getIconHeight() {
-            return HEIGHT;
-        }
-
-        public int getIconWidth() {
-            return WIDTH;
-        }
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(colour);
-            g.fillRect(x, y, WIDTH - 1, HEIGHT - 1);
-        }
     }
 }

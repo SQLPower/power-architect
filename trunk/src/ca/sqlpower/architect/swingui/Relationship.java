@@ -87,7 +87,6 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		this.model = r.model;
 		this.pkTable = r.pkTable;
 		this.fkTable = r.fkTable;
-		this.popup =r.popup;
 		this.selected = false;
 		this.tpbListener = new TablePaneBehaviourListener();
 		this.columnHighlightColour = r.columnHighlightColour;

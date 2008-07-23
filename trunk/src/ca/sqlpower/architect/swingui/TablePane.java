@@ -33,6 +33,8 @@ import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -45,8 +47,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.Icon;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.tree.TreePath;
@@ -59,6 +68,7 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.InsertionPointWatcher;
 import ca.sqlpower.architect.LockedColumnException;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
@@ -66,9 +76,12 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
+import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentMovedEvent;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.swingui.ColorIcon;
+import ca.sqlpower.swingui.SPSUtils;
 
 public class TablePane
 	extends PlayPenComponent
@@ -95,7 +108,6 @@ public class TablePane
      * A special column index that represents the gap between the PK line and the first non-PK column.
      */
     public static final int COLUMN_INDEX_START_OF_NON_PK = -4;
-
 
 	/**
 	 * This is the column index at which to the insertion point is
@@ -147,7 +159,7 @@ public class TablePane
     private boolean fullyQualifiedNameInHeader = false;
 
 	static {
-		UIManager.put(TablePaneUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.BasicTablePaneUI");
+		UIManager.put(TablePaneUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.BasicTablePaneUI"); //$NON-NLS-1$
 	}
 
 	private SQLTable model;
@@ -179,9 +191,9 @@ public class TablePane
 			newUi.installUI(this);
 			setUI(newUi);
 		} catch (InstantiationException e) {
-			throw new RuntimeException("Woops, couldn't invoke no-args constructor of "+tp.getUI().getClass().getName());
+			throw new RuntimeException("Woops, couldn't invoke no-args constructor of "+tp.getUI().getClass().getName()); //$NON-NLS-1$
 		} catch (IllegalAccessException e) {
-			throw new RuntimeException("Woops, couldn't access no-args constructor of "+tp.getUI().getClass().getName());
+			throw new RuntimeException("Woops, couldn't access no-args constructor of "+tp.getUI().getClass().getName()); //$NON-NLS-1$
 		}
     }
 
@@ -203,7 +215,7 @@ public class TablePane
 
 	@Override
 	public String toString() {
-		return "TablePane: "+model;
+		return "TablePane: "+model; //$NON-NLS-1$
 	}
 
 	// ---------------------- PlayPenComponent Overrides ----------------------
@@ -244,7 +256,7 @@ public class TablePane
 		try {
 			ArchitectUtils.unlistenToHierarchy(columnListener, model);
 		} catch (ArchitectException e) {
-			logger.error("Caught exception while unlistening to all children", e);
+			logger.error("Caught exception while unlistening to all children", e); //$NON-NLS-1$
 		}
 	}
 
@@ -275,7 +287,7 @@ public class TablePane
                     for (int i : ci) {
                         sb.append(i).append(' ');
                     }
-                    logger.debug("Columns inserted. Syncing select/highlight lists. New indices=["+sb+"]");
+                    logger.debug("Columns inserted. Syncing select/highlight lists. New indices=["+sb+"]"); //$NON-NLS-1$ //$NON-NLS-2$
                 }
                 for (int i = 0; i < ci.length; i++) {
                     boolean wasSelectedPreviously = (e.getChildren()[i] == mostRecentSelectedRemoval);
@@ -298,11 +310,11 @@ public class TablePane
             try {
                 ArchitectUtils.listenToHierarchy(this, e.getChildren());
             } catch (ArchitectException ex) {
-                logger.error("Caught exception while listening to added children", ex);
+                logger.error("Caught exception while listening to added children", ex); //$NON-NLS-1$
             }
             
             updateHiddenColumns();
-            firePropertyChange("model.children", null, null);
+            firePropertyChange("model.children", null, null); //$NON-NLS-1$
             //revalidate();
         }
 
@@ -320,7 +332,7 @@ public class TablePane
                     for (int i : ci) {
                         sb.append(i).append(' ');
                     }
-                    logger.debug("Columns removed. Syncing select/highlight lists. Removed indices=["+sb+"]");
+                    logger.debug("Columns removed. Syncing select/highlight lists. Removed indices=["+sb+"]"); //$NON-NLS-1$ //$NON-NLS-2$
                 }
                 for (int i = 0; i < ci.length; i++) {
                     if (selectedColumns.contains(e.getChildren()[i])) {
@@ -345,7 +357,7 @@ public class TablePane
                 throw new ArchitectRuntimeException(ex);
             }
             updateHiddenColumns();
-            firePropertyChange("model.children", null, null);
+            firePropertyChange("model.children", null, null); //$NON-NLS-1$
             //revalidate();
         }
 
@@ -357,12 +369,12 @@ public class TablePane
          */
         public void dbObjectChanged(SQLObjectEvent e) {
             if (logger.isDebugEnabled()) {
-                logger.debug("TablePane got object changed event." +
-                        "  Source="+e.getSource()+" Property="+e.getPropertyName()+
-                        " oldVal="+e.getOldValue()+" newVal="+e.getNewValue());
+                logger.debug("TablePane got object changed event." + //$NON-NLS-1$
+                        "  Source="+e.getSource()+" Property="+e.getPropertyName()+ //$NON-NLS-1$ //$NON-NLS-2$
+                        " oldVal="+e.getOldValue()+" newVal="+e.getNewValue()); //$NON-NLS-1$ //$NON-NLS-2$
             }
             updateHiddenColumns();
-            firePropertyChange("model."+e.getPropertyName(), null, null);
+            firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
             //repaint();
         }
 
@@ -373,7 +385,7 @@ public class TablePane
          * delegate) with a ChangeEvent.
          */
         public void dbStructureChanged(SQLObjectEvent e) {
-            logger.debug("TablePane got db structure change event. source="+e.getSource());
+            logger.debug("TablePane got db structure change event. source="+e.getSource()); //$NON-NLS-1$
             if (e.getSource() == model.getColumnsFolder()) {
                 int numCols = e.getChildren().length;
                 selectedColumns = new HashSet<SQLColumn>(numCols);
@@ -386,7 +398,7 @@ public class TablePane
                     throw new ArchitectRuntimeException(e1);
                 }
                 updateHiddenColumns();
-                firePropertyChange("model.children", null, null);
+                firePropertyChange("model.children", null, null); //$NON-NLS-1$
                 //revalidate();
             }
         }
@@ -414,7 +426,7 @@ public class TablePane
 		SQLTable old = model;
 
 		if (m == null) {
-			throw new IllegalArgumentException("model may not be null");
+			throw new IllegalArgumentException("model may not be null"); //$NON-NLS-1$
 		} else {
 			model = m;
 		}
@@ -423,7 +435,7 @@ public class TablePane
 			try {
 				ArchitectUtils.unlistenToHierarchy(columnListener, old);
 			} catch (ArchitectException e) {
-				logger.error("Caught exception while unlistening to old model", e);
+				logger.error("Caught exception while unlistening to old model", e); //$NON-NLS-1$
 			}
 		}
 
@@ -435,17 +447,17 @@ public class TablePane
 				columnHighlight.put(column, new ArrayList<Color>());
 			}
 		} catch (ArchitectException e) {
-			logger.error("Error getting children on new model", e);
+			logger.error("Error getting children on new model", e); //$NON-NLS-1$
 		}
 
 		try {
 			ArchitectUtils.listenToHierarchy(columnListener, model);
 		} catch (ArchitectException e) {
-			logger.error("Caught exception while listening to new model", e);
+			logger.error("Caught exception while listening to new model", e); //$NON-NLS-1$
 		}
-		setName("TablePane: "+model.getShortDisplayName());
+		setName("TablePane: "+model.getShortDisplayName()); //$NON-NLS-1$
 
-        firePropertyChange("model", old, model);
+        firePropertyChange("model", old, model); //$NON-NLS-1$
 	}
 
 	/**
@@ -465,7 +477,7 @@ public class TablePane
 	public void setMargin(Insets argMargin) {
 		Insets old = margin;
 		this.margin = (Insets) argMargin.clone();
-		firePropertyChange("margin", old, margin);
+		firePropertyChange("margin", old, margin); //$NON-NLS-1$
 		revalidate();
 	}
 
@@ -483,7 +495,7 @@ public class TablePane
 		int old = insertionPoint;
 		this.insertionPoint = ip;
 		if (ip != old) {
-			firePropertyChange("insertionPoint", new Integer(old), new Integer(insertionPoint));
+			firePropertyChange("insertionPoint", new Integer(old), new Integer(insertionPoint)); //$NON-NLS-1$
 			repaint();
 		}
 	}
@@ -569,7 +581,7 @@ public class TablePane
 	private void selectColumnOnTree(SQLColumn col) {
 	    if (getPlayPen().ignoreTreeSelection()) return;
 	    getPlayPen().setIgnoreTreeSelection(true);
-	    logger.debug("selecting column on tree: " + col);
+	    logger.debug("selecting column on tree: " + col); //$NON-NLS-1$
 	    
 	    DBTree tree = getPlayPen().getSession().getSourceDatabases();
 	    TreePath tp = tree.getTreePathForNode(col.getParentTable());
@@ -589,7 +601,7 @@ public class TablePane
 	private void deselectColumnOnTree(SQLColumn col) {
 	    if (getPlayPen().ignoreTreeSelection()) return;
         getPlayPen().setIgnoreTreeSelection(true);
-	    logger.debug("deselecting column on tree: " + col);
+	    logger.debug("deselecting column on tree: " + col); //$NON-NLS-1$
 	    
 	    DBTree tree = getPlayPen().getSession().getSourceDatabases();
 	    TreePath tp = tree.getTreePathForNode(col);
@@ -689,8 +701,8 @@ public class TablePane
 
 	protected void fireSelectionEvent(SelectionEvent e) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Notifying "+selectionListeners.size()
-						 +" listeners of selection change");
+			logger.debug("Notifying "+selectionListeners.size() //$NON-NLS-1$
+						 +" listeners of selection change"); //$NON-NLS-1$
 		}
 		Iterator<SelectionListener> it = selectionListeners.iterator();
 		if (e.getType() == SelectionEvent.SELECTION_EVENT) {
@@ -702,7 +714,7 @@ public class TablePane
 				it.next().itemDeselected(e);
 			}
 		} else {
-			throw new IllegalStateException("Unknown selection event type "+e.getType());
+			throw new IllegalStateException("Unknown selection event type "+e.getType()); //$NON-NLS-1$
 		}
 	}
 
@@ -762,7 +774,7 @@ public class TablePane
 
 		for (int i = items.size()-1; i >= 0; i--) {
 			SQLObject someData = items.get(i);
-			logger.debug("insertObjects: got item of type "+someData.getClass().getName());
+			logger.debug("insertObjects: got item of type "+someData.getClass().getName()); //$NON-NLS-1$
 			if (someData instanceof SQLTable) {
 				SQLTable table = (SQLTable) someData;
 				if (table.getParentDatabase() == getModel().getParentDatabase()) {
@@ -789,9 +801,9 @@ public class TablePane
                     ipWatcher.dispose();
                     
 					if (logger.isDebugEnabled()) {
-						logger.debug("Moving column '"+col.getName()
-								+"' to table '"+getModel().getName()
-								+"' at position "+ipWatcher.getInsertionPoint());
+						logger.debug("Moving column '"+col.getName() //$NON-NLS-1$
+								+"' to table '"+getModel().getName() //$NON-NLS-1$
+								+"' at position "+ipWatcher.getInsertionPoint()); //$NON-NLS-1$
 					}
 					try {
                         // You need to disable the magic (really the normalization) otherwise it goes around
@@ -811,7 +823,7 @@ public class TablePane
 				} else {
 					// importing column from a source database
 					getModel().inherit(insertionPoint, col, newColumnsInPk);
-					if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision());
+					if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision()); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			} else {
 				return false;
@@ -845,7 +857,7 @@ public class TablePane
 		 */
 		public void dragEnter(DropTargetDragEvent dtde) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("DragEnter event on "+tp.getName());
+				logger.debug("DragEnter event on "+tp.getName()); //$NON-NLS-1$
 			}
 		}
 
@@ -861,7 +873,7 @@ public class TablePane
 		 */
 		public void dragExit(DropTargetEvent dte) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("DragExit event on "+tp.getName());
+				logger.debug("DragExit event on "+tp.getName()); //$NON-NLS-1$
 			}
 			tp.setInsertionPoint(COLUMN_INDEX_NONE);
 		}
@@ -878,9 +890,9 @@ public class TablePane
 		 */
 		public void dragOver(DropTargetDragEvent dtde) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("DragOver event on "+tp.getName()+": "+dtde);
-				logger.debug("Drop Action = "+dtde.getDropAction());
-				logger.debug("Source Actions = "+dtde.getSourceActions());
+				logger.debug("DragOver event on "+tp.getName()+": "+dtde); //$NON-NLS-1$ //$NON-NLS-2$
+				logger.debug("Drop Action = "+dtde.getDropAction()); //$NON-NLS-1$
+				logger.debug("Source Actions = "+dtde.getSourceActions()); //$NON-NLS-1$
 			}
 			dtde.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE & dtde.getDropAction());
 			try {
@@ -890,7 +902,7 @@ public class TablePane
 				int idx = tp.pointToColumnIndex(loc);
 				tp.setInsertionPoint(idx);
 			} catch (ArchitectException e) {
-				logger.error("Got exception translating drag location", e);
+				logger.error("Got exception translating drag location", e); //$NON-NLS-1$
 			}
 		}
 
@@ -910,7 +922,7 @@ public class TablePane
 			loc.x -= tp.getX();
 			loc.y -= tp.getY();
 
-			logger.debug("Drop target drop event on "+tp.getName()+": "+dtde);
+			logger.debug("Drop target drop event on "+tp.getName()+": "+dtde); //$NON-NLS-1$ //$NON-NLS-2$
 			Transferable t = dtde.getTransferable();
 			DataFlavor importFlavor = bestImportFlavor(pp, t.getTransferDataFlavors());
 			if (importFlavor == null) {
@@ -922,10 +934,10 @@ public class TablePane
 					int insertionPoint = tp.pointToColumnIndex(loc);
 
 					ArrayList<int[]> paths = (ArrayList<int[]>) t.getTransferData(importFlavor);
-					logger.debug("Importing items from tree: "+paths);
+					logger.debug("Importing items from tree: "+paths); //$NON-NLS-1$
 
 					// put the undo event adapter into a drag and drop state
-					pp.startCompoundEdit("Drag and Drop");
+					pp.startCompoundEdit("Drag and Drop"); //$NON-NLS-1$
 
 					ArrayList<SQLObject> droppedItems = new ArrayList<SQLObject>();
 					for (int[] path : paths) {
@@ -964,11 +976,11 @@ public class TablePane
                         success = tp.insertObjects(droppedItems, insertionPoint);
                     } catch (LockedColumnException ex ) {
                         JOptionPane.showConfirmDialog(pp,
-                                "Could not delete the column " +
+                                "Could not delete the column " + //$NON-NLS-1$
                                 ex.getCol().getName() +
-                                " because it is part of\n" +
-                                "the relationship \""+ex.getLockingRelationship()+"\".\n\n",
-                                "Column is Locked",
+                                " because it is part of\n" + //$NON-NLS-1$
+                                "the relationship \""+ex.getLockingRelationship()+"\".\n\n", //$NON-NLS-1$ //$NON-NLS-2$
+                                "Column is Locked", //$NON-NLS-1$
                                 JOptionPane.CLOSED_OPTION);
                         success = false;
                     } 
@@ -980,23 +992,23 @@ public class TablePane
 					}
 					dtde.dropComplete(success);
 				} catch (Exception ex) {
-					logger.error("Error processing drop operation", ex);
+					logger.error("Error processing drop operation", ex); //$NON-NLS-1$
 					dtde.rejectDrop();
 					dtde.dropComplete(false);
 					ASUtils.showExceptionDialogNoReport(tp.getParent().getOwner(),
-                        "Error processing drop operation", ex);
+                        "Error processing drop operation", ex); //$NON-NLS-1$
                 } finally {
 					tp.setInsertionPoint(COLUMN_INDEX_NONE);
 					try {
                         tp.getModel().normalizePrimaryKey();
                     } catch (ArchitectException e) {
-                        logger.error("Error processing normalize PrimaryKey", e);
+                        logger.error("Error processing normalize PrimaryKey", e); //$NON-NLS-1$
                         ASUtils.showExceptionDialogNoReport(tp.getParent().getOwner(),
-                                "Error processing normalize PrimaryKey after processing drop operation", e);
+                                "Error processing normalize PrimaryKey after processing drop operation", e); //$NON-NLS-1$
                     }
 
 					// put the undo event adapter into a regular state
-					pp.endCompoundEdit("End drag and drop");
+					pp.endCompoundEdit("End drag and drop"); //$NON-NLS-1$
 				}
 			}
 		}
@@ -1017,26 +1029,26 @@ public class TablePane
 		 * list, or null if no acceptable flavours are present.
 		 */
 		public DataFlavor bestImportFlavor(JComponent c, DataFlavor[] flavors) {
-			logger.debug("can I import "+Arrays.asList(flavors));
+			logger.debug("can I import "+Arrays.asList(flavors)); //$NON-NLS-1$
  			for (int i = 0; i < flavors.length; i++) {
 				String cls = flavors[i].getDefaultRepresentationClassAsString();
-				logger.debug("representation class = "+cls);
-				logger.debug("mime type = "+flavors[i].getMimeType());
-				logger.debug("type = "+flavors[i].getPrimaryType());
-				logger.debug("subtype = "+flavors[i].getSubType());
-				logger.debug("class = "+flavors[i].getParameter("class"));
-				logger.debug("isSerializedObject = "+flavors[i].isFlavorSerializedObjectType());
-				logger.debug("isInputStream = "+flavors[i].isRepresentationClassInputStream());
-				logger.debug("isRemoteObject = "+flavors[i].isFlavorRemoteObjectType());
-				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType));
+				logger.debug("representation class = "+cls); //$NON-NLS-1$
+				logger.debug("mime type = "+flavors[i].getMimeType()); //$NON-NLS-1$
+				logger.debug("type = "+flavors[i].getPrimaryType()); //$NON-NLS-1$
+				logger.debug("subtype = "+flavors[i].getSubType()); //$NON-NLS-1$
+				logger.debug("class = "+flavors[i].getParameter("class")); //$NON-NLS-1$ //$NON-NLS-2$
+				logger.debug("isSerializedObject = "+flavors[i].isFlavorSerializedObjectType()); //$NON-NLS-1$
+				logger.debug("isInputStream = "+flavors[i].isRepresentationClassInputStream()); //$NON-NLS-1$
+				logger.debug("isRemoteObject = "+flavors[i].isFlavorRemoteObjectType()); //$NON-NLS-1$
+				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType)); //$NON-NLS-1$
 
 
  				if (flavors[i].equals(DnDTreePathTransferable.TREEPATH_ARRAYLIST_FLAVOR)) {
-					logger.debug("YES");
+					logger.debug("YES"); //$NON-NLS-1$
  					return flavors[i];
 				}
  			}
-			logger.debug("NO!");
+			logger.debug("NO!"); //$NON-NLS-1$
  			return null;
 		}
 
@@ -1060,12 +1072,12 @@ public class TablePane
 		while (it.hasNext()) {
 			TablePane t3 = (TablePane) it.next();
 			if (logger.isDebugEnabled()) {
-			    logger.debug("(" + getModel().getName() + ") zoomed selected table point: " + getLocationOnScreen());
-			    logger.debug("(" + t3.getModel().getName() + ") zoomed iterator table point: " + t3.getLocationOnScreen());
+			    logger.debug("(" + getModel().getName() + ") zoomed selected table point: " + getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
+			    logger.debug("(" + t3.getModel().getName() + ") zoomed iterator table point: " + t3.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			if (!getLocationOnScreen().equals(t3.getLocationOnScreen())) { // equals operation might not work so good here
 				// unselect
-				logger.debug("found matching table!");
+				logger.debug("found matching table!"); //$NON-NLS-1$
 				t3.setSelected(false,SelectionEvent.SINGLE_SELECT);
 				t3.selectNone();
 			}
@@ -1106,9 +1118,9 @@ public class TablePane
 
 	public void dragDropEnd(DragSourceDropEvent dsde) {
 		if (dsde.getDropSuccess()) {
-			logger.debug("Succesful drop");
+			logger.debug("Succesful drop"); //$NON-NLS-1$
 		} else {
-			logger.debug("Unsuccesful drop");
+			logger.debug("Unsuccesful drop"); //$NON-NLS-1$
 		}
 		draggingColumn = null;
 	}
@@ -1152,7 +1164,7 @@ public class TablePane
     }
 
     public Color getColumnHighlight(SQLColumn column) {
-        logger.debug("Checking column "+column);
+        logger.debug("Checking column "+column); //$NON-NLS-1$
         if (columnHighlight.get(column).isEmpty()) {
             return getForegroundColor();
         } else {
@@ -1223,7 +1235,7 @@ public class TablePane
     public void setRounded(boolean isRounded) {
         boolean oldValue = rounded;
         rounded = isRounded;
-        firePropertyChange("rounded", oldValue, isRounded);
+        firePropertyChange("rounded", oldValue, isRounded); //$NON-NLS-1$
     }
 
     /**
@@ -1239,7 +1251,7 @@ public class TablePane
     public void setDashed(boolean isDashed) {
         boolean oldValue = dashed;
         dashed = isDashed;
-        firePropertyChange("dashed", oldValue, isDashed);
+        firePropertyChange("dashed", oldValue, isDashed); //$NON-NLS-1$
     }
 
     /**
@@ -1309,5 +1321,187 @@ public class TablePane
     
     public Set<SQLColumn> getHiddenColumns() {
         return hiddenColumns;
+    }
+    
+    /**
+     * Returns an instance of the popup menu with menu items exclusive to
+     * manipulating tablepanes.
+     */
+    public JPopupMenu getPopup() {
+        ArchitectFrame af = getPlayPen().getSession().getArchitectFrame();
+        JPopupMenu tablePanePopup = new JPopupMenu();
+        
+        JMenuItem mi;
+        
+        mi = new JMenuItem();
+        mi.setAction(af.getInsertIndexAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tablePanePopup.add(mi);
+        try {
+            if (model != null && model.getIndicesFolder().getChildCount() > 0) {
+                JMenu menu = new JMenu(Messages.getString("TablePane.indexPropertiesMenu")); //$NON-NLS-1$
+                menu.setIcon(SPSUtils.createIcon("edit_index", Messages.getString("TablePane.editIndexTooltip"), ArchitectSwingSessionContext.ICON_SIZE)); //$NON-NLS-1$ //$NON-NLS-2$
+                for (SQLIndex index : model.getIndices()) {
+                    JMenuItem menuItem = new JMenuItem(new EditSpecificIndexAction(getPlayPen().getSession(), index));
+                    menuItem.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+                    menu.add(menuItem);
+                }
+                tablePanePopup.add(menu);
+            }
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
+
+        tablePanePopup.addSeparator();
+
+        mi = new JMenuItem();
+        mi.setAction(af.getEditColumnAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tablePanePopup.add(mi);
+
+        mi = new JMenuItem();
+        mi.setAction(af.getInsertColumnAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tablePanePopup.add(mi);
+
+        tablePanePopup.addSeparator();
+
+        mi = new JMenuItem();
+        mi.setAction(af.getEditTableAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tablePanePopup.add(mi);
+
+        JMenu tableAppearance = new JMenu(Messages.getString("TablePane.tableAppearances")); //$NON-NLS-1$
+        JMenu backgroundColours = new JMenu(Messages.getString("TableEditPanel.tableColourLabel")); //$NON-NLS-1$
+        JMenu foregroundColours = new JMenu(Messages.getString("TableEditPanel.textColourLabel")); //$NON-NLS-1$
+        for (final Color colour : ColorScheme.BACKGROUND_COLOURS) {
+            Icon icon = new ColorIcon(60, 25, colour);
+            mi = new JMenuItem(icon);
+            mi.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    List<TablePane> tables = getPlayPen().getSelectedTables();
+                    getPlayPen().startCompoundEdit("Started setting table colour"); //$NON-NLS-1$
+                    for (TablePane tp : tables) {
+                        tp.setBackgroundColor(colour);
+                    }
+                    getPlayPen().endCompoundEdit("Finished setting table colour"); //$NON-NLS-1$
+                }
+            });
+            backgroundColours.add(mi);
+        }
+        for (final Color colour : ColorScheme.FOREGROUND_COLOURS) {
+            Icon icon = new ColorIcon(60, 25, colour);
+            mi = new JMenuItem(icon);
+            mi.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    List<TablePane> tables = getPlayPen().getSelectedTables();
+                    getPlayPen().startCompoundEdit("Started setting text colour"); //$NON-NLS-1$
+                    for (TablePane tp : tables) {
+                        tp.setForegroundColor(colour);
+                    }
+                    getPlayPen().endCompoundEdit("Finished setting text colour"); //$NON-NLS-1$
+                }
+            });
+            foregroundColours.add(mi);
+        }
+        tableAppearance.add(backgroundColours);
+        tableAppearance.add(foregroundColours);
+        if (getPlayPen().findTablePane(model) != null) {
+            JCheckBoxMenuItem cmi = new JCheckBoxMenuItem(
+                    Messages.getString("TableEditPanel.dashedLinesLabel"), getPlayPen().findTablePane(model).isDashed()); //$NON-NLS-1$
+            cmi.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    List<TablePane> tables = getPlayPen().getSelectedTables();
+                    getPlayPen().startCompoundEdit("Started setting dashed lines."); //$NON-NLS-1$
+                    for (TablePane tp : tables) {
+                        tp.setDashed(((JCheckBoxMenuItem) (e.getSource())).isSelected());
+                    }
+                    getPlayPen().endCompoundEdit("Finished setting dashed lines."); //$NON-NLS-1$
+                }
+            });
+            tableAppearance.add(cmi);
+            cmi = new JCheckBoxMenuItem(
+                    Messages.getString("TableEditPanel.roundedCornersLabel"), getPlayPen().findTablePane(model).isRounded()); //$NON-NLS-1$
+            cmi.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    List<TablePane> tables = getPlayPen().getSelectedTables();
+                    getPlayPen().startCompoundEdit("Started setting rounded edges."); //$NON-NLS-1$
+                    for (TablePane tp : tables) {
+                        tp.setRounded(((JCheckBoxMenuItem) (e.getSource())).isSelected());
+                    }
+                    getPlayPen().endCompoundEdit("Finished setting rounded edges."); //$NON-NLS-1$
+                }
+            });
+            tableAppearance.add(cmi);
+        }
+        tablePanePopup.add(tableAppearance);
+
+        tablePanePopup.addSeparator();
+
+        mi = new JMenuItem();
+        mi.setAction(getPlayPen().bringToFrontAction);
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tablePanePopup.add(mi);
+
+        mi = new JMenuItem();
+        mi.setAction(getPlayPen().sendToBackAction);
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tablePanePopup.add(mi);
+
+        JMenu align = new JMenu(Messages.getString("TablePane.alignTablesMenu")); //$NON-NLS-1$
+        mi = new JMenuItem();
+        mi.setAction(af.getAlignTableHorizontalAction()); 
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        align.add(mi);
+        
+        
+        mi = new JMenuItem();
+        mi.setAction(af.getAlignTableVerticalAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        align.add(mi);
+        tablePanePopup.add(align);
+        
+        tablePanePopup.addSeparator();
+        
+        mi = new JMenuItem();
+        mi.setAction(af.getDeleteSelectedAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tablePanePopup.add(mi);
+        
+
+        if (logger.isDebugEnabled()) {
+            tablePanePopup.addSeparator();
+            mi = new JMenuItem("Show listeners"); //$NON-NLS-1$
+            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+            mi.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent evt) {
+                        List<PlayPenComponent> selection = getPlayPen().getSelectedItems();
+                        if (selection.size() == 1) {
+                            TablePane tp = (TablePane) selection.get(0);
+                            JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JList(tp.getModel().getSQLObjectListeners().toArray())));
+                        } else {
+                            JOptionPane.showMessageDialog(getPlayPen(), "You can only show listeners on one item at a time"); //$NON-NLS-1$
+                        }
+                    }
+                });
+            tablePanePopup.add(mi);
+
+            mi = new JMenuItem("Show Selection List"); //$NON-NLS-1$
+            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+            mi.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent evt) {
+                        List<PlayPenComponent> selection = getPlayPen().getSelectedItems();
+                        if (selection.size() == 1) {
+                            TablePane tp = (TablePane) selection.get(0);
+                            JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JList(tp.selectedColumns.toArray())));
+                        } else {
+                            JOptionPane.showMessageDialog(getPlayPen(), "You can only show selected columns on one item at a time"); //$NON-NLS-1$
+                        }
+                    }
+                });
+            tablePanePopup.add(mi);
+        }
+        
+        return tablePanePopup;
     }
 }

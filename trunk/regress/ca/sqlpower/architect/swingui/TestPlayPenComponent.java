@@ -106,6 +106,7 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends T
 	    copyIgnoreProperties.add("opaque");
 	    copyIgnoreProperties.add("parent");
 	    copyIgnoreProperties.add("playPen");
+	    copyIgnoreProperties.add("popup");
 	    copyIgnoreProperties.add("preferredLocation");
 	    copyIgnoreProperties.add("preferredSize");
 	    copyIgnoreProperties.add("selected");
