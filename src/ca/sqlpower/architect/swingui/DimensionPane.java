@@ -21,6 +21,9 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,6 +35,7 @@ import java.util.Set;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
@@ -212,6 +216,75 @@ public class DimensionPane extends PlayPenComponent implements Serializable, Sel
 
     public String getDimensionName() {
         return dimensionName;
+    }
+
+    @Override
+    public void handleMouseEvent(MouseEvent evt) {
+        PlayPen pp = getPlayPen();
+        
+        Point p = evt.getPoint();
+        pp.unzoomPoint(p);
+        p.translate(-getX(), -getY());
+
+        if (evt.getID() == MouseEvent.MOUSE_CLICKED) {
+            int selectedColIndex = pointToColumnIndex(p);
+            if (evt.getClickCount() == 1 && evt.getButton() == MouseEvent.BUTTON1){
+                if (selectedColIndex > TablePane.COLUMN_INDEX_TITLE && componentPreviouslySelected){
+                    deselectColumn(selectedColIndex);
+                } else if (isSelected() && componentPreviouslySelected) {
+                    setSelected(false, SelectionEvent.SINGLE_SELECT);
+                }
+            }
+        } else if (evt.getID() == MouseEvent.MOUSE_PRESSED) {
+            componentPreviouslySelected = false;
+            int clickCol = pointToColumnIndex(p);
+            if (pp.getMouseMode() != MouseModeType.CREATING_TABLE) {
+                if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
+                    if (!isSelected() || pp.getMouseMode() == MouseModeType.IDLE) {
+                        pp.setMouseMode(MouseModeType.SELECT_TABLE);
+                        selectNone();
+                    }
+                } else {
+                    pp.setMouseMode(MouseModeType.MULTI_SELECT);
+                }
+
+                // Alt-click drags table no matter where you clicked
+                if ((evt.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0) {
+                    clickCol = TablePane.COLUMN_INDEX_TITLE;
+                }
+
+                if (clickCol > TablePane.COLUMN_INDEX_TITLE &&
+                        clickCol < getColumns().size()) {
+
+                    if ((evt.getModifiersEx() &
+                            (InputEvent.SHIFT_DOWN_MASK |
+                                    InputEvent.CTRL_DOWN_MASK)) == 0) {
+
+                        if (!isColumnSelected(clickCol)) {
+                            selectNone();
+                        }
+                        pp.setMouseMode(MouseModeType.SELECT_COLUMN);
+                    }
+                    if (isColumnSelected(clickCol)) {
+                        componentPreviouslySelected = true;
+                    } else {
+                        selectColumn(clickCol);
+                    }
+
+                    fireSelectionEvent(new SelectionEvent(DimensionPane.this, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
+                    repaint();
+                }
+                if (isSelected()&& clickCol == TablePane.COLUMN_INDEX_TITLE){
+                    componentPreviouslySelected = true;
+                } else {
+                    setSelected(true,SelectionEvent.SINGLE_SELECT);
+                }
+            }
+        } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
+            // relationship is non-rectangular so we can't use getBounds for intersection testing
+            setSelected(pp.rubberBand.intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
+        } 
+        
     }
 
 }

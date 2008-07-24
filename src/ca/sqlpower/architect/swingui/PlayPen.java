@@ -2266,45 +2266,8 @@ public class PlayPen extends JPanel
 			PlayPenComponent c = contentPane.getComponentAt(p);
 			if (c != null) p.translate(-c.getX(), -c.getY());
 			
-			if (c instanceof Relationship) {
+			if (c instanceof PlayPenComponent) {
 			    c.handleMouseEvent(evt);
-			} else if ( c instanceof TablePane ) {
-				TablePane tp = (TablePane) c;
-				if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
-				    try {
-				        int selectedColIndex = tp.pointToColumnIndex(p);
-				        if (evt.getClickCount() == 2) { // double click
-				            if (tp.isSelected()) {
-				                ArchitectFrame af = session.getArchitectFrame();
-				                if (selectedColIndex == TablePane.COLUMN_INDEX_TITLE) {
-				                    af.getEditTableAction().actionPerformed
-				                    (new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
-				                } else if (selectedColIndex >= 0) {
-				                    af.getEditColumnAction().actionPerformed
-				                    (new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
-				                }
-				            }
-				        } else if(evt.getClickCount()==1) {
-				            logger.debug("Col index "+selectedColIndex); //$NON-NLS-1$
-				            if (selectedColIndex > TablePane.COLUMN_INDEX_TITLE && componentPreviouslySelected){
-				                ((TablePane)c).deselectColumn(selectedColIndex);
-				            } else if (c.isSelected()&& componentPreviouslySelected) {
-				                c.setSelected(false,SelectionEvent.SINGLE_SELECT);
-				            }
-				        }
-				    } catch (ArchitectException e) {
-				        logger.error("Exception converting point to column", e); //$NON-NLS-1$
-				    }
-				}
-			} else if (c instanceof DimensionPane) {
-			    int selectedColIndex = ((DimensionPane) c).pointToColumnIndex(p);
-			    if (evt.getClickCount() == 1 && evt.getButton() == MouseEvent.BUTTON1){
-			        if (selectedColIndex > TablePane.COLUMN_INDEX_TITLE && componentPreviouslySelected){
-                        ((DimensionPane) c).deselectColumn(selectedColIndex);
-                    } else if (c.isSelected() && componentPreviouslySelected) {
-                        c.setSelected(false, SelectionEvent.SINGLE_SELECT);
-                    }
-                }
 			} else {
                 session.getArchitectFrame().getCreateIdentifyingRelationshipAction().cancel();
                 session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
@@ -2327,133 +2290,9 @@ public class PlayPen extends JPanel
 			PlayPenComponent c = contentPane.getComponentAt(p);
 	        if (c != null) p.translate(-c.getX(), -c.getY());
 			
-			if (c instanceof Relationship) {
+			if (c instanceof PlayPenComponent) {
 			    c.handleMouseEvent(evt);
-			} else if (c instanceof TablePane) {
-				evt.getComponent().requestFocus();
-				TablePane tp = (TablePane) c;
-				PlayPen pp = (PlayPen) tp.getPlayPen();
-				try {
-					int clickCol = tp.pointToColumnIndex(p);
-
-					if (mouseMode != MouseModeType.CREATING_TABLE) {
-						if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-							if (!tp.isSelected() || mouseMode == MouseModeType.IDLE) {
-								mouseMode = MouseModeType.SELECT_TABLE;
-								pp.selectNone();
-							}
-						} else {
-							mouseMode = MouseModeType.MULTI_SELECT;
-						}
-
-                        // Alt-click drags table no matter where you clicked
-                        if ((evt.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0) {
-                            clickCol = TablePane.COLUMN_INDEX_TITLE;
-                        }
-                        
-						if (clickCol > TablePane.COLUMN_INDEX_TITLE &&
-							 clickCol < tp.getModel().getColumns().size()) {
-
-							if ((evt.getModifiersEx() &
-									(InputEvent.SHIFT_DOWN_MASK |
-									 InputEvent.CTRL_DOWN_MASK)) == 0) {
-
-								if (!tp.isColumnSelected(clickCol) ){
-									tp.deSelectEverythingElse(evt);
-									tp.selectNone();
-								}
-								mouseMode = MouseModeType.SELECT_COLUMN;
-							}
-                            if (tp.isColumnSelected(clickCol)) {
-                                componentPreviouslySelected = true;
-                            } else {
-                                tp.selectColumn(clickCol);
-                            }
-
-                            tp.fireSelectionEvent(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
-							tp.repaint();
-						}
-                        if (tp.isSelected()&& clickCol == TablePane.COLUMN_INDEX_TITLE){
-                            componentPreviouslySelected = true;
-                        } else {
-                            tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-                        }
-					}
-
-
-
-					if (clickCol == TablePane.COLUMN_INDEX_TITLE && !session.getArchitectFrame().createRelationshipIsActive()) {
-						Iterator it = pp.getSelectedTables().iterator();
-						logger.debug("event point: " + p); //$NON-NLS-1$
-						logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
-						draggingTablePanes = true;
-
-						while (it.hasNext()) {
-							// create FloatingTableListener for each selected item
-							TablePane t3 = (TablePane)it.next();
-							logger.debug("(" + t3.getModel().getName() + ") zoomed selected table point: " + t3.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
-							logger.debug("(" + t3.getModel().getName() + ") unzoomed selected table point: " + pp.unzoomPoint(t3.getLocationOnScreen())); //$NON-NLS-1$ //$NON-NLS-2$
-							/* the floating table listener expects zoomed handles which are relative to
-	                           the location of the table column which was clicked on.  */
-							Point clickedColumn = tp.getLocationOnScreen();
-							Point otherTable = t3.getLocationOnScreen();
-							Point handle = pp.zoomPoint(new Point(p));
-							logger.debug("(" + t3.getModel().getName() + ") translation x=" //$NON-NLS-1$ //$NON-NLS-2$
-	                                      + (otherTable.getX() - clickedColumn.getX()) + ",y=" //$NON-NLS-1$
-	                                      + (otherTable.getY() - clickedColumn.getY()));
-							handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY()));
-							new PlayPen.FloatingTableListener(pp, t3, handle,false);
-						}
-					}
-				} catch (ArchitectException e) {
-					logger.error("Exception converting point to column", e); //$NON-NLS-1$
-				}
-			} else if (c instanceof DimensionPane) {
-			    DimensionPane dp = (DimensionPane) c;
-			    int clickCol = dp.pointToColumnIndex(p);
-
-			    if (mouseMode != MouseModeType.CREATING_TABLE) {
-			        if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-			            if (!dp.isSelected() || mouseMode == MouseModeType.IDLE) {
-			                mouseMode = MouseModeType.SELECT_TABLE;
-			                dp.selectNone();
-			            }
-			        } else {
-			            mouseMode = MouseModeType.MULTI_SELECT;
-			        }
-
-			        // Alt-click drags table no matter where you clicked
-			        if ((evt.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0) {
-			            clickCol = TablePane.COLUMN_INDEX_TITLE;
-			        }
-
-			        if (clickCol > TablePane.COLUMN_INDEX_TITLE &&
-			                clickCol < dp.getColumns().size()) {
-
-			            if ((evt.getModifiersEx() &
-			                    (InputEvent.SHIFT_DOWN_MASK |
-			                            InputEvent.CTRL_DOWN_MASK)) == 0) {
-
-			                if (!dp.isColumnSelected(clickCol)) {
-			                    dp.selectNone();
-			                }
-			                mouseMode = MouseModeType.SELECT_COLUMN;
-			            }
-			            if (dp.isColumnSelected(clickCol)) {
-			                componentPreviouslySelected = true;
-			            } else {
-			                dp.selectColumn(clickCol);
-			            }
-
-			            dp.fireSelectionEvent(new SelectionEvent(dp, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
-			            dp.repaint();
-			        }
-			        if (dp.isSelected()&& clickCol == TablePane.COLUMN_INDEX_TITLE){
-			            componentPreviouslySelected = true;
-			        } else {
-			            dp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-			        }
-			    }
+			    
 			} else {
 				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0  && !evt.isPopupTrigger()) {
 					mouseMode = MouseModeType.IDLE;
@@ -2509,11 +2348,7 @@ public class PlayPen extends JPanel
 				Rectangle temp = new Rectangle();  // avoids multiple allocations in getBounds
 				for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
 					PlayPenComponent c = contentPane.getComponent(i);
-					if (c instanceof Relationship) {
-					    c.handleMouseEvent(evt);
-					} else if (c instanceof Selectable) {
-						((Selectable) c).setSelected(rubberBand.intersects(c.getBounds(temp)),SelectionEvent.SINGLE_SELECT);
-					}
+					c.handleMouseEvent(evt);
 				}
 
 				// Add the new rubberband to the dirty region and grow

@@ -428,8 +428,7 @@ public abstract class PlayPenComponent implements Selectable {
     /**
      * Performs the component specific actions for the given MouseEvent. 
      */
-    public void handleMouseEvent(MouseEvent evt) {
-    }
+    public abstract void handleMouseEvent(MouseEvent evt);
     
     /**
      * An instance is fired when playpen component gets resized.
