@@ -1,0 +1,165 @@
+<HTML>
+<BODY BGCOLOR="white">
+<PRE>
+<FONT color="green">001</FONT>    /*<a name="line.1"></a>
+<FONT color="green">002</FONT>    // $Id: //open/util/resgen/src/org/eigenbase/xom/wrappers/XercesDOMParser.java#3 $<a name="line.2"></a>
+<FONT color="green">003</FONT>    // Package org.eigenbase.xom is an XML Object Mapper.<a name="line.3"></a>
+<FONT color="green">004</FONT>    // Copyright (C) 2005-2005 The Eigenbase Project<a name="line.4"></a>
+<FONT color="green">005</FONT>    // Copyright (C) 2005-2005 Disruptive Tech<a name="line.5"></a>
+<FONT color="green">006</FONT>    // Copyright (C) 2005-2005 LucidEra, Inc.<a name="line.6"></a>
+<FONT color="green">007</FONT>    // Portions Copyright (C) 2001-2005 Kana Software, Inc. and others.<a name="line.7"></a>
+<FONT color="green">008</FONT>    //<a name="line.8"></a>
+<FONT color="green">009</FONT>    // This library is free software; you can redistribute it and/or modify it<a name="line.9"></a>
+<FONT color="green">010</FONT>    // under the terms of the GNU Lesser General Public License as published by the<a name="line.10"></a>
+<FONT color="green">011</FONT>    // Free Software Foundation; either version 2 of the License, or (at your<a name="line.11"></a>
+<FONT color="green">012</FONT>    // option) any later version approved by The Eigenbase Project.<a name="line.12"></a>
+<FONT color="green">013</FONT>    //<a name="line.13"></a>
+<FONT color="green">014</FONT>    // This library is distributed in the hope that it will be useful, <a name="line.14"></a>
+<FONT color="green">015</FONT>    // but WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.15"></a>
+<FONT color="green">016</FONT>    // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<a name="line.16"></a>
+<FONT color="green">017</FONT>    // GNU Lesser General Public License for more details.<a name="line.17"></a>
+<FONT color="green">018</FONT>    // <a name="line.18"></a>
+<FONT color="green">019</FONT>    // You should have received a copy of the GNU Lesser General Public License<a name="line.19"></a>
+<FONT color="green">020</FONT>    // along with this library; if not, write to the Free Software<a name="line.20"></a>
+<FONT color="green">021</FONT>    // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA<a name="line.21"></a>
+<FONT color="green">022</FONT>    //<a name="line.22"></a>
+<FONT color="green">023</FONT>    // klo, 1 August, 2001<a name="line.23"></a>
+<FONT color="green">024</FONT>    */<a name="line.24"></a>
+<FONT color="green">025</FONT>    <a name="line.25"></a>
+<FONT color="green">026</FONT>    package org.eigenbase.xom.wrappers;<a name="line.26"></a>
+<FONT color="green">027</FONT>    <a name="line.27"></a>
+<FONT color="green">028</FONT>    import org.eigenbase.xom.DOMWrapper;<a name="line.28"></a>
+<FONT color="green">029</FONT>    import org.eigenbase.xom.XOMException;<a name="line.29"></a>
+<FONT color="green">030</FONT>    import org.apache.xerces.dom.DocumentImpl;<a name="line.30"></a>
+<FONT color="green">031</FONT>    import org.apache.xerces.parsers.DOMParser;<a name="line.31"></a>
+<FONT color="green">032</FONT>    import org.w3c.dom.Document;<a name="line.32"></a>
+<FONT color="green">033</FONT>    import org.w3c.dom.Node;<a name="line.33"></a>
+<FONT color="green">034</FONT>    import org.xml.sax.InputSource;<a name="line.34"></a>
+<FONT color="green">035</FONT>    import org.xml.sax.SAXException;<a name="line.35"></a>
+<FONT color="green">036</FONT>    <a name="line.36"></a>
+<FONT color="green">037</FONT>    import java.io.IOException;<a name="line.37"></a>
+<FONT color="green">038</FONT>    <a name="line.38"></a>
+<FONT color="green">039</FONT>    /**<a name="line.39"></a>
+<FONT color="green">040</FONT>     * This private helper class presents a GenericDOMParser using Xerces, with<a name="line.40"></a>
+<FONT color="green">041</FONT>     * simple error handling appropriate for a testing environment.<a name="line.41"></a>
+<FONT color="green">042</FONT>     */<a name="line.42"></a>
+<FONT color="green">043</FONT>    <a name="line.43"></a>
+<FONT color="green">044</FONT>    public class XercesDOMParser extends GenericDOMParser {<a name="line.44"></a>
+<FONT color="green">045</FONT>        private DOMParser parser;<a name="line.45"></a>
+<FONT color="green">046</FONT>    <a name="line.46"></a>
+<FONT color="green">047</FONT>        /**<a name="line.47"></a>
+<FONT color="green">048</FONT>         * Constructs a non-validating Xerces DOM Parser.<a name="line.48"></a>
+<FONT color="green">049</FONT>         */<a name="line.49"></a>
+<FONT color="green">050</FONT>        public XercesDOMParser() throws XOMException {<a name="line.50"></a>
+<FONT color="green">051</FONT>            this(false);<a name="line.51"></a>
+<FONT color="green">052</FONT>        }<a name="line.52"></a>
+<FONT color="green">053</FONT>    <a name="line.53"></a>
+<FONT color="green">054</FONT>        /**<a name="line.54"></a>
+<FONT color="green">055</FONT>         * Constructs a Xerces DOM Parser.<a name="line.55"></a>
+<FONT color="green">056</FONT>         * @param validate whether to enable validation<a name="line.56"></a>
+<FONT color="green">057</FONT>         */<a name="line.57"></a>
+<FONT color="green">058</FONT>        public XercesDOMParser(boolean validate) throws XOMException {<a name="line.58"></a>
+<FONT color="green">059</FONT>            parser = new DOMParser();<a name="line.59"></a>
+<FONT color="green">060</FONT>            try {<a name="line.60"></a>
+<FONT color="green">061</FONT>                if (!validate) {<a name="line.61"></a>
+<FONT color="green">062</FONT>                    parser.setFeature(VALIDATION_FEATURE, false);<a name="line.62"></a>
+<FONT color="green">063</FONT>                    parser.setFeature(LOAD_EXTERNAL_DTD_FEATURE, false);<a name="line.63"></a>
+<FONT color="green">064</FONT>                }<a name="line.64"></a>
+<FONT color="green">065</FONT>            } catch (SAXException e) {<a name="line.65"></a>
+<FONT color="green">066</FONT>                throw new XOMException(e, "Error setting up validation");<a name="line.66"></a>
+<FONT color="green">067</FONT>            }<a name="line.67"></a>
+<FONT color="green">068</FONT>    <a name="line.68"></a>
+<FONT color="green">069</FONT>            parser.setErrorHandler(this);<a name="line.69"></a>
+<FONT color="green">070</FONT>            document = new DocumentImpl();<a name="line.70"></a>
+<FONT color="green">071</FONT>        }<a name="line.71"></a>
+<FONT color="green">072</FONT>    <a name="line.72"></a>
+<FONT color="green">073</FONT>        // implement GenericDOMParser<a name="line.73"></a>
+<FONT color="green">074</FONT>        protected Document parseInputSource(InputSource in) throws XOMException {<a name="line.74"></a>
+<FONT color="green">075</FONT>            prepareParse();<a name="line.75"></a>
+<FONT color="green">076</FONT>            try {<a name="line.76"></a>
+<FONT color="green">077</FONT>                parser.parse(in);<a name="line.77"></a>
+<FONT color="green">078</FONT>            } catch (SAXException ex) {<a name="line.78"></a>
+<FONT color="green">079</FONT>                // Display any pending errors<a name="line.79"></a>
+<FONT color="green">080</FONT>                handleErrors();<a name="line.80"></a>
+<FONT color="green">081</FONT>                throw new XOMException(ex, "Document parse failed");<a name="line.81"></a>
+<FONT color="green">082</FONT>            } catch (IOException ex) {<a name="line.82"></a>
+<FONT color="green">083</FONT>                // Display any pending errors<a name="line.83"></a>
+<FONT color="green">084</FONT>                handleErrors();<a name="line.84"></a>
+<FONT color="green">085</FONT>                throw new XOMException(ex, "Document parse failed");<a name="line.85"></a>
+<FONT color="green">086</FONT>            }<a name="line.86"></a>
+<FONT color="green">087</FONT>    <a name="line.87"></a>
+<FONT color="green">088</FONT>            handleErrors();<a name="line.88"></a>
+<FONT color="green">089</FONT>            return parser.getDocument();<a name="line.89"></a>
+<FONT color="green">090</FONT>        }<a name="line.90"></a>
+<FONT color="green">091</FONT>    <a name="line.91"></a>
+<FONT color="green">092</FONT>        // implement Parser<a name="line.92"></a>
+<FONT color="green">093</FONT>        public DOMWrapper create(String tagName) {<a name="line.93"></a>
+<FONT color="green">094</FONT>            Node node = document.createElement(tagName);<a name="line.94"></a>
+<FONT color="green">095</FONT>            return new W3CDOMWrapper(node);<a name="line.95"></a>
+<FONT color="green">096</FONT>        }<a name="line.96"></a>
+<FONT color="green">097</FONT>    }<a name="line.97"></a>
+<FONT color="green">098</FONT>    <a name="line.98"></a>
+<FONT color="green">099</FONT>    // End XercesDOMParser.java<a name="line.99"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</PRE>
+</BODY>
+</HTML>
