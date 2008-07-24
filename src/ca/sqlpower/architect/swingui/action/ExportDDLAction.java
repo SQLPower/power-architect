@@ -45,7 +45,7 @@ import ca.sqlpower.architect.ddl.ConflictResolver;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLWarning;
 import ca.sqlpower.architect.ddl.DDLWarningComponent;
-import ca.sqlpower.architect.ddl.DDLWarningComponentFactory;
+import ca.sqlpower.architect.ddl.ObjectPropertyModificationDDLComponent;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
@@ -112,7 +112,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                        
                                         for (Object o : warnings) {
                                             DDLWarning ddlwarning = (DDLWarning) o;
-                                            DDLWarningComponent ddlWarningComponent = DDLWarningComponentFactory.createComponent(ddlwarning);
+                                            DDLWarningComponent ddlWarningComponent = new ObjectPropertyModificationDDLComponent(ddlwarning);
                                             listBoxPanel.add(ddlWarningComponent.getComponent());
                                             warningComponents.add(ddlWarningComponent);
                                         }
