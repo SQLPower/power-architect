@@ -456,7 +456,7 @@
 		<mkdir dir="${build}/ca/sqlpower/architect/doc/" />
 
 		<xslt
-			style="doc/tools/xslt/html/chunk.xsl"
+			style="doc/tools/xslt/html/docbook.xsl"
 			in="${java.io.tmpdir}/PowerArchitectUserGuide-nowidth.xml"
 			out="${build}/ca/sqlpower/architect/doc/PowerArchitectUserGuide.html"
 			classpathref="docbookclasspath">
