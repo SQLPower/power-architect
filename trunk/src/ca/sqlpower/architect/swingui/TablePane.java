@@ -35,6 +35,7 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -76,6 +77,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
+import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentMovedEvent;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -1504,5 +1506,122 @@ public class TablePane
         }
         
         return tablePanePopup;
+    }
+    
+    @Override
+    public void handleMouseEvent(MouseEvent evt) {
+        PlayPen pp = getPlayPen();
+        
+        Point p = evt.getPoint();
+        pp.unzoomPoint(p);
+        p.translate(-getX(), -getY());
+        
+        if (evt.getID() == MouseEvent.MOUSE_CLICKED) {
+            if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
+                try {
+                    int selectedColIndex = pointToColumnIndex(p);
+                    if (evt.getClickCount() == 2) { // double click
+                        if (isSelected()) {
+                            ArchitectFrame af = pp.getSession().getArchitectFrame();
+                            if (selectedColIndex == TablePane.COLUMN_INDEX_TITLE) {
+                                af.getEditTableAction().actionPerformed
+                                (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+                            } else if (selectedColIndex >= 0) {
+                                af.getEditColumnAction().actionPerformed
+                                (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+                            }
+                        }
+                    } else if(evt.getClickCount()==1) {
+                        logger.debug("Col index "+selectedColIndex); //$NON-NLS-1$
+                        if (selectedColIndex > TablePane.COLUMN_INDEX_TITLE && componentPreviouslySelected){
+                            deselectColumn(selectedColIndex);
+                        } else if (isSelected()&& componentPreviouslySelected) {
+                            setSelected(false,SelectionEvent.SINGLE_SELECT);
+                        }
+                    }
+                } catch (ArchitectException e) {
+                    logger.error("Exception converting point to column", e); //$NON-NLS-1$
+                }
+            }
+        } else if (evt.getID() == MouseEvent.MOUSE_PRESSED) {
+            componentPreviouslySelected = false;
+            evt.getComponent().requestFocus();
+            try {
+                int clickCol = pointToColumnIndex(p);
+
+                if (pp.getMouseMode() != MouseModeType.CREATING_TABLE) {
+                    if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
+                        if (!isSelected() || pp.getMouseMode() == MouseModeType.IDLE) {
+                            pp.setMouseMode(MouseModeType.SELECT_TABLE);
+                            pp.selectNone();
+                        }
+                    } else {
+                        pp.setMouseMode(MouseModeType.MULTI_SELECT);
+                    }
+
+                    // Alt-click drags table no matter where you clicked
+                    if ((evt.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0) {
+                        clickCol = TablePane.COLUMN_INDEX_TITLE;
+                    }
+                    
+                    if (clickCol > TablePane.COLUMN_INDEX_TITLE &&
+                         clickCol < getModel().getColumns().size()) {
+
+                        if ((evt.getModifiersEx() &
+                                (InputEvent.SHIFT_DOWN_MASK |
+                                 InputEvent.CTRL_DOWN_MASK)) == 0) {
+
+                            if (!isColumnSelected(clickCol) ){
+                                deSelectEverythingElse(evt);
+                                selectNone();
+                            }
+                            pp.setMouseMode(MouseModeType.SELECT_COLUMN);
+                        }
+                        if (isColumnSelected(clickCol)) {
+                            componentPreviouslySelected = true;
+                        } else {
+                            selectColumn(clickCol);
+                        }
+
+                        fireSelectionEvent(new SelectionEvent(TablePane.this, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
+                        repaint();
+                    }
+                    if (isSelected()&& clickCol == TablePane.COLUMN_INDEX_TITLE){
+                        componentPreviouslySelected = true;
+                    } else {
+                        setSelected(true,SelectionEvent.SINGLE_SELECT);
+                    }
+                }
+
+                if (clickCol == TablePane.COLUMN_INDEX_TITLE && !pp.getSession().getArchitectFrame().createRelationshipIsActive()) {
+                    Iterator it = pp.getSelectedTables().iterator();
+                    logger.debug("event point: " + p); //$NON-NLS-1$
+                    logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
+                    pp.draggingTablePanes = true;
+
+                    while (it.hasNext()) {
+                        // create FloatingTableListener for each selected item
+                        TablePane t3 = (TablePane)it.next();
+                        logger.debug("(" + t3.getModel().getName() + ") zoomed selected table point: " + t3.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
+                        logger.debug("(" + t3.getModel().getName() + ") unzoomed selected table point: " + pp.unzoomPoint(t3.getLocationOnScreen())); //$NON-NLS-1$ //$NON-NLS-2$
+                        /* the floating table listener expects zoomed handles which are relative to
+                           the location of the table column which was clicked on.  */
+                        Point clickedColumn = getLocationOnScreen();
+                        Point otherTable = t3.getLocationOnScreen();
+                        Point handle = pp.zoomPoint(new Point(p));
+                        logger.debug("(" + t3.getModel().getName() + ") translation x=" //$NON-NLS-1$ //$NON-NLS-2$
+                                      + (otherTable.getX() - clickedColumn.getX()) + ",y=" //$NON-NLS-1$
+                                      + (otherTable.getY() - clickedColumn.getY()));
+                        handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY()));
+                        new PlayPen.FloatingTableListener(pp, t3, handle,false);
+                    }
+                }
+            } catch (ArchitectException e) {
+                logger.error("Exception converting point to column", e); //$NON-NLS-1$
+            }
+        } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
+            // relationship is non-rectangular so we can't use getBounds for intersection testing
+            setSelected(pp.rubberBand.intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
+        } 
     }
 }
