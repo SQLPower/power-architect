@@ -1327,6 +1327,7 @@ public class TablePane
      * Returns an instance of the popup menu with menu items exclusive to
      * manipulating tablepanes.
      */
+    @Override
     public JPopupMenu getPopup() {
         ArchitectFrame af = getPlayPen().getSession().getArchitectFrame();
         JPopupMenu tablePanePopup = new JPopupMenu();

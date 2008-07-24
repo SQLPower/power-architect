@@ -26,6 +26,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -55,6 +56,8 @@ public abstract class PlayPenComponent implements Selectable {
     private PlayPenComponentUI ui;
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
+    protected boolean componentPreviouslySelected;
     
     protected PlayPenComponent(PlayPenContentPane parent) {
         this.parent = parent;
@@ -76,19 +79,31 @@ public abstract class PlayPenComponent implements Selectable {
     }
 
     /**
-     * Shows the given popup menu on the PlayPen that owns this table
-     * pane because it doesn't work to show it on this component,
-     * which is not really part of the swing hierarchy.
-     *
-     * @param menu the menu to show
-     * @param p the point (relative to this component's top-left
-     * corner) to show it at.
+     * Shows the component's popup menu on the PlayPen that owns this component
+     * because it doesn't work to show it on this component, which is not really
+     * part of the swing hierarchy. Only executed if the component has a popup
+     * menu, see {@link #getPopup()}.
+     * 
+     * @param p
+     *            the point (relative to this component's top-left corner) to
+     *            show it at.
      */
-    public void showPopup(JPopupMenu menu, Point p) {
-        final int xAdjust = 5;  // ensure menu doesn't appear directly under pointer
-        p.translate(getX(), getY());
-        getPlayPen().zoomPoint(p);
-        menu.show(getPlayPen(), p.x + xAdjust, p.y);
+    public void showPopup(Point p) {
+    	JPopupMenu menu = getPopup();
+        if (menu != null) {
+            final int xAdjust = 5;  // ensure menu doesn't appear directly under pointer
+            p.translate(getX(), getY());
+            getPlayPen().zoomPoint(p);
+            menu.show(getPlayPen(), p.x + xAdjust, p.y);
+        }
+    }
+    
+    /**
+     * Returns a component specific popup menu. Defaulted here to null
+     * so components that have popup menus must override this class. 
+     */
+    public JPopupMenu getPopup() {
+        return null;
     }
     
     /**
@@ -408,6 +423,12 @@ public abstract class PlayPenComponent implements Selectable {
 
     public PlayPenContentPane getParent() {
         return parent;
+    }
+    
+    /**
+     * Performs the component specific actions for the given MouseEvent. 
+     */
+    public void handleMouseEvent(MouseEvent evt) {
     }
     
     /**
