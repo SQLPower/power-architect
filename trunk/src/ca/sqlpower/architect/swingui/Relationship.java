@@ -23,6 +23,7 @@ import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -38,6 +39,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.event.MouseInputAdapter;
 
 import org.apache.log4j.Logger;
@@ -50,6 +52,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
+import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentMovedEvent;
 import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -500,6 +503,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
         return pkTable;
     }
 
+    @Override
     public JPopupMenu getPopup() {
         // Lazy load popup if it isn't created
         // We don't create it in the constructor because the
@@ -538,4 +542,57 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
         setFkConnectionPoint(connectionPoints[1]);
     }
 
+    @Override
+    public void handleMouseEvent(MouseEvent evt) {
+        PlayPen pp = getPlayPen();
+        
+        Point p = evt.getPoint();
+        pp.unzoomPoint(p);
+        p.translate(-getX(), -getY());
+        
+        if (evt.getID() == MouseEvent.MOUSE_CLICKED) {
+            ArchitectSwingSession session = pp.getSession();
+            if (evt.getClickCount() == 2) {
+                session.getArchitectFrame().getEditRelationshipAction().actionPerformed
+                (new ActionEvent(evt.getSource(),
+                        ActionEvent.ACTION_PERFORMED,
+                        ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+            } else if (evt.getClickCount() == 1 && evt.getButton() == MouseEvent.BUTTON1){
+                if (isSelected() && componentPreviouslySelected) {
+                    setSelected(false, SelectionEvent.SINGLE_SELECT);
+                }
+            }
+            session.getArchitectFrame().getCreateIdentifyingRelationshipAction().cancel();
+            session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
+        } else if (evt.getID() == MouseEvent.MOUSE_PRESSED) {
+            componentPreviouslySelected = false;
+
+            if (pp.getMouseMode() != MouseModeType.CREATING_RELATIONSHIP) {
+                if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0) {
+                    pp.setMouseMode(MouseModeType.MULTI_SELECT);
+                } else {
+                    pp.setMouseMode(MouseModeType.SELECT_RELATIONSHIP);
+                    if (!isSelected()) {
+                        pp.selectNone();
+                    }
+                }
+            }
+            
+            if (isSelected()) {
+                componentPreviouslySelected = true;
+            } else {
+                setSelected(true,SelectionEvent.SINGLE_SELECT);
+            }
+
+            // moving pk/fk decoration
+            boolean overPkDec = ((RelationshipUI) getUI()).isOverPkDecoration(p);
+            boolean overFkDec = ((RelationshipUI) getUI()).isOverFkDecoration(p);
+            if (overPkDec || overFkDec && SwingUtilities.isLeftMouseButton(evt)) {
+                new RelationshipDecorationMover(this, overPkDec);
+            }
+        } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
+            // relationship is non-rectangular so we can't use getBounds for intersection testing
+            setSelected(intersects(pp.rubberBand),SelectionEvent.SINGLE_SELECT);
+        } 
+    }
 }

@@ -115,7 +115,6 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.architect.layout.LineStraightenerLayout;
-import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -2266,19 +2265,9 @@ public class PlayPen extends JPanel
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
 			if (c != null) p.translate(-c.getX(), -c.getY());
-			if ( c instanceof Relationship) {
-			    if (evt.getClickCount() == 2) {
-					session.getArchitectFrame().getEditRelationshipAction().actionPerformed
-					(new ActionEvent(evt.getSource(),
-							ActionEvent.ACTION_PERFORMED,
-							ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
-				} else if(evt.getClickCount()==1 && evt.getButton() == MouseEvent.BUTTON1){
-				    if (c.isSelected()&& componentPreviouslySelected) {
-				        c.setSelected(false,SelectionEvent.SINGLE_SELECT);
-				    }
-                }
-          		session.getArchitectFrame().getCreateIdentifyingRelationshipAction().cancel();
-				session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
+			
+			if (c instanceof Relationship) {
+			    c.handleMouseEvent(evt);
 			} else if ( c instanceof TablePane ) {
 				TablePane tp = (TablePane) c;
 				if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
@@ -2336,36 +2325,10 @@ public class PlayPen extends JPanel
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
-			if (c != null) p.translate(-c.getX(), -c.getY());
-
-            if (c instanceof Relationship) {
-                
-				Relationship r = (Relationship) c;
-				PlayPen pp = (PlayPen) r.getPlayPen();
-
-				if (mouseMode != MouseModeType.CREATING_RELATIONSHIP) {
-					if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0) {
-						mouseMode = MouseModeType.MULTI_SELECT;
-					} else {
-						mouseMode = MouseModeType.SELECT_RELATIONSHIP;
-						if (!r.isSelected()) {
-							pp.selectNone();
-						}
-					}
-				}
-                if (r.isSelected()) {
-                    componentPreviouslySelected = true;
-                } else {
-                    r.setSelected(true,SelectionEvent.SINGLE_SELECT);
-                }
-
-
-				// moving pk/fk decoration
-				boolean overPkDec = ((RelationshipUI) r.getUI()).isOverPkDecoration(p);
-                boolean overFkDec = ((RelationshipUI) r.getUI()).isOverFkDecoration(p);
-				if (overPkDec || overFkDec && SwingUtilities.isLeftMouseButton(evt)) {
-					new RelationshipDecorationMover(r, overPkDec);
-				}
+	        if (c != null) p.translate(-c.getX(), -c.getY());
+			
+			if (c instanceof Relationship) {
+			    c.handleMouseEvent(evt);
 			} else if (c instanceof TablePane) {
 				evt.getComponent().requestFocus();
 				TablePane tp = (TablePane) c;
@@ -2547,8 +2510,7 @@ public class PlayPen extends JPanel
 				for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
 					PlayPenComponent c = contentPane.getComponent(i);
 					if (c instanceof Relationship) {
-					    // relationship is non-rectangular so we can't use getBounds for intersection testing
-					    ((Relationship) c).setSelected(((Relationship) c).intersects(rubberBand),SelectionEvent.SINGLE_SELECT);
+					    c.handleMouseEvent(evt);
 					} else if (c instanceof Selectable) {
 						((Selectable) c).setSelected(rubberBand.intersects(c.getBounds(temp)),SelectionEvent.SINGLE_SELECT);
 					}
@@ -2578,39 +2540,24 @@ public class PlayPen extends JPanel
 		}
 
 		/**
-		 * Shows the playpen popup menu if appropriate.
+		 * Shows the popup menus if appropriate.
 		 */
-		public boolean maybeShowPopup(MouseEvent evt) {
-		    
-			setupPlayPenPopup();
+		public void maybeShowPopup(MouseEvent evt) {
+		    Point p = unzoomPoint(evt.getPoint());
+		    PlayPenComponent c = contentPane.getComponentAt(p);
+		    if (c != null) {
+		        p.translate(-c.getX(), -c.getY());
+		        if (evt.isPopupTrigger() && !evt.isConsumed()) {
+		            c.showPopup(p);
+		        }
+		    } else {
+		        setupPlayPenPopup();
 
-			Point p = evt.getPoint();
-			unzoomPoint(p);
-			PlayPenComponent c = contentPane.getComponentAt(p);
-			if (c != null) p.translate(-c.getX(), -c.getY());
-
-			if ( c instanceof Relationship) {
-				if (evt.isPopupTrigger() && !evt.isConsumed()) {
-					Relationship r = (Relationship) c;
-					r.showPopup(r.getPopup(), p);
-					return true;
-				}
-			} else if ( c instanceof TablePane ) {
-				TablePane tp = (TablePane) c;
-				if (evt.isPopupTrigger() && !evt.isConsumed()) {
-					PlayPen pp = tp.getPlayPen();
-					logger.debug("about to show playpen tablepane popup..."); //$NON-NLS-1$
-					tp.showPopup(tp.getPopup(), p);
-					return true;
-				}
-			} else {
-				PlayPen pp = (PlayPen) evt.getSource();
-				if (evt.isPopupTrigger()) {
-					pp.playPenPopup.show(pp, evt.getX(), evt.getY());
-					return true;
-				}
-			}
-			return false;
+		        if (evt.isPopupTrigger()) {
+		            PlayPen pp = (PlayPen) evt.getSource();
+		            pp.playPenPopup.show(pp, evt.getX(), evt.getY());
+		        }
+		    }
 		}
 
 		public void mouseWheelMoved(MouseWheelEvent e) {
@@ -3005,6 +2952,10 @@ public class PlayPen extends JPanel
 	public void setMouseMode(MouseModeType mouseMode) {
 		this.mouseMode = mouseMode;
 	}
+	
+    public MouseModeType getMouseMode() {
+        return mouseMode;
+    }
 
     public ArchitectSwingSession getSession() {
         return session;
