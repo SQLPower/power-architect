@@ -18,6 +18,8 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.event.MouseEvent;
+
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 public class PlayPenComponentImpl extends PlayPenComponent {
@@ -39,10 +41,14 @@ public class PlayPenComponentImpl extends PlayPenComponent {
 
 	public void removeSelectionListener(SelectionListener l) {
 	}
+	
+	@Override
+	public void handleMouseEvent(MouseEvent evt) {
+	    
+	}
 
 	@Override
 	public Object getModel() {
 		return null;
 	}
-
 }

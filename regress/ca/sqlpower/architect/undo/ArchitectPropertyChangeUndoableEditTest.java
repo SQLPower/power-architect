@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.undo;
 
 import java.awt.Point;
+import java.awt.event.MouseEvent;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.StubSQLObject;
@@ -323,6 +324,10 @@ public class ArchitectPropertyChangeUndoableEditTest extends TestCase {
         @Override
         public String toString() {
             return "testComp";
+        }
+
+        @Override
+        public void handleMouseEvent(MouseEvent evt) {
         }
 	    
 	}
