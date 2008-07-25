@@ -36,14 +36,16 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.swingui.Messages;
 
 /**
  * An instance of this class displays the warning message associated with an
  * object's property, and allows user to actively modify the value of the
  * property to avoid possible SQL failures.
- * 
+ * <p>
  * By default, if not specified by the warning. An instance would modify the
  * name of the object.
+ * </p>
  */
 public class ObjectPropertyModificationDDLComponent extends GenericDDLWarningComponent {
 
@@ -72,37 +74,33 @@ public class ObjectPropertyModificationDDLComponent extends GenericDDLWarningCom
     public ObjectPropertyModificationDDLComponent(DDLWarning warning) {
         super(warning);
         
-        logger.debug("Creating warning component for " + warning);
+        logger.debug("Creating warning component for " + warning); //$NON-NLS-1$
 
         this.warning = warning;
         propertyName = warning.getQuickFixPropertyName();
+        
         this.changeApplicator = new Runnable() {
             public void run() {
-                logger.debug("Now attempt to modify object property");
+                logger.debug("Now attempt to modify object property"); //$NON-NLS-1$
                 for (Map.Entry<JTextField, SQLObject> entry : textFields.entrySet()) {
                     try {
                         Method setter = PropertyUtils.getWriteMethod(PropertyUtils.getPropertyDescriptor(entry.getValue(), propertyName));
                         setter.invoke(entry.getValue(), entry.getKey().getText());
                     } catch (NoSuchMethodException e) {
-                        logger.error("Corresponding mutator method for property: " + propertyName + "was not found.\n" +
-                        "Now attempting to modify object's name instead.");
-                        entry.getValue().setName(entry.getKey().getText());
+                        throw new RuntimeException("Failed to update property:" + propertyName + " on " + entry.getValue(), e);
                     } catch (IllegalArgumentException e) {
-                        e.printStackTrace();
-                        throw new IllegalArgumentException();
+                        throw new IllegalArgumentException("Failed to update property:" + propertyName + " on " + entry.getValue(), e);
                     } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                        throw new RuntimeException();
+                        throw new RuntimeException("Failed to update property:" + propertyName + " on " + entry.getValue(), e);
                     } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                        throw new RuntimeException();
+                        throw new RuntimeException("Failed to update property:" + propertyName + " on " + entry.getValue(), e);
                     }
                 }
             }
         };
         component = new JPanel(); 
         if (warning.getQuickFixPropertyName() != null) {
-            JButton updateProperty = new JButton("Update Property");
+            JButton updateProperty = new JButton(Messages.getString("ObjectPropertyModificationDDLComponent.UpdateProperty")); //$NON-NLS-1$
             updateProperty.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     applyChanges();
@@ -115,8 +113,8 @@ public class ObjectPropertyModificationDDLComponent extends GenericDDLWarningCom
         
         component.add(new JLabel(warning.getMessage()));
         
-        if (warning.getQuickFixPropertyName() != null) {
-            component.add(new JLabel(" Change " + warning.getQuickFixPropertyName() + ": "));
+        if (propertyName != null) {
+            component.add(new JLabel(" Change " + warning.getQuickFixPropertyName() + ": ")); //$NON-NLS-1$ //$NON-NLS-2$
             List<? extends SQLObject> list = warning.getInvolvedObjects();
             for (SQLObject obj : list) {
                 JTextField jtf = new JTextField();
@@ -124,20 +122,15 @@ public class ObjectPropertyModificationDDLComponent extends GenericDDLWarningCom
                 try {
                     Method getter = PropertyUtils.getReadMethod(PropertyUtils.getPropertyDescriptor(obj, propertyName));
                     jtf.setText((String)(getter.invoke(obj)));
-                    logger.debug("Successfully modified object's property.");
+                    logger.debug("Successfully modified object's property."); //$NON-NLS-1$
                 } catch (NoSuchMethodException e) {
-                    logger.error("Corresponding accessor method for property: " + warning.getQuickFixPropertyName() + "was not found.\n" +
-                    "Now setting text field text to be object's name instead.");
-                    jtf.setText(obj.getName());
+                    throw new RuntimeException("Failed to update property:" + propertyName + " on " + obj, e);
                 } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
-                    throw new IllegalArgumentException();
+                    throw new IllegalArgumentException("Failed to update property:" + propertyName + " on " + obj, e);
                 } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException();
+                    throw new RuntimeException("Failed to update property:" + propertyName + " on " + obj, e);
                 } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException();
+                    throw new RuntimeException("Failed to update property:" + propertyName + " on " + obj, e);
                 }
                 component.add(jtf);
                 textFields.put(jtf, obj);
