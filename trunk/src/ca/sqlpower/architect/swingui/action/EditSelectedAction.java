@@ -64,19 +64,15 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
             JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.multipleItemsSelected")); //$NON-NLS-1$
         } else if (selection.get(0) instanceof TablePane) {
             TablePane tp = (TablePane) selection.get(0);
-            try {
-                List<SQLColumn> selectedCols = tp.getSelectedColumns();
-                if (selectedCols.size() == 0) {
-                    //look for the relation ship action commands
-                    session.getArchitectFrame().getEditTableAction().actionPerformed(e);
-                } else if (selectedCols.size() == 1) {
-                    session.getArchitectFrame().getEditColumnAction().actionPerformed(e);
-                } else {
-                    JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.selectOnlyOneItem")); //$NON-NLS-1$
-                    return;
-                }
-            } catch (ArchitectException ex) {
-                JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.errorOpeningEditor")); //$NON-NLS-1$
+            List<SQLColumn> selectedCols = tp.getSelectedItems();
+            if (selectedCols.size() == 0) {
+                //look for the relation ship action commands
+                session.getArchitectFrame().getEditTableAction().actionPerformed(e);
+            } else if (selectedCols.size() == 1) {
+                session.getArchitectFrame().getEditColumnAction().actionPerformed(e);
+            } else {
+                JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.selectOnlyOneItem")); //$NON-NLS-1$
+                return;
             }
         } else if (selection.get(0) instanceof Relationship) {
             session.getArchitectFrame().getEditRelationshipAction().actionPerformed(e);
@@ -117,13 +113,13 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
             String name = Messages.getString("EditSelectedAction.selected"); //$NON-NLS-1$
             if (item instanceof TablePane) {
                 TablePane tp = (TablePane) item;
-                if (tp.getSelectedColumnIndex() >= 0) {
+                if (tp.getSelectedItemIndex() >= 0) {
                     try {
-                        List<SQLColumn> selectedColumns = tp.getSelectedColumns();
+                        List<SQLColumn> selectedColumns = tp.getSelectedItems();
                         if (selectedColumns.size() > 1) {
                             name = Messages.getString("EditSelectedAction.numberOfitems", String.valueOf(selectedColumns.size())); //$NON-NLS-1$
                         } else {
-                            name = tp.getModel().getColumn(tp.getSelectedColumnIndex()).getName();
+                            name = tp.getModel().getColumn(tp.getSelectedItemIndex()).getName();
                         }
                     } catch (ArchitectException ex) {
                         logger.error("Couldn't get selected column name", ex); //$NON-NLS-1$
@@ -144,7 +140,7 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
                     // Because the table pane is already counted we need to add one less
                     // than the columns unless there are no columns selected.  Then
                     // We need to add 0
-                    numSelectedItems += Math.max(((TablePane) item).getSelectedColumns().size()-1, 0);
+                    numSelectedItems += Math.max(((TablePane) item).getSelectedItems().size()-1, 0);
                 }
             }
             description = Messages.getString("EditSelectedAction.editNumberOfItems", String.valueOf(numSelectedItems)); //$NON-NLS-1$

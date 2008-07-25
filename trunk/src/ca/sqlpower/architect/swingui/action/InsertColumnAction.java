@@ -73,7 +73,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
     }
 
     void processTablePane(TablePane tp) throws ArchitectException {
-        int idx = tp.getSelectedColumnIndex();
+        int idx = tp.getSelectedItemIndex();
         
         if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();
         

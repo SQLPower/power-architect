@@ -35,16 +35,13 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,7 +56,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
@@ -78,28 +74,15 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
-import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.SPSUtils;
 
-public class TablePane
-	extends PlayPenComponent
-	implements Serializable, Selectable, DragSourceListener, LayoutNode {
+public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements DragSourceListener, LayoutNode {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
-
-	/**
-	 * A special column index that represents the titlebar area.
-	 */
-	public static final int COLUMN_INDEX_TITLE = -1;
-
-	/**
-	 * A special column index that means "no location."
-	 */
-	public static final int COLUMN_INDEX_NONE = -2;
 
 	/**
 	 * A special column index that represents the gap between the last PK column and the PK line.
@@ -119,24 +102,7 @@ public class TablePane
 	 */
 	protected int insertionPoint;
 
-	/**
-	 * How many pixels should be left between the surrounding box and
-	 * the column name labels.
-	 */
-	protected Insets margin = new Insets(1,1,1,1);
-
-	/**
-	 * A selected TablePane is one that the user has clicked on.  It
-	 * will appear more prominently than non-selected TablePanes.
-	 */
-	protected boolean selected;
-
 	protected DropTargetListener dtl;
-
-	/**
-	 * Tracks which columns in this table are currently selected.
-	 */
-	protected Set<SQLColumn> selectedColumns;
 	
 	/**
 	 * Tracks which columns in this table are currently hidden.
@@ -160,12 +126,6 @@ public class TablePane
 
     private boolean fullyQualifiedNameInHeader = false;
 
-	static {
-		UIManager.put(TablePaneUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.BasicTablePaneUI"); //$NON-NLS-1$
-	}
-
-	private SQLTable model;
-
     SQLObjectListener columnListener = new ColumnListener();
 
     public TablePane(TablePane tp, PlayPenContentPane parent) {
@@ -174,7 +134,7 @@ public class TablePane
 		this.selectionListeners = new ArrayList<SelectionListener>();
 		this.dtl = new TablePaneDropListener(this);
 		this.margin = (Insets) tp.margin.clone();
-		this.selectedColumns = new HashSet<SQLColumn>(tp.selectedColumns);
+		this.selectedItems = new HashSet<SQLColumn>(tp.selectedItems);
 		this.columnHighlight = new HashMap<SQLColumn,List<Color>>(tp.columnHighlight);
 		
 		this.insertionPoint = tp.insertionPoint;
@@ -203,16 +163,22 @@ public class TablePane
 	public TablePane(SQLTable m, PlayPenContentPane parent) {
 	    super(parent);
 	    this.hiddenColumns = new HashSet<SQLColumn>();
-	    this.backgroundColor = new Color(240, 240, 240);
-	    this.foregroundColor = Color.BLACK;
 	    setModel(m);
-	    setOpaque(true);
-	    setInsertionPoint(COLUMN_INDEX_NONE);
+	    setInsertionPoint(ITEM_INDEX_NONE);
 
 	    //dt = new DropTarget(parentPP, new TablePaneDropListener(this));
 	    dtl = new TablePaneDropListener(this);
 
 		updateUI();
+	}
+	
+	@Override
+	protected List<SQLColumn> getItems() {
+	    try {
+	        return model.getColumns();
+	    } catch (ArchitectException e) {
+	        throw new ArchitectRuntimeException(e);
+	    }
 	}
 
 	@Override
@@ -227,10 +193,6 @@ public class TablePane
         TablePaneUI ui = (TablePaneUI) BasicTablePaneUI.createUI(this);
         ui.installUI(this);
         setUI(ui);
-    }
-
-    public String getUIClassID() {
-        return TablePaneUI.UI_CLASS_ID;
     }
 
 	public Point getLocationOnScreen() {
@@ -295,7 +257,7 @@ public class TablePane
                     boolean wasSelectedPreviously = (e.getChildren()[i] == mostRecentSelectedRemoval);
                     final SQLColumn column = (SQLColumn) e.getChildren()[i];
                     if (wasSelectedPreviously) {
-                        selectedColumns.add(column);
+                        selectedItems.add(column);
                         SwingUtilities.invokeLater(new Runnable() {
                             public void run() {
                                 selectColumnOnTree(column);
@@ -337,18 +299,10 @@ public class TablePane
                     logger.debug("Columns removed. Syncing select/highlight lists. Removed indices=["+sb+"]"); //$NON-NLS-1$ //$NON-NLS-2$
                 }
                 for (int i = 0; i < ci.length; i++) {
-                    if (selectedColumns.contains(e.getChildren()[i])) {
+                    if (selectedItems.contains(e.getChildren()[i])) {
                         mostRecentSelectedRemoval = (SQLColumn) e.getChildren()[i];
                     }
-                    selectedColumns.remove(e.getChildren()[i]);
-                }
-                try {
-                    int size = model.getColumns().size();
-                    if (size > 0 ) {
-                        selectNone();
-                    }
-                } catch (ArchitectException ex) {
-                    throw new ArchitectRuntimeException(ex);
+                    selectedItems.remove(e.getChildren()[i]);
                 }
             }
             
@@ -390,7 +344,7 @@ public class TablePane
             logger.debug("TablePane got db structure change event. source="+e.getSource()); //$NON-NLS-1$
             if (e.getSource() == model.getColumnsFolder()) {
                 int numCols = e.getChildren().length;
-                selectedColumns = new HashSet<SQLColumn>(numCols);
+                selectedItems = new HashSet<SQLColumn>(numCols);
                 columnHighlight = new HashMap<SQLColumn,List<Color>>();
                 try {
                     for (SQLColumn child :((List<SQLColumn>) model.getColumnsFolder().getChildren())) {
@@ -407,15 +361,6 @@ public class TablePane
     }
 
 	// ----------------------- accessors and mutators --------------------------
-
-	/**
-	 * Gets the value of model
-	 *
-	 * @return the value of model
-	 */
-	public SQLTable getModel()  {
-		return this.model;
-	}
 
 	/**
 	 * Sets the value of model, removing this TablePane as a listener
@@ -443,7 +388,7 @@ public class TablePane
 
 
 		try {
-		    selectedColumns = new HashSet<SQLColumn>(m.getColumns().size());
+		    selectedItems = new HashSet<SQLColumn>(m.getColumns().size());
 			columnHighlight = new HashMap<SQLColumn,List<Color>>();
 			for (SQLColumn column: model.getColumns()) {
 				columnHighlight.put(column, new ArrayList<Color>());
@@ -460,27 +405,6 @@ public class TablePane
 		setName("TablePane: "+model.getShortDisplayName()); //$NON-NLS-1$
 
         firePropertyChange("model", old, model); //$NON-NLS-1$
-	}
-
-	/**
-	 * Gets the value of margin
-	 *
-	 * @return the value of margin
-	 */
-	public Insets getMargin()  {
-		return this.margin;
-	}
-
-	/**
-	 * Sets the value of margin
-	 *
-	 * @param argMargin Value to assign to this.margin
-	 */
-	public void setMargin(Insets argMargin) {
-		Insets old = margin;
-		this.margin = (Insets) argMargin.clone();
-		firePropertyChange("margin", old, margin); //$NON-NLS-1$
-		revalidate();
 	}
 
 	/**
@@ -502,27 +426,6 @@ public class TablePane
 		}
 	}
 
-	/**
-	 * See {@link #selected}.
-	 */
-	public boolean isSelected() {
-		return selected;
-	}
-
-	/**
-	 * See {@link #selected}.
-	 */
-	public void setSelected(boolean isSelected, int multiSelectType) {
-		if (isSelected == false) {
-			selectNone();
-		}
-		if (selected != isSelected) {
-			selected = isSelected;
-			fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT,multiSelectType));
-			repaint();
-		}
-	}
-
 	public DropTargetListener getDropTargetListener() {
 		return dtl;
 	}
@@ -532,13 +435,14 @@ public class TablePane
     /**
      * Deselects all columns in this tablepane.
      */
+	@Override
 	public void selectNone() {
-	    List<SQLColumn> deselectCols = new ArrayList<SQLColumn>(selectedColumns);
+	    // deselect on tree before selectItems is cleared by super class method
+	    List<SQLColumn> deselectCols = new ArrayList<SQLColumn>(selectedItems);
 	    for (SQLColumn col : deselectCols) {
 	        deselectColumnOnTree(col);
 	    }
-	    selectedColumns.clear();
-		repaint();
+	    super.selectNone();
 	}
 
 
@@ -546,38 +450,24 @@ public class TablePane
      * @param i The column to deselect.  If less than 0, {@link
      * #selectNone()} is called.
      */
-    public void deselectColumn(int i) {
-        if (i < 0) {
-            selectNone();
-            return;
+	@Override
+    public void deselectItem(int i) {
+        super.deselectItem(i);
+        if (i >= 0) {
+            deselectColumnOnTree(getItems().get(i));
         }
-        try {
-            selectedColumns.remove(model.getColumn(i));
-            deselectColumnOnTree(model.getColumn(i));
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
-        }
-        
-        repaint();
     }
 
 	/**
 	 * @param i The column to select.  If less than 0, {@link
 	 * #selectNone()} is called rather than selecting a column.
 	 */
-	public void selectColumn(int i) {
-	    if (i < 0) {
-			selectNone();
-			return;
+    @Override
+	public void selectItem(int i) {
+        super.selectItem(i);
+	    if (i >= 0) {
+	        selectColumnOnTree(getItems().get(i));
 		}
-	    try {
-    	    selectedColumns.add(model.getColumn(i));
-    	    selectColumnOnTree(model.getColumn(i));
-	    } catch (ArchitectException ex) {
-	        throw new ArchitectRuntimeException(ex);
-	    }
-	    
-		repaint();
 	}
 	
 	private void selectColumnOnTree(SQLColumn col) {
@@ -613,123 +503,41 @@ public class TablePane
 	    getPlayPen().setIgnoreTreeSelection(false);
 	}
 
-	/**
-	 * return true if the column in tablepane is selected
-	 * @param i column index
-	 * @return true if the column in tablepane is selected
-	 */
-	public boolean isColumnSelected(int i) {
-		try {
-		    return selectedColumns.contains(model.getColumn(i));
-		} catch (ArchitectException ex) {
-		    throw new ArchitectRuntimeException(ex);
-		}
-	}
-
-	/**
-	 * Returns the index of the first selected column, or
-	 * COLUMN_INDEX_NONE if there are no selected columns.
-	 */
-	public int getSelectedColumnIndex() {
-		if (selectedColumns.size() > 0) {
-		    try {
-		        return model.getColumns().indexOf(selectedColumns.toArray()[0]);
-		    } catch (ArchitectException ex) {
-		        throw new ArchitectRuntimeException(ex);
-		    }
-		}
-		return COLUMN_INDEX_NONE;
-	}
-
 	public void updateHiddenColumns() {
-	    try {
-	        hiddenColumns.clear();
-	        ArchitectSwingSession session = getPlayPen().getSession();
-	        
-	        // if all the boxes are checked, then hide no columns, only these 3 need be
-	        // checked. Draw a truth table if you don't believe me.
-	        if (!(session.isShowForeign() && session.isShowIndexed() 
-	                && session.isShowTheRest())) {
-	            
-	            // start with a list of all the columns, then remove the ones that 
-	            // should be shown
-	            hiddenColumns.addAll(getModel().getColumns());
-	            for (SQLColumn col : getModel().getColumns()) {
-	                if (session.isShowPrimary() && col.isPrimaryKey()) {
-	                    hiddenColumns.remove(col);
-	                } else if (session.isShowForeign() && col.isForeignKey()) {
-	                    hiddenColumns.remove(col);
-	                } else if (session.isShowIndexed() && col.isIndexed()) {
-	                    hiddenColumns.remove(col);
-	                } else if (session.isShowUnique() && col.isUniqueIndexed()) {
-	                    hiddenColumns.remove(col);
-	                } else if (session.isShowTheRest() && !(col.isPrimaryKey() || col.isForeignKey() 
-	                        || col.isIndexed())) {
-	                    // unique index not checked because it is a subset of index
-	                    hiddenColumns.remove(col);
-	                }
+	    hiddenColumns.clear();
+	    ArchitectSwingSession session = getPlayPen().getSession();
+
+	    // if all the boxes are checked, then hide no columns, only these 3 need be
+	    // checked. Draw a truth table if you don't believe me.
+	    if (!(session.isShowForeign() && session.isShowIndexed() 
+	            && session.isShowTheRest())) {
+
+	        // start with a list of all the columns, then remove the ones that 
+	        // should be shown
+	        hiddenColumns.addAll(getItems());
+	        for (SQLColumn col : getItems()) {
+	            if (session.isShowPrimary() && col.isPrimaryKey()) {
+	                hiddenColumns.remove(col);
+	            } else if (session.isShowForeign() && col.isForeignKey()) {
+	                hiddenColumns.remove(col);
+	            } else if (session.isShowIndexed() && col.isIndexed()) {
+	                hiddenColumns.remove(col);
+	            } else if (session.isShowUnique() && col.isUniqueIndexed()) {
+	                hiddenColumns.remove(col);
+	            } else if (session.isShowTheRest() && !(col.isPrimaryKey() || col.isForeignKey() 
+	                    || col.isIndexed())) {
+	                // unique index not checked because it is a subset of index
+	                hiddenColumns.remove(col);
 	            }
 	        }
-	    } catch (ArchitectException ex) {
-	        throw new ArchitectRuntimeException(ex); 
 	    }
-	}
-
-	/**
-	 * Returns the list of selected column(s).
-	 * @throws ArchitectException
-	 */
-	public List<SQLColumn> getSelectedColumns() throws ArchitectException {
-	    List<SQLColumn> selectedColumns = new ArrayList<SQLColumn>();
-	    for (int i=0; i < getModel().getColumns().size(); i++) {
-	        if (isColumnSelected(i)) {
-	            selectedColumns.add(getModel().getColumn(i));
-	        }
-	    }
-	    return selectedColumns;
-	}
-
-	// --------------------- SELECTION EVENT SUPPORT ---------------------
-
-	protected List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
-
-	public void addSelectionListener(SelectionListener l) {
-	    selectionListeners.add(l);
-	}
-
-	public void removeSelectionListener(SelectionListener l) {
-	    selectionListeners.remove(l);
-	}
-
-	protected void fireSelectionEvent(SelectionEvent e) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Notifying "+selectionListeners.size() //$NON-NLS-1$
-						 +" listeners of selection change"); //$NON-NLS-1$
-		}
-		Iterator<SelectionListener> it = selectionListeners.iterator();
-		if (e.getType() == SelectionEvent.SELECTION_EVENT) {
-			while (it.hasNext()) {
-				it.next().itemSelected(e);
-			}
-		} else if (e.getType() == SelectionEvent.DESELECTION_EVENT) {
-			while (it.hasNext()) {
-				it.next().itemDeselected(e);
-			}
-		} else {
-			throw new IllegalStateException("Unknown selection event type "+e.getType()); //$NON-NLS-1$
-		}
 	}
 
 	// ------------------ utility methods ---------------------
 
-    /**
-     * Returns the index of the column that point p is on top of.  If
-     * p is on top of the table name, returns COLUMN_INDEX_TITLE.
-     * Otherwise, p is not over a column or title and the returned
-     * index is COLUMN_INDEX_NONE.
-     */
-    public int pointToColumnIndex(Point p) throws ArchitectException {
-        return ((TablePaneUI) getUI()).pointToColumnIndex(p);
+	@Override
+    public int pointToItemIndex(Point p) {
+        return ((TablePaneUI) getUI()).pointToItemIndex(p);
     }
 
     /**
@@ -742,7 +550,7 @@ public class TablePane
      * given column.  If the requested column index is out of range, the
      * value <tt>-1</tt> is returned.
      */
-    public int columnIndexToCentreY(int colidx) throws ArchitectException {
+    public int columnIndexToCentreY(int colidx) {
         return ((TablePaneUI) getUI()).columnIndexToCentreY(colidx);
     }
 
@@ -764,7 +572,7 @@ public class TablePane
 		} else if (insertionPoint == COLUMN_INDEX_START_OF_NON_PK) {
 		    insertionPoint = getModel().getPkSize();
 		    newColumnsInPk = false;
-		} else if (insertionPoint == COLUMN_INDEX_TITLE) {
+		} else if (insertionPoint == ITEM_INDEX_TITLE) {
 		    insertionPoint = 0;
 		    newColumnsInPk = true;
 		} else if (insertionPoint < 0) {
@@ -877,7 +685,7 @@ public class TablePane
 			if (logger.isDebugEnabled()) {
 				logger.debug("DragExit event on "+tp.getName()); //$NON-NLS-1$
 			}
-			tp.setInsertionPoint(COLUMN_INDEX_NONE);
+			tp.setInsertionPoint(ITEM_INDEX_NONE);
 		}
 
 		/**
@@ -897,15 +705,11 @@ public class TablePane
 				logger.debug("Source Actions = "+dtde.getSourceActions()); //$NON-NLS-1$
 			}
 			dtde.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE & dtde.getDropAction());
-			try {
-				Point loc = tp.getPlayPen().unzoomPoint(new Point(dtde.getLocation()));
-				loc.x -= tp.getX();
-				loc.y -= tp.getY();
-				int idx = tp.pointToColumnIndex(loc);
-				tp.setInsertionPoint(idx);
-			} catch (ArchitectException e) {
-				logger.error("Got exception translating drag location", e); //$NON-NLS-1$
-			}
+			Point loc = tp.getPlayPen().unzoomPoint(new Point(dtde.getLocation()));
+			loc.x -= tp.getX();
+			loc.y -= tp.getY();
+			int idx = tp.pointToItemIndex(loc);
+			tp.setInsertionPoint(idx);
 		}
 
 		/**
@@ -929,11 +733,11 @@ public class TablePane
 			DataFlavor importFlavor = bestImportFlavor(pp, t.getTransferDataFlavors());
 			if (importFlavor == null) {
 				dtde.rejectDrop();
-				tp.setInsertionPoint(COLUMN_INDEX_NONE);
+				tp.setInsertionPoint(ITEM_INDEX_NONE);
 			} else {
 				try {
 					DBTree dbtree = pp.getSession().getSourceDatabases();  // XXX: bad
-					int insertionPoint = tp.pointToColumnIndex(loc);
+					int insertionPoint = tp.pointToItemIndex(loc);
 
 					ArrayList<int[]> paths = (ArrayList<int[]>) t.getTransferData(importFlavor);
 					logger.debug("Importing items from tree: "+paths); //$NON-NLS-1$
@@ -956,7 +760,7 @@ public class TablePane
                         newColumnsInPk = true;
                     } else if (insertionPoint == COLUMN_INDEX_START_OF_NON_PK) {
                         newColumnsInPk = false;
-                    } else if (insertionPoint == COLUMN_INDEX_TITLE) {
+                    } else if (insertionPoint == ITEM_INDEX_TITLE) {
                         newColumnsInPk = true;
                     } else if (insertionPoint < 0) {
                         newColumnsInPk = false;
@@ -1000,7 +804,7 @@ public class TablePane
 					ASUtils.showExceptionDialogNoReport(tp.getParent().getOwner(),
                         "Error processing drop operation", ex); //$NON-NLS-1$
                 } finally {
-					tp.setInsertionPoint(COLUMN_INDEX_NONE);
+					tp.setInsertionPoint(ITEM_INDEX_NONE);
 					try {
                         tp.getModel().normalizePrimaryKey();
                     } catch (ArchitectException e) {
@@ -1161,7 +965,6 @@ public class TablePane
      * @throws ArchitectException
      */
     public Color getColumnHighlight(int i) throws ArchitectException {
-
         return getColumnHighlight(model.getColumn(i));
     }
 
@@ -1496,7 +1299,7 @@ public class TablePane
                         List<PlayPenComponent> selection = getPlayPen().getSelectedItems();
                         if (selection.size() == 1) {
                             TablePane tp = (TablePane) selection.get(0);
-                            JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JList(tp.selectedColumns.toArray())));
+                            JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JList(tp.selectedItems.toArray())));
                         } else {
                             JOptionPane.showMessageDialog(getPlayPen(), "You can only show selected columns on one item at a time"); //$NON-NLS-1$
                         }
@@ -1510,118 +1313,55 @@ public class TablePane
     
     @Override
     public void handleMouseEvent(MouseEvent evt) {
-        PlayPen pp = getPlayPen();
+        super.handleMouseEvent(evt);
         
+        PlayPen pp = getPlayPen();
+
         Point p = evt.getPoint();
         pp.unzoomPoint(p);
         p.translate(-getX(), -getY());
-        
         if (evt.getID() == MouseEvent.MOUSE_CLICKED) {
             if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
-                try {
-                    int selectedColIndex = pointToColumnIndex(p);
-                    if (evt.getClickCount() == 2) { // double click
-                        if (isSelected()) {
-                            ArchitectFrame af = pp.getSession().getArchitectFrame();
-                            if (selectedColIndex == TablePane.COLUMN_INDEX_TITLE) {
-                                af.getEditTableAction().actionPerformed
-                                (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
-                            } else if (selectedColIndex >= 0) {
-                                af.getEditColumnAction().actionPerformed
-                                (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
-                            }
-                        }
-                    } else if(evt.getClickCount()==1) {
-                        logger.debug("Col index "+selectedColIndex); //$NON-NLS-1$
-                        if (selectedColIndex > TablePane.COLUMN_INDEX_TITLE && componentPreviouslySelected){
-                            deselectColumn(selectedColIndex);
-                        } else if (isSelected()&& componentPreviouslySelected) {
-                            setSelected(false,SelectionEvent.SINGLE_SELECT);
+                int selectedColIndex = pointToItemIndex(p);
+                if (evt.getClickCount() == 2) { // double click
+                    if (isSelected()) {
+                        ArchitectFrame af = pp.getSession().getArchitectFrame();
+                        if (selectedColIndex == ITEM_INDEX_TITLE) {
+                            af.getEditTableAction().actionPerformed
+                            (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+                        } else if (selectedColIndex >= 0) {
+                            af.getEditColumnAction().actionPerformed
+                            (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
                         }
                     }
-                } catch (ArchitectException e) {
-                    logger.error("Exception converting point to column", e); //$NON-NLS-1$
                 }
             }
         } else if (evt.getID() == MouseEvent.MOUSE_PRESSED) {
-            componentPreviouslySelected = false;
-            evt.getComponent().requestFocus();
-            try {
-                int clickCol = pointToColumnIndex(p);
+            int clickCol = pointToItemIndex(p);
 
-                if (pp.getMouseMode() != MouseModeType.CREATING_TABLE) {
-                    if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-                        if (!isSelected() || pp.getMouseMode() == MouseModeType.IDLE) {
-                            pp.setMouseMode(MouseModeType.SELECT_TABLE);
-                            pp.selectNone();
-                        }
-                    } else {
-                        pp.setMouseMode(MouseModeType.MULTI_SELECT);
-                    }
+            if (clickCol == ITEM_INDEX_TITLE && !pp.getSession().getArchitectFrame().createRelationshipIsActive()) {
+                Iterator it = pp.getSelectedTables().iterator();
+                logger.debug("event point: " + p); //$NON-NLS-1$
+                logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
+                pp.draggingTablePanes = true;
 
-                    // Alt-click drags table no matter where you clicked
-                    if ((evt.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0) {
-                        clickCol = TablePane.COLUMN_INDEX_TITLE;
-                    }
-                    
-                    if (clickCol > TablePane.COLUMN_INDEX_TITLE &&
-                         clickCol < getModel().getColumns().size()) {
-
-                        if ((evt.getModifiersEx() &
-                                (InputEvent.SHIFT_DOWN_MASK |
-                                 InputEvent.CTRL_DOWN_MASK)) == 0) {
-
-                            if (!isColumnSelected(clickCol) ){
-                                deSelectEverythingElse(evt);
-                                selectNone();
-                            }
-                            pp.setMouseMode(MouseModeType.SELECT_COLUMN);
-                        }
-                        if (isColumnSelected(clickCol)) {
-                            componentPreviouslySelected = true;
-                        } else {
-                            selectColumn(clickCol);
-                        }
-
-                        fireSelectionEvent(new SelectionEvent(TablePane.this, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
-                        repaint();
-                    }
-                    if (isSelected()&& clickCol == TablePane.COLUMN_INDEX_TITLE){
-                        componentPreviouslySelected = true;
-                    } else {
-                        setSelected(true,SelectionEvent.SINGLE_SELECT);
-                    }
-                }
-
-                if (clickCol == TablePane.COLUMN_INDEX_TITLE && !pp.getSession().getArchitectFrame().createRelationshipIsActive()) {
-                    Iterator it = pp.getSelectedTables().iterator();
-                    logger.debug("event point: " + p); //$NON-NLS-1$
-                    logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
-                    pp.draggingTablePanes = true;
-
-                    while (it.hasNext()) {
-                        // create FloatingTableListener for each selected item
-                        TablePane t3 = (TablePane)it.next();
-                        logger.debug("(" + t3.getModel().getName() + ") zoomed selected table point: " + t3.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
-                        logger.debug("(" + t3.getModel().getName() + ") unzoomed selected table point: " + pp.unzoomPoint(t3.getLocationOnScreen())); //$NON-NLS-1$ //$NON-NLS-2$
-                        /* the floating table listener expects zoomed handles which are relative to
+                while (it.hasNext()) {
+                    // create FloatingTableListener for each selected item
+                    TablePane t3 = (TablePane)it.next();
+                    logger.debug("(" + t3.getModel().getName() + ") zoomed selected table point: " + t3.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
+                    logger.debug("(" + t3.getModel().getName() + ") unzoomed selected table point: " + pp.unzoomPoint(t3.getLocationOnScreen())); //$NON-NLS-1$ //$NON-NLS-2$
+                    /* the floating table listener expects zoomed handles which are relative to
                            the location of the table column which was clicked on.  */
-                        Point clickedColumn = getLocationOnScreen();
-                        Point otherTable = t3.getLocationOnScreen();
-                        Point handle = pp.zoomPoint(new Point(p));
-                        logger.debug("(" + t3.getModel().getName() + ") translation x=" //$NON-NLS-1$ //$NON-NLS-2$
-                                      + (otherTable.getX() - clickedColumn.getX()) + ",y=" //$NON-NLS-1$
-                                      + (otherTable.getY() - clickedColumn.getY()));
-                        handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY()));
-                        new PlayPen.FloatingTableListener(pp, t3, handle,false);
-                    }
+                    Point clickedColumn = getLocationOnScreen();
+                    Point otherTable = t3.getLocationOnScreen();
+                    Point handle = pp.zoomPoint(new Point(p));
+                    logger.debug("(" + t3.getModel().getName() + ") translation x=" //$NON-NLS-1$ //$NON-NLS-2$
+                            + (otherTable.getX() - clickedColumn.getX()) + ",y=" //$NON-NLS-1$
+                            + (otherTable.getY() - clickedColumn.getY()));
+                    handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY()));
+                    new PlayPen.FloatingTableListener(pp, t3, handle,false);
                 }
-            } catch (ArchitectException e) {
-                logger.error("Exception converting point to column", e); //$NON-NLS-1$
             }
-        } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
-            // relationship is non-rectangular so we can't use getBounds for intersection testing
-            setSelected(pp.rubberBand.intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
-        } 
+        }
     }
 }

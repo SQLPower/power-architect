@@ -24,8 +24,6 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
@@ -52,12 +50,8 @@ public class FocusToChildOrParentTableAction extends AbstractArchitectAction{
             playpen.selectNone();
             focusingTable.setSelected(true, SelectionEvent.SINGLE_SELECT);
             playpen.showSelected();
-            try {
-                playpen.updateDBTree();
-            } catch (ArchitectException ex) {
-                throw new ArchitectRuntimeException(ex);
-            }
-        }else {
+            playpen.updateDBTree();
+        } else {
             JOptionPane.showMessageDialog(playpen, Messages.getString("FocusToChildOrParentTableAction.selectExactlyOneRelationship")); //$NON-NLS-1$
         }
     }

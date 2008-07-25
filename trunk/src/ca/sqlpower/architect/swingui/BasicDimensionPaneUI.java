@@ -149,15 +149,14 @@ public class BasicDimensionPaneUI extends DimensionPaneUI {
         g2.setColor(dp.getForegroundColor());
 
         // print dimension name
-        g2.drawString(dimensionPane.getDimensionName(), 0, y += ascent);
+        g2.drawString(dp.getDimensionName(), 0, y += ascent);
 
         g2.setColor(Color.BLACK);
-        // draw box around columns
-
+        
         y += GAP + BOX_LINE_THICKNESS;
-
-        g2.setColor(dimensionPane.getForegroundColor());
-        g2.drawString(dimensionPane.getDummyTable().getName(), BOX_LINE_THICKNESS, y += fontHeight);
+        
+        g2.setColor(dp.getForegroundColor());
+        g2.drawString(dp.getDummyTable().getName(), BOX_LINE_THICKNESS, y += fontHeight);
 
         y+= TABLE_GAP;
         g2.setColor(Color.BLACK);
@@ -165,20 +164,22 @@ public class BasicDimensionPaneUI extends DimensionPaneUI {
 
         // print columns
         int i = 0;
-        int hwidth = width-BOX_LINE_THICKNESS*2;
-        for (SQLColumn col : dimensionPane.getColumns()) {
+        int hwidth = width - dp.getMargin().right - dp.getMargin().left - BOX_LINE_THICKNESS*2;
+        for (SQLColumn col : dp.getItems()) {
             // draws the column
-            if (dp.isColumnSelected(i)) {
+            if (dp.isItemSelected(i)) {
                 if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$
                 g2.setColor(selectedColor);
-                g2.fillRect(BOX_LINE_THICKNESS, y-ascent+fontHeight,
+                g2.fillRect(BOX_LINE_THICKNESS + dp.getMargin().left, y-ascent+fontHeight,
                         hwidth, fontHeight);
             }
-            g2.setColor(dimensionPane.getForegroundColor());
-            g2.drawString(col.getShortDisplayName(), BOX_LINE_THICKNESS + i * indentWidth, y += fontHeight);
+            g2.setColor(dp.getForegroundColor());
+            g2.drawString(col.getShortDisplayName(), BOX_LINE_THICKNESS +
+                    dp.getMargin().left + i * indentWidth, y += fontHeight);
             i++;
         }
 
+        // draw box around columns
         g2.setColor(Color.BLACK);
         g2.drawRoundRect(0, fontHeight+GAP, width-BOX_LINE_THICKNESS, 
                 height-(fontHeight+GAP+BOX_LINE_THICKNESS), ARC_LENGTH, ARC_LENGTH);
@@ -197,7 +198,7 @@ public class BasicDimensionPaneUI extends DimensionPaneUI {
         int width = 0;
 
         Insets insets = c.getInsets();
-        List<SQLColumn> columnList = c.getColumns();
+        List<SQLColumn> columnList = c.getItems();
         int cols = columnList.size();
 
         Font font = c.getFont();
@@ -210,14 +211,15 @@ public class BasicDimensionPaneUI extends DimensionPaneUI {
         int fontHeight = metrics.getHeight();
         int indentWidth = calculateTextWidth(c, " ");
 
-        height = insets.top + fontHeight + GAP + fontHeight + TABLE_GAP + cols*fontHeight + BOX_LINE_THICKNESS*2 + insets.bottom;
+        height = insets.top + fontHeight + GAP + fontHeight + TABLE_GAP + c.getMargin().top + cols * fontHeight +
+                BOX_LINE_THICKNESS*2 + c.getMargin().bottom + insets.bottom;
         width = MINIMUM_WIDTH;
 
         width = Math.max(width, calculateTextWidth(c, c.getDimensionName()));
         width = Math.max(width, calculateTextWidth(c, c.getDummyTable().getName()));
         
         int i = 0;
-        for (SQLColumn col : c.getColumns()) {
+        for (SQLColumn col : c.getItems()) {
             if (col == null) {
                 logger.error("Found null column in dimension '"+c.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
                 throw new NullPointerException("Found null column in dimension '"+c.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -226,13 +228,13 @@ public class BasicDimensionPaneUI extends DimensionPaneUI {
             i++;
         }
 
-        width += insets.left + BOX_LINE_THICKNESS*2 + insets.right;
+        width += insets.left + c.getMargin().left + BOX_LINE_THICKNESS*2 + c.getMargin().right + insets.right;
 
         return new Dimension(width, height);
     }
     
     /**
-     * Calculates the width of a given string.
+     * Calculates the width of a given string based on given component's font.
      */
     private int calculateTextWidth(PlayPenComponent ppc, String text) {
         Font font = ppc.getFont();
@@ -246,19 +248,15 @@ public class BasicDimensionPaneUI extends DimensionPaneUI {
             return (int) font.getStringBounds(text, frc).getWidth();
         }
     }
-    
-    /**
-     * This method is specified by DimensionPane.pointToColumnIndex().
-     * Returns the column index given a point on its playpenComponent.
-     */
+
     @Override
-    public int pointToColumnIndex(Point p) {
+    public int pointToItemIndex(Point p) {
         Font font = dimensionPane.getFont();
         FontMetrics metrics = dimensionPane.getFontMetrics(font);
         int fontHeight = metrics.getHeight();
 
-        int numCols = dimensionPane.getColumns().size();
-        int firstColStart = fontHeight * 2 + GAP + BOX_LINE_THICKNESS * 2 + TABLE_GAP;
+        int numCols = dimensionPane.getItems().size();
+        int firstColStart = fontHeight * 2 + GAP + BOX_LINE_THICKNESS * 2 + TABLE_GAP + dimensionPane.getMargin().top;
 
         if (logger.isDebugEnabled()) logger.debug("p.y = "+p.y); //$NON-NLS-1$
         
@@ -268,14 +266,14 @@ public class BasicDimensionPaneUI extends DimensionPaneUI {
         
         if (p.y < 0) {
             logger.debug("y<0"); //$NON-NLS-1$
-            returnVal = DimensionPane.COLUMN_INDEX_NONE;
+            returnVal = ContainerPane.ITEM_INDEX_NONE;
         } else if (p.y <= fontHeight) {
             logger.debug("y<=fontHeight = "+fontHeight); //$NON-NLS-1$
-            returnVal = DimensionPane.COLUMN_INDEX_TITLE;
+            returnVal = ContainerPane.ITEM_INDEX_TITLE;
         } else if (p.y > firstColStart && p.y <= firstColStart + numCols * fontHeight) {
             returnVal = (p.y - firstColStart) / fontHeight;
         } else {
-            returnVal = DimensionPane.COLUMN_INDEX_NONE;
+            returnVal = ContainerPane.ITEM_INDEX_NONE;
         }
         logger.debug("pointToColumnIndex return value is " + returnVal); //$NON-NLS-1$
         return returnVal;

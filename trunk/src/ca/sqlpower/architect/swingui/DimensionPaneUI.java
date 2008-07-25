@@ -23,13 +23,12 @@ import java.awt.Point;
 import java.io.Serializable;
 
 public abstract class DimensionPaneUI implements PlayPenComponentUI, Serializable {
-    public static final String UI_CLASS_ID = "DimensionPaneUI";
     
     /**
-     * This delegate method is specified by {@link DimensionPane#pointToColumnIndex(Point)}
+     * This delegate method is specified by {@link DimensionPane#pointToItemIndex(Point)}
      * Subclass of DimensionPaneUI will implement this method to calculate column index
      * given a point on the playpenComponent.
      */
-    public abstract int pointToColumnIndex(Point p);
+    public abstract int pointToItemIndex(Point p);
 
 }

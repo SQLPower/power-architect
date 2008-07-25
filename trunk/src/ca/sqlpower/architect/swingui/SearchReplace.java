@@ -328,7 +328,7 @@ public class SearchReplace {
 
 	                            if (searchColumn != null) {
 	                            	try {
-	                                tp.selectColumn(searchTable.getColumnIndex(searchColumn));
+	                                	tp.selectItem(searchTable.getColumnIndex(searchColumn));
 	                            	} catch (ArchitectException ex) {
 	                            		logger.error("Failed to select column becuase getColumnIndex" + //$NON-NLS-1$
 	                            				" threw the following exception:", ex); //$NON-NLS-1$

@@ -39,6 +39,7 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
+import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
@@ -84,14 +85,14 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 				setEnabled(true);
 				TablePane tp = (TablePane) selection.get(0);
 				try {
-					List<SQLColumn> selectedCols = tp.getSelectedColumns();
+					List<SQLColumn> selectedCols = tp.getSelectedItems();
 					if (selectedCols.size() != 1) {
 						JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.pleaseSelectOnlyOneColumn")); //$NON-NLS-1$
 						logger.error("Please select one and only one column"); //$NON-NLS-1$
 						cleanup();
 						return;
 					}
-					int idx = tp.getSelectedColumnIndex();
+					int idx = tp.getSelectedItemIndex();
 					if (idx < 0) { // header must have been selected
 						logger.error("CantHaplaypenen: idx < 0"); //$NON-NLS-1$
 						JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.pleaseSelectColumn"));						 //$NON-NLS-1$
@@ -238,11 +239,11 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			if (item instanceof TablePane) {				
 				TablePane tp = (TablePane) item;
 				
-				if (tp.getSelectedColumnIndex() > TablePane.COLUMN_INDEX_TITLE ) {
+				if (tp.getSelectedItemIndex() > ContainerPane.ITEM_INDEX_TITLE ) {
 					try {						
 						logger.debug ("Enabling EditColumnAction"); //$NON-NLS-1$
 						setEnabled(true);
-						name = tp.getModel().getColumn(tp.getSelectedColumnIndex()).getName();
+						name = tp.getModel().getColumn(tp.getSelectedItemIndex()).getName();
 					} catch (ArchitectException ex) {
 						logger.error("Couldn't get selected column name", ex); //$NON-NLS-1$
 					}

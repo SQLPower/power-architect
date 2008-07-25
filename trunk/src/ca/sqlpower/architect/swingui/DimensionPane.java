@@ -19,54 +19,26 @@
 
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Color;
 import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
-import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class DimensionPane extends PlayPenComponent implements Serializable, Selectable {
-    
-    /**
-     * A special column index that represents the titlebar area.
-     */
-    public static final int COLUMN_INDEX_TITLE = -1;
-
-    /**
-     * A special column index that means "no location."
-     */
-    public static final int COLUMN_INDEX_NONE = -2;
+public class DimensionPane extends ContainerPane<SQLTable, SQLColumn> {
     
     private String dimensionName;
     
     private SQLTable dummyTable;
     
     private List<SQLColumn> columns;
-    
-    protected Set<SQLColumn> selectedColumns;
-
-    private boolean selected;
 
     public DimensionPane(String dimensionName, SQLTable m, PlayPenContentPane parent) {
         super(parent);
-        this.backgroundColor = new Color(240, 240, 240);
-        this.foregroundColor = Color.BLACK;
-        this.selectedColumns = new HashSet<SQLColumn>();
-        setOpaque(true);
+        
+        this.selectedItems = new HashSet<SQLColumn>();
         
         this.dimensionName = dimensionName;
         dummyTable = m;
@@ -77,121 +49,18 @@ public class DimensionPane extends PlayPenComponent implements Serializable, Sel
         
         updateUI();
     }
+    
+    @Override
+    protected List<SQLColumn> getItems() {
+        return getColumns();
+    }
+
 
     @Override
-    public Object getModel() {
-        return null;
+    public int pointToItemIndex(Point p) {
+        return ((DimensionPaneUI) getUI()).pointToItemIndex(p);
     }
     
-    /**
-     * See {@link #selected}.
-     */
-    public boolean isSelected() {
-        return selected;
-    }
-
-    /**
-     * See {@link #selected}.
-     */
-    public void setSelected(boolean isSelected, int multiSelectType) {
-        if (isSelected == false) {
-            selectNone();
-        }
-        if (selected != isSelected) {
-            selected = isSelected;
-            fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT, multiSelectType));
-            repaint();
-        }
-    }
-
-    public void selectNone() {
-        selectedColumns.clear();
-        repaint();
-    }
-
-    /**
-     * De-selects all columns in this dimensionPane.
-     */
-    public void deselectColumn(int i) {
-        if (i < 0) {
-            selectNone();
-            return;
-        }
-        selectedColumns.remove(columns.get(i));
-        repaint();
-    }
-
-    /**
-     * @param i The column to deselect.  If less than 0, {@link
-     * #selectNone()} is called.
-     */
-    public void selectColumn(int i) {
-        if (i < 0) {
-            selectNone();
-            return;
-        }
-        selectedColumns.add(columns.get(i));
-        repaint();
-    }
-
-    /**
-     * return true if the column in dimensionPane is selected
-     * @param i column index
-     * @return true if the column in dimensionPane is selected
-     */
-    public boolean isColumnSelected(int i) {
-        return selectedColumns.contains(columns.get(i));
-    }
-    
-    /**
-     * Returns the list of selected column(s).
-     */
-    public List<SQLColumn> getSelectedColumns() {
-        List<SQLColumn> selectedColumns = new ArrayList<SQLColumn>();
-        for (int i=0; i < columns.size(); i++) {
-            if (isColumnSelected(i)) {
-                selectedColumns.add(columns.get(i));
-            }
-        }
-        return selectedColumns;
-    }
-    
-    /**
-     * Returns the index of the column that point p is on top of.  If
-     * p is on top of the table name, returns COLUMN_INDEX_TITLE.
-     * Otherwise, p is not over a column or title and the returned
-     * index is COLUMN_INDEX_NONE.
-     */
-    public int pointToColumnIndex(Point p) {
-        return ((DimensionPaneUI) getUI()).pointToColumnIndex(p);
-    }
-    
-    // --------------------- SELECTION EVENT SUPPORT ---------------------
-
-    protected List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
-
-    public void addSelectionListener(SelectionListener l) {
-        selectionListeners.add(l);
-    }
-
-    public void removeSelectionListener(SelectionListener l) {
-        selectionListeners.remove(l);
-    }
-
-    protected void fireSelectionEvent(SelectionEvent e) {
-        Iterator<SelectionListener> it = selectionListeners.iterator();
-        if (e.getType() == SelectionEvent.SELECTION_EVENT) {
-            while (it.hasNext()) {
-                it.next().itemSelected(e);
-            }
-        } else if (e.getType() == SelectionEvent.DESELECTION_EVENT) {
-            while (it.hasNext()) {
-                it.next().itemDeselected(e);
-            }
-        } else {
-            throw new IllegalStateException("Unknown selection event type "+e.getType());
-        }
-    }
     
     // ---------------------- PlayPenComponent Overrides ----------------------
     // see also PlayPenComponent
@@ -202,15 +71,11 @@ public class DimensionPane extends PlayPenComponent implements Serializable, Sel
         setUI(ui);
     }
 
-    public String getUIClassID() {
-        return DimensionPaneUI.UI_CLASS_ID;
-    }
-
     public SQLTable getDummyTable() {
         return dummyTable;
     }
 
-    public List<SQLColumn> getColumns() {
+    private List<SQLColumn> getColumns() {
         return columns;
     }
 
@@ -219,72 +84,7 @@ public class DimensionPane extends PlayPenComponent implements Serializable, Sel
     }
 
     @Override
-    public void handleMouseEvent(MouseEvent evt) {
-        PlayPen pp = getPlayPen();
-        
-        Point p = evt.getPoint();
-        pp.unzoomPoint(p);
-        p.translate(-getX(), -getY());
-
-        if (evt.getID() == MouseEvent.MOUSE_CLICKED) {
-            int selectedColIndex = pointToColumnIndex(p);
-            if (evt.getClickCount() == 1 && evt.getButton() == MouseEvent.BUTTON1){
-                if (selectedColIndex > TablePane.COLUMN_INDEX_TITLE && componentPreviouslySelected){
-                    deselectColumn(selectedColIndex);
-                } else if (isSelected() && componentPreviouslySelected) {
-                    setSelected(false, SelectionEvent.SINGLE_SELECT);
-                }
-            }
-        } else if (evt.getID() == MouseEvent.MOUSE_PRESSED) {
-            componentPreviouslySelected = false;
-            int clickCol = pointToColumnIndex(p);
-            if (pp.getMouseMode() != MouseModeType.CREATING_TABLE) {
-                if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-                    if (!isSelected() || pp.getMouseMode() == MouseModeType.IDLE) {
-                        pp.setMouseMode(MouseModeType.SELECT_TABLE);
-                        selectNone();
-                    }
-                } else {
-                    pp.setMouseMode(MouseModeType.MULTI_SELECT);
-                }
-
-                // Alt-click drags table no matter where you clicked
-                if ((evt.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0) {
-                    clickCol = TablePane.COLUMN_INDEX_TITLE;
-                }
-
-                if (clickCol > TablePane.COLUMN_INDEX_TITLE &&
-                        clickCol < getColumns().size()) {
-
-                    if ((evt.getModifiersEx() &
-                            (InputEvent.SHIFT_DOWN_MASK |
-                                    InputEvent.CTRL_DOWN_MASK)) == 0) {
-
-                        if (!isColumnSelected(clickCol)) {
-                            selectNone();
-                        }
-                        pp.setMouseMode(MouseModeType.SELECT_COLUMN);
-                    }
-                    if (isColumnSelected(clickCol)) {
-                        componentPreviouslySelected = true;
-                    } else {
-                        selectColumn(clickCol);
-                    }
-
-                    fireSelectionEvent(new SelectionEvent(DimensionPane.this, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
-                    repaint();
-                }
-                if (isSelected()&& clickCol == TablePane.COLUMN_INDEX_TITLE){
-                    componentPreviouslySelected = true;
-                } else {
-                    setSelected(true,SelectionEvent.SINGLE_SELECT);
-                }
-            }
-        } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
-            // relationship is non-rectangular so we can't use getBounds for intersection testing
-            setSelected(pp.rubberBand.intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
-        } 
-        
+    public String toString() {
+        return "DimensionPane: "+model; //$NON-NLS-1$
     }
-
 }
