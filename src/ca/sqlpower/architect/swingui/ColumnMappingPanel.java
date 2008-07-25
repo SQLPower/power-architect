@@ -149,7 +149,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
             SQLTable fkTable = rhsTable.getModel();
             List<SQLColumn> fkCols = fkTable.getColumns();
             if ( (p.x < rhsTable.getX()) && (p.x > rhsTable.getX() - handleLength) ) {
-                int colIdx = rhsTable.pointToColumnIndex(new Point(0, p.y - rhsTable.getY()));
+                int colIdx = rhsTable.pointToItemIndex(new Point(0, p.y - rhsTable.getY()));
                 if (colIdx >= 0 && colIdx < fkCols.size()) {
                     for (Map.Entry<SQLColumn, SQLColumn> entry : mappings.entrySet()) {
                         if (entry.getValue() == fkCols.get(colIdx)) {
@@ -215,7 +215,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
                 if (panel.getDraggingHandle() == null) return;
                 SQLColumn oldFkCol = panel.getDraggingHandle();
                 Point p = e.getPoint();
-                int newFkColIdx = rhsTable.pointToColumnIndex(new Point(0, p.y));
+                int newFkColIdx = rhsTable.pointToItemIndex(new Point(0, p.y));
                 if (newFkColIdx >= 0 && newFkColIdx < rhsTable.getModel().getColumns().size()) {
                     SQLColumn newFkCol = rhsTable.getModel().getColumn(newFkColIdx);
                     

@@ -577,7 +577,7 @@ public class PlayPen extends JPanel
 					PlayPenComponent item = items.get(0);
 					if (item instanceof TablePane) {
 						TablePane tp = (TablePane) item;
-						int oldIndex = tp.getSelectedColumnIndex();
+						int oldIndex = tp.getSelectedItemIndex();
 						if (oldIndex > 0) {
 							try {
 							    int newIndex = oldIndex;
@@ -589,7 +589,7 @@ public class PlayPen extends JPanel
 							    }
 							    if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
 							        tp.selectNone();
-							        tp.selectColumn(newIndex);
+							        tp.selectItem(newIndex);
 							    }
 							} catch (ArchitectException ex) {
 							    throw new ArchitectRuntimeException(ex);
@@ -607,7 +607,7 @@ public class PlayPen extends JPanel
 					PlayPenComponent item = items.get(0);
 					if (item instanceof TablePane) {
 						TablePane tp = (TablePane) item;
-						int oldIndex = tp.getSelectedColumnIndex();
+						int oldIndex = tp.getSelectedItemIndex();
 
 						try {
 							if (oldIndex < tp.getModel().getColumns().size() - 1) {
@@ -621,7 +621,7 @@ public class PlayPen extends JPanel
 	                                }
 	                                if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
 	                                    tp.selectNone();
-	                                    tp.selectColumn(newIndex);
+	                                    tp.selectItem(newIndex);
 	                                }
 	                            } catch (ArchitectException ex) {
 	                                throw new ArchitectRuntimeException(ex);
@@ -1806,11 +1806,7 @@ public class PlayPen extends JPanel
  			}
  		}
  		mouseMode = MouseModeType.MULTI_SELECT;
- 		try {
-            updateDBTree();
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
-        }
+        updateDBTree();
 	}
 
 
@@ -2154,7 +2150,7 @@ public class PlayPen extends JPanel
 
 			if ( c instanceof TablePane ) {
 				TablePane tp = (TablePane) c;
-				int colIndex = TablePane.COLUMN_INDEX_NONE;
+				int colIndex = ContainerPane.ITEM_INDEX_NONE;
 
 				Point dragOrigin = tp.getPlayPen().unzoomPoint(new Point(dge.getDragOrigin()));
 				dragOrigin.x -= tp.getX();
@@ -2171,17 +2167,13 @@ public class PlayPen extends JPanel
 					return;
 				}
 
-				try {
-					colIndex = tp.pointToColumnIndex(dragOrigin);
-				} catch (ArchitectException e) {
-					logger.error("Got exception while translating drag point", e); //$NON-NLS-1$
-				}
+				colIndex = tp.pointToItemIndex(dragOrigin);
 				logger.debug("Recognized drag gesture on "+tp.getName()+"! origin="+dragOrigin //$NON-NLS-1$ //$NON-NLS-2$
 							 +"; col="+colIndex); //$NON-NLS-1$
 
 				try {
 					logger.debug("DGL: colIndex="+colIndex+",columnsSize="+tp.getModel().getColumns().size()); //$NON-NLS-1$ //$NON-NLS-2$
-					if (colIndex == TablePane.COLUMN_INDEX_TITLE) {
+					if (colIndex == ContainerPane.ITEM_INDEX_TITLE) {
 						// we don't use this because it often misses drags
 						// that start near the edge of the titlebar
 //						logger.debug("Discarding drag on titlebar (handled by mousePressed())");
@@ -2196,7 +2188,7 @@ public class PlayPen extends JPanel
 						tp.draggingColumn = tp.getModel().getColumn(colIndex);
 						DBTree tree = session.getSourceDatabases();
 						ArrayList paths = new ArrayList();
-                        for (SQLColumn column: tp.getSelectedColumns()) {
+                        for (SQLColumn column: tp.getSelectedItems()) {
 
                             int[] path = tree.getDnDPathToNode(column);
                             if (logger.isDebugEnabled()) {
@@ -2249,7 +2241,6 @@ public class PlayPen extends JPanel
 		 * resizing the rubber band in response to user input.
 		 */
 		protected Point rubberBandOrigin;
-        private boolean componentPreviouslySelected;
 		// ------------------- MOUSE LISTENER INTERFACE ------------------
 
 		public void mouseEntered(MouseEvent evt) {
@@ -2264,7 +2255,6 @@ public class PlayPen extends JPanel
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
-			if (c != null) p.translate(-c.getX(), -c.getY());
 			
 			if (c instanceof PlayPenComponent) {
 			    c.handleMouseEvent(evt);
@@ -2273,26 +2263,19 @@ public class PlayPen extends JPanel
                 session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
 				maybeShowPopup(evt);
 			}
-			try {
-			    updateDBTree();
-			} catch (ArchitectException e) {
-			    throw new ArchitectRuntimeException(e);
-			}
+			updateDBTree();
 		}
 
 
 		public void mousePressed(MouseEvent evt) {
-            componentPreviouslySelected = false;
 			requestFocus();
             maybeShowPopup(evt);
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
-	        if (c != null) p.translate(-c.getX(), -c.getY());
 			
 			if (c instanceof PlayPenComponent) {
 			    c.handleMouseEvent(evt);
-			    
 			} else {
 				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0  && !evt.isPopupTrigger()) {
 					mouseMode = MouseModeType.IDLE;
@@ -2321,11 +2304,7 @@ public class PlayPen extends JPanel
 			}
 			maybeShowPopup(evt);
 			repaint();
-			try {
-                updateDBTree();
-            } catch (ArchitectException e) {
-                throw new ArchitectRuntimeException(e);
-            }
+            updateDBTree();
 		}
 
 		// ---------------- MOUSEMOTION LISTENER INTERFACE -----------------
@@ -2334,7 +2313,6 @@ public class PlayPen extends JPanel
 		}
 
 		public void mouseMoved(MouseEvent evt) {
-
 			if (rubberBand != null) {
 				// repaint old region in case of shrinkage
 				Rectangle dirtyRegion = zoomRect(new Rectangle(rubberBand));
@@ -2345,7 +2323,6 @@ public class PlayPen extends JPanel
 
 				mouseMode = MouseModeType.RUBBERBAND_MOVE;
 				// update selected items
-				Rectangle temp = new Rectangle();  // avoids multiple allocations in getBounds
 				for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
 					PlayPenComponent c = contentPane.getComponent(i);
 					c.handleMouseEvent(evt);
@@ -2424,11 +2401,6 @@ public class PlayPen extends JPanel
 	     * The max distance from the side the mouse can be to start an autoscroll
 	     */
 	    private static final int AUTO_SCROLL_INSET = 25; 
-	    
-	    /**
-	     * The speed at which auto scroll happens
-	     */
-	    private static final int AUTO_SCROLL_SPEED = 10;
 	 
 	    // no of units to be scrolled in each direction 
 	    private Insets scrollUnits = new Insets(AUTO_SCROLL_INSET, AUTO_SCROLL_INSET, AUTO_SCROLL_INSET, AUTO_SCROLL_INSET);
@@ -2721,8 +2693,8 @@ public class PlayPen extends JPanel
                     
                     // finally select the actual column
                     int index = table.getColumnIndex(col);
-                    if (!tablePane.isColumnSelected(index)) {
-                        tablePane.selectColumn(index);
+                    if (!tablePane.isItemSelected(index)) {
+                        tablePane.selectItem(index);
                     } else {
                         ignoredObjs.add(col);
                     }
@@ -2761,13 +2733,13 @@ public class PlayPen extends JPanel
                 
                 // cannot deselect columns while going through the selected columns
                 List<Integer> indices = new ArrayList<Integer>();
-                for (SQLColumn col : tablePane.selectedColumns) {
+                for (SQLColumn col : tablePane.selectedItems) {
                     if (!selections.contains(col) && col.getParentTable() != null) {
                         indices.add(col.getParentTable().getColumnIndex(col));
                     }
                 }
                 for (int index : indices) {
-                    tablePane.deselectColumn(index);
+                    tablePane.deselectItem(index);
                 }
             } else if (comp instanceof Relationship) {
                 Relationship relationship = (Relationship) comp;
@@ -2813,7 +2785,7 @@ public class PlayPen extends JPanel
      * @throws ArchitectException 
      * 
      */
-    public void updateDBTree() throws ArchitectException {
+    public void updateDBTree() {
         if (ignoreTreeSelection) return;
         ignoreTreeSelection = true;
         DBTree tree = session.getSourceDatabases();
@@ -2833,7 +2805,7 @@ public class PlayPen extends JPanel
             }
             
             if (comp instanceof TablePane) {
-                for (SQLColumn col :((TablePane) comp).getSelectedColumns()) {
+                for (SQLColumn col :((TablePane) comp).getSelectedItems()) {
                     tp = tree.getTreePathForNode(col);
                     if (!selectionPaths.contains(tp)) {
                         selectionPaths.add(tp);

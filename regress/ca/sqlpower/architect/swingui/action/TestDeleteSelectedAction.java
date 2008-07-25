@@ -106,10 +106,10 @@ public class TestDeleteSelectedAction extends TestCase {
 	public void testColumnSelected() throws ArchitectException{
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		tp.selectColumn(0);
+		tp.selectItem(0);
 		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertEquals("Delete col1 (Shortcut delete)",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
-		tp.selectColumn(1);
+		tp.selectItem(1);
 		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("tooltip incorrect for two selected columns","Delete 2 items (Shortcut delete)",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
@@ -121,7 +121,7 @@ public class TestDeleteSelectedAction extends TestCase {
 	public void testTableAndColumnSelected(){
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		tp.selectColumn(0);
+		tp.selectItem(0);
 		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		tp2.setSelected(true,SelectionEvent.SINGLE_SELECT);		
 		deleteAction.itemSelected(new SelectionEvent(tp2, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
@@ -140,7 +140,7 @@ public class TestDeleteSelectedAction extends TestCase {
 		r.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		tp.selectColumn(0);
+		tp.selectItem(0);
 		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		tp2.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		deleteAction.itemSelected(new SelectionEvent(tp2, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));

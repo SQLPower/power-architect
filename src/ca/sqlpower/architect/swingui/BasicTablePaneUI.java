@@ -39,7 +39,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 
@@ -182,7 +181,6 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			g2.drawString(getTitleString(tablePane), 0, y += ascent);
 			
 			g2.setColor(Color.BLACK);
-			// draw box around columns
 			if (fontHeight < 0) {
 				throw new IllegalStateException("FontHeight is negative"); //$NON-NLS-1$
 			}
@@ -190,7 +188,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			y += GAP + BOX_LINE_THICKNESS + tp.getMargin().top;
 
 			// print columns
-			Iterator colNameIt = tablePane.getModel().getColumns().iterator();
+			Iterator colNameIt = tablePane.getItems().iterator();
 			int i = 0;
 			int hwidth = width-tp.getMargin().right-tp.getMargin().left-BOX_LINE_THICKNESS*2;
 			boolean stillNeedPKLine = true;
@@ -211,7 +209,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			        g2.setColor(Color.BLACK);
 			        g2.drawLine(0, y+maxDescent-(PK_GAP/2), width-1, y+maxDescent-(PK_GAP/2));
 			    }
-			    if (tp.isColumnSelected(i)) {
+			    if (tp.isItemSelected(i)) {
 			        if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$
 			        g2.setColor(selectedColor);
 			        g2.fillRect(BOX_LINE_THICKNESS+tp.getMargin().left, y-ascent+fontHeight,
@@ -226,7 +224,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			    i++;
 			}
 			
-			
+			// draw box around columns
      		g2.setColor(Color.BLACK);
 			if (tp.isRounded()) {
 	                g2.drawRoundRect(0, fontHeight+GAP, width-BOX_LINE_THICKNESS, 
@@ -254,14 +252,14 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			g2.setStroke(oldStroke);
 			int hiddenPkCount = tablePane.getHiddenPkCount();
             int pkSize = tablePane.getModel().getPkSize() - hiddenPkCount;
-			if (ip != TablePane.COLUMN_INDEX_NONE) {
+			if (ip != ContainerPane.ITEM_INDEX_NONE) {
 			    y = GAP + BOX_LINE_THICKNESS + tp.getMargin().top + fontHeight;
 			    if (ip == TablePane.COLUMN_INDEX_END_OF_PK) {
 			        y += fontHeight * pkSize;
 			    } else if (ip == TablePane.COLUMN_INDEX_START_OF_NON_PK) {
 			        y += fontHeight * pkSize + PK_GAP;
 			    } else if (ip < pkSize) {
-			        if (ip == TablePane.COLUMN_INDEX_TITLE) {
+			        if (ip == ContainerPane.ITEM_INDEX_TITLE) {
 			            ip = 0;
 			        } 
 			        y += ip * fontHeight;
@@ -340,7 +338,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	 * This implementation depends on the implementation of paint().
 	 */
     @Override
-	public int pointToColumnIndex(Point p) throws ArchitectException {
+	public int pointToItemIndex(Point p) {
 		Font font = tablePane.getFont();
 		FontMetrics metrics = tablePane.getFontMetrics(font);
 		int fontHeight = metrics.getHeight();
@@ -349,7 +347,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		int numHiddenPkCols = tablePane.getHiddenPkCount();
 		
 		int numPkCols = tablePane.getModel().getPkSize() - numHiddenPkCols;
-		int numCols = tablePane.getModel().getColumns().size() - numHiddenCols;
+		int numCols = tablePane.getItems().size() - numHiddenCols;
 		int firstColStart = fontHeight + GAP + BOX_LINE_THICKNESS + tablePane.getMargin().top;
 		int pkLine = firstColStart + fontHeight*numPkCols;
 
@@ -362,10 +360,10 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		
 		if (p.y < 0) {
 		    logger.debug("y<0"); //$NON-NLS-1$
-		    returnVal = TablePane.COLUMN_INDEX_NONE;
+		    returnVal = ContainerPane.ITEM_INDEX_NONE;
 		} else if (p.y <= fontHeight) {
 		    logger.debug("y<=fontHeight = "+fontHeight); //$NON-NLS-1$
-		    returnVal = TablePane.COLUMN_INDEX_TITLE;
+		    returnVal = ContainerPane.ITEM_INDEX_TITLE;
 		} else if (numPkCols > 0 && p.y <= pkLine - 1) {
 		    logger.debug("y<=firstColStart + fontHeight*numPkCols - 1= "+(firstColStart + fontHeight*numPkCols)); //$NON-NLS-1$
 		    returnVal = (p.y - firstColStart) / fontHeight;
@@ -381,20 +379,20 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		    returnVal = (p.y - firstColStart - PK_GAP) / fontHeight;
 		    returnVal = findIndex(returnVal);
 		} else {
-		    returnVal = TablePane.COLUMN_INDEX_NONE;
+		    returnVal = ContainerPane.ITEM_INDEX_NONE;
 		}
 		logger.debug("pointToColumnIndex return value is " + returnVal); //$NON-NLS-1$
 		return returnVal;
 	}
 
     @Override
-    public int columnIndexToCentreY(int colidx) throws ArchitectException {
+    public int columnIndexToCentreY(int colidx) {
         Font font = tablePane.getFont();
         FontMetrics metrics = tablePane.getFontMetrics(font);
         int fontHeight = metrics.getHeight();
-        if (colidx == TablePane.COLUMN_INDEX_TITLE) {
+        if (colidx == ContainerPane.ITEM_INDEX_TITLE) {
             return tablePane.getMargin().top + (fontHeight / 2);
-        } else if (colidx >= 0 && colidx < tablePane.getModel().getColumns().size()) {
+        } else if (colidx >= 0 && colidx < tablePane.getItems().size()) {
             int firstColY = fontHeight + GAP + BOX_LINE_THICKNESS + tablePane.getMargin().top;
             int y = firstColY + (fontHeight * colidx) + (fontHeight / 2);
             if (colidx >= tablePane.getModel().getPkSize()) {
@@ -459,20 +457,16 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
      */
     private int findIndex(int index) {
         int offset = 0;
-        try {
-            if (index >= tablePane.getModel().getColumns().size() - tablePane.getHiddenColumns().size()) {
-                throw new IndexOutOfBoundsException();
-            }
-            for (int i = 0; i < tablePane.getModel().getColumns().size(); i++){
-                if (!tablePane.getHiddenColumns().contains(tablePane.getModel().getColumn(i))) {
-                    offset++;
-                    if (offset > index) return i;
-                }
-            }
-            return 0;
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+        if (index >= tablePane.getItems().size() - tablePane.getHiddenColumns().size()) {
+            throw new IndexOutOfBoundsException();
         }
+        for (int i = 0; i < tablePane.getItems().size(); i++){
+            if (!tablePane.getHiddenColumns().contains(tablePane.getItems().get(i))) {
+                offset++;
+                if (offset > index) return i;
+            }
+        }
+        return 0;
     }
     
     /**

@@ -176,11 +176,11 @@ public class TestColumnEditPanel extends TestCase {
         PlayPen pp = new PlayPen(session);        
         TablePane tp = new TablePane(table, pp.getContentPane());
         tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-        tp.selectColumn(table.getColumnIndex(col3));        
+        tp.selectItem(table.getColumnIndex(col3));        
         ColumnEditPanel ce = new ColumnEditPanel(col3, session);        
         ce.getColInPK().setSelected(true);
         ce.applyChanges();
-        assertEquals(table.getColumnIndex(col3), tp.getSelectedColumnIndex());
+        assertEquals(table.getColumnIndex(col3), tp.getSelectedItemIndex());
     }
 
 }

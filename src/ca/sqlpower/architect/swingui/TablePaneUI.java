@@ -20,19 +20,16 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
 
-import ca.sqlpower.architect.ArchitectException;
-
 public abstract class TablePaneUI implements PlayPenComponentUI, java.io.Serializable {
-	public static final String UI_CLASS_ID = "TablePaneUI";
 
 	/**
-	 * This delegate method is specified by {@link TablePane#pointToColumnIndex(Point)}
+	 * This delegate method is specified by {@link TablePane#pointToItemIndex(Point)}
 	 */
-	public abstract int pointToColumnIndex(Point p) throws ArchitectException;
+	public abstract int pointToItemIndex(Point p);
 
     /**
      * This delegate method is specified by {@link TablePane#columnIndexToCentreY(int)}.
      */
-    public abstract int columnIndexToCentreY(int colidx) throws ArchitectException;
+    public abstract int columnIndexToCentreY(int colidx);
 	
 }

@@ -96,10 +96,10 @@ public class TestEditColumnAction extends TestCase {
 	public void testColumnSelected() throws ArchitectException{
 		assertFalse("Action enabled with no items",editColumn.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		tp.selectColumn(0);
+		tp.selectItem(0);
 		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertEquals("Editing col1", editColumn.getValue(EditColumnAction.SHORT_DESCRIPTION));		
-		tp.selectColumn(1);
+		tp.selectItem(1);
 		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enabled", editColumn.isEnabled());		
 		tp.selectNone();
@@ -110,7 +110,7 @@ public class TestEditColumnAction extends TestCase {
 	public void testTableAndColumnSelected(){
 		assertFalse("Action enabled with no items",editColumn.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		tp.selectColumn(0);
+		tp.selectItem(0);
 		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		tp2.setSelected(true,SelectionEvent.SINGLE_SELECT);				
 		editColumn.itemSelected(new SelectionEvent(tp2, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));		

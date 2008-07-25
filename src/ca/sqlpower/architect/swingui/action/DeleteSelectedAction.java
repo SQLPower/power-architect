@@ -99,23 +99,19 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
                 deleteItems.add(items.get(i));
             }
             TablePane currTable;
-            try {
-                for (int i = 0; i < deleteItems.size(); i++){
-                    if (deleteItems.get(i) instanceof TablePane) {
+            for (int i = 0; i < deleteItems.size(); i++){
+                if (deleteItems.get(i) instanceof TablePane) {
 
-                        currTable = (TablePane) deleteItems.get(i);			                
-                        if (currTable.getSelectedColumns().size() > 0){
-                            cCount = cCount + currTable.getSelectedColumns().size();
-                            tablesWithColumns.add(currTable);
-                            deleteItems.remove(i);
-                            i--;
-                        } else {
-                            tCount++;
-                        }
+                    currTable = (TablePane) deleteItems.get(i);			                
+                    if (currTable.getSelectedItems().size() > 0){
+                        cCount = cCount + currTable.getSelectedItems().size();
+                        tablesWithColumns.add(currTable);
+                        deleteItems.remove(i);
+                        i--;
+                    } else {
+                        tCount++;
                     }
                 }
-            } catch (ArchitectException e) {
-                logger.error("Fail to remove tables with column(s) selected from the list"); //$NON-NLS-1$
             }
 
             if (items.size() > 1) {
@@ -148,15 +144,9 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
             for (int i = 0; i < tablesWithColumns.size(); i++) {
                 TablePane colTable = tablesWithColumns.get(i);
                 // make a list of columns to delete
-                try {
-                    selectedColumns = colTable.getSelectedColumns();
-                    if (selectedColumns != null) {
-                        listOfColumns.add(selectedColumns);
-                    }
-                } catch (ArchitectException ae) {
-                    ASUtils.showExceptionDialog(session,
-                            Messages.getString("DeleteSelectedAction.couldNotFindSelectedColumns") , ae); //$NON-NLS-1$
-                    return;
+                selectedColumns = colTable.getSelectedItems();
+                if (selectedColumns != null) {
+                    listOfColumns.add(selectedColumns);
                 }
             }
             
@@ -246,13 +236,13 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
             String name = Messages.getString("DeleteSelectedAction.selected"); //$NON-NLS-1$
             if (item instanceof TablePane) {
                 TablePane tp = (TablePane) item;
-                if (tp.getSelectedColumnIndex() >= 0) {
+                if (tp.getSelectedItemIndex() >= 0) {
                     try {
-                        List<SQLColumn> selectedColumns = tp.getSelectedColumns();
+                        List<SQLColumn> selectedColumns = tp.getSelectedItems();
                         if (selectedColumns.size() > 1) {
                             name = Messages.getString("DeleteSelectedAction.numberOfSelectedItems", String.valueOf(selectedColumns.size())); //$NON-NLS-1$
                         } else {
-                            name = tp.getModel().getColumn(tp.getSelectedColumnIndex()).getName();
+                            name = tp.getModel().getColumn(tp.getSelectedItemIndex()).getName();
                         }
                     } catch (ArchitectException ex) {
                         logger.error("Couldn't get selected column name", ex); //$NON-NLS-1$
@@ -273,7 +263,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
                     // Because the table pane is already counted we need to add one less
                     // than the columns unless there are no columns selected.  Then
                     // We need to add 0
-                    numSelectedItems += Math.max(((TablePane) item).getSelectedColumns().size()-1, 0);
+                    numSelectedItems += Math.max(((TablePane) item).getSelectedItems().size()-1, 0);
                 }
             }
             description = Messages.getString("DeleteSelectedAction.deleteNumberOfItems", String.valueOf(numSelectedItems)); //$NON-NLS-1$
