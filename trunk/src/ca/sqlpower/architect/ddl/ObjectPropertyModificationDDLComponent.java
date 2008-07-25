@@ -18,12 +18,15 @@
  */
 package ca.sqlpower.architect.ddl;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -32,7 +35,6 @@ import javax.swing.JTextField;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 
 /**
@@ -79,9 +81,8 @@ public class ObjectPropertyModificationDDLComponent extends GenericDDLWarningCom
                 logger.debug("Now attempt to modify object property");
                 for (Map.Entry<JTextField, SQLObject> entry : textFields.entrySet()) {
                     try {
-                        SQLColumn col = (SQLColumn)(entry.getValue());
-                        Method setter = PropertyUtils.getWriteMethod(PropertyUtils.getPropertyDescriptor(col, propertyName));
-                        setter.invoke(col, entry.getKey().getText());
+                        Method setter = PropertyUtils.getWriteMethod(PropertyUtils.getPropertyDescriptor(entry.getValue(), propertyName));
+                        setter.invoke(entry.getValue(), entry.getKey().getText());
                     } catch (NoSuchMethodException e) {
                         logger.error("Corresponding mutator method for property: " + propertyName + "was not found.\n" +
                         "Now attempting to modify object's name instead.");
@@ -100,8 +101,20 @@ public class ObjectPropertyModificationDDLComponent extends GenericDDLWarningCom
             }
         };
         component = new JPanel(); 
-        component.add(getQuickFixButton());                //XXX anti-pattern
+        if (warning.getQuickFixPropertyName() != null) {
+            JButton updateProperty = new JButton("Update Property");
+            updateProperty.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    applyChanges();
+                }
+            });
+            component.add(updateProperty);
+        } else {
+            component.add(getQuickFixButton());           
+        }
+        
         component.add(new JLabel(warning.getMessage()));
+        
         if (warning.getQuickFixPropertyName() != null) {
             component.add(new JLabel(" Change " + warning.getQuickFixPropertyName() + ": "));
             List<? extends SQLObject> list = warning.getInvolvedObjects();
