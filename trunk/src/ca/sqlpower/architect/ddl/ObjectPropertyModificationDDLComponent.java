@@ -20,7 +20,6 @@ package ca.sqlpower.architect.ddl;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Hashtable;
 import java.util.List;
@@ -45,7 +44,6 @@ import ca.sqlpower.architect.swingui.Messages;
  * <p>
  * By default, if not specified by the warning. An instance would modify the
  * name of the object.
- * </p>
  */
 public class ObjectPropertyModificationDDLComponent extends GenericDDLWarningComponent {
 
@@ -86,14 +84,8 @@ public class ObjectPropertyModificationDDLComponent extends GenericDDLWarningCom
                     try {
                         Method setter = PropertyUtils.getWriteMethod(PropertyUtils.getPropertyDescriptor(entry.getValue(), propertyName));
                         setter.invoke(entry.getValue(), entry.getKey().getText());
-                    } catch (NoSuchMethodException e) {
-                        throw new RuntimeException("Failed to update property:" + propertyName + " on " + entry.getValue(), e);
-                    } catch (IllegalArgumentException e) {
-                        throw new IllegalArgumentException("Failed to update property:" + propertyName + " on " + entry.getValue(), e);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException("Failed to update property:" + propertyName + " on " + entry.getValue(), e);
-                    } catch (InvocationTargetException e) {
-                        throw new RuntimeException("Failed to update property:" + propertyName + " on " + entry.getValue(), e);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to update property:" + propertyName + " on " + entry.getValue(), e); //$NON-NLS-1$ //$NON-NLS-2$
                     }
                 }
             }
@@ -114,7 +106,7 @@ public class ObjectPropertyModificationDDLComponent extends GenericDDLWarningCom
         component.add(new JLabel(warning.getMessage()));
         
         if (propertyName != null) {
-            component.add(new JLabel(" Change " + warning.getQuickFixPropertyName() + ": ")); //$NON-NLS-1$ //$NON-NLS-2$
+            component.add(new JLabel(Messages.getString("ObjectPropertyModificationDDLComponent.Change") + warning.getQuickFixPropertyName() + ": "));  //$NON-NLS-1$ //$NON-NLS-2$
             List<? extends SQLObject> list = warning.getInvolvedObjects();
             for (SQLObject obj : list) {
                 JTextField jtf = new JTextField();
@@ -123,14 +115,8 @@ public class ObjectPropertyModificationDDLComponent extends GenericDDLWarningCom
                     Method getter = PropertyUtils.getReadMethod(PropertyUtils.getPropertyDescriptor(obj, propertyName));
                     jtf.setText((String)(getter.invoke(obj)));
                     logger.debug("Successfully modified object's property."); //$NON-NLS-1$
-                } catch (NoSuchMethodException e) {
-                    throw new RuntimeException("Failed to update property:" + propertyName + " on " + obj, e);
-                } catch (IllegalArgumentException e) {
-                    throw new IllegalArgumentException("Failed to update property:" + propertyName + " on " + obj, e);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException("Failed to update property:" + propertyName + " on " + obj, e);
-                } catch (InvocationTargetException e) {
-                    throw new RuntimeException("Failed to update property:" + propertyName + " on " + obj, e);
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to update property:" + propertyName + " on " + obj, e); //$NON-NLS-1$ //$NON-NLS-2$
                 }
                 component.add(jtf);
                 textFields.put(jtf, obj);
