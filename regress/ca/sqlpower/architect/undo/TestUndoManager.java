@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.undo;
 
 import java.awt.Point;
+import java.beans.PropertyChangeEvent;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,6 @@ import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
-import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.architect.undo.UndoManager.SQLObjectUndoableEventAdapter;
 
@@ -360,7 +360,7 @@ public class TestUndoManager extends TestCase {
 	    Point newPkCon = rel.getPkConnectionPoint();
 	    Point newFkCon = rel.getFkConnectionPoint();
 	    
-	    rel.firePropertyChange(new RelationshipConnectionPointEvent(rel, new Point[] {oldPkCon, oldFkCon}, 
+	    rel.firePropertyChange(new PropertyChangeEvent(rel, "connectionPoints", new Point[] {oldPkCon, oldFkCon}, 
 	            new Point[] {rel.getPkConnectionPoint(), rel.getFkConnectionPoint()}));
 	    undoManager.undo();
 	    assertEquals(oldPkCon, rel.getPkConnectionPoint());
