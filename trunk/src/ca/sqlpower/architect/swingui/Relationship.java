@@ -53,8 +53,6 @@ import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
-import ca.sqlpower.architect.swingui.event.PlayPenComponentMovedEvent;
-import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
@@ -323,10 +321,9 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
             /* (non-Javadoc)
              * @see ca.sqlpower.architect.swingui.PlayPenComponentListener#componentResized(ca.sqlpower.architect.swingui.PlayPenComponentEvent)
              */
-            if(evt instanceof PlayPenComponentMovedEvent) {
-                PlayPenComponentMovedEvent e = (PlayPenComponentMovedEvent)evt;
-                logger.debug("Component "+e.getPPComponent().getName()+" moved"); //$NON-NLS-1$ //$NON-NLS-2$
-                if (e.getPPComponent() == pkTable || e.getPPComponent() == fkTable) {
+            if(evt.getPropertyName().equals("location")) {
+                logger.debug("Component "+((PlayPenComponent)(evt.getSource())).getName()+" moved"); //$NON-NLS-1$ //$NON-NLS-2$
+                if (((PlayPenComponent)(evt.getSource())) == pkTable || ((PlayPenComponent)(evt.getSource())) == fkTable) {
                     revalidate();
                 }
             }
@@ -334,13 +331,12 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
             /* (non-Javadoc)
              * @see ca.sqlpower.architect.swingui.PlayPenComponentListener#componentResized(ca.sqlpower.architect.swingui.PlayPenComponentEvent)
              */
-            else if(evt instanceof PlayPenComponent.PlayPenComponentResizedEvent) {
-                PlayPenComponentResizedEvent e = (PlayPenComponentResizedEvent)evt;
-                logger.debug("Component "+((PlayPenComponent)e.getSource()).getName()+" changed size"); //$NON-NLS-1$ //$NON-NLS-2$
-                if (((PlayPenComponent)e.getSource()) == pkTable) {
+            else if(evt.getPropertyName().equals("bounds")) {
+                logger.debug("Component "+((PlayPenComponent)(evt.getSource())).getName()+" changed size"); //$NON-NLS-1$ //$NON-NLS-2$
+                if (((PlayPenComponent)(evt.getSource())) == pkTable) {
                     setPkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(true, getPkConnectionPoint())); // true == PK
                 }
-                if (((PlayPenComponent)e.getSource()) == fkTable) {
+                if (((PlayPenComponent)(evt.getSource())) == fkTable) {
                     setFkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(false, getFkConnectionPoint())); // false == FK
                 }
             }
@@ -432,7 +428,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		 */
 		public void mouseReleased(MouseEvent e) {
 		    if (!(r.getPkConnectionPoint().equals(startingPk)) || !(r.getFkConnectionPoint().equals(startingFk))) 
-		        r.firePropertyChange(new RelationshipConnectionPointEvent(r, new Point[] {this.startingPk, this.startingFk}, 
+		        r.firePropertyChange(new PropertyChangeEvent(r, "connectionPoints", new Point[] {this.startingPk, this.startingFk}, 
 		                new Point[] {r.getPkConnectionPoint(),  r.getFkConnectionPoint()}));
 			cleanup();
 		}

@@ -20,13 +20,12 @@ package ca.sqlpower.architect.undo;
 
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.StubSQLObject;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
-import ca.sqlpower.architect.swingui.event.PlayPenComponentMovedEvent;
-import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 
@@ -181,10 +180,9 @@ public class ArchitectPropertyChangeUndoableEditTest extends TestCase {
 	 */
 	public void testPropertyChangeEdit() {
 	    TestPlayPenComp comp = new TestPlayPenComp(null);
-	    PlayPenComponentMovedEvent e = new PlayPenComponentMovedEvent(comp);
+	    PropertyChangeEvent e = new PropertyChangeEvent(comp, "location", null, null);
 	    PropertyChangeEdit edit = new PropertyChangeEdit(e);
 	    assertEquals("property change edit", edit.getPresentationName());
-	    assertEquals("Changing property: \"location\" by Moving testComp from null to null", edit.toString());
 	    Point oldLocation = new Point(1, 2) {
 	        @Override
 	        public String toString() {
@@ -199,9 +197,8 @@ public class ArchitectPropertyChangeUndoableEditTest extends TestCase {
         };
         comp.setLocation(oldLocation);
         comp.setLocation(newLocation);
-        e = new PlayPenComponentMovedEvent(comp, oldLocation, newLocation);
+        e = new PropertyChangeEvent(comp, "location", oldLocation, newLocation);
         edit = new PropertyChangeEdit(e);
-        assertEquals("Changing property: \"location\" by Moving testComp from (1, 2) to (3, 4)", edit.toString());
         assertTrue(edit.canUndo());
         edit.undo();
         assertEquals(oldLocation, comp.getLocation());
@@ -221,7 +218,7 @@ public class ArchitectPropertyChangeUndoableEditTest extends TestCase {
 	    Point oldLocation = comp.getLocation();
 	    Point newLocation = new Point(1, 2);
 	    comp.setLocation(newLocation);
-	    comp.firePropertyChange(new PlayPenComponentMovedEvent(comp, oldLocation, newLocation));
+	    comp.firePropertyChange(new PropertyChangeEvent(comp, "location", oldLocation, newLocation));
 	    
 	    assertTrue(undoManager.canUndo());
 	    undoManager.undo();
@@ -241,7 +238,7 @@ public class ArchitectPropertyChangeUndoableEditTest extends TestCase {
         Point[] newConnectionPoints = {new Point(oldConnectionPoints[0].x + 10, oldConnectionPoints[0].y + 20), 
                 new Point(oldConnectionPoints[1].x + 30, oldConnectionPoints[1].y + 40)};
         comp.setConnectionPoints(newConnectionPoints);
-        comp.firePropertyChange(new RelationshipConnectionPointEvent(comp, oldConnectionPoints, newConnectionPoints));
+        comp.firePropertyChange(new PropertyChangeEvent(comp, "connectionPoints", oldConnectionPoints, newConnectionPoints));
         
         assertTrue(undoManager.canUndo());
         undoManager.undo();

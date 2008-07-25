@@ -37,6 +37,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,7 +80,6 @@ import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
-import ca.sqlpower.architect.swingui.event.PlayPenComponentMovedEvent;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.swingui.ColorIcon;
@@ -1279,10 +1279,10 @@ public class TablePane
         Rectangle oldBounds = getBounds();
         super.setBoundsImpl(x, y, width, height);
         if (oldBounds.x != x || oldBounds.y != y) {
-            firePropertyChange(new PlayPenComponentMovedEvent(this, oldBounds.getLocation(), new Point(x,y)));
+            firePropertyChange(new PropertyChangeEvent(this, "location", oldBounds.getLocation(), new Point(x,y)));
         }
         if (oldBounds.width != width || oldBounds.height != height) {
-            firePropertyChange(new PlayPenComponentResizedEvent());
+            firePropertyChange(new PropertyChangeEvent(this, "bounds", null, null));
         }
     }
 

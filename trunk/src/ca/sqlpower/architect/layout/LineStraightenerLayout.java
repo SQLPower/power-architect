@@ -21,6 +21,7 @@ package ca.sqlpower.architect.layout;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.beans.PropertyChangeEvent;
 import java.util.Collection;
 
 import org.apache.log4j.Logger;
@@ -29,7 +30,6 @@ import ca.sqlpower.architect.swingui.BasicRelationshipUI;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.RelationshipUI;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
 
 /**
  * A layout implementation that leaves all tables in their original
@@ -75,7 +75,7 @@ public class LineStraightenerLayout extends AbstractLayout {
                 Relationship r = (Relationship) e;
                 Point[] oldConnectionPoints = {r.getPkConnectionPoint(), r.getFkConnectionPoint()};
                 attemptToStraighten(r);
-                r.firePropertyChange(new RelationshipConnectionPointEvent(r, oldConnectionPoints, 
+                r.firePropertyChange(new PropertyChangeEvent(r, "connectionPoints", oldConnectionPoints, 
                         new Point[] {r.getPkConnectionPoint(), r.getFkConnectionPoint()}));
             }
         }

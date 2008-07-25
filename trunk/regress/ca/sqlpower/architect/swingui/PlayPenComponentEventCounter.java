@@ -21,9 +21,6 @@ package ca.sqlpower.architect.swingui;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import ca.sqlpower.architect.swingui.event.PlayPenComponentMovedEvent;
-import ca.sqlpower.architect.swingui.event.RelationshipConnectionPointEvent;
-
 public class PlayPenComponentEventCounter implements PropertyChangeListener {
 	
     /*
@@ -64,13 +61,13 @@ public class PlayPenComponentEventCounter implements PropertyChangeListener {
 	 * counters.
 	 */
     public void propertyChange(PropertyChangeEvent evt) {
-        if(evt instanceof RelationshipConnectionPointEvent) {
+        if(evt.getPropertyName().equals("connectionPoints")) {
             conPointsMoved++;
         }
-        else if(evt instanceof PlayPenComponentMovedEvent) {
+        else if(evt.getPropertyName().equals("location")) {
             moved++;
         }
-        else if(evt instanceof PlayPenComponent.PlayPenComponentResizedEvent) {
+        else if(evt.getPropertyName().equals("bounds")) {
             resized++;
         }
     }
