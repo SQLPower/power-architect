@@ -91,7 +91,7 @@ public class ObjectPropertyModificationDDLComponent extends GenericDDLWarningCom
             }
         };
         component = new JPanel(); 
-        if (warning.getQuickFixPropertyName() != null) {
+        if (propertyName != null) {
             JButton updateProperty = new JButton(Messages.getString("ObjectPropertyModificationDDLComponent.UpdateProperty")); //$NON-NLS-1$
             updateProperty.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
@@ -106,7 +106,7 @@ public class ObjectPropertyModificationDDLComponent extends GenericDDLWarningCom
         component.add(new JLabel(warning.getMessage()));
         
         if (propertyName != null) {
-            component.add(new JLabel(Messages.getString("ObjectPropertyModificationDDLComponent.Change") + warning.getQuickFixPropertyName() + ": "));  //$NON-NLS-1$ //$NON-NLS-2$
+            component.add(new JLabel(Messages.getString("ObjectPropertyModificationDDLComponent.Change", warning.getQuickFixPropertyName()) + ": "));  //$NON-NLS-1$ //$NON-NLS-2$
             List<? extends SQLObject> list = warning.getInvolvedObjects();
             for (SQLObject obj : list) {
                 JTextField jtf = new JTextField();
