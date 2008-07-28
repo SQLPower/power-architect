@@ -60,7 +60,19 @@ public class MetaGenerator {
     private Hashtable subclassMap;
     private Vector allTypes;
     private boolean testMode;
-
+    
+    /** A list of variables that are extended by a class in the MondrianDef.  We automatically
+     * create getter and setter for all the variables in MondrianDef, but the listed variables
+     * here already have unique getter and setters from either inheritance or custom writen
+     * in the Modrian.xml.  If the mondrian model ever changes and we need to change our 
+     * MondrianDef (by running this file with the Mondrian.xml), it is possible more attributes 
+     * may have to be added here to avoid method naming conflicts.
+     */
+    private String[] usedAttributes = new String[]{"Name", "Type", "NameExp", "OrdinalExp", 
+            "ParentExp", "KeyExp", "Formula", "Alias", "LeftAlias", "RightAlias",
+            "Filter", "Pattern"};
+    
+    
     private static final String newLine = System.getProperty("line.separator");
     private static final char fileSep = System.getProperty("file.separator").charAt(0);
 
@@ -402,6 +414,9 @@ public class MetaGenerator {
             }
             out.println("\t{");
 
+            out.println("\t\tprivate final PropertyChangeSupport _pcs = " +
+                    "new PropertyChangeSupport(this);");
+            
             // Default constructor
             out.println("\t\tpublic " + className + "()");
             out.println("\t\t{");
@@ -448,6 +463,7 @@ public class MetaGenerator {
 
                 // Create the parser.  If using a Plugin, parse from a
                 // different enclosure class.
+                //TODO marker
                 out.print("\t\t\t\torg.eigenbase.xom.DOMElementParser _parser "
                           + "= new org.eigenbase.xom.DOMElementParser("
                           + "_def, ");
@@ -510,15 +526,19 @@ public class MetaGenerator {
             out.println();
 
             // Declare all new content
-            if(def instanceof MetaDef.Plugin)
+            if(def instanceof MetaDef.Plugin) {
                 writeJavaDeclarePluginContent(out, mixed);
-            else if(isAny)
+            }
+            else if(isAny) {
                 writeJavaDeclareAnyContent(out, mixed);
-            else if(isCData)
+            }
+            else if(isCData) {
                 writeJavaDeclareCDataContent(out);
-            else
+            }
+            else {
                 for(int i=0; i<newContent.length; i++)
                     writeJavaDeclareContent(out, newContent[i]);
+            }
             out.println();
 
             // Create the getName() function
@@ -1293,6 +1313,26 @@ public class MetaGenerator {
         else
             return mappedName;
     }
+
+    
+    //TODO: these comments
+    /**
+     *  
+     */
+    private String getEventListName(String name) {
+        return getDeclaredName(name) + "EventList";
+    }
+    
+    private String getBeanEventListName(String name) {
+        return getBeanName(name) + "EventList";
+    }
+    
+    /**
+     * 
+     */
+    private String getObservableListName(String name) {
+        return getDeclaredName(name) + "ObservableList";
+    }
     
     /**
      * Returns the correctly-capitalized form of the given property/attribute
@@ -1315,10 +1355,12 @@ public class MetaGenerator {
      * @return
      */
     private String getBeanPropertyName(String name) {
-        if (name.equals("name")) {
-            return "instanceName";
-        } else if (name.equals("instanceName")) {
-            throw new IllegalArgumentException("OK, you fooled us. Please fix this code to be more general.");
+        for (String usedAttr : usedAttributes) {
+            if (name.equalsIgnoreCase(usedAttr)) {
+                return "instance" + usedAttr;
+            } else if (name.equalsIgnoreCase("instance" + usedAttr)) {
+                throw new IllegalArgumentException("OK, you fooled us. Please fix this code to be more general.");
+            }
         }
         return name;
     }
@@ -1463,7 +1505,7 @@ public class MetaGenerator {
                                       MetaDef.Attribute attr)
         throws XOMException
     {
-        out.print("\t\t\t\t" + getDeclaredName(attr.name) + " = ");
+        out.print("\t\t\t\tset" + getBeanName(attr.name) + "(");
         out.print("(" + attr.type + ")_parser.getAttribute(");
         out.print("\"" + attr.name + "\", \"" + attr.type + "\", ");
         if(attr._default == null) {
@@ -1480,7 +1522,7 @@ public class MetaGenerator {
             out.print("true");
         else
             out.print("false");
-        out.println(");");
+        out.println("));");
     }
 
     public void writeJavaDeclareAttribute(PrintWriter out,
@@ -1530,7 +1572,7 @@ public class MetaGenerator {
     {
         // Generate the display line
         out.println("\t\t\tdisplayAttribute(_out, \"" + attr.name + "\", "
-                    + getDeclaredName(attr.name) + ", _indent+1);");
+                    + "get" + getBeanName(attr.name) + "(), _indent+1);");
     }
 
     public void writeJavaDisplayXMLAttribute(PrintWriter out,
@@ -1538,7 +1580,7 @@ public class MetaGenerator {
         throws XOMException
     {
         out.println("\t\t\t\t.add(\"" + attr.name
-                    + "\", " + getDeclaredName(attr.name) + ")");
+                    + "\", " + "get" + getBeanName(attr.name) + "())");
     }
 
     public void writeJavaDisplayDiffAttribute(PrintWriter out,
@@ -1546,8 +1588,8 @@ public class MetaGenerator {
         throws XOMException
     {
         out.println("\t\t\t_diff = _diff && displayAttributeDiff(\"" + attr.name
-                    + "\", " + getDeclaredName(attr.name)
-                    + ", _cother." + getDeclaredName(attr.name)
+                    + "\", get" + getBeanName(attr.name) + "()"
+                    + ", _cother.get" + getBeanName(attr.name) + "()"
                     + ", _out, _indent+1);");
     }
 
@@ -1561,8 +1603,7 @@ public class MetaGenerator {
             MetaDef.Definition type = getType(obj.type);
             TypeInfo info = getTypeInfo(obj.type, true);
 
-            out.print("\t\t\t\t"
-                      + getDeclaredName(obj.name) + " = ");
+            out.print("\t\t\t\tset" + getBeanName(obj.name)+ "(");
 
             // Behavior depends on the type
             if (type != null && type instanceof MetaDef.Import) {
@@ -1585,7 +1626,7 @@ public class MetaGenerator {
                 out.print("true");
             else
                 out.print("false");
-            out.println(");");
+            out.println("));");
         }
         else if (content instanceof MetaDef.Array) {
             // Get the object and its type
@@ -1597,37 +1638,25 @@ public class MetaGenerator {
                 // Get the info object for the import
                 TypeInfo info = getTypeInfo(((MetaDef.Import)type).type, true);
 
-                // Construct the array
+                //TODO ah ha!
+                // Construct the lists
                 out.print("\t\t\t\t_tempArray = _parser.getArray(");
                 out.print(info.impName + ".class, ");
                 out.println(array.min + ", " + array.max + ");");
-                out.println("\t\t\t\t"
-                            + getDeclaredName(array.name)
-                            + " = new " + info.impName + "[_tempArray.length];");
-                out.println("\t\t\t\tfor(int _i=0; _i<"
-                            + getDeclaredName(array.name)
-                            + ".length; _i++)");
-                out.println("\t\t\t\t\t" + getDeclaredName(array.name) + ".add( "
-                            + "(" + typeName + ")_tempArray[_i]);");
+                writeListDeclaration(out, info.impName, array.name);
             }
             else if (type instanceof MetaDef.StringElement) {
                 out.print("\t\t\t\t" + getDeclaredName(array.name)
-                          + " = _parser.getStringArray(");
+                        + " = _parser.getStringArray(");
                 out.println("\"" + typeName + "\", " + array.min
-                            + ", " + array.max + ");");
+                        + ", " + array.max + ");");
+                writeListDeclaration(out, "String", array.name);
             }
             else {
                 out.print("\t\t\t\t_tempArray = _parser.getArray(");
                 out.print(typeName + ".class, ");
                 out.println(array.min + ", " + array.max + ");");
-                out.println("\t\t\t\t"
-                            + getDeclaredName(array.name)
-                            + " = new " + typeName + "[_tempArray.length];");
-                out.println("\t\t\t\tfor(int _i=0; _i<"
-                            + getDeclaredName(array.name)
-                            + ".length; _i++)");
-                out.println("\t\t\t\t\t" + getDeclaredName(array.name) + ".add("
-                            + "(" + typeName + ")_tempArray[_i]);");
+                writeListDeclaration(out, typeName, array.name);
             }
         }
         else {
@@ -1671,25 +1700,44 @@ public class MetaGenerator {
             String typeName = getTypeInfo(obj.type, true).className;
 
             // Write content declaration.
+            // These variables already have unique getters defined in the Mondrian.xml
+            // Therefore, getter are not generated here.
+            
+            //The comment above is a lie!
             if(type instanceof MetaDef.Import) {
                 // Get the info object for the import
                 TypeInfo info = getTypeInfo(((MetaDef.Import)type).type, true);
                 typeName = info.impName;
-                out.print("\t\tpublic " + typeName + " "
+                out.println("\t\tprivate " + typeName + " "
+                          + getDeclaredName(obj.name) + ";  /" + "/");
+                
+            }
+            else if(type instanceof MetaDef.StringElement) {
+                out.println("\t\tprivate String "
                           + getDeclaredName(obj.name) + ";  /" + "/");
             }
-            else if(type instanceof MetaDef.StringElement)
-                out.print("\t\tpublic String "
+            else {
+                out.println("\t\tprivate " + typeName + " "
                           + getDeclaredName(obj.name) + ";  /" + "/");
-            else
-                out.print("\t\tpublic " + typeName + " "
-                          + getDeclaredName(obj.name) + ";  /" + "/");
-
-            // Write a brief comment.
-            if(obj.required.booleanValue())
-                out.println("required element");
-            else
-                out.println("optional element");
+            }
+            out.println("\t\tpublic " + obj.type + " get" + getBeanName(obj.name) + "() {" );
+            out.println("\t\t\treturn " + getDeclaredName(obj.name) + ";");
+            out.println("\t\t}");
+            
+            out.println("\t\tpublic void set" + getBeanName(obj.name) + "(" + obj.type + " val) {" );
+            out.println("\t\t\t" + obj.type + " oldval = this." + getDeclaredName(obj.name) + ";");
+            out.println("\t\t\tthis." + getDeclaredName(obj.name) + " = val;");
+            out.println("\t\t\t_pcs.firePropertyChange(\"" + getBeanPropertyName(obj.name) + "\", oldval, val);");
+            out.println("\t\t}");
+            out.println();
+            
+            
+            
+//            // Write a brief comment.
+//            if(obj.required.booleanValue())
+//                out.println("required element");
+//            else
+//                out.println("optional element");
         }
         else if (content instanceof MetaDef.Array) {
             // Write documentation (if any)
@@ -1704,26 +1752,25 @@ public class MetaGenerator {
                 // Get the info object for the import
                 TypeInfo info = getTypeInfo(((MetaDef.Import)type).type, true);
                 typeName = info.impName;
-                out.print("\t\tprivate EventList<" + typeName + "> " 
-                        + getDeclaredName(array.name) + ";  /" + "/");
+                writeGlazedLists(out, typeName, array.name);
             } else if (type instanceof MetaDef.StringElement) {
-                out.print("\t\tprivate EventList<String> " + getDeclaredName(array.name));
+                writeGlazedLists(out, "String", array.name);
             } else {
-                out.print("\t\tprivate EventList<" + typeName + "> " 
-                        + getDeclaredName(array.name) + ";  /" + "/");
+                writeGlazedLists(out, typeName, array.name);
             }
 
             // Write a brief comment.
-            if(array.min.intValue() <= 0 &&
-               array.max.intValue() <= 0)
-                out.println("optional array");
-            else {
-                if(array.min.intValue() > 0)
-                    out.print("min " + array.min);
-                if(array.max.intValue() > 0)
-                    out.print("max " + array.max);
-                out.println();
-            }
+//            if(array.min.intValue() <= 0 &&
+//               array.max.intValue() <= 0)
+//                out.println("\t\t//optional array");
+//            else {
+//                if(array.min.intValue() > 0)
+//                    out.print("min " + array.min);
+//                if(array.max.intValue() > 0)
+//                    out.print("max " + array.max);
+//                out.println();
+//            }
+            out.println();
         }
         else {
             throw new XOMException("Unrecognized content type definition: "
@@ -1731,6 +1778,43 @@ public class MetaGenerator {
         }
     }
 
+    //TODO marker
+    public void writeGlazedLists(PrintWriter out, String typeName, String name) {
+        out.println("\t\tprivate List<" + typeName + "> "
+                + getDeclaredName(name) + ";");
+        out.println("\t\tprivate EventList<" + typeName + "> " 
+                + getEventListName(name) + ";");
+        out.println("\t\tprivate ObservableElementList<" + typeName + "> " 
+                + getObservableListName(name) + ";");
+        out.println();
+        
+        out.println("\t\tpublic EventList<" + typeName + "> get" 
+                + getBeanName(getEventListName(name)) + "() {");
+        out.println("\t\t\treturn " + getEventListName(name)+ ";");
+        out.println("\t\t}");
+        
+        out.println("\t\tpublic ObservableElementList<" + typeName + "> get"
+                + getBeanName(getObservableListName(name)) + "() {");
+        out.println("\t\t\treturn " + getObservableListName(name) + ";");
+        out.println("\t\t}");
+    }
+    
+    public void writeListDeclaration(PrintWriter out, String typeName, String name) {
+        out.println("\t\t\t\t" + getDeclaredName(name)
+                + " = new ArrayList<" + typeName + ">();");
+        out.println("\t\t\t\tfor (int _i=0; _i<_tempArray.length; _i++) {");
+        out.println("\t\t\t\t\t" + getDeclaredName(name) + ".add("
+                + "(" + typeName + ")_tempArray[_i]);");
+        out.println("\t\t\t\t}");
+        out.println("\t\t\t\t" + getEventListName(name) + " = " +
+                " GlazedLists.eventList(" + getDeclaredName(name) + ");");
+        out.println("\t\t\t\t" + getObservableListName(name) + " = " +
+                "new ObservableElementList<" + typeName + ">(" +
+                getEventListName(name) + ", GlazedLists.beanConnector(" +
+                typeName + ".class));");
+    }
+    
+    
     public void writeJavaDeclareAnyContent(PrintWriter out, boolean mixed)
     {
         out.println("\t\tpublic org.eigenbase.xom." +
@@ -1755,6 +1839,7 @@ public class MetaGenerator {
         out.print("\t\tpublic String cdata;  /"
                   + "/ All text goes here");
     }
+    
 
     public void writeJavaDisplayContent(PrintWriter out,
                                         MetaDef.Content content)
@@ -1764,26 +1849,32 @@ public class MetaGenerator {
             MetaDef.Object obj = (MetaDef.Object)content;
             MetaDef.Definition type = getType(obj.type);
 
+            
+            //TODO marker
             if(type instanceof MetaDef.StringElement)
                 out.println("\t\t\tdisplayString(_out, \""
-                            + obj.name + "\", " + getDeclaredName(obj.name)
+                            + obj.name + "\", " + "get" + getBeanName(obj.name) + "()"
                             + ", _indent+1);");
             else
                 out.println("\t\t\tdisplayElement(_out, \""
-                            + obj.name + "\", " + getDeclaredName(obj.name)
+                            + obj.name + "\", " + "get" + getBeanName(obj.name) + "()"
                             + ", _indent+1);");
         }
         else if (content instanceof MetaDef.Array) {
             MetaDef.Array array = (MetaDef.Array)content;
             MetaDef.Definition type = getType(array.type);
 
+            String typeName = getTypeInfo(array.type, true).className;
+            
             if(type instanceof MetaDef.StringElement)
                 out.println("\t\t\tdisplayStringArray(_out, \""
-                            + array.name + "\", " + getDeclaredName(array.name)
+                            + array.name + "\", " + "(" + typeName + "[])"
+                            + "get" + getBeanEventListName(array.name) + "()" + ".toArray()"
                             + ", _indent+1);");
             else
                 out.println("\t\t\tdisplayElementArray(_out, \""
-                            + array.name + "\", " + getDeclaredName(array.name)
+                            + array.name + "\", " + "(" + typeName + "[])"
+                            + "get" + getBeanEventListName(array.name) + "()" + ".toArray()"
                             + ", _indent+1);");
         }
         else {
@@ -1817,22 +1908,25 @@ public class MetaGenerator {
             if(type instanceof MetaDef.StringElement)
                 out.println("\t\t\tdisplayXMLString(_out, \""
                             + getTypeInfo(obj.type, true).tagName + "\", "
-                            + getDeclaredName(obj.name) + ");");
+                            + "get" + getBeanName(obj.name) + "()" + ");");
             else
                 out.println("\t\t\tdisplayXMLElement(_out, "
-                            + getDeclaredName(obj.name) + ");");
+                            + "get" + getBeanName(obj.name) + "()" + ");");
         }
         else if (content instanceof MetaDef.Array) {
             MetaDef.Array array = (MetaDef.Array)content;
             MetaDef.Definition type = getType(array.type);
 
+            String typeName = getTypeInfo(array.type, true).className;
+            
             if(type instanceof MetaDef.StringElement)
                 out.println("\t\t\tdisplayXMLStringArray(_out, \""
                             + getTypeInfo(array.type, true).tagName + "\", "
-                            + getDeclaredName(array.name) + ");");
+                            + "get" + getBeanEventListName(array.name) + "()" + ");");
             else
                 out.println("\t\t\tdisplayXMLElementArray(_out, "
-                            + getDeclaredName(array.name) + ");");
+                            + "(" + typeName+ "[])" + "get" + getBeanEventListName(array.name) + "()" 
+                            + ".toArray()" + ");");
         }
         else if (content instanceof MetaDef.Any) {
             // Display the fixed children array
@@ -1871,32 +1965,34 @@ public class MetaGenerator {
             if(type instanceof MetaDef.StringElement)
                 out.println("\t\t\t_diff = _diff && displayStringDiff(\""
                             + obj.name + "\", "
-                            + getDeclaredName(obj.name) + ", "
-                            + "_cother." + getDeclaredName(obj.name) + ", "
+                            + "get" + getBeanName(obj.name) + "()" + ", "
+                            + "_cother." + "get" + getBeanName(obj.name) + "()" + ", "
                             + "_out, _indent+1);");
             else
                 out.println("\t\t\t_diff = _diff && displayElementDiff(\""
                             + obj.name + "\", "
-                            + getDeclaredName(obj.name) + ", "
-                            + "_cother." + getDeclaredName(obj.name) + ", "
+                            + "get" + getBeanName(obj.name) + "()" + ", "
+                            + "_cother." + "get" + getBeanName(obj.name) + "()" + ", "
                             + "_out, _indent+1);");
         }
         else if (content instanceof MetaDef.Array) {
             MetaDef.Array array = (MetaDef.Array)content;
             MetaDef.Definition type = getType(array.type);
 
+            String typeName = getTypeInfo(array.type, true).className;
+            
             if(type instanceof MetaDef.StringElement)
                 out.println("\t\t\t_diff = _diff && displayStringArrayDiff(\""
-                            + array.name + "\", "
-                            + getDeclaredName(array.name) + ", "
-                            + "_cother." + getDeclaredName(array.name) + ", "
-                            + "_out, _indent+1);");
+                            + array.name + "\", (" + typeName + "[])"
+                            + "get" + getBeanEventListName(array.name) + "()" + ".toArray(), "
+                            + "(" + typeName + "[])_cother." + "get" + getBeanEventListName(array.name) + "()" + ", "
+                            + ".toArray(), " + "_out, _indent+1);");
             else
                 out.println("\t\t\t_diff = _diff && displayElementArrayDiff(\""
-                            + array.name + "\", "
-                            + getDeclaredName(array.name) + ", "
-                            + "_cother." + getDeclaredName(array.name) + ", "
-                            + "_out, _indent+1);");
+                            + array.name + "\", (" + typeName + "[])"
+                            + "get" + getBeanEventListName(array.name) + "()" + ".toArray(), "
+                            + "(" + typeName + "[])_cother." + "get" + getBeanEventListName(array.name) + "()" 
+                            + ".toArray(), " + "_out, _indent+1);");
         }
         else {
             throw new XOMException("Unrecognized content type definition: "
@@ -2013,6 +2109,7 @@ public class MetaGenerator {
      */
     public static void main(String[] args)
     {
+        System.out.println("start");
         int firstArg = 0;
         boolean testMode = false;
         if (firstArg < args.length && args[firstArg].equals("-debug")) {
@@ -2045,6 +2142,7 @@ public class MetaGenerator {
                 args[0+firstArg], testMode);
             generator.writeFiles(args[1+firstArg], null);
             generator.writeOutputs();
+            System.out.println("finish");
         }
         catch(XOMException ex) {
             System.err.println("Generation of model failed:");
