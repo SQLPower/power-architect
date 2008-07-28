@@ -75,8 +75,8 @@ public class BasicTablePaneUITest extends TestCase {
     public void testPointToColumnIndexForPointsOutsideColumns() throws Exception {
         int returnVal;
         Point testPoint = new Point(-1, -1);
-        returnVal = ui.pointToColumnIndex(testPoint);
-        assertEquals(TablePane.COLUMN_INDEX_NONE, returnVal);
+        returnVal = ui.pointToItemIndex(testPoint);
+        assertEquals(ContainerPane.ITEM_INDEX_NONE, returnVal);
 
         // If the box is 'just' outside the click area of the last column
         Font font = tp.getFont();
@@ -85,13 +85,13 @@ public class BasicTablePaneUITest extends TestCase {
         int firstColStart = fontHeight + BasicTablePaneUI.GAP + BasicTablePaneUI.BOX_LINE_THICKNESS + tp.getMargin().top;
         int numCols = tp.getModel().getColumns().size();
         testPoint.setLocation(0, firstColStart + BasicTablePaneUI.PK_GAP + fontHeight * numCols);
-        returnVal = ui.pointToColumnIndex(testPoint);
-        assertEquals(TablePane.COLUMN_INDEX_NONE, returnVal);
+        returnVal = ui.pointToItemIndex(testPoint);
+        assertEquals(ContainerPane.ITEM_INDEX_NONE, returnVal);
 
         // If the box is waaay outside the click area of the columns
         testPoint.setLocation(0, Integer.MAX_VALUE);
-        returnVal = ui.pointToColumnIndex(testPoint);
-        assertEquals(TablePane.COLUMN_INDEX_NONE, returnVal);
+        returnVal = ui.pointToItemIndex(testPoint);
+        assertEquals(ContainerPane.ITEM_INDEX_NONE, returnVal);
     }
 
 }
