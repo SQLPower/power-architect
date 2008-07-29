@@ -204,12 +204,12 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
         while (it.hasNext()) {
             ContainerPane<?, ?> cp = (ContainerPane<?, ?> ) it.next();
             if (logger.isDebugEnabled()) {
-                logger.debug("(" + getModel() + ") zoomed selected table point: " + getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
-                logger.debug("(" + cp.getModel() + ") zoomed iterator table point: " + cp.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
+                logger.debug("(" + getModel() + ") zoomed selected containerPane's located point: " + getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
+                logger.debug("(" + cp.getModel() + ") zoomed iterating containerPane's point: " + cp.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
             }
             if (!getLocationOnScreen().equals(cp.getLocationOnScreen())) { // equals operation might not work so good here
                 // unselect
-                logger.debug("found matching table!"); //$NON-NLS-1$
+                logger.debug("found matching containerPane!"); //$NON-NLS-1$
                 cp.setSelected(false,SelectionEvent.SINGLE_SELECT);
                 cp.selectNone();
             }
