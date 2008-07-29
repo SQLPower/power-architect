@@ -35,6 +35,7 @@ import ca.odell.glazedlists.ObservableElementList;
  * Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
  * <p>This class was generated from XOM model 'mondrian' on Mon Jul 28 16:17:02 EDT 2008
  */
+
 public class MondrianDef {
 
     public static java.lang.Class getXMLDefClass()
@@ -125,6 +126,7 @@ public class MondrianDef {
         {
             try {
                 org.eigenbase.xom.DOMElementParser _parser = new org.eigenbase.xom.DOMElementParser(_def, "", MondrianDef.class);
+                
                 org.eigenbase.xom.NodeDef[] _tempArray = null;
                 
                 setInstanceName((String)_parser.getAttribute("name", "String", null, null, true));
@@ -228,6 +230,7 @@ public class MondrianDef {
         public ObservableElementList<Parameter> getParametersObservableList() {
             return parametersObservableList;
         }
+        //optional array
 
         /**
          * Shared dimensions in this schema.
@@ -242,6 +245,7 @@ public class MondrianDef {
         public ObservableElementList<Dimension> getDimensionsObservableList() {
             return dimensionsObservableList;
         }
+        //optional array
 
         /**
          * Cubes in this schema.
@@ -256,6 +260,7 @@ public class MondrianDef {
         public ObservableElementList<Cube> getCubesObservableList() {
             return cubesObservableList;
         }
+        //optional array
 
         /**
          * Virtual cubes in this schema.
@@ -270,6 +275,7 @@ public class MondrianDef {
         public ObservableElementList<VirtualCube> getVirtualCubesObservableList() {
             return virtualCubesObservableList;
         }
+        //optional array
 
         /**
          * Named sets in this schema.
@@ -284,6 +290,7 @@ public class MondrianDef {
         public ObservableElementList<NamedSet> getNamedSetsObservableList() {
             return namedSetsObservableList;
         }
+        //optional array
 
         /**
          * Roles in this schema.
@@ -298,6 +305,7 @@ public class MondrianDef {
         public ObservableElementList<Role> getRolesObservableList() {
             return rolesObservableList;
         }
+        //optional array
 
         /**
          * Declarations of user-defined functions in this schema.
@@ -312,6 +320,7 @@ public class MondrianDef {
         public ObservableElementList<UserDefinedFunction> getUserDefinedFunctionsObservableList() {
             return userDefinedFunctionsObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -625,6 +634,7 @@ Cube getCube(String cubeName) {
         public ObservableElementList<CubeDimension> getDimensionsObservableList() {
             return dimensionsObservableList;
         }
+        //optional array
 
         /**
          */
@@ -638,6 +648,7 @@ Cube getCube(String cubeName) {
         public ObservableElementList<Measure> getMeasuresObservableList() {
             return measuresObservableList;
         }
+        //optional array
 
         /**
          * Calculated members in this cube.
@@ -652,6 +663,7 @@ Cube getCube(String cubeName) {
         public ObservableElementList<CalculatedMember> getCalculatedMembersObservableList() {
             return calculatedMembersObservableList;
         }
+        //optional array
 
         /**
          * Named sets in this cube.
@@ -666,6 +678,7 @@ Cube getCube(String cubeName) {
         public ObservableElementList<NamedSet> getNamedSetsObservableList() {
             return namedSetsObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -858,6 +871,7 @@ public boolean isEnabled() {
         public ObservableElementList<VirtualCubeDimension> getDimensionsObservableList() {
             return dimensionsObservableList;
         }
+        //optional array
 
         /**
          */
@@ -871,6 +885,7 @@ public boolean isEnabled() {
         public ObservableElementList<VirtualCubeMeasure> getMeasuresObservableList() {
             return measuresObservableList;
         }
+        //optional array
 
         /**
          * Calculated members that belong to this virtual cube.
@@ -887,6 +902,7 @@ public boolean isEnabled() {
         public ObservableElementList<CalculatedMember> getCalculatedMembersObservableList() {
             return calculatedMembersObservableList;
         }
+        //optional array
 
         /**
          * Named sets in this cube.
@@ -901,6 +917,7 @@ public boolean isEnabled() {
         public ObservableElementList<NamedSet> getNamedSetsObservableList() {
             return namedSetsObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -1001,6 +1018,7 @@ public boolean isEnabled() {
         public ObservableElementList<CubeUsage> getCubeUsagesObservableList() {
             return cubeUsagesObservableList;
         }
+        //min 1
 
 
         public String getName()
@@ -1455,6 +1473,7 @@ public boolean isEnabled() {
         public ObservableElementList<Hierarchy> getHierarchiesObservableList() {
             return hierarchiesObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -1693,6 +1712,7 @@ public boolean isEnabled() {
         public ObservableElementList<Level> getLevelsObservableList() {
             return levelsObservableList;
         }
+        //optional array
 
         private List<MemberReaderParameter> memberReaderParameters;
         private EventList<MemberReaderParameter> memberReaderParametersEventList;
@@ -1704,6 +1724,7 @@ public boolean isEnabled() {
         public ObservableElementList<MemberReaderParameter> getMemberReaderParametersObservableList() {
             return memberReaderParametersObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -2046,6 +2067,7 @@ public boolean isEnabled() {
         public ObservableElementList<Property> getPropertiesObservableList() {
             return propertiesObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -2543,6 +2565,7 @@ public Expression getKeyExp() {
         public ObservableElementList<CalculatedMemberProperty> getMemberPropertiesObservableList() {
             return memberPropertiesObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -2716,6 +2739,7 @@ public Expression getKeyExp() {
         public ObservableElementList<CalculatedMemberProperty> getMemberPropertiesObservableList() {
             return memberPropertiesObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -3018,7 +3042,16 @@ public Expression getKeyExp() {
         }
 
 
-        public String cdata;  // All text goes here
+        private String cdata;  // All text goes here
+        public String getCdata() {
+            return cdata;
+        }
+        public void setCdata(String val) {
+            String oldval = this.cdata;
+            this.cdata = val;
+            _pcs.firePropertyChange("cdata", oldval, val);
+        }
+
         public String getName()
         {
             return "Formula";
@@ -3259,6 +3292,7 @@ public abstract String getAlias();
         public ObservableElementList<SQL> getSelectsObservableList() {
             return selectsObservableList;
         }
+        //min 1
 
 
         public String getName()
@@ -3369,7 +3403,16 @@ public abstract String getAlias();
         }
 
 
-        public String cdata;  // All text goes here
+        private String cdata;  // All text goes here
+        public String getCdata() {
+            return cdata;
+        }
+        public void setCdata(String val) {
+            String oldval = this.cdata;
+            this.cdata = val;
+            _pcs.firePropertyChange("cdata", oldval, val);
+        }
+
         public String getName()
         {
             return "SQL";
@@ -3705,6 +3748,7 @@ public int hashCode() {
         public ObservableElementList<AggExclude> getAggExcludesObservableList() {
             return aggExcludesObservableList;
         }
+        //optional array
 
         private List<AggTable> aggTables;
         private EventList<AggTable> aggTablesEventList;
@@ -3716,6 +3760,7 @@ public int hashCode() {
         public ObservableElementList<AggTable> getAggTablesObservableList() {
             return aggTablesObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -3963,6 +4008,7 @@ public int hashCode() {
         public ObservableElementList<ColumnDef> getArrayObservableList() {
             return arrayObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -4108,6 +4154,7 @@ public int hashCode() {
         public ObservableElementList<Row> getArrayObservableList() {
             return arrayObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -4178,6 +4225,7 @@ public int hashCode() {
         public ObservableElementList<Value> getValuesObservableList() {
             return valuesObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -4241,7 +4289,16 @@ public int hashCode() {
         }
 
 
-        public String cdata;  // All text goes here
+        private String cdata;  // All text goes here
+        public String getCdata() {
+            return cdata;
+        }
+        public void setCdata(String val) {
+            String oldval = this.cdata;
+            this.cdata = val;
+            _pcs.firePropertyChange("cdata", oldval, val);
+        }
+
         public String getName()
         {
             return "Value";
@@ -4360,6 +4417,7 @@ public int hashCode() {
         public ObservableElementList<AggIgnoreColumn> getIgnoreColumnsObservableList() {
             return ignoreColumnsObservableList;
         }
+        //optional array
 
         protected List<AggForeignKey> foreignKeys;
         protected EventList<AggForeignKey> foreignKeysEventList;
@@ -4371,6 +4429,7 @@ public int hashCode() {
         public ObservableElementList<AggForeignKey> getForeignKeysObservableList() {
             return foreignKeysObservableList;
         }
+        //optional array
 
         protected List<AggMeasure> measures;
         protected EventList<AggMeasure> measuresEventList;
@@ -4382,6 +4441,7 @@ public int hashCode() {
         public ObservableElementList<AggMeasure> getMeasuresObservableList() {
             return measuresObservableList;
         }
+        //optional array
 
         protected List<AggLevel> levels;
         protected EventList<AggLevel> levelsEventList;
@@ -4393,6 +4453,7 @@ public int hashCode() {
         public ObservableElementList<AggLevel> getLevelsObservableList() {
             return levelsObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -4646,6 +4707,7 @@ public String getNameAttribute() {
         public ObservableElementList<AggExclude> getExcludesObservableList() {
             return excludesObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -5373,6 +5435,7 @@ public abstract String getExpression(SqlQuery query);
         public ObservableElementList<SQL> getExpressionsObservableList() {
             return expressionsObservableList;
         }
+        //min 1
 
 
         public String getName()
@@ -5831,6 +5894,7 @@ public String toString() {
         public ObservableElementList<SchemaGrant> getSchemaGrantsObservableList() {
             return schemaGrantsObservableList;
         }
+        //optional array
 
         private Union union;  //
         public Union getUnion() {
@@ -5980,6 +6044,7 @@ public String toString() {
         public ObservableElementList<CubeGrant> getCubeGrantsObservableList() {
             return cubeGrantsObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -6072,6 +6137,7 @@ public String toString() {
         public ObservableElementList<DimensionGrant> getDimensionGrantsObservableList() {
             return dimensionGrantsObservableList;
         }
+        //optional array
 
         private List<HierarchyGrant> hierarchyGrants;
         private EventList<HierarchyGrant> hierarchyGrantsEventList;
@@ -6083,6 +6149,7 @@ public String toString() {
         public ObservableElementList<HierarchyGrant> getHierarchyGrantsObservableList() {
             return hierarchyGrantsObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -6278,6 +6345,7 @@ public String toString() {
         public ObservableElementList<MemberGrant> getMemberGrantsObservableList() {
             return memberGrantsObservableList;
         }
+        //optional array
 
 
         public String getName()
@@ -6442,6 +6510,7 @@ public String toString() {
         public ObservableElementList<RoleUsage> getRoleUsagesObservableList() {
             return roleUsagesObservableList;
         }
+        //optional array
 
 
         public String getName()
