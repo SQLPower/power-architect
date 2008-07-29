@@ -30,7 +30,6 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.MouseInfo;
 import java.awt.Point;
-import java.awt.PointerInfo;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.datatransfer.DataFlavor;
@@ -1012,7 +1011,7 @@ public class PlayPen extends JPanel
 	protected void addImpl(PlayPenComponent c, Object constraints, int index) {
 		if (c instanceof Relationship) {
 			contentPane.add(c, contentPane.getFirstRelationIndex());
-		} else if (c instanceof TablePane || c instanceof DimensionPane) {
+		} else if (c instanceof ContainerPane) {
 			if (constraints instanceof Point) {
 				c.setLocation((Point) constraints);
 				contentPane.add(c, 0);
@@ -1277,7 +1276,7 @@ public class PlayPen extends JPanel
 
 		TablePane tp = new TablePane(newTable, getContentPane());
 		logger.info("adding table "+newTable); //$NON-NLS-1$
-		addImpl(tp, preferredLocation,getPPComponentCount());
+		addImpl(tp, preferredLocation, getPPComponentCount());
 		tp.revalidate();
 
         createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, newSuffix);
@@ -1636,7 +1635,7 @@ public class PlayPen extends JPanel
 	 * user clicks.
 	 */
 	public void addFloating(TablePane tp) {
-	    new FloatingTableListener(this, tp, zoomPoint(new Point(tp.getSize().width/2,0)),true);
+	    new FloatingContainerPaneListener(this, tp, zoomPoint(new Point(tp.getSize().width/2,0)),true);
 	}
 
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
@@ -1830,13 +1829,13 @@ public class PlayPen extends JPanel
 	}
 
 	/**
-	 * Returns a read-only view of the set of selected table in the PlayPen.
+	 * Returns a read-only view of the set of selected ContainerPane's in the PlayPen.
 	 */
-	public List <TablePane> getSelectedTables() {
-		ArrayList <TablePane> selected = new ArrayList<TablePane>();
+	public List <ContainerPane<?, ?> > getSelectedContainers() {
+		ArrayList <ContainerPane<?, ?> > selected = new ArrayList<ContainerPane<?, ?> >();
  		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
- 			if (contentPane.getComponent(i) instanceof TablePane) {
-				TablePane tp = (TablePane) contentPane.getComponent(i);
+ 			if (contentPane.getComponent(i) instanceof ContainerPane) {
+ 			   ContainerPane<?, ?> tp = (ContainerPane<?, ?> ) contentPane.getComponent(i);
 				if (tp.isSelected()) {
 					selected.add(tp);
 				}
@@ -1844,7 +1843,6 @@ public class PlayPen extends JPanel
 		}
 		return Collections.unmodifiableList(selected);
 	}
-
 
 	/**
 	 * Returns a read-only view of the set of selected relationships in the PlayPen.
@@ -2145,8 +2143,8 @@ public class PlayPen extends JPanel
 				return;
 			}
 
-			PlayPenComponent c = contentPane.getComponentAt(
-					unzoomPoint(((MouseEvent) dge.getTriggerEvent()).getPoint()));
+			MouseEvent triggerEvent = (MouseEvent) dge.getTriggerEvent();
+            PlayPenComponent c = contentPane.getComponentAt(unzoomPoint(triggerEvent.getPoint()));
 
 			if ( c instanceof TablePane ) {
 				TablePane tp = (TablePane) c;
@@ -2395,10 +2393,10 @@ public class PlayPen extends JPanel
 	 * stops moving the component, and unregisters itself as a
 	 * listener.
 	 */
-	public static class FloatingTableListener extends  MouseInputAdapter implements CancelableListener  {
+	public static class FloatingContainerPaneListener extends  MouseInputAdapter implements CancelableListener  {
 	    
 	    /**
-	     * The max distance from the side the mouse can be to start an autoscroll
+	     * The max distance from the side the mouse can be to start an auto-scroll
 	     */
 	    private static final int AUTO_SCROLL_INSET = 25; 
 	 
@@ -2406,27 +2404,47 @@ public class PlayPen extends JPanel
 	    private Insets scrollUnits = new Insets(AUTO_SCROLL_INSET, AUTO_SCROLL_INSET, AUTO_SCROLL_INSET, AUTO_SCROLL_INSET);
 	    
 		private PlayPen pp;
-		private TablePane tp;
+		private ContainerPane<?, ?> cp;
 		private Point handle;
 		private Point p;
 		
 		/**
-		 * If true, we will add the given TablePane to the play pen once the user clicks,
+		 * If true, we will add the given ContainerPane to the play pen once the user clicks,
 		 * and add its model to the playpen's database.
 		 */
 		private boolean addToPP;
 
-		public FloatingTableListener(PlayPen pp, TablePane tp, Point handle, boolean addToPP) {
+		/**
+         * Creates a new mouse event handler that tracks mouse motion and moves
+         * a container pane around on the play pen accordingly.
+         * 
+         * @param cp
+         *            The container pane that's going to be moved
+         * @param handle
+         *            The position relative to the container pane's top left
+         *            corner where the mouse pointer should be during the drag
+         *            operation. For a single container pane drag, this will
+         *            normally be inside the container pane's bounds, but for a
+         *            multi-drag, this coordinate will often be a large and/or
+         *            negative offset for all but one of the floating objects
+         *            (because the user clicked and dragged one of the selected
+         *            tables).
+         * @param addToPP
+         *            A flag indicating whether the floating table has not yet
+         *            been added to the playpen (i.e. it should be added when
+         *            the user releases the mouse button). This is for "create
+         *            table" type actions, and should be set to false for
+         *            dragging existing objects.
+         */
+		public FloatingContainerPaneListener(PlayPen pp, ContainerPane<?, ?> cp, Point handle, boolean addToPP) {
 			this.pp = pp;
 			this.addToPP = addToPP;
-			PointerInfo pi = MouseInfo.getPointerInfo();
+			Point pointerLocation = MouseInfo.getPointerInfo().getLocation();
+			SwingUtilities.convertPointFromScreen(pointerLocation,pp);
+			logger.debug("Adding floating container pane at:"+ pointerLocation); //$NON-NLS-1$
+			p = new Point(pointerLocation.x - handle.x, pointerLocation.y - handle.y);
 
-			Point startLocation = pi.getLocation();
-			SwingUtilities.convertPointFromScreen(startLocation,pp);
-			logger.debug("Adding floating table at:"+ startLocation); //$NON-NLS-1$
-			p = new Point(startLocation.x - handle.x, startLocation.y - handle.y);
-
-			this.tp = tp;
+			this.cp = cp;
 			this.handle = handle;
 
 			pp.addMouseMotionListener(this);
@@ -2440,7 +2458,7 @@ public class PlayPen extends JPanel
 				pp.cursorManager.placeModeStarted();
 			} else {
                 pp.cursorManager.tableDragStarted();
-				pp.startCompoundEdit("Move"+tp.getName()); //$NON-NLS-1$
+				pp.startCompoundEdit("Move"+cp.getName()); //$NON-NLS-1$
 			}
 		}
 
@@ -2451,7 +2469,7 @@ public class PlayPen extends JPanel
 		public void mouseDragged(MouseEvent e) {
 			pp.zoomPoint(e.getPoint());
 			p.setLocation(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
-			pp.setChildPosition(tp, p);
+			pp.setChildPosition(cp, p);
 			JViewport viewport = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, pp);
 	        if(viewport==null || pp.getSelectedItems().size() < 1) 
 	            return; 
@@ -2466,19 +2484,19 @@ public class PlayPen extends JPanel
 	        
 	        // performs scrolling 
 	        if ((p.y - viewPos.y) < scrollUnits.top && viewPos.y > 0) { // scroll up 
-	            view.y = tp.getBounds().y;
+	            view.y = cp.getBounds().y;
 	        } if ((viewPos.y + viewHeight - p.y) < scrollUnits.bottom) { // scroll down 
-	            view.y = tp.getBounds().y + tp.getBounds().height - viewHeight;
+	            view.y = cp.getBounds().y + cp.getBounds().height - viewHeight;
 	        } if ((p.x - viewPos.x) < scrollUnits.left && viewPos.x > 0) { // scroll left 
-	            view.x = tp.getBounds().x;
+	            view.x = cp.getBounds().x;
 	        } if ((viewPos.x + viewWidth - p.x) < scrollUnits.right) { // scroll right 
-	            view.x = tp.getBounds().x + tp.getBounds().width - viewWidth;
+	            view.x = cp.getBounds().x + cp.getBounds().width - viewWidth;
 	        } 
 	        logger.debug(viewport.getViewPosition());
 	        pp.scrollRectToVisible(view);
 	        // Necessary to stop tables from flashing.
-	        if (tp != null) {
-	            tp.repaint();
+	        if (cp != null) {
+	            cp.repaint();
 	        }
 		}
 
@@ -2498,19 +2516,19 @@ public class PlayPen extends JPanel
 				if (addToPP && !cancelled) {
 					pp.unzoomPoint(p);
 					logger.debug("Placing table at: " + p); //$NON-NLS-1$
-					pp.addImpl(tp, p, pp.getPPComponentCount());
+					pp.addImpl(cp, p, pp.getPPComponentCount());
 					try {
-						pp.getSession().getTargetDatabase().addChild(tp.getModel());
+						pp.getSession().getTargetDatabase().addChild(((TablePane) cp).getModel());
 						pp.selectNone();
-						tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+						cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 						pp.mouseMode = MouseModeType.SELECT_TABLE;
 										
 						final ArchitectFrame frame = pp.getSession().getArchitectFrame();
-						final TableEditPanel editPanel = new TableEditPanel(pp.getSession(), tp.getModel()) {
+						final TableEditPanel editPanel = new TableEditPanel(pp.getSession(), (SQLTable) cp.getModel()) {
 						    @Override
 						    public void discardChanges() {
-						        pp.getSession().getTargetDatabase().removeChild(tp.getModel());
-                                pp.getTableNames().remove(tp.getModel().getName());
+						        pp.getSession().getTargetDatabase().removeChild(((TablePane) cp).getModel());
+                                pp.getTableNames().remove(((TablePane) cp).getModel().getName());
 						    }
 						};
 
@@ -2523,7 +2541,7 @@ public class PlayPen extends JPanel
 						d.setLocationRelativeTo(frame);
 						d.setVisible(true);
 					} catch (ArchitectException e) {
-						logger.error("Couldn't add table \"" + tp.getModel() + "\" to play pen:", e); //$NON-NLS-1$ //$NON-NLS-2$
+						logger.error("Couldn't add table \"" + cp.getModel() + "\" to play pen:", e); //$NON-NLS-1$ //$NON-NLS-2$
 						SPSUtils.showExceptionDialogNoReport(pp.getSession().getArchitectFrame(), Messages.getString("PlayPen.addTableFailed"), e); //$NON-NLS-1$
 						return;
 					}
@@ -2541,7 +2559,7 @@ public class PlayPen extends JPanel
 				pp.revalidate();
 			} finally {
 				if (!addToPP) {
-					pp.endCompoundEdit("Ending move for table "+tp.getName()); //$NON-NLS-1$
+					pp.endCompoundEdit("Ending move for table "+cp.getName()); //$NON-NLS-1$
 				}
 			}
 		}
