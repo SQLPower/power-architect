@@ -604,6 +604,9 @@
 		<fileset dir="buildlib">
 			<include name="*.jar"/>
 		</fileset>
+		<fileset dir="ext-tools-home/resgen/lib">
+			<include name="*.jar"/>
+		</fileset>
 	</path>
 
 	<path id="test.classpath">
