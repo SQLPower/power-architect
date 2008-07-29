@@ -463,7 +463,6 @@ public class MetaGenerator {
 
                 // Create the parser.  If using a Plugin, parse from a
                 // different enclosure class.
-                //TODO marker
                 out.print("\t\t\t\torg.eigenbase.xom.DOMElementParser _parser "
                           + "= new org.eigenbase.xom.DOMElementParser("
                           + "_def, ");
@@ -1760,16 +1759,16 @@ public class MetaGenerator {
             }
 
             // Write a brief comment.
-//            if(array.min.intValue() <= 0 &&
-//               array.max.intValue() <= 0)
-//                out.println("\t\t//optional array");
-//            else {
-//                if(array.min.intValue() > 0)
-//                    out.print("min " + array.min);
-//                if(array.max.intValue() > 0)
-//                    out.print("max " + array.max);
-//                out.println();
-//            }
+            if(array.min.intValue() <= 0 &&
+               array.max.intValue() <= 0)
+                out.println("\t\t//optional array");
+            else {
+                if(array.min.intValue() > 0)
+                    out.print("\t\t//min " + array.min);
+                if(array.max.intValue() > 0)
+                    out.print("\t\t//max " + array.max);
+                out.println();
+            }
             out.println();
         }
         else {
@@ -1778,7 +1777,6 @@ public class MetaGenerator {
         }
     }
 
-    //TODO marker
     public void writeGlazedLists(PrintWriter out, String typeName, String name) {
         out.println("\t\tprivate List<" + typeName + "> "
                 + getDeclaredName(name) + ";");
@@ -1836,8 +1834,17 @@ public class MetaGenerator {
 
     public void writeJavaDeclareCDataContent(PrintWriter out)
     {
-        out.print("\t\tpublic String cdata;  /"
+        out.println("\t\tprivate String cdata;  /"
                   + "/ All text goes here");
+        out.println("\t\tpublic String getCdata() {" );
+        out.println("\t\t\treturn cdata;");
+        out.println("\t\t}");
+        
+        out.println("\t\tpublic void setCdata(String val) {" );
+        out.println("\t\t\tString oldval = this.cdata;");
+        out.println("\t\t\tthis.cdata = val;");
+        out.println("\t\t\t_pcs.firePropertyChange(\"cdata\", oldval, val);");
+        out.println("\t\t}");
     }
     
 
