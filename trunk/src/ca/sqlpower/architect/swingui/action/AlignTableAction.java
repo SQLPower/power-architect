@@ -33,6 +33,8 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -40,6 +42,7 @@ import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.TablePane;
 
 public class AlignTableAction extends AbstractArchitectAction{
@@ -59,7 +62,13 @@ public class AlignTableAction extends AbstractArchitectAction{
      * The action for aligning tables either horizontally or vertically.
      */
     public void actionPerformed(ActionEvent e) {
-        List<TablePane> selection = playpen.getSelectedTables();
+        List<TablePane> selection = new ArrayList<TablePane>();
+        for (ContainerPane<?, ?> cp : session.getPlayPen().getSelectedContainers()) {
+            if (cp instanceof TablePane) {
+                selection.add((TablePane) cp);
+            }
+        }
+        selection = Collections.unmodifiableList(selection);
         if (selection.size() < 2) {
             JOptionPane.showMessageDialog(playpen, Messages.getString("AlignTableAction.selectAtLeastTwoTables")); //$NON-NLS-1$
         } else if (selection.size() >= 2) {

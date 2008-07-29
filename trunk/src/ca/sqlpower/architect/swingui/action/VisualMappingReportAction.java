@@ -45,6 +45,7 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.etl.ExportCSV;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.MappingReport;
 import ca.sqlpower.architect.swingui.TablePane;
 
@@ -82,20 +83,26 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
         try {
             final MappingReport mr ;
             final List<SQLTable> selectedTables;
-            if (playpen.getSelectedTables().size() == 0) {
-                selectedTables = new ArrayList(playpen.getTables());
+            final List<TablePane> selectedTablePanes = new ArrayList<TablePane>();
+            for (ContainerPane<?, ?> cp : session.getPlayPen().getSelectedContainers()) {
+                if (cp instanceof TablePane) {
+                    selectedTablePanes.add((TablePane) cp);
+                }
+            }
+            if (selectedTablePanes.size() == 0) {
+                selectedTables = new ArrayList<SQLTable>(playpen.getTables());
             } else {
                 if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
                         parentFrame,
-                        Messages.getString("VisualMappingReportAction.viewOnlySelectedTables", String.valueOf(playpen.getSelectedTables().size())), //$NON-NLS-1$
+                        Messages.getString("VisualMappingReportAction.viewOnlySelectedTables", String.valueOf(selectedTablePanes.size())), //$NON-NLS-1$
                         Messages.getString("VisualMappingReportAction.viewOnlySelectedTablesDialogTitle"), //$NON-NLS-1$
                         JOptionPane.YES_NO_OPTION)) {
                     selectedTables = new ArrayList<SQLTable>();
-                    for(TablePane tp: playpen.getSelectedTables()) {
+                    for(TablePane tp: selectedTablePanes) {
                         selectedTables.add(tp.getModel());
                     }
                 } else {
-                    selectedTables = new ArrayList(playpen.getTables());
+                    selectedTables = new ArrayList<SQLTable>(playpen.getTables());
                 }
             }
             mr = new MappingReport(session, selectedTables);
