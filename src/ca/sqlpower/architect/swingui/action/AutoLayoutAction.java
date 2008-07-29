@@ -32,8 +32,10 @@ import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.LayoutAnimator;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.TablePane;
 
 public class AutoLayoutAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(AutoLayoutAction.class);
@@ -67,7 +69,12 @@ public class AutoLayoutAction extends AbstractArchitectAction {
 
         // ok, if it's broken, let's just fail silently and pretend the user missed the button. (that was sarcasm)
 		if (layout != null) {
-			List<? extends LayoutNode> tablePanes = new ArrayList(playpen.getSelectedTables());
+			List<? extends LayoutNode> tablePanes = new ArrayList<TablePane>();
+	        for (ContainerPane<?, ?> cp : getPlayPen().getSelectedContainers()) {
+	            if (cp instanceof TablePane) {
+	                ((List<TablePane>) tablePanes).add((TablePane) cp);
+	            }
+	        }
             List<LayoutNode> notLaidOut = new ArrayList<LayoutNode>(playpen.getTablePanes());
             notLaidOut.removeAll(tablePanes);
  			Point layoutAreaOffset = new Point();
