@@ -39,6 +39,7 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1089,20 +1090,26 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
     }
     
     /**
+     * Filters the list returned from {@link PlayPen#getSelectedContainers()}
+     * and return a new unmodifiable list containing only instances of TablePane
+     */
+    private List<TablePane> getSelectedTablePanes() {
+        List<TablePane> selectedTables = new ArrayList<TablePane>();
+        for (ContainerPane<?, ?> cp : getPlayPen().getSelectedContainers()) {
+            if (cp instanceof TablePane) {
+                selectedTables.add((TablePane) cp);
+            }
+        }
+        return Collections.unmodifiableList(selectedTables);
+    }
+    
+    /**
      * Returns an instance of the popup menu with menu items exclusive to
      * manipulating tablepanes.
      */
     @Override
     public JPopupMenu getPopup() {
         ArchitectFrame af = getPlayPen().getSession().getArchitectFrame();
-        
-        final List<TablePane> selectedTables = new ArrayList<TablePane>();
-        for (ContainerPane<?, ?> cp : getPlayPen().getSelectedContainers()) {
-            if (cp instanceof TablePane) {
-                selectedTables.add((TablePane) cp);
-            }
-        }
-        
         JPopupMenu tablePanePopup = new JPopupMenu();
         
         JMenuItem mi;
@@ -1154,7 +1161,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
             mi.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     getPlayPen().startCompoundEdit("Started setting table colour"); //$NON-NLS-1$
-                    for (TablePane tp : selectedTables) {
+                    for (TablePane tp : getSelectedTablePanes()) {
                         tp.setBackgroundColor(colour);
                     }
                     getPlayPen().endCompoundEdit("Finished setting table colour"); //$NON-NLS-1$
@@ -1168,7 +1175,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
             mi.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     getPlayPen().startCompoundEdit("Started setting text colour"); //$NON-NLS-1$
-                    for (TablePane tp : selectedTables) {
+                    for (TablePane tp : getSelectedTablePanes()) {
                         tp.setForegroundColor(colour);
                     }
                     getPlayPen().endCompoundEdit("Finished setting text colour"); //$NON-NLS-1$
@@ -1184,7 +1191,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
             cmi.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     getPlayPen().startCompoundEdit("Started setting dashed lines."); //$NON-NLS-1$
-                    for (TablePane tp : selectedTables) {
+                    for (TablePane tp : getSelectedTablePanes()) {
                         tp.setDashed(((JCheckBoxMenuItem) (e.getSource())).isSelected());
                     }
                     getPlayPen().endCompoundEdit("Finished setting dashed lines."); //$NON-NLS-1$
@@ -1196,7 +1203,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
             cmi.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     getPlayPen().startCompoundEdit("Started setting rounded edges."); //$NON-NLS-1$
-                    for (TablePane tp : selectedTables) {
+                    for (TablePane tp : getSelectedTablePanes()) {
                         tp.setRounded(((JCheckBoxMenuItem) (e.getSource())).isSelected());
                     }
                     getPlayPen().endCompoundEdit("Finished setting rounded edges."); //$NON-NLS-1$
