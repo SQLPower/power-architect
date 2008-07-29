@@ -36,8 +36,6 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -115,78 +113,74 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
             }
         } else if (evt.getID() == MouseEvent.MOUSE_PRESSED) {
             componentPreviouslySelected = false;
-            try {
-                int clickItem = pointToItemIndex(p);
+            int clickItem = pointToItemIndex(p);
 
-                if (pp.getMouseMode() != MouseModeType.CREATING_TABLE) {
-                    if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-                        if (!isSelected() || pp.getMouseMode() == MouseModeType.IDLE) {
-                            pp.setMouseMode(MouseModeType.SELECT_TABLE);
-                            pp.selectNone();
-                        }
-                    } else {
-                        pp.setMouseMode(MouseModeType.MULTI_SELECT);
+            if (pp.getMouseMode() != MouseModeType.CREATING_TABLE) {
+                if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
+                    if (!isSelected() || pp.getMouseMode() == MouseModeType.IDLE) {
+                        pp.setMouseMode(MouseModeType.SELECT_TABLE);
+                        pp.selectNone();
                     }
+                } else {
+                    pp.setMouseMode(MouseModeType.MULTI_SELECT);
+                }
 
-                    // Alt-click drags table no matter where you clicked
-                    if ((evt.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0) {
-                        clickItem = ITEM_INDEX_TITLE;
-                    }
+                // Alt-click drags table no matter where you clicked
+                if ((evt.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0) {
+                    clickItem = ITEM_INDEX_TITLE;
+                }
 
-                    if (clickItem > ITEM_INDEX_TITLE &&
-                            clickItem < ((SQLTable) getModel()).getChildren().size()) {     //FIXME to be fixed.
+                if (clickItem > ITEM_INDEX_TITLE &&
+                        clickItem < getItems().size()) {
 
-                        if ((evt.getModifiersEx() &
-                                (InputEvent.SHIFT_DOWN_MASK |
-                                        InputEvent.CTRL_DOWN_MASK)) == 0) {
+                    if ((evt.getModifiersEx() &
+                            (InputEvent.SHIFT_DOWN_MASK |
+                                    InputEvent.CTRL_DOWN_MASK)) == 0) {
 
-                            if (!isItemSelected(clickItem) ){
-                                deSelectEverythingElse(evt);
-                                selectNone();
-                            }
-                            pp.setMouseMode(MouseModeType.SELECT_COLUMN);
+                        if (!isItemSelected(clickItem) ){
+                            deSelectEverythingElse(evt);
+                            selectNone();
                         }
-                        if (isItemSelected(clickItem)) {
-                            componentPreviouslySelected = true;
-                        } else {
-                            selectItem(clickItem);
-                        }
-
-                        fireSelectionEvent(new SelectionEvent(this, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
-                        repaint();
+                        pp.setMouseMode(MouseModeType.SELECT_COLUMN);
                     }
-                    if (isSelected()&& clickItem == ITEM_INDEX_TITLE){
+                    if (isItemSelected(clickItem)) {
                         componentPreviouslySelected = true;
                     } else {
-                        setSelected(true,SelectionEvent.SINGLE_SELECT);
+                        selectItem(clickItem);
                     }
+
+                    fireSelectionEvent(new SelectionEvent(this, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
+                    repaint();
                 }
+                if (isSelected()&& clickItem == ITEM_INDEX_TITLE){
+                    componentPreviouslySelected = true;
+                } else {
+                    setSelected(true,SelectionEvent.SINGLE_SELECT);
+                }
+            }
 
-                if (clickItem == ITEM_INDEX_TITLE && !pp.getSession().getArchitectFrame().createRelationshipIsActive()) {
-                    Iterator<ContainerPane<?, ?> > it = pp.getSelectedContainers().iterator();
-                    logger.debug("event point: " + p); //$NON-NLS-1$
-                    logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
-                    pp.draggingTablePanes = true;
+            if (clickItem == ITEM_INDEX_TITLE && !pp.getSession().getArchitectFrame().createRelationshipIsActive()) {
+                Iterator<ContainerPane<?, ?> > it = pp.getSelectedContainers().iterator();
+                logger.debug("event point: " + p); //$NON-NLS-1$
+                logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
+                pp.draggingTablePanes = true;
 
-                    while (it.hasNext()) {
-                        // create FloatingContainerPaneListener for each selected item
-                        ContainerPane<?, ?> cp = (ContainerPane<?, ?> )it.next();
-                        logger.debug("(" + cp.getModel() + ") zoomed selected table point: " + cp.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
-                        logger.debug("(" + cp.getModel() + ") unzoomed selected table point: " + pp.unzoomPoint(cp.getLocationOnScreen())); //$NON-NLS-1$ //$NON-NLS-2$
-                        /* the floating ContainerPane listener expects zoomed handles which are relative to
+                while (it.hasNext()) {
+                    // create FloatingContainerPaneListener for each selected item
+                    ContainerPane<?, ?> cp = (ContainerPane<?, ?> )it.next();
+                    logger.debug("(" + cp.getModel() + ") zoomed selected containerPane's point: " + cp.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
+                    logger.debug("(" + cp.getModel() + ") unzoomed selected containerPane's point: " + pp.unzoomPoint(cp.getLocationOnScreen())); //$NON-NLS-1$ //$NON-NLS-2$
+                    /* the floating ContainerPane listener expects zoomed handles which are relative to
                                the location of the ContainerPane column which was clicked on.  */
-                        Point clickedItem = getLocationOnScreen();
-                        Point otherContainer = cp.getLocationOnScreen();
-                        logger.debug("(" + cp.getModel() + ") translation x=" //$NON-NLS-1$ //$NON-NLS-2$
-                                + (otherContainer.getX() - clickedItem.getX()) + ",y=" //$NON-NLS-1$
-                                + (otherContainer.getY() - clickedItem.getY()));
-                        Point handle = pp.zoomPoint(new Point(p));
-                        handle.translate((int)(clickedItem.getX() - otherContainer.getX()), (int) (clickedItem.getY() - otherContainer.getY()));
-                        new FloatingContainerPaneListener(pp, cp, handle,false);
-                    }
+                    Point clickedItem = getLocationOnScreen();
+                    Point otherContainer = cp.getLocationOnScreen();
+                    logger.debug("(" + cp.getModel() + ") translation x=" //$NON-NLS-1$ //$NON-NLS-2$
+                            + (otherContainer.getX() - clickedItem.getX()) + ",y=" //$NON-NLS-1$
+                            + (otherContainer.getY() - clickedItem.getY()));
+                    Point handle = pp.zoomPoint(new Point(p));
+                    handle.translate((int)(clickedItem.getX() - otherContainer.getX()), (int) (clickedItem.getY() - otherContainer.getY()));
+                    new FloatingContainerPaneListener(pp, cp, handle,false);
                 }
-            } catch (ArchitectException e) {
-                logger.error("Exception converting point to column", e); //$NON-NLS-1$
             }
         } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
             setSelected(pp.rubberBand.intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
@@ -196,7 +190,7 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
 
     /**
      * Deselects everything <b>except</b> the selected item.  This method exists
-     * to stop multiple selection events from propogating into the
+     * to stop multiple selection events from propagating into the
      * CreateRelationshipAction listeners.
      */
     protected void deSelectEverythingElse (MouseEvent evt) {
