@@ -20,6 +20,8 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.beans.PropertyChangeEvent;
 import java.util.HashSet;
 import java.util.List;
 
@@ -61,7 +63,6 @@ public class DimensionPane extends ContainerPane<SQLTable, SQLColumn> {
         return ((DimensionPaneUI) getUI()).pointToItemIndex(p);
     }
     
-    
     // ---------------------- PlayPenComponent Overrides ----------------------
     // see also PlayPenComponent
 
@@ -82,9 +83,30 @@ public class DimensionPane extends ContainerPane<SQLTable, SQLColumn> {
     public String getDimensionName() {
         return dimensionName;
     }
+    
+    /**
+     * Sets the new bounds and the new location of the dimensionPane,
+     * but also fires property change event associated with location change.
+     */
+    @Override
+    protected void setBoundsImpl(int x, int y, int width, int height) { 
+        Rectangle oldBounds = getBounds();
+        super.setBoundsImpl(x, y, width, height);
+        if (oldBounds.x != x || oldBounds.y != y) {
+            firePropertyChange(new PropertyChangeEvent(this, "location", oldBounds.getLocation(), new Point(x,y)));
+        }
+    }
+
+    /**
+     * @see #Dimension#setBoundsImpl()
+     */
+    @Override
+    public void setBounds(int x, int y, int width, int height) {
+        super.setBounds(x, y, width, height);
+    }
 
     @Override
     public String toString() {
-        return "DimensionPane: "+model; //$NON-NLS-1$
+        return "DimensionPane: " + model; //$NON-NLS-1$
     }
 }

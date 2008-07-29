@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,7 +74,6 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
-import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.SPSUtils;
@@ -194,15 +192,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
         ui.installUI(this);
         setUI(ui);
     }
-
-	public Point getLocationOnScreen() {
-		Point p = new Point();
-		PlayPen pp = getPlayPen();
-		getLocation(p);
-		pp.zoomPoint(p);
-		SwingUtilities.convertPointToScreen(p, pp);
-		return p;
-	}
 
 	// ---------------------- utility methods ----------------------
 
@@ -868,35 +857,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
 		}
 	}
 
-	/**
-     * Deselects everything <b>except</b> the selected item.  This method exists
-     * to stop multiple selection events from propogating into the
-     * CreateRelationshipAction listeners.
-     */
-	void deSelectEverythingElse (MouseEvent evt) {
-		Iterator it = getPlayPen().getSelectedTables().iterator();
-		while (it.hasNext()) {
-			TablePane t3 = (TablePane) it.next();
-			if (logger.isDebugEnabled()) {
-			    logger.debug("(" + getModel().getName() + ") zoomed selected table point: " + getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
-			    logger.debug("(" + t3.getModel().getName() + ") zoomed iterator table point: " + t3.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			if (!getLocationOnScreen().equals(t3.getLocationOnScreen())) { // equals operation might not work so good here
-				// unselect
-				logger.debug("found matching table!"); //$NON-NLS-1$
-				t3.setSelected(false,SelectionEvent.SINGLE_SELECT);
-				t3.selectNone();
-			}
-		}
-
-		// also de-select all the selected relationships
-		it = getPlayPen().getSelectedRelationShips().iterator();
-		while (it.hasNext()) {
-			Relationship r = (Relationship) it.next();
-			r.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		}
-	}
-
 	public void mouseEntered(MouseEvent evt) {
         // we don't do anything about this at the moment
 	}
@@ -1135,6 +1095,14 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
     @Override
     public JPopupMenu getPopup() {
         ArchitectFrame af = getPlayPen().getSession().getArchitectFrame();
+        
+        final List<TablePane> selectedTables = new ArrayList<TablePane>();
+        for (ContainerPane<?, ?> cp : getPlayPen().getSelectedContainers()) {
+            if (cp instanceof TablePane) {
+                selectedTables.add((TablePane) cp);
+            }
+        }
+        
         JPopupMenu tablePanePopup = new JPopupMenu();
         
         JMenuItem mi;
@@ -1185,9 +1153,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
             mi = new JMenuItem(icon);
             mi.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    List<TablePane> tables = getPlayPen().getSelectedTables();
                     getPlayPen().startCompoundEdit("Started setting table colour"); //$NON-NLS-1$
-                    for (TablePane tp : tables) {
+                    for (TablePane tp : selectedTables) {
                         tp.setBackgroundColor(colour);
                     }
                     getPlayPen().endCompoundEdit("Finished setting table colour"); //$NON-NLS-1$
@@ -1200,9 +1167,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
             mi = new JMenuItem(icon);
             mi.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    List<TablePane> tables = getPlayPen().getSelectedTables();
                     getPlayPen().startCompoundEdit("Started setting text colour"); //$NON-NLS-1$
-                    for (TablePane tp : tables) {
+                    for (TablePane tp : selectedTables) {
                         tp.setForegroundColor(colour);
                     }
                     getPlayPen().endCompoundEdit("Finished setting text colour"); //$NON-NLS-1$
@@ -1217,9 +1183,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
                     Messages.getString("TableEditPanel.dashedLinesLabel"), getPlayPen().findTablePane(model).isDashed()); //$NON-NLS-1$
             cmi.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    List<TablePane> tables = getPlayPen().getSelectedTables();
                     getPlayPen().startCompoundEdit("Started setting dashed lines."); //$NON-NLS-1$
-                    for (TablePane tp : tables) {
+                    for (TablePane tp : selectedTables) {
                         tp.setDashed(((JCheckBoxMenuItem) (e.getSource())).isSelected());
                     }
                     getPlayPen().endCompoundEdit("Finished setting dashed lines."); //$NON-NLS-1$
@@ -1230,9 +1195,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
                     Messages.getString("TableEditPanel.roundedCornersLabel"), getPlayPen().findTablePane(model).isRounded()); //$NON-NLS-1$
             cmi.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    List<TablePane> tables = getPlayPen().getSelectedTables();
                     getPlayPen().startCompoundEdit("Started setting rounded edges."); //$NON-NLS-1$
-                    for (TablePane tp : tables) {
+                    for (TablePane tp : selectedTables) {
                         tp.setRounded(((JCheckBoxMenuItem) (e.getSource())).isSelected());
                     }
                     getPlayPen().endCompoundEdit("Finished setting rounded edges."); //$NON-NLS-1$
@@ -1334,32 +1298,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
                             (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
                         }
                     }
-                }
-            }
-        } else if (evt.getID() == MouseEvent.MOUSE_PRESSED) {
-            int clickCol = pointToItemIndex(p);
-
-            if (clickCol == ITEM_INDEX_TITLE && !pp.getSession().getArchitectFrame().createRelationshipIsActive()) {
-                Iterator it = pp.getSelectedTables().iterator();
-                logger.debug("event point: " + p); //$NON-NLS-1$
-                logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
-                pp.draggingTablePanes = true;
-
-                while (it.hasNext()) {
-                    // create FloatingTableListener for each selected item
-                    TablePane t3 = (TablePane)it.next();
-                    logger.debug("(" + t3.getModel().getName() + ") zoomed selected table point: " + t3.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
-                    logger.debug("(" + t3.getModel().getName() + ") unzoomed selected table point: " + pp.unzoomPoint(t3.getLocationOnScreen())); //$NON-NLS-1$ //$NON-NLS-2$
-                    /* the floating table listener expects zoomed handles which are relative to
-                           the location of the table column which was clicked on.  */
-                    Point clickedColumn = getLocationOnScreen();
-                    Point otherTable = t3.getLocationOnScreen();
-                    Point handle = pp.zoomPoint(new Point(p));
-                    logger.debug("(" + t3.getModel().getName() + ") translation x=" //$NON-NLS-1$ //$NON-NLS-2$
-                            + (otherTable.getX() - clickedColumn.getX()) + ",y=" //$NON-NLS-1$
-                            + (otherTable.getY() - clickedColumn.getY()));
-                    handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY()));
-                    new PlayPen.FloatingTableListener(pp, t3, handle,false);
                 }
             }
         }
