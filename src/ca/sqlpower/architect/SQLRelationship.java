@@ -20,6 +20,7 @@ package ca.sqlpower.architect;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -509,23 +510,30 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		Connection con = null;
 		CachedRowSet crs = null;
 		DatabaseMetaData dbmd = null;
+		ResultSet tempRS = null; // just a temporary place for the live result set. use crs instead.
 		try {
 			con = db.getConnection();
 			dbmd = con.getMetaData();
 			crs = new CachedRowSet();
-	        crs.populate(dbmd.getImportedKeys(table.getCatalogName(),
-                     table.getSchemaName(),
-                     table.getName()));
+			tempRS = dbmd.getImportedKeys(table.getCatalogName(),
+                        			      table.getSchemaName(),
+                        			      table.getName());
+            crs.populate(tempRS);
 		} catch (SQLException e) {
 		    throw new ArchitectException("relationship.populate", e);
 		} finally {
 			// close the connection before it makes the recursive call
             // that could lead to opening more connections
-		    try {
-		        if (con != null) con.close();
-		    } catch (SQLException e) {
-		        logger.warn("Couldn't close connection", e);
-		    }
+            try {
+                if (tempRS != null) tempRS.close();
+            } catch (SQLException e) {
+                logger.warn("Couldn't close imported keys result set", e);
+            }
+            try {
+                if (con != null) con.close();
+            } catch (SQLException e) {
+                logger.warn("Couldn't close connection", e);
+            }
 		}
 		try {
 			SQLRelationship r = null;
