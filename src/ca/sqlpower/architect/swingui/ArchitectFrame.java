@@ -107,6 +107,7 @@ import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
+import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -494,6 +495,11 @@ public class ArchitectFrame extends JFrame {
         etlMenu.add(mappingReportAction);
         etlMenu.add(kettleETL);
         menuBar.add(etlMenu);
+
+        JMenu olapMenu = new JMenu(Messages.getString("ArchitectFrame.olapMenu")); //$NON-NLS-1$
+        olapMenu.setMnemonic('o');
+        olapMenu.add(new OLAPEditAction(session));
+        menuBar.add(olapMenu);
 
         JMenu toolsMenu = new JMenu(Messages.getString("ArchitectFrame.toolsMenu")); //$NON-NLS-1$
         toolsMenu.setMnemonic('t');
