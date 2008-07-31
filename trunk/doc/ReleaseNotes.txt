@@ -1,14 +1,14 @@
 Power*Architect Release Notes
 
-IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
- We have made incompatible modifications to the PL.INI file which specifies
- your database connections.  After upgrading to this version, you will need
- to set up database connection types for all your databases in the user
- preferences dialog, then edit the properties on your existing connections
- to associate them with one of the configured database types.  This will
- also apply to connections within projects you have saved with older versions
- of the Architect.  We apologize for the inconvenience, but the benefits will
- outweigh the costs!
+
+0.9.12
+
+ New Features:
+  * Added support for FK "on delete" and "on update" actions in all supported
+    database platforms
+
+ Bug Fixes:
+  * It is now possible to delete indexes from the DB Tree view
 
 
 0.9.11
@@ -185,6 +185,17 @@ Internal release, not publically promoted.
   +Unfortunately, this change is not backward compatible with the 0.0.x versions
    of the Architect PL.INI file.
   * Replaced the old tree icons with much nicer-looking new ones
+
+IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
+ We have made incompatible modifications to the PL.INI file which specifies
+ your database connections.  After upgrading to this version, you will need
+ to set up database connection types for all your databases in the user
+ preferences dialog, then edit the properties on your existing connections
+ to associate them with one of the configured database types.  This will
+ also apply to connections within projects you have saved with older versions
+ of the Architect.  We apologize for the inconvenience, but the benefits will
+ outweigh the costs!
+
 
 
 0.0.91
