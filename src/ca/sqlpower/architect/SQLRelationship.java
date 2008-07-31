@@ -536,17 +536,14 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
             }
 		}
 		try {
-			SQLRelationship r = null;
 			int currentKeySeq;
-			LinkedList newKeys = new LinkedList();
+			List<SQLRelationship> newKeys = new LinkedList<SQLRelationship>();
 
 			logger.debug("search relationship for table:"+table.getCatalogName()+"."+
 					table.getSchemaName()+"."+
 					table.getName());
 
-
-
-
+			SQLRelationship r = null;
 			while (crs.next()) {
 				currentKeySeq = crs.getInt(9);
 				if (currentKeySeq == 1) {
@@ -597,11 +594,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			}
 
 			// now that all the new SQLRelationship objects are set up, add them to their tables
-			Iterator it = newKeys.iterator();
-			while (it.hasNext()) {
-				r = (SQLRelationship) it.next();
-				r.attachRelationship(r.pkTable,r.fkTable,false);
-			}
+            for (SQLRelationship addMe : newKeys) {
+                addMe.attachRelationship(addMe.pkTable, addMe.fkTable, false);
+            }
 
 		} catch (SQLException e) {
 			throw new ArchitectException("relationship.populate", e);
