@@ -594,15 +594,7 @@ public class SQLTable extends SQLObject {
 	 * @throws ArchitectException If something goes wrong accessing the table's foreign keys
 	 */
 	public void removeColumn(SQLColumn col) throws ArchitectException {
-		if (!isMagicEnabled()) {
-            columnsFolder.removeChild(col);
-		} else {
-		    // a column is only locked if it is an IMPORTed key--not if it is EXPORTed.
-		    for (SQLRelationship r : getImportedKeys()) {
-		        r.checkColumnLocked(col);
-		    }
-		    columnsFolder.removeChild(col);
-        }
+	    columnsFolder.removeChild(col);
 	}
 	
 
@@ -981,10 +973,19 @@ public class SQLTable extends SQLObject {
 
         /**
          * Overrides default remove behaviour to normalize the primary key
-         * in the case of a removed SQLColumn.
+         * in the case of a removed SQLColumn and to check for locked (imported)
+         * columns. In both cases, the special checking is not performed if
+         * magic is disabled or this folder has no parent.
          */
         @Override
         protected SQLObject removeImpl(int index) {
+            if (isMagicEnabled() && type == COLUMNS && getParent() != null) {
+                SQLColumn col = (SQLColumn) children.get(index);
+                // a column is only locked if it is an IMPORTed key--not if it is EXPORTed.
+                for (SQLRelationship r : (List<SQLRelationship>) parent.importedKeysFolder.children) {
+                    r.checkColumnLocked(col);
+                }
+            }
             SQLObject removed = super.removeImpl(index);
             if (isMagicEnabled() && type == COLUMNS && removed != null && getParent() != null) {
                 try {
