@@ -16,7 +16,7 @@
  name="mondrian"
  dtdName="mondrian.dtd"
  className="MondrianDef"
- packageName="mondrian.olap"
+ packageName="ca.sqlpower.architect.olap"
  importName="mondrian.rolap.sql.SqlQuery"
  root="Schema"
  version="1.0">
@@ -82,7 +82,7 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
             </Doc>
         </Array>
         <Code><![CDATA[
-            Cube getCube(String cubeName) {
+            public Cube getCube(String cubeName) {
                 for (Cube cube : getCubesEventList()) {
                     if ((cube.getInstanceName()).equals(cubeName)) {
                         return cube;
@@ -90,7 +90,7 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
                 }
                 throw Util.newInternal("Cannot find cube '" + cubeName + "'");
             }
-            Dimension getPublicDimension(String dimensionName) {
+            public Dimension getPublicDimension(String dimensionName) {
                 for (Dimension dim : getDimensionsEventList()) {
                     if ((dim.getInstanceName()).equals(dimensionName)) {
                         return dim;
@@ -124,7 +124,7 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
             </Doc>
         </Attribute>
         <Code><![CDATA[
-            /**
+           /**
              * Looks up the base dimension of this dimension. If this is a
              * usage of a shared dimension, returns the referenced dimension;
              * otherwise returns the dimension itself.

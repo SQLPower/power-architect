@@ -512,6 +512,14 @@ public class MetaGenerator {
             // Finish the constructor
             out.println("\t\t}");
             out.println();
+            
+            out.println("\t\tpublic void addPropertyChangeListener(PropertyChangeListener l) {");
+            out.println("\t\t\t_pcs.addPropertyChangeListener(l);");
+            out.println("\t\t}");
+
+            out.println("\t\tpublic void removePropertyChangeListener(PropertyChangeListener l) {");
+            out.println("\t\t\t_pcs.removePropertyChangeListener(l);");
+            out.println("\t\t}");
 
             // Declare all new attributes
             for(int i=0; i<newAttributes.length; i++)
@@ -1880,8 +1888,8 @@ public class MetaGenerator {
                             + ", _indent+1);");
             else
                 out.println("\t\t\tdisplayElementArray(_out, \""
-                            + array.name + "\", " + "(" + typeName + "[])"
-                            + "get" + getBeanEventListName(array.name) + "()" + ".toArray()"
+                            + array.name + "\", " + "get" + getBeanEventListName(array.name) + "()" 
+                            + ".toArray(new " + typeName + "[get" + getBeanEventListName(array.name) + "().size()])"
                             + ", _indent+1);");
         }
         else {
@@ -1932,8 +1940,11 @@ public class MetaGenerator {
                             + "get" + getBeanEventListName(array.name) + "()" + ");");
             else
                 out.println("\t\t\tdisplayXMLElementArray(_out, "
-                            + "(" + typeName+ "[])" + "get" + getBeanEventListName(array.name) + "()" 
-                            + ".toArray()" + ");");
+                            + "get" + getBeanEventListName(array.name) + "()" 
+                            + ".toArray(new " + typeName + "[get" + getBeanEventListName(array.name) + "().size()]));");
+            
+            
+            
         }
         else if (content instanceof MetaDef.Any) {
             // Display the fixed children array
