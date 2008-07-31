@@ -40,11 +40,12 @@ public class TestDeleteSelectedAction extends TestCase {
 	private TablePane tp;
 	private Relationship r;
 	private TablePane tp2;
+    private ArchitectSwingSession session;
 	
 	protected void setUp() throws Exception {
 		super.setUp();
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-        ArchitectSwingSession session = context.createSession();
+        session = context.createSession();
 		deleteAction = new DeleteSelectedAction(session);
 		pp = session.getPlayPen();
 		tp = new TablePane(new SQLTable(session.getTargetDatabase(),true),pp.getContentPane());
@@ -63,43 +64,42 @@ public class TestDeleteSelectedAction extends TestCase {
 		sqlRelationship.attachRelationship(tp.getModel(),tp.getModel(),false);
 		r = new Relationship(sqlRelationship,pp.getContentPane());
 		pp.addRelationship(r);
-		
 	}
 
 	public void testTableSelected() throws ArchitectException{
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+		pp.updateDBTree();
+		assertEquals(1, session.getArchitectFrame().getDbTree().getSelectionCount());
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("Incorrect Tooltip", "Delete Table1 (Shortcut delete)",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		tp.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 	}
 	
 	public void testRelationshipSelected() {
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		r.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		r.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 	}
 	
 	public void testTableAndRelationshipSelected() {
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		r.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("Delete 2 items (Shortcut delete)",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		r.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertTrue("Action not enabled when we still have an enabled component", deleteAction.isEnabled());
 		tp.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 	}
 	
@@ -107,14 +107,14 @@ public class TestDeleteSelectedAction extends TestCase {
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		tp.selectItem(0);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertEquals("Delete col1 (Shortcut delete)",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		tp.selectItem(1);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("tooltip incorrect for two selected columns","Delete 2 items (Shortcut delete)",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		tp.selectNone();
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertTrue("Action not enable when columns unselected, but table selected",deleteAction.isEnabled());		
 	}
 	
@@ -122,39 +122,34 @@ public class TestDeleteSelectedAction extends TestCase {
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		tp.selectItem(0);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		tp2.setSelected(true,SelectionEvent.SINGLE_SELECT);		
-		deleteAction.itemSelected(new SelectionEvent(tp2, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertEquals("Delete 2 items (Shortcut delete)",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		tp2.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(tp2, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("tooltip incorrect for two selected columns","Delete col1 (Shortcut delete)",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		tp.selectNone();
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertTrue("Action not enable when columns unselected, but table selected",deleteAction.isEnabled());
 	}
 	
 	public void testTableAndRelationshipAndColumnSelected(){
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		r.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		tp.selectItem(0);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		tp2.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(tp2, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("Delete 3 items (Shortcut delete)",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		r.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		tp.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));		
+        pp.updateDBTree();
 		assertTrue("Action not enabled when we still have an enabled component", deleteAction.isEnabled());
 		assertEquals("Delete Table2 (Shortcut delete)", deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		tp2.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+        pp.updateDBTree();
 		assertFalse ("Nothing is selected", deleteAction.isEnabled());
-		
 	}
 }

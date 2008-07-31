@@ -21,52 +21,50 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 
-import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.LockedColumnException;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLIndex;
+import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.architect.swingui.PlayPenComponent;
-import ca.sqlpower.architect.swingui.Relationship;
-import ca.sqlpower.architect.swingui.Selectable;
-import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class DeleteSelectedAction extends AbstractArchitectAction implements SelectionListener {
+public class DeleteSelectedAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(DeleteSelectedAction.class);
 
     /**
      * The DBTree instance that is associated with this Action.
      */
     protected final DBTree dbt;
+    
+    private TreeSelectionHandler treeSelectionHandler = new TreeSelectionHandler();
 
     public DeleteSelectedAction(ArchitectSwingSession session) throws ArchitectException {
         super(session, Messages.getString("DeleteSelectedAction.name"), Messages.getString("DeleteSelectedAction.description"), "delete"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
         putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        setEnabled(false);
-
-        playpen.addSelectionListener(this);
-        setupAction(playpen.getSelectedItems());
 
         dbt = frame.getDbTree();
+        dbt.addTreeSelectionListener(treeSelectionHandler);
+        setupAction();
     }
-
 
     /**
      * This action takes care of handling Delete requests from the DBTree and Playpen.
@@ -79,193 +77,153 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
         logger.debug("delete action detected!"); //$NON-NLS-1$
         logger.debug("ACTION COMMAND: " + evt.getActionCommand()); //$NON-NLS-1$
 
-        logger.debug("delete action came from playpen"); //$NON-NLS-1$
-        List <PlayPenComponent>items = playpen.getSelectedItems();
-        List <TablePane> tablesWithColumns = new ArrayList<TablePane>();
-                
-        // list of all tables and relationships to be deleted
-        List <PlayPenComponent> deleteItems = new ArrayList<PlayPenComponent>(); 
-
-        
-        if (items.size() < 1) {
+        if (dbt.getSelectionCount() < 1) {
             JOptionPane.showMessageDialog(playpen, Messages.getString("DeleteSelectedAction.noItemsToDelete")); //$NON-NLS-1$
-        } else {
-            // one or more items selected
-            int tCount = 0;
-            int rCount = playpen.getSelectedRelationShips().size();
-            int cCount = 0;
-            // count how many relationships and tables there are
-            for(int i = 0; i < items.size(); i++) {
-                deleteItems.add(items.get(i));
-            }
-            TablePane currTable;
-            for (int i = 0; i < deleteItems.size(); i++){
-                if (deleteItems.get(i) instanceof TablePane) {
+            return;
+        }
+        
+        List<SQLObject> deleteItems = getDeletableItems();
 
-                    currTable = (TablePane) deleteItems.get(i);			                
-                    if (currTable.getSelectedItems().size() > 0){
-                        cCount = cCount + currTable.getSelectedItems().size();
-                        tablesWithColumns.add(currTable);
-                        deleteItems.remove(i);
-                        i--;
-                    } else {
-                        tCount++;
-                    }
-                }
-            }
+        int tCount = 0;
+        int rCount = 0;
+        int cCount = 0;
+        int iCount = 0;
 
-            if (items.size() > 1) {
-                int decision = JOptionPane.showConfirmDialog(frame,
-                        Messages.getString("DeleteSelectedAction.multipleDeleteConfirmation", String.valueOf(tCount), String.valueOf(cCount), String.valueOf(rCount)), //$NON-NLS-1$
-                        Messages.getString("DeleteSelectedAction.multipleDeleteDialogTitle"), //$NON-NLS-1$
-                        JOptionPane.YES_NO_OPTION);
-                if (decision != JOptionPane.YES_OPTION ) {
-                    return;
-                }
+        for (SQLObject item : deleteItems) {
+            if (item instanceof SQLColumn) {
+                cCount++;
+            } else if (item instanceof SQLTable) {
+                tCount++;
+            } else if (item instanceof SQLRelationship) {
+                rCount++;
+            } else if (item instanceof SQLIndex) {
+                iCount++;
+            } else {
+                logger.warn("Unexpected type for deletable item: " + item.getClass());
             }
-        } 
+        }
 
-        playpen.startCompoundEdit("Delete"); //$NON-NLS-1$
-        // prevent tree selection during delete
-        playpen.setIgnoreTreeSelection(true);
+        if (deleteItems.size() > 1) {
+            int decision = JOptionPane.showConfirmDialog(frame,
+                    Messages.getString("DeleteSelectedAction.multipleDeleteConfirmation", //$NON-NLS-1$
+                            String.valueOf(tCount), String.valueOf(cCount),
+                            String.valueOf(rCount), String.valueOf(iCount)),
+                            Messages.getString("DeleteSelectedAction.multipleDeleteDialogTitle"), //$NON-NLS-1$
+                            JOptionPane.YES_NO_OPTION);
+            if (decision != JOptionPane.YES_OPTION ) {
+                return;
+            }
+        }
+
         try {
+            playpen.startCompoundEdit("Delete"); //$NON-NLS-1$
+
+            // prevent tree selection during delete
+            playpen.setIgnoreTreeSelection(true);
 
             //We deselect the components first because relationships might be already
             //deleted when one of the table that it was attached to got deleted.
             //Therefore deselecting them when it comes around in the item list would
             //cause an exception.
 
-            for (PlayPenComponent ppc : deleteItems){
-                ppc.setSelected(false,SelectionEvent.SINGLE_SELECT);
-            }
-            List<List <SQLColumn> > listOfColumns = new ArrayList<List <SQLColumn> >();
-            List<SQLColumn> selectedColumns = new ArrayList<SQLColumn>();
-
-            for (int i = 0; i < tablesWithColumns.size(); i++) {
-                TablePane colTable = tablesWithColumns.get(i);
-                // make a list of columns to delete
-                selectedColumns = colTable.getSelectedItems();
-                if (selectedColumns != null) {
-                    listOfColumns.add(selectedColumns);
-                }
-            }
+//            for (PlayPenComponent ppc : deleteItems){
+//                ppc.setSelected(false,SelectionEvent.SINGLE_SELECT);
+//            }
             
-            // deletes all columns
-            for (int j = 0; j < listOfColumns.size(); j++) {
-                List <SQLColumn> allCol = (List <SQLColumn>) listOfColumns.get(j);
-                Iterator itCol = allCol.iterator();
-                while (itCol.hasNext()) {
-                    SQLColumn sc = (SQLColumn) itCol.next();
-                    try {
-                        tablesWithColumns.get(j).getModel().removeColumn(sc);
-                    } catch (LockedColumnException ex) {
-                        int decision = JOptionPane.showConfirmDialog(playpen,
-                                Messages.getString("DeleteSelectedAction.couldNotDeleteColumnContinueConfirmation", sc.getName(), ex.getLockingRelationship().toString()), //$NON-NLS-1$
-                                Messages.getString("DeleteSelectedAction.couldNotDeleteColumnDialogTitle"), //$NON-NLS-1$
-                                JOptionPane.YES_NO_OPTION);
-                        if (decision == JOptionPane.NO_OPTION) {
-                            return;
-                        }
-                    } catch (ArchitectException e) {
-                        logger.error("Unexpected exception encountered when attempting to delete column '"+ //$NON-NLS-1$
-                                sc+"' of table '"+sc.getParentTable()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
-                        ASUtils.showExceptionDialog(session, Messages.getString("DeleteSelectedAction.couldNotDeleteColumn"), e); //$NON-NLS-1$
+            for (SQLObject o : deleteItems) {
+                try {
+                    o.getParent().removeChild(o);
+                } catch (LockedColumnException ex) {
+                    int decision = JOptionPane.showConfirmDialog(playpen,
+                            Messages.getString("DeleteSelectedAction.couldNotDeleteColumnContinueConfirmation", o.getName(), ex.getLockingRelationship().toString()), //$NON-NLS-1$
+                            Messages.getString("DeleteSelectedAction.couldNotDeleteColumnDialogTitle"), //$NON-NLS-1$
+                            JOptionPane.YES_NO_OPTION);
+                    if (decision == JOptionPane.NO_OPTION) {
+                        return;
                     }
                 }
             }
-
-            Iterator it = deleteItems.iterator();
             
-            // deletes all tables and relationships
-            while (it.hasNext()) {
-                Selectable item = (Selectable) it.next();
-                logger.debug("next item for delete is: " + item.getClass().getName()); //$NON-NLS-1$
-                if (item instanceof TablePane) {
-                    TablePane tp = (TablePane) item;
-                    session.getTargetDatabase().removeChild(tp.getModel());
-                    Set<String> tableNames = playpen.getTableNames();
-                    String remove = tp.getName().substring(11,tp.getName().length()-8);
-                    tableNames.remove(remove.toLowerCase());
-                } else if (item instanceof Relationship) {
-                    Relationship r = (Relationship) item;
-                    logger.debug("trying to delete relationship " + r); //$NON-NLS-1$
-                    SQLRelationship sr = r.getModel();
-                    sr.getPkTable().removeExportedKey(sr);
-                } else {
-                    JOptionPane.showMessageDialog((JComponent) item,
-                    Messages.getString("DeleteSelectedAction.selectedItemTypeNotRecognized")); //$NON-NLS-1$
-                }
-
-            } 
         } finally {
             playpen.endCompoundEdit("Ending multi-select"); //$NON-NLS-1$
             playpen.setIgnoreTreeSelection(false);
         }
     }
 
-    public void itemSelected(SelectionEvent e) {
-        try {
-            setupAction(playpen.getSelectedItems());
-        } catch (ArchitectException e1) {
-            throw new ArchitectRuntimeException(e1);
+    /**
+     * Extracts the list of items we should try to delete from the DBTree's
+     * selection list.
+     */
+    private List<SQLObject> getDeletableItems() {
+        TreePath[] selectionPaths = dbt.getSelectionPaths();
+        if (selectionPaths == null) return Collections.emptyList();
+        List <SQLObject> deleteItems = new ArrayList<SQLObject>(selectionPaths.length);
+        for (int i = 0; i < selectionPaths.length; i++) {
+            if (   selectionPaths[i].getPathCount() > 1 &&
+                   selectionPaths[i].getPathComponent(1) == session.getTargetDatabase()) {
+                deleteItems.add((SQLObject) selectionPaths[i].getLastPathComponent());
+            } else {
+                logger.debug("Skipping non-deletable object: " +
+                        selectionPaths[i].getLastPathComponent());
+            }
         }
+        
+        Set<SQLTable> tablesWithSelectedColumns = new HashSet<SQLTable>();
+        
+        for (ListIterator<SQLObject> it = deleteItems.listIterator(); it.hasNext(); ) {
+            SQLObject item = it.next();
+            if (item instanceof SQLColumn) {
+                tablesWithSelectedColumns.add(((SQLColumn) item).getParentTable());
+            } else if (item instanceof SQLTable) {
+                // ok
+            } else if (item instanceof SQLRelationship) {
+                // ok
+            } else if (item instanceof SQLIndex) {
+                // ok
+            } else {
+                // The business model is not fancy enough to properly cope with
+                // deletion of other types using the removeChild() method yet.
+                // The item will get deleted, but the model's invariants will not
+                // be maintained properly.
+                // It is a goal to move in that direction, and as we go there, we
+                // can relax this constraint.
+                logger.debug("Not deleting selected tree item " + item);
+                it.remove();
+            }
+        }
+
+        // When a column is selected in the playpen, its parent table is also selected.
+        // In this case, we want to delete the selected column(s) but NOT the parent table!
+        deleteItems.removeAll(tablesWithSelectedColumns);
+
+        return deleteItems;
     }
 
-    public void itemDeselected(SelectionEvent e) {
-        try {
-            setupAction(playpen.getSelectedItems());
-        } catch (ArchitectException e1) {
-            throw new ArchitectRuntimeException(e1);
+    private class TreeSelectionHandler implements TreeSelectionListener {
+        public void valueChanged(TreeSelectionEvent e) {
+            setupAction();
         }
     }
 
     /**
-     * Updates the tooltip and enabledness of this action based on how
-     * many items are in the selection list.  If there is only one
-     * selected item, tries to put its name in the tooltip too!
-     * @throws ArchitectException
+     * Updates the tooltip and enabledness of this action based on how many
+     * items are selected. If there is only one selected item, tries to put its
+     * name in the tooltip too!
      */
-    private void setupAction(List selectedItems) throws ArchitectException {
+    private void setupAction() {
         String description;
-        if (selectedItems.size() == 0) {
+        List<SQLObject> deletableItems = getDeletableItems();
+        if (deletableItems.size() == 0) {
             setEnabled(false);
             description = Messages.getString("DeleteSelectedAction.deleteSelected"); //$NON-NLS-1$
-        } else if (selectedItems.size() == 1) {
-            Selectable item = (Selectable) selectedItems.get(0);
+        } else if (deletableItems.size() == 1) {
             setEnabled(true);
-            String name = Messages.getString("DeleteSelectedAction.selected"); //$NON-NLS-1$
-            if (item instanceof TablePane) {
-                TablePane tp = (TablePane) item;
-                if (tp.getSelectedItemIndex() >= 0) {
-                    try {
-                        List<SQLColumn> selectedColumns = tp.getSelectedItems();
-                        if (selectedColumns.size() > 1) {
-                            name = Messages.getString("DeleteSelectedAction.numberOfSelectedItems", String.valueOf(selectedColumns.size())); //$NON-NLS-1$
-                        } else {
-                            name = tp.getModel().getColumn(tp.getSelectedItemIndex()).getName();
-                        }
-                    } catch (ArchitectException ex) {
-                        logger.error("Couldn't get selected column name", ex); //$NON-NLS-1$
-                    }
-                } else {
-                    name = tp.getModel().getName();
-                }
-            } else if (item instanceof Relationship) {
-                name = ((Relationship) item).getModel().getName();
-            }
+            SQLObject item = deletableItems.get(0);
+            String name = item.getName();
             description = Messages.getString("DeleteSelectedAction.deleteItem", name); //$NON-NLS-1$
         } else {
             setEnabled(true);
-            int numSelectedItems =0;
-            for (Object item : selectedItems) {
-                numSelectedItems++;
-                if (item instanceof TablePane) {
-                    // Because the table pane is already counted we need to add one less
-                    // than the columns unless there are no columns selected.  Then
-                    // We need to add 0
-                    numSelectedItems += Math.max(((TablePane) item).getSelectedItems().size()-1, 0);
-                }
-            }
+            int numSelectedItems = deletableItems.size();
             description = Messages.getString("DeleteSelectedAction.deleteNumberOfItems", String.valueOf(numSelectedItems)); //$NON-NLS-1$
         }
         putValue(SHORT_DESCRIPTION, description + Messages.getString("DeleteSelectedAction.shortcut")); //$NON-NLS-1$
