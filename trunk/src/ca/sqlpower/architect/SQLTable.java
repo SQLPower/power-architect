@@ -566,33 +566,33 @@ public class SQLTable extends SQLObject {
 		super.addChildImpl(index, child);
 	}
 
-	/**
-	 * Calls {@link #removeColumn(SQLColumn)} with the appropriate argument.
-	 *
-	 * @throws LockedColumnException If the column is "owned" by a relationship, and cannot
-	 * be safely removed.
-	 * @throws ArchitectException If something goes wrong accessing the table's foreign keys
-	 */
+    /**
+     * Calls {@link #removeColumn(SQLColumn)} with the appropriate argument.
+     * 
+     * @throws LockedColumnException
+     *             If the column is "owned" by a relationship, and cannot be
+     *             safely removed.
+     */
 	public void removeColumn(int index) throws ArchitectException {
 		removeColumn((SQLColumn) columnsFolder.children.get(index));
 	}
 
-	/**
-	 * Removes the given column if it is in this table.  If you want
-	 * to change a column's, index, use the {@link
-	 * #changeColumnIndex(int,int)} method because it does not throw
-	 * LockedColumnException.
-	 *
-	 * <p>
-	 * FIXME: This should be implemented by decreasing the column's reference count.
-	 * (addColumn already does increase reference count when appropriate)
-	 * Then, everything that manipulates reference counts directly can just use regular
-	 * addColumn and removeColumn and magic will take care of the correct behaviour!
-	 *
-	 * @throws LockedColumnException If the column is "owned" by a relationship, and cannot
-	 * be safely removed.
-	 * @throws ArchitectException If something goes wrong accessing the table's foreign keys
-	 */
+    /**
+     * Removes the given column if it is in this table. If you want to change a
+     * column's, index, use the {@link #changeColumnIndex(int,int)} method
+     * because it does not throw LockedColumnException.
+     * 
+     * <p>
+     * FIXME: This should be implemented by decreasing the column's reference
+     * count. (addColumn already does increase reference count when appropriate)
+     * Then, everything that manipulates reference counts directly can just use
+     * regular addColumn and removeColumn and magic will take care of the
+     * correct behaviour!
+     * 
+     * @throws LockedColumnException
+     *             If the column is "owned" by a relationship, and cannot be
+     *             safely removed.
+     */
 	public void removeColumn(SQLColumn col) throws ArchitectException {
 	    columnsFolder.removeChild(col);
 	}
@@ -972,10 +972,14 @@ public class SQLTable extends SQLObject {
 		}
 
         /**
-         * Overrides default remove behaviour to normalize the primary key
-         * in the case of a removed SQLColumn and to check for locked (imported)
+         * Overrides default remove behaviour to normalize the primary key in
+         * the case of a removed SQLColumn and to check for locked (imported)
          * columns. In both cases, the special checking is not performed if
          * magic is disabled or this folder has no parent.
+         * 
+         * @throws LockedColumnException
+         *             If this is a folder of columns, and the column you
+         *             attempt to remove is "owned" by a relationship.
          */
         @Override
         protected SQLObject removeImpl(int index) {
