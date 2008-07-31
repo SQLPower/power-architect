@@ -420,6 +420,27 @@ public class MetaGenerator {
             // Default constructor
             out.println("\t\tpublic " + className + "()");
             out.println("\t\t{");
+            
+            
+//            for(int i=0; i<allAttributes.length; i++) {
+//                out.println("\t\t\t\tthis." + allAttributes[i].name + " = new " + allAttributes[i].type + "();");
+//            }
+            for(int i=0; i<allContent.length; i++) {
+               if (allContent[i] instanceof MetaDef.Array) {
+                   MetaDef.Array array = (MetaDef.Array)allContent[i];
+                   String typeName = getTypeInfo(array.type, true).className;
+                   out.println("\t\t\t\tthis." + getDeclaredName(array.name)
+                           + " = new ArrayList<" + typeName + ">();");
+                   out.println("\t\t\t\tthis." + getEventListName(array.name) + " = " +
+                           " GlazedLists.eventList(" + getDeclaredName(array.name) + ");");
+                   out.println("\t\t\t\tthis." + getObservableListName(array.name) + " = " +
+                           "new ObservableElementList<" + typeName + ">(" +
+                           getEventListName(array.name) + ", GlazedLists.beanConnector(" +
+                           typeName + ".class));");
+               }
+               
+            }
+            
             out.println("\t\t}");
             out.println();
 
@@ -477,13 +498,13 @@ public class MetaGenerator {
                 }
 
                 // This line is emitted to avoid unused warnings.
-                out.println("\t\t\t\t_parser = _parser;");
+//                out.println("\t\t\t\t_parser = _parser;");
 
                 // Define a temp array if any Array elements are used
                 if(hasContentType(allContent, MetaDef.Array.class)) {
                     out.println("\t\t\t\torg.eigenbase.xom.NodeDef[] "
                                 + "_tempArray = null;");
-                    out.println("\t\t\t\t_tempArray = _tempArray;");
+//                    out.println("\t\t\t\t_tempArray = _tempArray;");
                 }
                 
                 
