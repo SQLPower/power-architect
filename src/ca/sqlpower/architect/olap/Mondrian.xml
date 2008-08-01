@@ -83,7 +83,7 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
         </Array>
         <Code><![CDATA[
             public Cube getCube(String cubeName) {
-                for (Cube cube : getCubesEventList()) {
+                for (Cube cube : getCubes()) {
                     if ((cube.getInstanceName()).equals(cubeName)) {
                         return cube;
                     }
@@ -91,7 +91,7 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
                 throw Util.newInternal("Cannot find cube '" + cubeName + "'");
             }
             public Dimension getPublicDimension(String dimensionName) {
-                for (Dimension dim : getDimensionsEventList()) {
+                for (Dimension dim : getDimensions()) {
                     if ((dim.getInstanceName()).equals(dimensionName)) {
                         return dim;
                     }
@@ -200,7 +200,7 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
                 return enabled.booleanValue();
             }
             Dimension getDimension(Schema xmlSchema, String dimensionName) {
-                 for (CubeDimension dim : getDimensionsEventList()) {
+                 for (CubeDimension dim : getDimensions()) {
                     if ((dim.getInstanceName()).equals(dimensionName)) {
                         return dim.getDimension(xmlSchema);
                     }
@@ -365,7 +365,7 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
             // implement CubeDimension
             public Dimension getDimension(Schema schema) {
                 Util.assertPrecondition(schema != null, "schema != null");
-                for (Dimension dim : schema.getDimensionsEventList()) {
+                for (Dimension dim : schema.getDimensions()) {
                     if ((dim.getInstanceName()).equals(source)) {
                         return dim;
                     }
@@ -1044,7 +1044,7 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
             }
 
             public SqlQuery.CodeSet getCodeSet() {
-                return SQL.toCodeSet((MondrianDef.SQL[])getSelectsEventList().toArray());
+                return SQL.toCodeSet((MondrianDef.SQL[])getSelects().toArray());
             }
 
             public void addCode(String dialect, String code) {
@@ -1053,16 +1053,16 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
                     selectsEventList =  GlazedLists.eventList(selects);
 					selectsObservableList = new ObservableElementList&lt;SQL&gt;(selectsEventList, GlazedLists.beanConnector(SQL.class));
                 } else {
-                    SQL[] olds = (MondrianDef.SQL[])getSelectsEventList().toArray();
-                    getSelectsEventList().clear();
+                    SQL[] olds = (MondrianDef.SQL[])getSelects().toArray();
+                    getSelects().clear();
                     for (int i = 0; i &lt; olds.length; i++) {
-                    	getSelectsEventList().add(olds[i]);
+                    	getSelects().add(olds[i]);
                     }
                 }
                 SQL sql = new SQL();
                 sql.dialect = dialect;
                 sql.cdata = code;
-                getSelectsEventList().set(getSelectsEventList().size() -1, sql);
+                getSelects().set(getSelects().size() -1, sql);
             }
             </Code>
     </Element>
@@ -1262,12 +1262,6 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
             public String getFilter() {
                 return (filter == null) ? null : filter.cdata;
             }
-            public AggExclude[] getAggExcludes() {
-                return (AggExclude[])getAggExcludesEventList().toArray();
-            }
-            public AggTable[] getAggTables() {
-                return (AggTable[])getAggTablesEventList().toArray();
-            }
             ]]>
         </Code>
     </Element>
@@ -1402,16 +1396,16 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
                 return factcount;
             }
             public AggIgnoreColumn[] getAggIgnoreColumns() {
-                return (AggIgnoreColumn[])getIgnoreColumnsEventList().toArray();
+                return (AggIgnoreColumn[])getIgnoreColumns().toArray();
             }
             public AggForeignKey[] getAggForeignKeys() {
-                return (AggForeignKey[])getForeignKeysEventList().toArray();
+                return (AggForeignKey[])getForeignKeys().toArray();
             }
             public AggMeasure[] getAggMeasures() {
-                return (AggMeasure[])getMeasuresEventList().toArray();
+                return (AggMeasure[])getMeasures().toArray();
             }
             public AggLevel[] getAggLevels() {
-                return (AggLevel[])getLevelsEventList().toArray();
+                return (AggLevel[])getLevels().toArray();
             }
         </Code>
     </Class>
@@ -1439,7 +1433,7 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
                 return pattern;
             }
             public AggExclude[] getAggExcludes() {
-                return (AggExclude[])getExcludesEventList().toArray();
+                return (AggExclude[])getExcludes().toArray();
             }
         </Code>
     </Element>
@@ -1615,20 +1609,20 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
         <Array name="expressions" type="SQL" min="1"/>
         <Code><![CDATA[
             public String toString() {
-                return getExpressionsEventList().get(0).cdata;
+                return getExpressions().get(0).cdata;
             }
 
             public String getExpression(SqlQuery query) {
-                return SQL.toCodeSet((MondrianDef.SQL[])getExpressionsEventList().toArray()).chooseQuery(query.getDialect());
+                return SQL.toCodeSet((MondrianDef.SQL[])getExpressions().toArray()).chooseQuery(query.getDialect());
             }
 
             public String getGenericExpression() {
-                for (SQL exp : getExpressionsEventList()) {
+                for (SQL exp : getExpressions()) {
                     if (exp.getDialect().equals("generic")) {
                         return exp.cdata;
                     }
                 }
-                return getExpressionsEventList().get(0).cdata;
+                return getExpressions().get(0).cdata;
             }
 
             public String getTableAlias() {
@@ -1637,7 +1631,7 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
 
             public int hashCode() {
                 int h = 17;
-                for (SQL exp : getExpressionsEventList()) {
+                for (SQL exp : getExpressions()) {
                     h = 37 * h + exp.hashCode();
                 }
                 return h;
@@ -1648,11 +1642,11 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
                     return false;
                 }
                 ExpressionView that = (ExpressionView) obj;
-                if (getExpressionsEventList().size() != that.getExpressionsEventList().size()) {
+                if (getExpressions().size() != that.getExpressions().size()) {
                     return false;
                 }
-                for (int i = 0; i < getExpressionsEventList().size(); i++) {
-                    if (! getExpressionsEventList().get(i).equals(that.getExpressionsEventList().get(i))) {
+                for (int i = 0; i < getExpressions().size(); i++) {
+                    if (! getExpressions().get(i).equals(that.getExpressions().get(i))) {
                         return false;
                     }
                 }
