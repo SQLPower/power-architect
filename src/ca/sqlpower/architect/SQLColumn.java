@@ -558,8 +558,29 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	        }
 	        return false;
 	    } catch (ArchitectException ex) {
-	        throw new RuntimeException(ex);
+	        throw new ArchitectRuntimeException(ex);
 	    }
+	}
+	
+	/**
+     * Indicates whether or not this column is exported into a foreign key in a
+     * child table.
+     * 
+     * @return Returns true if this column is in an exported key. Otherwise,
+     *         returns false.
+     */
+	public boolean isExported() {
+	    if (getParentTable() == null) return false;
+	    try {
+            for (SQLRelationship r : getParentTable().getExportedKeys()) {
+                if (r.containsPkColumn(this)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (ArchitectException ex) {
+            throw new ArchitectRuntimeException(ex);
+        }
 	}
 	
 	/**
@@ -577,7 +598,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	        }
 	        return false;
 	    } catch (ArchitectException ex) {
-	        throw new RuntimeException(ex);
+	        throw new ArchitectRuntimeException(ex);
         }
 	}
 
@@ -597,7 +618,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	        }
 	        return false;
 	    } catch (ArchitectException ex) {
-	        throw new RuntimeException(ex);
+	        throw new ArchitectRuntimeException(ex);
 	    }
 	}
 
