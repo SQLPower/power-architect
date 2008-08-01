@@ -25,15 +25,7 @@
 
 package org.eigenbase.xom;
 
-import java.beans.PropertyChangeListener;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.io.StringWriter;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -729,6 +721,30 @@ public abstract class ElementDef implements NodeDef, Serializable, Cloneable
     }
 
     /**
+     * Determines if this ElementDef is equal to other (deeply), returning true
+     * if the two are equal.
+     * @return true if this equals other, false if not.
+     * @throws ClassCastException if other is not an ElementDef.
+     */
+    public boolean equals(Object other)
+    {
+            try {
+        return displayDiff((ElementDef)other, null, 0);
+            } catch (ClassCastException ex) {
+                return false;
+            }
+    }
+
+        /**
+         * Returns a unique hash of this instance.
+         * @return hash of the toXML() return value
+         */
+    public int hashCode()
+    {
+            return this.toXML().hashCode();
+    }
+
+    /**
      * Verifies that this ElementDef is equal to other, throwing a
      * XOMException with a lengthy explanation if equality
      * fails.
@@ -816,10 +832,6 @@ public abstract class ElementDef implements NodeDef, Serializable, Cloneable
     {
         XOMUtil.addChildren(this, children);
     }
-    
-    public abstract void addPropertyChangeListener(PropertyChangeListener l);
-    
-    public abstract void removePropertyChangeListener(PropertyChangeListener l);
 
     protected static NodeDef[] getMixedChildren_new(
         DOMWrapper _def, Class clazz, String prefix) throws XOMException
