@@ -631,35 +631,6 @@ public class MetaGenerator {
             out.println("\t\t\t_out.endTag(\"" + tagName + "\");");
             out.println("\t\t}");
 
-            // Create the displayDiff() function
-            out.println("\t\tpublic boolean displayDiff("
-                        + "org.eigenbase.xom.ElementDef _other, "
-                        + "java.io.PrintWriter _out, "
-                        + "int _indent)");
-            out.println("\t\t{");
-            out.println("\t\t\tboolean _diff = true;");
-            if(allAttributes.length > 0 ||
-               allContent.length > 0 || isAny || isCData ||
-               def instanceof MetaDef.Plugin)
-                out.println("\t\t\t" + className + " _cother = ("
-                            + className + ")_other;");
-            for(int i=0; i<newAttributes.length; i++)
-                writeJavaDisplayDiffAttribute(out, allAttributes[i]);
-            if(def instanceof MetaDef.Plugin)
-                writeJavaDisplayDiffPluginAttributes(out);
-
-            if(def instanceof MetaDef.Plugin)
-                writeJavaDisplayDiffPluginContent(out);
-            else if(isAny)
-                writeJavaDisplayDiffAnyContent(out);
-            else if(isCData)
-                writeJavaDisplayDiffCDataContent(out);
-            else
-                for(int i=0; i<allContent.length; i++)
-                    writeJavaDisplayDiffContent(out, allContent[i]);
-            out.println("\t\t\treturn _diff;");
-            out.println("\t\t}");
-
             // Add the code section, if defined
             if(code != null)
                 writeJavaCode(out, 2, code);
@@ -1374,9 +1345,6 @@ public class MetaGenerator {
         return getDeclaredName(name) + "EventList";
     }
     
-    private String getBeanEventListName(String name) {
-        return getBeanName(name) + "EventList";
-    }
     
     /**
      * 
@@ -1838,13 +1806,8 @@ public class MetaGenerator {
                 + getObservableListName(name) + ";");
         out.println();
         
-        out.println("\t\tpublic EventList<" + typeName + "> get" 
-                + getBeanName(getEventListName(name)) + "() {");
-        out.println("\t\t\treturn " + getEventListName(name)+ ";");
-        out.println("\t\t}");
-        
         out.println("\t\tpublic ObservableElementList<" + typeName + "> get"
-                + getBeanName(getObservableListName(name)) + "() {");
+                + getBeanName(name) + "() {");
         out.println("\t\t\treturn " + getObservableListName(name) + ";");
         out.println("\t\t}");
     }
@@ -1926,12 +1889,12 @@ public class MetaGenerator {
             if(type instanceof MetaDef.StringElement)
                 out.println("\t\t\tdisplayStringArray(_out, \""
                             + array.name + "\", " + "(" + typeName + "[])"
-                            + "get" + getBeanEventListName(array.name) + "()" + ".toArray()"
+                            + "get" + getBeanName(array.name) + "()" + ".toArray()"
                             + ", _indent+1);");
             else
                 out.println("\t\t\tdisplayElementArray(_out, \""
-                            + array.name + "\", " + "get" + getBeanEventListName(array.name) + "()" 
-                            + ".toArray(new " + typeName + "[get" + getBeanEventListName(array.name) + "().size()])"
+                            + array.name + "\", " + "get" + getBeanName(array.name) + "()" 
+                            + ".toArray(new " + typeName + "[get" + getBeanName(array.name) + "().size()])"
                             + ", _indent+1);");
         }
         else {
@@ -1979,11 +1942,11 @@ public class MetaGenerator {
             if(type instanceof MetaDef.StringElement)
                 out.println("\t\t\tdisplayXMLStringArray(_out, \""
                             + getTypeInfo(array.type, true).tagName + "\", "
-                            + "get" + getBeanEventListName(array.name) + "()" + ");");
+                            + "get" + getBeanName(array.name) + "()" + ");");
             else
                 out.println("\t\t\tdisplayXMLElementArray(_out, "
-                            + "get" + getBeanEventListName(array.name) + "()" 
-                            + ".toArray(new " + typeName + "[get" + getBeanEventListName(array.name) + "().size()]));");
+                            + "get" + getBeanName(array.name) + "()" 
+                            + ".toArray(new " + typeName + "[get" + getBeanName(array.name) + "().size()]));");
             
             
             
@@ -2044,14 +2007,14 @@ public class MetaGenerator {
             if(type instanceof MetaDef.StringElement)
                 out.println("\t\t\t_diff = _diff && displayStringArrayDiff(\""
                             + array.name + "\", (" + typeName + "[])"
-                            + "get" + getBeanEventListName(array.name) + "()" + ".toArray(), "
-                            + "(" + typeName + "[])_cother." + "get" + getBeanEventListName(array.name) + "()" + ", "
+                            + "get" + getBeanName(array.name) + "()" + ".toArray(), "
+                            + "(" + typeName + "[])_cother." + "get" + getBeanName(array.name) + "()" + ", "
                             + ".toArray(), " + "_out, _indent+1);");
             else
                 out.println("\t\t\t_diff = _diff && displayElementArrayDiff(\""
                             + array.name + "\", (" + typeName + "[])"
-                            + "get" + getBeanEventListName(array.name) + "()" + ".toArray(), "
-                            + "(" + typeName + "[])_cother." + "get" + getBeanEventListName(array.name) + "()" 
+                            + "get" + getBeanName(array.name) + "()" + ".toArray(), "
+                            + "(" + typeName + "[])_cother." + "get" + getBeanName(array.name) + "()" 
                             + ".toArray(), " + "_out, _indent+1);");
         }
         else {
