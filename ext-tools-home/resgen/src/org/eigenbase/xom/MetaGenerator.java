@@ -401,6 +401,8 @@ public class MetaGenerator {
             if(doc != null)
                 writeJavaDoc(out, 1, doc);
 
+            
+            
             // Then create the inner class.
             String abs = (def instanceof MetaDef.Class) ? "abstract " :
                 "";
@@ -504,6 +506,7 @@ public class MetaGenerator {
                 if(hasContentType(allContent, MetaDef.Array.class)) {
                     out.println("\t\t\t\torg.eigenbase.xom.NodeDef[] "
                                 + "_tempArray = null;");
+                // This line is also emitted to avoid unused warnings
 //                    out.println("\t\t\t\t_tempArray = _tempArray;");
                 }
                 
@@ -665,6 +668,7 @@ public class MetaGenerator {
             out.println("\t}");
             out.println();
         }
+
     }
 
     /**
@@ -1033,7 +1037,8 @@ public class MetaGenerator {
             !(model.packageName == null || model.packageName.equals(""))) {
             out.println("package " + model.packageName + ";");
         }
-
+        out.println();
+        writeImports(out);
         // Write the toplevel documentation for the package.  This becomes
         // the toplevel documentation for the class and is also placed at
         // the top of the Dtd.
@@ -1075,6 +1080,24 @@ public class MetaGenerator {
         // End the class
         out.println();
         out.println("}");
+    }
+
+    /**
+     * Write the required imports to compile the MondrianDef 
+     */
+    private void writeImports(PrintWriter out) {
+        out.println("import java.beans.PropertyChangeListener;");
+        out.println("import java.beans.PropertyChangeSupport;");
+        out.println("import java.util.ArrayList;");
+        out.println("import java.util.List;");
+
+        out.println("import mondrian.olap.DimensionType;");
+        out.println("import mondrian.olap.Util;");
+        out.println("import mondrian.rolap.sql.SqlQuery;");
+        out.println("import ca.odell.glazedlists.EventList;");
+        out.println("import ca.odell.glazedlists.GlazedLists;");
+        out.println("import ca.odell.glazedlists.ObservableElementList;");
+        
     }
 
     /**
@@ -1885,8 +1908,6 @@ public class MetaGenerator {
             MetaDef.Object obj = (MetaDef.Object)content;
             MetaDef.Definition type = getType(obj.type);
 
-            
-            //TODO marker
             if(type instanceof MetaDef.StringElement)
                 out.println("\t\t\tdisplayString(_out, \""
                             + obj.name + "\", " + "get" + getBeanName(obj.name) + "()"
