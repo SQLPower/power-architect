@@ -25,7 +25,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -64,7 +63,7 @@ public class OLAPTreeModel  implements TreeModel, PropertyChangeListener, java.i
     public OLAPTreeModel(Schema schema) {
         this.schema = schema;
         treeModelListeners = new LinkedList<TreeModelListener>();
-        listenToHierarchy(this, schema, this);
+//        listenToHierarchy(this, schema, this);
     }
     
     
@@ -313,16 +312,16 @@ public class OLAPTreeModel  implements TreeModel, PropertyChangeListener, java.i
      * Adds listener to source's listener list and all of source's
      * children's listener lists recursively.
      */
-    public static void listenToHierarchy(PropertyChangeListener listener, ElementDef source, OLAPTreeModel treeModel) {
-        source.addPropertyChangeListener(listener);
-        if (!(source instanceof CubeDimension || source instanceof Measure || source instanceof VirtualCubeMeasure)) {
-            Iterator<ElementDef> it = getChildrenOfElementDef(source, treeModel).iterator();
-            while (it.hasNext()) {
-                listenToHierarchy(listener, (ElementDef) it.next(), treeModel);
-            }
-        }
-
-    }
+//    public static void listenToHierarchy(PropertyChangeListener listener, ElementDef source, OLAPTreeModel treeModel) {
+//        source.addPropertyChangeListener(listener);
+//        if (!(source instanceof CubeDimension || source instanceof Measure || source instanceof VirtualCubeMeasure)) {
+//            Iterator<ElementDef> it = getChildrenOfElementDef(source, treeModel).iterator();
+//            while (it.hasNext()) {
+//                listenToHierarchy(listener, (ElementDef) it.next(), treeModel);
+//            }
+//        }
+//
+//    }
     
     private static List<ElementDef> getChildrenOfElementDef(ElementDef ed, OLAPTreeModel treeModel) {
         List<ElementDef> returnList = new ArrayList<ElementDef>();
