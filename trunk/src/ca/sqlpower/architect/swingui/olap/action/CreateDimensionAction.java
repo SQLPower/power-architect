@@ -21,8 +21,8 @@ package ca.sqlpower.architect.swingui.olap.action;
 
 import java.awt.event.ActionEvent;
 
-import ca.sqlpower.architect.olap.MondrianDef.Dimension;
-import ca.sqlpower.architect.olap.MondrianDef.Schema;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 
@@ -38,8 +38,8 @@ public class CreateDimensionAction extends AbstractArchitectAction {
     public void actionPerformed(ActionEvent e) {
         try {
             Dimension d = new Dimension();
-            d.setInstanceName("New Dimension");
-            schema.getDimensions().add(d);
+            d.setName("New Dimension");
+            schema.addDimension(d);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

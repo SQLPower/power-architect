@@ -26,7 +26,7 @@ import javax.swing.JTextField;
 
 import mondrian.olap.DimensionType;
 
-import ca.sqlpower.architect.olap.MondrianDef.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -47,18 +47,27 @@ public class DimensionEditPanel implements DataEntryPanel {
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
-        builder.append("Name", nameField = new JTextField(dimension.getInstanceName()));
+        builder.append("Name", nameField = new JTextField(dimension.getName()));
         builder.append("Caption", captionField = new JTextField(dimension.getCaption()));
         builder.append("Type", typeBox = new JComboBox(DimensionType.values()));
-        typeBox.setSelectedItem(dimension.getDimensionType());
-        
+        if (dimension.getType() != null) {
+            typeBox.setSelectedItem(DimensionType.valueOf(dimension.getType()));
+        } else {
+            typeBox.setSelectedItem(DimensionType.StandardDimension);
+        }
         panel = builder.getPanel();
     }
     public boolean applyChanges() {
         // TODO make this a compound edit
-        dimension.setInstanceName(nameField.getText());
+        dimension.setName(nameField.getText());
         dimension.setCaption(captionField.getText());
-        // TODO ability to set type, or remove type field from form (whichever makes sense)
+        
+        DimensionType type = (DimensionType) typeBox.getSelectedItem();
+        if (type != null) {
+            dimension.setType(type.toString());
+        } else {
+            dimension.setType(DimensionType.StandardDimension.toString());
+        }
         return true;
     }
 
