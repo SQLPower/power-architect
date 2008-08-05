@@ -22,7 +22,7 @@ package ca.sqlpower.architect.swingui.olap.action;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 
-import ca.sqlpower.architect.olap.MondrianDef.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.DimensionEditPanel;

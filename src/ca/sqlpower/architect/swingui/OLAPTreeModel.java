@@ -25,13 +25,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JTree;
-import javax.swing.SwingUtilities;
+import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
@@ -39,30 +35,30 @@ import javax.swing.tree.TreePath;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.eigenbase.xom.DOMWrapper;
-import org.eigenbase.xom.ElementDef;
 import org.eigenbase.xom.Parser;
 import org.eigenbase.xom.XOMUtil;
 
-import ca.sqlpower.architect.olap.MondrianDef.Cube;
-import ca.sqlpower.architect.olap.MondrianDef.CubeDimension;
-import ca.sqlpower.architect.olap.MondrianDef.CubeUsages;
-import ca.sqlpower.architect.olap.MondrianDef.Dimension;
-import ca.sqlpower.architect.olap.MondrianDef.Measure;
-import ca.sqlpower.architect.olap.MondrianDef.Schema;
-import ca.sqlpower.architect.olap.MondrianDef.VirtualCube;
-import ca.sqlpower.architect.olap.MondrianDef.VirtualCubeDimension;
-import ca.sqlpower.architect.olap.MondrianDef.VirtualCubeMeasure;
+import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.OLAPUtil;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.Measure;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 
-public class OLAPTreeModel  implements TreeModel, PropertyChangeListener, java.io.Serializable{
+public class OLAPTreeModel implements TreeModel {
 
     private static final Logger logger = Logger.getLogger(OLAPTreeModel.class);
     private final Schema schema;
     
-    private final LinkedList<TreeModelListener> treeModelListeners;
+    private final List<TreeModelListener> treeModelListeners = new ArrayList<TreeModelListener>();
     
     public OLAPTreeModel(Schema schema) {
         this.schema = schema;
-        treeModelListeners = new LinkedList<TreeModelListener>();
 //        listenToHierarchy(this, schema, this);
     }
     
@@ -110,7 +106,7 @@ public class OLAPTreeModel  implements TreeModel, PropertyChangeListener, java.i
                 child = ((VirtualCube) parent).getMeasures().get(index-dimSize);
             } else if (index < cubeSize + measureSize + dimSize) {
                 String cubeName = ((VirtualCube) parent).getCubeUsage().getCubeUsages().get(index-dimSize-measureSize).getCubeName();
-                child = ((Schema) getRoot()).getCube(cubeName);
+                child = OLAPUtil.findCube(getRoot(), cubeName);
             } else {
                 throw new IndexOutOfBoundsException();
             } 
@@ -165,20 +161,20 @@ public class OLAPTreeModel  implements TreeModel, PropertyChangeListener, java.i
             int dimSize = ((Schema) parent).getDimensions().size();
             int cubeSize = ((Schema) parent).getCubes().size();
             if (child instanceof Dimension) {
-                index = findItemIndex(((Schema) parent).getDimensions(), child);
+                index = ((Schema) parent).getDimensions().indexOf(child);
             } else if (child instanceof Cube) {
-                index = dimSize + findItemIndex(((Schema) parent).getCubes(), child);
+                index = dimSize + ((Schema) parent).getCubes().indexOf(child);
             } else if (child instanceof VirtualCube) {
-                index = dimSize + cubeSize + findItemIndex(((Schema) parent).getCubes(), child);
+                index = dimSize + cubeSize + ((Schema) parent).getCubes().indexOf(child);
             } else {
                 throw new IllegalArgumentException(parent.getClass() + " does not have child type " + child.getClass());
             }
         } else if (parent instanceof Cube) {
             int dimSize = ((Cube) parent).getDimensions().size();
             if (child instanceof CubeDimension) {
-                index = findItemIndex(((Cube) parent).getDimensions(), child);
+                index = ((Cube) parent).getDimensions().indexOf(child);
             } else if (child instanceof Measure) {
-                index = dimSize + findItemIndex(((Cube) parent).getMeasures(), child);
+                index = dimSize + ((Cube) parent).getMeasures().indexOf(child);
             } else {
                 throw new IllegalArgumentException(parent.getClass() + " does not have child type " + child.getClass());
             }
@@ -189,12 +185,12 @@ public class OLAPTreeModel  implements TreeModel, PropertyChangeListener, java.i
             int dimSize = ((VirtualCube) parent).getDimensions().size();
             int measureSize = ((VirtualCube) parent).getMeasures().size();
             if (child instanceof VirtualCubeDimension) {
-                index = findItemIndex(((VirtualCube) parent).getDimensions(), child);
+                index = ((VirtualCube) parent).getDimensions().indexOf(child);
             } else if (child instanceof VirtualCubeMeasure) {
-                index = dimSize + findItemIndex(((VirtualCube) parent).getMeasures(), child);
+                index = dimSize + ((VirtualCube) parent).getMeasures().indexOf(child);
             } else if (child instanceof Cube){
                 index = -1;
-                String cubeName = ((Cube) child).getInstanceName();
+                String cubeName = ((Cube) child).getName();
                 System.out.println("cubeName = " +  cubeName);
                 CubeUsages cubeUsage = ((VirtualCube) parent).getCubeUsage();
                 int cubeUsageCount = (cubeUsage != null) ? cubeUsage.getCubeUsages().size() : 0;
@@ -220,16 +216,7 @@ public class OLAPTreeModel  implements TreeModel, PropertyChangeListener, java.i
         return index;
     }
     
-    private int findItemIndex(List<? extends ElementDef> list, Object obj){
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).equals(obj)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public Object getRoot() {
+    public Schema getRoot() {
         if (logger.isDebugEnabled()) {
             logger.debug(">>> getRoot()");
         }
@@ -293,19 +280,19 @@ public class OLAPTreeModel  implements TreeModel, PropertyChangeListener, java.i
         final Parser xmlParser = XOMUtil.createDefaultParser();
         final DOMWrapper def = xmlParser.parse(xml.toString());
 
-        Schema loadedSchema = new Schema(def);
-        final JTree tree = new JTree(new OLAPTreeModel(loadedSchema));
-        tree.setCellRenderer(new OLAPTreeCellRenderer());
-        final JFrame f = new JFrame("Test schema tree");
-        f.setContentPane(new JScrollPane(tree));
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                f.pack();
-                f.setLocationRelativeTo(null);
-                f.setVisible(true);
-            }
-        });
+//        Schema loadedSchema = new Schema(def);
+//        final JTree tree = new JTree(new OLAPTreeModel(loadedSchema));
+//        tree.setCellRenderer(new OLAPTreeCellRenderer());
+//        final JFrame f = new JFrame("Test schema tree");
+//        f.setContentPane(new JScrollPane(tree));
+//        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        SwingUtilities.invokeLater(new Runnable() {
+//            public void run() {
+//                f.pack();
+//                f.setLocationRelativeTo(null);
+//                f.setVisible(true);
+//            }
+//        });
     }
     
     /**
@@ -323,8 +310,8 @@ public class OLAPTreeModel  implements TreeModel, PropertyChangeListener, java.i
 //
 //    }
     
-    private static List<ElementDef> getChildrenOfElementDef(ElementDef ed, OLAPTreeModel treeModel) {
-        List<ElementDef> returnList = new ArrayList<ElementDef>();
+    private static List<OLAPObject> getChildrenOfOLAPObject(OLAPObject ed, OLAPTreeModel treeModel) {
+        List<OLAPObject> returnList = new ArrayList<OLAPObject>();
         if (ed instanceof Schema) {
             returnList.addAll(((Schema) ed).getDimensions());
             returnList.addAll(((Schema) ed).getCubes());
@@ -341,7 +328,7 @@ public class OLAPTreeModel  implements TreeModel, PropertyChangeListener, java.i
             if (cubeUsage != null) {
                 for(int i = 0; i < cubeUsage.getCubeUsages().size(); i++) {
                     String cubeName = cubeUsage.getCubeUsages().get(i).getCubeName();
-                    Cube cube = ((Schema) treeModel.getRoot()).getCube(cubeName);
+                    Cube cube = OLAPUtil.findCube(treeModel.getRoot(), cubeName);
                     returnList.add(cube);
                 }
                 return returnList;
@@ -353,11 +340,35 @@ public class OLAPTreeModel  implements TreeModel, PropertyChangeListener, java.i
         }
     }
 
-    public void propertyChange(PropertyChangeEvent evt) {
-        System.out.println("Property changed " + evt.getPropertyName());
+    private class BusinessModelEventHandler implements PropertyChangeListener {
+        public void propertyChange(PropertyChangeEvent evt) {
+            fireTreeNodeChanged((OLAPObject) evt.getSource());
+        }
+    }
+    
+    private void fireTreeNodeChanged(OLAPObject node) {
+        OLAPObject parent = node.getParent();
+        
+        int indexOfChild;
+        if (node == getRoot()) {
+            indexOfChild = 0;
+        } else {
+            indexOfChild = getIndexOfChild(parent, node);
+        }
+        
+        TreeModelEvent e = new TreeModelEvent(this, pathToNode(parent), new int[] { indexOfChild }, new Object[] { node });
+        for (int i = treeModelListeners.size() - 1; i >= 0; i--) {
+            treeModelListeners.get(i).treeNodesChanged(e);
+        }
+    }
+    
+    private TreePath pathToNode(OLAPObject o) {
+        List<OLAPObject> path = new ArrayList<OLAPObject>();
+        while (o != null) {
+            path.add(0, o);
+            o = o.getParent();
+        }
+        return new TreePath(path.toArray());
     }
 
-//    private void fireTreeModelEvent() {
-//        TreeModelEvent e = new TreeModelEvent()
-//    }
 }

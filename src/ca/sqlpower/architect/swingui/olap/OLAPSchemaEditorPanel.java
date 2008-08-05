@@ -28,7 +28,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 
-import ca.sqlpower.architect.olap.MondrianDef.Schema;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.OLAPTreeCellRenderer;
 import ca.sqlpower.architect.swingui.OLAPTreeModel;

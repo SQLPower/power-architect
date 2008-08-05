@@ -23,7 +23,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.JDialog;
 
-import ca.sqlpower.architect.olap.MondrianDef.Schema;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaEditorPanel;
@@ -40,7 +40,9 @@ public class OLAPEditAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        OLAPSchemaEditorPanel panel = new OLAPSchemaEditorPanel(session, new Schema());
+        Schema schema = new Schema();
+        schema.setName("New OLAP Schema");
+        OLAPSchemaEditorPanel panel = new OLAPSchemaEditorPanel(session, schema);
         
         // TODO register listener on schema object and make dialog title track schema name
         JDialog d = new JDialog(session.getArchitectFrame(), "OLAP Schema Editor");
