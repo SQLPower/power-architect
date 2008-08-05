@@ -26,12 +26,12 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.olap.MondrianDef.Cube;
-import ca.sqlpower.architect.olap.MondrianDef.CubeDimension;
-import ca.sqlpower.architect.olap.MondrianDef.Measure;
-import ca.sqlpower.architect.olap.MondrianDef.Schema;
-import ca.sqlpower.architect.olap.MondrianDef.VirtualCube;
-import ca.sqlpower.architect.olap.MondrianDef.VirtualCubeMeasure;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.Measure;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.swingui.SPSUtils;
 
 public class OLAPTreeCellRenderer extends DefaultTreeCellRenderer {
@@ -72,27 +72,27 @@ public class OLAPTreeCellRenderer extends DefaultTreeCellRenderer {
         setText(value.toString());
         if (value instanceof Schema) {
             Schema schema = (Schema) value;
-            setText("Schema");
+            setText(schema.getName() + " (Schema)");
             setIcon(schemaIcon);
         } else if (value instanceof Cube) {
             Cube cube = (Cube) value;
-            setText(cube.getInstanceName() + " (Cube)");
+            setText(cube.getName() + " (Cube)");
             setIcon(tableIcon);
         } else if (value instanceof VirtualCube) {
             VirtualCube vCube = (VirtualCube) value;
-            setText(vCube.getInstanceName() + " (VirtualCube)");
+            setText(vCube.getName() + " (VirtualCube)");
             setIcon(tableIcon);
         } else if (value instanceof CubeDimension) {
             CubeDimension dim = (CubeDimension) value;
-            setText(dim.getInstanceName() + " (Dimension)");
+            setText(dim.getName() + " (Dimension)");
             setIcon(columnIcon);
         } else if (value instanceof Measure) {
             Measure measure = (Measure) value;
-            setText(measure.getInstanceName() + " (Measure)");
+            setText(measure.getName() + " (Measure)");
             setIcon(columnIcon);
         } else if (value instanceof VirtualCubeMeasure) {
             VirtualCubeMeasure measure = (VirtualCubeMeasure) value;
-            setText(measure.getInstanceName() + " (VitualCubeMeasure)");
+            setText(measure.getName() + " (VirtualCubeMeasure)");
             setIcon(columnIcon);
         } else {
             setIcon(null);
@@ -101,14 +101,6 @@ public class OLAPTreeCellRenderer extends DefaultTreeCellRenderer {
         this.selected = sel;
         this.hasFocus = hasFocus;
 
-//        if (value instanceof SQLObject) {
-//            if (((SQLObject) value).isPopulated()) {
-//                setForeground(Color.black);
-//            } else {
-//                setForeground(Color.lightGray);
-//            }
-//        }
-//        setToolTipText(getText());
         return this;
     }
 }
