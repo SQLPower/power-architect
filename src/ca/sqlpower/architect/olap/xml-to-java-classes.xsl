@@ -14,16 +14,28 @@
 
 <xsl:strip-space elements="*"/>
 
+<!-- TODO: copy xml subtree of Doc elements verbatim (to preserve HTML in comments) -->
+
 <xsl:template match="/">
 package ca.sqlpower.architect.olap;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class MondrianModel {
 <xsl:apply-templates/>
 } // end of entire model
 </xsl:template>
 
+
+
+<!--
+    ================ Element stuff ================
+ -->
+
 <xsl:template match="Element">
-/** <xsl:value-of select="Doc"/> */ <!-- TODO: copy xml subtree verbatim (to preserve HTML in comments) -->
+/** <xsl:copy-of select="Doc"/> */
 public static class <xsl:value-of select="@type"/> extends <xsl:call-template name="superclass-of-element"/> {
     
     /**
@@ -37,8 +49,22 @@ public static class <xsl:value-of select="@type"/> extends <xsl:call-template na
 } // end of element <xsl:value-of select="@type"/>
 </xsl:template>
 
+<!-- Returns the correct superclass for the current Element element -->
+<xsl:template name="superclass-of-element">
+  <xsl:choose>
+    <xsl:when test="@class"><xsl:value-of select="@class"/></xsl:when>
+    <xsl:otherwise>OLAPObject</xsl:otherwise>
+  </xsl:choose>
+</xsl:template> 
+
+
+
+<!--
+    ================ Class stuff ================
+ -->
+
 <xsl:template match="Class">
-/** <xsl:value-of select="Doc"/> */ <!-- TODO: copy xml subtree verbatim (to preserve HTML in comments) -->
+/** <xsl:copy-of select="Doc"/> */
 public static class <xsl:value-of select="@class"/> extends <xsl:call-template name="superclass-of-class"/> {
     
     /**
@@ -52,8 +78,17 @@ public static class <xsl:value-of select="@class"/> extends <xsl:call-template n
 } // end of class <xsl:value-of select="@class"/>
 </xsl:template>
 
+<!-- Returns the correct superclass for the current Class element -->
+<xsl:template name="superclass-of-class">
+  <xsl:choose>
+    <xsl:when test="@superclass"><xsl:value-of select="@superclass"/></xsl:when>
+    <xsl:otherwise>OLAPObject</xsl:otherwise>
+  </xsl:choose>
+</xsl:template> 
+
 <!-- Private instance variable with getter/setter pair. (i.e. a bound JavaBean property) -->
-<xsl:template match="Attribute">
+<xsl:template match="Attribute|Object">
+    /** <xsl:copy-of select="Doc"/> */
     private <xsl:call-template name="attribute-type"/> /* */ <xsl:value-of select="@name"/>;
     
     public <xsl:call-template name="attribute-type"/> /* */ get<xsl:call-template name="name-initcap"/>() {
@@ -74,26 +109,75 @@ public static class <xsl:value-of select="@class"/> extends <xsl:call-template n
   </xsl:choose>
 </xsl:template>
 
-<!-- Returns the correct superclass for the current Element element -->
-<xsl:template name="superclass-of-element">
-  <xsl:choose>
-    <xsl:when test="@class"><xsl:value-of select="@class"/></xsl:when>
-    <xsl:otherwise>OLAPObject</xsl:otherwise>
-  </xsl:choose>
-</xsl:template> 
 
-<!-- Returns the correct superclass for the current Class element -->
-<xsl:template name="superclass-of-class">
-  <xsl:choose>
-    <xsl:when test="@superclass"><xsl:value-of select="@superclass"/></xsl:when>
-    <xsl:otherwise>OLAPObject</xsl:otherwise>
-  </xsl:choose>
-</xsl:template> 
+<xsl:template match="Array">
+    /** <xsl:copy-of select="Doc"/> */
+    private final List&lt;<xsl:value-of select="@type"/>&gt; <xsl:value-of select="@name"/> = new ArrayList&lt;<xsl:value-of select="@type"/>&gt;();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * <p><xsl:copy-of select="Doc"/></p>
+     */
+    public void add<xsl:call-template name="name-initcap-nonplural"/>(int pos, <xsl:value-of select="@type"/> newChild) {
+        <xsl:value-of select="@name"/>.add(pos, newChild);
+        fireChildAdded(<xsl:value-of select="@type"/>.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     * <p><xsl:copy-of select="Doc"/></p> */
+    public void add<xsl:call-template name="name-initcap-nonplural"/>(<xsl:value-of select="@type"/> newChild) {
+        add<xsl:call-template name="name-initcap-nonplural"/>(<xsl:value-of select="@name"/>.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean remove<xsl:call-template name="name-initcap-nonplural"/>(<xsl:value-of select="@type"/> removeChild) {
+        int pos = <xsl:value-of select="@name"/>.indexOf(removeChild);
+        if (pos != -1) {
+            remove<xsl:call-template name="name-initcap-nonplural"/>(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public <xsl:value-of select="@type"/> remove<xsl:call-template name="name-initcap-nonplural"/>(int pos) {
+        <xsl:value-of select="@type"/> removedItem = <xsl:value-of select="@name"/>.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(<xsl:value-of select="@type"/>.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List&lt;<xsl:value-of select="@type"/>&gt; get<xsl:call-template name="name-initcap"/>() {
+        return Collections.unmodifiableList(<xsl:value-of select="@name"/>);
+    }
+    
+</xsl:template>
+
 
 <!-- Returns the initcap version of the "name" attribute of the current element -->
 <xsl:template name="name-initcap">
   <xsl:value-of select="concat(translate(substring(@name,1,1), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'), substring(@name, 2))"/>
-</xsl:template> 
+</xsl:template>
+
+<!-- Returns the initcap version of the depluralized version of the "name" attribute of the current element -->
+<xsl:template name="name-initcap-nonplural">
+  <xsl:variable name="initcap" select="concat(translate(substring(@name,1,1), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'), substring(@name, 2))"/>
+  <xsl:choose>
+    <xsl:when test="$initcap = 'Hierarchies'">Hierarchy</xsl:when>
+    <xsl:when test="$initcap = 'Properties'">Property</xsl:when>
+    <xsl:otherwise><xsl:value-of select="substring($initcap, 1, string-length($initcap)-1)"/></xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
 
 <xsl:template match="Doc">
   <!-- this is handled directly by parent element's template -->
