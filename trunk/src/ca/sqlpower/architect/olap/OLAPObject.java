@@ -21,6 +21,8 @@ package ca.sqlpower.architect.olap;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
+import java.util.List;
 
 public class OLAPObject {
 
@@ -29,6 +31,8 @@ public class OLAPObject {
      */
     protected final PropertyChangeSupport pcs;
 
+    private final List<OLAPChildListener> childListeners = new ArrayList<OLAPChildListener>();
+    
     /**
      * The number of compound edits that have started on this object but not yet
      * finished.
@@ -65,5 +69,19 @@ public class OLAPObject {
     public void endCompoundEdit() {
         compoundEditDepth--;
         // TODO fire compound edit event
+    }
+    
+    protected void fireChildAdded(Class<? extends OLAPObject> childClass, int index, OLAPObject child) {
+        OLAPChildEvent e = new OLAPChildEvent(this, childClass, child, index);
+        for (int i = childListeners.size() - 1; i >= 0; i--) {
+            childListeners.get(i).olapChildAdded(e);
+        }
+    }
+
+    protected void fireChildRemoved(Class<? extends OLAPObject> childClass, int index, OLAPObject child) {
+        OLAPChildEvent e = new OLAPChildEvent(this, childClass, child, index);
+        for (int i = childListeners.size() - 1; i >= 0; i--) {
+            childListeners.get(i).olapChildRemoved(e);
+        }
     }
 }

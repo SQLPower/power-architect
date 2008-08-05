@@ -1,12 +1,16 @@
 
 package ca.sqlpower.architect.olap;
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
+
 public class MondrianModel {
 
 /** A schema is a collection of cubes and virtual cubes.
             It can also contain shared dimensions (for use by those
             cubes), named sets, roles, and declarations of
-            user-defined functions. */ 
+            user-defined functions. */
 public static class Schema extends OLAPObject {
     
     /**
@@ -17,6 +21,7 @@ public static class Schema extends OLAPObject {
     }
     
 
+    /** Name of this schema */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -29,6 +34,10 @@ public static class Schema extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                Label for the measures dimension.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ measuresCaption;
     
     public String /* */ getMeasuresCaption() {
@@ -41,6 +50,7 @@ public static class Schema extends OLAPObject {
         pcs.firePropertyChange("measuresCaption", oldval, newval);
     }
 
+    /** The name of the default role for connections to this schema */
     private String /* */ defaultRole;
     
     public String /* */ getDefaultRole() {
@@ -53,11 +63,403 @@ public static class Schema extends OLAPObject {
         pcs.firePropertyChange("defaultRole", oldval, newval);
     }
 
+    /** 
+                This schema's parameter definitions.
+             */
+    private final List<Parameter> parameters = new ArrayList<Parameter>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+                This schema's parameter definitions.
+            
+     */
+    public void addParameter(int pos, Parameter newChild) {
+        parameters.add(pos, newChild);
+        fireChildAdded(Parameter.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     * 
+                This schema's parameter definitions.
+             */
+    public void addParameter(Parameter newChild) {
+        addParameter(parameters.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeParameter(Parameter removeChild) {
+        int pos = parameters.indexOf(removeChild);
+        if (pos != -1) {
+            removeParameter(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public Parameter removeParameter(int pos) {
+        Parameter removedItem = parameters.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(Parameter.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<Parameter> getParameters() {
+        return Collections.unmodifiableList(parameters);
+    }
+    
+
+    /** 
+                Shared dimensions in this schema.
+             */
+    private final List<Dimension> dimensions = new ArrayList<Dimension>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+                Shared dimensions in this schema.
+            
+     */
+    public void addDimension(int pos, Dimension newChild) {
+        dimensions.add(pos, newChild);
+        fireChildAdded(Dimension.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     * 
+                Shared dimensions in this schema.
+             */
+    public void addDimension(Dimension newChild) {
+        addDimension(dimensions.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeDimension(Dimension removeChild) {
+        int pos = dimensions.indexOf(removeChild);
+        if (pos != -1) {
+            removeDimension(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public Dimension removeDimension(int pos) {
+        Dimension removedItem = dimensions.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(Dimension.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<Dimension> getDimensions() {
+        return Collections.unmodifiableList(dimensions);
+    }
+    
+
+    /** 
+                Cubes in this schema.
+             */
+    private final List<Cube> cubes = new ArrayList<Cube>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+                Cubes in this schema.
+            
+     */
+    public void addCube(int pos, Cube newChild) {
+        cubes.add(pos, newChild);
+        fireChildAdded(Cube.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     * 
+                Cubes in this schema.
+             */
+    public void addCube(Cube newChild) {
+        addCube(cubes.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeCube(Cube removeChild) {
+        int pos = cubes.indexOf(removeChild);
+        if (pos != -1) {
+            removeCube(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public Cube removeCube(int pos) {
+        Cube removedItem = cubes.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(Cube.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<Cube> getCubes() {
+        return Collections.unmodifiableList(cubes);
+    }
+    
+
+    /** 
+                Virtual cubes in this schema.
+             */
+    private final List<VirtualCube> virtualCubes = new ArrayList<VirtualCube>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+                Virtual cubes in this schema.
+            
+     */
+    public void addVirtualCube(int pos, VirtualCube newChild) {
+        virtualCubes.add(pos, newChild);
+        fireChildAdded(VirtualCube.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     * 
+                Virtual cubes in this schema.
+             */
+    public void addVirtualCube(VirtualCube newChild) {
+        addVirtualCube(virtualCubes.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeVirtualCube(VirtualCube removeChild) {
+        int pos = virtualCubes.indexOf(removeChild);
+        if (pos != -1) {
+            removeVirtualCube(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public VirtualCube removeVirtualCube(int pos) {
+        VirtualCube removedItem = virtualCubes.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(VirtualCube.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<VirtualCube> getVirtualCubes() {
+        return Collections.unmodifiableList(virtualCubes);
+    }
+    
+
+    /** 
+                Named sets in this schema.
+             */
+    private final List<NamedSet> namedSets = new ArrayList<NamedSet>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+                Named sets in this schema.
+            
+     */
+    public void addNamedSet(int pos, NamedSet newChild) {
+        namedSets.add(pos, newChild);
+        fireChildAdded(NamedSet.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     * 
+                Named sets in this schema.
+             */
+    public void addNamedSet(NamedSet newChild) {
+        addNamedSet(namedSets.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeNamedSet(NamedSet removeChild) {
+        int pos = namedSets.indexOf(removeChild);
+        if (pos != -1) {
+            removeNamedSet(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public NamedSet removeNamedSet(int pos) {
+        NamedSet removedItem = namedSets.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(NamedSet.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<NamedSet> getNamedSets() {
+        return Collections.unmodifiableList(namedSets);
+    }
+    
+
+    /** 
+                Roles in this schema.
+             */
+    private final List<Role> roles = new ArrayList<Role>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+                Roles in this schema.
+            
+     */
+    public void addRole(int pos, Role newChild) {
+        roles.add(pos, newChild);
+        fireChildAdded(Role.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     * 
+                Roles in this schema.
+             */
+    public void addRole(Role newChild) {
+        addRole(roles.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeRole(Role removeChild) {
+        int pos = roles.indexOf(removeChild);
+        if (pos != -1) {
+            removeRole(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public Role removeRole(int pos) {
+        Role removedItem = roles.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(Role.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<Role> getRoles() {
+        return Collections.unmodifiableList(roles);
+    }
+    
+
+    /** 
+                Declarations of user-defined functions in this schema.
+             */
+    private final List<UserDefinedFunction> userDefinedFunctions = new ArrayList<UserDefinedFunction>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+                Declarations of user-defined functions in this schema.
+            
+     */
+    public void addUserDefinedFunction(int pos, UserDefinedFunction newChild) {
+        userDefinedFunctions.add(pos, newChild);
+        fireChildAdded(UserDefinedFunction.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     * 
+                Declarations of user-defined functions in this schema.
+             */
+    public void addUserDefinedFunction(UserDefinedFunction newChild) {
+        addUserDefinedFunction(userDefinedFunctions.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeUserDefinedFunction(UserDefinedFunction removeChild) {
+        int pos = userDefinedFunctions.indexOf(removeChild);
+        if (pos != -1) {
+            removeUserDefinedFunction(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public UserDefinedFunction removeUserDefinedFunction(int pos) {
+        UserDefinedFunction removedItem = userDefinedFunctions.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(UserDefinedFunction.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<UserDefinedFunction> getUserDefinedFunctions() {
+        return Collections.unmodifiableList(userDefinedFunctions);
+    }
+    
+
 } // end of element Schema
 /** 
             A CubeDimension is either a usage of a Dimension ('shared
             dimension', in MSOLAP parlance), or a 'private dimension'.
-         */ 
+         */
 public static class CubeDimension extends OLAPObject {
     
     /**
@@ -68,6 +470,7 @@ public static class CubeDimension extends OLAPObject {
     }
     
 
+    /**  */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -80,6 +483,10 @@ public static class CubeDimension extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                A string being displayed instead of the Dimension's name.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ caption;
     
     public String /* */ getCaption() {
@@ -92,6 +499,12 @@ public static class CubeDimension extends OLAPObject {
         pcs.firePropertyChange("caption", oldval, newval);
     }
 
+    /** 
+                The name of the column in the fact table which joins
+                to the leaf level of this dimension. Required in a
+                private Dimension or a DimensionUsage, but not in a
+                public Dimension.
+             */
     private String /* */ foreignKey;
     
     public String /* */ getForeignKey() {
@@ -107,7 +520,7 @@ public static class CubeDimension extends OLAPObject {
 } // end of class CubeDimension
 /** 
             Definition of a cube.
-         */ 
+         */
 public static class Cube extends OLAPObject {
     
     /**
@@ -118,6 +531,9 @@ public static class Cube extends OLAPObject {
     }
     
 
+    /** 
+                Name of this cube.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -130,6 +546,10 @@ public static class Cube extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                A string being displayed instead of the cube's name.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ caption;
     
     public String /* */ getCaption() {
@@ -142,6 +562,10 @@ public static class Cube extends OLAPObject {
         pcs.firePropertyChange("caption", oldval, newval);
     }
 
+    /** 
+                The name of the measure that would be taken as the default
+                measure of the cube.
+             */
     private String /* */ defaultMeasure;
     
     public String /* */ getDefaultMeasure() {
@@ -154,6 +578,11 @@ public static class Cube extends OLAPObject {
         pcs.firePropertyChange("defaultMeasure", oldval, newval);
     }
 
+    /** 
+                Should the Fact table data for this Cube be cached
+                by Mondrian or not. The default action is to cache
+                the data.
+             */
     private Boolean /* */ cache;
     
     public Boolean /* */ getCache() {
@@ -166,6 +595,10 @@ public static class Cube extends OLAPObject {
         pcs.firePropertyChange("cache", oldval, newval);
     }
 
+    /** 
+                Whether element is enabled - if true, then the Cube is
+                realized otherwise it is ignored.
+             */
     private Boolean /* */ enabled;
     
     public Boolean /* */ getEnabled() {
@@ -178,11 +611,240 @@ public static class Cube extends OLAPObject {
         pcs.firePropertyChange("enabled", oldval, newval);
     }
 
+    /** 
+                The fact table is the source of all measures in this cube. If
+                this is a Table and the schema name is not
+                present, table name is left unqualified.
+             */
+    private Relation /* */ fact;
+    
+    public Relation /* */ getFact() {
+        return fact;
+    }
+    
+    public void setFact(Relation /* */ newval) {
+        Relation /* */ oldval = fact;
+        fact = newval;
+        pcs.firePropertyChange("fact", oldval, newval);
+    }
+
+    /**  */
+    private final List<CubeDimension> dimensions = new ArrayList<CubeDimension>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addDimension(int pos, CubeDimension newChild) {
+        dimensions.add(pos, newChild);
+        fireChildAdded(CubeDimension.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addDimension(CubeDimension newChild) {
+        addDimension(dimensions.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeDimension(CubeDimension removeChild) {
+        int pos = dimensions.indexOf(removeChild);
+        if (pos != -1) {
+            removeDimension(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public CubeDimension removeDimension(int pos) {
+        CubeDimension removedItem = dimensions.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(CubeDimension.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<CubeDimension> getDimensions() {
+        return Collections.unmodifiableList(dimensions);
+    }
+    
+
+    /**  */
+    private final List<Measure> measures = new ArrayList<Measure>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addMeasure(int pos, Measure newChild) {
+        measures.add(pos, newChild);
+        fireChildAdded(Measure.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addMeasure(Measure newChild) {
+        addMeasure(measures.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeMeasure(Measure removeChild) {
+        int pos = measures.indexOf(removeChild);
+        if (pos != -1) {
+            removeMeasure(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public Measure removeMeasure(int pos) {
+        Measure removedItem = measures.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(Measure.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<Measure> getMeasures() {
+        return Collections.unmodifiableList(measures);
+    }
+    
+
+    /** 
+                Calculated members in this cube.
+             */
+    private final List<CalculatedMember> calculatedMembers = new ArrayList<CalculatedMember>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+                Calculated members in this cube.
+            
+     */
+    public void addCalculatedMember(int pos, CalculatedMember newChild) {
+        calculatedMembers.add(pos, newChild);
+        fireChildAdded(CalculatedMember.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     * 
+                Calculated members in this cube.
+             */
+    public void addCalculatedMember(CalculatedMember newChild) {
+        addCalculatedMember(calculatedMembers.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeCalculatedMember(CalculatedMember removeChild) {
+        int pos = calculatedMembers.indexOf(removeChild);
+        if (pos != -1) {
+            removeCalculatedMember(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public CalculatedMember removeCalculatedMember(int pos) {
+        CalculatedMember removedItem = calculatedMembers.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(CalculatedMember.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<CalculatedMember> getCalculatedMembers() {
+        return Collections.unmodifiableList(calculatedMembers);
+    }
+    
+
+    /** 
+                Named sets in this cube.
+             */
+    private final List<NamedSet> namedSets = new ArrayList<NamedSet>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+                Named sets in this cube.
+            
+     */
+    public void addNamedSet(int pos, NamedSet newChild) {
+        namedSets.add(pos, newChild);
+        fireChildAdded(NamedSet.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     * 
+                Named sets in this cube.
+             */
+    public void addNamedSet(NamedSet newChild) {
+        addNamedSet(namedSets.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeNamedSet(NamedSet removeChild) {
+        int pos = namedSets.indexOf(removeChild);
+        if (pos != -1) {
+            removeNamedSet(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public NamedSet removeNamedSet(int pos) {
+        NamedSet removedItem = namedSets.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(NamedSet.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<NamedSet> getNamedSets() {
+        return Collections.unmodifiableList(namedSets);
+    }
+    
+
 } // end of element Cube
 /** 
             A VirtualCube is a set of dimensions and
             measures gleaned from other cubes.
-         */ 
+         */
 public static class VirtualCube extends OLAPObject {
     
     /**
@@ -193,6 +855,10 @@ public static class VirtualCube extends OLAPObject {
     }
     
 
+    /** 
+                Whether this element is enabled - if true, then the Virtual
+                Cube is realized otherwise it is ignored.
+             */
     private Boolean /* */ enabled;
     
     public Boolean /* */ getEnabled() {
@@ -205,6 +871,7 @@ public static class VirtualCube extends OLAPObject {
         pcs.firePropertyChange("enabled", oldval, newval);
     }
 
+    /**  */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -217,6 +884,9 @@ public static class VirtualCube extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** The name of the measure that would be taken as the default
+                measure of the cube.
+             */
     private String /* */ defaultMeasure;
     
     public String /* */ getDefaultMeasure() {
@@ -229,6 +899,10 @@ public static class VirtualCube extends OLAPObject {
         pcs.firePropertyChange("defaultMeasure", oldval, newval);
     }
 
+    /** 
+                A string being displayed instead of the cube's name.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ caption;
     
     public String /* */ getCaption() {
@@ -241,10 +915,241 @@ public static class VirtualCube extends OLAPObject {
         pcs.firePropertyChange("caption", oldval, newval);
     }
 
+    /**  */
+    private CubeUsages /* */ cubeUsage;
+    
+    public CubeUsages /* */ getCubeUsage() {
+        return cubeUsage;
+    }
+    
+    public void setCubeUsage(CubeUsages /* */ newval) {
+        CubeUsages /* */ oldval = cubeUsage;
+        cubeUsage = newval;
+        pcs.firePropertyChange("cubeUsage", oldval, newval);
+    }
+
+    /**  */
+    private final List<VirtualCubeDimension> dimensions = new ArrayList<VirtualCubeDimension>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addDimension(int pos, VirtualCubeDimension newChild) {
+        dimensions.add(pos, newChild);
+        fireChildAdded(VirtualCubeDimension.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addDimension(VirtualCubeDimension newChild) {
+        addDimension(dimensions.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeDimension(VirtualCubeDimension removeChild) {
+        int pos = dimensions.indexOf(removeChild);
+        if (pos != -1) {
+            removeDimension(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public VirtualCubeDimension removeDimension(int pos) {
+        VirtualCubeDimension removedItem = dimensions.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(VirtualCubeDimension.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<VirtualCubeDimension> getDimensions() {
+        return Collections.unmodifiableList(dimensions);
+    }
+    
+
+    /**  */
+    private final List<VirtualCubeMeasure> measures = new ArrayList<VirtualCubeMeasure>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addMeasure(int pos, VirtualCubeMeasure newChild) {
+        measures.add(pos, newChild);
+        fireChildAdded(VirtualCubeMeasure.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addMeasure(VirtualCubeMeasure newChild) {
+        addMeasure(measures.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeMeasure(VirtualCubeMeasure removeChild) {
+        int pos = measures.indexOf(removeChild);
+        if (pos != -1) {
+            removeMeasure(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public VirtualCubeMeasure removeMeasure(int pos) {
+        VirtualCubeMeasure removedItem = measures.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(VirtualCubeMeasure.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<VirtualCubeMeasure> getMeasures() {
+        return Collections.unmodifiableList(measures);
+    }
+    
+
+    /** 
+                Calculated members that belong to this virtual cube.
+                (Calculated members inherited from other cubes should not be
+                in this list.)
+             */
+    private final List<CalculatedMember> calculatedMembers = new ArrayList<CalculatedMember>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+                Calculated members that belong to this virtual cube.
+                (Calculated members inherited from other cubes should not be
+                in this list.)
+            
+     */
+    public void addCalculatedMember(int pos, CalculatedMember newChild) {
+        calculatedMembers.add(pos, newChild);
+        fireChildAdded(CalculatedMember.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     * 
+                Calculated members that belong to this virtual cube.
+                (Calculated members inherited from other cubes should not be
+                in this list.)
+             */
+    public void addCalculatedMember(CalculatedMember newChild) {
+        addCalculatedMember(calculatedMembers.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeCalculatedMember(CalculatedMember removeChild) {
+        int pos = calculatedMembers.indexOf(removeChild);
+        if (pos != -1) {
+            removeCalculatedMember(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public CalculatedMember removeCalculatedMember(int pos) {
+        CalculatedMember removedItem = calculatedMembers.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(CalculatedMember.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<CalculatedMember> getCalculatedMembers() {
+        return Collections.unmodifiableList(calculatedMembers);
+    }
+    
+
+    /** 
+                Named sets in this cube.
+             */
+    private final List<NamedSet> namedSets = new ArrayList<NamedSet>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+                Named sets in this cube.
+            
+     */
+    public void addNamedSet(int pos, NamedSet newChild) {
+        namedSets.add(pos, newChild);
+        fireChildAdded(NamedSet.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     * 
+                Named sets in this cube.
+             */
+    public void addNamedSet(NamedSet newChild) {
+        addNamedSet(namedSets.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeNamedSet(NamedSet removeChild) {
+        int pos = namedSets.indexOf(removeChild);
+        if (pos != -1) {
+            removeNamedSet(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public NamedSet removeNamedSet(int pos) {
+        NamedSet removedItem = namedSets.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(NamedSet.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<NamedSet> getNamedSets() {
+        return Collections.unmodifiableList(namedSets);
+    }
+    
+
 } // end of element VirtualCube
 /** 
             List of base cubes used by the virtual cube.
-         */ 
+         */
 public static class CubeUsages extends OLAPObject {
     
     /**
@@ -255,8 +1160,58 @@ public static class CubeUsages extends OLAPObject {
     }
     
 
+    /**  */
+    private final List<CubeUsage> cubeUsages = new ArrayList<CubeUsage>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addCubeUsage(int pos, CubeUsage newChild) {
+        cubeUsages.add(pos, newChild);
+        fireChildAdded(CubeUsage.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addCubeUsage(CubeUsage newChild) {
+        addCubeUsage(cubeUsages.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeCubeUsage(CubeUsage removeChild) {
+        int pos = cubeUsages.indexOf(removeChild);
+        if (pos != -1) {
+            removeCubeUsage(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public CubeUsage removeCubeUsage(int pos) {
+        CubeUsage removedItem = cubeUsages.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(CubeUsage.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<CubeUsage> getCubeUsages() {
+        return Collections.unmodifiableList(cubeUsages);
+    }
+    
+
 } // end of element CubeUsages
-/**  */ 
+/**  */
 public static class CubeUsage extends OLAPObject {
     
     /**
@@ -267,6 +1222,9 @@ public static class CubeUsage extends OLAPObject {
     }
     
 
+    /** 
+                Name of the cube which the virtualCube uses.
+             */
     private String /* */ cubeName;
     
     public String /* */ getCubeName() {
@@ -279,6 +1237,10 @@ public static class CubeUsage extends OLAPObject {
         pcs.firePropertyChange("cubeName", oldval, newval);
     }
 
+    /** 
+                Unrelated dimensions to measures in this cube will be pushed to
+                top level member.
+             */
     private Boolean /* */ ignoreUnrelatedDimensions;
     
     public Boolean /* */ getIgnoreUnrelatedDimensions() {
@@ -294,7 +1256,7 @@ public static class CubeUsage extends OLAPObject {
 } // end of element CubeUsage
 /** 
             A VirtualCubeDimension is a usage of a Dimension in a VirtualCube.
-         */ 
+         */
 public static class VirtualCubeDimension extends CubeDimension {
     
     /**
@@ -305,6 +1267,10 @@ public static class VirtualCubeDimension extends CubeDimension {
     }
     
 
+    /** 
+                Name of the cube which the dimension belongs to, or
+                unspecified if the dimension is shared.
+             */
     private String /* */ cubeName;
     
     public String /* */ getCubeName() {
@@ -317,6 +1283,9 @@ public static class VirtualCubeDimension extends CubeDimension {
         pcs.firePropertyChange("cubeName", oldval, newval);
     }
 
+    /** 
+                Name of the dimension.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -332,7 +1301,7 @@ public static class VirtualCubeDimension extends CubeDimension {
 } // end of element VirtualCubeDimension
 /** 
             A VirtualCubeMeasure is a usage of a Measure in a VirtualCube.
-         */ 
+         */
 public static class VirtualCubeMeasure extends OLAPObject {
     
     /**
@@ -343,6 +1312,9 @@ public static class VirtualCubeMeasure extends OLAPObject {
     }
     
 
+    /** 
+                Name of the cube which the measure belongs to.
+             */
     private String /* */ cubeName;
     
     public String /* */ getCubeName() {
@@ -355,6 +1327,9 @@ public static class VirtualCubeMeasure extends OLAPObject {
         pcs.firePropertyChange("cubeName", oldval, newval);
     }
 
+    /** 
+                Unique name of the measure within its cube.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -367,6 +1342,10 @@ public static class VirtualCubeMeasure extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                Whether this member is visible in the user-interface.
+                Default true.
+             */
     private Boolean /* */ visible;
     
     public Boolean /* */ getVisible() {
@@ -383,7 +1362,7 @@ public static class VirtualCubeMeasure extends OLAPObject {
 /** 
             A DimensionUsage is usage of a shared
             Dimension within the context of a cube.
-         */ 
+         */
 public static class DimensionUsage extends CubeDimension {
     
     /**
@@ -394,6 +1373,8 @@ public static class DimensionUsage extends CubeDimension {
     }
     
 
+    /** Name of the source dimension. Must be a dimension in
+            this schema. Case-sensitive. */
     private String /* */ source;
     
     public String /* */ getSource() {
@@ -406,6 +1387,10 @@ public static class DimensionUsage extends CubeDimension {
         pcs.firePropertyChange("source", oldval, newval);
     }
 
+    /** 
+                Name of the level to join to. If not specified, joins to the
+                lowest level of the dimension.
+             */
     private String /* */ level;
     
     public String /* */ getLevel() {
@@ -418,6 +1403,13 @@ public static class DimensionUsage extends CubeDimension {
         pcs.firePropertyChange("level", oldval, newval);
     }
 
+    /** 
+                If present, then this is prepended to the Dimension column
+                names during the building of collapse dimension aggregates
+                allowing 1) different dimension usages to be disambiguated
+                during aggregate table recognition and 2) multiple shared
+                dimensions that have common column names to be disambiguated.
+             */
     private String /* */ usagePrefix;
     
     public String /* */ getUsagePrefix() {
@@ -438,7 +1430,7 @@ public static class DimensionUsage extends CubeDimension {
             private dimension belongs to a
             Cube. The foreignKey field is only
             applicable to private dimensions.
-         */ 
+         */
 public static class Dimension extends CubeDimension {
     
     /**
@@ -449,6 +1441,7 @@ public static class Dimension extends CubeDimension {
     }
     
 
+    /**  */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -461,6 +1454,14 @@ public static class Dimension extends CubeDimension {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                The dimension's type may be one of "Standard" or "Time". A
+                time
+                dimension will allow the use of the MDX time functions (WTD,
+                YTD, QTD, etc.). Use a standard dimension
+                if the dimension is not a time-related dimension. The default
+                value is "Standard".
+             */
     private String /* */ type;
     
     public String /* */ getType() {
@@ -473,6 +1474,10 @@ public static class Dimension extends CubeDimension {
         pcs.firePropertyChange("type", oldval, newval);
     }
 
+    /** 
+                A string being displayed instead of the dimensions's name.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ caption;
     
     public String /* */ getCaption() {
@@ -485,6 +1490,13 @@ public static class Dimension extends CubeDimension {
         pcs.firePropertyChange("caption", oldval, newval);
     }
 
+    /** 
+                If present, then this is prepended to the Dimension column
+                names during the building of collapse dimension aggregates
+                allowing 1) different dimensions to be disambiguated
+                during aggregate table recognition.
+                This should only be set for private dimensions.
+             */
     private String /* */ usagePrefix;
     
     public String /* */ getUsagePrefix() {
@@ -497,6 +1509,56 @@ public static class Dimension extends CubeDimension {
         pcs.firePropertyChange("usagePrefix", oldval, newval);
     }
 
+    /**  */
+    private final List<Hierarchy> hierarchies = new ArrayList<Hierarchy>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addHierarchy(int pos, Hierarchy newChild) {
+        hierarchies.add(pos, newChild);
+        fireChildAdded(Hierarchy.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addHierarchy(Hierarchy newChild) {
+        addHierarchy(hierarchies.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeHierarchy(Hierarchy removeChild) {
+        int pos = hierarchies.indexOf(removeChild);
+        if (pos != -1) {
+            removeHierarchy(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public Hierarchy removeHierarchy(int pos) {
+        Hierarchy removedItem = hierarchies.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(Hierarchy.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<Hierarchy> getHierarchies() {
+        return Collections.unmodifiableList(hierarchies);
+    }
+    
+
 } // end of element Dimension
 /** 
             Defines a hierarchy.
@@ -505,7 +1567,7 @@ public static class Dimension extends CubeDimension {
             or memberReaderClass. If you specify none, the
             hierarchy is assumed to come from the same fact table of the
             current cube.
-         */ 
+         */
 public static class Hierarchy extends OLAPObject {
     
     /**
@@ -516,6 +1578,10 @@ public static class Hierarchy extends OLAPObject {
     }
     
 
+    /** 
+                Name of the hierarchy. If this is not specified, the hierarchy
+                has the same name as its dimension.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -528,6 +1594,9 @@ public static class Hierarchy extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                Whether this hierarchy has an 'all' member.
+             */
     private Boolean /* */ hasAll;
     
     public Boolean /* */ getHasAll() {
@@ -540,6 +1609,11 @@ public static class Hierarchy extends OLAPObject {
         pcs.firePropertyChange("hasAll", oldval, newval);
     }
 
+    /** 
+                Name of the 'all' member. If this attribute is not specified,
+                the all member is named 'All hierarchyName', for
+                example, 'All Store'.
+             */
     private String /* */ allMemberName;
     
     public String /* */ getAllMemberName() {
@@ -552,6 +1626,10 @@ public static class Hierarchy extends OLAPObject {
         pcs.firePropertyChange("allMemberName", oldval, newval);
     }
 
+    /** 
+                A string being displayed instead as the all member's name.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ allMemberCaption;
     
     public String /* */ getAllMemberCaption() {
@@ -564,6 +1642,11 @@ public static class Hierarchy extends OLAPObject {
         pcs.firePropertyChange("allMemberCaption", oldval, newval);
     }
 
+    /** 
+                Name of the 'all' level. If this attribute is not specified,
+                the all member is named '(All)'.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ allLevelName;
     
     public String /* */ getAllLevelName() {
@@ -576,6 +1659,12 @@ public static class Hierarchy extends OLAPObject {
         pcs.firePropertyChange("allLevelName", oldval, newval);
     }
 
+    /** 
+                The name of the column which identifies members, and
+                which is referenced by rows in the fact table.
+                If not specified, the key of the lowest level is used.
+                See also CubeDimension.foreignKey.
+             */
     private String /* */ primaryKey;
     
     public String /* */ getPrimaryKey() {
@@ -588,6 +1677,11 @@ public static class Hierarchy extends OLAPObject {
         pcs.firePropertyChange("primaryKey", oldval, newval);
     }
 
+    /** 
+                The name of the table which contains primaryKey.
+                If the hierarchy has only one table, defaults to that;
+                it is required.
+             */
     private String /* */ primaryKeyTable;
     
     public String /* */ getPrimaryKeyTable() {
@@ -600,6 +1694,7 @@ public static class Hierarchy extends OLAPObject {
         pcs.firePropertyChange("primaryKeyTable", oldval, newval);
     }
 
+    /**  */
     private String /* */ defaultMember;
     
     public String /* */ getDefaultMember() {
@@ -612,6 +1707,10 @@ public static class Hierarchy extends OLAPObject {
         pcs.firePropertyChange("defaultMember", oldval, newval);
     }
 
+    /** 
+                Name of the custom member reader class. Must implement
+                the mondrian.rolap.MemberReader interface.
+             */
     private String /* */ memberReaderClass;
     
     public String /* */ getMemberReaderClass() {
@@ -624,6 +1723,11 @@ public static class Hierarchy extends OLAPObject {
         pcs.firePropertyChange("memberReaderClass", oldval, newval);
     }
 
+    /** 
+                A string to be displayed in the user interface.
+                If not specified, the hierarchy's name is used.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ caption;
     
     public String /* */ getCaption() {
@@ -636,8 +1740,127 @@ public static class Hierarchy extends OLAPObject {
         pcs.firePropertyChange("caption", oldval, newval);
     }
 
+    /** 
+                The {@link MondrianDef.Table table},
+                {@link MondrianDef.Join set of tables},
+                {@link MondrianDef.View SQL statement}, or
+                {@link MondrianDef.InlineTable inline table}
+                which populates this hierarchy.
+             */
+    private RelationOrJoin /* */ relation;
+    
+    public RelationOrJoin /* */ getRelation() {
+        return relation;
+    }
+    
+    public void setRelation(RelationOrJoin /* */ newval) {
+        RelationOrJoin /* */ oldval = relation;
+        relation = newval;
+        pcs.firePropertyChange("relation", oldval, newval);
+    }
+
+    /**  */
+    private final List<Level> levels = new ArrayList<Level>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addLevel(int pos, Level newChild) {
+        levels.add(pos, newChild);
+        fireChildAdded(Level.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addLevel(Level newChild) {
+        addLevel(levels.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeLevel(Level removeChild) {
+        int pos = levels.indexOf(removeChild);
+        if (pos != -1) {
+            removeLevel(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public Level removeLevel(int pos) {
+        Level removedItem = levels.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(Level.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<Level> getLevels() {
+        return Collections.unmodifiableList(levels);
+    }
+    
+
+    /**  */
+    private final List<MemberReaderParameter> memberReaderParameters = new ArrayList<MemberReaderParameter>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addMemberReaderParameter(int pos, MemberReaderParameter newChild) {
+        memberReaderParameters.add(pos, newChild);
+        fireChildAdded(MemberReaderParameter.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addMemberReaderParameter(MemberReaderParameter newChild) {
+        addMemberReaderParameter(memberReaderParameters.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeMemberReaderParameter(MemberReaderParameter removeChild) {
+        int pos = memberReaderParameters.indexOf(removeChild);
+        if (pos != -1) {
+            removeMemberReaderParameter(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public MemberReaderParameter removeMemberReaderParameter(int pos) {
+        MemberReaderParameter removedItem = memberReaderParameters.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(MemberReaderParameter.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<MemberReaderParameter> getMemberReaderParameters() {
+        return Collections.unmodifiableList(memberReaderParameters);
+    }
+    
+
 } // end of element Hierarchy
-/**  */ 
+/**  */
 public static class Level extends OLAPObject {
     
     /**
@@ -648,6 +1871,12 @@ public static class Level extends OLAPObject {
     }
     
 
+    /** 
+                The estimated number of members in this level.
+                Setting this property improves the performance of
+                MDSCHEMA_LEVELS, MDSCHEMA_HIERARCHIES and
+                MDSCHEMA_DIMENSIONS XMLA requests
+             */
     private String /* */ approxRowCount;
     
     public String /* */ getApproxRowCount() {
@@ -660,6 +1889,7 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("approxRowCount", oldval, newval);
     }
 
+    /**  */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -672,6 +1902,12 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                The name of the table that the column comes from. If
+                this hierarchy is based upon just one table, defaults to
+                the name of that table; otherwise, it is required.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ table;
     
     public String /* */ getTable() {
@@ -684,6 +1920,10 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("table", oldval, newval);
     }
 
+    /** 
+                The name of the column which holds the unique identifier of
+                this level.
+             */
     private String /* */ column;
     
     public String /* */ getColumn() {
@@ -696,6 +1936,10 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("column", oldval, newval);
     }
 
+    /** 
+                The name of the column which holds the user identifier of
+                this level.
+             */
     private String /* */ nameColumn;
     
     public String /* */ getNameColumn() {
@@ -708,6 +1952,11 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("nameColumn", oldval, newval);
     }
 
+    /** 
+                The name of the column which holds member
+                ordinals.  If this column is not specified, the
+                key column is used for ordering.
+             */
     private String /* */ ordinalColumn;
     
     public String /* */ getOrdinalColumn() {
@@ -720,6 +1969,10 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("ordinalColumn", oldval, newval);
     }
 
+    /** 
+                The name of the column which references the parent member in
+                a parent-child hierarchy.
+             */
     private String /* */ parentColumn;
     
     public String /* */ getParentColumn() {
@@ -732,6 +1985,10 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("parentColumn", oldval, newval);
     }
 
+    /** 
+                Value which identifies null parents in a parent-child
+                hierarchy. Typical values are 'NULL' and '0'.
+             */
     private String /* */ nullParentValue;
     
     public String /* */ getNullParentValue() {
@@ -744,6 +2001,17 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("nullParentValue", oldval, newval);
     }
 
+    /** 
+                Indicates the type of this level's key column:
+                String, Numeric, Integer, Boolean, Date, Time or Timestamp.
+                When generating SQL statements, Mondrian
+                encloses values for String columns in quotation marks,
+                but leaves values for Integer and Numeric columns un-quoted.
+
+                Date, Time, and Timestamp values are quoted according to the
+                SQL dialect. For a SQL-compliant dialect, the values appear
+                prefixed by their typename, for example, "DATE '2006-06-01'".
+             */
     private String /* */ type;
     
     public String /* */ getType() {
@@ -756,6 +2024,11 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("type", oldval, newval);
     }
 
+    /** 
+                Whether members are unique across all parents. For
+                example, zipcodes are unique across all states. The
+                first level's members are always unique.
+             */
     private Boolean /* */ uniqueMembers;
     
     public Boolean /* */ getUniqueMembers() {
@@ -768,6 +2041,11 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("uniqueMembers", oldval, newval);
     }
 
+    /** 
+                Whether this is a regular or a time-related level.
+                The value makes a difference to time-related functions
+                such as YTD (year-to-date).
+             */
     private String /* */ levelType;
     
     public String /* */ getLevelType() {
@@ -780,6 +2058,19 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("levelType", oldval, newval);
     }
 
+    /** 
+                Condition which determines whether a member of this level
+                is hidden. If a hierarchy has one or more levels with hidden
+                members, then it is possible that not all leaf members are the
+                same distance from the root, and it is termed a ragged
+                hierarchy.
+
+                Allowable values are:
+                Never (a member always appears; the default);
+                IfBlankName (a member doesn't appear if its name
+                is null or empty); and
+                IfParentsName (a member appears unless its name
+                matches the parent's. */
     private String /* */ hideMemberIf;
     
     public String /* */ getHideMemberIf() {
@@ -792,6 +2083,10 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("hideMemberIf", oldval, newval);
     }
 
+    /** 
+                Name of a formatter class for the member labels being displayed.
+                The class must implement the mondrian.olap.MemberFormatter interface.
+             */
     private String /* */ formatter;
     
     public String /* */ getFormatter() {
@@ -804,6 +2099,10 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("formatter", oldval, newval);
     }
 
+    /** 
+                A string being displayed instead of the level's name.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ caption;
     
     public String /* */ getCaption() {
@@ -816,6 +2115,10 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("caption", oldval, newval);
     }
 
+    /** 
+                The name of the column which holds the caption for
+                members.
+             */
     private String /* */ captionColumn;
     
     public String /* */ getCaptionColumn() {
@@ -828,13 +2131,138 @@ public static class Level extends OLAPObject {
         pcs.firePropertyChange("captionColumn", oldval, newval);
     }
 
+    /** 
+                The SQL expression used to populate this level's key.
+             */
+    private KeyExpression /* */ keyExp;
+    
+    public KeyExpression /* */ getKeyExp() {
+        return keyExp;
+    }
+    
+    public void setKeyExp(KeyExpression /* */ newval) {
+        KeyExpression /* */ oldval = keyExp;
+        keyExp = newval;
+        pcs.firePropertyChange("keyExp", oldval, newval);
+    }
+
+    /** 
+                The SQL expression used to populate this level's name. If not
+                specified, the level's key is used.
+             */
+    private NameExpression /* */ nameExp;
+    
+    public NameExpression /* */ getNameExp() {
+        return nameExp;
+    }
+    
+    public void setNameExp(NameExpression /* */ newval) {
+        NameExpression /* */ oldval = nameExp;
+        nameExp = newval;
+        pcs.firePropertyChange("nameExp", oldval, newval);
+    }
+
+    /** 
+                The SQL expression used to populate this level's ordinal.
+             */
+    private OrdinalExpression /* */ ordinalExp;
+    
+    public OrdinalExpression /* */ getOrdinalExp() {
+        return ordinalExp;
+    }
+    
+    public void setOrdinalExp(OrdinalExpression /* */ newval) {
+        OrdinalExpression /* */ oldval = ordinalExp;
+        ordinalExp = newval;
+        pcs.firePropertyChange("ordinalExp", oldval, newval);
+    }
+
+    /** 
+                The SQL expression used to join to the parent member in a
+                parent-child hierarchy.
+             */
+    private ParentExpression /* */ parentExp;
+    
+    public ParentExpression /* */ getParentExp() {
+        return parentExp;
+    }
+    
+    public void setParentExp(ParentExpression /* */ newval) {
+        ParentExpression /* */ oldval = parentExp;
+        parentExp = newval;
+        pcs.firePropertyChange("parentExp", oldval, newval);
+    }
+
+    /**  */
+    private Closure /* */ closure;
+    
+    public Closure /* */ getClosure() {
+        return closure;
+    }
+    
+    public void setClosure(Closure /* */ newval) {
+        Closure /* */ oldval = closure;
+        closure = newval;
+        pcs.firePropertyChange("closure", oldval, newval);
+    }
+
+    /**  */
+    private final List<Property> properties = new ArrayList<Property>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addProperty(int pos, Property newChild) {
+        properties.add(pos, newChild);
+        fireChildAdded(Property.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addProperty(Property newChild) {
+        addProperty(properties.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeProperty(Property removeChild) {
+        int pos = properties.indexOf(removeChild);
+        if (pos != -1) {
+            removeProperty(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public Property removeProperty(int pos) {
+        Property removedItem = properties.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(Property.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<Property> getProperties() {
+        return Collections.unmodifiableList(properties);
+    }
+    
+
 } // end of element Level
 /** 
             Specifies the transitive closure of a parent-child hierarchy.
             Optional, but recommended for better performance.
             The closure is provided as a set of (parent/child) pairs:
             since it is the transitive closure these are actually (ancestor/descendant) pairs.
-         */ 
+         */
 public static class Closure extends OLAPObject {
     
     /**
@@ -845,6 +2273,7 @@ public static class Closure extends OLAPObject {
     }
     
 
+    /**  */
     private String /* */ parentColumn;
     
     public String /* */ getParentColumn() {
@@ -857,6 +2286,7 @@ public static class Closure extends OLAPObject {
         pcs.firePropertyChange("parentColumn", oldval, newval);
     }
 
+    /**  */
     private String /* */ childColumn;
     
     public String /* */ getChildColumn() {
@@ -869,10 +2299,23 @@ public static class Closure extends OLAPObject {
         pcs.firePropertyChange("childColumn", oldval, newval);
     }
 
+    /**  */
+    private Table /* */ table;
+    
+    public Table /* */ getTable() {
+        return table;
+    }
+    
+    public void setTable(Table /* */ newval) {
+        Table /* */ oldval = table;
+        table = newval;
+        pcs.firePropertyChange("table", oldval, newval);
+    }
+
 } // end of element Closure
 /** 
             Member property.
-         */ 
+         */
 public static class Property extends OLAPObject {
     
     /**
@@ -883,6 +2326,7 @@ public static class Property extends OLAPObject {
     }
     
 
+    /**  */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -895,6 +2339,7 @@ public static class Property extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /**  */
     private String /* */ column;
     
     public String /* */ getColumn() {
@@ -907,6 +2352,10 @@ public static class Property extends OLAPObject {
         pcs.firePropertyChange("column", oldval, newval);
     }
 
+    /** 
+                Data type of this property:
+                String, Numeric, Integer, Boolean, Date, Time or Timestamp.
+             */
     private String /* */ type;
     
     public String /* */ getType() {
@@ -919,6 +2368,12 @@ public static class Property extends OLAPObject {
         pcs.firePropertyChange("type", oldval, newval);
     }
 
+    /** 
+                Name of a formatter class for the appropriate property value
+                being displayed.
+                The class must implement the mondrian.olap.PropertyFormatter
+                interface.
+             */
     private String /* */ formatter;
     
     public String /* */ getFormatter() {
@@ -931,6 +2386,10 @@ public static class Property extends OLAPObject {
         pcs.firePropertyChange("formatter", oldval, newval);
     }
 
+    /** 
+                A string being displayed instead of the name.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ caption;
     
     public String /* */ getCaption() {
@@ -944,7 +2403,7 @@ public static class Property extends OLAPObject {
     }
 
 } // end of element Property
-/**  */ 
+/**  */
 public static class Measure extends OLAPObject {
     
     /**
@@ -955,6 +2414,7 @@ public static class Measure extends OLAPObject {
     }
     
 
+    /** Name of this measure. */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -967,6 +2427,10 @@ public static class Measure extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                Column which is source of this measure's values.
+                If not specified, a measure expression must be specified.
+             */
     private String /* */ column;
     
     public String /* */ getColumn() {
@@ -979,6 +2443,14 @@ public static class Measure extends OLAPObject {
         pcs.firePropertyChange("column", oldval, newval);
     }
 
+    /** 
+                The datatype of this measure:
+                String, Numeric, Integer, Boolean, Date, Time or Timestamp.
+
+                The default datatype of a measure is
+                'Integer' if the measure's aggregator is 'Count',
+                otherwise it is 'Numeric'.
+             */
     private String /* */ datatype;
     
     public String /* */ getDatatype() {
@@ -991,6 +2463,10 @@ public static class Measure extends OLAPObject {
         pcs.firePropertyChange("datatype", oldval, newval);
     }
 
+    /** 
+                Format string with which to format cells of this measure. For
+                more details, see the mondrian.util.Format class.
+             */
     private String /* */ formatString;
     
     public String /* */ getFormatString() {
@@ -1003,6 +2479,12 @@ public static class Measure extends OLAPObject {
         pcs.firePropertyChange("formatString", oldval, newval);
     }
 
+    /** 
+                Aggregation function. Allowed values are "sum", "count", "min",
+                "max", "avg", and "distinct-count". ("distinct count" is allowed
+                for backwards compatibility, but is deprecated because XML
+                enumerated attributes in a DTD cannot legally contain spaces.)
+             */
     private String /* */ aggregator;
     
     public String /* */ getAggregator() {
@@ -1015,6 +2497,10 @@ public static class Measure extends OLAPObject {
         pcs.firePropertyChange("aggregator", oldval, newval);
     }
 
+    /** 
+                Name of a formatter class for the appropriate cell being displayed.
+                The class must implement the mondrian.olap.CellFormatter interface.
+             */
     private String /* */ formatter;
     
     public String /* */ getFormatter() {
@@ -1027,6 +2513,10 @@ public static class Measure extends OLAPObject {
         pcs.firePropertyChange("formatter", oldval, newval);
     }
 
+    /** 
+                A string being displayed instead of the name.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ caption;
     
     public String /* */ getCaption() {
@@ -1039,6 +2529,10 @@ public static class Measure extends OLAPObject {
         pcs.firePropertyChange("caption", oldval, newval);
     }
 
+    /** 
+                Whether this member is visible in the user-interface.
+                Default true.
+             */
     private Boolean /* */ visible;
     
     public Boolean /* */ getVisible() {
@@ -1051,8 +2545,74 @@ public static class Measure extends OLAPObject {
         pcs.firePropertyChange("visible", oldval, newval);
     }
 
+    /** 
+                The SQL expression used to calculate a measure.
+                Must be specified if a source column is not specified.
+             */
+    private MeasureExpression /* */ measureExp;
+    
+    public MeasureExpression /* */ getMeasureExp() {
+        return measureExp;
+    }
+    
+    public void setMeasureExp(MeasureExpression /* */ newval) {
+        MeasureExpression /* */ oldval = measureExp;
+        measureExp = newval;
+        pcs.firePropertyChange("measureExp", oldval, newval);
+    }
+
+    /**  */
+    private final List<CalculatedMemberProperty> memberProperties = new ArrayList<CalculatedMemberProperty>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addMemberPropertie(int pos, CalculatedMemberProperty newChild) {
+        memberProperties.add(pos, newChild);
+        fireChildAdded(CalculatedMemberProperty.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addMemberPropertie(CalculatedMemberProperty newChild) {
+        addMemberPropertie(memberProperties.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeMemberPropertie(CalculatedMemberProperty removeChild) {
+        int pos = memberProperties.indexOf(removeChild);
+        if (pos != -1) {
+            removeMemberPropertie(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public CalculatedMemberProperty removeMemberPropertie(int pos) {
+        CalculatedMemberProperty removedItem = memberProperties.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(CalculatedMemberProperty.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<CalculatedMemberProperty> getMemberProperties() {
+        return Collections.unmodifiableList(memberProperties);
+    }
+    
+
 } // end of element Measure
-/**  */ 
+/**  */
 public static class CalculatedMember extends OLAPObject {
     
     /**
@@ -1063,6 +2623,9 @@ public static class CalculatedMember extends OLAPObject {
     }
     
 
+    /** 
+                Name of this calculated member.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -1075,6 +2638,10 @@ public static class CalculatedMember extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                Format string with which to format cells of this member. For
+                more details, see {@link mondrian.util.Format}.
+             */
     private String /* */ formatString;
     
     public String /* */ getFormatString() {
@@ -1087,6 +2654,10 @@ public static class CalculatedMember extends OLAPObject {
         pcs.firePropertyChange("formatString", oldval, newval);
     }
 
+    /** 
+                A string being displayed instead of the name.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ caption;
     
     public String /* */ getCaption() {
@@ -1099,6 +2670,10 @@ public static class CalculatedMember extends OLAPObject {
         pcs.firePropertyChange("caption", oldval, newval);
     }
 
+    /** 
+                MDX expression which gives the value of this member.
+                Equivalent to the Formula sub-element.
+             */
     private String /* */ formula;
     
     public String /* */ getFormula() {
@@ -1111,6 +2686,9 @@ public static class CalculatedMember extends OLAPObject {
         pcs.firePropertyChange("formula", oldval, newval);
     }
 
+    /** 
+                Name of the dimension which this member belongs to.
+             */
     private String /* */ dimension;
     
     public String /* */ getDimension() {
@@ -1123,6 +2701,10 @@ public static class CalculatedMember extends OLAPObject {
         pcs.firePropertyChange("dimension", oldval, newval);
     }
 
+    /** 
+                Whether this member is visible in the user-interface.
+                Default true.
+             */
     private Boolean /* */ visible;
     
     public Boolean /* */ getVisible() {
@@ -1135,11 +2717,76 @@ public static class CalculatedMember extends OLAPObject {
         pcs.firePropertyChange("visible", oldval, newval);
     }
 
+    /** 
+                MDX expression which gives the value of this member.
+             */
+    private Formula /* */ formulaElement;
+    
+    public Formula /* */ getFormulaElement() {
+        return formulaElement;
+    }
+    
+    public void setFormulaElement(Formula /* */ newval) {
+        Formula /* */ oldval = formulaElement;
+        formulaElement = newval;
+        pcs.firePropertyChange("formulaElement", oldval, newval);
+    }
+
+    /**  */
+    private final List<CalculatedMemberProperty> memberProperties = new ArrayList<CalculatedMemberProperty>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addMemberPropertie(int pos, CalculatedMemberProperty newChild) {
+        memberProperties.add(pos, newChild);
+        fireChildAdded(CalculatedMemberProperty.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addMemberPropertie(CalculatedMemberProperty newChild) {
+        addMemberPropertie(memberProperties.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeMemberPropertie(CalculatedMemberProperty removeChild) {
+        int pos = memberProperties.indexOf(removeChild);
+        if (pos != -1) {
+            removeMemberPropertie(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public CalculatedMemberProperty removeMemberPropertie(int pos) {
+        CalculatedMemberProperty removedItem = memberProperties.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(CalculatedMemberProperty.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<CalculatedMemberProperty> getMemberProperties() {
+        return Collections.unmodifiableList(memberProperties);
+    }
+    
+
 } // end of element CalculatedMember
 /** 
             Property of a calculated member defined against a cube.
             It must have either an expression or a value.
-         */ 
+         */
 public static class CalculatedMemberProperty extends OLAPObject {
     
     /**
@@ -1150,6 +2797,9 @@ public static class CalculatedMemberProperty extends OLAPObject {
     }
     
 
+    /** 
+                Name of this member property.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -1162,6 +2812,10 @@ public static class CalculatedMemberProperty extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                A string being displayed instead of the Properties's name.
+                Can be localized from Properties file using #{propertyname}.
+             */
     private String /* */ caption;
     
     public String /* */ getCaption() {
@@ -1174,6 +2828,11 @@ public static class CalculatedMemberProperty extends OLAPObject {
         pcs.firePropertyChange("caption", oldval, newval);
     }
 
+    /** 
+                MDX expression which defines the value of this property.
+                If the expression is a constant string, you could enclose it in
+                quotes, or just specify the 'value' attribute instead.
+             */
     private String /* */ expression;
     
     public String /* */ getExpression() {
@@ -1186,6 +2845,11 @@ public static class CalculatedMemberProperty extends OLAPObject {
         pcs.firePropertyChange("expression", oldval, newval);
     }
 
+    /** 
+                Value of this property.
+                If the value is not constant, specify the 'expression' attribute
+                instead.
+             */
     private String /* */ value;
     
     public String /* */ getValue() {
@@ -1216,7 +2880,7 @@ public static class CalculatedMemberProperty extends OLAPObject {
             only valid if the cube contains dimensions with the names
             required to make the formula valid.</p>
 
-         */ 
+         */
 public static class NamedSet extends OLAPObject {
     
     /**
@@ -1227,6 +2891,9 @@ public static class NamedSet extends OLAPObject {
     }
     
 
+    /** 
+                Name of this named set.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -1239,6 +2906,10 @@ public static class NamedSet extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                MDX expression which gives the value of this set.
+                Equivalent to the Formula sub-element.
+             */
     private String /* */ formula;
     
     public String /* */ getFormula() {
@@ -1251,8 +2922,23 @@ public static class NamedSet extends OLAPObject {
         pcs.firePropertyChange("formula", oldval, newval);
     }
 
+    /** 
+                MDX expression which gives the value of this set.
+             */
+    private Formula /* */ formulaElement;
+    
+    public Formula /* */ getFormulaElement() {
+        return formulaElement;
+    }
+    
+    public void setFormulaElement(Formula /* */ newval) {
+        Formula /* */ oldval = formulaElement;
+        formulaElement = newval;
+        pcs.firePropertyChange("formulaElement", oldval, newval);
+    }
+
 } // end of element NamedSet
-/**  */ 
+/**  */
 public static class Formula extends OLAPObject {
     
     /**
@@ -1264,7 +2950,7 @@ public static class Formula extends OLAPObject {
     
 
 } // end of element Formula
-/** Not used */ 
+/** Not used */
 public static class MemberReaderParameter extends OLAPObject {
     
     /**
@@ -1275,6 +2961,7 @@ public static class MemberReaderParameter extends OLAPObject {
     }
     
 
+    /**  */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -1287,6 +2974,7 @@ public static class MemberReaderParameter extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /**  */
     private String /* */ value;
     
     public String /* */ getValue() {
@@ -1300,7 +2988,7 @@ public static class MemberReaderParameter extends OLAPObject {
     }
 
 } // end of element MemberReaderParameter
-/** A table or a join */ 
+/** A table or a join */
 public static class RelationOrJoin extends OLAPObject {
     
     /**
@@ -1312,7 +3000,7 @@ public static class RelationOrJoin extends OLAPObject {
     
 
 } // end of class RelationOrJoin
-/** A table, inline table or view */ 
+/** A table, inline table or view */
 public static class Relation extends RelationOrJoin {
     
     /**
@@ -1326,7 +3014,7 @@ public static class Relation extends RelationOrJoin {
 } // end of class Relation
 /** 
             A collection of SQL statements, one per dialect.
-         */ 
+         */
 public static class View extends Relation {
     
     /**
@@ -1337,6 +3025,7 @@ public static class View extends Relation {
     }
     
 
+    /**  */
     private String /* */ alias;
     
     public String /* */ getAlias() {
@@ -1349,8 +3038,58 @@ public static class View extends Relation {
         pcs.firePropertyChange("alias", oldval, newval);
     }
 
+    /**  */
+    private final List<SQL> selects = new ArrayList<SQL>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addSelect(int pos, SQL newChild) {
+        selects.add(pos, newChild);
+        fireChildAdded(SQL.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addSelect(SQL newChild) {
+        addSelect(selects.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeSelect(SQL removeChild) {
+        int pos = selects.indexOf(removeChild);
+        if (pos != -1) {
+            removeSelect(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public SQL removeSelect(int pos) {
+        SQL removedItem = selects.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(SQL.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<SQL> getSelects() {
+        return Collections.unmodifiableList(selects);
+    }
+    
+
 } // end of element View
-/**  */ 
+/**  */
 public static class SQL extends OLAPObject {
     
     /**
@@ -1361,6 +3100,9 @@ public static class SQL extends OLAPObject {
     }
     
 
+    /** 
+                Dialect of SQL the view is intended for.
+             */
     private String /* */ dialect;
     
     public String /* */ getDialect() {
@@ -1374,7 +3116,7 @@ public static class SQL extends OLAPObject {
     }
 
 } // end of element SQL
-/**  */ 
+/**  */
 public static class Join extends RelationOrJoin {
     
     /**
@@ -1385,6 +3127,10 @@ public static class Join extends RelationOrJoin {
     }
     
 
+    /** 
+                Defaults to left's alias if left is a table, otherwise
+                required.
+             */
     private String /* */ leftAlias;
     
     public String /* */ getLeftAlias() {
@@ -1397,6 +3143,7 @@ public static class Join extends RelationOrJoin {
         pcs.firePropertyChange("leftAlias", oldval, newval);
     }
 
+    /**  */
     private String /* */ leftKey;
     
     public String /* */ getLeftKey() {
@@ -1409,6 +3156,10 @@ public static class Join extends RelationOrJoin {
         pcs.firePropertyChange("leftKey", oldval, newval);
     }
 
+    /** 
+                Defaults to right's alias if right is a table, otherwise
+                required.
+             */
     private String /* */ rightAlias;
     
     public String /* */ getRightAlias() {
@@ -1421,6 +3172,7 @@ public static class Join extends RelationOrJoin {
         pcs.firePropertyChange("rightAlias", oldval, newval);
     }
 
+    /**  */
     private String /* */ rightKey;
     
     public String /* */ getRightKey() {
@@ -1433,8 +3185,34 @@ public static class Join extends RelationOrJoin {
         pcs.firePropertyChange("rightKey", oldval, newval);
     }
 
+    /**  */
+    private RelationOrJoin /* */ left;
+    
+    public RelationOrJoin /* */ getLeft() {
+        return left;
+    }
+    
+    public void setLeft(RelationOrJoin /* */ newval) {
+        RelationOrJoin /* */ oldval = left;
+        left = newval;
+        pcs.firePropertyChange("left", oldval, newval);
+    }
+
+    /**  */
+    private RelationOrJoin /* */ right;
+    
+    public RelationOrJoin /* */ getRight() {
+        return right;
+    }
+    
+    public void setRight(RelationOrJoin /* */ newval) {
+        RelationOrJoin /* */ oldval = right;
+        right = newval;
+        pcs.firePropertyChange("right", oldval, newval);
+    }
+
 } // end of element Join
-/**  */ 
+/**  */
 public static class Table extends Relation {
     
     /**
@@ -1445,6 +3223,7 @@ public static class Table extends Relation {
     }
     
 
+    /**  */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -1457,6 +3236,9 @@ public static class Table extends Relation {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                Optional qualifier for table.
+             */
     private String /* */ schema;
     
     public String /* */ getSchema() {
@@ -1469,6 +3251,13 @@ public static class Table extends Relation {
         pcs.firePropertyChange("schema", oldval, newval);
     }
 
+    /** 
+                Alias to be used with this table when it is used to
+                form queries. If not specified, defaults to the table
+                name, but in any case, must be unique within the
+                schema. (You can use the same table in different
+                hierarchies, but it must have different aliases.)
+             */
     private String /* */ alias;
     
     public String /* */ getAlias() {
@@ -1481,8 +3270,123 @@ public static class Table extends Relation {
         pcs.firePropertyChange("alias", oldval, newval);
     }
 
+    /** 
+          The SQL WHERE clause expression to be appended to any select statement
+         */
+    private SQL /* */ filter;
+    
+    public SQL /* */ getFilter() {
+        return filter;
+    }
+    
+    public void setFilter(SQL /* */ newval) {
+        SQL /* */ oldval = filter;
+        filter = newval;
+        pcs.firePropertyChange("filter", oldval, newval);
+    }
+
+    /**  */
+    private final List<AggExclude> aggExcludes = new ArrayList<AggExclude>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addAggExclude(int pos, AggExclude newChild) {
+        aggExcludes.add(pos, newChild);
+        fireChildAdded(AggExclude.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addAggExclude(AggExclude newChild) {
+        addAggExclude(aggExcludes.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeAggExclude(AggExclude removeChild) {
+        int pos = aggExcludes.indexOf(removeChild);
+        if (pos != -1) {
+            removeAggExclude(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public AggExclude removeAggExclude(int pos) {
+        AggExclude removedItem = aggExcludes.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(AggExclude.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<AggExclude> getAggExcludes() {
+        return Collections.unmodifiableList(aggExcludes);
+    }
+    
+
+    /**  */
+    private final List<AggTable> aggTables = new ArrayList<AggTable>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addAggTable(int pos, AggTable newChild) {
+        aggTables.add(pos, newChild);
+        fireChildAdded(AggTable.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addAggTable(AggTable newChild) {
+        addAggTable(aggTables.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeAggTable(AggTable removeChild) {
+        int pos = aggTables.indexOf(removeChild);
+        if (pos != -1) {
+            removeAggTable(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public AggTable removeAggTable(int pos) {
+        AggTable removedItem = aggTables.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(AggTable.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<AggTable> getAggTables() {
+        return Collections.unmodifiableList(aggTables);
+    }
+    
+
 } // end of element Table
-/**  */ 
+/**  */
 public static class InlineTable extends Relation {
     
     /**
@@ -1493,6 +3397,13 @@ public static class InlineTable extends Relation {
     }
     
 
+    /** 
+                Alias to be used with this table when it is used to
+                form queries. If not specified, defaults to the table
+                name, but in any case, must be unique within the
+                schema. (You can use the same table in different
+                hierarchies, but it must have different aliases.)
+             */
     private String /* */ alias;
     
     public String /* */ getAlias() {
@@ -1505,8 +3416,34 @@ public static class InlineTable extends Relation {
         pcs.firePropertyChange("alias", oldval, newval);
     }
 
+    /**  */
+    private ColumnDefs /* */ columnDefs;
+    
+    public ColumnDefs /* */ getColumnDefs() {
+        return columnDefs;
+    }
+    
+    public void setColumnDefs(ColumnDefs /* */ newval) {
+        ColumnDefs /* */ oldval = columnDefs;
+        columnDefs = newval;
+        pcs.firePropertyChange("columnDefs", oldval, newval);
+    }
+
+    /**  */
+    private Rows /* */ rows;
+    
+    public Rows /* */ getRows() {
+        return rows;
+    }
+    
+    public void setRows(Rows /* */ newval) {
+        Rows /* */ oldval = rows;
+        rows = newval;
+        pcs.firePropertyChange("rows", oldval, newval);
+    }
+
 } // end of element InlineTable
-/** Holder for an array of ColumnDef elements */ 
+/** Holder for an array of ColumnDef elements */
 public static class ColumnDefs extends OLAPObject {
     
     /**
@@ -1517,10 +3454,60 @@ public static class ColumnDefs extends OLAPObject {
     }
     
 
+    /**  */
+    private final List<ColumnDef> array = new ArrayList<ColumnDef>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addArra(int pos, ColumnDef newChild) {
+        array.add(pos, newChild);
+        fireChildAdded(ColumnDef.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addArra(ColumnDef newChild) {
+        addArra(array.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeArra(ColumnDef removeChild) {
+        int pos = array.indexOf(removeChild);
+        if (pos != -1) {
+            removeArra(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public ColumnDef removeArra(int pos) {
+        ColumnDef removedItem = array.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(ColumnDef.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<ColumnDef> getArray() {
+        return Collections.unmodifiableList(array);
+    }
+    
+
 } // end of element ColumnDefs
 /** 
             Column definition for an inline table.
-         */ 
+         */
 public static class ColumnDef extends OLAPObject {
     
     /**
@@ -1531,6 +3518,9 @@ public static class ColumnDef extends OLAPObject {
     }
     
 
+    /** 
+                Name of the column.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -1543,6 +3533,10 @@ public static class ColumnDef extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                Type of the column:
+                String, Numeric, Integer, Boolean, Date, Time or Timestamp.
+             */
     private String /* */ type;
     
     public String /* */ getType() {
@@ -1556,7 +3550,7 @@ public static class ColumnDef extends OLAPObject {
     }
 
 } // end of element ColumnDef
-/** Holder for an array of Row elements */ 
+/** Holder for an array of Row elements */
 public static class Rows extends OLAPObject {
     
     /**
@@ -1567,11 +3561,61 @@ public static class Rows extends OLAPObject {
     }
     
 
+    /**  */
+    private final List<Row> array = new ArrayList<Row>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addArra(int pos, Row newChild) {
+        array.add(pos, newChild);
+        fireChildAdded(Row.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addArra(Row newChild) {
+        addArra(array.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeArra(Row removeChild) {
+        int pos = array.indexOf(removeChild);
+        if (pos != -1) {
+            removeArra(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public Row removeArra(int pos) {
+        Row removedItem = array.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(Row.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<Row> getArray() {
+        return Collections.unmodifiableList(array);
+    }
+    
+
 } // end of element Rows
 /** 
             Row definition for an inline table.
             Must have one Column for each ColumnDef in the InlineTable.
-         */ 
+         */
 public static class Row extends OLAPObject {
     
     /**
@@ -1582,11 +3626,61 @@ public static class Row extends OLAPObject {
     }
     
 
+    /**  */
+    private final List<Value> values = new ArrayList<Value>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addValue(int pos, Value newChild) {
+        values.add(pos, newChild);
+        fireChildAdded(Value.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addValue(Value newChild) {
+        addValue(values.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeValue(Value removeChild) {
+        int pos = values.indexOf(removeChild);
+        if (pos != -1) {
+            removeValue(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public Value removeValue(int pos) {
+        Value removedItem = values.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(Value.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<Value> getValues() {
+        return Collections.unmodifiableList(values);
+    }
+    
+
 } // end of element Row
 /** 
             Column value for an inline table.
             The CDATA holds the value of the column.
-         */ 
+         */
 public static class Value extends OLAPObject {
     
     /**
@@ -1597,6 +3691,9 @@ public static class Value extends OLAPObject {
     }
     
 
+    /** 
+                Name of the column.
+             */
     private String /* */ column;
     
     public String /* */ getColumn() {
@@ -1614,7 +3711,7 @@ public static class Value extends OLAPObject {
             A definition of an aggregate table for a base fact table.
             This aggregate table must be in the same schema as the
             base fact table.
-         */ 
+         */
 public static class AggTable extends OLAPObject {
     
     /**
@@ -1625,6 +3722,9 @@ public static class AggTable extends OLAPObject {
     }
     
 
+    /** 
+                Whether or not the match should ignore case.
+             */
     private Boolean /* */ ignorecase;
     
     public Boolean /* */ getIgnorecase() {
@@ -1637,8 +3737,223 @@ public static class AggTable extends OLAPObject {
         pcs.firePropertyChange("ignorecase", oldval, newval);
     }
 
+    /** 
+                What does the fact_count column look like.
+             */
+    private AggFactCount /* */ factcount;
+    
+    public AggFactCount /* */ getFactcount() {
+        return factcount;
+    }
+    
+    public void setFactcount(AggFactCount /* */ newval) {
+        AggFactCount /* */ oldval = factcount;
+        factcount = newval;
+        pcs.firePropertyChange("factcount", oldval, newval);
+    }
+
+    /**  */
+    private final List<AggIgnoreColumn> ignoreColumns = new ArrayList<AggIgnoreColumn>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addIgnoreColumn(int pos, AggIgnoreColumn newChild) {
+        ignoreColumns.add(pos, newChild);
+        fireChildAdded(AggIgnoreColumn.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addIgnoreColumn(AggIgnoreColumn newChild) {
+        addIgnoreColumn(ignoreColumns.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeIgnoreColumn(AggIgnoreColumn removeChild) {
+        int pos = ignoreColumns.indexOf(removeChild);
+        if (pos != -1) {
+            removeIgnoreColumn(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public AggIgnoreColumn removeIgnoreColumn(int pos) {
+        AggIgnoreColumn removedItem = ignoreColumns.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(AggIgnoreColumn.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<AggIgnoreColumn> getIgnoreColumns() {
+        return Collections.unmodifiableList(ignoreColumns);
+    }
+    
+
+    /**  */
+    private final List<AggForeignKey> foreignKeys = new ArrayList<AggForeignKey>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addForeignKey(int pos, AggForeignKey newChild) {
+        foreignKeys.add(pos, newChild);
+        fireChildAdded(AggForeignKey.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addForeignKey(AggForeignKey newChild) {
+        addForeignKey(foreignKeys.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeForeignKey(AggForeignKey removeChild) {
+        int pos = foreignKeys.indexOf(removeChild);
+        if (pos != -1) {
+            removeForeignKey(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public AggForeignKey removeForeignKey(int pos) {
+        AggForeignKey removedItem = foreignKeys.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(AggForeignKey.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<AggForeignKey> getForeignKeys() {
+        return Collections.unmodifiableList(foreignKeys);
+    }
+    
+
+    /**  */
+    private final List<AggMeasure> measures = new ArrayList<AggMeasure>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addMeasure(int pos, AggMeasure newChild) {
+        measures.add(pos, newChild);
+        fireChildAdded(AggMeasure.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addMeasure(AggMeasure newChild) {
+        addMeasure(measures.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeMeasure(AggMeasure removeChild) {
+        int pos = measures.indexOf(removeChild);
+        if (pos != -1) {
+            removeMeasure(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public AggMeasure removeMeasure(int pos) {
+        AggMeasure removedItem = measures.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(AggMeasure.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<AggMeasure> getMeasures() {
+        return Collections.unmodifiableList(measures);
+    }
+    
+
+    /**  */
+    private final List<AggLevel> levels = new ArrayList<AggLevel>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addLevel(int pos, AggLevel newChild) {
+        levels.add(pos, newChild);
+        fireChildAdded(AggLevel.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addLevel(AggLevel newChild) {
+        addLevel(levels.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeLevel(AggLevel removeChild) {
+        int pos = levels.indexOf(removeChild);
+        if (pos != -1) {
+            removeLevel(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public AggLevel removeLevel(int pos) {
+        AggLevel removedItem = levels.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(AggLevel.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<AggLevel> getLevels() {
+        return Collections.unmodifiableList(levels);
+    }
+    
+
 } // end of class AggTable
-/**  */ 
+/**  */
 public static class AggName extends AggTable {
     
     /**
@@ -1649,6 +3964,9 @@ public static class AggName extends AggTable {
     }
     
 
+    /** 
+                The Table name of a Specific aggregate table.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -1662,7 +3980,7 @@ public static class AggName extends AggTable {
     }
 
 } // end of element AggName
-/**  */ 
+/**  */
 public static class AggPattern extends AggTable {
     
     /**
@@ -1673,6 +3991,9 @@ public static class AggPattern extends AggTable {
     }
     
 
+    /** 
+                A Table pattern used to define a set of aggregate tables.
+             */
     private String /* */ pattern;
     
     public String /* */ getPattern() {
@@ -1685,8 +4006,58 @@ public static class AggPattern extends AggTable {
         pcs.firePropertyChange("pattern", oldval, newval);
     }
 
+    /**  */
+    private final List<AggExclude> excludes = new ArrayList<AggExclude>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addExclude(int pos, AggExclude newChild) {
+        excludes.add(pos, newChild);
+        fireChildAdded(AggExclude.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addExclude(AggExclude newChild) {
+        addExclude(excludes.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeExclude(AggExclude removeChild) {
+        int pos = excludes.indexOf(removeChild);
+        if (pos != -1) {
+            removeExclude(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public AggExclude removeExclude(int pos) {
+        AggExclude removedItem = excludes.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(AggExclude.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<AggExclude> getExcludes() {
+        return Collections.unmodifiableList(excludes);
+    }
+    
+
 } // end of element AggPattern
-/**  */ 
+/**  */
 public static class AggExclude extends OLAPObject {
     
     /**
@@ -1697,6 +4068,9 @@ public static class AggExclude extends OLAPObject {
     }
     
 
+    /** 
+                A Table pattern not to be matched.
+             */
     private String /* */ pattern;
     
     public String /* */ getPattern() {
@@ -1709,6 +4083,9 @@ public static class AggExclude extends OLAPObject {
         pcs.firePropertyChange("pattern", oldval, newval);
     }
 
+    /** 
+                The Table name not to be matched.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -1721,6 +4098,9 @@ public static class AggExclude extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                Whether or not the match should ignore case.
+             */
     private Boolean /* */ ignorecase;
     
     public Boolean /* */ getIgnorecase() {
@@ -1734,7 +4114,7 @@ public static class AggExclude extends OLAPObject {
     }
 
 } // end of element AggExclude
-/**  */ 
+/**  */
 public static class AggColumnName extends OLAPObject {
     
     /**
@@ -1745,6 +4125,9 @@ public static class AggColumnName extends OLAPObject {
     }
     
 
+    /** 
+                The name of the fact count column.
+             */
     private String /* */ column;
     
     public String /* */ getColumn() {
@@ -1758,7 +4141,7 @@ public static class AggColumnName extends OLAPObject {
     }
 
 } // end of class AggColumnName
-/**  */ 
+/**  */
 public static class AggFactCount extends AggColumnName {
     
     /**
@@ -1770,7 +4153,7 @@ public static class AggFactCount extends AggColumnName {
     
 
 } // end of element AggFactCount
-/**  */ 
+/**  */
 public static class AggIgnoreColumn extends AggColumnName {
     
     /**
@@ -1785,7 +4168,7 @@ public static class AggIgnoreColumn extends AggColumnName {
 /** 
             The name of the column mapping from base fact table foreign key
             to aggregate table foreign key.
-         */ 
+         */
 public static class AggForeignKey extends OLAPObject {
     
     /**
@@ -1796,6 +4179,9 @@ public static class AggForeignKey extends OLAPObject {
     }
     
 
+    /** 
+                The name of the base fact table foreign key.
+             */
     private String /* */ factColumn;
     
     public String /* */ getFactColumn() {
@@ -1808,6 +4194,9 @@ public static class AggForeignKey extends OLAPObject {
         pcs.firePropertyChange("factColumn", oldval, newval);
     }
 
+    /** 
+                The name of the aggregate table foreign key.
+             */
     private String /* */ aggColumn;
     
     public String /* */ getAggColumn() {
@@ -1821,7 +4210,7 @@ public static class AggForeignKey extends OLAPObject {
     }
 
 } // end of element AggForeignKey
-/**  */ 
+/**  */
 public static class AggLevel extends OLAPObject {
     
     /**
@@ -1832,6 +4221,9 @@ public static class AggLevel extends OLAPObject {
     }
     
 
+    /** 
+                The name of the column mapping to the level name.
+             */
     private String /* */ column;
     
     public String /* */ getColumn() {
@@ -1844,6 +4236,9 @@ public static class AggLevel extends OLAPObject {
         pcs.firePropertyChange("column", oldval, newval);
     }
 
+    /** 
+                The name of the Dimension Hierarchy level.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -1857,7 +4252,7 @@ public static class AggLevel extends OLAPObject {
     }
 
 } // end of element AggLevel
-/**  */ 
+/**  */
 public static class AggMeasure extends OLAPObject {
     
     /**
@@ -1868,6 +4263,9 @@ public static class AggMeasure extends OLAPObject {
     }
     
 
+    /** 
+                The name of the column mapping to the measure name.
+             */
     private String /* */ column;
     
     public String /* */ getColumn() {
@@ -1880,6 +4278,9 @@ public static class AggMeasure extends OLAPObject {
         pcs.firePropertyChange("column", oldval, newval);
     }
 
+    /** 
+                The name of the Cube measure.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -1893,7 +4294,7 @@ public static class AggMeasure extends OLAPObject {
     }
 
 } // end of element AggMeasure
-/**  */ 
+/**  */
 public static class Expression extends OLAPObject {
     
     /**
@@ -1905,7 +4306,7 @@ public static class Expression extends OLAPObject {
     
 
 } // end of class Expression
-/**  */ 
+/**  */
 public static class Column extends Expression {
     
     /**
@@ -1916,6 +4317,10 @@ public static class Column extends Expression {
     }
     
 
+    /** 
+                Alias of the table which contains this column. Not required if
+                the query only has one table.
+             */
     private String /* */ table;
     
     public String /* */ getTable() {
@@ -1928,6 +4333,9 @@ public static class Column extends Expression {
         pcs.firePropertyChange("table", oldval, newval);
     }
 
+    /** 
+                Name of the column.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -1943,7 +4351,7 @@ public static class Column extends Expression {
 } // end of element Column
 /** 
             A collection of SQL expressions, one per dialect.
-         */ 
+         */
 public static class ExpressionView extends Expression {
     
     /**
@@ -1954,8 +4362,58 @@ public static class ExpressionView extends Expression {
     }
     
 
+    /**  */
+    private final List<SQL> expressions = new ArrayList<SQL>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addExpression(int pos, SQL newChild) {
+        expressions.add(pos, newChild);
+        fireChildAdded(SQL.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addExpression(SQL newChild) {
+        addExpression(expressions.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeExpression(SQL removeChild) {
+        int pos = expressions.indexOf(removeChild);
+        if (pos != -1) {
+            removeExpression(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public SQL removeExpression(int pos) {
+        SQL removedItem = expressions.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(SQL.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<SQL> getExpressions() {
+        return Collections.unmodifiableList(expressions);
+    }
+    
+
 } // end of class ExpressionView
-/**  */ 
+/**  */
 public static class KeyExpression extends ExpressionView {
     
     /**
@@ -1967,7 +4425,7 @@ public static class KeyExpression extends ExpressionView {
     
 
 } // end of element KeyExpression
-/**  */ 
+/**  */
 public static class ParentExpression extends ExpressionView {
     
     /**
@@ -1979,7 +4437,7 @@ public static class ParentExpression extends ExpressionView {
     
 
 } // end of element ParentExpression
-/**  */ 
+/**  */
 public static class OrdinalExpression extends ExpressionView {
     
     /**
@@ -1991,7 +4449,7 @@ public static class OrdinalExpression extends ExpressionView {
     
 
 } // end of element OrdinalExpression
-/**  */ 
+/**  */
 public static class NameExpression extends ExpressionView {
     
     /**
@@ -2003,7 +4461,7 @@ public static class NameExpression extends ExpressionView {
     
 
 } // end of element NameExpression
-/**  */ 
+/**  */
 public static class CaptionExpression extends ExpressionView {
     
     /**
@@ -2015,7 +4473,7 @@ public static class CaptionExpression extends ExpressionView {
     
 
 } // end of element CaptionExpression
-/**  */ 
+/**  */
 public static class MeasureExpression extends ExpressionView {
     
     /**
@@ -2030,7 +4488,7 @@ public static class MeasureExpression extends ExpressionView {
 /** 
             A role defines an access-control profile. It has a series of grants
             (or denials) for schema elements.
-         */ 
+         */
 public static class Role extends OLAPObject {
     
     /**
@@ -2041,6 +4499,7 @@ public static class Role extends OLAPObject {
     }
     
 
+    /**  */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -2053,8 +4512,71 @@ public static class Role extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /**  */
+    private final List<SchemaGrant> schemaGrants = new ArrayList<SchemaGrant>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addSchemaGrant(int pos, SchemaGrant newChild) {
+        schemaGrants.add(pos, newChild);
+        fireChildAdded(SchemaGrant.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addSchemaGrant(SchemaGrant newChild) {
+        addSchemaGrant(schemaGrants.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeSchemaGrant(SchemaGrant removeChild) {
+        int pos = schemaGrants.indexOf(removeChild);
+        if (pos != -1) {
+            removeSchemaGrant(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public SchemaGrant removeSchemaGrant(int pos) {
+        SchemaGrant removedItem = schemaGrants.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(SchemaGrant.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<SchemaGrant> getSchemaGrants() {
+        return Collections.unmodifiableList(schemaGrants);
+    }
+    
+
+    /**  */
+    private Union /* */ union;
+    
+    public Union /* */ getUnion() {
+        return union;
+    }
+    
+    public void setUnion(Union /* */ newval) {
+        Union /* */ oldval = union;
+        union = newval;
+        pcs.firePropertyChange("union", oldval, newval);
+    }
+
 } // end of element Role
-/**  */ 
+/**  */
 public static class Grant extends OLAPObject {
     
     /**
@@ -2065,6 +4587,7 @@ public static class Grant extends OLAPObject {
     }
     
 
+    /** Values correspond to Access. */
     private String /* */ access;
     
     public String /* */ getAccess() {
@@ -2084,7 +4607,7 @@ public static class Grant extends OLAPObject {
             If access is "all_dimensions", the role has access
             to all dimensions but still needs explicit access to cubes.
             See mondrian.olap.Role#grant(mondrian.olap.Schema,int).
-         */ 
+         */
 public static class SchemaGrant extends Grant {
     
     /**
@@ -2095,12 +4618,62 @@ public static class SchemaGrant extends Grant {
     }
     
 
+    /**  */
+    private final List<CubeGrant> cubeGrants = new ArrayList<CubeGrant>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addCubeGrant(int pos, CubeGrant newChild) {
+        cubeGrants.add(pos, newChild);
+        fireChildAdded(CubeGrant.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addCubeGrant(CubeGrant newChild) {
+        addCubeGrant(cubeGrants.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeCubeGrant(CubeGrant removeChild) {
+        int pos = cubeGrants.indexOf(removeChild);
+        if (pos != -1) {
+            removeCubeGrant(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public CubeGrant removeCubeGrant(int pos) {
+        CubeGrant removedItem = cubeGrants.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(CubeGrant.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<CubeGrant> getCubeGrants() {
+        return Collections.unmodifiableList(cubeGrants);
+    }
+    
+
 } // end of element SchemaGrant
 /** 
             Grants (or denies) this role access to a cube.
             access may be "all" or "none".
             See mondrian.olap.Role#grant(mondrian.olap.Cube,int).
-         */ 
+         */
 public static class CubeGrant extends Grant {
     
     /**
@@ -2111,6 +4684,7 @@ public static class CubeGrant extends Grant {
     }
     
 
+    /** The unique name of the cube */
     private String /* */ cube;
     
     public String /* */ getCube() {
@@ -2123,6 +4697,106 @@ public static class CubeGrant extends Grant {
         pcs.firePropertyChange("cube", oldval, newval);
     }
 
+    /**  */
+    private final List<DimensionGrant> dimensionGrants = new ArrayList<DimensionGrant>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addDimensionGrant(int pos, DimensionGrant newChild) {
+        dimensionGrants.add(pos, newChild);
+        fireChildAdded(DimensionGrant.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addDimensionGrant(DimensionGrant newChild) {
+        addDimensionGrant(dimensionGrants.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeDimensionGrant(DimensionGrant removeChild) {
+        int pos = dimensionGrants.indexOf(removeChild);
+        if (pos != -1) {
+            removeDimensionGrant(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public DimensionGrant removeDimensionGrant(int pos) {
+        DimensionGrant removedItem = dimensionGrants.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(DimensionGrant.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<DimensionGrant> getDimensionGrants() {
+        return Collections.unmodifiableList(dimensionGrants);
+    }
+    
+
+    /**  */
+    private final List<HierarchyGrant> hierarchyGrants = new ArrayList<HierarchyGrant>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addHierarchyGrant(int pos, HierarchyGrant newChild) {
+        hierarchyGrants.add(pos, newChild);
+        fireChildAdded(HierarchyGrant.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addHierarchyGrant(HierarchyGrant newChild) {
+        addHierarchyGrant(hierarchyGrants.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeHierarchyGrant(HierarchyGrant removeChild) {
+        int pos = hierarchyGrants.indexOf(removeChild);
+        if (pos != -1) {
+            removeHierarchyGrant(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public HierarchyGrant removeHierarchyGrant(int pos) {
+        HierarchyGrant removedItem = hierarchyGrants.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(HierarchyGrant.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<HierarchyGrant> getHierarchyGrants() {
+        return Collections.unmodifiableList(hierarchyGrants);
+    }
+    
+
 } // end of element CubeGrant
 /** 
             Grants (or denies) this role access to a dimension.
@@ -2131,7 +4805,7 @@ public static class CubeGrant extends Grant {
             is given acess to a cube.
             See also the "all_dimensions" option of the "SchemaGrant" element.
             See mondrian.olap.Role#grant(mondrian.olap.Dimension,int).
-         */ 
+         */
 public static class DimensionGrant extends Grant {
     
     /**
@@ -2142,6 +4816,7 @@ public static class DimensionGrant extends Grant {
     }
     
 
+    /** The unique name of the dimension */
     private String /* */ dimension;
     
     public String /* */ getDimension() {
@@ -2162,7 +4837,7 @@ public static class DimensionGrant extends Grant {
             attributes topLevel, bottomLevel, and
             the member grants.
             See mondrian.olap.Role#grant(mondrian.olap.Hierarchy, int, mondrian.olap.Level).
-         */ 
+         */
 public static class HierarchyGrant extends Grant {
     
     /**
@@ -2173,6 +4848,7 @@ public static class HierarchyGrant extends Grant {
     }
     
 
+    /** The unique name of the hierarchy */
     private String /* */ hierarchy;
     
     public String /* */ getHierarchy() {
@@ -2185,6 +4861,10 @@ public static class HierarchyGrant extends Grant {
         pcs.firePropertyChange("hierarchy", oldval, newval);
     }
 
+    /** Unique name of the highest level of the hierarchy from which
+            this role is allowed to see members. May only be specified if
+            the HierarchyGrant.access is "custom". If not
+            specified, role can see members up to the top level. */
     private String /* */ topLevel;
     
     public String /* */ getTopLevel() {
@@ -2197,6 +4877,10 @@ public static class HierarchyGrant extends Grant {
         pcs.firePropertyChange("topLevel", oldval, newval);
     }
 
+    /** Unique name of the lowest level of the hierarchy from which
+            this role is allowed to see members. May only be specified if
+            the HierarchyGrant.access is "custom". If not
+            specified, role can see members down to the leaf level. */
     private String /* */ bottomLevel;
     
     public String /* */ getBottomLevel() {
@@ -2209,6 +4893,10 @@ public static class HierarchyGrant extends Grant {
         pcs.firePropertyChange("bottomLevel", oldval, newval);
     }
 
+    /** Policy which determines how cell values are calculated if
+                not all of the children of the current cell are visible to
+                the current role. Allowable values are 'full' (the default),
+                'partial', and 'hidden'. */
     private String /* */ rollupPolicy;
     
     public String /* */ getRollupPolicy() {
@@ -2221,13 +4909,63 @@ public static class HierarchyGrant extends Grant {
         pcs.firePropertyChange("rollupPolicy", oldval, newval);
     }
 
+    /**  */
+    private final List<MemberGrant> memberGrants = new ArrayList<MemberGrant>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addMemberGrant(int pos, MemberGrant newChild) {
+        memberGrants.add(pos, newChild);
+        fireChildAdded(MemberGrant.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addMemberGrant(MemberGrant newChild) {
+        addMemberGrant(memberGrants.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeMemberGrant(MemberGrant removeChild) {
+        int pos = memberGrants.indexOf(removeChild);
+        if (pos != -1) {
+            removeMemberGrant(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public MemberGrant removeMemberGrant(int pos) {
+        MemberGrant removedItem = memberGrants.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(MemberGrant.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<MemberGrant> getMemberGrants() {
+        return Collections.unmodifiableList(memberGrants);
+    }
+    
+
 } // end of element HierarchyGrant
 /** 
             Grants (or denies) this role access to a member.
             The children of this member inherit that access.
             You can implicitly see a member if you can see any of its children.
             See mondrian.olap.Role#grant(mondrian.olap.Member,int).
-         */ 
+         */
 public static class MemberGrant extends OLAPObject {
     
     /**
@@ -2238,6 +4976,7 @@ public static class MemberGrant extends OLAPObject {
     }
     
 
+    /** The unique name of the member */
     private String /* */ member;
     
     public String /* */ getMember() {
@@ -2250,6 +4989,7 @@ public static class MemberGrant extends OLAPObject {
         pcs.firePropertyChange("member", oldval, newval);
     }
 
+    /**  */
     private String /* */ access;
     
     public String /* */ getAccess() {
@@ -2267,7 +5007,7 @@ public static class MemberGrant extends OLAPObject {
             Body of a Role definition which defines a Role to be the union
             of several Roles. The RoleUsage elements must refer to Roles that
             have been declared earlier in this schema file.
-         */ 
+         */
 public static class Union extends OLAPObject {
     
     /**
@@ -2278,10 +5018,60 @@ public static class Union extends OLAPObject {
     }
     
 
+    /**  */
+    private final List<RoleUsage> roleUsages = new ArrayList<RoleUsage>();
+    
+    /** Adds the given child object at the specified position, firing an OLAPChildEvent.
+     * 
+     */
+    public void addRoleUsage(int pos, RoleUsage newChild) {
+        roleUsages.add(pos, newChild);
+        fireChildAdded(RoleUsage.class, pos, newChild);
+    }
+
+    /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
+     *  */
+    public void addRoleUsage(RoleUsage newChild) {
+        addRoleUsage(roleUsages.size(), newChild);
+    }
+    
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeRoleUsage(RoleUsage removeChild) {
+        int pos = roleUsages.indexOf(removeChild);
+        if (pos != -1) {
+            removeRoleUsage(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position.
+     *
+     * @return The item that was removed.
+     */
+    public RoleUsage removeRoleUsage(int pos) {
+        RoleUsage removedItem = roleUsages.remove(pos);
+        if (removedItem != null) {
+            fireChildRemoved(RoleUsage.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+
+    public List<RoleUsage> getRoleUsages() {
+        return Collections.unmodifiableList(roleUsages);
+    }
+    
+
 } // end of element Union
 /** 
             Usage of a Role in a union Role.
-         */ 
+         */
 public static class RoleUsage extends OLAPObject {
     
     /**
@@ -2292,6 +5082,7 @@ public static class RoleUsage extends OLAPObject {
     }
     
 
+    /**  */
     private String /* */ roleName;
     
     public String /* */ getRoleName() {
@@ -2310,7 +5101,7 @@ public static class RoleUsage extends OLAPObject {
             extends the MDX language. It must be implemented by a Java
             class which implements the interface
             mondrian.spi.UserDefinedFunction.
-         */ 
+         */
 public static class UserDefinedFunction extends OLAPObject {
     
     /**
@@ -2321,6 +5112,7 @@ public static class UserDefinedFunction extends OLAPObject {
     }
     
 
+    /** Name with which the user-defined function will be referenced in MDX expressions. */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -2333,6 +5125,11 @@ public static class UserDefinedFunction extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                Name of the class which implemenets this user-defined function.
+                Must implement the mondrian.spi.UserDefinedFunction
+                interface.
+             */
     private String /* */ className;
     
     public String /* */ getClassName() {
@@ -2350,7 +5147,7 @@ public static class UserDefinedFunction extends OLAPObject {
             A Parameter defines a schema parameter.
             It can be referenced from an MDX statement using the ParamRef
             function and, if not final, its value can be overridden.
-         */ 
+         */
 public static class Parameter extends OLAPObject {
     
     /**
@@ -2361,6 +5158,9 @@ public static class Parameter extends OLAPObject {
     }
     
 
+    /** 
+                Name of this parameter.
+             */
     private String /* */ name;
     
     public String /* */ getName() {
@@ -2373,6 +5173,9 @@ public static class Parameter extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    /** 
+                Description of this parameter.
+             */
     private String /* */ description;
     
     public String /* */ getDescription() {
@@ -2385,6 +5188,10 @@ public static class Parameter extends OLAPObject {
         pcs.firePropertyChange("description", oldval, newval);
     }
 
+    /** 
+                Indicates the type of this parameter:
+                String, Numeric, Integer, Boolean, Date, Time, Timestamp, or Member.
+             */
     private String /* */ type;
     
     public String /* */ getType() {
@@ -2397,6 +5204,12 @@ public static class Parameter extends OLAPObject {
         pcs.firePropertyChange("type", oldval, newval);
     }
 
+    /** 
+                If false, statement cannot change the value of this parameter;
+                the parameter becomes effectively constant (provided that its default
+                value expression always returns the same value).
+                Default is true.
+             */
     private Boolean /* */ modifiable;
     
     public Boolean /* */ getModifiable() {
@@ -2409,6 +5222,9 @@ public static class Parameter extends OLAPObject {
         pcs.firePropertyChange("modifiable", oldval, newval);
     }
 
+    /** 
+                Expression for the default value of this parameter.
+             */
     private String /* */ defaultValue;
     
     public String /* */ getDefaultValue() {
