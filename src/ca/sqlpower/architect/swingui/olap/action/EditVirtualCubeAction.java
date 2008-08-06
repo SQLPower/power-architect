@@ -24,36 +24,35 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.JDialog;
 
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
-import ca.sqlpower.architect.swingui.olap.DimensionEditPanel;
+import ca.sqlpower.architect.swingui.olap.VirtualCubeEditPanel;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
-public class EditDimensionAction extends AbstractArchitectAction {
-
+public class EditVirtualCubeAction extends AbstractArchitectAction{
+    
     /**
-     * The dimension this action edits.
+     * The virtual cube this action edits.
      */
-    private final Dimension dimension;
+    private final VirtualCube vCube;
     
     /**
      * The frame or dialog that will own the popup window.
      */
     private final Window dialogOwner;
 
-    public EditDimensionAction(ArchitectSwingSession session, Window dialogOwner, Dimension dimension) {
-        super(session, "Dimension Properties...", "Edit the properties of "+dimension.getName()+" in a dialog");
+    public EditVirtualCubeAction(ArchitectSwingSession session, Window dialogOwner, VirtualCube vCube) {
+        super(session, "Virtual Cube Properties...", "Edit the properties of "+vCube.getName()+" in a dialog");
         this.dialogOwner = dialogOwner;
-        this.dimension = dimension;
+        this.vCube = vCube;
     }
 
     public void actionPerformed(ActionEvent e) {
-        DataEntryPanel panel = new DimensionEditPanel(dimension);
-        JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Dimension Properties", "OK");
+        DataEntryPanel panel = new VirtualCubeEditPanel(vCube);
+        JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Virtual Cube Properties", "OK");
         dialog.setLocationRelativeTo(session.getArchitectFrame());
         dialog.setVisible(true);
     }
-
 }

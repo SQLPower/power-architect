@@ -31,7 +31,9 @@ import javax.swing.JTree;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.olap.action.CreateCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateDimensionAction;
+import ca.sqlpower.architect.swingui.olap.action.CreateVirtualCubeAction;
 
 public class OLAPSchemaEditorPanel {
 
@@ -41,7 +43,7 @@ public class OLAPSchemaEditorPanel {
     private final JPanel panel;
     
     /**
-     * Creates a new editor for the given OLAP schema. The schema's SQLObjects should
+     * Creates a new editor for the given OLAP schema. The schema's OLAPObjects should
      * all belong to the given session's dbtree and playpen.
      * 
      * @param session The session this editor and the given schema belong to
@@ -53,8 +55,10 @@ public class OLAPSchemaEditorPanel {
         tree.setCellRenderer(new OLAPTreeCellRenderer());
         pp = new PlayPen(session);
         
-        JToolBar toolbar = new JToolBar();
+        JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
         toolbar.add(new CreateDimensionAction(session, schema));
+        toolbar.add(new CreateCubeAction(session, schema));
+        toolbar.add(new CreateVirtualCubeAction(session, schema));
         
         panel = new JPanel(new BorderLayout());
         panel.add(

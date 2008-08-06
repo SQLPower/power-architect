@@ -24,36 +24,34 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.JDialog;
 
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
-import ca.sqlpower.architect.swingui.olap.DimensionEditPanel;
+import ca.sqlpower.architect.swingui.olap.CubeEditPanel;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
-public class EditDimensionAction extends AbstractArchitectAction {
-
+public class EditCubeAction extends AbstractArchitectAction{
     /**
-     * The dimension this action edits.
+     * The cube this action edits.
      */
-    private final Dimension dimension;
+    private final Cube cube;
     
     /**
      * The frame or dialog that will own the popup window.
      */
     private final Window dialogOwner;
 
-    public EditDimensionAction(ArchitectSwingSession session, Window dialogOwner, Dimension dimension) {
-        super(session, "Dimension Properties...", "Edit the properties of "+dimension.getName()+" in a dialog");
+    public EditCubeAction(ArchitectSwingSession session, Window dialogOwner, Cube cube) {
+        super(session, "Cube Properties...", "Edit the properties of "+cube.getName()+" in a dialog");
         this.dialogOwner = dialogOwner;
-        this.dimension = dimension;
+        this.cube = cube;
     }
 
     public void actionPerformed(ActionEvent e) {
-        DataEntryPanel panel = new DimensionEditPanel(dimension);
-        JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Dimension Properties", "OK");
+        DataEntryPanel panel = new CubeEditPanel(cube);
+        JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Cube Properties", "OK");
         dialog.setLocationRelativeTo(session.getArchitectFrame());
         dialog.setVisible(true);
     }
-
 }
