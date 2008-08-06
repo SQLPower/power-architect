@@ -68,6 +68,27 @@ public abstract class OLAPObject {
      * If this object doesn't have any children, returns an empty list.
      */
     public abstract List<OLAPObject> getChildren();
+
+    /**
+     * Adds the given child or sets the appropriate property on this OLAPObject,
+     * if this type of OLAPObject has the applicable addXXX() or setXXX() method
+     * for the given object's type.
+     * <p>
+     * This method in the abstract base class always throws the IllegalArgumentException
+     * because no children or properties are defined at this level.
+     * <p>
+     * This method isn't compile-time type safe, so it is recommended not to use
+     * it on "by-hand" usage of this API. This method is used during XML parsing,
+     * which can't be made compile-time type safe anyway.
+     * 
+     * @param child
+     *            The child to add.
+     * @throws IllegalArgumentException
+     *             if this object doesn't support child's type.
+     */
+    public void addChild(OLAPObject child) {
+        throw new IllegalArgumentException(getClass().getName() + " doesn't allow children of type " + child.getClass());
+    }
     
     /**
      * Changes this OLAPObject's parent reference. It is the parent's

@@ -469,6 +469,7 @@ public static class Schema extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -492,8 +493,39 @@ public static class Schema extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof Parameter) {
+            addParameter((Parameter) child);
+        
+        } else if (child instanceof Dimension) {
+            addDimension((Dimension) child);
+        
+        } else if (child instanceof Cube) {
+            addCube((Cube) child);
+        
+        } else if (child instanceof VirtualCube) {
+            addVirtualCube((VirtualCube) child);
+        
+        } else if (child instanceof NamedSet) {
+            addNamedSet((NamedSet) child);
+        
+        } else if (child instanceof Role) {
+            addRole((Role) child);
+        
+        } else if (child instanceof UserDefinedFunction) {
+            addUserDefinedFunction((UserDefinedFunction) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Schema
@@ -501,7 +533,7 @@ public static class Schema extends OLAPObject {
             A CubeDimension is either a usage of a Dimension ('shared
             dimension', in MSOLAP parlance), or a 'private dimension'.
          */
-public static class CubeDimension extends OLAPObject {
+public abstract static class CubeDimension extends OLAPObject {
     
     /**
      * Creates a new CubeDimension with all attributes
@@ -558,17 +590,23 @@ public static class CubeDimension extends OLAPObject {
         pcs.firePropertyChange("foreignKey", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of class CubeDimension
@@ -902,6 +940,7 @@ public static class Cube extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -919,8 +958,33 @@ public static class Cube extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof CubeDimension) {
+            addDimension((CubeDimension) child);
+        
+        } else if (child instanceof Measure) {
+            addMeasure((Measure) child);
+        
+        } else if (child instanceof CalculatedMember) {
+            addCalculatedMember((CalculatedMember) child);
+        
+        } else if (child instanceof NamedSet) {
+            addNamedSet((NamedSet) child);
+        
+        } else if (child instanceof Relation) {
+            setFact((Relation) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Cube
@@ -1237,6 +1301,7 @@ public static class VirtualCube extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -1254,8 +1319,33 @@ public static class VirtualCube extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof VirtualCubeDimension) {
+            addDimension((VirtualCubeDimension) child);
+        
+        } else if (child instanceof VirtualCubeMeasure) {
+            addMeasure((VirtualCubeMeasure) child);
+        
+        } else if (child instanceof CalculatedMember) {
+            addCalculatedMember((CalculatedMember) child);
+        
+        } else if (child instanceof NamedSet) {
+            addNamedSet((NamedSet) child);
+        
+        } else if (child instanceof CubeUsages) {
+            setCubeUsage((CubeUsages) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element VirtualCube
@@ -1324,6 +1414,7 @@ public static class CubeUsages extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -1335,8 +1426,21 @@ public static class CubeUsages extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof CubeUsage) {
+            addCubeUsage((CubeUsage) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element CubeUsages
@@ -1382,17 +1486,23 @@ public static class CubeUsage extends OLAPObject {
         pcs.firePropertyChange("ignoreUnrelatedDimensions", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element CubeUsage
@@ -1440,17 +1550,23 @@ public static class VirtualCubeDimension extends CubeDimension {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element VirtualCubeDimension
@@ -1513,17 +1629,23 @@ public static class VirtualCubeMeasure extends OLAPObject {
         pcs.firePropertyChange("visible", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element VirtualCubeMeasure
@@ -1590,17 +1712,23 @@ public static class DimensionUsage extends CubeDimension {
         pcs.firePropertyChange("usagePrefix", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element DimensionUsage
@@ -1742,6 +1870,7 @@ public static class Dimension extends CubeDimension {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -1753,8 +1882,21 @@ public static class Dimension extends CubeDimension {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof Hierarchy) {
+            addHierarchy((Hierarchy) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Dimension
@@ -2061,6 +2203,7 @@ public static class Hierarchy extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -2074,8 +2217,27 @@ public static class Hierarchy extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof Level) {
+            addLevel((Level) child);
+        
+        } else if (child instanceof MemberReaderParameter) {
+            addMemberReaderParameter((MemberReaderParameter) child);
+        
+        } else if (child instanceof RelationOrJoin) {
+            setRelation((RelationOrJoin) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Hierarchy
@@ -2477,6 +2639,7 @@ public static class Level extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -2488,8 +2651,36 @@ public static class Level extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof Property) {
+            addProperty((Property) child);
+        
+        } else if (child instanceof KeyExpression) {
+            setKeyExp((KeyExpression) child);
+        
+        } else if (child instanceof NameExpression) {
+            setNameExp((NameExpression) child);
+        
+        } else if (child instanceof OrdinalExpression) {
+            setOrdinalExp((OrdinalExpression) child);
+        
+        } else if (child instanceof ParentExpression) {
+            setParentExp((ParentExpression) child);
+        
+        } else if (child instanceof Closure) {
+            setClosure((Closure) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Level
@@ -2548,17 +2739,26 @@ public static class Closure extends OLAPObject {
         pcs.firePropertyChange("table", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof Table) {
+            setTable((Table) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Closure
@@ -2651,17 +2851,23 @@ public static class Property extends OLAPObject {
         pcs.firePropertyChange("caption", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Property
@@ -2875,6 +3081,7 @@ public static class Measure extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -2886,8 +3093,24 @@ public static class Measure extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof CalculatedMemberProperty) {
+            addMemberPropertie((CalculatedMemberProperty) child);
+        
+        } else if (child instanceof MeasureExpression) {
+            setMeasureExp((MeasureExpression) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Measure
@@ -3063,6 +3286,7 @@ public static class CalculatedMember extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -3074,8 +3298,24 @@ public static class CalculatedMember extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof CalculatedMemberProperty) {
+            addMemberPropertie((CalculatedMemberProperty) child);
+        
+        } else if (child instanceof Formula) {
+            setFormulaElement((Formula) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element CalculatedMember
@@ -3158,17 +3398,23 @@ public static class CalculatedMemberProperty extends OLAPObject {
         pcs.firePropertyChange("value", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element CalculatedMemberProperty
@@ -3246,17 +3492,26 @@ public static class NamedSet extends OLAPObject {
         pcs.firePropertyChange("formulaElement", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof Formula) {
+            setFormulaElement((Formula) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element NamedSet
@@ -3271,17 +3526,23 @@ public static class Formula extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Formula
@@ -3322,22 +3583,28 @@ public static class MemberReaderParameter extends OLAPObject {
         pcs.firePropertyChange("value", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element MemberReaderParameter
 /** A table or a join */
-public static class RelationOrJoin extends OLAPObject {
+public abstract static class RelationOrJoin extends OLAPObject {
     
     /**
      * Creates a new RelationOrJoin with all attributes
@@ -3347,22 +3614,28 @@ public static class RelationOrJoin extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of class RelationOrJoin
 /** A table, inline table or view */
-public static class Relation extends RelationOrJoin {
+public abstract static class Relation extends RelationOrJoin {
     
     /**
      * Creates a new Relation with all attributes
@@ -3372,17 +3645,23 @@ public static class Relation extends RelationOrJoin {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of class Relation
@@ -3464,6 +3743,7 @@ public static class View extends Relation {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -3475,8 +3755,21 @@ public static class View extends Relation {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof SQL) {
+            addSelect((SQL) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element View
@@ -3506,17 +3799,23 @@ public static class SQL extends OLAPObject {
         pcs.firePropertyChange("dialect", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element SQL
@@ -3615,17 +3914,29 @@ public static class Join extends RelationOrJoin {
         pcs.firePropertyChange("right", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof RelationOrJoin) {
+            setLeft((RelationOrJoin) child);
+        
+        } else if (child instanceof RelationOrJoin) {
+            setRight((RelationOrJoin) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Join
@@ -3806,6 +4117,7 @@ public static class Table extends Relation {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -3819,8 +4131,27 @@ public static class Table extends Relation {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof AggExclude) {
+            addAggExclude((AggExclude) child);
+        
+        } else if (child instanceof AggTable) {
+            addAggTable((AggTable) child);
+        
+        } else if (child instanceof SQL) {
+            setFilter((SQL) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Table
@@ -3880,17 +4211,29 @@ public static class InlineTable extends Relation {
         pcs.firePropertyChange("rows", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof ColumnDefs) {
+            setColumnDefs((ColumnDefs) child);
+        
+        } else if (child instanceof Rows) {
+            setRows((Rows) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element InlineTable
@@ -3957,6 +4300,7 @@ public static class ColumnDefs extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -3968,8 +4312,21 @@ public static class ColumnDefs extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof ColumnDef) {
+            addArra((ColumnDef) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element ColumnDefs
@@ -4017,17 +4374,23 @@ public static class ColumnDef extends OLAPObject {
         pcs.firePropertyChange("type", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element ColumnDef
@@ -4094,6 +4457,7 @@ public static class Rows extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -4105,8 +4469,21 @@ public static class Rows extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof Row) {
+            addArra((Row) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Rows
@@ -4176,6 +4553,7 @@ public static class Row extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -4187,8 +4565,21 @@ public static class Row extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof Value) {
+            addValue((Value) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Row
@@ -4221,17 +4612,23 @@ public static class Value extends OLAPObject {
         pcs.firePropertyChange("column", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Value
@@ -4240,7 +4637,7 @@ public static class Value extends OLAPObject {
             This aggregate table must be in the same schema as the
             base fact table.
          */
-public static class AggTable extends OLAPObject {
+public abstract static class AggTable extends OLAPObject {
     
     /**
      * Creates a new AggTable with all attributes
@@ -4488,6 +4885,7 @@ public static class AggTable extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -4505,8 +4903,33 @@ public static class AggTable extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof AggIgnoreColumn) {
+            addIgnoreColumn((AggIgnoreColumn) child);
+        
+        } else if (child instanceof AggForeignKey) {
+            addForeignKey((AggForeignKey) child);
+        
+        } else if (child instanceof AggMeasure) {
+            addMeasure((AggMeasure) child);
+        
+        } else if (child instanceof AggLevel) {
+            addLevel((AggLevel) child);
+        
+        } else if (child instanceof AggFactCount) {
+            setFactcount((AggFactCount) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of class AggTable
@@ -4536,17 +4959,23 @@ public static class AggName extends AggTable {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element AggName
@@ -4628,6 +5057,7 @@ public static class AggPattern extends AggTable {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -4639,8 +5069,21 @@ public static class AggPattern extends AggTable {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof AggExclude) {
+            addExclude((AggExclude) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element AggPattern
@@ -4700,22 +5143,28 @@ public static class AggExclude extends OLAPObject {
         pcs.firePropertyChange("ignorecase", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element AggExclude
 /**  */
-public static class AggColumnName extends OLAPObject {
+public abstract static class AggColumnName extends OLAPObject {
     
     /**
      * Creates a new AggColumnName with all attributes
@@ -4740,17 +5189,23 @@ public static class AggColumnName extends OLAPObject {
         pcs.firePropertyChange("column", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of class AggColumnName
@@ -4765,17 +5220,23 @@ public static class AggFactCount extends AggColumnName {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element AggFactCount
@@ -4790,17 +5251,23 @@ public static class AggIgnoreColumn extends AggColumnName {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element AggIgnoreColumn
@@ -4848,17 +5315,23 @@ public static class AggForeignKey extends OLAPObject {
         pcs.firePropertyChange("aggColumn", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element AggForeignKey
@@ -4903,17 +5376,23 @@ public static class AggLevel extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element AggLevel
@@ -4958,22 +5437,28 @@ public static class AggMeasure extends OLAPObject {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element AggMeasure
 /**  */
-public static class Expression extends OLAPObject {
+public abstract static class Expression extends OLAPObject {
     
     /**
      * Creates a new Expression with all attributes
@@ -4983,17 +5468,23 @@ public static class Expression extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of class Expression
@@ -5039,24 +5530,30 @@ public static class Column extends Expression {
         pcs.firePropertyChange("name", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Column
 /** 
             A collection of SQL expressions, one per dialect.
          */
-public static class ExpressionView extends Expression {
+public abstract static class ExpressionView extends Expression {
     
     /**
      * Creates a new ExpressionView with all attributes
@@ -5118,6 +5615,7 @@ public static class ExpressionView extends Expression {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -5129,8 +5627,21 @@ public static class ExpressionView extends Expression {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof SQL) {
+            addExpression((SQL) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of class ExpressionView
@@ -5145,17 +5656,23 @@ public static class KeyExpression extends ExpressionView {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element KeyExpression
@@ -5170,17 +5687,23 @@ public static class ParentExpression extends ExpressionView {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element ParentExpression
@@ -5195,17 +5718,23 @@ public static class OrdinalExpression extends ExpressionView {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element OrdinalExpression
@@ -5220,17 +5749,23 @@ public static class NameExpression extends ExpressionView {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element NameExpression
@@ -5245,17 +5780,23 @@ public static class CaptionExpression extends ExpressionView {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element CaptionExpression
@@ -5270,17 +5811,23 @@ public static class MeasureExpression extends ExpressionView {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element MeasureExpression
@@ -5376,6 +5923,7 @@ public static class Role extends OLAPObject {
         pcs.firePropertyChange("union", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -5387,13 +5935,29 @@ public static class Role extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof SchemaGrant) {
+            addSchemaGrant((SchemaGrant) child);
+        
+        } else if (child instanceof Union) {
+            setUnion((Union) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Role
 /**  */
-public static class Grant extends OLAPObject {
+public abstract static class Grant extends OLAPObject {
     
     /**
      * Creates a new Grant with all attributes
@@ -5416,17 +5980,23 @@ public static class Grant extends OLAPObject {
         pcs.firePropertyChange("access", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of class Grant
@@ -5499,6 +6069,7 @@ public static class SchemaGrant extends Grant {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -5510,8 +6081,21 @@ public static class SchemaGrant extends Grant {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof CubeGrant) {
+            addCubeGrant((CubeGrant) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element SchemaGrant
@@ -5647,6 +6231,7 @@ public static class CubeGrant extends Grant {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -5660,8 +6245,24 @@ public static class CubeGrant extends Grant {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof DimensionGrant) {
+            addDimensionGrant((DimensionGrant) child);
+        
+        } else if (child instanceof HierarchyGrant) {
+            addHierarchyGrant((HierarchyGrant) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element CubeGrant
@@ -5696,17 +6297,23 @@ public static class DimensionGrant extends Grant {
         pcs.firePropertyChange("dimension", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element DimensionGrant
@@ -5841,6 +6448,7 @@ public static class HierarchyGrant extends Grant {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -5852,8 +6460,21 @@ public static class HierarchyGrant extends Grant {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof MemberGrant) {
+            addMemberGrant((MemberGrant) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element HierarchyGrant
@@ -5899,17 +6520,23 @@ public static class MemberGrant extends OLAPObject {
         pcs.firePropertyChange("access", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element MemberGrant
@@ -5980,6 +6607,7 @@ public static class Union extends OLAPObject {
     }
     
 
+    @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -5991,8 +6619,21 @@ public static class Union extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else if (child instanceof RoleUsage) {
+            addRoleUsage((RoleUsage) child);
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Union
@@ -6022,17 +6663,23 @@ public static class RoleUsage extends OLAPObject {
         pcs.firePropertyChange("roleName", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element RoleUsage
@@ -6082,17 +6729,23 @@ public static class UserDefinedFunction extends OLAPObject {
         pcs.firePropertyChange("className", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element UserDefinedFunction
@@ -6190,17 +6843,23 @@ public static class Parameter extends OLAPObject {
         pcs.firePropertyChange("defaultValue", oldval, newval);
     }
 
+    @Override
     public List<OLAPObject> getChildren() {
-        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
-         * each list and implements optimized get() and iterator() methods instead of just making a new
-         * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
-        
-        return Collections.unmodifiableList(children);
+        return Collections.emptyList();
     }
     
+    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        
+        } else {
+            super.addChild(child);
+        }
     }
 
 } // end of element Parameter
