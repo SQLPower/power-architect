@@ -46,7 +46,7 @@ public static class <xsl:value-of select="@type"/> extends <xsl:call-template na
     }
     
 <xsl:apply-templates/>
-<xsl:call-template name="getchildren"/>
+<xsl:call-template name="children-methods"/>
 } // end of element <xsl:value-of select="@type"/>
 </xsl:template>
 
@@ -66,7 +66,7 @@ public static class <xsl:value-of select="@type"/> extends <xsl:call-template na
 
 <xsl:template match="Class">
 /** <xsl:copy-of select="Doc"/> */
-public static class <xsl:value-of select="@class"/> extends <xsl:call-template name="superclass-of-class"/> {
+public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-template name="superclass-of-class"/> {
     
     /**
      * Creates a new <xsl:value-of select="@class"/> with all attributes
@@ -76,7 +76,7 @@ public static class <xsl:value-of select="@class"/> extends <xsl:call-template n
     }
     
 <xsl:apply-templates/>
-<xsl:call-template name="getchildren"/>
+<xsl:call-template name="children-methods"/>
 } // end of class <xsl:value-of select="@class"/>
 </xsl:template>
 
@@ -166,7 +166,10 @@ public static class <xsl:value-of select="@class"/> extends <xsl:call-template n
     
 </xsl:template>
 
-<xsl:template name="getchildren">
+<xsl:template name="children-methods">
+    <xsl:choose>
+      <xsl:when test="Array">
+    @Override
     public List&lt;OLAPObject&gt; getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -178,11 +181,37 @@ public static class <xsl:value-of select="@class"/> extends <xsl:call-template n
         return Collections.unmodifiableList(children);
     }
     
+    @Override
     public boolean allowsChildren() {
-        <xsl:choose>
-            <xsl:when test="Array">return true;</xsl:when>
-            <xsl:otherwise>return false;</xsl:otherwise>
-        </xsl:choose>
+        return true;
+    }
+    </xsl:when>
+    <xsl:otherwise>
+    @Override
+    public List&lt;OLAPObject&gt; getChildren() {
+        return Collections.emptyList();
+    }
+    
+    @Override
+    public boolean allowsChildren() {
+        return false;
+    }
+    </xsl:otherwise>
+  </xsl:choose>
+    @Override
+    public void addChild(OLAPObject child) {
+        if (false) {
+        <xsl:for-each select="Array">
+        } else if (child instanceof <xsl:value-of select="@type"/>) {
+            add<xsl:call-template name="name-initcap-nonplural"/>((<xsl:value-of select="@type"/>) child);
+        </xsl:for-each>
+        <xsl:for-each select="Object">
+        } else if (child instanceof <xsl:value-of select="@type"/>) {
+            set<xsl:call-template name="name-initcap"/>((<xsl:value-of select="@type"/>) child);
+        </xsl:for-each>
+        } else {
+            super.addChild(child);
+        }
     }
 </xsl:template>
 
