@@ -24,7 +24,7 @@ import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OLAPObject {
+public abstract class OLAPObject {
 
     /**
      * Helper class for registering and notifying property change listeners.
@@ -48,11 +48,51 @@ public class OLAPObject {
     protected OLAPObject() {
         pcs = new PropertyChangeSupport(this);
     }
-    
+
+    /**
+     * Returns the current OLAPObject that is this object's parent. If this
+     * value is null, this object has no parent.
+     */
     public OLAPObject getParent() {
         return parent;
     }
+
+    /**
+     * Returns true if this type of OLAPObject can ever return a non-empty list from
+     * {@link #getChildren()}, and false if getChildren() is always empty.
+     */
+    public abstract boolean allowsChildren();
     
+    /**
+     * Returns a read-only unified list of all children of this OLAPObject.
+     * If this object doesn't have any children, returns an empty list.
+     */
+    public abstract List<OLAPObject> getChildren();
+    
+    /**
+     * Changes this OLAPObject's parent reference. It is the parent's
+     * responsibility to manage the reference, so this method is
+     * package-private.
+     * <p>
+     * The parent will call this method <i>after</i> the child has been added
+     * or removed on the appropriate child list.
+     * 
+     * @param parent
+     *            The new parent for this object. If the object is being removed
+     *            from its former parent, this argument should be null.
+     */
+    void setParent(OLAPObject parent) {
+        this.parent = parent;
+    }
+    
+    public void addChildListener(OLAPChildListener listener) {
+        childListeners.add(listener);
+    }
+
+    public void removeChildListener(OLAPChildListener listener) {
+        childListeners.remove(listener);
+    }
+
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         pcs.addPropertyChangeListener(listener);
     }

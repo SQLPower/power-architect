@@ -46,6 +46,7 @@ public static class <xsl:value-of select="@type"/> extends <xsl:call-template na
     }
     
 <xsl:apply-templates/>
+<xsl:call-template name="getchildren"/>
 } // end of element <xsl:value-of select="@type"/>
 </xsl:template>
 
@@ -75,6 +76,7 @@ public static class <xsl:value-of select="@class"/> extends <xsl:call-template n
     }
     
 <xsl:apply-templates/>
+<xsl:call-template name="getchildren"/>
 } // end of class <xsl:value-of select="@class"/>
 </xsl:template>
 
@@ -119,6 +121,7 @@ public static class <xsl:value-of select="@class"/> extends <xsl:call-template n
      */
     public void add<xsl:call-template name="name-initcap-nonplural"/>(int pos, <xsl:value-of select="@type"/> newChild) {
         <xsl:value-of select="@name"/>.add(pos, newChild);
+        newChild.setParent(this);
         fireChildAdded(<xsl:value-of select="@type"/>.class, pos, newChild);
     }
 
@@ -151,6 +154,7 @@ public static class <xsl:value-of select="@class"/> extends <xsl:call-template n
     public <xsl:value-of select="@type"/> remove<xsl:call-template name="name-initcap-nonplural"/>(int pos) {
         <xsl:value-of select="@type"/> removedItem = <xsl:value-of select="@name"/>.remove(pos);
         if (removedItem != null) {
+            removedItem.setParent(null);
             fireChildRemoved(<xsl:value-of select="@type"/>.class, pos, removedItem);
         }
         return removedItem;
@@ -162,6 +166,25 @@ public static class <xsl:value-of select="@class"/> extends <xsl:call-template n
     
 </xsl:template>
 
+<xsl:template name="getchildren">
+    public List&lt;OLAPObject&gt; getChildren() {
+        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
+         * each list and implements optimized get() and iterator() methods instead of just making a new
+         * ArrayList with a copy of the union of all the other lists as we are now. */
+        List&lt;OLAPObject&gt; children = new ArrayList&lt;OLAPObject&gt;();
+        <xsl:for-each select="Array">
+        children.addAll(<xsl:value-of select="@name"/>);
+        </xsl:for-each>
+        return Collections.unmodifiableList(children);
+    }
+    
+    public boolean allowsChildren() {
+        <xsl:choose>
+            <xsl:when test="Array">return true;</xsl:when>
+            <xsl:otherwise>return false;</xsl:otherwise>
+        </xsl:choose>
+    }
+</xsl:template>
 
 <!-- Returns the initcap version of the "name" attribute of the current element -->
 <xsl:template name="name-initcap">
