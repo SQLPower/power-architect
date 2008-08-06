@@ -25,6 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -53,8 +54,15 @@ public class VirtualCubeEditPanel implements DataEntryPanel {
         builder.append("Name", nameField = new JTextField(vCube.getName()));
         builder.append("Caption", captionField = new JTextField(vCube.getCaption()));
         builder.append("Default Measure", defMeasure = new JComboBox(vCube.getMeasures().toArray()));
+        for (VirtualCubeMeasure vMs : vCube.getMeasures()) {
+            if (vMs.getName().equals(vCube.getDefaultMeasure())) {
+                defMeasure.setSelectedItem(vMs);
+                break;
+            }
+        }
         panel = builder.getPanel();
     }
+    
     public boolean applyChanges() {
         vCube.startCompoundEdit("Started modifying virtual cube properties");
         vCube.setName(nameField.getText());

@@ -24,52 +24,41 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import mondrian.rolap.RolapAggregator;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class CubeEditPanel implements DataEntryPanel {
+public class MeasureEditPanel implements DataEntryPanel {
     
-    private final Cube cube;
+    private final Measure measure;
     private final JPanel panel;
-    private JTextField nameField;
     private JTextField captionField;
-    private JComboBox defMeasure;
+    private JComboBox aggregator;
     
     /**
-     * Creates a new property editor for the given OLAP Cube. 
+     * Creates a new property editor for the given OLAP Measure. 
      * 
-     * @param cube The data model of the cube to edit
+     * @param cube The data model of the measure to edit
      */
-    public CubeEditPanel(Cube cube) {
-        this.cube = cube;
-
+    public MeasureEditPanel(Measure measure) {
+        this.measure = measure;
+        
         FormLayout layout = new FormLayout(
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
-        builder.append("Name", nameField = new JTextField(cube.getName()));
-        builder.append("Caption", captionField = new JTextField(cube.getCaption()));
-        builder.append("Default Measure", defMeasure = new JComboBox(cube.getMeasures().toArray()));
-        for (Measure ms : cube.getMeasures()) {
-            if (ms.getName().equals(cube.getDefaultMeasure())) {
-                defMeasure.setSelectedItem(ms);
-                break;
-            }
-        }
+        builder.append("Caption", captionField = new JTextField(measure.getCaption()));
+        builder.append("Aggregator", aggregator = new JComboBox(RolapAggregator.enumeration.getNames()));
         panel = builder.getPanel();
     }
     public boolean applyChanges() {
-        cube.startCompoundEdit("Started modifying cube properties");
-        cube.setName(nameField.getText());
-        cube.setCaption(captionField.getText());
-        if (defMeasure.getSelectedItem() != null) {
-            cube.setDefaultMeasure(defMeasure.getSelectedItem().toString());
-        }
-        cube.endCompoundEdit();
+        measure.startCompoundEdit("Started modifying measure properties");
+        measure.setCaption(captionField.getText());
+        measure.setAggregator(((RolapAggregator) (aggregator.getSelectedItem())).name);
+        measure.endCompoundEdit();
         return true;
     }
 
@@ -84,4 +73,5 @@ public class CubeEditPanel implements DataEntryPanel {
     public boolean hasUnsavedChanges() {
         return true;
     }
+
 }
