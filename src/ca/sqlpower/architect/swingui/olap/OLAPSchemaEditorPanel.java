@@ -30,8 +30,6 @@ import javax.swing.JTree;
 
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.OLAPTreeCellRenderer;
-import ca.sqlpower.architect.swingui.OLAPTreeModel;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.action.CreateDimensionAction;
 
