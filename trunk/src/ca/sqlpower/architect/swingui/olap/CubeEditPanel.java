@@ -24,54 +24,45 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import mondrian.olap.DimensionType;
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class DimensionEditPanel implements DataEntryPanel {
-
-    private final Dimension dimension;
+public class CubeEditPanel implements DataEntryPanel {
+    
+    private final Cube cube;
     private final JPanel panel;
     private JTextField nameField;
     private JTextField captionField;
-    private JComboBox typeBox;
+    private JComboBox defMeasure;
     
     /**
-     * Creates a new property editor for the given OLAP dimension. 
+     * Creates a new property editor for the given OLAP Cube. 
      * 
-     * @param dimension The dimension to edit
+     * @param cube The data model of the cube to edit
      */
-    public DimensionEditPanel(Dimension dimension) {
-        this.dimension = dimension;
+    public CubeEditPanel(Cube cube) {
+        this.cube = cube;
 
         FormLayout layout = new FormLayout(
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
-        builder.append("Name", nameField = new JTextField(dimension.getName()));
-        builder.append("Caption", captionField = new JTextField(dimension.getCaption()));
-        builder.append("Type", typeBox = new JComboBox(DimensionType.values()));
-        if (dimension.getType() != null) {
-            typeBox.setSelectedItem(DimensionType.valueOf(dimension.getType()));
-        } else {
-            typeBox.setSelectedItem(DimensionType.StandardDimension);
-        }
+        builder.append("Name", nameField = new JTextField(cube.getName()));
+        builder.append("Caption", captionField = new JTextField(cube.getCaption()));
+        builder.append("Default Measure", defMeasure = new JComboBox(cube.getMeasures().toArray()));
         panel = builder.getPanel();
     }
     public boolean applyChanges() {
-        dimension.startCompoundEdit("Started modifying dimension properties");
-        dimension.setName(nameField.getText());
-        dimension.setCaption(captionField.getText());
-        DimensionType type = (DimensionType) typeBox.getSelectedItem();
-        if (type != null) {
-            dimension.setType(type.toString());
-        } else {
-            dimension.setType(DimensionType.StandardDimension.toString());
+        cube.startCompoundEdit("Started modifying cube properties");
+        cube.setName(nameField.getText());
+        cube.setCaption(captionField.getText());
+        if (defMeasure.getSelectedItem() != null) {
+            cube.setDefaultMeasure(defMeasure.getSelectedItem().toString());
         }
-        dimension.endCompoundEdit();
+        cube.endCompoundEdit();
         return true;
     }
 
@@ -86,5 +77,4 @@ public class DimensionEditPanel implements DataEntryPanel {
     public boolean hasUnsavedChanges() {
         return true;
     }
-
 }

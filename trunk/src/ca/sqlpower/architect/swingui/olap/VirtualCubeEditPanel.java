@@ -24,54 +24,45 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import mondrian.olap.DimensionType;
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class DimensionEditPanel implements DataEntryPanel {
+public class VirtualCubeEditPanel implements DataEntryPanel {
 
-    private final Dimension dimension;
+    private final VirtualCube vCube;
     private final JPanel panel;
     private JTextField nameField;
     private JTextField captionField;
-    private JComboBox typeBox;
+    private JComboBox defMeasure;
     
     /**
-     * Creates a new property editor for the given OLAP dimension. 
+     * Creates a new property editor for the given OLAP Virtual Cube. 
      * 
-     * @param dimension The dimension to edit
+     * @param vCube The data model of the Virtual Cube to edit
      */
-    public DimensionEditPanel(Dimension dimension) {
-        this.dimension = dimension;
+    public VirtualCubeEditPanel(VirtualCube vCube) {
+        this.vCube = vCube;
 
         FormLayout layout = new FormLayout(
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
-        builder.append("Name", nameField = new JTextField(dimension.getName()));
-        builder.append("Caption", captionField = new JTextField(dimension.getCaption()));
-        builder.append("Type", typeBox = new JComboBox(DimensionType.values()));
-        if (dimension.getType() != null) {
-            typeBox.setSelectedItem(DimensionType.valueOf(dimension.getType()));
-        } else {
-            typeBox.setSelectedItem(DimensionType.StandardDimension);
-        }
+        builder.append("Name", nameField = new JTextField(vCube.getName()));
+        builder.append("Caption", captionField = new JTextField(vCube.getCaption()));
+        builder.append("Default Measure", defMeasure = new JComboBox(vCube.getMeasures().toArray()));
         panel = builder.getPanel();
     }
     public boolean applyChanges() {
-        dimension.startCompoundEdit("Started modifying dimension properties");
-        dimension.setName(nameField.getText());
-        dimension.setCaption(captionField.getText());
-        DimensionType type = (DimensionType) typeBox.getSelectedItem();
-        if (type != null) {
-            dimension.setType(type.toString());
-        } else {
-            dimension.setType(DimensionType.StandardDimension.toString());
+        vCube.startCompoundEdit("Started modifying virtual cube properties");
+        vCube.setName(nameField.getText());
+        vCube.setCaption(captionField.getText());
+        if (defMeasure.getSelectedItem() != null) {
+            vCube.setDefaultMeasure(defMeasure.getSelectedItem().toString());
         }
-        dimension.endCompoundEdit();
+        vCube.endCompoundEdit();
         return true;
     }
 

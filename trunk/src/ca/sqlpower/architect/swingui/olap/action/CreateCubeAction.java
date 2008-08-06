@@ -21,26 +21,26 @@ package ca.sqlpower.architect.swingui.olap.action;
 
 import java.awt.event.ActionEvent;
 
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 
-public class CreateDimensionAction extends AbstractArchitectAction {
+public class CreateCubeAction extends AbstractArchitectAction {
 
     private final Schema schema;
 
-    public CreateDimensionAction(ArchitectSwingSession session, Schema schema) {
-        super(session, "New Dimension...", "Create a new shared dimension in this schema");
+    public CreateCubeAction(ArchitectSwingSession session, Schema schema) {
+        super(session, "New Cube...", "Create a new cube in this schema");
         this.schema = schema;
     }
 
     public void actionPerformed(ActionEvent e) {
         try {
-            Dimension dim = new Dimension();
-            dim.setName("New Dimension");
-            schema.addDimension(dim);
-            new EditDimensionAction(session, session.getArchitectFrame(), dim).actionPerformed(e);
+            Cube cube = new Cube();
+            cube.setName("New Cube");
+            schema.addCube(cube);
+            new EditCubeAction(session, session.getArchitectFrame(), cube).actionPerformed(e);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
