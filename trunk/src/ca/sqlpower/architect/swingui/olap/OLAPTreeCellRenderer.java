@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Component;
 
@@ -32,6 +32,7 @@ import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.swingui.SPSUtils;
 
 public class OLAPTreeCellRenderer extends DefaultTreeCellRenderer {
