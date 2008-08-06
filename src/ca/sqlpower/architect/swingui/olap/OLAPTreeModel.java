@@ -38,81 +38,33 @@ import org.eigenbase.xom.DOMWrapper;
 import org.eigenbase.xom.Parser;
 import org.eigenbase.xom.XOMUtil;
 
+import ca.sqlpower.architect.olap.OLAPChildEvent;
+import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
-import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
-import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
-import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
-import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 
 public class OLAPTreeModel implements TreeModel {
 
     private static final Logger logger = Logger.getLogger(OLAPTreeModel.class);
     private final Schema schema;
+    private final BusinessModelEventHandler modelEventHandler = new BusinessModelEventHandler();
     
     private final List<TreeModelListener> treeModelListeners = new ArrayList<TreeModelListener>();
     
     public OLAPTreeModel(Schema schema) {
         this.schema = schema;
-//        listenToHierarchy(this, schema, this);
+        OLAPUtil.listenToHierarchy(schema, modelEventHandler, modelEventHandler);
     }
     
-    
-
     public Object getChild(Object parent, int index) {
-        System.err.println("getChild: log debugenabled is " + logger.isDebugEnabled());
         if (logger.isDebugEnabled()) {
             logger.debug(">>> getChild("+parent+", "+index+")");
         }
-        final Object child;
-        if (parent instanceof Schema) {
-            int dimSize = ((Schema) parent).getDimensions().size();
-            int cubeSize = ((Schema) parent).getCubes().size();
-            int vCubeSize = ((Schema) parent).getVirtualCubes().size();
-            if (index < dimSize) {
-                child = ((Schema) parent).getDimensions().get(index);
-            } else if (index < cubeSize + dimSize) {
-                child = ((Schema) parent).getCubes().get(index-dimSize);
-            } else if (index < vCubeSize + cubeSize + dimSize) {
-                child = ((Schema) parent).getVirtualCubes().get(index-dimSize-cubeSize);
-            } else {
-                throw new IndexOutOfBoundsException();
-            }
-        } else if (parent instanceof Cube) {
-            int dimSize = ((Cube) parent).getDimensions().size();
-            int measureSize = ((Cube) parent).getMeasures().size();
-            if (index < dimSize) {
-                child = ((Cube) parent).getDimensions().get(index);
-            } else if (index < measureSize + dimSize) {
-                child = ((Cube) parent).getMeasures().get(index-dimSize);
-            } else {
-                throw new IndexOutOfBoundsException();
-            }
-        } else if (parent instanceof Measure || parent instanceof Dimension) {
-            throw new IllegalStateException("Dimensions and Measures do not have children.");
-        } else if (parent instanceof VirtualCube) {
-            int dimSize = ((VirtualCube) parent).getDimensions().size();
-            int measureSize = ((VirtualCube) parent).getMeasures().size();
-            CubeUsages cubeUsage = ((VirtualCube) parent).getCubeUsage();
-            int cubeSize = (cubeUsage != null) ? cubeUsage.getCubeUsages().size() : 0;
-            if (index < dimSize) {
-                child = ((VirtualCube) parent).getDimensions().get(index);
-            } else if (index < measureSize + dimSize) {
-                child = ((VirtualCube) parent).getMeasures().get(index-dimSize);
-            } else if (index < cubeSize + measureSize + dimSize) {
-                String cubeName = ((VirtualCube) parent).getCubeUsage().getCubeUsages().get(index-dimSize-measureSize).getCubeName();
-                child = OLAPUtil.findCube(getRoot(), cubeName);
-            } else {
-                throw new IndexOutOfBoundsException();
-            } 
-        } else {
-            throw new IllegalStateException(parent.getClass() + " doesn't do anything yet! (and probably never should)");
-        }
+        final Object child = ((OLAPObject) parent).getChildren().get(index);
         if (logger.isDebugEnabled()) {
             logger.debug("<<< getChild: "+child);
         }
@@ -123,29 +75,7 @@ public class OLAPTreeModel implements TreeModel {
         if (logger.isDebugEnabled()) {
             logger.debug(">>> getChildCount("+parent+")");
         }
-        int childCount;
-        if (parent instanceof Schema) {
-            int dimSize = ((Schema) parent).getDimensions().size();
-            int cubeSize = ((Schema) parent).getCubes().size();
-            int vCubeSize = ((Schema) parent).getVirtualCubes().size();
-            childCount = dimSize + cubeSize + vCubeSize;
-        } else if (parent instanceof Cube) {
-            int dimSize = ((Cube) parent).getDimensions().size();
-            int measureSize = ((Cube) parent).getMeasures().size();
-            childCount = dimSize + measureSize;
-        } else if (parent instanceof Measure || parent instanceof Dimension) {
-            throw new IllegalStateException("Dimensions and Measures do not have children.");
-        } else if (parent instanceof VirtualCube) {
-            int dimSize = ((VirtualCube) parent).getDimensions().size();
-            int measureSize = ((VirtualCube) parent).getMeasures().size();
-            CubeUsages cubeUsage = ((VirtualCube) parent).getCubeUsage();
-            int cubeSize = (cubeUsage != null) ? 
-                    cubeUsage.getCubeUsages().size() : 0;
-            childCount = dimSize + measureSize + cubeSize; 
-        } else {
-            throw new IllegalStateException(parent.getClass() + " doesn't do anything yet! (and probably never should)");
-        }
-        
+        final int childCount = ((OLAPObject) parent).getChildren().size();
         if (logger.isDebugEnabled()) {
             logger.debug("<<< getChildCount: "+childCount);
         }
@@ -156,60 +86,7 @@ public class OLAPTreeModel implements TreeModel {
         if (logger.isDebugEnabled()) {
             logger.debug(">>> getIndexOfChild("+parent+", "+child+")");
         }
-        int index = -2;
-        if (parent instanceof Schema) {
-            int dimSize = ((Schema) parent).getDimensions().size();
-            int cubeSize = ((Schema) parent).getCubes().size();
-            if (child instanceof Dimension) {
-                index = ((Schema) parent).getDimensions().indexOf(child);
-            } else if (child instanceof Cube) {
-                index = dimSize + ((Schema) parent).getCubes().indexOf(child);
-            } else if (child instanceof VirtualCube) {
-                index = dimSize + cubeSize + ((Schema) parent).getCubes().indexOf(child);
-            } else {
-                throw new IllegalArgumentException(parent.getClass() + " does not have child type " + child.getClass());
-            }
-        } else if (parent instanceof Cube) {
-            int dimSize = ((Cube) parent).getDimensions().size();
-            if (child instanceof CubeDimension) {
-                index = ((Cube) parent).getDimensions().indexOf(child);
-            } else if (child instanceof Measure) {
-                index = dimSize + ((Cube) parent).getMeasures().indexOf(child);
-            } else {
-                throw new IllegalArgumentException(parent.getClass() + " does not have child type " + child.getClass());
-            }
-        } else if (parent instanceof Measure || parent instanceof Dimension) {
-            throw new IllegalStateException("Dimensions and Measures do not have children.");
-        }
-        else if (parent instanceof VirtualCube) {
-            int dimSize = ((VirtualCube) parent).getDimensions().size();
-            int measureSize = ((VirtualCube) parent).getMeasures().size();
-            if (child instanceof VirtualCubeDimension) {
-                index = ((VirtualCube) parent).getDimensions().indexOf(child);
-            } else if (child instanceof VirtualCubeMeasure) {
-                index = dimSize + ((VirtualCube) parent).getMeasures().indexOf(child);
-            } else if (child instanceof Cube){
-                index = -1;
-                String cubeName = ((Cube) child).getName();
-                System.out.println("cubeName = " +  cubeName);
-                CubeUsages cubeUsage = ((VirtualCube) parent).getCubeUsage();
-                int cubeUsageCount = (cubeUsage != null) ? cubeUsage.getCubeUsages().size() : 0;
-                for (int i = 0; i < cubeUsageCount; i++) {
-                    System.out.println(cubeUsage.getCubeUsages().get(i).getCubeName());
-                    if (cubeUsage.getCubeUsages().get(i).getCubeName().equals(cubeName)) {
-                        index = dimSize + measureSize + i;
-                    }
-                }
-            } else {
-                throw new IllegalArgumentException(parent.getClass() + " does not have child type " + child.getClass());
-            }
-        } else {
-            throw new IllegalStateException(parent.getClass() + " doesn't do anything yet! (and probably never should)");
-        }
-        if (index == -1) {
-            throw new RuntimeException("child " + child.getClass() + " object not found in parent " + parent.getClass() + ".");
-        }
-        
+        int index = ((OLAPObject) parent).getChildren().indexOf(child);
         if (logger.isDebugEnabled()) {
             logger.debug("<<< getIndexOfChild: "+index);
         }
@@ -230,12 +107,7 @@ public class OLAPTreeModel implements TreeModel {
         if (logger.isDebugEnabled()) {
             logger.debug(">>> isLeaf("+node+")");
         }
-        boolean retval;
-        if (node instanceof CubeDimension || node instanceof Measure || node instanceof VirtualCubeMeasure) {
-            retval = true;
-        } else {
-            retval = false;
-        }
+        boolean retval = !((OLAPObject) node).allowsChildren();
         if (logger.isDebugEnabled()) {
             logger.debug("<<< isLeaf: "+retval);
         }
@@ -340,9 +212,19 @@ public class OLAPTreeModel implements TreeModel {
         }
     }
 
-    private class BusinessModelEventHandler implements PropertyChangeListener {
+    private class BusinessModelEventHandler implements OLAPChildListener, PropertyChangeListener {
         public void propertyChange(PropertyChangeEvent evt) {
             fireTreeNodeChanged((OLAPObject) evt.getSource());
+        }
+
+        public void olapChildAdded(OLAPChildEvent e) {
+            fireTreeNodeAdded(e.getSource(), e.getIndex(), e.getChild());
+            OLAPUtil.listenToHierarchy(e.getChild(), this, this);
+        }
+
+        public void olapChildRemoved(OLAPChildEvent e) {
+            fireTreeNodeRemoved(e.getSource(), e.getIndex(), e.getChild());
+            OLAPUtil.unlistenToHierarchy(e.getChild(), this, this);
         }
     }
     
@@ -361,7 +243,21 @@ public class OLAPTreeModel implements TreeModel {
             treeModelListeners.get(i).treeNodesChanged(e);
         }
     }
-    
+
+    private void fireTreeNodeAdded(OLAPObject parent, int childIndex, OLAPObject child) {
+        TreeModelEvent e = new TreeModelEvent(this, pathToNode(parent), new int[] { childIndex }, new Object[] { child });
+        for (int i = treeModelListeners.size() - 1; i >= 0; i--) {
+            treeModelListeners.get(i).treeNodesInserted(e);
+        }
+    }
+
+    private void fireTreeNodeRemoved(OLAPObject parent, int childIndex, OLAPObject child) {
+        TreeModelEvent e = new TreeModelEvent(this, pathToNode(parent), new int[] { childIndex }, new Object[] { child });
+        for (int i = treeModelListeners.size() - 1; i >= 0; i--) {
+            treeModelListeners.get(i).treeNodesRemoved(e);
+        }
+    }
+
     private TreePath pathToNode(OLAPObject o) {
         List<OLAPObject> path = new ArrayList<OLAPObject>();
         while (o != null) {
