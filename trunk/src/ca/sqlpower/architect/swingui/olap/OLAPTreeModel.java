@@ -22,6 +22,8 @@ package ca.sqlpower.architect.swingui.olap;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +40,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.MondrianXMLReader;
+import ca.sqlpower.architect.olap.MondrianXMLWriter;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
@@ -141,6 +144,10 @@ public class OLAPTreeModel implements TreeModel {
         }
         File file = new File(args[0]);
         Schema loadedSchema = MondrianXMLReader.parse(file);
+        
+        // test for XML writer
+        MondrianXMLWriter.write(new PrintWriter(new OutputStreamWriter(System.out)), loadedSchema);
+        
         final JTree tree = new JTree(new OLAPTreeModel(loadedSchema));
         tree.setCellRenderer(new OLAPTreeCellRenderer());
         final JFrame f = new JFrame("Test schema tree");
