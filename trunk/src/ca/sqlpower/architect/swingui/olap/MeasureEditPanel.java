@@ -35,6 +35,7 @@ public class MeasureEditPanel implements DataEntryPanel {
     
     private final Measure measure;
     private final JPanel panel;
+    private JTextField name;
     private JTextField captionField;
     private JComboBox aggregator;
     
@@ -50,12 +51,14 @@ public class MeasureEditPanel implements DataEntryPanel {
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
+        builder.append("Name", name = new JTextField(measure.getName()));
         builder.append("Caption", captionField = new JTextField(measure.getCaption()));
         builder.append("Aggregator", aggregator = new JComboBox(RolapAggregator.enumeration.getNames()));
         panel = builder.getPanel();
     }
     public boolean applyChanges() {
         measure.startCompoundEdit("Started modifying measure properties");
+        measure.setName(name.getText());
         measure.setCaption(captionField.getText());
         measure.setAggregator(((RolapAggregator) (aggregator.getSelectedItem())).name);
         measure.endCompoundEdit();
