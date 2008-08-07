@@ -344,6 +344,10 @@ public class TestPlayPen extends TestCase {
 	        // individual lists (e.g. tables) checked instead
 	        copyIgnoreProperties.add("components");
 	        
+	        // The copy of the play pen is for things like print preview, so we don't want to
+	        // duplicate menus and other interactive features. (?)
+	        copyIgnoreProperties.add("popupFactory");
+	        
 	        // First pass: set all settable properties, because testing the duplication of
 	        //             an object with all its properties at their defaults is not a
 	        //             very convincing test of duplication!
