@@ -105,7 +105,6 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
-import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
@@ -1455,12 +1454,6 @@ public class PlayPen extends JPanel
 					if (someData instanceof SQLTable) {
 						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation);
 						message = ArchitectUtils.truncateString(((SQLTable)someData).getName());
-						//TODO: the following 4 lines are to be removed
-						SQLTable newTable = SQLTable.getDerivedInstance((SQLTable)someData, session.getTargetDatabase());
-                        DimensionPane dp = new DimensionPane(newTable.getName(), newTable, contentPane);
-                        preferredLocation.translate(100, 100);
-                        addImpl(dp, preferredLocation, getPPComponentCount());
-
                         preferredLocation.x += tp.getPreferredSize().width + 5;
 						progress++;
 					} else if (someData instanceof SQLSchema) {
