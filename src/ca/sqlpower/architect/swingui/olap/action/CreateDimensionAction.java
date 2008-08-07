@@ -21,7 +21,6 @@ package ca.sqlpower.architect.swingui.olap.action;
 
 import java.awt.event.ActionEvent;
 
-import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -44,9 +43,8 @@ public class CreateDimensionAction extends AbstractArchitectAction {
             Dimension dim = new Dimension();
             dim.setName("New Dimension");
             schema.addDimension(dim);
-            if (playpen.getSelectedContainers().size() == 1) {
-                Cube cb = (Cube) playpen.getSelectedContainers().get(0).getModel();
-                cb.addDimension(dim);
+            if (playpen.getSelectedContainers().size() >= 1) {
+                // TODO add a DimensionUsage to the selected cube(s)
             }
             new EditDimensionAction(session, session.getArchitectFrame(), dim).actionPerformed(e);
         } catch (Exception ex) {

@@ -43,6 +43,15 @@ public class ArchitectSessionImpl implements ArchitectSession {
     private String name;
     private SQLObjectRoot rootObject;
     
+    /**
+     * The factory that creates user prompters for this session. Defaults to a
+     * factory that makes an "always OK" user prompter for headless/embedded use.
+     * When this session is being used in a GUI environment, the startup code
+     * for the GUI will replace the default factory with one that actually
+     * prompts the user.
+     */
+    private UserPrompterFactory userPrompterFactory = new AlwaysOKUserPrompterFactory();
+    
     private DDLGenerator ddlGenerator;
     
     /**
@@ -59,6 +68,8 @@ public class ArchitectSessionImpl implements ArchitectSession {
         this.profileManager = new ProfileManagerImpl(this);
         this.project = new CoreProject(this);
         this.db = new SQLDatabase();
+        
+        rootObject.addSQLObjectPreEventListener(new SourceObjectIntegrityWatcher(this));
         
         try {
             ddlGenerator = new GenericDDLGenerator();
@@ -133,11 +144,19 @@ public class ArchitectSessionImpl implements ArchitectSession {
         profileManager = manager;
     }
     
-    /**
-     * Creates a user prompter that always responds with OK. This is appropriate for
-     * headless environments and embedded use.
-     */
     public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-        return new AlwaysOKUserPrompter();
+        return userPrompterFactory.createUserPrompter(question, okText, notOkText, cancelText);
+    }
+
+    /**
+     * Changes the user prompter factory in use on this session.
+     * 
+     * @param upFactory The new user prompter factory to use. Must not be null.
+     */
+    public void setUserPrompterFactory(UserPrompterFactory upFactory) {
+        if (upFactory == null) {
+            throw new NullPointerException("Null user prompter factory is not allowed!");
+        }
+        userPrompterFactory = upFactory; 
     }
 }
