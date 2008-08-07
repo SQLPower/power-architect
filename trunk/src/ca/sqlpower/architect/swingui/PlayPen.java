@@ -46,7 +46,6 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.dnd.InvalidDnDOperationException;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -72,19 +71,13 @@ import java.util.WeakHashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitor;
@@ -109,9 +102,7 @@ import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
-import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
@@ -225,6 +216,11 @@ public class PlayPen extends JPanel
 	 * users can drop stuff on the playpen.
 	 */
 	protected DropTarget dt;
+	
+	/**
+	 * The factory responsible for setting up popup menu contents for this playpen.
+	 */
+	private PopupMenuFactory popupFactory;
 
 	/**
 	 * Maps table names (Strings) to Integers.  Useful for making up
@@ -232,9 +228,6 @@ public class PlayPen extends JPanel
 	 * this playpen.
 	 */
 	protected Set<String> tableNames;
-
-
-	protected JPopupMenu playPenPopup;
 
 	/**
 	 * This object receives all mouse and mouse motion events in the
@@ -619,6 +612,15 @@ public class PlayPen extends JPanel
         });
 	}
 
+	/**
+	 * Tells whether or not this PlayPen instance is in debugging mode.
+	 * Currently, this is controlled by log4j settings, but that may change
+	 * in the future.
+	 */
+	public boolean isDebugEnabled() {
+	    return logger.isDebugEnabled();
+	}
+	
 	// --------------------- Utility methods -----------------------
 
 	/**
@@ -903,7 +905,7 @@ public class PlayPen extends JPanel
 		g2.fillRect(0, 0, getWidth(), getHeight());
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialiasSetting);
 
-		if (logger.isDebugEnabled()) {
+		if (isDebugEnabled()) {
 			Rectangle clip = g2.getClipBounds();
 			if (clip != null) {
 				g2.setColor(Color.green);
@@ -1046,57 +1048,6 @@ public class PlayPen extends JPanel
 			new MouseEvent((Component) e.getSource(), e.getID(), e.getWhen(), e.getModifiers(),
 					zp.x, zp.y, e.getClickCount(), e.isPopupTrigger(), e.getButton());
 		return contentPane.getToolTipText(zoomedEvent);
-	}
-
-	// ------------------- Right-click popup menu for playpen -----------------------
-	protected void setupPlayPenPopup() {
-		ArchitectFrame af = session.getArchitectFrame();
-		playPenPopup = new JPopupMenu();
-
-		JMenuItem mi = new JMenuItem();
-		mi.setAction(af.getCreateTableAction());
-		playPenPopup.add(mi);
-
-        mi = new JMenuItem();
-        Icon icon = new ImageIcon(ClassLoader.getSystemResource("icons/famfamfam/wrench.png")); //$NON-NLS-1$
-        AutoLayoutAction layoutAction = new AutoLayoutAction(session, Messages.getString("PlayPen.straightenLinesActionName"), Messages.getString("PlayPen.straightenLinesActionDescription"), icon); //$NON-NLS-1$ //$NON-NLS-2$
-        layoutAction.setLayout(new LineStraightenerLayout());
-        mi.setAction(layoutAction);
-        playPenPopup.add(mi);
-        
-		if (logger.isDebugEnabled()) {
-			playPenPopup.addSeparator();
-			mi = new JMenuItem("Show Relationships"); //$NON-NLS-1$
-			mi.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent evt) {
-						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(getRelationships()))));
-					}
-				});
-			playPenPopup.add(mi);
-
-			mi = new JMenuItem("Show PlayPen Components"); //$NON-NLS-1$
-			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-			mi.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent evt) {
-						StringBuffer componentList = new StringBuffer();
-						for (int i = 0; i < contentPane.getComponentCount(); i++) {
-							PlayPenComponent c = contentPane.getComponent(i);
-							componentList.append(c).append("["+c.getModel()+"]\n"); //$NON-NLS-1$ //$NON-NLS-2$
-						}
-						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JTextArea(componentList.toString())));
-					}
-				});
-			playPenPopup.add(mi);
-
-			mi = new JMenuItem("Show Undo Vector"); //$NON-NLS-1$
-			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-			mi.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent evt) {
-						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JTextArea(session.getUndoManager().printUndoVector())));
-					}
-				});
-			playPenPopup.add(mi);
-		}
 	}
 
 	/**
@@ -2326,11 +2277,10 @@ public class PlayPen extends JPanel
 		            c.showPopup(p);
 		        }
 		    } else {
-		        setupPlayPenPopup();
-
-		        if (evt.isPopupTrigger()) {
+		        if (evt.isPopupTrigger() && popupFactory != null) {
 		            PlayPen pp = (PlayPen) evt.getSource();
-		            pp.playPenPopup.show(pp, evt.getX(), evt.getY());
+		            JPopupMenu popup = popupFactory.createPopupMenu();
+		            popup.show(pp, evt.getX(), evt.getY());
 		        }
 		    }
 		}
@@ -2770,6 +2720,14 @@ public class PlayPen extends JPanel
     
     public CursorManager getCursorManager() {
         return cursorManager;
+    }
+
+    public PopupMenuFactory getPopupFactory() {
+        return popupFactory;
+    }
+
+    public void setPopupFactory(PopupMenuFactory popupFactory) {
+        this.popupFactory = popupFactory;
     }
 
     public void setIgnoreTreeSelection(boolean value) {

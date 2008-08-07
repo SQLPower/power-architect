@@ -61,7 +61,7 @@ public class OLAPSchemaEditorPanel {
         this.session = session;
         tree = new JTree(treeModel = new OLAPTreeModel(schema));
         tree.setCellRenderer(new OLAPTreeCellRenderer());
-        pp = new PlayPen(session);
+        pp = new PlayPen(session); // TODO create OLAPPlayPenFactory class to set this up properly
         session.getArchitectFrame().setOlapSchemaEditor(this);
         
         JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
