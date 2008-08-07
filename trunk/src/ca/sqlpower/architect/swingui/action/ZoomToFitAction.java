@@ -30,6 +30,7 @@ import javax.swing.KeyStroke;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 
 /**
@@ -56,8 +57,15 @@ public class ZoomToFitAction extends AbstractArchitectAction {
      * at 10% border of empty space around the zoomed region, which is
      * usually a good comfortable amount. 
      */
-    private double overZoomCoefficient = 0.9;
+    private static final double OVER_ZOOM_COEFF = 0.9;
 
+    /**
+     * The maximum amount this "zoom to fit" will try to zoom in. This handles the
+     * case where you select a single, small table and "zoom to fit" makes it
+     * take up the whole screen.
+     */
+    private static final double MIN_ZOOM = 1.0;
+    
     public void actionPerformed(ActionEvent e) {
         if (playpen == null) {
             // It would be best to throw the NPE here, but the old implementation just
@@ -66,17 +74,28 @@ public class ZoomToFitAction extends AbstractArchitectAction {
             return;
         }
         
-        Rectangle zoomBounds = calcBoundingRectangle();
+        zoomToFitSelected(playpen);
+    }
+
+    /**
+     * Performs a zoom-to-fit for the selected items in the given playpen.
+     * 
+     * @param playpen The play pen to operate on
+     */
+    public static void zoomToFitSelected(PlayPen playpen) {
+        Rectangle zoomBounds = calcBoundingRectangle(playpen);
         if (zoomBounds == null) return;
     
         double zoom = Math.min(playpen.getViewportSize().getHeight()/zoomBounds.height,
                                playpen.getViewportSize().getWidth()/zoomBounds.width);
-        zoom *= overZoomCoefficient;
-    
-        playpen.setZoom(zoom);
-        playpen.scrollRectToVisible(playpen.zoomRect(zoomBounds));
-    }
+        zoom *= OVER_ZOOM_COEFF;
+        zoom = Math.min(zoom, MIN_ZOOM);
 
+        // When I get the playpen's animated zoom working properly, I'll change this to use it
+        playpen.setZoom(zoom);
+        playpen.scrollRectToVisible(zoomBounds);
+    }
+    
     /**
      * Calcualtes the bounding rectangle for the play pen components that are
      * currently selected, or the entire diagram if nothing is selected.
@@ -85,7 +104,7 @@ public class ZoomToFitAction extends AbstractArchitectAction {
      * coordinates).  If the diagram is empty (no play pen components exist),
      * returns null.
      */
-    private Rectangle calcBoundingRectangle() {
+    private static Rectangle calcBoundingRectangle(PlayPen playpen) {
         Rectangle rect = null;
         List<PlayPenComponent> fitThese = playpen.getSelectedItems();
         if (fitThese.isEmpty()) {

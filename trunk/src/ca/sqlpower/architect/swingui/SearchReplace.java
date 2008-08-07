@@ -63,6 +63,7 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.swingui.CommonCloseAction;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
@@ -301,8 +302,12 @@ public class SearchReplace {
 	        gotoButton.setEnabled(false);
 	        gotoButton.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent e) {
-	                int row = t.getSelectedRow();
-	                if (row >= 0) {
+	                int rows[] = t.getSelectedRows();
+                    if (rows.length == 0) return;
+
+                    pp.selectNone();
+	                
+                    for (int row : rows) {
 	                    SQLObject searchObj = (SQLObject) results.get(row);
 	                    SQLTable searchTable = null;
 	                    SQLColumn searchColumn = null;
@@ -322,9 +327,8 @@ public class SearchReplace {
 	                    if (searchTable != null) {
 	                        TablePane tp = pp.findTablePane(searchTable);
 	                        if (tp != null) {
-	                            pp.selectNone();
 	                            tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-	                            pp.scrollRectToVisible(tp.getBounds());
+                                ZoomToFitAction.zoomToFitSelected(pp);
 
 	                            if (searchColumn != null) {
 	                            	try {
@@ -340,12 +344,12 @@ public class SearchReplace {
 	                    } else if (searchRelationship != null) {
 	                        Relationship r = pp.findRelationship(searchRelationship);
 	                        if (r != null) {
-	                            pp.selectNone();
 	                            r.setSelected(true,SelectionEvent.SINGLE_SELECT);
-	                            pp.scrollRectToVisible(r.getBounds());
 	                        }
 	                    }
 	                }
+
+                    ZoomToFitAction.zoomToFitSelected(pp);
 	            }
 	        });
 
@@ -356,7 +360,7 @@ public class SearchReplace {
 	        ListSelectionListener buttonActivator = new ListSelectionListener() {
 	            public void valueChanged(ListSelectionEvent e) {
 	                renameButton.setEnabled(t.getSelectedRowCount() > 0);
-	                gotoButton.setEnabled(t.getSelectedRowCount() == 1);
+	                gotoButton.setEnabled(t.getSelectedRowCount() > 0);
 	            }
 	        };
 	        t.getSelectionModel().addListSelectionListener(buttonActivator);
