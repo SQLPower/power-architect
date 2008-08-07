@@ -66,7 +66,7 @@ public class OLAPSchemaEditorPanel {
         
         JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
         toolbar.add(new CreateDimensionAction(session, schema));
-        toolbar.add(new CreateCubeAction(session, schema));
+        toolbar.add(new CreateCubeAction(session, schema, pp));
         toolbar.add(new CreateVirtualCubeAction(session, schema));
         
         panel = new JPanel(new BorderLayout());

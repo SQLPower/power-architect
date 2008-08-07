@@ -102,21 +102,16 @@ import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
-import ca.sqlpower.architect.swingui.olap.CubeEditPanel;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.swingui.DataEntryPanel;
-import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
-import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 
 
@@ -941,7 +936,7 @@ public class PlayPen extends JPanel
 	 * leaf in the hierarchy as far as swing is concerned.
 	 *
 	 * @param c The component to add.  The PlayPen only accepts
-	 * Relationship and TablePane components.
+	 * Relationship and ContainerPane components.
 	 * @param constraints The Point at which to add the component
 	 * @param index ignored for now, but would normally specify the
 	 * index of insertion for c in the child list.
@@ -975,15 +970,31 @@ public class PlayPen extends JPanel
 		addImpl(r, null, getPPComponentCount());
 	}
 
-	/**
-	 * This method is primarily for loading project files. Use at your own risk!
-	 *
-	 * @param tp
-	 * @param point
-	 */
-	public void addTablePane(TablePane tp, Point point) {
-		addImpl(tp, point, getPPComponentCount());
-	}
+    /**
+     * This method is primarily for loading project files. Use at your own risk!
+     *
+     * @param tp
+     * @param point
+     */
+    public void addTablePane(TablePane tp, Point point) {
+        addImpl(tp, point, getPPComponentCount());
+    }
+
+    /**
+     * This method is primarily for loading project files. Use at your own risk!
+     * 
+     * @param ppc
+     *            The component to add.
+     * @param point
+     *            The location to add the component at, in logical coordinates.
+     *            If you don't care where the component lands, or the
+     *            component's position is constrained by other factors
+     *            (Relationships are positioned relative to the two table panes
+     *            they connect) then this argument can be null.
+     */
+    public void addPlayPenComponent(PlayPenComponent ppc, Point point) {
+        addImpl(ppc, point, getPPComponentCount());
+    }
 
 	/**
 	 * Returns 0 because this PlayPen contains no Swing components
@@ -1520,15 +1531,6 @@ public class PlayPen extends JPanel
 		public boolean hasStarted () {
 			return hasStarted;
 		}
-	}
-
-	/**
-	 * Adds the given table pane to the playpen, and adds its model to
-	 * the database.  The new table will follow the mouse until the
-	 * user clicks.
-	 */
-	public void addFloating(ContainerPane cp) {
-	    new FloatingContainerPaneListener(this, cp, zoomPoint(new Point(cp.getSize().width/2,0)),true);
 	}
 
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
@@ -2285,7 +2287,7 @@ public class PlayPen extends JPanel
 	 * stops moving the component, and unregisters itself as a
 	 * listener.
 	 */
-	public static class FloatingContainerPaneListener extends  MouseInputAdapter implements CancelableListener  {
+	public static class FloatingContainerPaneListener extends  MouseInputAdapter {
 	    
 	    /**
 	     * The max distance from the side the mouse can be to start an auto-scroll
@@ -2299,12 +2301,6 @@ public class PlayPen extends JPanel
 		private ContainerPane<?, ?> cp;
 		private Point handle;
 		private Point p;
-		
-		/**
-		 * If true, we will add the given ContainerPane to the play pen once the user clicks,
-		 * and add its model to the playpen's database.
-		 */
-		private boolean addToPP;
 
 		/**
          * Creates a new mouse event handler that tracks mouse motion and moves
@@ -2328,9 +2324,8 @@ public class PlayPen extends JPanel
          *            table" type actions, and should be set to false for
          *            dragging existing objects.
          */
-		public FloatingContainerPaneListener(PlayPen pp, ContainerPane<?, ?> cp, Point handle, boolean addToPP) {
+		public FloatingContainerPaneListener(PlayPen pp, ContainerPane<?, ?> cp, Point handle) {
 			this.pp = pp;
-			this.addToPP = addToPP;
 			Point pointerLocation = MouseInfo.getPointerInfo().getLocation();
 			SwingUtilities.convertPointFromScreen(pointerLocation,pp);
 			logger.debug("Adding floating container pane at:"+ pointerLocation); //$NON-NLS-1$
@@ -2341,17 +2336,9 @@ public class PlayPen extends JPanel
 
 			pp.addMouseMotionListener(this);
 			pp.addMouseListener(this); // the click that ends this operation
-			pp.addCancelableListener(this);
 
-			//In order to get here, the user must let go of the mouse click
-            //on the create new table icon.  If the user decides to click on the
-            //icon but let go elsewhere, the create table action will not occur
-            if (addToPP) {
-				pp.cursorManager.placeModeStarted();
-			} else {
-                pp.cursorManager.tableDragStarted();
-				pp.startCompoundEdit("Move"+cp.getName()); //$NON-NLS-1$
-			}
+			pp.cursorManager.tableDragStarted();
+			pp.startCompoundEdit("Move " + cp.getName()); //$NON-NLS-1$
 		}
 
 		public void mouseMoved(MouseEvent e) {
@@ -2396,80 +2383,22 @@ public class PlayPen extends JPanel
 		 * Anchors the tablepane and disposes this listener instance.
 		 */
 		public void mouseReleased(MouseEvent e) {
-			cleanup(false);
+			cleanup();
 		}
 
-		public void cancel() {
-			cleanup(true);
-		}
-
-		protected void cleanup(boolean cancelled) {
+		protected void cleanup() {
 			try {
-				if (addToPP && !cancelled) {
-					pp.unzoomPoint(p);
-					logger.debug("Placing table at: " + p); //$NON-NLS-1$
-					pp.addImpl(cp, p, pp.getPPComponentCount());
-					try {
-					    final ArchitectFrame frame = pp.getSession().getArchitectFrame();
-					    DataEntryPanel editPanel = null;
-					    if (cp instanceof TablePane) {
-					        pp.getSession().getTargetDatabase().addChild(((TablePane) cp).getModel());
-					        pp.selectNone();
-					        cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-					        pp.mouseMode = MouseModeType.SELECT_TABLE;
-
-					        editPanel = new TableEditPanel(pp.getSession(), (SQLTable) cp.getModel()) {
-					            @Override
-					            public void discardChanges() {
-					                pp.getSession().getTargetDatabase().removeChild(((TablePane) cp).getModel());
-					                pp.getTableNames().remove(((TablePane) cp).getModel().getName());
-					            }
-					        }; 
-					    } else {
-					        pp.getSession().getArchitectFrame().getOlapSchemaEditor().getOlapTreeModel().getRoot().
-					        addCube((Cube) cp.getModel());
-					        pp.selectNone();
-					        cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-                            pp.mouseMode = MouseModeType.SELECT_TABLE;
-
-                            editPanel = new CubeEditPanel((Cube) cp.getModel()) {
-                                @Override
-                                public void discardChanges() {
-                                    pp.getSession().getArchitectFrame().getOlapSchemaEditor().getOlapTreeModel().getRoot().removeCube((Cube) cp.getModel());
-//                                    pp.getTableNames().remove(((TablePane) cp).getModel().getName());
-                                }
-                            };
-					    }
-
-
-					    JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
-					            editPanel, frame,
-						        Messages.getString("PlayPen.tablePropertiesDialogTitle"), Messages.getString("PlayPen.okOption")); //$NON-NLS-1$ //$NON-NLS-2$
-						
-						d.pack();
-						d.setLocationRelativeTo(frame);
-						d.setVisible(true);
-					} catch (ArchitectException e) {
-						logger.error("Couldn't add table \"" + cp.getModel() + "\" to play pen:", e); //$NON-NLS-1$ //$NON-NLS-2$
-						SPSUtils.showExceptionDialogNoReport(pp.getSession().getArchitectFrame(), Messages.getString("PlayPen.addTableFailed"), e); //$NON-NLS-1$
-						return;
-					}
-				}
-
 	            pp.cursorManager.placeModeFinished();
 	            pp.cursorManager.tableDragFinished();
 	            pp.removeMouseMotionListener(this);
 	            pp.removeMouseListener(this);
-	            pp.removeCancelableListener(this);
 	            
 	            // normalize changes to table panes are part
 	            // of this compound edit, refer to bug 1592.
 				pp.normalize();
 				pp.revalidate();
 			} finally {
-				if (!addToPP) {
-					pp.endCompoundEdit("Ending move for table "+cp.getName()); //$NON-NLS-1$
-				}
+			    pp.endCompoundEdit("Ending move for table "+cp.getName()); //$NON-NLS-1$
 			}
 		}
 	}

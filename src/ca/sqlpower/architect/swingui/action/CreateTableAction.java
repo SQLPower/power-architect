@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect.swingui.action;
 
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -28,17 +29,29 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.AbstractPlacer;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.swingui.DataEntryPanel;
 
+/**
+ * Action for creating a table and putting it in both the business
+ * model and the play pen.
+ */
 public class CreateTableAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(CreateTableAction.class);
 
 	private final ArchitectSwingSession session;
 	
 	public CreateTableAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("CreateTableAction.name"), Messages.getString("CreateTableAction.description"), "new_table"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        super(session,
+                Messages.getString("CreateTableAction.name"), //$NON-NLS-1$
+                Messages.getString("CreateTableAction.description"), //$NON-NLS-1$
+                "new_table"); //$NON-NLS-1$
         this.session = session;
 		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_T,0));
 	}
@@ -51,12 +64,47 @@ public class CreateTableAction extends AbstractArchitectAction {
 			t.initFolders(true);
 		} catch (ArchitectException e) {
 			logger.error("Couldn't add folder to table \""+t.getName()+"\"", e); //$NON-NLS-1$ //$NON-NLS-2$
-			ASUtils.showExceptionDialog(session, Messages.getString("CreateTableAction.couldNotAddFolder"), e); //$NON-NLS-1$
+			ASUtils.showExceptionDialog(
+			        session,
+			        Messages.getString("CreateTableAction.couldNotAddFolder"), e); //$NON-NLS-1$
 		}
 		t.setName("New_Table"); //$NON-NLS-1$
 		
 		TablePane tp = new TablePane(t, playpen.getContentPane());
-		playpen.addFloating(tp);
-		playpen.setMouseMode(PlayPen.MouseModeType.CREATING_TABLE);
+		TablePlacer tablePlacer = new TablePlacer(playpen, tp);
+		tablePlacer.dirtyup();
+	}
+	
+	private class TablePlacer extends AbstractPlacer {
+	    
+	    private final TablePane tp;
+
+	    TablePlacer(PlayPen playpen, TablePane tp) {
+	        super(playpen);
+	        this.tp = tp;
+	    }
+	    
+        @Override
+        protected String getEditDialogTitle() {
+            return Messages.getString("PlayPen.tablePropertiesDialogTitle"); //$NON-NLS-1$
+        }
+
+        @Override
+        public DataEntryPanel place(Point p) throws ArchitectException {
+            playpen.addTablePane(tp, p);
+            DataEntryPanel editPanel = null;
+            session.getTargetDatabase().addChild(((TablePane) tp).getModel());
+            playpen.selectNone();
+            tp.setSelected(true, SelectionEvent.SINGLE_SELECT);
+
+            editPanel = new TableEditPanel(playpen.getSession(), (SQLTable) tp.getModel()) {
+                @Override
+                public void discardChanges() {
+                    playpen.getSession().getTargetDatabase().removeChild(((TablePane) tp).getModel());
+                    playpen.getTableNames().remove(((TablePane) tp).getModel().getName());
+                }
+            };
+            return editPanel;
+        }
 	}
 }
