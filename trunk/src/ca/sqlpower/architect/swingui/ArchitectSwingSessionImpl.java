@@ -146,6 +146,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.context = context;
         this.delegateSession = new ArchitectSessionImpl(context, name);
         ((ArchitectSessionImpl)delegateSession).setProfileManager(new ProfileManagerImpl(this));
+        ((ArchitectSessionImpl)delegateSession).setUserPrompterFactory(this);
         this.recent = new RecentMenu(this.getClass()) {
             @Override
             public void loadFile(String fileName) throws IOException {

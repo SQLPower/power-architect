@@ -106,13 +106,9 @@ import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLObjectPreEvent;
-import ca.sqlpower.architect.SQLObjectPreEventListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.UserPrompter;
-import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
@@ -138,45 +134,6 @@ import ca.sqlpower.swingui.SPSwingWorker;
  */
 public class PlayPen extends JPanel
 	implements java.io.Serializable, SQLObjectListener, SelectionListener, Scrollable {
-
-    /**
-     * Watches the session's root object, and reacts when SQLDatabase items
-     * are removed. In that case, it ensures there are no dangling references
-     * from the playpen database back to the removed database or its children.
-     * If there are, the user is asked to decide to either cancel the operation
-     * or allow the ETL lineage (SQLColumn.sourceColumn) references to be broken.
-     */
-	public class DatabaseRemovalWatcher implements SQLObjectPreEventListener {
-
-        public void dbChildrenPreRemove(SQLObjectPreEvent e) {
-            UserPrompter up = session.createUserPrompter(
-                    Messages.getString("PlayPen.removingETLLineageWarning"), //$NON-NLS-1$
-                    Messages.getString("PlayPen.forgetLineageOption"), Messages.getString("PlayPen.keepSourceConnectionOption"), Messages.getString("PlayPen.cancelOption")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-            for (SQLObject so : e.getChildren()) {
-                SQLDatabase db = (SQLDatabase) so;
-                try {
-                    List<SQLColumn> refs = ArchitectUtils.findColumnsSourcedFromDatabase(session.getTargetDatabase(), db);
-                    if (!refs.isEmpty()) {
-                        UserPromptResponse response = up.promptUser(refs.size(), db.getName());
-                        if (response == UserPromptResponse.OK) {
-                            // disconnect those columns' source columns
-                            for (SQLColumn col : refs) {
-                                col.setSourceColumn(null);
-                            }
-                        } else if (response == UserPromptResponse.NOT_OK) {
-                            e.veto();
-                        } else if (response == UserPromptResponse.CANCEL) {
-                            e.veto();
-                        }
-                    }
-                } catch (ArchitectException ex) {
-                    throw new ArchitectRuntimeException(ex);
-                }
-            }
-        }
-
-    }
-
 
     public interface CancelableListener {
 
@@ -365,7 +322,7 @@ public class PlayPen extends JPanel
     /**
      * The session that contains this playpen
      */
-	private final ArchitectSwingSession session;
+	final ArchitectSwingSession session;
 	
 	/**
 	 * The initial position of the viewport.
@@ -416,8 +373,6 @@ public class PlayPen extends JPanel
 		ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
 		logger.debug("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold")); //$NON-NLS-1$ //$NON-NLS-2$
 		fontRenderContext = null;
-        
-        session.getRootObject().addSQLObjectPreEventListener(new DatabaseRemovalWatcher());
 	}
 
 	/**
