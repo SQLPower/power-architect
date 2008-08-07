@@ -169,7 +169,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         kettleJob = new KettleJob(this);
 
-        playPen = new PlayPen(this);
+        playPen = RelationalPlayPenFactory.createPlayPen(this);
         UserSettings sprefs = getUserSettings().getSwingSettings();
         if (sprefs != null) {
             playPen.setRenderingAntialiased(sprefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
