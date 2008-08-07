@@ -247,8 +247,6 @@ public class BasicCubePaneUI extends ContainerPaneUI {
         
         width = MINIMUM_WIDTH;
         
-        System.out.println("Namewidth" + calculateTextWidth(c, c.getCubeName()));
-
         width = Math.max(width, calculateTextWidth(c, c.getCubeName()));
         width = Math.max(width, calculateTextWidth(c, "Dimensions"));
         width = Math.max(width, calculateTextWidth(c, "Measures"));
