@@ -134,13 +134,6 @@ public class PlayPen extends JPanel
 
 	private static Logger logger = Logger.getLogger(PlayPen.class);
 
-	/**
-	 * The ActionMap key for the action that deletes the selected
-	 * object in this TablePane.
-	 */
-	public static final String KEY_DELETE_SELECTED
-		= "ca.sqlpower.architect.swingui.PlayPen.KEY_DELETE_SELECTED"; //$NON-NLS-1$
-
 	public enum MouseModeType {IDLE,
 						CREATING_TABLE,
 						CREATING_RELATIONSHIP,
@@ -473,18 +466,20 @@ public class PlayPen extends JPanel
         tSpec.setOdbcDsn(dbcs.getOdbcDsn());
     }
 
-	void setupKeyboardActions() {
-		ArchitectFrame af = session.getArchitectFrame();
+    void setupKeyboardActions() {
+        
+        String KEY_DELETE_SELECTED = "ca.sqlpower.architect.swingui.PlayPen.KEY_DELETE_SELECTED"; //$NON-NLS-1$
+        ArchitectFrame af = session.getArchitectFrame();
 
-		InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), KEY_DELETE_SELECTED);
-		getActionMap().put(KEY_DELETE_SELECTED, af.getDeleteSelectedAction());
-		if (af.getDeleteSelectedAction() == null) logger.warn("af.deleteSelectedAction is null!"); //$NON-NLS-1$
+        getActionMap().put(KEY_DELETE_SELECTED, af.getDeleteSelectedAction());
+        if (af.getDeleteSelectedAction() == null) logger.warn("af.deleteSelectedAction is null!"); //$NON-NLS-1$
 
-		getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL"); //$NON-NLS-1$
-		getActionMap().put("CANCEL", new CancelAction(this)); //$NON-NLS-1$
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL"); //$NON-NLS-1$
+        getActionMap().put("CANCEL", new CancelAction(this)); //$NON-NLS-1$
 
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomToFitAction().getValue(Action.ACCELERATOR_KEY), "ZOOM TO FIT"); //$NON-NLS-1$
         getActionMap().put("ZOOM TO FIT", af.getZoomToFitAction()); //$NON-NLS-1$
@@ -498,102 +493,84 @@ public class PlayPen extends JPanel
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomResetAction().getValue(Action.ACCELERATOR_KEY), "ZOOM RESET"); //$NON-NLS-1$
         getActionMap().put("ZOOM RESET", af.getZoomResetAction()); //$NON-NLS-1$
 
-		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateTableAction().getValue(Action.ACCELERATOR_KEY), "NEW TABLE"); //$NON-NLS-1$
-		getActionMap().put("NEW TABLE", af.getCreateTableAction()); //$NON-NLS-1$
+        final Object KEY_SELECT_UPWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_UPWARD"; //$NON-NLS-1$
+        final Object KEY_SELECT_DOWNWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_DOWNWARD"; //$NON-NLS-1$
 
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getInsertColumnAction().getValue(Action.ACCELERATOR_KEY), "NEW COLUMN"); //$NON-NLS-1$
-        getActionMap().put("NEW COLUMN", af.getInsertColumnAction()); //$NON-NLS-1$
-
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getInsertIndexAction().getValue(Action.ACCELERATOR_KEY), "NEW INDEX"); //$NON-NLS-1$
-        getActionMap().put("NEW INDEX", af.getInsertIndexAction()); //$NON-NLS-1$
-
-		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY), "NEW IDENTIFYING RELATION"); //$NON-NLS-1$
-		getActionMap().put("NEW IDENTIFYING RELATION", af.getCreateIdentifyingRelationshipAction()); //$NON-NLS-1$
-
-		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateNonIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY), "NEW NON IDENTIFYING RELATION"); //$NON-NLS-1$
-		getActionMap().put("NEW NON IDENTIFYING RELATION", af.getCreateNonIdentifyingRelationshipAction()); //$NON-NLS-1$
-
-		final Object KEY_SELECT_UPWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_UPWARD"; //$NON-NLS-1$
-		final Object KEY_SELECT_DOWNWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_DOWNWARD"; //$NON-NLS-1$
-		final Object KEY_EDIT_SELECTION = "ca.sqlpower.architect.PlayPen.KEY_EDIT_SELECTION"; //$NON-NLS-1$
-
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), KEY_SELECT_UPWARD);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), KEY_SELECT_DOWNWARD);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), KEY_EDIT_SELECTION);
-
-		getActionMap().put(KEY_SELECT_UPWARD, new AbstractAction() {
-			public void actionPerformed(ActionEvent e) {
-				List<PlayPenComponent> items = getSelectedItems();
-				if (items.size() == 1) {
-					PlayPenComponent item = items.get(0);
-					if (item instanceof TablePane) {
-						TablePane tp = (TablePane) item;
-						int oldIndex = tp.getSelectedItemIndex();
-						if (oldIndex > 0) {
-							try {
-							    int newIndex = oldIndex;
-							    while (newIndex - 1 >= 0) {
-							        newIndex--;
-							        if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
-							            break;
-							        }
-							    }
-							    if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
-							        tp.selectNone();
-							        tp.selectItem(newIndex);
-							    }
-							} catch (ArchitectException ex) {
-							    throw new ArchitectRuntimeException(ex);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), KEY_SELECT_UPWARD);
+        getActionMap().put(KEY_SELECT_UPWARD, new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                List<PlayPenComponent> items = getSelectedItems();
+                if (items.size() == 1) {
+                    PlayPenComponent item = items.get(0);
+                    if (item instanceof TablePane) {
+                        TablePane tp = (TablePane) item;
+                        int oldIndex = tp.getSelectedItemIndex();
+                        
+                        try {
+                            if (oldIndex < 0) {
+                                oldIndex = tp.getModel().getColumns().size();
                             }
-						}
-					}
-				}
-			}
-		});
+                            int newIndex = oldIndex;
+                            while (newIndex - 1 >= 0) {
+                                newIndex--;
+                                if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
+                                    break;
+                                }
+                            }
+                            if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
+                                tp.selectNone();
+                                tp.selectItem(newIndex);
+                            }
+                        } catch (ArchitectException ex) {
+                            throw new ArchitectRuntimeException(ex);
+                        }
+                    }
+                }
+            }
+        });
 
-		getActionMap().put(KEY_SELECT_DOWNWARD, new AbstractAction() {
-			public void actionPerformed(ActionEvent e) {
-				List<PlayPenComponent> items = getSelectedItems();
-				if (items.size() == 1) {
-					PlayPenComponent item = items.get(0);
-					if (item instanceof TablePane) {
-						TablePane tp = (TablePane) item;
-						int oldIndex = tp.getSelectedItemIndex();
-
-						try {
-							if (oldIndex < tp.getModel().getColumns().size() - 1) {
-	                            try {
-	                                int newIndex = oldIndex;
-	                                while (newIndex + 1 < tp.getModel().getColumns().size()) {
-	                                    newIndex++;
-	                                    if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
-	                                        break;
-	                                    }
-	                                }
-	                                if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
-	                                    tp.selectNone();
-	                                    tp.selectItem(newIndex);
-	                                }
-	                            } catch (ArchitectException ex) {
-	                                throw new ArchitectRuntimeException(ex);
-	                            }
-							}
-						} catch (ArchitectException e1) {
-							logger.error("Could not get columns of "+ tp.getName(), e1); //$NON-NLS-1$
-						}
-					}
-				}
-			}
-		});
-
-		getActionMap().put(KEY_EDIT_SELECTION, new AbstractAction(){
-			public void actionPerformed(ActionEvent e) {
-				ActionEvent ev = new ActionEvent(e.getSource(), e.getID(),
-								ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN,
-								e.getWhen(), e.getModifiers());
-				session.getArchitectFrame().getEditSelectedAction().actionPerformed(ev);
-			}
-		});
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), KEY_SELECT_DOWNWARD);
+        getActionMap().put(KEY_SELECT_DOWNWARD, new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                List<PlayPenComponent> items = getSelectedItems();
+                if (items.size() == 1) {
+                    PlayPenComponent item = items.get(0);
+                    if (item instanceof TablePane) {
+                        TablePane tp = (TablePane) item;
+                        int oldIndex = tp.getSelectedItemIndex();
+                        
+                        // If the selected "column" is one of the special values
+                        // (title, none, before pk, etc) then pressing down arrow
+                        // should select the first column
+                        if (oldIndex < 0) {
+                            oldIndex = -1;
+                        }
+                        
+                        try {
+                            if (oldIndex < tp.getModel().getColumns().size() - 1) {
+                                try {
+                                    int newIndex = oldIndex;
+                                    while (newIndex + 1 < tp.getModel().getColumns().size()) {
+                                        newIndex++;
+                                        if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
+                                            break;
+                                        }
+                                    }
+                                    if (!tp.getHiddenColumns().contains(tp.getModel().getColumn(newIndex))) {
+                                        tp.selectNone();
+                                        tp.selectItem(newIndex);
+                                    }
+                                } catch (ArchitectException ex) {
+                                    throw new ArchitectRuntimeException(ex);
+                                }
+                            }
+                        } catch (ArchitectException e1) {
+                            logger.error("Could not get columns of "+ tp.getName(), e1); //$NON-NLS-1$
+                        }
+                    }
+                }
+            }
+        });
         
         addKeyListener(new KeyListener() {
 
@@ -610,9 +587,9 @@ public class PlayPen extends JPanel
             public void keyTyped(KeyEvent e) { changeCursor(e); }
             
         });
-	}
+    }
 
-	/**
+    /**
 	 * Tells whether or not this PlayPen instance is in debugging mode.
 	 * Currently, this is controlled by log4j settings, but that may change
 	 * in the future.
