@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -28,6 +28,9 @@ import java.util.List;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.ContainerPane;
+import ca.sqlpower.architect.swingui.ContainerPaneUI;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
 
 public class DimensionPane extends ContainerPane<SQLTable, SQLColumn> {
     

@@ -120,6 +120,7 @@ import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.CubeEditPanel;
+import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;

@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -29,20 +29,24 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.font.FontRenderContext;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.Measure;
+import ca.sqlpower.architect.swingui.ContainerPane;
+import ca.sqlpower.architect.swingui.ContainerPaneUI;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.PlayPenComponentUI;
 
-public class BasicDimensionPaneUI extends ContainerPaneUI {
-    
-    private static Logger logger = Logger.getLogger(BasicDimensionPaneUI.class);
+public class BasicCubePaneUI extends ContainerPaneUI {
+
+ private static Logger logger = Logger.getLogger(BasicCubePaneUI.class);
     
     /**
-     * The DimensionPane component that this UI delegate works for.
+     * The CubePane component that this UI delegate works for.
      */
-    private DimensionPane dimensionPane;
+    private CubePane cube;
 
     /**
      * Thickness (in Java2D units) of the surrounding box.
@@ -55,7 +59,7 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
     public static final int GAP = 1;
     
     /**
-     * The amount of extra (vertical) space between the table name and the columns. 
+     * The amount of extra (vertical) space between the dimensions and the measures. 
      */
     public static final int TABLE_GAP = 10;
     
@@ -72,11 +76,11 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
     protected Color selectedColor = new Color(204, 204, 255);
     
     public static PlayPenComponentUI createUI(PlayPenComponent c) {
-        return new BasicDimensionPaneUI();
+        return new BasicCubePaneUI();
     }
 
     public void installUI(PlayPenComponent c) {
-        dimensionPane = (DimensionPane) c;
+        cube = (CubePane) c;
         // TODO: add property change listener
     }
 
@@ -85,11 +89,11 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
     }
 
     public void paint(Graphics2D g) {
-        paint(g, dimensionPane);
+        paint(g, cube);
     }
     
     public void paint(Graphics g, PlayPenComponent ppc) {
-        DimensionPane dp = (DimensionPane) ppc;
+        CubePane cp = (CubePane) ppc;
         Graphics2D g2 = (Graphics2D) g;
 
         if (logger.isDebugEnabled()) {
@@ -99,7 +103,7 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
                 clip.width--;
                 clip.height--;
                 g2.draw(clip);
-                g2.setColor(dp.getForegroundColor());
+                g2.setColor(cp.getForegroundColor());
                 logger.debug("Clipping region: "+g2.getClip()); //$NON-NLS-1$
             } else {
                 logger.debug("Null clipping region"); //$NON-NLS-1$
@@ -107,75 +111,100 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
         }
 
         //  We don't want to paint inside the insets or borders.
-        Insets insets = dp.getInsets();
+        Insets insets = cp.getInsets();
 
         //builds a little buffer to reduce the clipping problem
         //this only seams to work at a non-zoomed level. This could 
         //use a little work (better fix)
         g.setColor(Color.WHITE);
-        g.fillRect(0, 0, dp.getWidth(), dp.getHeight());
+        g.fillRect(0, 0, cp.getWidth(), cp.getHeight());
 
         g.translate(insets.left, insets.top);
 
-        int width = dp.getWidth() - insets.left - insets.right;
-        int height = dp.getHeight() - insets.top - insets.bottom;
+        int width = cp.getWidth() - insets.left - insets.right;
+        int height = cp.getHeight() - insets.top - insets.bottom;
 
-        Font font = dp.getFont();
+        Font font = cp.getFont();
         if (font == null) {
-            // This happens when the dimension exists but has no visible ancestor.
+            // This happens when the cube exists but has no visible ancestor.
             // Don't ask me why it's being asked to paint under those circumstances!
-            //logger.error("paint(): Null font in DimensionPane "+c);
+            //logger.error("paint(): Null font in CubePane "+c);
             return;
         }
 
-        FontMetrics metrics = dp.getFontMetrics(font);
+        FontMetrics metrics = cp.getFontMetrics(font);
         int fontHeight = metrics.getHeight();
         int ascent = metrics.getAscent();
         int maxDescent = metrics.getMaxDescent();
-        int indentWidth = calculateTextWidth(dp, " ");
+        int indentWidth = calculateTextWidth(cp, " ");
         int y = 0;
 
-        g2.setColor(dp.getPlayPen().getBackground());
+        g2.setColor(cp.getPlayPen().getBackground());
         g2.fillRect(0, 0, width, height);
         // no need to reset to foreground: next operation always changes the colour
 
-        if (dp.isSelected()) {
-            g2.setColor(dp.getBackgroundColor().darker());
+        if (cp.isSelected()) {
+            g2.setColor(cp.getBackgroundColor().darker());
         } else {
-            g2.setColor(dp.getBackgroundColor());
+            g2.setColor(cp.getBackgroundColor());
         }
-        g2.fillRoundRect(0, 0, dp.getWidth(), fontHeight, ARC_LENGTH, ARC_LENGTH);
+        g2.fillRoundRect(0, 0, cp.getWidth(), fontHeight, ARC_LENGTH, ARC_LENGTH);
 
-        g2.setColor(dp.getForegroundColor());
+        g2.setColor(cp.getForegroundColor());
 
-        // print dimension name
-        g2.drawString(dp.getDimensionName(), 0, y += ascent);
+        // print cube name
+        g2.drawString(cp.getCubeName(), 0, y += ascent);
 
         g2.setColor(Color.BLACK);
         
         y += GAP + BOX_LINE_THICKNESS;
         
-        g2.setColor(dp.getForegroundColor());
-        g2.drawString(dp.getDummyTable().getName(), BOX_LINE_THICKNESS, y += fontHeight);
+        g2.setColor(cp.getForegroundColor());
+        g2.drawString("Dimensions", BOX_LINE_THICKNESS, y += fontHeight);
 
         y+= TABLE_GAP;
         g2.setColor(Color.BLACK);
         g2.drawLine(0, y+maxDescent-(TABLE_GAP/2), width-1, y+maxDescent-(TABLE_GAP/2));
 
-        // print columns
+        // print dimensions
         int i = 0;
-        int hwidth = width - dp.getMargin().right - dp.getMargin().left - BOX_LINE_THICKNESS*2;
-        for (SQLColumn col : dp.getItems()) {
-            // draws the column
-            if (dp.isItemSelected(i)) {
-                if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$
+        int hwidth = width - cp.getMargin().right - cp.getMargin().left - BOX_LINE_THICKNESS*2;
+        for (CubeDimension dim : cp.getCube().getDimensions()) {
+            // draws the dimensions
+            if (cp.isItemSelected(i)) {
+                if (logger.isDebugEnabled()) logger.debug("Item "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$
                 g2.setColor(selectedColor);
-                g2.fillRect(BOX_LINE_THICKNESS + dp.getMargin().left, y-ascent+fontHeight,
+                g2.fillRect(BOX_LINE_THICKNESS + cp.getMargin().left, y-ascent+fontHeight,
                         hwidth, fontHeight);
             }
-            g2.setColor(dp.getForegroundColor());
-            g2.drawString(col.getShortDisplayName(), BOX_LINE_THICKNESS +
-                    dp.getMargin().left + i * indentWidth, y += fontHeight);
+            g2.setColor(cp.getForegroundColor());
+            g2.drawString(dim.getName(), BOX_LINE_THICKNESS +
+                    cp.getMargin().left + i * indentWidth, y += fontHeight);
+            i++;
+        }
+        
+        
+        y += GAP + BOX_LINE_THICKNESS;
+        
+        g2.setColor(cp.getForegroundColor());
+        g2.drawString("Measures", BOX_LINE_THICKNESS, y += fontHeight);
+
+        y+= TABLE_GAP;
+        g2.setColor(Color.BLACK);
+        g2.drawLine(0, y+maxDescent-(TABLE_GAP/2), width-1, y+maxDescent-(TABLE_GAP/2));
+
+        // print measures
+        for (Measure measure : cp.getCube().getMeasures()) {
+            // draws the measures
+            if (cp.isItemSelected(i)) {
+                if (logger.isDebugEnabled()) logger.debug("Item "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$
+                g2.setColor(selectedColor);
+                g2.fillRect(BOX_LINE_THICKNESS + cp.getMargin().left, y-ascent+fontHeight,
+                        hwidth, fontHeight);
+            }
+            g2.setColor(cp.getForegroundColor());
+            g2.drawString(measure.getName(), BOX_LINE_THICKNESS +
+                    cp.getMargin().left + i * indentWidth, y += fontHeight);
             i++;
         }
 
@@ -188,22 +217,22 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
     }
 
     public Dimension getPreferredSize() {
-        return getPreferredSize(dimensionPane);
+        return getPreferredSize(cube);
     }
     
     public Dimension getPreferredSize(PlayPenComponent ppc) {
-        DimensionPane c = (DimensionPane) ppc;
+        CubePane c = (CubePane) ppc;
 
         int height = 0;
         int width = 0;
 
         Insets insets = c.getInsets();
-        List<SQLColumn> columnList = c.getItems();
-        int cols = columnList.size();
+        int dims = c.getCube().getDimensions().size();
+        int measures = c.getCube().getMeasures().size();
 
         Font font = c.getFont();
         if (font == null) {
-            logger.error("getPreferredSize(): DimensionPane is missing font."); //$NON-NLS-1$
+            logger.error("getPreferredSize(): CubePane is missing font."); //$NON-NLS-1$
             return null;
         }
 
@@ -211,20 +240,34 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
         int fontHeight = metrics.getHeight();
         int indentWidth = calculateTextWidth(c, " ");
 
-        height = insets.top + fontHeight + GAP + fontHeight + TABLE_GAP + c.getMargin().top + cols * fontHeight +
-                BOX_LINE_THICKNESS*2 + c.getMargin().bottom + insets.bottom;
+        // XXX the following expression needs to be revised after cubepane becomes responsive to various events.
+        height = insets.top + fontHeight + GAP + fontHeight + TABLE_GAP + c.getMargin().top + dims * fontHeight + 
+        GAP + fontHeight + TABLE_GAP + c.getMargin().top + measures * fontHeight + BOX_LINE_THICKNESS*2 +     // This line is added after 
+        BOX_LINE_THICKNESS*2 + c.getMargin().bottom + insets.bottom;
+        
         width = MINIMUM_WIDTH;
+        
+        System.out.println("Namewidth" + calculateTextWidth(c, c.getCubeName()));
 
-        width = Math.max(width, calculateTextWidth(c, c.getDimensionName()));
-        width = Math.max(width, calculateTextWidth(c, c.getDummyTable().getName()));
+        width = Math.max(width, calculateTextWidth(c, c.getCubeName()));
+        width = Math.max(width, calculateTextWidth(c, "Dimensions"));
+        width = Math.max(width, calculateTextWidth(c, "Measures"));
         
         int i = 0;
-        for (SQLColumn col : c.getItems()) {
-            if (col == null) {
+        for (CubeDimension dim : c.getCube().getDimensions()) {
+            if (dim == null) {
                 logger.error("Found null column in dimension '"+c.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
                 throw new NullPointerException("Found null column in dimension '"+c.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
             }
-            width = Math.max(width, calculateTextWidth(c, col.getShortDisplayName()) + i * indentWidth);
+            width = Math.max(width, calculateTextWidth(c, dim.getName()) + i * indentWidth);
+            i++;
+        }
+        for (Measure measure : c.getCube().getMeasures()) {
+            if (measure == null) {
+                logger.error("Found null column in measures '"+c.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
+                throw new NullPointerException("Found null column in dimension '"+c.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
+            }
+            width = Math.max(width, calculateTextWidth(c, measure.getName()) + i * indentWidth);
             i++;
         }
 
@@ -251,18 +294,22 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
 
     @Override
     public int pointToItemIndex(Point p) {
-        Font font = dimensionPane.getFont();
-        FontMetrics metrics = dimensionPane.getFontMetrics(font);
+        Font font = cube.getFont();
+        FontMetrics metrics = cube.getFontMetrics(font);
         int fontHeight = metrics.getHeight();
 
-        int numCols = dimensionPane.getItems().size();
-        int firstColStart = fontHeight * 2 + GAP + BOX_LINE_THICKNESS * 2 + TABLE_GAP + dimensionPane.getMargin().top;
+        int numDims = cube.getCube().getDimensions().size();
+        int firstDimStart = fontHeight * 2 + GAP + BOX_LINE_THICKNESS * 2 + TABLE_GAP + cube.getMargin().top;
+        
+        int numMeasures = cube.getCube().getMeasures().size();
+        int firstMeasureStart = fontHeight * 2 + GAP + fontHeight + TABLE_GAP + cube.getMargin().top + numDims * fontHeight + 
+        GAP + fontHeight + TABLE_GAP + cube.getMargin().top;
 
         if (logger.isDebugEnabled()) logger.debug("p.y = "+p.y); //$NON-NLS-1$
         
         int returnVal;
         
-        logger.debug("font height: " + fontHeight + ", firstColStart: " + firstColStart); //$NON-NLS-1$ //$NON-NLS-2$
+        logger.debug("font height: " + fontHeight + ", firstColStart: " + firstDimStart); //$NON-NLS-1$ //$NON-NLS-2$
         
         if (p.y < 0) {
             logger.debug("y<0"); //$NON-NLS-1$
@@ -270,8 +317,10 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
         } else if (p.y <= fontHeight) {
             logger.debug("y<=fontHeight = "+fontHeight); //$NON-NLS-1$
             returnVal = ContainerPane.ITEM_INDEX_TITLE;
-        } else if (p.y > firstColStart && p.y <= firstColStart + numCols * fontHeight) {
-            returnVal = (p.y - firstColStart) / fontHeight;
+        } else if (p.y > firstDimStart && p.y <= firstDimStart + numDims * fontHeight) {
+            returnVal = (p.y - firstDimStart) / fontHeight;
+        } else if (p.y > firstMeasureStart && p.y <= firstMeasureStart + numMeasures * fontHeight) {
+            returnVal = (p.y - firstDimStart + p.y - firstMeasureStart) / fontHeight;
         } else {
             returnVal = ContainerPane.ITEM_INDEX_NONE;
         }
@@ -280,9 +329,10 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
     }
     
     public boolean contains(Point p) {
-        return dimensionPane.getBounds().contains(p);
+        return cube.getBounds().contains(p);
     }
 
     public void revalidate() {
     }
+
 }

@@ -22,6 +22,8 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Point;
 import java.io.Serializable;
 
+import ca.sqlpower.architect.swingui.olap.DimensionPane;
+
 public abstract class ContainerPaneUI implements PlayPenComponentUI, Serializable {
     
     /**
