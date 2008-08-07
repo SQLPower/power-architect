@@ -22,7 +22,7 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Point;
 import java.io.Serializable;
 
-public abstract class DimensionPaneUI implements PlayPenComponentUI, Serializable {
+public abstract class ContainerPaneUI implements PlayPenComponentUI, Serializable {
     
     /**
      * This delegate method is specified by {@link DimensionPane#pointToItemIndex(Point)}

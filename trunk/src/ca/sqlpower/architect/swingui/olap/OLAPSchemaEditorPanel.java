@@ -39,6 +39,14 @@ public class OLAPSchemaEditorPanel {
 
     private final ArchitectSwingSession session;
     private final JTree tree;
+    private final OLAPTreeModel treeModel;
+    
+    /**
+     * This is the playpen used within OLAP schema editor. To access this
+     * playpen, call
+     * {@link ArchitectSwingSession#getArchitectFrame()#getOlapSchemaEditor()#getOlapPlayPen()}
+     * <strong>instead of</strong> {@link ArchitectSwingSession#getPlayPen()}.
+     */
     private final PlayPen pp;
     private final JPanel panel;
     
@@ -51,9 +59,10 @@ public class OLAPSchemaEditorPanel {
      */
     public OLAPSchemaEditorPanel(ArchitectSwingSession session, Schema schema) {
         this.session = session;
-        tree = new JTree(new OLAPTreeModel(schema));
+        tree = new JTree(treeModel = new OLAPTreeModel(schema));
         tree.setCellRenderer(new OLAPTreeCellRenderer());
         pp = new PlayPen(session);
+        session.getArchitectFrame().setOlapSchemaEditor(this);
         
         JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
         toolbar.add(new CreateDimensionAction(session, schema));
@@ -72,5 +81,16 @@ public class OLAPSchemaEditorPanel {
     
     public JComponent getPanel() {
         return panel;
+    }
+    
+    /**
+     * Returns the playpen used within OLAP Schema Editor
+     */
+    public PlayPen getOlapPlayPen() {
+        return pp;
+    }
+    
+    public OLAPTreeModel getOlapTreeModel() {
+        return treeModel;
     }
 }

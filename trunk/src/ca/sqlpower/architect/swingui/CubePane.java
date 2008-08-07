@@ -25,31 +25,22 @@ import java.beans.PropertyChangeEvent;
 import java.util.HashSet;
 import java.util.List;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
 
-public class DimensionPane extends ContainerPane<SQLTable, SQLColumn> {
-    
-    private List<SQLColumn> columns;
+public class CubePane extends ContainerPane<Cube, OLAPObject> {
 
-    public DimensionPane(String dimensionName, SQLTable m, PlayPenContentPane parent) {
+    public CubePane(Cube model, PlayPenContentPane parent) {
         super(parent);
         
-        this.selectedItems = new HashSet<SQLColumn>();
-        
-        this.model = m;
-        try {
-            columns = m.getColumns();
-        } catch (ArchitectException e) {
-        }
-        
+        this.selectedItems = new HashSet<OLAPObject>();
+        this.model = model;
         updateUI();
     }
     
     @Override
-    protected List<SQLColumn> getItems() {
-        return getColumns();
+    protected List<OLAPObject> getItems() {
+        return model.getChildren();
     }
 
 
@@ -62,25 +53,21 @@ public class DimensionPane extends ContainerPane<SQLTable, SQLColumn> {
     // see also PlayPenComponent
 
     public void updateUI() {
-        ContainerPaneUI ui = (ContainerPaneUI) BasicDimensionPaneUI.createUI(this);
+        ContainerPaneUI ui = (ContainerPaneUI) BasicCubePaneUI.createUI(this);
         ui.installUI(this);
         setUI(ui);
     }
 
-    public SQLTable getDummyTable() {
+    public Cube getCube() {
         return model;
     }
 
-    private List<SQLColumn> getColumns() {
-        return columns;
-    }
-
-    public String getDimensionName() {
+    public String getCubeName() {
         return model.getName();
     }
     
     /**
-     * Sets the new bounds and the new location of the dimensionPane,
+     * Sets the new bounds and the new location of the CubePane,
      * but also fires property change event associated with location change.
      */
     @Override
@@ -93,7 +80,7 @@ public class DimensionPane extends ContainerPane<SQLTable, SQLColumn> {
     }
 
     /**
-     * @see #Dimension#setBoundsImpl()
+     * @see #CubePane#setBoundsImpl()
      */
     @Override
     public void setBounds(int x, int y, int width, int height) {
@@ -102,6 +89,7 @@ public class DimensionPane extends ContainerPane<SQLTable, SQLColumn> {
 
     @Override
     public String toString() {
-        return "DimensionPane: " + model; //$NON-NLS-1$
+        return "CubePane: " + model.getName(); //$NON-NLS-1$
     }
+
 }

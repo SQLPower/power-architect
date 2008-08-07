@@ -114,14 +114,17 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.architect.layout.LineStraightenerLayout;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.architect.swingui.olap.CubeEditPanel;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
@@ -1557,7 +1560,13 @@ public class PlayPen extends JPanel
 					if (someData instanceof SQLTable) {
 						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation);
 						message = ArchitectUtils.truncateString(((SQLTable)someData).getName());
-						preferredLocation.x += tp.getPreferredSize().width + 5;
+						//TODO: the following 4 lines are to be removed
+						SQLTable newTable = SQLTable.getDerivedInstance((SQLTable)someData, session.getTargetDatabase());
+                        DimensionPane dp = new DimensionPane(newTable.getName(), newTable, contentPane);
+                        preferredLocation.translate(100, 100);
+                        addImpl(dp, preferredLocation, getPPComponentCount());
+
+                        preferredLocation.x += tp.getPreferredSize().width + 5;
 						progress++;
 					} else if (someData instanceof SQLSchema) {
 						SQLSchema sourceSchema = (SQLSchema) someData;
@@ -1634,8 +1643,8 @@ public class PlayPen extends JPanel
 	 * the database.  The new table will follow the mouse until the
 	 * user clicks.
 	 */
-	public void addFloating(TablePane tp) {
-	    new FloatingContainerPaneListener(this, tp, zoomPoint(new Point(tp.getSize().width/2,0)),true);
+	public void addFloating(ContainerPane cp) {
+	    new FloatingContainerPaneListener(this, cp, zoomPoint(new Point(cp.getSize().width/2,0)),true);
 	}
 
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
@@ -2518,23 +2527,40 @@ public class PlayPen extends JPanel
 					logger.debug("Placing table at: " + p); //$NON-NLS-1$
 					pp.addImpl(cp, p, pp.getPPComponentCount());
 					try {
-						pp.getSession().getTargetDatabase().addChild(((TablePane) cp).getModel());
-						pp.selectNone();
-						cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-						pp.mouseMode = MouseModeType.SELECT_TABLE;
-										
-						final ArchitectFrame frame = pp.getSession().getArchitectFrame();
-						final TableEditPanel editPanel = new TableEditPanel(pp.getSession(), (SQLTable) cp.getModel()) {
-						    @Override
-						    public void discardChanges() {
-						        pp.getSession().getTargetDatabase().removeChild(((TablePane) cp).getModel());
-                                pp.getTableNames().remove(((TablePane) cp).getModel().getName());
-						    }
-						};
+					    final ArchitectFrame frame = pp.getSession().getArchitectFrame();
+					    DataEntryPanel editPanel = null;
+					    if (cp instanceof TablePane) {
+					        pp.getSession().getTargetDatabase().addChild(((TablePane) cp).getModel());
+					        pp.selectNone();
+					        cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+					        pp.mouseMode = MouseModeType.SELECT_TABLE;
 
-	                    
-						JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
-						        editPanel, frame,
+					        editPanel = new TableEditPanel(pp.getSession(), (SQLTable) cp.getModel()) {
+					            @Override
+					            public void discardChanges() {
+					                pp.getSession().getTargetDatabase().removeChild(((TablePane) cp).getModel());
+					                pp.getTableNames().remove(((TablePane) cp).getModel().getName());
+					            }
+					        }; 
+					    } else {
+					        pp.getSession().getArchitectFrame().getOlapSchemaEditor().getOlapTreeModel().getRoot().
+					        addCube((Cube) cp.getModel());
+					        pp.selectNone();
+					        cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+                            pp.mouseMode = MouseModeType.SELECT_TABLE;
+
+                            editPanel = new CubeEditPanel((Cube) cp.getModel()) {
+                                @Override
+                                public void discardChanges() {
+                                    pp.getSession().getArchitectFrame().getOlapSchemaEditor().getOlapTreeModel().getRoot().removeCube((Cube) cp.getModel());
+//                                    pp.getTableNames().remove(((TablePane) cp).getModel().getName());
+                                }
+                            };
+					    }
+
+
+					    JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
+					            editPanel, frame,
 						        Messages.getString("PlayPen.tablePropertiesDialogTitle"), Messages.getString("PlayPen.okOption")); //$NON-NLS-1$ //$NON-NLS-2$
 						
 						d.pack();
