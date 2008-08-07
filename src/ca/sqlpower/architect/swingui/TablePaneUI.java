@@ -18,14 +18,8 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Point;
 
-public abstract class TablePaneUI implements PlayPenComponentUI, java.io.Serializable {
-
-	/**
-	 * This delegate method is specified by {@link TablePane#pointToItemIndex(Point)}
-	 */
-	public abstract int pointToItemIndex(Point p);
+public abstract class TablePaneUI extends ContainerPaneUI implements PlayPenComponentUI, java.io.Serializable {
 
     /**
      * This delegate method is specified by {@link TablePane#columnIndexToCentreY(int)}.

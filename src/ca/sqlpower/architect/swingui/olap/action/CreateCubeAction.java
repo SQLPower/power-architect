@@ -24,15 +24,20 @@ import java.awt.event.ActionEvent;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.CubePane;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 
 public class CreateCubeAction extends AbstractArchitectAction {
 
     private final Schema schema;
+    
+    private final PlayPen pp;
 
     public CreateCubeAction(ArchitectSwingSession session, Schema schema) {
         super(session, "New Cube...", "Create a new cube in this schema");
         this.schema = schema;
+        this.pp = session.getArchitectFrame().getOlapSchemaEditor().getOlapPlayPen();
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -40,7 +45,9 @@ public class CreateCubeAction extends AbstractArchitectAction {
             Cube cube = new Cube();
             cube.setName("New Cube");
             schema.addCube(cube);
-            new EditCubeAction(session, session.getArchitectFrame(), cube).actionPerformed(e);
+            CubePane cp = new CubePane(cube, pp.getContentPane());
+            pp.addFloating(cp);
+            pp.setMouseMode(PlayPen.MouseModeType.CREATING_TABLE);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
