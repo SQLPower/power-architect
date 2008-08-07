@@ -54,8 +54,6 @@ public class SQLComparatorTest extends TestCase {
 		t1.setName("cow");
 		t2.setName("pigs");
 		assertTrue( comparator.compare(t1,t2) < 0);
-	
-		
 	}
 	
 	public void testWithNullName() throws ArchitectException {

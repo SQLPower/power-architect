@@ -33,7 +33,7 @@ import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 
 public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 
-	private static Logger logger = Logger.getLogger(SQLRelationship.class);
+	private static Logger logger = Logger.getLogger(SQLRelationshipComparator.class);
 
 	SQLObjectComparator comparator = new SQLObjectComparator();
 
@@ -96,8 +96,8 @@ public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 
 	public int compareColumns(Set<SQLColumn> source, Set<SQLColumn> target) {
 
-		Iterator sourceIter = source.iterator();
-		Iterator targetIter = target.iterator();
+		Iterator<SQLColumn> sourceIter = source.iterator();
+		Iterator<SQLColumn> targetIter = target.iterator();
 		SQLColumn targetColumn;
 		SQLColumn sourceColumn;
 		boolean sourceContinue;
@@ -109,7 +109,7 @@ public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 
 			if (sourceIter.hasNext()) {
 				sourceContinue = true;
-				sourceColumn = (SQLColumn) sourceIter.next();
+				sourceColumn = sourceIter.next();
 			} else {
 				sourceContinue = false;
 				sourceColumn = null;
@@ -117,7 +117,7 @@ public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 
 			if (targetIter.hasNext()) {
 				targetContinue = true;
-				targetColumn = (SQLColumn) targetIter.next();
+				targetColumn = targetIter.next();
 			} else {
 				targetContinue = false;
 				targetColumn = null;

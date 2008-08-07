@@ -284,11 +284,8 @@ public class SQLIndex extends SQLObject {
                     return false;
             } else if (!column.equals(other.column))
                 return false;
-            if (ascendingOrDescending != other.ascendingOrDescending)
-                return false;
             return true;
         }
-
     }
 
     /**
