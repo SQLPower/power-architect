@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -27,6 +27,9 @@ import java.util.List;
 
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.swingui.ContainerPane;
+import ca.sqlpower.architect.swingui.ContainerPaneUI;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
 
 public class CubePane extends ContainerPane<Cube, OLAPObject> {
 

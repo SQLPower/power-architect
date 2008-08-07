@@ -24,9 +24,9 @@ import java.awt.event.ActionEvent;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.CubePane;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
+import ca.sqlpower.architect.swingui.olap.CubePane;
 
 public class CreateCubeAction extends AbstractArchitectAction {
 
