@@ -19,14 +19,20 @@
 
 package ca.sqlpower.architect.swingui.olap.action;
 
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.swingui.AbstractPlacer;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.olap.CubeEditPanel;
 import ca.sqlpower.architect.swingui.olap.CubePane;
+import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CreateCubeAction extends AbstractArchitectAction {
 
@@ -34,22 +40,48 @@ public class CreateCubeAction extends AbstractArchitectAction {
     
     private final PlayPen pp;
 
-    public CreateCubeAction(ArchitectSwingSession session, Schema schema) {
+    public CreateCubeAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
         super(session, "New Cube...", "Create a new cube in this schema");
         this.schema = schema;
-        this.pp = session.getArchitectFrame().getOlapSchemaEditor().getOlapPlayPen();
+        this.pp = pp;
     }
 
     public void actionPerformed(ActionEvent e) {
-        try {
-            Cube cube = new Cube();
-            cube.setName("New Cube");
-            schema.addCube(cube);
-            CubePane cp = new CubePane(cube, pp.getContentPane());
-            pp.addFloating(cp);
-            pp.setMouseMode(PlayPen.MouseModeType.CREATING_TABLE);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        Cube cube = new Cube();
+        cube.setName("New Cube");
+        CubePane cp = new CubePane(cube, pp.getContentPane());
+        CubePlacer cubePlacer = new CubePlacer(cp);
+        cubePlacer.dirtyup();
+    }
+
+    private class CubePlacer extends AbstractPlacer {
+
+        private final CubePane cp;
+
+        CubePlacer(CubePane cp) {
+            super(pp);
+            this.cp = cp;
+        }
+        
+        @Override
+        protected String getEditDialogTitle() {
+            return "Cube Properties";
+        }
+
+        @Override
+        public DataEntryPanel place(Point p) throws ArchitectException {
+            schema.addCube((Cube) cp.getModel());
+            pp.selectNone();
+            pp.addPlayPenComponent(cp, p);
+            cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+
+            CubeEditPanel editPanel = new CubeEditPanel((Cube) cp.getModel()) {
+                @Override
+                public void discardChanges() {
+                    schema.removeCube((Cube) cp.getModel());
+                }
+            };
+            return editPanel;
         }
     }
 

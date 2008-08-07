@@ -179,7 +179,7 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
                             + (otherContainer.getY() - clickedItem.getY()));
                     Point handle = pp.zoomPoint(new Point(p));
                     handle.translate((int)(clickedItem.getX() - otherContainer.getX()), (int) (clickedItem.getY() - otherContainer.getY()));
-                    new FloatingContainerPaneListener(pp, cp, handle,false);
+                    new FloatingContainerPaneListener(pp, cp, handle);
                 }
             }
         } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
