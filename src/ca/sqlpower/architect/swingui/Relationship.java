@@ -27,10 +27,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.JMenu;
@@ -54,9 +51,8 @@ import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class Relationship extends PlayPenComponent implements Selectable, SQLObjectListener, LayoutEdge {
+public class Relationship extends PlayPenComponent implements SQLObjectListener, LayoutEdge {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 
 	private SQLRelationship model;
@@ -68,7 +64,6 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	private boolean selected;
 	
 	private TablePaneBehaviourListener tpbListener = new TablePaneBehaviourListener();
-	private List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
 
     /**
 	 * The colour to highlight related columns with when this relationship is selected.
@@ -91,7 +86,6 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		this.selected = false;
 		this.tpbListener = new TablePaneBehaviourListener();
 		this.columnHighlightColour = r.columnHighlightColour;
-		this.selectionListeners = new ArrayList<SelectionListener>();
 		
 		this.foregroundColor = r.getForegroundColor();
 		this.backgroundColor = r.getBackgroundColor();
@@ -204,33 +198,6 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
     }
 
 	// --------------------- SELECTABLE SUPPORT ---------------------
-
-	public void addSelectionListener(SelectionListener l) {
-		selectionListeners.add(l);
-	}
-
-	public void removeSelectionListener(SelectionListener l) {
-		selectionListeners.remove(l);
-	}
-	
-	protected void fireSelectionEvent(SelectionEvent e) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Notifying "+selectionListeners.size() //$NON-NLS-1$
-						 +" listeners of selection change"); //$NON-NLS-1$
-		}
-		Iterator it = selectionListeners.iterator();
-		if (e.getType() == SelectionEvent.SELECTION_EVENT) {
-			while (it.hasNext()) {
-				((SelectionListener) it.next()).itemSelected(e);
-			}
-		} else if (e.getType() == SelectionEvent.DESELECTION_EVENT) {
-			while (it.hasNext()) {
-				((SelectionListener) it.next()).itemDeselected(e);
-			}
-		} else {
-			throw new IllegalStateException("Unknown selection event type "+e.getType()); //$NON-NLS-1$
-		}
-	}
 
 	public void setSelected(boolean isSelected,int multiSelectType) {
 		if (selected != isSelected) {

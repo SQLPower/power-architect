@@ -25,10 +25,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -39,7 +37,6 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 /**
  * A playpen component that represents a model with a list of individually selectable items. 
@@ -47,8 +44,7 @@ import ca.sqlpower.architect.swingui.event.SelectionListener;
  * @param <T> Class of the model
  * @param <C> Class of the an item.
  */
-public abstract class ContainerPane<T extends Object, C extends Object> extends PlayPenComponent implements
-        Serializable, Selectable {
+public abstract class ContainerPane<T extends Object, C extends Object> extends PlayPenComponent {
     
     /**
      * A special item index that represents the titlebar area.
@@ -75,8 +71,6 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
      */
     protected Insets margin = new Insets(1,1,1,1);
 
-    protected List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
-    
     /**
      * Tracks which items in this container are currently selected.
      */
@@ -273,33 +267,6 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
             selected = isSelected;
             fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT,multiSelectType));
             repaint();
-        }
-    }
-    
-    public void addSelectionListener(SelectionListener l) {
-        selectionListeners.add(l);
-    }
-
-    public void removeSelectionListener(SelectionListener l) {
-        selectionListeners.remove(l);
-    }
-
-    protected void fireSelectionEvent(SelectionEvent e) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Notifying "+selectionListeners.size() //$NON-NLS-1$
-                         +" listeners of selection change"); //$NON-NLS-1$
-        }
-        Iterator<SelectionListener> it = selectionListeners.iterator();
-        if (e.getType() == SelectionEvent.SELECTION_EVENT) {
-            while (it.hasNext()) {
-                it.next().itemSelected(e);
-            }
-        } else if (e.getType() == SelectionEvent.DESELECTION_EVENT) {
-            while (it.hasNext()) {
-                it.next().itemDeselected(e);
-            }
-        } else {
-            throw new IllegalStateException("Unknown selection event type "+e.getType()); //$NON-NLS-1$
         }
     }
     

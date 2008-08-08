@@ -31,10 +31,16 @@ import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.JPopupMenu;
 
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 /**
  * PlayPenComponent is the base class for a component that can live in the playpen's
@@ -429,4 +435,36 @@ public abstract class PlayPenComponent implements Selectable {
      * Performs the component specific actions for the given MouseEvent. 
      */
     public abstract void handleMouseEvent(MouseEvent evt);
+
+    // --------------------- SELECTABLE SUPPORT ---------------------
+
+    private List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
+
+    public final void addSelectionListener(SelectionListener l) {
+        selectionListeners.add(l);
+    }
+
+    public final void removeSelectionListener(SelectionListener l) {
+        selectionListeners.remove(l);
+    }
+
+    protected final void fireSelectionEvent(SelectionEvent e) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Notifying "+selectionListeners.size() //$NON-NLS-1$
+                         +" listeners of selection change"); //$NON-NLS-1$
+        }
+        Iterator<SelectionListener> it = selectionListeners.iterator();
+        if (e.getType() == SelectionEvent.SELECTION_EVENT) {
+            while (it.hasNext()) {
+                it.next().itemSelected(e);
+            }
+        } else if (e.getType() == SelectionEvent.DESELECTION_EVENT) {
+            while (it.hasNext()) {
+                it.next().itemDeselected(e);
+            }
+        } else {
+            throw new IllegalStateException("Unknown selection event type "+e.getType()); //$NON-NLS-1$
+        }
+    }
+
 }
