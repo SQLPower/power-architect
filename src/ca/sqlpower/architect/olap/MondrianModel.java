@@ -500,6 +500,7 @@ public static class Schema extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof Parameter) {
@@ -526,6 +527,7 @@ public static class Schema extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Schema
@@ -602,11 +604,13 @@ public abstract static class CubeDimension extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of class CubeDimension
@@ -965,6 +969,7 @@ public static class Cube extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof CubeDimension) {
@@ -985,6 +990,7 @@ public static class Cube extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Cube
@@ -1326,6 +1332,7 @@ public static class VirtualCube extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof VirtualCubeDimension) {
@@ -1346,6 +1353,7 @@ public static class VirtualCube extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element VirtualCube
@@ -1433,6 +1441,7 @@ public static class CubeUsages extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof CubeUsage) {
@@ -1441,6 +1450,7 @@ public static class CubeUsages extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element CubeUsages
@@ -1498,11 +1508,13 @@ public static class CubeUsage extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element CubeUsage
@@ -1562,11 +1574,13 @@ public static class VirtualCubeDimension extends CubeDimension {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element VirtualCubeDimension
@@ -1641,11 +1655,13 @@ public static class VirtualCubeMeasure extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element VirtualCubeMeasure
@@ -1724,11 +1740,13 @@ public static class DimensionUsage extends CubeDimension {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element DimensionUsage
@@ -1889,6 +1907,7 @@ public static class Dimension extends CubeDimension {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof Hierarchy) {
@@ -1897,6 +1916,7 @@ public static class Dimension extends CubeDimension {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Dimension
@@ -2224,6 +2244,7 @@ public static class Hierarchy extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof Level) {
@@ -2238,6 +2259,7 @@ public static class Hierarchy extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Hierarchy
@@ -2658,6 +2680,7 @@ public static class Level extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof Property) {
@@ -2681,6 +2704,7 @@ public static class Level extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Level
@@ -2751,6 +2775,7 @@ public static class Closure extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof Table) {
@@ -2759,6 +2784,7 @@ public static class Closure extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Closure
@@ -2863,11 +2889,13 @@ public static class Property extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Property
@@ -3100,6 +3128,7 @@ public static class Measure extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof CalculatedMemberProperty) {
@@ -3111,6 +3140,7 @@ public static class Measure extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Measure
@@ -3305,6 +3335,7 @@ public static class CalculatedMember extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof CalculatedMemberProperty) {
@@ -3316,6 +3347,7 @@ public static class CalculatedMember extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element CalculatedMember
@@ -3410,11 +3442,13 @@ public static class CalculatedMemberProperty extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element CalculatedMemberProperty
@@ -3504,6 +3538,7 @@ public static class NamedSet extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof Formula) {
@@ -3512,6 +3547,7 @@ public static class NamedSet extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element NamedSet
@@ -3526,6 +3562,19 @@ public static class Formula extends OLAPObject {
     }
     
 
+	private String text;
+	
+	public String getText() {
+		return text;
+	}
+	
+	public void setText(String newval) {
+		String oldval = text;
+		text = newval;
+		pcs.firePropertyChange("text", oldval, newval);
+	}
+
+
     @Override
     public List<OLAPObject> getChildren() {
         return Collections.emptyList();
@@ -3538,11 +3587,13 @@ public static class Formula extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Formula
@@ -3595,11 +3646,13 @@ public static class MemberReaderParameter extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element MemberReaderParameter
@@ -3626,11 +3679,13 @@ public abstract static class RelationOrJoin extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of class RelationOrJoin
@@ -3657,11 +3712,13 @@ public abstract static class Relation extends RelationOrJoin {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of class Relation
@@ -3762,6 +3819,7 @@ public static class View extends Relation {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof SQL) {
@@ -3770,6 +3828,7 @@ public static class View extends Relation {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element View
@@ -3799,6 +3858,19 @@ public static class SQL extends OLAPObject {
         pcs.firePropertyChange("dialect", oldval, newval);
     }
 
+	private String text;
+	
+	public String getText() {
+		return text;
+	}
+	
+	public void setText(String newval) {
+		String oldval = text;
+		text = newval;
+		pcs.firePropertyChange("text", oldval, newval);
+	}
+
+
     @Override
     public List<OLAPObject> getChildren() {
         return Collections.emptyList();
@@ -3811,11 +3883,13 @@ public static class SQL extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element SQL
@@ -3926,17 +4000,19 @@ public static class Join extends RelationOrJoin {
     
     @Override
     public void addChild(OLAPObject child) {
-        if (false) {
-        
-        } else if (child instanceof RelationOrJoin) {
+		
+		if (false) {
+		
+		} else if (child instanceof RelationOrJoin) {
+            if (getLeft() == null) {
             setLeft((RelationOrJoin) child);
-        
-        } else if (child instanceof RelationOrJoin) {
-            setRight((RelationOrJoin) child);
-        
+            } else if (getRight() == null) {
+                setRight((RelationOrJoin) child);
+            }
         } else {
-            super.addChild(child);
+        	super.addChild(child);
         }
+			    
     }
 
 } // end of element Join
@@ -4138,6 +4214,7 @@ public static class Table extends Relation {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof AggExclude) {
@@ -4152,6 +4229,7 @@ public static class Table extends Relation {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Table
@@ -4223,6 +4301,7 @@ public static class InlineTable extends Relation {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof ColumnDefs) {
@@ -4234,6 +4313,7 @@ public static class InlineTable extends Relation {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element InlineTable
@@ -4319,6 +4399,7 @@ public static class ColumnDefs extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof ColumnDef) {
@@ -4327,6 +4408,7 @@ public static class ColumnDefs extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element ColumnDefs
@@ -4386,11 +4468,13 @@ public static class ColumnDef extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element ColumnDef
@@ -4476,6 +4560,7 @@ public static class Rows extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof Row) {
@@ -4484,6 +4569,7 @@ public static class Rows extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Rows
@@ -4572,6 +4658,7 @@ public static class Row extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof Value) {
@@ -4580,6 +4667,7 @@ public static class Row extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Row
@@ -4612,6 +4700,19 @@ public static class Value extends OLAPObject {
         pcs.firePropertyChange("column", oldval, newval);
     }
 
+	private String text;
+	
+	public String getText() {
+		return text;
+	}
+	
+	public void setText(String newval) {
+		String oldval = text;
+		text = newval;
+		pcs.firePropertyChange("text", oldval, newval);
+	}
+
+
     @Override
     public List<OLAPObject> getChildren() {
         return Collections.emptyList();
@@ -4624,11 +4725,13 @@ public static class Value extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Value
@@ -4910,6 +5013,7 @@ public abstract static class AggTable extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof AggIgnoreColumn) {
@@ -4930,6 +5034,7 @@ public abstract static class AggTable extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of class AggTable
@@ -4971,11 +5076,13 @@ public static class AggName extends AggTable {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element AggName
@@ -5076,6 +5183,7 @@ public static class AggPattern extends AggTable {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof AggExclude) {
@@ -5084,6 +5192,7 @@ public static class AggPattern extends AggTable {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element AggPattern
@@ -5155,11 +5264,13 @@ public static class AggExclude extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element AggExclude
@@ -5201,11 +5312,13 @@ public abstract static class AggColumnName extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of class AggColumnName
@@ -5232,11 +5345,13 @@ public static class AggFactCount extends AggColumnName {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element AggFactCount
@@ -5263,11 +5378,13 @@ public static class AggIgnoreColumn extends AggColumnName {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element AggIgnoreColumn
@@ -5327,11 +5444,13 @@ public static class AggForeignKey extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element AggForeignKey
@@ -5388,11 +5507,13 @@ public static class AggLevel extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element AggLevel
@@ -5449,11 +5570,13 @@ public static class AggMeasure extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element AggMeasure
@@ -5480,11 +5603,13 @@ public abstract static class Expression extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of class Expression
@@ -5542,11 +5667,13 @@ public static class Column extends Expression {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Column
@@ -5634,6 +5761,7 @@ public abstract static class ExpressionView extends Expression {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof SQL) {
@@ -5642,6 +5770,7 @@ public abstract static class ExpressionView extends Expression {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of class ExpressionView
@@ -5668,11 +5797,13 @@ public static class KeyExpression extends ExpressionView {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element KeyExpression
@@ -5699,11 +5830,13 @@ public static class ParentExpression extends ExpressionView {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element ParentExpression
@@ -5730,11 +5863,13 @@ public static class OrdinalExpression extends ExpressionView {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element OrdinalExpression
@@ -5761,11 +5896,13 @@ public static class NameExpression extends ExpressionView {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element NameExpression
@@ -5792,11 +5929,13 @@ public static class CaptionExpression extends ExpressionView {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element CaptionExpression
@@ -5823,11 +5962,13 @@ public static class MeasureExpression extends ExpressionView {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element MeasureExpression
@@ -5942,6 +6083,7 @@ public static class Role extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof SchemaGrant) {
@@ -5953,6 +6095,7 @@ public static class Role extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Role
@@ -5992,11 +6135,13 @@ public abstract static class Grant extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of class Grant
@@ -6088,6 +6233,7 @@ public static class SchemaGrant extends Grant {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof CubeGrant) {
@@ -6096,6 +6242,7 @@ public static class SchemaGrant extends Grant {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element SchemaGrant
@@ -6252,6 +6399,7 @@ public static class CubeGrant extends Grant {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof DimensionGrant) {
@@ -6263,6 +6411,7 @@ public static class CubeGrant extends Grant {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element CubeGrant
@@ -6309,11 +6458,13 @@ public static class DimensionGrant extends Grant {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element DimensionGrant
@@ -6467,6 +6618,7 @@ public static class HierarchyGrant extends Grant {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof MemberGrant) {
@@ -6475,6 +6627,7 @@ public static class HierarchyGrant extends Grant {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element HierarchyGrant
@@ -6532,11 +6685,13 @@ public static class MemberGrant extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element MemberGrant
@@ -6626,6 +6781,7 @@ public static class Union extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else if (child instanceof RoleUsage) {
@@ -6634,6 +6790,7 @@ public static class Union extends OLAPObject {
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Union
@@ -6675,11 +6832,13 @@ public static class RoleUsage extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element RoleUsage
@@ -6741,11 +6900,13 @@ public static class UserDefinedFunction extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element UserDefinedFunction
@@ -6855,11 +7016,13 @@ public static class Parameter extends OLAPObject {
     
     @Override
     public void addChild(OLAPObject child) {
+		
         if (false) {
         
         } else {
             super.addChild(child);
         }
+			    
     }
 
 } // end of element Parameter

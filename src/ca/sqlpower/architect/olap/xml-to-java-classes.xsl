@@ -104,6 +104,22 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
     }
 </xsl:template>
 
+<!-- Private instance variable with getter/setter pair. (i.e. a bound JavaBean property) -->
+<xsl:template match="CData">
+	private String text;
+	
+	public String getText() {
+		return text;
+	}
+	
+	public void setText(String newval) {
+		String oldval = text;
+		text = newval;
+		pcs.firePropertyChange("text", oldval, newval);
+	}
+
+</xsl:template>
+
 <xsl:template name="attribute-type">
   <xsl:choose>
     <xsl:when test="@type"><xsl:value-of select="@type"/></xsl:when>
@@ -200,6 +216,21 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
   </xsl:choose>
     @Override
     public void addChild(OLAPObject child) {
+		<xsl:choose>
+			<xsl:when test="@type='Join'">
+		if (false) {
+		
+		} else if (child instanceof RelationOrJoin) {
+            if (getLeft() == null) {
+            setLeft((RelationOrJoin) child);
+            } else if (getRight() == null) {
+                setRight((RelationOrJoin) child);
+            }
+        } else {
+        	super.addChild(child);
+        }
+			</xsl:when>
+			<xsl:otherwise>
         if (false) {
         <xsl:for-each select="Array">
         } else if (child instanceof <xsl:value-of select="@type"/>) {
@@ -212,6 +243,8 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         } else {
             super.addChild(child);
         }
+			</xsl:otherwise>    
+		</xsl:choose>    
     }
 </xsl:template>
 

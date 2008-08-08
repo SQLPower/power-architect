@@ -100,6 +100,7 @@ public class MondrianXMLReader {
        private Stack<OLAPObject> context = new Stack<OLAPObject>();
        private Locator locator;
        private MondrianModel.Schema root;
+       private StringBuilder text;
        
        @Override
        public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
@@ -1425,7 +1426,30 @@ public class MondrianXMLReader {
        }
        
        @Override
+       public void characters (char ch[], int start, int length)
+       throws SAXException
+       {
+           if (text == null) {
+               text = new StringBuilder();
+           }
+           OLAPObject elem = context.peek();
+           if (elem instanceof MondrianModel.Value || elem instanceof MondrianModel.SQL || elem instanceof MondrianModel.Formula) {
+               for (int i = start; i < length+start; i++) {
+                   text.append(ch[i]);
+               }
+           }
+       }
+       
+       @Override
        public void endElement(String uri, String localName, String qName) {
+       	   if (context.peek() instanceof MondrianModel.Value) {
+               ((MondrianModel.Value) context.peek()).setText(text.toString().trim());
+           } else if (context.peek() instanceof MondrianModel.SQL) {
+               ((MondrianModel.SQL) context.peek()).setText(text.toString().trim());
+           } else if (context.peek() instanceof MondrianModel.Formula) {
+               ((MondrianModel.Formula) context.peek()).setText(text.toString().trim());
+           }
+           text = null;
            OLAPObject popped = context.pop();
            logger.debug("Popped " + popped);
        }
