@@ -382,6 +382,41 @@
 			classpathref="docbookclasspath">
 		</xslt>
 	</target>
+	
+
+	<!-- Build MondrianModel -->
+		<target name="mondrianModel">
+			<delete file="src/ca/sqlpower/architect/olap/MondrianModel.java"></delete>
+			<xslt 
+				style="src/ca/sqlpower/architect/olap/xml-to-java-classes.xsl"
+				in="src/ca/sqlpower/architect/olap/Mondrian.xml"
+				out="src/ca/sqlpower/architect/olap/MondrianModel.java"
+				classpathref="docbookclasspath">
+			</xslt>
+		</target>
+	
+	<!-- Build MondrianXMLReader -->
+		<target name="mondrianParser">
+			<delete file="src/ca/sqlpower/architect/olap/MondrianXMLReader.java"></delete>
+			<xslt 
+				style="src/ca/sqlpower/architect/olap/xml-to-parser.xsl"
+				in="src/ca/sqlpower/architect/olap/Mondrian.xml"
+				out="src/ca/sqlpower/architect/olap/MondrianXMLReader.java"
+				classpathref="docbookclasspath">
+			</xslt>
+		</target>
+	
+	<!-- Build MondrianXMLWriter -->
+	<target name="mondrianFormatter">
+		<delete file="src/ca/sqlpower/architect/olap/MondrianXMLWriter.java"></delete>
+		<xslt 
+			style="src/ca/sqlpower/architect/olap/xml-to-formatter.xsl"
+			in="src/ca/sqlpower/architect/olap/Mondrian.xml"
+			out="src/ca/sqlpower/architect/olap/MondrianXMLWriter.java"
+			classpathref="docbookclasspath">
+		</xslt>
+	</target>
+
 
 	<!-- Build the Help (JavaHelp, HTML-based format).
 	 ** Note that at this time you must NOT have spaces in your
@@ -478,7 +513,7 @@
 			</fileset>
 		</copy>
 	</target>
-
+	
 	<!-- Convert User Manual from XML to FO -->
 	<target name="fo" depends="init" description="Create user guide in XML Formatting Objects">
 		<mkdir dir="${build}/doc/" />

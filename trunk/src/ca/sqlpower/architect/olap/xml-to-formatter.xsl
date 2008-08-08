@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -33,13 +34,13 @@ public class MondrianXMLWriter {
     public static void write(File f, MondrianModel.Schema schema) throws IOException {
         PrintWriter out = new PrintWriter(new FileWriter(f));
         write(out, schema);
-        out.flush();
-        out.close();
     }
 
     public static void write(PrintWriter out, MondrianModel.Schema schema) {
         MondrianXMLWriter writer = new MondrianXMLWriter(out);
         writer.writeSchema(schema);
+        out.flush();
+        out.close();
     }
     
     private final PrintWriter out;
@@ -49,15 +50,38 @@ public class MondrianXMLWriter {
     public MondrianXMLWriter(PrintWriter out) {
         this.out = out;
     }
+    
+    private void indentLine() {
+    	for (int i = 0; i &lt; indent; i++) {
+    		out.print("  ");
+    	}
+    }
 
     private void writeStartTag(String elemName, Map&lt;String, Object&gt; atts) {
+        indentLine();
         out.print("&lt;" + elemName);
         for (Map.Entry&lt;String, Object&gt; att : atts.entrySet()) {
            if (att.getValue() != null) {
                out.print(" "+att.getKey()+"=\""+att.getValue()+"\""); <!-- TODO: escape attribute value! -->
            }
         }
-        out.println("&gt;");
+    }
+    
+    private void foolishWrite(OLAPObject obj) {
+    	if (false) {}
+     	<xsl:for-each select="Element">
+     	else if ((obj.getClass()).equals(MondrianModel.<xsl:value-of select="@type"/>.class)) {
+     		write<xsl:value-of select="@type"/>((MondrianModel.<xsl:value-of select="@type"/>)obj);
+     	}
+     	</xsl:for-each>
+     	<xsl:for-each select="Class">
+     	else if ((obj.getClass()).equals(MondrianModel.<xsl:value-of select="@class"/>.class)) {
+     		write<xsl:value-of select="@class"/>((MondrianModel.<xsl:value-of select="@class"/>)obj);
+     	}
+     	</xsl:for-each>
+     	else {
+     		logger.warn("Skipping unknown content \""+ obj.getClass()); 
+     	}
     }
 <xsl:apply-templates/>
 }
@@ -66,6 +90,8 @@ public class MondrianXMLWriter {
 <xsl:template match="Element">
 
     public void write<xsl:value-of select="@type"/>(MondrianModel.<xsl:value-of select="@type"/> elem) {
+
+		boolean oneTag = true;
         Map&lt;String, Object&gt; atts = new LinkedHashMap&lt;String, Object&gt;();
         <xsl:for-each select="Attribute">
         atts.put("<xsl:value-of select="@name"/>", elem.get<xsl:call-template name="name-initcap"/>());
@@ -75,22 +101,84 @@ public class MondrianXMLWriter {
         </xsl:if>
         writeStartTag("<xsl:value-of select="@type"/>", atts);
         
-        indent++;
-        // content here
-        indent--;
+        <!--  <xsl:for-each select="Object">
+        if (elem.get<xsl:call-template name="name-initcap"/>() != null) {
+        	write<xsl:value-of select="@type"/>(elem.get<xsl:call-template name="name-initcap"/>());
+        }
+        </xsl:for-each> -->
         
-        out.println("&lt;/<xsl:value-of select="@type"/>&gt;");
+
+        Map&lt;String, Object&gt; arrays = new LinkedHashMap&lt;String, Object&gt;();
+        <xsl:for-each select="Array|Object">
+        arrays.put("<xsl:value-of select="@name"/>", elem.get<xsl:call-template name="name-initcap"/>());
+        </xsl:for-each>
+
+        
+ 
+        <xsl:if test="@class">
+        populate<xsl:value-of select="@class"/>Arrays(elem, arrays);
+        </xsl:if>
+
+        <xsl:if test="CData">
+        // Output the CData
+        oneTag = false;
+		out.println("&gt;");
+		indent++;
+		indentLine();
+		indent--;
+        out.println(elem.getText());
+        </xsl:if>
+		indent++;
+	    for (Map.Entry&lt;String, Object&gt; array : arrays.entrySet()) {
+	      		if (array.getValue() instanceof List) {
+	               	List&lt;OLAPObject&gt; list = (List&lt;OLAPObject&gt;)array.getValue();
+	           		if (oneTag &amp;&amp; list.size() > 0) {
+	            		out.println("&gt;");
+	            		oneTag = false;
+	           		}
+            		for (OLAPObject obj : list) {
+	       		    	foolishWrite(obj);
+		            }
+	            } else if (array.getValue() instanceof OLAPObject) {
+	            	if (oneTag) {
+	            		out.println("&gt;");
+	            		oneTag = false;
+	           		}
+	               	foolishWrite((OLAPObject)array.getValue());
+                }
+        }
+       	indent--;
+        if (oneTag) {
+        	out.println("/&gt;");
+        } else {
+	       	indentLine();
+	       	out.println("&lt;/<xsl:value-of select="@type"/>&gt;");
+        }
     }
        
 </xsl:template>
 
 <xsl:template match="Class">
+
+	private void write<xsl:value-of select="@class"/>(MondrianModel.<xsl:value-of select="@class"/> elem) {
+	    foolishWrite(elem);
+	}
+	
     private void populate<xsl:value-of select="@class"/>Attributes(MondrianModel.<xsl:value-of select="@class"/> elem, Map&lt;String, Object&gt; atts) {
         <xsl:for-each select="Attribute">
         atts.put("<xsl:value-of select="@name"/>", elem.get<xsl:call-template name="name-initcap"/>());
         </xsl:for-each>
         <xsl:if test="@superclass">
         populate<xsl:value-of select="@superclass"/>Attributes(elem, atts);
+        </xsl:if>
+    }
+    
+    private void populate<xsl:value-of select="@class"/>Arrays(MondrianModel.<xsl:value-of select="@class"/> elem, Map&lt;String, Object&gt; arrays) {
+        <xsl:for-each select="Array|Object">
+        arrays.put("<xsl:value-of select="@name"/>", elem.get<xsl:call-template name="name-initcap"/>());
+        </xsl:for-each>
+        <xsl:if test="@superclass">
+        populate<xsl:value-of select="@superclass"/>Arrays(elem, arrays);
         </xsl:if>
     }
 </xsl:template>
