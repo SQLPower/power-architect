@@ -22,6 +22,8 @@ package ca.sqlpower.architect.swingui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -34,12 +36,24 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 /**
  * Factory class that creates a PlayPen instance that's set up for use
@@ -50,9 +64,12 @@ public class RelationalPlayPenFactory {
     @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(RelationalPlayPenFactory.class);
     
-    public static PlayPen createPlayPen(ArchitectSwingSession session) {
+    public static PlayPen createPlayPen(ArchitectSwingSession session, DBTree dbTree) {
         PlayPen pp = new PlayPen(session);
         pp.setPopupFactory(new RelationalPopupFactory(pp, session));
+        SelectionSynchronizer synchronizer = new SelectionSynchronizer(dbTree, pp);
+        pp.addSelectionListener(synchronizer);
+        dbTree.addTreeSelectionListener(synchronizer);
         return pp;
     }
     
@@ -177,4 +194,116 @@ public class RelationalPlayPenFactory {
         
     }
 
+    static class SelectionSynchronizer implements SelectionListener, TreeSelectionListener {
+        
+        private int eventDepth = 0;
+        private final DBTree tree;
+        private final PlayPen pp;
+        
+        public SelectionSynchronizer(DBTree tree, PlayPen pp) {
+            this.tree = tree;
+            this.pp = pp;
+        }
+        
+        /**
+         * Synchronizes the dbtTree selection with the playpen selections
+         * @throws ArchitectException 
+         * 
+         */
+        public void updateDBTree() {
+            if (eventDepth != 1) return;
+            tree.clearSelection();
+            
+            List<TreePath> selectionPaths = new ArrayList<TreePath>();
+            boolean addedPaths = false;
+            // Keep track of the last tree path
+            TreePath lastPath = null;
+            // finds all the TreePaths to select
+            for (PlayPenComponent comp : pp.getSelectedItems()) {
+                TreePath tp = tree.getTreePathForNode((SQLObject) comp.getModel());
+                if (!selectionPaths.contains(tp)) {
+                    selectionPaths.add(tp);
+                    addedPaths = true;
+                    lastPath = tp;
+                }
+                
+                if (comp instanceof TablePane) {
+                    for (SQLColumn col :((TablePane) comp).getSelectedItems()) {
+                        tp = tree.getTreePathForNode(col);
+                        if (!selectionPaths.contains(tp)) {
+                            selectionPaths.add(tp);
+                            addedPaths = true;
+                            lastPath = tp;
+                        }
+                    }
+                }
+            }
+            
+            // Scroll to last tree path.
+            if (lastPath != null) {
+                tree.scrollPathToVisible(lastPath);
+            }
+            
+            tree.setSelectionPaths(selectionPaths.toArray(new TreePath[selectionPaths.size()]));
+            if (addedPaths) {
+                tree.clearNonPlayPenSelections();
+            }
+        }
+
+        /**
+         * Selects the corresponding objects from the give TreePaths on the PlayPen.
+         * 
+         * @param treePaths TreePaths containing the objects to select.
+         */
+        private void selectInPlayPen(TreePath[] treePaths) {
+            if (eventDepth != 1) return;
+            if (treePaths == null) {
+                pp.selectNone();
+            } else {
+                List<SQLObject> objects = new ArrayList<SQLObject>();
+                for (TreePath tp : treePaths) {
+                    if (tree.isTargetDatabaseNode(tp) || !tree.isTargetDatabaseChild(tp)) continue;
+                    SQLObject obj = (SQLObject) tp.getLastPathComponent();
+                    // only select playpen represented objects.
+                    if ((obj instanceof SQLTable || obj instanceof SQLRelationship || obj instanceof SQLColumn) &&
+                            !objects.contains(obj)) {
+                        objects.add(obj);
+                    }
+                }
+                try {
+                    pp.selectObjects(objects);
+                } catch (ArchitectException e) {
+                    throw new ArchitectRuntimeException(e);
+                }
+            }
+        }
+
+        public void itemDeselected(SelectionEvent e) {
+            try {
+                eventDepth++;
+                updateDBTree();
+            } finally {
+                eventDepth--;
+            }
+        }
+
+        public void itemSelected(SelectionEvent e) {
+            try {
+                eventDepth++;
+                updateDBTree();
+            } finally {
+                eventDepth--;
+            }
+        }
+
+        public void valueChanged(TreeSelectionEvent e) {
+            try {
+                eventDepth++;
+                selectInPlayPen(((JTree) e.getSource()).getSelectionPaths());
+            } finally {
+                eventDepth--;
+            }
+        }
+
+    }
 }
