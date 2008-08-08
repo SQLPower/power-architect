@@ -50,8 +50,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
@@ -131,11 +129,6 @@ public class DBTree extends JTree implements DragSourceListener {
 		collapseAllAction = new CollapseAllAction();
 		expandAllAction = new ExpandAllAction();
 		addMouseListener(new PopupListener());
-		addTreeSelectionListener(new TreeSelectionListener(){
-            public void valueChanged(TreeSelectionEvent e) {
-                selectInPlayPen(getSelectionPaths());
-            }
-		});
         setCellRenderer(new DBTreeCellRenderer(session));
         selectAllChildTablesAction = new SelectAllChildTablesAction();
 	}
@@ -910,36 +903,6 @@ public class DBTree extends JTree implements DragSourceListener {
         }
     }
 	
-	/**
-	 * Selects the corresponding objects from the give TreePaths on the PlayPen.
-	 * 
-	 * @param treePaths TreePaths containing the objects to select.
-	 */
-	private void selectInPlayPen(TreePath[] treePaths) {
-	    PlayPen pp = session.getPlayPen();
-	    if (pp.ignoreTreeSelection()) return;
-	    if (treePaths == null) {
-	        pp.selectNone();
-	    } else {
-	        List<SQLObject> objects = new ArrayList<SQLObject>();
-	        for (TreePath tp : treePaths) {
-	            if (isTargetDatabaseNode(tp) || !isTargetDatabaseChild(tp)) continue;
-	            SQLObject obj = (SQLObject) tp.getLastPathComponent();
-	            // only select playpen represented objects.
-	            if ((obj instanceof SQLTable || obj instanceof SQLRelationship || obj instanceof SQLColumn) &&
-	                    !objects.contains(obj)) {
-	                objects.add(obj);
-	            }
-	        }
-	        try {
-	            pp.selectObjects(objects);
-	        } catch (ArchitectException e) {
-	            throw new ArchitectRuntimeException(e);
-	        }
-	    }
-	    
-	}
-
 	// --------------- INNER CLASSES -----------------
 	/**
 	 * Exports the SQLObject which was under the pointer in a DBTree

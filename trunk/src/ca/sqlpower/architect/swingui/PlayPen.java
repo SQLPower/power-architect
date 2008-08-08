@@ -1693,7 +1693,7 @@ public class PlayPen extends JPanel
  			}
  		}
  		mouseMode = MouseModeType.MULTI_SELECT;
-        updateDBTree();
+//        updateDBTree();
 	}
 
 
@@ -1752,7 +1752,7 @@ public class PlayPen extends JPanel
 
 	/**
 	 * Forwards the selection event <code>e</code> to all PlayPen
-	 * selection listeners. Also selects the object on the DBTree.
+	 * selection listeners.
 	 */
 	public void itemSelected(SelectionEvent e) {
 	    fireSelectionEvent(e);
@@ -1760,7 +1760,7 @@ public class PlayPen extends JPanel
 
 	/**
 	 * Forwards the selection event <code>e</code> to all PlayPen
-	 * selection listeners. Also selects the object on the DBTree.
+	 * selection listeners.
 	 */
 	public void itemDeselected(SelectionEvent e) {
 	    fireSelectionEvent(e);
@@ -2149,7 +2149,7 @@ public class PlayPen extends JPanel
                 session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
 				maybeShowPopup(evt);
 			}
-			updateDBTree();
+//			updateDBTree();
 		}
 
 
@@ -2190,7 +2190,7 @@ public class PlayPen extends JPanel
 			}
 			maybeShowPopup(evt);
 			repaint();
-            updateDBTree();
+//            updateDBTree();
 		}
 
 		// ---------------- MOUSEMOTION LISTENER INTERFACE -----------------
@@ -2637,53 +2637,6 @@ public class PlayPen extends JPanel
         return ignoreTreeSelection;
     }
     
-    /**
-     * Synchronizes the dbtTree selection with the playpen selections
-     * @throws ArchitectException 
-     * 
-     */
-    public void updateDBTree() {
-        if (ignoreTreeSelection) return;
-        ignoreTreeSelection = true;
-        DBTree tree = session.getSourceDatabases();
-        tree.clearSelection();
-        
-        List<TreePath> selectionPaths = new ArrayList<TreePath>();
-        boolean addedPaths = false;
-        // Keep track of the last tree path
-        TreePath lastPath = null;
-        // finds all the TreePaths to select
-        for (PlayPenComponent comp : getSelectedItems()) {
-            TreePath tp = tree.getTreePathForNode((SQLObject) comp.getModel());
-            if (!selectionPaths.contains(tp)) {
-                selectionPaths.add(tp);
-                addedPaths = true;
-                lastPath = tp;
-            }
-            
-            if (comp instanceof TablePane) {
-                for (SQLColumn col :((TablePane) comp).getSelectedItems()) {
-                    tp = tree.getTreePathForNode(col);
-                    if (!selectionPaths.contains(tp)) {
-                        selectionPaths.add(tp);
-                        addedPaths = true;
-                        lastPath = tp;
-                    }
-                }
-            }
-        }
-        
-        // Scroll to last tree path.
-        if (lastPath != null) {
-            tree.scrollPathToVisible(lastPath);
-        }
-        
-        tree.setSelectionPaths(selectionPaths.toArray(new TreePath[selectionPaths.size()]));
-        if (addedPaths) {
-            tree.clearNonPlayPenSelections();
-        }
-        ignoreTreeSelection = false;
-    }
 
     /**
      * Scrolls the playpen to show the selected objects. The most left component

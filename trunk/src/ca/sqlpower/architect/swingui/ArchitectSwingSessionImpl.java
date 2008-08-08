@@ -169,15 +169,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         kettleJob = new KettleJob(this);
 
-        playPen = RelationalPlayPenFactory.createPlayPen(this);
+        delegateSession.getRootObject().addChild(getTargetDatabase());
+        this.sourceDatabases = new DBTree(this);
+
+        playPen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
         UserSettings sprefs = getUserSettings().getSwingSettings();
         if (sprefs != null) {
             playPen.setRenderingAntialiased(sprefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
         }
         projectModificationWatcher = new ProjectModificationWatcher(playPen);
-
-        delegateSession.getRootObject().addChild(getTargetDatabase());
-        this.sourceDatabases = new DBTree(this);
 
         undoManager = new UndoManager(playPen);
         playPen.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());

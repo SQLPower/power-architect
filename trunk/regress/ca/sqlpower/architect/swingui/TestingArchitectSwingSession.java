@@ -85,9 +85,9 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         project = new SwingUIProject(this);
         userSettings = context.getUserSettings();
         rootObject = new SQLObjectRoot();
-        playpen = new PlayPen(this);
         rootObject.addChild(getTargetDatabase());
         sourceDatabases = new DBTree(this);
+        playpen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
         undoManager = new UndoManager(playpen);
         
         compareDMSettings = new CompareDMSettings();
