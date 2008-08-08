@@ -26,7 +26,6 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.StubSQLObject;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
-import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 
 public class ArchitectPropertyChangeUndoableEditTest extends TestCase {
@@ -294,16 +293,8 @@ public class ArchitectPropertyChangeUndoableEditTest extends TestCase {
             return null;
         }
 
-        public void addSelectionListener(SelectionListener l) {
-            
-        }
-
         public boolean isSelected() {
             return false;
-        }
-
-        public void removeSelectionListener(SelectionListener l) {
-            
         }
 
         public void setSelected(boolean v, int multiSelectionType) {

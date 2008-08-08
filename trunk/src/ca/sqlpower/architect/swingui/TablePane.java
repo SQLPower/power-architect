@@ -75,7 +75,6 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
-import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -130,7 +129,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
     public TablePane(TablePane tp, PlayPenContentPane parent) {
 		super(parent);
 		this.model = tp.model;
-		this.selectionListeners = new ArrayList<SelectionListener>();
 		this.dtl = new TablePaneDropListener(this);
 		this.margin = (Insets) tp.margin.clone();
 		this.selectedItems = new HashSet<SQLColumn>(tp.selectedItems);

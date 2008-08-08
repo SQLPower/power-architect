@@ -20,8 +20,6 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.event.MouseEvent;
 
-import ca.sqlpower.architect.swingui.event.SelectionListener;
-
 public class PlayPenComponentImpl extends PlayPenComponent {
 
 
@@ -34,12 +32,6 @@ public class PlayPenComponentImpl extends PlayPenComponent {
 
 	public boolean isSelected() {
 		return false;
-	}
-
-	public void addSelectionListener(SelectionListener l) {
-	}
-
-	public void removeSelectionListener(SelectionListener l) {
 	}
 	
 	@Override
