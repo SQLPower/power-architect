@@ -20,8 +20,6 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Point;
-import java.awt.Rectangle;
-import java.beans.PropertyChangeEvent;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -77,27 +75,6 @@ public class DimensionPane extends ContainerPane<SQLTable, SQLColumn> {
 
     public String getDimensionName() {
         return model.getName();
-    }
-    
-    /**
-     * Sets the new bounds and the new location of the dimensionPane,
-     * but also fires property change event associated with location change.
-     */
-    @Override
-    protected void setBoundsImpl(int x, int y, int width, int height) { 
-        Rectangle oldBounds = getBounds();
-        super.setBoundsImpl(x, y, width, height);
-        if (oldBounds.x != x || oldBounds.y != y) {
-            firePropertyChange(new PropertyChangeEvent(this, "location", oldBounds.getLocation(), new Point(x,y)));
-        }
-    }
-
-    /**
-     * @see #Dimension#setBoundsImpl()
-     */
-    @Override
-    public void setBounds(int x, int y, int width, int height) {
-        super.setBounds(x, y, width, height);
     }
 
     @Override

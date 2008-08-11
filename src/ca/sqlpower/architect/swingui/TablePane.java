@@ -21,7 +21,6 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Color;
 import java.awt.Insets;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -36,7 +35,6 @@ import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -959,31 +957,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
             }
         }
         return count;
-    }
-    
-    /**
-     * Not only sets the new bounds and the new location
-     * of the tablepane, but also fires specific events associated with
-     * each change.
-     */
-    @Override
-    protected void setBoundsImpl(int x, int y, int width, int height) { 
-        Rectangle oldBounds = getBounds();
-        super.setBoundsImpl(x, y, width, height);
-        if (oldBounds.x != x || oldBounds.y != y) {
-            firePropertyChange(new PropertyChangeEvent(this, "location", oldBounds.getLocation(), new Point(x,y)));
-        }
-        if (oldBounds.width != width || oldBounds.height != height) {
-            firePropertyChange(new PropertyChangeEvent(this, "bounds", null, null));
-        }
-    }
-
-    /**
-     * @see TablePane.setBoundsImpl()
-     */
-    @Override
-    public void setBounds(int x, int y, int width, int height) {
-        super.setBounds(x, y, width, height);
     }
     
     public boolean isShowPkTag(){

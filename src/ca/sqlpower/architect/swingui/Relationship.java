@@ -338,6 +338,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 			this.movingPk = movePk;
 			this.startingPk = new Point(r.getPkConnectionPoint().x, r.getPkConnectionPoint().y);
 			this.startingFk = new Point(r.getFkConnectionPoint().x, r.getFkConnectionPoint().y);
+			r.getModel().startCompoundEdit("Reposition relationship");
 			r.getPlayPen().addMouseMotionListener(this);
 			r.getPlayPen().addMouseListener(this);
 			r.getPlayPen().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
@@ -404,6 +405,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 			r.getPlayPen().removeMouseMotionListener(this);
 			r.getPlayPen().removeMouseListener(this);
 			r.getPlayPen().setCursor(null);
+			r.getModel().endCompoundEdit("Finished repositioning the relationship.");
 		}
 	}
 
