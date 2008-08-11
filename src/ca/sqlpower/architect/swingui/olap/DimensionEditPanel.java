@@ -64,7 +64,11 @@ public class DimensionEditPanel implements DataEntryPanel {
     public boolean applyChanges() {
         dimension.startCompoundEdit("Started modifying dimension properties");
         dimension.setName(nameField.getText());
-        dimension.setCaption(captionField.getText());
+        if (!(captionField.getText().equals(""))) {
+            dimension.setCaption(captionField.getText());
+        } else {
+            dimension.setCaption(null);
+        }
         DimensionType type = (DimensionType) typeBox.getSelectedItem();
         if (type != null) {
             dimension.setType(type.toString());
