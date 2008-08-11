@@ -30,12 +30,10 @@ import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 public class CreateDimensionAction extends AbstractArchitectAction {
 
     private final Schema schema;
-    private final PlayPen playpen;
 
-    public CreateDimensionAction(ArchitectSwingSession session, Schema schema) {
-        super(session, "New Dimension...", "Create a new shared dimension in this schema");
+    public CreateDimensionAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
+        super(session, pp, "New Dimension...", "Create a new shared dimension in this schema", null);
         this.schema = schema;
-        playpen = session.getArchitectFrame().getOlapSchemaEditor().getOlapPlayPen();
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -46,7 +44,7 @@ public class CreateDimensionAction extends AbstractArchitectAction {
             if (playpen.getSelectedContainers().size() >= 1) {
                 // TODO add a DimensionUsage to the selected cube(s)
             }
-            new EditDimensionAction(session, session.getArchitectFrame(), dim).actionPerformed(e);
+            new EditDimensionAction(session, session.getArchitectFrame(), dim, playpen).actionPerformed(e);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

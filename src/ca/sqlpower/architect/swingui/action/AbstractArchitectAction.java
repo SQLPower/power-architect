@@ -43,6 +43,39 @@ public abstract class AbstractArchitectAction extends AbstractAction {
      * all non-null.
      * 
      * @param session The session that this action will operate on. Must not be null.
+     * @param playpen The play pen to use. For actions that deal with the relational
+     * play pen, this should be the ArchitectSwingSession's play pen. For OLAP actions,
+     * this should be the appropriate OLAP play pen.
+     * @param actionName The name for this action. This will appear in menu items.
+     * @param actionDescription This action's description. Appears in tooltips.
+     * @param icon The icon to use.  Null means no icon.
+     */
+    public AbstractArchitectAction(
+            ArchitectSwingSession session,
+            PlayPen playpen,
+            String actionName,
+            String actionDescription,
+            Icon icon) {
+        
+        super(actionName, icon);
+        putValue(SHORT_DESCRIPTION, actionDescription);
+
+        this.session = session;
+        if (session == null) throw new NullPointerException("Null session"); //$NON-NLS-1$
+
+        this.frame = session.getArchitectFrame();
+        if (frame == null) throw new NullPointerException("Null parentFrame"); //$NON-NLS-1$
+        
+        this.playpen = playpen;
+        if (playpen == null) throw new NullPointerException("Null playpen"); //$NON-NLS-1$
+    }
+
+    /**
+     * Helper constructor that all architect action subclasses that use an icon will call.
+     * Ensures that the session, its frame, and its frame's playpen are
+     * all non-null.
+     * 
+     * @param session The session that this action will operate on. Must not be null.
      * @param actionName The name for this action. This will appear in menu items.
      * @param actionDescription This action's description. Appears in tooltips.
      * @param iconResourceName The resource name of the icon. See
@@ -76,19 +109,7 @@ public abstract class AbstractArchitectAction extends AbstractAction {
             String actionDescription,
             Icon icon) {
         
-        super(actionName, icon);
-        putValue(SHORT_DESCRIPTION, actionDescription);
-
-        this.session = session;
-        if (session == null) throw new NullPointerException("Null session"); //$NON-NLS-1$
-
-        this.frame = session.getArchitectFrame();
-        if (frame == null) throw new NullPointerException("Null parentFrame"); //$NON-NLS-1$
-        
-        this.playpen = frame.getPlayPen();
-        if (playpen == null) throw new NullPointerException("Null playpen"); //$NON-NLS-1$
-        
-
+        this(session, session.getPlayPen(), actionName, actionDescription, icon);
     }
 
     /**

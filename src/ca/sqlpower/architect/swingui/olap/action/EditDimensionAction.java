@@ -26,6 +26,7 @@ import javax.swing.JDialog;
 
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.DimensionEditPanel;
 import ca.sqlpower.swingui.DataEntryPanel;
@@ -43,15 +44,22 @@ public class EditDimensionAction extends AbstractArchitectAction {
      */
     private final Window dialogOwner;
 
-    public EditDimensionAction(ArchitectSwingSession session, Window dialogOwner, Dimension dimension) {
-        super(session, "Dimension Properties...", "Edit the properties of "+dimension.getName()+" in a dialog");
+    public EditDimensionAction(ArchitectSwingSession session, Window dialogOwner,
+            Dimension dimension, PlayPen pp) {
+        super(
+                session,
+                pp,
+                "Dimension Properties...",
+                "Edit the properties of "+dimension.getName()+" in a dialog",
+                null);
         this.dialogOwner = dialogOwner;
         this.dimension = dimension;
     }
 
     public void actionPerformed(ActionEvent e) {
         DataEntryPanel panel = new DimensionEditPanel(dimension);
-        JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Dimension Properties", "OK");
+        JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
+                panel, dialogOwner, "Dimension Properties", "OK");
         dialog.setLocationRelativeTo(session.getArchitectFrame());
         dialog.setVisible(true);
     }
