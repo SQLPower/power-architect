@@ -54,6 +54,7 @@ import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.action.AboutAction;
@@ -126,11 +127,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private boolean showFkTag = true;
     private boolean showAkTag = true;
 
-    protected boolean showPrimary = true;
-    protected boolean showForeign = true;
-    protected boolean showIndexed = true;
-    protected boolean showUnique = true;
-    protected boolean showTheRest = true;
+    private boolean showPrimary = true;
+    private boolean showForeign = true;
+    private boolean showIndexed = true;
+    private boolean showUnique = true;
+    private boolean showTheRest = true;
 
     /**
      * Creates a new swing session, including a new visible architect frame, with
@@ -766,6 +767,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public void setDDLGenerator(DDLGenerator generator) {
         delegateSession.setDDLGenerator(generator);
     }
+    
+    public List<Schema> getOLAPSchemas() {
+        return delegateSession.getOLAPSchemas();
+    }
+    
+    public void setOLAPSchemas(List<Schema> schemas) {
+        delegateSession.setOLAPSchemas(schemas);
+    }
+
 
     /**
      * Creates a new user prompter that uses a modal dialog to pose the given question.
@@ -848,5 +858,4 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public void setShowTheRest(boolean showTheRest) {
         this.showTheRest = showTheRest;
     }
-
 }

@@ -58,6 +58,8 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.olap.MondrianXMLWriter;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileManager;
@@ -449,6 +451,9 @@ public class SwingUIProject extends CoreProject {
             saveCreateKettleJobSettings(out);
             savePlayPen(out);
             saveProfiles(out);
+            saveOLAP(out);
+            
+            
             ioo.indent--;
             ioo.println(out, "</architect-project>"); //$NON-NLS-1$
             setModified(false);
@@ -457,6 +462,18 @@ public class SwingUIProject extends CoreProject {
         }
     }
     
+    private void saveOLAP(PrintWriter out) {
+        ioo.indent++;
+        ioo.println(out, "<olap>");
+        ioo.indent++;
+        for (Schema sch : getSession().getOLAPSchemas()) {
+            MondrianXMLWriter.write(out, sch, false, ioo.indent);
+        }
+        ioo.indent--;
+        ioo.println(out, "</olap>");
+        ioo.indent--;
+    }
+
     public void save(OutputStream out, String encoding) throws IOException, ArchitectException {
         save(new PrintWriter(new OutputStreamWriter(out, encoding)), encoding);
     }

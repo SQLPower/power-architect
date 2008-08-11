@@ -21,6 +21,7 @@ package ca.sqlpower.architect;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.profile.ProfileManager;
 
 public interface ArchitectSession extends UserPrompterFactory {
@@ -98,4 +99,8 @@ public interface ArchitectSession extends UserPrompterFactory {
     /* docs inherit from interface */
     public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText);
 
+    public List<Schema> getOLAPSchemas();
+    
+    public void setOLAPSchemas(List<Schema> schemas);
+    
 }

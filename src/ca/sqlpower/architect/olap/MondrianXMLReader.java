@@ -15,6 +15,9 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+/**
+ * This is class is generated from xml-to-parser.xsl!  Do not alter it directly.
+ */
 public class MondrianXMLReader {
 
     private static final Logger logger = Logger.getLogger(MondrianXMLReader.class);

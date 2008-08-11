@@ -20,10 +20,12 @@ package ca.sqlpower.architect;
 
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 
 /**
@@ -42,6 +44,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
     private SQLDatabase db;
     private String name;
     private SQLObjectRoot rootObject;
+    private List<Schema> olapSchemas; 
     
     /**
      * The factory that creates user prompters for this session. Defaults to a
@@ -65,6 +68,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	    this.context = context;
 	    this.name = name;
 	    this.rootObject = new SQLObjectRoot();
+	    this.olapSchemas = new ArrayList<Schema>();
         this.profileManager = new ProfileManagerImpl(this);
         this.project = new CoreProject(this);
         this.db = new SQLDatabase();
@@ -121,7 +125,6 @@ public class ArchitectSessionImpl implements ArchitectSession {
     public ArchitectSessionContext getContext() {
         return context;
     }
-    
     public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
         SQLObject root = getRootObject();
         while (root.getChildCount() > 0) {
@@ -159,4 +162,13 @@ public class ArchitectSessionImpl implements ArchitectSession {
         }
         userPrompterFactory = upFactory; 
     }
+    
+    public List<Schema> getOLAPSchemas() {
+        return olapSchemas;
+    }
+    
+    public void setOLAPSchemas(List<Schema> schemas) {
+        olapSchemas = schemas;
+    }
 }
+
