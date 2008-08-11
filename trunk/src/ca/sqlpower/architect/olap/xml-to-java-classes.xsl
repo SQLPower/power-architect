@@ -23,6 +23,10 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 
+
+/**
+ * This is class is generated from xml-to-java-classes.xsl!  Do not alter it directly.
+ */
 public class MondrianModel {
 <xsl:apply-templates/>
 } // end of entire model

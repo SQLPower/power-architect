@@ -11,20 +11,32 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+/**
+ * This is class is generated from xml-to-formatter.xsl!  Do not alter it directly.
+ */
 public class MondrianXMLWriter {
 
     private static final Logger logger = Logger.getLogger(MondrianXMLWriter.class);
 
     public static void write(File f, MondrianModel.Schema schema) throws IOException {
         PrintWriter out = new PrintWriter(new FileWriter(f));
-        write(out, schema);
+        write(out, schema, true, 0);
+    }
+    
+    public static void writeXML(File f, MondrianModel.Schema schema) throws IOException {
+        PrintWriter out = new PrintWriter(new FileWriter(f));
+        out.println("<?xml version=\"1.0\"?>");
+        write(out, schema, true, 0);
     }
 
-    public static void write(PrintWriter out, MondrianModel.Schema schema) {
+    public static void write(PrintWriter out, MondrianModel.Schema schema, boolean closeWriter, int indent) {
         MondrianXMLWriter writer = new MondrianXMLWriter(out);
+        writer.indent = indent;
         writer.writeSchema(schema);
-        out.flush();
-        out.close();
+        if (closeWriter) {
+	        out.flush();
+	        out.close();
+	    }
     }
     
     private final PrintWriter out;
@@ -37,7 +49,7 @@ public class MondrianXMLWriter {
     
     private void indentLine() {
     	for (int i = 0; i < indent; i++) {
-    		out.print("  ");
+    		out.print(" ");
     	}
     }
 

@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 
+
+/**
+ * This is class is generated from xml-to-java-classes.xsl!  Do not alter it directly.
+ */
 public class MondrianModel {
 
 /** A schema is a collection of cubes and virtual cubes.
