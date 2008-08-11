@@ -31,7 +31,6 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.AbstractPlacer;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
@@ -86,22 +85,22 @@ public class CreateTableAction extends AbstractArchitectAction {
 	    
         @Override
         protected String getEditDialogTitle() {
-            return Messages.getString("PlayPen.tablePropertiesDialogTitle"); //$NON-NLS-1$
+            return Messages.getString("CreateTableAction.tablePropertiesDialogTitle"); //$NON-NLS-1$
         }
 
         @Override
         public DataEntryPanel place(Point p) throws ArchitectException {
             playpen.addTablePane(tp, p);
             DataEntryPanel editPanel = null;
-            session.getTargetDatabase().addChild(((TablePane) tp).getModel());
+            session.getTargetDatabase().addChild(tp.getModel());
             playpen.selectNone();
             tp.setSelected(true, SelectionEvent.SINGLE_SELECT);
 
-            editPanel = new TableEditPanel(playpen.getSession(), (SQLTable) tp.getModel()) {
+            editPanel = new TableEditPanel(playpen.getSession(), tp.getModel()) {
                 @Override
                 public void discardChanges() {
-                    playpen.getSession().getTargetDatabase().removeChild(((TablePane) tp).getModel());
-                    playpen.getTableNames().remove(((TablePane) tp).getModel().getName());
+                    playpen.getSession().getTargetDatabase().removeChild(tp.getModel());
+                    playpen.getTableNames().remove(tp.getModel().getName());
                 }
             };
             return editPanel;
