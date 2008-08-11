@@ -23,6 +23,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 
 import javax.swing.JDialog;
+import javax.swing.SwingUtilities;
 
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -44,14 +45,14 @@ public class EditVirtualCubeAction extends AbstractArchitectAction{
      */
     private final Window dialogOwner;
 
-    public EditVirtualCubeAction(ArchitectSwingSession session, Window dialogOwner, VirtualCube vCube, PlayPen pp) {
+    public EditVirtualCubeAction(ArchitectSwingSession session, VirtualCube vCube, PlayPen pp) {
         super(
                 session,
                 pp,
                 "Virtual Cube Properties...",
                 "Edit the properties of "+vCube.getName()+" in a dialog",
                 null);
-        this.dialogOwner = dialogOwner;
+        this.dialogOwner = SwingUtilities.getWindowAncestor(pp);
         this.vCube = vCube;
     }
 

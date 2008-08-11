@@ -44,7 +44,7 @@ public class CreateDimensionAction extends AbstractArchitectAction {
             if (playpen.getSelectedContainers().size() >= 1) {
                 // TODO add a DimensionUsage to the selected cube(s)
             }
-            new EditDimensionAction(session, session.getArchitectFrame(), dim, playpen).actionPerformed(e);
+            new EditDimensionAction(session, dim, playpen).actionPerformed(e);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

@@ -23,6 +23,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 
 import javax.swing.JDialog;
+import javax.swing.SwingUtilities;
 
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -44,15 +45,14 @@ public class EditDimensionAction extends AbstractArchitectAction {
      */
     private final Window dialogOwner;
 
-    public EditDimensionAction(ArchitectSwingSession session, Window dialogOwner,
-            Dimension dimension, PlayPen pp) {
+    public EditDimensionAction(ArchitectSwingSession session, Dimension dimension, PlayPen pp) {
         super(
                 session,
                 pp,
                 "Dimension Properties...",
                 "Edit the properties of "+dimension.getName()+" in a dialog",
                 null);
-        this.dialogOwner = dialogOwner;
+        this.dialogOwner = SwingUtilities.getWindowAncestor(pp);
         this.dimension = dimension;
     }
 
