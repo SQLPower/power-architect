@@ -170,13 +170,13 @@ public class TestColumnEditPanel extends TestCase {
      * being selected.
      * @throws IOException 
      */
-    public void testColumnStaysSelectedWhenMovedToPK() throws ArchitectException, IOException{        
+    public void testColumnStaysSelectedWhenMovedToPK() throws ArchitectException, IOException {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
         PlayPen pp = new PlayPen(session);        
         TablePane tp = new TablePane(table, pp.getContentPane());
         tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-        tp.selectItem(table.getColumnIndex(col3));        
+        tp.selectItem(table.getColumnIndex(col3));
         ColumnEditPanel ce = new ColumnEditPanel(col3, session);        
         ce.getColInPK().setSelected(true);
         ce.applyChanges();

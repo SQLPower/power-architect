@@ -55,8 +55,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
-import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
@@ -131,8 +129,11 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
 		this.model = tp.model;
 		this.dtl = new TablePaneDropListener(this);
 		this.margin = (Insets) tp.margin.clone();
-		this.selectedItems = new HashSet<SQLColumn>(tp.selectedItems);
 		this.columnHighlight = new HashMap<SQLColumn,List<Color>>(tp.columnHighlight);
+
+		for (SQLColumn c : tp.getSelectedItems()) {
+		    selectItem(c);
+		}
 		
 		this.insertionPoint = tp.insertionPoint;
 		this.draggingColumn = tp.draggingColumn;
@@ -223,6 +224,14 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
          * selected when it comes back from the dead.
          */
         private SQLColumn mostRecentSelectedRemoval;
+        
+        /**
+         * This tracks the item that was selected in place of the most recently removed
+         * item. This is handy because we don't want to leave the newly-selected item
+         * selected if we restore the previously-selected item (this happens when a column
+         * index is changed by removing it and then adding it right back).
+         */
+        private SQLColumn mostRecentSelectedReplacement;
 
         /**
          * Listens for property changes in the model (columns
@@ -245,12 +254,11 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
                     boolean wasSelectedPreviously = (e.getChildren()[i] == mostRecentSelectedRemoval);
                     final SQLColumn column = (SQLColumn) e.getChildren()[i];
                     if (wasSelectedPreviously) {
-                        selectedItems.add(column);
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                selectColumnOnTree(column);
-                            }
-                        });
+                        deselectItem(mostRecentSelectedReplacement);
+                        selectItem(e.getChangedIndices()[i]);
+                        logger.debug("Restored most recent selection");
+                    } else {
+                        logger.debug("Was not the most recent selection; not restoring");
                     }
                     // This is only supposed to work if we deselect the columns before selecting them
                     // this if stops the insert from wiping out a highlighted column
@@ -287,10 +295,19 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
                     logger.debug("Columns removed. Syncing select/highlight lists. Removed indices=["+sb+"]"); //$NON-NLS-1$ //$NON-NLS-2$
                 }
                 for (int i = 0; i < ci.length; i++) {
-                    if (selectedItems.contains(e.getChildren()[i])) {
-                        mostRecentSelectedRemoval = (SQLColumn) e.getChildren()[i];
+                    SQLColumn removedCol = (SQLColumn) e.getChildren()[i];
+                    if (isItemSelected(removedCol)) {
+                        int removedIdx = e.getChangedIndices()[i];
+                        deselectItem(removedCol);
+                        mostRecentSelectedRemoval = removedCol;
+                        mostRecentSelectedReplacement = getItems().get(Math.min(removedIdx, getItems().size() - 1));
+                        selectItem(mostRecentSelectedReplacement);
+                        logger.debug("Remembering as most recent selection: " + mostRecentSelectedRemoval);
+                    } else {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Not remembering as recent selection. Selected items: " + getSelectedItems());
+                        }
                     }
-                    selectedItems.remove(e.getChildren()[i]);
                 }
             }
             
@@ -315,7 +332,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
             if (logger.isDebugEnabled()) {
                 logger.debug("TablePane got object changed event." + //$NON-NLS-1$
                         "  Source="+e.getSource()+" Property="+e.getPropertyName()+ //$NON-NLS-1$ //$NON-NLS-2$
-                        " oldVal="+e.getOldValue()+" newVal="+e.getNewValue()); //$NON-NLS-1$ //$NON-NLS-2$
+                        " oldVal="+e.getOldValue()+" newVal="+e.getNewValue() +  //$NON-NLS-1$ //$NON-NLS-2$
+                        " selectedItems=" + getSelectedItems());
             }
             updateHiddenColumns();
             firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
@@ -331,8 +349,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
         public void dbStructureChanged(SQLObjectEvent e) {
             logger.debug("TablePane got db structure change event. source="+e.getSource()); //$NON-NLS-1$
             if (e.getSource() == model.getColumnsFolder()) {
-                int numCols = e.getChildren().length;
-                selectedItems = new HashSet<SQLColumn>(numCols);
+                selectNone();
                 columnHighlight = new HashMap<SQLColumn,List<Color>>();
                 try {
                     for (SQLColumn child :((List<SQLColumn>) model.getColumnsFolder().getChildren())) {
@@ -351,32 +368,19 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
 	// ----------------------- accessors and mutators --------------------------
 
 	/**
-	 * Sets the value of model, removing this TablePane as a listener
-	 * on the old model and installing it as a listener to the new
-	 * model.
+	 * Attaches this table pane to the given table. Once attached, this table
+	 * pane instance cannot be reused for a different table.
 	 *
-	 * @param m the new table model
+	 * @param m the table to attach to
 	 */
-	public void setModel(SQLTable m) {
-		SQLTable old = model;
-
-		if (m == null) {
-			throw new IllegalArgumentException("model may not be null"); //$NON-NLS-1$
-		} else {
-			model = m;
+	private void setModel(SQLTable m) {
+		if (model != null) {
+			throw new IllegalStateException("model already set to " + model); //$NON-NLS-1$
 		}
 
-		if (old != null) {
-			try {
-				ArchitectUtils.unlistenToHierarchy(columnListener, old);
-			} catch (ArchitectException e) {
-				logger.error("Caught exception while unlistening to old model", e); //$NON-NLS-1$
-			}
-		}
-
+		model = m;
 
 		try {
-		    selectedItems = new HashSet<SQLColumn>(m.getColumns().size());
 			columnHighlight = new HashMap<SQLColumn,List<Color>>();
 			for (SQLColumn column: model.getColumns()) {
 				columnHighlight.put(column, new ArrayList<Color>());
@@ -392,7 +396,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
 		}
 		setName("TablePane: "+model.getShortDisplayName()); //$NON-NLS-1$
 
-        firePropertyChange("model", old, model); //$NON-NLS-1$
 	}
 
 	/**
@@ -416,79 +419,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
 
 	public DropTargetListener getDropTargetListener() {
 		return dtl;
-	}
-
-	// --------------------- column selection support --------------------
-
-    /**
-     * Deselects all columns in this tablepane.
-     */
-	@Override
-	public void selectNone() {
-	    // deselect on tree before selectItems is cleared by super class method
-	    List<SQLColumn> deselectCols = new ArrayList<SQLColumn>(selectedItems);
-	    for (SQLColumn col : deselectCols) {
-	        deselectColumnOnTree(col);
-	    }
-	    super.selectNone();
-	}
-
-
-    /**
-     * @param i The column to deselect.  If less than 0, {@link
-     * #selectNone()} is called.
-     */
-	@Override
-    public void deselectItem(int i) {
-        super.deselectItem(i);
-        if (i >= 0) {
-            deselectColumnOnTree(getItems().get(i));
-        }
-    }
-
-	/**
-	 * @param i The column to select.  If less than 0, {@link
-	 * #selectNone()} is called rather than selecting a column.
-	 */
-    @Override
-	public void selectItem(int i) {
-        super.selectItem(i);
-	    if (i >= 0) {
-	        selectColumnOnTree(getItems().get(i));
-		}
-	}
-	
-	private void selectColumnOnTree(SQLColumn col) {
-	    if (getPlayPen().ignoreTreeSelection()) return;
-	    getPlayPen().setIgnoreTreeSelection(true);
-	    logger.debug("selecting column on tree: " + col); //$NON-NLS-1$
-	    
-	    DBTree tree = getPlayPen().getSession().getSourceDatabases();
-	    TreePath tp = tree.getTreePathForNode(col.getParentTable());
-
-	    if (!tree.isPathSelected(tp)) {
-	        tree.addSelectionPath(tp);
-	    }
-	     
-	    tp = tree.getTreePathForNode(col);
-	    if (!tree.isPathSelected(tp)) {
-	        tree.addSelectionPath(tp);
-	        tree.clearNonPlayPenSelections();
-	    }
-	    getPlayPen().setIgnoreTreeSelection(false);
-	}
-
-	private void deselectColumnOnTree(SQLColumn col) {
-	    if (getPlayPen().ignoreTreeSelection()) return;
-        getPlayPen().setIgnoreTreeSelection(true);
-	    logger.debug("deselecting column on tree: " + col); //$NON-NLS-1$
-	    
-	    DBTree tree = getPlayPen().getSession().getSourceDatabases();
-	    TreePath tp = tree.getTreePathForNode(col);
-	    if (tree.isPathSelected(tp)) {
-	        tree.removeSelectionPath(tp);
-	    }
-	    getPlayPen().setIgnoreTreeSelection(false);
 	}
 
 	public void updateHiddenColumns() {
@@ -1268,7 +1198,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
                         List<PlayPenComponent> selection = getPlayPen().getSelectedItems();
                         if (selection.size() == 1) {
                             TablePane tp = (TablePane) selection.get(0);
-                            JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JList(tp.selectedItems.toArray())));
+                            JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JList(tp.getSelectedItems().toArray())));
                         } else {
                             JOptionPane.showMessageDialog(getPlayPen(), "You can only show selected columns on one item at a time"); //$NON-NLS-1$
                         }

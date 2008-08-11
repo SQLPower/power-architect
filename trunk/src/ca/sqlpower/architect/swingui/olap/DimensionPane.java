@@ -22,7 +22,6 @@ package ca.sqlpower.architect.swingui.olap;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
-import java.util.HashSet;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -38,8 +37,6 @@ public class DimensionPane extends ContainerPane<SQLTable, SQLColumn> {
 
     public DimensionPane(String dimensionName, SQLTable m, PlayPenContentPane parent) {
         super(parent);
-        
-        this.selectedItems = new HashSet<SQLColumn>();
         
         this.model = m;
         try {

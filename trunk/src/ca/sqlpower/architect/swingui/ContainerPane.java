@@ -26,6 +26,8 @@ import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +38,8 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
+import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
+import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 
 /**
@@ -74,7 +78,7 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
     /**
      * Tracks which items in this container are currently selected.
      */
-    protected Set<C> selectedItems;
+    private final Set<C> selectedItems = new HashSet<C>();
 
     protected ContainerPane(PlayPenContentPane parent) {
         super(parent);
@@ -278,7 +282,9 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
      * Deselects all items in this ContainerPane.
      */
     public void selectNone() {
+        Set<C> previouslySelectedItems = new HashSet<C>(selectedItems);
         selectedItems.clear();
+        fireItemsDeselected(previouslySelectedItems);
         repaint();
     }
 
@@ -292,36 +298,79 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
         if (i < 0) {
             selectNone();
         } else {
-            selectedItems.remove(getItems().get(i));
-            repaint();
+            C item = getItems().get(i);
+            deselectItem(item);
         }
     }
 
     /**
-     * Selects the item, if i < 0, {@link #selectNone()} is called.
+     * Deselects the given item.
      * 
-     * @param i index to {@link #getItems()}
+     * @param item the item to deselect.
+     */
+    public void deselectItem(C item) {
+        selectedItems.remove(item);
+        fireItemsDeselected(Collections.singleton(item));
+        repaint();
+    }
+
+    /**
+     * Selects the item, firing an ItemSelectionEvent. If i < 0,
+     * {@link #selectNone()} is called.
+     * 
+     * @param i
+     *            index to {@link #getItems()}
      */
     public void selectItem(int i) {
         if (i < 0) {
             selectNone();
         } else {
-            selectedItems.add(getItems().get(i));
-            repaint();
+            C item = getItems().get(i);
+            selectItem(item);
         }
     }
-    
+
     /**
-     * Returns true if the item is selected.
+     * Selects the item, firing an ItemSelectionEvent.
+     * 
+     * @param i index to {@link #getItems()}
+     */
+    public void selectItem(C item) {
+        selectedItems.add(item);
+        fireItemsSelected(Collections.singleton(item));
+        repaint();
+    }
+
+    /**
+     * Returns true if the item at the given index is selected.
      * 
      * @param i index from {@link #getItems()}
      */
     public boolean isItemSelected(int i) {
         return selectedItems.contains(getItems().get(i));
     }
+
+    /**
+     * Returns true if the given item was selected in this container pane since
+     * the last time {@link #selectNone()} was called, even if it has
+     * subsequently been removed from the model. This comes in handy in event
+     * listeners that want to know if a recently-removed item was selected at
+     * the time it was removed.
+     * 
+     * @param item
+     *            The item to check
+     * @return true if item is currently selected, or was selected at the time
+     *         it was removed.
+     */
+    public boolean isItemSelected(C item) {
+        return selectedItems.contains(item);
+    }
     
     /**
-     * Returns a list of selected items.
+     * Returns a list of the items that are currently in the selection that
+     * also currently exist in the model. Sometimes, especially when handling
+     * remove events, you will want to know if the item that was just removed
+     * used to be selected. In that case, use {@link #isItemSelected(Object)}.
      */
     public List<C> getSelectedItems() {
         List<C> selectedItems = new ArrayList<C>();
@@ -342,5 +391,30 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
             return getItems().indexOf(selectedItems.toArray()[0]);
         }
         return ITEM_INDEX_NONE;
+    }
+    
+    private final List<ItemSelectionListener<T, C>> itemSelectionListeners =
+        new ArrayList<ItemSelectionListener<T,C>>();
+    
+    protected void fireItemsSelected(Set<C> items) {
+        ItemSelectionEvent<T, C> e = new ItemSelectionEvent<T, C>(this, items);
+        for (int i = itemSelectionListeners.size() - 1; i >= 0; i--) {
+            itemSelectionListeners.get(i).itemsSelected(e);
+        }
+    }
+
+    protected void fireItemsDeselected(Set<C> items) {
+        ItemSelectionEvent<T, C> e = new ItemSelectionEvent<T, C>(this, items);
+        for (int i = itemSelectionListeners.size() - 1; i >= 0; i--) {
+            itemSelectionListeners.get(i).itemsDeselected(e);
+        }
+    }
+    
+    public void addItemSelectionListener(ItemSelectionListener<T, C> listener) {
+        itemSelectionListeners.add(listener);
+    }
+    
+    public void removeItemSelectionListener(ItemSelectionListener<T, C> listener) {
+        itemSelectionListeners.remove(listener);
     }
 }

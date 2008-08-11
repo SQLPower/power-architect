@@ -52,6 +52,10 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
+import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
+import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
+import ca.sqlpower.architect.swingui.event.PlayPenContentEvent;
+import ca.sqlpower.architect.swingui.event.PlayPenContentListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
@@ -70,6 +74,7 @@ public class RelationalPlayPenFactory {
         SelectionSynchronizer synchronizer = new SelectionSynchronizer(dbTree, pp);
         pp.addSelectionListener(synchronizer);
         dbTree.addTreeSelectionListener(synchronizer);
+        pp.getContentPane().addPlayPenContentListener(synchronizer);
         return pp;
     }
     
@@ -194,8 +199,11 @@ public class RelationalPlayPenFactory {
         
     }
 
-    static class SelectionSynchronizer implements SelectionListener, TreeSelectionListener {
-        
+    static class SelectionSynchronizer 
+    implements SelectionListener,
+            ItemSelectionListener<SQLTable, SQLColumn>,
+            TreeSelectionListener, PlayPenContentListener {
+
         private int eventDepth = 0;
         private final DBTree tree;
         private final PlayPen pp;
@@ -296,6 +304,24 @@ public class RelationalPlayPenFactory {
             }
         }
 
+        public void itemsDeselected(ItemSelectionEvent<SQLTable, SQLColumn> e) {
+            try {
+                eventDepth++;
+                updateDBTree();
+            } finally {
+                eventDepth--;
+            }
+        }
+
+        public void itemsSelected(ItemSelectionEvent<SQLTable, SQLColumn> e) {
+            try {
+                eventDepth++;
+                updateDBTree();
+            } finally {
+                eventDepth--;
+            }
+        }
+
         public void valueChanged(TreeSelectionEvent e) {
             try {
                 eventDepth++;
@@ -305,5 +331,16 @@ public class RelationalPlayPenFactory {
             }
         }
 
+        public void PlayPenComponentAdded(PlayPenContentEvent e) {
+            if (e.getPlayPenComponent() instanceof ContainerPane<?, ?>) {
+                ((ContainerPane<SQLTable, SQLColumn>) e.getPlayPenComponent()).addItemSelectionListener(this);
+            }
+        }
+
+        public void PlayPenComponentRemoved(PlayPenContentEvent e) {
+            if (e.getPlayPenComponent() instanceof ContainerPane<?, ?>) {
+                ((ContainerPane<SQLTable, SQLColumn>) e.getPlayPenComponent()).removeItemSelectionListener(this);
+            } 
+        }
     }
 }
