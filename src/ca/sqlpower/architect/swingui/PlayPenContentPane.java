@@ -29,6 +29,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.event.PlayPenContentEvent;
+import ca.sqlpower.architect.swingui.event.PlayPenContentListener;
+
 public class PlayPenContentPane {
 	private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
 	protected PlayPen owner;
@@ -142,6 +145,7 @@ public class PlayPenContentPane {
 		}
 		c.addPropertyChangeListener(propertyChangeEventPassthrough);
 		c.addSelectionListener(getOwner());
+		firePlayPenContentAdded(c);
 		c.revalidate();
 	}
 
@@ -165,6 +169,7 @@ public class PlayPenContentPane {
 		} else {
 			relations.remove(j-children.size());
 		}
+		firePlayPenContentRemoved(c);
 		getOwner().repaint(r);
 	}
 	
@@ -210,5 +215,29 @@ public class PlayPenContentPane {
         public void propertyChange(PropertyChangeEvent e) {
             refirePropertyChanged(e);
         }
+	}
+	
+	private final List<PlayPenContentListener> playPenContentListeners = new ArrayList<PlayPenContentListener>();
+	
+	private void firePlayPenContentAdded(PlayPenComponent c) {
+	    PlayPenContentEvent e = new PlayPenContentEvent(this, c);
+	    for(int i = playPenContentListeners.size() - 1; i >= 0; i--) {
+	        playPenContentListeners.get(i).PlayPenComponentAdded(e);
+	    }
+	}
+	
+	private void firePlayPenContentRemoved(PlayPenComponent c) {
+	    PlayPenContentEvent e = new PlayPenContentEvent(this, c);
+	    for(int i = playPenContentListeners.size() - 1; i >= 0; i--) {
+	        playPenContentListeners.get(i).PlayPenComponentRemoved(e);
+	    }
+	}
+	
+	public void addPlayPenContentListener(PlayPenContentListener listener) {
+	    playPenContentListeners.add(listener);
+	}
+	
+	public void removePlayPenContentListener(PlayPenContentListener listener) {
+	    playPenContentListeners.remove(listener);
 	}
 }

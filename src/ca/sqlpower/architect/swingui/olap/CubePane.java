@@ -22,7 +22,6 @@ package ca.sqlpower.architect.swingui.olap;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
-import java.util.HashSet;
 import java.util.List;
 
 import ca.sqlpower.architect.olap.OLAPObject;
@@ -36,7 +35,6 @@ public class CubePane extends ContainerPane<Cube, OLAPObject> {
     public CubePane(Cube model, PlayPenContentPane parent) {
         super(parent);
         
-        this.selectedItems = new HashSet<OLAPObject>();
         this.model = model;
         updateUI();
     }

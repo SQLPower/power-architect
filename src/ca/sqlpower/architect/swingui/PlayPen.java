@@ -2582,7 +2582,7 @@ public class PlayPen extends JPanel
                 
                 // cannot deselect columns while going through the selected columns
                 List<Integer> indices = new ArrayList<Integer>();
-                for (SQLColumn col : tablePane.selectedItems) {
+                for (SQLColumn col : tablePane.getSelectedItems()) {
                     if (!selections.contains(col) && col.getParentTable() != null) {
                         indices.add(col.getParentTable().getColumnIndex(col));
                     }

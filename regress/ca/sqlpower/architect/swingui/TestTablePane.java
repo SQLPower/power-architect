@@ -20,6 +20,7 @@ package ca.sqlpower.architect.swingui;
 
 
 import java.awt.Color;
+import java.awt.Point;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -167,6 +168,11 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		assertFalse("Inserting a table from the playpen is not allowed", tp.insertObjects(tableList, 0));
 	}
 	
+	/**
+	 * Regression test: The table pane used to respond to all events as if they came
+	 * from the table it listened on; in fact, the events can come from the table or
+	 * any of its folders and those events have to be handled in the right way.
+	 */
 	public void testListenerDoesntCleanUpEarly() throws ArchitectException {
 		class MySQLTable extends SQLTable {
 			class MyFolder extends SQLTable.Folder<SQLColumn> {
@@ -263,6 +269,34 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
         
         tp.setLocation(3,3);
         assertEquals("Single edit did not fire move event!",3,eventCounter.getMoved());
+    }
+
+    /**
+     * When you delete a column (say, the 4th one) from a table, the new 4th
+     * column should be selected. This helps when deleting several columns.
+     */
+    public void testSelectionAfterColumnDeleted() throws Exception {
+        tp.selectItem(2);
+        assertTrue(tp.isItemSelected(2));
+        t.removeChild(2);
+        assertTrue(tp.isItemSelected(2));
+    }
+
+    /**
+     * When you delete a column (say, the 4th one) from a table, the new 4th
+     * column should be selected. This helps when deleting several columns.
+     */
+    public void testSelectionAfterColumnDeletedWithSynchronizer() throws Exception {
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        TestingArchitectSwingSession session = (TestingArchitectSwingSession) context.createSession();
+        PlayPen pp = RelationalPlayPenFactory.createPlayPen(session, session.getSourceDatabases());
+        
+        TablePane tp = new TablePane(t, pp.getContentPane());
+        pp.addTablePane(tp, new Point(2,2));
+        tp.selectItem(2);
+        assertEquals(Collections.singletonList(t.getColumn(2)), tp.getSelectedItems());
+        t.removeChild(2);
+        assertEquals(Collections.singletonList(t.getColumn(2)), tp.getSelectedItems());
     }
 
     @Override
