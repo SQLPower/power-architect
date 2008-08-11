@@ -158,12 +158,19 @@ public abstract class PlayPenComponent implements Selectable {
                           (int) Math.ceil((double) r.height * zoom));
         }
         if (logger.isDebugEnabled()) {
-            logger.debug("[36mUpdating bounds on "+getName() //$NON-NLS-1$
-                         +" to ["+x+","+y+","+width+","+height+"][0m"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+            logger.debug("Updating bounds on "+getName() //$NON-NLS-1$
+                         +" to ["+x+","+y+","+width+","+height+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
         }
         Point oldPoint = new Point(bounds.x,bounds.y);
         bounds.setBounds(x,y,width,height);
-        
+
+        if (oldBounds.x != x || oldBounds.y != y) {
+            firePropertyChange(new PropertyChangeEvent(this, "location", oldPoint, new Point(x,y)));
+        }
+        if (oldBounds.width != width || oldBounds.height != height) {
+            firePropertyChange(new PropertyChangeEvent(this, "bounds", null, null));
+        }
+
         repaint();
     }
 
