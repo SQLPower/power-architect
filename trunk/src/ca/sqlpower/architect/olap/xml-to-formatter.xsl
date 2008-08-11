@@ -49,8 +49,8 @@ public class MondrianXMLWriter {
         MondrianXMLWriter writer = new MondrianXMLWriter(out);
         writer.indent = indent;
         writer.writeSchema(schema);
+	    out.flush();
         if (closeWriter) {
-	        out.flush();
 	        out.close();
 	    }
     }
