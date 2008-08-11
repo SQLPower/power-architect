@@ -146,7 +146,7 @@ public class OLAPTreeModel implements TreeModel {
         Schema loadedSchema = MondrianXMLReader.parse(file);
         
         // test for XML writer
-        MondrianXMLWriter.write(new PrintWriter(new OutputStreamWriter(System.out)), loadedSchema);
+        MondrianXMLWriter.write(new PrintWriter(new OutputStreamWriter(System.out)), loadedSchema, false, 0);
         
         final JTree tree = new JTree(new OLAPTreeModel(loadedSchema));
         tree.setCellRenderer(new OLAPTreeCellRenderer());
