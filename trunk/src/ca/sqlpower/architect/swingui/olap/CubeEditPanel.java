@@ -65,7 +65,11 @@ public class CubeEditPanel implements DataEntryPanel {
     public boolean applyChanges() {
         cube.startCompoundEdit("Started modifying cube properties");
         cube.setName(nameField.getText());
-        cube.setCaption(captionField.getText());
+        if (!(captionField.getText().equals(""))) {
+            cube.setCaption(captionField.getText());
+        } else {
+            cube.setCaption(null);
+        }
         if (defMeasure.getSelectedItem() != null) {
             cube.setDefaultMeasure(defMeasure.getSelectedItem().toString());
         }

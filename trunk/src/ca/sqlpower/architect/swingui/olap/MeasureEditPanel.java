@@ -59,7 +59,11 @@ public class MeasureEditPanel implements DataEntryPanel {
     public boolean applyChanges() {
         measure.startCompoundEdit("Started modifying measure properties");
         measure.setName(name.getText());
-        measure.setCaption(captionField.getText());
+        if (!(captionField.getText().equals(""))) {
+            measure.setCaption(captionField.getText());
+        } else {
+            measure.setCaption(null);
+        }
         measure.setAggregator(((RolapAggregator) (aggregator.getSelectedItem())).name);
         measure.endCompoundEdit();
         return true;

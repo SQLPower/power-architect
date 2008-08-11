@@ -66,7 +66,11 @@ public class VirtualCubeEditPanel implements DataEntryPanel {
     public boolean applyChanges() {
         vCube.startCompoundEdit("Started modifying virtual cube properties");
         vCube.setName(nameField.getText());
-        vCube.setCaption(captionField.getText());
+        if (!(captionField.getText().equals(""))) {
+            vCube.setCaption(captionField.getText());
+        } else {
+            vCube.setCaption(null);
+        }
         if (defMeasure.getSelectedItem() != null) {
             vCube.setDefaultMeasure(defMeasure.getSelectedItem().toString());
         }
