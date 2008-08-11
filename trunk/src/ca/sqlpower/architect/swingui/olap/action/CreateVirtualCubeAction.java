@@ -24,14 +24,15 @@ import java.awt.event.ActionEvent;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 
 public class CreateVirtualCubeAction extends AbstractArchitectAction {
 
     private final Schema schema;
 
-    public CreateVirtualCubeAction(ArchitectSwingSession session, Schema schema) {
-        super(session, "New Virtual Cube...", "Create a new Virtual Cube in this schema");
+    public CreateVirtualCubeAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
+        super(session, pp, "New Virtual Cube...", "Create a new Virtual Cube in this schema", null);
         this.schema = schema;
     }
 
@@ -40,7 +41,7 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
             VirtualCube vCube = new VirtualCube();
             vCube.setName("New Virtual Cube");
             schema.addVirtualCube(vCube);
-            new EditVirtualCubeAction(session, session.getArchitectFrame(), vCube).actionPerformed(e);
+            new EditVirtualCubeAction(session, session.getArchitectFrame(), vCube, playpen).actionPerformed(e);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

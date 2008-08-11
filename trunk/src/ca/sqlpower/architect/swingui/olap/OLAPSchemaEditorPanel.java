@@ -37,7 +37,6 @@ import ca.sqlpower.architect.swingui.olap.action.CreateVirtualCubeAction;
 
 public class OLAPSchemaEditorPanel {
 
-    private final ArchitectSwingSession session;
     private final JTree tree;
     private final OLAPTreeModel treeModel;
     
@@ -58,16 +57,15 @@ public class OLAPSchemaEditorPanel {
      * @param schema The schema to edit
      */
     public OLAPSchemaEditorPanel(ArchitectSwingSession session, Schema schema) {
-        this.session = session;
         tree = new JTree(treeModel = new OLAPTreeModel(schema));
         tree.setCellRenderer(new OLAPTreeCellRenderer());
         pp = new PlayPen(session); // TODO create OLAPPlayPenFactory class to set this up properly
         session.getArchitectFrame().setOlapSchemaEditor(this);
         
         JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
-        toolbar.add(new CreateDimensionAction(session, schema));
+        toolbar.add(new CreateDimensionAction(session, schema, pp));
         toolbar.add(new CreateCubeAction(session, schema, pp));
-        toolbar.add(new CreateVirtualCubeAction(session, schema));
+        toolbar.add(new CreateVirtualCubeAction(session, schema, pp));
         
         panel = new JPanel(new BorderLayout());
         panel.add(

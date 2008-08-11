@@ -26,6 +26,7 @@ import javax.swing.JDialog;
 
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.CubeEditPanel;
 import ca.sqlpower.swingui.DataEntryPanel;
@@ -42,8 +43,8 @@ public class EditCubeAction extends AbstractArchitectAction{
      */
     private final Window dialogOwner;
 
-    public EditCubeAction(ArchitectSwingSession session, Window dialogOwner, Cube cube) {
-        super(session, "Cube Properties...", "Edit the properties of "+cube.getName()+" in a dialog");
+    public EditCubeAction(ArchitectSwingSession session, Window dialogOwner, Cube cube, PlayPen pp) {
+        super(session, pp, "Cube Properties...", "Edit the properties of "+cube.getName()+" in a dialog", null);
         this.dialogOwner = dialogOwner;
         this.cube = cube;
     }

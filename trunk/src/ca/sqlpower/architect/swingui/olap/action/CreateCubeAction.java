@@ -38,18 +38,15 @@ public class CreateCubeAction extends AbstractArchitectAction {
 
     private final Schema schema;
     
-    private final PlayPen pp;
-
     public CreateCubeAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
-        super(session, "New Cube...", "Create a new cube in this schema");
+        super(session, pp, "New Cube...", "Create a new cube in this schema", null);
         this.schema = schema;
-        this.pp = pp;
     }
 
     public void actionPerformed(ActionEvent e) {
         Cube cube = new Cube();
         cube.setName("New Cube");
-        CubePane cp = new CubePane(cube, pp.getContentPane());
+        CubePane cp = new CubePane(cube, playpen.getContentPane());
         CubePlacer cubePlacer = new CubePlacer(cp);
         cubePlacer.dirtyup();
     }
@@ -59,7 +56,7 @@ public class CreateCubeAction extends AbstractArchitectAction {
         private final CubePane cp;
 
         CubePlacer(CubePane cp) {
-            super(pp);
+            super(CreateCubeAction.this.playpen);
             this.cp = cp;
         }
         
@@ -71,8 +68,8 @@ public class CreateCubeAction extends AbstractArchitectAction {
         @Override
         public DataEntryPanel place(Point p) throws ArchitectException {
             schema.addCube(cp.getModel());
-            pp.selectNone();
-            pp.addPlayPenComponent(cp, p);
+            playpen.selectNone();
+            playpen.addPlayPenComponent(cp, p);
             cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 
             CubeEditPanel editPanel = new CubeEditPanel(cp.getModel()) {
