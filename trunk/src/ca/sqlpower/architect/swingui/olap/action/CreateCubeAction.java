@@ -70,15 +70,15 @@ public class CreateCubeAction extends AbstractArchitectAction {
 
         @Override
         public DataEntryPanel place(Point p) throws ArchitectException {
-            schema.addCube((Cube) cp.getModel());
+            schema.addCube(cp.getModel());
             pp.selectNone();
             pp.addPlayPenComponent(cp, p);
             cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 
-            CubeEditPanel editPanel = new CubeEditPanel((Cube) cp.getModel()) {
+            CubeEditPanel editPanel = new CubeEditPanel(cp.getModel()) {
                 @Override
                 public void discardChanges() {
-                    schema.removeCube((Cube) cp.getModel());
+                    schema.removeCube(cp.getModel());
                 }
             };
             return editPanel;
