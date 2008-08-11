@@ -41,7 +41,7 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
             VirtualCube vCube = new VirtualCube();
             vCube.setName("New Virtual Cube");
             schema.addVirtualCube(vCube);
-            new EditVirtualCubeAction(session, session.getArchitectFrame(), vCube, playpen).actionPerformed(e);
+            new EditVirtualCubeAction(session, vCube, playpen).actionPerformed(e);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
