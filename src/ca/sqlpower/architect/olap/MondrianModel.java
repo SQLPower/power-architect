@@ -80,7 +80,8 @@ public static class Schema extends OLAPObject {
     public void addParameter(int pos, Parameter newChild) {
         parameters.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(Parameter.class, pos, newChild);
+        int overallPosition = childPositionOffset(Parameter.class) + pos;
+        fireChildAdded(Parameter.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -107,7 +108,7 @@ public static class Schema extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -115,7 +116,8 @@ public static class Schema extends OLAPObject {
         Parameter removedItem = parameters.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(Parameter.class, pos, removedItem);
+            int overallPosition = childPositionOffset(Parameter.class) + pos;
+            fireChildRemoved(Parameter.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -138,7 +140,8 @@ public static class Schema extends OLAPObject {
     public void addDimension(int pos, Dimension newChild) {
         dimensions.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(Dimension.class, pos, newChild);
+        int overallPosition = childPositionOffset(Dimension.class) + pos;
+        fireChildAdded(Dimension.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -165,7 +168,7 @@ public static class Schema extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -173,7 +176,8 @@ public static class Schema extends OLAPObject {
         Dimension removedItem = dimensions.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(Dimension.class, pos, removedItem);
+            int overallPosition = childPositionOffset(Dimension.class) + pos;
+            fireChildRemoved(Dimension.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -196,7 +200,8 @@ public static class Schema extends OLAPObject {
     public void addCube(int pos, Cube newChild) {
         cubes.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(Cube.class, pos, newChild);
+        int overallPosition = childPositionOffset(Cube.class) + pos;
+        fireChildAdded(Cube.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -223,7 +228,7 @@ public static class Schema extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -231,7 +236,8 @@ public static class Schema extends OLAPObject {
         Cube removedItem = cubes.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(Cube.class, pos, removedItem);
+            int overallPosition = childPositionOffset(Cube.class) + pos;
+            fireChildRemoved(Cube.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -254,7 +260,8 @@ public static class Schema extends OLAPObject {
     public void addVirtualCube(int pos, VirtualCube newChild) {
         virtualCubes.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(VirtualCube.class, pos, newChild);
+        int overallPosition = childPositionOffset(VirtualCube.class) + pos;
+        fireChildAdded(VirtualCube.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -281,7 +288,7 @@ public static class Schema extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -289,7 +296,8 @@ public static class Schema extends OLAPObject {
         VirtualCube removedItem = virtualCubes.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(VirtualCube.class, pos, removedItem);
+            int overallPosition = childPositionOffset(VirtualCube.class) + pos;
+            fireChildRemoved(VirtualCube.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -312,7 +320,8 @@ public static class Schema extends OLAPObject {
     public void addNamedSet(int pos, NamedSet newChild) {
         namedSets.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(NamedSet.class, pos, newChild);
+        int overallPosition = childPositionOffset(NamedSet.class) + pos;
+        fireChildAdded(NamedSet.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -339,7 +348,7 @@ public static class Schema extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -347,7 +356,8 @@ public static class Schema extends OLAPObject {
         NamedSet removedItem = namedSets.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(NamedSet.class, pos, removedItem);
+            int overallPosition = childPositionOffset(NamedSet.class) + pos;
+            fireChildRemoved(NamedSet.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -370,7 +380,8 @@ public static class Schema extends OLAPObject {
     public void addRole(int pos, Role newChild) {
         roles.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(Role.class, pos, newChild);
+        int overallPosition = childPositionOffset(Role.class) + pos;
+        fireChildAdded(Role.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -397,7 +408,7 @@ public static class Schema extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -405,7 +416,8 @@ public static class Schema extends OLAPObject {
         Role removedItem = roles.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(Role.class, pos, removedItem);
+            int overallPosition = childPositionOffset(Role.class) + pos;
+            fireChildRemoved(Role.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -428,7 +440,8 @@ public static class Schema extends OLAPObject {
     public void addUserDefinedFunction(int pos, UserDefinedFunction newChild) {
         userDefinedFunctions.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(UserDefinedFunction.class, pos, newChild);
+        int overallPosition = childPositionOffset(UserDefinedFunction.class) + pos;
+        fireChildAdded(UserDefinedFunction.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -455,7 +468,7 @@ public static class Schema extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -463,7 +476,8 @@ public static class Schema extends OLAPObject {
         UserDefinedFunction removedItem = userDefinedFunctions.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(UserDefinedFunction.class, pos, removedItem);
+            int overallPosition = childPositionOffset(UserDefinedFunction.class) + pos;
+            fireChildRemoved(UserDefinedFunction.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -500,6 +514,41 @@ public static class Schema extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == Parameter.class) return offset;
+        offset += parameters.size();
+        
+        if (childClass == Dimension.class) return offset;
+        offset += dimensions.size();
+        
+        if (childClass == Cube.class) return offset;
+        offset += cubes.size();
+        
+        if (childClass == VirtualCube.class) return offset;
+        offset += virtualCubes.size();
+        
+        if (childClass == NamedSet.class) return offset;
+        offset += namedSets.size();
+        
+        if (childClass == Role.class) return offset;
+        offset += roles.size();
+        
+        if (childClass == UserDefinedFunction.class) return offset;
+        offset += userDefinedFunctions.size();
+        
+        return offset;
     }
     
     @Override
@@ -737,7 +786,8 @@ public static class Cube extends OLAPObject {
     public void addDimension(int pos, CubeDimension newChild) {
         dimensions.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(CubeDimension.class, pos, newChild);
+        int overallPosition = childPositionOffset(CubeDimension.class) + pos;
+        fireChildAdded(CubeDimension.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -762,7 +812,7 @@ public static class Cube extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -770,7 +820,8 @@ public static class Cube extends OLAPObject {
         CubeDimension removedItem = dimensions.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(CubeDimension.class, pos, removedItem);
+            int overallPosition = childPositionOffset(CubeDimension.class) + pos;
+            fireChildRemoved(CubeDimension.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -789,7 +840,8 @@ public static class Cube extends OLAPObject {
     public void addMeasure(int pos, Measure newChild) {
         measures.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(Measure.class, pos, newChild);
+        int overallPosition = childPositionOffset(Measure.class) + pos;
+        fireChildAdded(Measure.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -814,7 +866,7 @@ public static class Cube extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -822,7 +874,8 @@ public static class Cube extends OLAPObject {
         Measure removedItem = measures.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(Measure.class, pos, removedItem);
+            int overallPosition = childPositionOffset(Measure.class) + pos;
+            fireChildRemoved(Measure.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -845,7 +898,8 @@ public static class Cube extends OLAPObject {
     public void addCalculatedMember(int pos, CalculatedMember newChild) {
         calculatedMembers.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(CalculatedMember.class, pos, newChild);
+        int overallPosition = childPositionOffset(CalculatedMember.class) + pos;
+        fireChildAdded(CalculatedMember.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -872,7 +926,7 @@ public static class Cube extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -880,7 +934,8 @@ public static class Cube extends OLAPObject {
         CalculatedMember removedItem = calculatedMembers.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(CalculatedMember.class, pos, removedItem);
+            int overallPosition = childPositionOffset(CalculatedMember.class) + pos;
+            fireChildRemoved(CalculatedMember.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -903,7 +958,8 @@ public static class Cube extends OLAPObject {
     public void addNamedSet(int pos, NamedSet newChild) {
         namedSets.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(NamedSet.class, pos, newChild);
+        int overallPosition = childPositionOffset(NamedSet.class) + pos;
+        fireChildAdded(NamedSet.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -930,7 +986,7 @@ public static class Cube extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -938,7 +994,8 @@ public static class Cube extends OLAPObject {
         NamedSet removedItem = namedSets.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(NamedSet.class, pos, removedItem);
+            int overallPosition = childPositionOffset(NamedSet.class) + pos;
+            fireChildRemoved(NamedSet.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -969,6 +1026,32 @@ public static class Cube extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == CubeDimension.class) return offset;
+        offset += dimensions.size();
+        
+        if (childClass == Measure.class) return offset;
+        offset += measures.size();
+        
+        if (childClass == CalculatedMember.class) return offset;
+        offset += calculatedMembers.size();
+        
+        if (childClass == NamedSet.class) return offset;
+        offset += namedSets.size();
+        
+        return offset;
     }
     
     @Override
@@ -1094,7 +1177,8 @@ public static class VirtualCube extends OLAPObject {
     public void addDimension(int pos, VirtualCubeDimension newChild) {
         dimensions.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(VirtualCubeDimension.class, pos, newChild);
+        int overallPosition = childPositionOffset(VirtualCubeDimension.class) + pos;
+        fireChildAdded(VirtualCubeDimension.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1119,7 +1203,7 @@ public static class VirtualCube extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -1127,7 +1211,8 @@ public static class VirtualCube extends OLAPObject {
         VirtualCubeDimension removedItem = dimensions.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(VirtualCubeDimension.class, pos, removedItem);
+            int overallPosition = childPositionOffset(VirtualCubeDimension.class) + pos;
+            fireChildRemoved(VirtualCubeDimension.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -1146,7 +1231,8 @@ public static class VirtualCube extends OLAPObject {
     public void addMeasure(int pos, VirtualCubeMeasure newChild) {
         measures.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(VirtualCubeMeasure.class, pos, newChild);
+        int overallPosition = childPositionOffset(VirtualCubeMeasure.class) + pos;
+        fireChildAdded(VirtualCubeMeasure.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1171,7 +1257,7 @@ public static class VirtualCube extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -1179,7 +1265,8 @@ public static class VirtualCube extends OLAPObject {
         VirtualCubeMeasure removedItem = measures.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(VirtualCubeMeasure.class, pos, removedItem);
+            int overallPosition = childPositionOffset(VirtualCubeMeasure.class) + pos;
+            fireChildRemoved(VirtualCubeMeasure.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -1206,7 +1293,8 @@ public static class VirtualCube extends OLAPObject {
     public void addCalculatedMember(int pos, CalculatedMember newChild) {
         calculatedMembers.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(CalculatedMember.class, pos, newChild);
+        int overallPosition = childPositionOffset(CalculatedMember.class) + pos;
+        fireChildAdded(CalculatedMember.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1235,7 +1323,7 @@ public static class VirtualCube extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -1243,7 +1331,8 @@ public static class VirtualCube extends OLAPObject {
         CalculatedMember removedItem = calculatedMembers.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(CalculatedMember.class, pos, removedItem);
+            int overallPosition = childPositionOffset(CalculatedMember.class) + pos;
+            fireChildRemoved(CalculatedMember.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -1266,7 +1355,8 @@ public static class VirtualCube extends OLAPObject {
     public void addNamedSet(int pos, NamedSet newChild) {
         namedSets.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(NamedSet.class, pos, newChild);
+        int overallPosition = childPositionOffset(NamedSet.class) + pos;
+        fireChildAdded(NamedSet.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1293,7 +1383,7 @@ public static class VirtualCube extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -1301,7 +1391,8 @@ public static class VirtualCube extends OLAPObject {
         NamedSet removedItem = namedSets.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(NamedSet.class, pos, removedItem);
+            int overallPosition = childPositionOffset(NamedSet.class) + pos;
+            fireChildRemoved(NamedSet.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -1332,6 +1423,32 @@ public static class VirtualCube extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == VirtualCubeDimension.class) return offset;
+        offset += dimensions.size();
+        
+        if (childClass == VirtualCubeMeasure.class) return offset;
+        offset += measures.size();
+        
+        if (childClass == CalculatedMember.class) return offset;
+        offset += calculatedMembers.size();
+        
+        if (childClass == NamedSet.class) return offset;
+        offset += namedSets.size();
+        
+        return offset;
     }
     
     @Override
@@ -1383,7 +1500,8 @@ public static class CubeUsages extends OLAPObject {
     public void addCubeUsage(int pos, CubeUsage newChild) {
         cubeUsages.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(CubeUsage.class, pos, newChild);
+        int overallPosition = childPositionOffset(CubeUsage.class) + pos;
+        fireChildAdded(CubeUsage.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1408,7 +1526,7 @@ public static class CubeUsages extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -1416,7 +1534,8 @@ public static class CubeUsages extends OLAPObject {
         CubeUsage removedItem = cubeUsages.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(CubeUsage.class, pos, removedItem);
+            int overallPosition = childPositionOffset(CubeUsage.class) + pos;
+            fireChildRemoved(CubeUsage.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -1441,6 +1560,23 @@ public static class CubeUsages extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == CubeUsage.class) return offset;
+        offset += cubeUsages.size();
+        
+        return offset;
     }
     
     @Override
@@ -1849,7 +1985,8 @@ public static class Dimension extends CubeDimension {
     public void addHierarchy(int pos, Hierarchy newChild) {
         hierarchies.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(Hierarchy.class, pos, newChild);
+        int overallPosition = childPositionOffset(Hierarchy.class) + pos;
+        fireChildAdded(Hierarchy.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1874,7 +2011,7 @@ public static class Dimension extends CubeDimension {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -1882,7 +2019,8 @@ public static class Dimension extends CubeDimension {
         Hierarchy removedItem = hierarchies.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(Hierarchy.class, pos, removedItem);
+            int overallPosition = childPositionOffset(Hierarchy.class) + pos;
+            fireChildRemoved(Hierarchy.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -1907,6 +2045,23 @@ public static class Dimension extends CubeDimension {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == Hierarchy.class) return offset;
+        offset += hierarchies.size();
+        
+        return offset;
     }
     
     @Override
@@ -2132,7 +2287,8 @@ public static class Hierarchy extends OLAPObject {
     public void addLevel(int pos, Level newChild) {
         levels.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(Level.class, pos, newChild);
+        int overallPosition = childPositionOffset(Level.class) + pos;
+        fireChildAdded(Level.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -2157,7 +2313,7 @@ public static class Hierarchy extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -2165,7 +2321,8 @@ public static class Hierarchy extends OLAPObject {
         Level removedItem = levels.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(Level.class, pos, removedItem);
+            int overallPosition = childPositionOffset(Level.class) + pos;
+            fireChildRemoved(Level.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -2184,7 +2341,8 @@ public static class Hierarchy extends OLAPObject {
     public void addMemberReaderParameter(int pos, MemberReaderParameter newChild) {
         memberReaderParameters.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(MemberReaderParameter.class, pos, newChild);
+        int overallPosition = childPositionOffset(MemberReaderParameter.class) + pos;
+        fireChildAdded(MemberReaderParameter.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -2209,7 +2367,7 @@ public static class Hierarchy extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -2217,7 +2375,8 @@ public static class Hierarchy extends OLAPObject {
         MemberReaderParameter removedItem = memberReaderParameters.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(MemberReaderParameter.class, pos, removedItem);
+            int overallPosition = childPositionOffset(MemberReaderParameter.class) + pos;
+            fireChildRemoved(MemberReaderParameter.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -2244,6 +2403,26 @@ public static class Hierarchy extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == Level.class) return offset;
+        offset += levels.size();
+        
+        if (childClass == MemberReaderParameter.class) return offset;
+        offset += memberReaderParameters.size();
+        
+        return offset;
     }
     
     @Override
@@ -2622,7 +2801,8 @@ public static class Level extends OLAPObject {
     public void addProperty(int pos, Property newChild) {
         properties.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(Property.class, pos, newChild);
+        int overallPosition = childPositionOffset(Property.class) + pos;
+        fireChildAdded(Property.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -2647,7 +2827,7 @@ public static class Level extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -2655,7 +2835,8 @@ public static class Level extends OLAPObject {
         Property removedItem = properties.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(Property.class, pos, removedItem);
+            int overallPosition = childPositionOffset(Property.class) + pos;
+            fireChildRemoved(Property.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -2680,6 +2861,23 @@ public static class Level extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == Property.class) return offset;
+        offset += properties.size();
+        
+        return offset;
     }
     
     @Override
@@ -3070,7 +3268,8 @@ public static class Measure extends OLAPObject {
     public void addMemberPropertie(int pos, CalculatedMemberProperty newChild) {
         memberProperties.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(CalculatedMemberProperty.class, pos, newChild);
+        int overallPosition = childPositionOffset(CalculatedMemberProperty.class) + pos;
+        fireChildAdded(CalculatedMemberProperty.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -3095,7 +3294,7 @@ public static class Measure extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -3103,7 +3302,8 @@ public static class Measure extends OLAPObject {
         CalculatedMemberProperty removedItem = memberProperties.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(CalculatedMemberProperty.class, pos, removedItem);
+            int overallPosition = childPositionOffset(CalculatedMemberProperty.class) + pos;
+            fireChildRemoved(CalculatedMemberProperty.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -3128,6 +3328,23 @@ public static class Measure extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == CalculatedMemberProperty.class) return offset;
+        offset += memberProperties.size();
+        
+        return offset;
     }
     
     @Override
@@ -3277,7 +3494,8 @@ public static class CalculatedMember extends OLAPObject {
     public void addMemberPropertie(int pos, CalculatedMemberProperty newChild) {
         memberProperties.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(CalculatedMemberProperty.class, pos, newChild);
+        int overallPosition = childPositionOffset(CalculatedMemberProperty.class) + pos;
+        fireChildAdded(CalculatedMemberProperty.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -3302,7 +3520,7 @@ public static class CalculatedMember extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -3310,7 +3528,8 @@ public static class CalculatedMember extends OLAPObject {
         CalculatedMemberProperty removedItem = memberProperties.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(CalculatedMemberProperty.class, pos, removedItem);
+            int overallPosition = childPositionOffset(CalculatedMemberProperty.class) + pos;
+            fireChildRemoved(CalculatedMemberProperty.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -3335,6 +3554,23 @@ public static class CalculatedMember extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == CalculatedMemberProperty.class) return offset;
+        offset += memberProperties.size();
+        
+        return offset;
     }
     
     @Override
@@ -3761,7 +3997,8 @@ public static class View extends Relation {
     public void addSelect(int pos, SQL newChild) {
         selects.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(SQL.class, pos, newChild);
+        int overallPosition = childPositionOffset(SQL.class) + pos;
+        fireChildAdded(SQL.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -3786,7 +4023,7 @@ public static class View extends Relation {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -3794,7 +4031,8 @@ public static class View extends Relation {
         SQL removedItem = selects.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(SQL.class, pos, removedItem);
+            int overallPosition = childPositionOffset(SQL.class) + pos;
+            fireChildRemoved(SQL.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -3819,6 +4057,23 @@ public static class View extends Relation {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == SQL.class) return offset;
+        offset += selects.size();
+        
+        return offset;
     }
     
     @Override
@@ -4102,7 +4357,8 @@ public static class Table extends Relation {
     public void addAggExclude(int pos, AggExclude newChild) {
         aggExcludes.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(AggExclude.class, pos, newChild);
+        int overallPosition = childPositionOffset(AggExclude.class) + pos;
+        fireChildAdded(AggExclude.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -4127,7 +4383,7 @@ public static class Table extends Relation {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -4135,7 +4391,8 @@ public static class Table extends Relation {
         AggExclude removedItem = aggExcludes.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(AggExclude.class, pos, removedItem);
+            int overallPosition = childPositionOffset(AggExclude.class) + pos;
+            fireChildRemoved(AggExclude.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -4154,7 +4411,8 @@ public static class Table extends Relation {
     public void addAggTable(int pos, AggTable newChild) {
         aggTables.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(AggTable.class, pos, newChild);
+        int overallPosition = childPositionOffset(AggTable.class) + pos;
+        fireChildAdded(AggTable.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -4179,7 +4437,7 @@ public static class Table extends Relation {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -4187,7 +4445,8 @@ public static class Table extends Relation {
         AggTable removedItem = aggTables.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(AggTable.class, pos, removedItem);
+            int overallPosition = childPositionOffset(AggTable.class) + pos;
+            fireChildRemoved(AggTable.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -4214,6 +4473,26 @@ public static class Table extends Relation {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == AggExclude.class) return offset;
+        offset += aggExcludes.size();
+        
+        if (childClass == AggTable.class) return offset;
+        offset += aggTables.size();
+        
+        return offset;
     }
     
     @Override
@@ -4341,7 +4620,8 @@ public static class ColumnDefs extends OLAPObject {
     public void addArra(int pos, ColumnDef newChild) {
         array.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(ColumnDef.class, pos, newChild);
+        int overallPosition = childPositionOffset(ColumnDef.class) + pos;
+        fireChildAdded(ColumnDef.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -4366,7 +4646,7 @@ public static class ColumnDefs extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -4374,7 +4654,8 @@ public static class ColumnDefs extends OLAPObject {
         ColumnDef removedItem = array.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(ColumnDef.class, pos, removedItem);
+            int overallPosition = childPositionOffset(ColumnDef.class) + pos;
+            fireChildRemoved(ColumnDef.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -4399,6 +4680,23 @@ public static class ColumnDefs extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == ColumnDef.class) return offset;
+        offset += array.size();
+        
+        return offset;
     }
     
     @Override
@@ -4502,7 +4800,8 @@ public static class Rows extends OLAPObject {
     public void addArra(int pos, Row newChild) {
         array.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(Row.class, pos, newChild);
+        int overallPosition = childPositionOffset(Row.class) + pos;
+        fireChildAdded(Row.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -4527,7 +4826,7 @@ public static class Rows extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -4535,7 +4834,8 @@ public static class Rows extends OLAPObject {
         Row removedItem = array.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(Row.class, pos, removedItem);
+            int overallPosition = childPositionOffset(Row.class) + pos;
+            fireChildRemoved(Row.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -4560,6 +4860,23 @@ public static class Rows extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == Row.class) return offset;
+        offset += array.size();
+        
+        return offset;
     }
     
     @Override
@@ -4600,7 +4917,8 @@ public static class Row extends OLAPObject {
     public void addValue(int pos, Value newChild) {
         values.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(Value.class, pos, newChild);
+        int overallPosition = childPositionOffset(Value.class) + pos;
+        fireChildAdded(Value.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -4625,7 +4943,7 @@ public static class Row extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -4633,7 +4951,8 @@ public static class Row extends OLAPObject {
         Value removedItem = values.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(Value.class, pos, removedItem);
+            int overallPosition = childPositionOffset(Value.class) + pos;
+            fireChildRemoved(Value.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -4658,6 +4977,23 @@ public static class Row extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == Value.class) return offset;
+        offset += values.size();
+        
+        return offset;
     }
     
     @Override
@@ -4793,7 +5129,8 @@ public abstract static class AggTable extends OLAPObject {
     public void addIgnoreColumn(int pos, AggIgnoreColumn newChild) {
         ignoreColumns.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(AggIgnoreColumn.class, pos, newChild);
+        int overallPosition = childPositionOffset(AggIgnoreColumn.class) + pos;
+        fireChildAdded(AggIgnoreColumn.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -4818,7 +5155,7 @@ public abstract static class AggTable extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -4826,7 +5163,8 @@ public abstract static class AggTable extends OLAPObject {
         AggIgnoreColumn removedItem = ignoreColumns.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(AggIgnoreColumn.class, pos, removedItem);
+            int overallPosition = childPositionOffset(AggIgnoreColumn.class) + pos;
+            fireChildRemoved(AggIgnoreColumn.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -4845,7 +5183,8 @@ public abstract static class AggTable extends OLAPObject {
     public void addForeignKey(int pos, AggForeignKey newChild) {
         foreignKeys.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(AggForeignKey.class, pos, newChild);
+        int overallPosition = childPositionOffset(AggForeignKey.class) + pos;
+        fireChildAdded(AggForeignKey.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -4870,7 +5209,7 @@ public abstract static class AggTable extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -4878,7 +5217,8 @@ public abstract static class AggTable extends OLAPObject {
         AggForeignKey removedItem = foreignKeys.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(AggForeignKey.class, pos, removedItem);
+            int overallPosition = childPositionOffset(AggForeignKey.class) + pos;
+            fireChildRemoved(AggForeignKey.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -4897,7 +5237,8 @@ public abstract static class AggTable extends OLAPObject {
     public void addMeasure(int pos, AggMeasure newChild) {
         measures.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(AggMeasure.class, pos, newChild);
+        int overallPosition = childPositionOffset(AggMeasure.class) + pos;
+        fireChildAdded(AggMeasure.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -4922,7 +5263,7 @@ public abstract static class AggTable extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -4930,7 +5271,8 @@ public abstract static class AggTable extends OLAPObject {
         AggMeasure removedItem = measures.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(AggMeasure.class, pos, removedItem);
+            int overallPosition = childPositionOffset(AggMeasure.class) + pos;
+            fireChildRemoved(AggMeasure.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -4949,7 +5291,8 @@ public abstract static class AggTable extends OLAPObject {
     public void addLevel(int pos, AggLevel newChild) {
         levels.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(AggLevel.class, pos, newChild);
+        int overallPosition = childPositionOffset(AggLevel.class) + pos;
+        fireChildAdded(AggLevel.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -4974,7 +5317,7 @@ public abstract static class AggTable extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -4982,7 +5325,8 @@ public abstract static class AggTable extends OLAPObject {
         AggLevel removedItem = levels.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(AggLevel.class, pos, removedItem);
+            int overallPosition = childPositionOffset(AggLevel.class) + pos;
+            fireChildRemoved(AggLevel.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -5013,6 +5357,32 @@ public abstract static class AggTable extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == AggIgnoreColumn.class) return offset;
+        offset += ignoreColumns.size();
+        
+        if (childClass == AggForeignKey.class) return offset;
+        offset += foreignKeys.size();
+        
+        if (childClass == AggMeasure.class) return offset;
+        offset += measures.size();
+        
+        if (childClass == AggLevel.class) return offset;
+        offset += levels.size();
+        
+        return offset;
     }
     
     @Override
@@ -5125,7 +5495,8 @@ public static class AggPattern extends AggTable {
     public void addExclude(int pos, AggExclude newChild) {
         excludes.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(AggExclude.class, pos, newChild);
+        int overallPosition = childPositionOffset(AggExclude.class) + pos;
+        fireChildAdded(AggExclude.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -5150,7 +5521,7 @@ public static class AggPattern extends AggTable {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -5158,7 +5529,8 @@ public static class AggPattern extends AggTable {
         AggExclude removedItem = excludes.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(AggExclude.class, pos, removedItem);
+            int overallPosition = childPositionOffset(AggExclude.class) + pos;
+            fireChildRemoved(AggExclude.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -5183,6 +5555,23 @@ public static class AggPattern extends AggTable {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == AggExclude.class) return offset;
+        offset += excludes.size();
+        
+        return offset;
     }
     
     @Override
@@ -5703,7 +6092,8 @@ public abstract static class ExpressionView extends Expression {
     public void addExpression(int pos, SQL newChild) {
         expressions.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(SQL.class, pos, newChild);
+        int overallPosition = childPositionOffset(SQL.class) + pos;
+        fireChildAdded(SQL.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -5728,7 +6118,7 @@ public abstract static class ExpressionView extends Expression {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -5736,7 +6126,8 @@ public abstract static class ExpressionView extends Expression {
         SQL removedItem = expressions.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(SQL.class, pos, removedItem);
+            int overallPosition = childPositionOffset(SQL.class) + pos;
+            fireChildRemoved(SQL.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -5761,6 +6152,23 @@ public abstract static class ExpressionView extends Expression {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == SQL.class) return offset;
+        offset += expressions.size();
+        
+        return offset;
     }
     
     @Override
@@ -6012,7 +6420,8 @@ public static class Role extends OLAPObject {
     public void addSchemaGrant(int pos, SchemaGrant newChild) {
         schemaGrants.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(SchemaGrant.class, pos, newChild);
+        int overallPosition = childPositionOffset(SchemaGrant.class) + pos;
+        fireChildAdded(SchemaGrant.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -6037,7 +6446,7 @@ public static class Role extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -6045,7 +6454,8 @@ public static class Role extends OLAPObject {
         SchemaGrant removedItem = schemaGrants.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(SchemaGrant.class, pos, removedItem);
+            int overallPosition = childPositionOffset(SchemaGrant.class) + pos;
+            fireChildRemoved(SchemaGrant.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -6083,6 +6493,23 @@ public static class Role extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == SchemaGrant.class) return offset;
+        offset += schemaGrants.size();
+        
+        return offset;
     }
     
     @Override
@@ -6175,7 +6602,8 @@ public static class SchemaGrant extends Grant {
     public void addCubeGrant(int pos, CubeGrant newChild) {
         cubeGrants.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(CubeGrant.class, pos, newChild);
+        int overallPosition = childPositionOffset(CubeGrant.class) + pos;
+        fireChildAdded(CubeGrant.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -6200,7 +6628,7 @@ public static class SchemaGrant extends Grant {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -6208,7 +6636,8 @@ public static class SchemaGrant extends Grant {
         CubeGrant removedItem = cubeGrants.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(CubeGrant.class, pos, removedItem);
+            int overallPosition = childPositionOffset(CubeGrant.class) + pos;
+            fireChildRemoved(CubeGrant.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -6233,6 +6662,23 @@ public static class SchemaGrant extends Grant {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == CubeGrant.class) return offset;
+        offset += cubeGrants.size();
+        
+        return offset;
     }
     
     @Override
@@ -6287,7 +6733,8 @@ public static class CubeGrant extends Grant {
     public void addDimensionGrant(int pos, DimensionGrant newChild) {
         dimensionGrants.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(DimensionGrant.class, pos, newChild);
+        int overallPosition = childPositionOffset(DimensionGrant.class) + pos;
+        fireChildAdded(DimensionGrant.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -6312,7 +6759,7 @@ public static class CubeGrant extends Grant {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -6320,7 +6767,8 @@ public static class CubeGrant extends Grant {
         DimensionGrant removedItem = dimensionGrants.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(DimensionGrant.class, pos, removedItem);
+            int overallPosition = childPositionOffset(DimensionGrant.class) + pos;
+            fireChildRemoved(DimensionGrant.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -6339,7 +6787,8 @@ public static class CubeGrant extends Grant {
     public void addHierarchyGrant(int pos, HierarchyGrant newChild) {
         hierarchyGrants.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(HierarchyGrant.class, pos, newChild);
+        int overallPosition = childPositionOffset(HierarchyGrant.class) + pos;
+        fireChildAdded(HierarchyGrant.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -6364,7 +6813,7 @@ public static class CubeGrant extends Grant {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -6372,7 +6821,8 @@ public static class CubeGrant extends Grant {
         HierarchyGrant removedItem = hierarchyGrants.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(HierarchyGrant.class, pos, removedItem);
+            int overallPosition = childPositionOffset(HierarchyGrant.class) + pos;
+            fireChildRemoved(HierarchyGrant.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -6399,6 +6849,26 @@ public static class CubeGrant extends Grant {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == DimensionGrant.class) return offset;
+        offset += dimensionGrants.size();
+        
+        if (childClass == HierarchyGrant.class) return offset;
+        offset += hierarchyGrants.size();
+        
+        return offset;
     }
     
     @Override
@@ -6560,7 +7030,8 @@ public static class HierarchyGrant extends Grant {
     public void addMemberGrant(int pos, MemberGrant newChild) {
         memberGrants.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(MemberGrant.class, pos, newChild);
+        int overallPosition = childPositionOffset(MemberGrant.class) + pos;
+        fireChildAdded(MemberGrant.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -6585,7 +7056,7 @@ public static class HierarchyGrant extends Grant {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -6593,7 +7064,8 @@ public static class HierarchyGrant extends Grant {
         MemberGrant removedItem = memberGrants.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(MemberGrant.class, pos, removedItem);
+            int overallPosition = childPositionOffset(MemberGrant.class) + pos;
+            fireChildRemoved(MemberGrant.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -6618,6 +7090,23 @@ public static class HierarchyGrant extends Grant {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == MemberGrant.class) return offset;
+        offset += memberGrants.size();
+        
+        return offset;
     }
     
     @Override
@@ -6723,7 +7212,8 @@ public static class Union extends OLAPObject {
     public void addRoleUsage(int pos, RoleUsage newChild) {
         roleUsages.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(RoleUsage.class, pos, newChild);
+        int overallPosition = childPositionOffset(RoleUsage.class) + pos;
+        fireChildAdded(RoleUsage.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -6748,7 +7238,7 @@ public static class Union extends OLAPObject {
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -6756,7 +7246,8 @@ public static class Union extends OLAPObject {
         RoleUsage removedItem = roleUsages.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(RoleUsage.class, pos, removedItem);
+            int overallPosition = childPositionOffset(RoleUsage.class) + pos;
+            fireChildRemoved(RoleUsage.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -6781,6 +7272,23 @@ public static class Union extends OLAPObject {
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == RoleUsage.class) return offset;
+        offset += roleUsages.size();
+        
+        return offset;
     }
     
     @Override
