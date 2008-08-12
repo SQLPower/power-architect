@@ -364,7 +364,7 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
         logger.debug("Updating model"); //$NON-NLS-1$
         List<String> errors = new ArrayList<String>();
         try {
-            column.startCompoundEdit("Column Edit Panel Changes"); //$NON-NLS-1$
+            column.startCompoundEdit(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
             if (colName.getText().trim().length() == 0) {
                 errors.add(Messages.getString("ColumnEditPanel.columnNameRequired")); //$NON-NLS-1$
             } else {
@@ -390,7 +390,7 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
             }
             column.setAutoIncrementSequenceName(colAutoIncSequenceName.getText());
         } finally {
-            column.endCompoundEdit("Column Edit Panel Changes"); //$NON-NLS-1$
+            column.endCompoundEdit(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
         }
         return errors;
     }

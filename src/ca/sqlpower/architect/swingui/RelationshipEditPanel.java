@@ -271,7 +271,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 	    } catch (ArchitectException e) {
 	        throw new ArchitectRuntimeException(e);
 	    }
-		relationship.startCompoundEdit("Relationship Properties Change");
+		relationship.startCompoundEdit("Modify Relationship Properties");
 		try {
 			relationship.setName(relationshipName.getText());
 			try {
@@ -331,7 +331,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
             }
 
 		} finally {
-			relationship.endCompoundEdit("Ending new compound edit event in relationship edit panel");
+			relationship.endCompoundEdit("Modify Relationship Properties");
 		}
 		return true;
 	}
