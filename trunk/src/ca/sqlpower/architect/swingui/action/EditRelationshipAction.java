@@ -33,6 +33,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ColumnMappingPanel;
 import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.RelationshipEditPanel;
 import ca.sqlpower.architect.swingui.Selectable;
@@ -59,7 +60,7 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
-			List selection = playpen.getSelectedItems();
+			List<PlayPenComponent> selection = playpen.getSelectedItems();
 			if (selection.size() < 1) {
 				JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
 			} else if (selection.size() > 1) {
@@ -124,7 +125,7 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 		editDialog.setVisible(true);
 	}
 
-	public void setupAction(List selectedItems) {
+	public void setupAction(List<PlayPenComponent> selectedItems) {
 		if (selectedItems.size() == 0) {
 			setEnabled(false);
 			logger.debug("Disabling edit relationship"); //$NON-NLS-1$
