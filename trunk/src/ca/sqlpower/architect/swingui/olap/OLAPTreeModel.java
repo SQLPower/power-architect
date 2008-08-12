@@ -176,6 +176,7 @@ public class OLAPTreeModel implements TreeModel {
         while (o != null) {
             path.add(0, o);
             o = o.getParent();
+            if (o == getRoot()) break;
         }
         return new TreePath(path.toArray());
     }
