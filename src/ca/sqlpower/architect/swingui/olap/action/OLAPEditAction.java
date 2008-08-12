@@ -77,7 +77,7 @@ public class OLAPEditAction extends AbstractArchitectAction {
                 "OK",
                 okCall,
                 cancelCall);
-        
+        schemaEditDialog.setLocationRelativeTo(d);
         schemaEditDialog.setVisible(true);
     }
 
