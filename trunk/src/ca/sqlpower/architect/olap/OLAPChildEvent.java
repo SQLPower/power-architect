@@ -40,10 +40,15 @@ public class OLAPChildEvent {
      * The child that was added or removed.
      */
     private final OLAPObject child;
-    
+
     /**
-     * The index of the child that was added or removed (indices are counted separately
-     * within each child type).
+     * The index of the child that was added or removed. This index is the
+     * overall position in the list returned by
+     * <code>source.getChildren()</code>, not just the position within the
+     * separate list of just these children). For example, if the source is a
+     * Schema, and the added child is a Cube called newCube, this is the same as
+     * <code>schema.getChildren().indexOf(newCube)</code>, not
+     * <code>schema.getCubes().indexOf(newCube)</code>.
      */
     private final int index;
 

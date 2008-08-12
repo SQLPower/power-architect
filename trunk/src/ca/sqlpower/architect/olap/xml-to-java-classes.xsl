@@ -142,7 +142,8 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
     public void add<xsl:call-template name="name-initcap-nonplural"/>(int pos, <xsl:value-of select="@type"/> newChild) {
         <xsl:value-of select="@name"/>.add(pos, newChild);
         newChild.setParent(this);
-        fireChildAdded(<xsl:value-of select="@type"/>.class, pos, newChild);
+        int overallPosition = childPositionOffset(<xsl:value-of select="@type"/>.class) + pos;
+        fireChildAdded(<xsl:value-of select="@type"/>.class, overallPosition, newChild);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -167,7 +168,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
     }
 
     /**
-     * Removes the child object at the given position.
+     * Removes the child object at the given position, firing an OLAPChildEvent.
      *
      * @return The item that was removed.
      */
@@ -175,7 +176,8 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         <xsl:value-of select="@type"/> removedItem = <xsl:value-of select="@name"/>.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(<xsl:value-of select="@type"/>.class, pos, removedItem);
+            int overallPosition = childPositionOffset(<xsl:value-of select="@type"/>.class) + pos;
+            fireChildRemoved(<xsl:value-of select="@type"/>.class, overallPosition, removedItem);
         }
         return removedItem;
     }
@@ -204,6 +206,23 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
     @Override
     public boolean allowsChildren() {
         return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class&lt;? extends OLAPObject&gt; childClass) {
+        int offset = 0;
+        <xsl:for-each select="Array">
+        if (childClass == <xsl:value-of select="@type"/>.class) return offset;
+        offset += <xsl:value-of select="@name"/>.size();
+        </xsl:for-each>
+        return offset;
     }
     </xsl:when>
     <xsl:otherwise>
