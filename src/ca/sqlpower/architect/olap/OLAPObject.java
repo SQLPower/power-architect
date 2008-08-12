@@ -67,7 +67,7 @@ public abstract class OLAPObject {
      * Returns a read-only unified list of all children of this OLAPObject.
      * If this object doesn't have any children, returns an empty list.
      */
-    public abstract List<OLAPObject> getChildren();
+    public abstract List<? extends OLAPObject> getChildren();
 
     /**
      * Adds the given child or sets the appropriate property on this OLAPObject,

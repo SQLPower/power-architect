@@ -20,6 +20,7 @@
 package ca.sqlpower.architect.swingui.olap.action;
 
 import java.awt.event.ActionEvent;
+import java.util.concurrent.Callable;
 
 import javax.swing.JDialog;
 
@@ -27,6 +28,8 @@ import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaEditorPanel;
+import ca.sqlpower.architect.swingui.olap.SchemaEditPanel;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 /**
  * Action that pops up a dialog with an OLAP cube editor in it.
@@ -45,11 +48,37 @@ public class OLAPEditAction extends AbstractArchitectAction {
         OLAPSchemaEditorPanel panel = new OLAPSchemaEditorPanel(session, schema);
         
         // TODO register listener on schema object and make dialog title track schema name
-        JDialog d = new JDialog(session.getArchitectFrame(), "OLAP Schema Editor");
+        final JDialog d = new JDialog(session.getArchitectFrame(), "OLAP Schema Editor");
         d.setContentPane(panel.getPanel());
         d.pack();
         d.setLocationRelativeTo(session.getArchitectFrame());
         d.setVisible(true);
+        
+        final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(schema, session);
+
+        Callable<Boolean> okCall = new Callable<Boolean>() {
+            public Boolean call() throws Exception {
+                return schemaEditPanel.applyChanges();
+            }
+        };
+
+        Callable<Boolean> cancelCall = new Callable<Boolean>() {
+            public Boolean call() throws Exception {
+                d.dispose();
+                // TODO remove new schema from session
+                return true;
+            }
+        };
+
+        JDialog schemaEditDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
+                schemaEditPanel,
+                d,
+                "New Schema Properties",
+                "OK",
+                okCall,
+                cancelCall);
+        
+        schemaEditDialog.setVisible(true);
     }
 
     

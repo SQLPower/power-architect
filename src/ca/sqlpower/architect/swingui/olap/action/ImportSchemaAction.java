@@ -29,6 +29,7 @@ import javax.swing.JFileChooser;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.MondrianXMLReader;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -58,7 +59,7 @@ public class ImportSchemaAction extends AbstractArchitectAction {
                 }
                 loadedSchema = schemas.get(0);
                 
-                session.getOLAPSchemas().add(loadedSchema);
+                session.getOLAPRootObject().addChild(new OLAPSession(loadedSchema));
                 OLAPSchemaEditorPanel panel = new OLAPSchemaEditorPanel(session, loadedSchema);
                 // TODO register listener on schema object and make dialog title track schema name
                 JDialog d = new JDialog(session.getArchitectFrame(), "OLAP Schema Editor");

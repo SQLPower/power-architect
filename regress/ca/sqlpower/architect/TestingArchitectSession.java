@@ -35,7 +35,7 @@ package ca.sqlpower.architect;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
-import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
 
 /**
@@ -113,11 +113,7 @@ public class TestingArchitectSession implements ArchitectSession {
 
     }
 
-    public List<Schema> getOLAPSchemas() {
+    public OLAPRootObject getOLAPRootObject() {
         return null;
     }
-
-    public void setOLAPSchemas(List<Schema> schemas) {
-    }
-
 }

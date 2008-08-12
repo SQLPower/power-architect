@@ -35,10 +35,7 @@ import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
-import ca.sqlpower.architect.olap.MondrianModel.Cube;
-import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
-import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 
 public class OLAPTreeModel implements TreeModel {
 
@@ -127,51 +124,6 @@ public class OLAPTreeModel implements TreeModel {
         throw new UnsupportedOperationException("model doesn't support editting yet");        
     }
     
-    /**
-     * Adds listener to source's listener list and all of source's
-     * children's listener lists recursively.
-     */
-//    public static void listenToHierarchy(PropertyChangeListener listener, ElementDef source, OLAPTreeModel treeModel) {
-//        source.addPropertyChangeListener(listener);
-//        if (!(source instanceof CubeDimension || source instanceof Measure || source instanceof VirtualCubeMeasure)) {
-//            Iterator<ElementDef> it = getChildrenOfElementDef(source, treeModel).iterator();
-//            while (it.hasNext()) {
-//                listenToHierarchy(listener, (ElementDef) it.next(), treeModel);
-//            }
-//        }
-//
-//    }
-    
-    private static List<OLAPObject> getChildrenOfOLAPObject(OLAPObject ed, OLAPTreeModel treeModel) {
-        List<OLAPObject> returnList = new ArrayList<OLAPObject>();
-        if (ed instanceof Schema) {
-            returnList.addAll(((Schema) ed).getDimensions());
-            returnList.addAll(((Schema) ed).getCubes());
-            returnList.addAll(((Schema) ed).getVirtualCubes());
-            return returnList;
-        } else if (ed instanceof Cube) {
-            returnList.addAll(((Cube) ed).getDimensions());
-            returnList.addAll(((Cube) ed).getMeasures());
-            return returnList;
-        } else if (ed instanceof VirtualCube) {
-            returnList.addAll(((VirtualCube) ed).getDimensions());
-            returnList.addAll(((VirtualCube) ed).getMeasures());
-            CubeUsages cubeUsage = ((VirtualCube) ed).getCubeUsage();
-            if (cubeUsage != null) {
-                for(int i = 0; i < cubeUsage.getCubeUsages().size(); i++) {
-                    String cubeName = cubeUsage.getCubeUsages().get(i).getCubeName();
-                    Cube cube = OLAPUtil.findCube(treeModel.getRoot(), cubeName);
-                    returnList.add(cube);
-                }
-                return returnList;
-            } else {
-                return returnList;
-            }
-        } else {
-            return returnList;
-        }
-    }
-
     private class BusinessModelEventHandler implements OLAPChildListener, PropertyChangeListener {
         public void propertyChange(PropertyChangeEvent evt) {
             fireTreeNodeChanged((OLAPObject) evt.getSource());
@@ -189,16 +141,17 @@ public class OLAPTreeModel implements TreeModel {
     }
     
     private void fireTreeNodeChanged(OLAPObject node) {
-        OLAPObject parent = node.getParent();
         
-        int indexOfChild;
+        TreeModelEvent e;
         if (node == getRoot()) {
-            indexOfChild = 0;
+            // special case for root node
+            e = new TreeModelEvent(this, new Object[] { getRoot() }, null, null);
         } else {
-            indexOfChild = getIndexOfChild(parent, node);
+            OLAPObject parent = node.getParent();
+            int indexOfChild = getIndexOfChild(parent, node);
+            e = new TreeModelEvent(this, pathToNode(parent), new int[] { indexOfChild }, new Object[] { node });
         }
         
-        TreeModelEvent e = new TreeModelEvent(this, pathToNode(parent), new int[] { indexOfChild }, new Object[] { node });
         for (int i = treeModelListeners.size() - 1; i >= 0; i--) {
             treeModelListeners.get(i).treeNodesChanged(e);
         }

@@ -21,7 +21,7 @@ package ca.sqlpower.architect;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
-import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
 
 public interface ArchitectSession extends UserPrompterFactory {
@@ -99,8 +99,14 @@ public interface ArchitectSession extends UserPrompterFactory {
     /* docs inherit from interface */
     public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText);
 
-    public List<Schema> getOLAPSchemas();
-    
-    public void setOLAPSchemas(List<Schema> schemas);
+    /**
+     * Returns the OLAP root object, which contains all the OLAP sessions that are part of this
+     * Architect session.
+     * <p>
+     * Note: We would prefer not to let ArchitectSession reference anything in the OLAP editor,
+     * since we do not want the core Architect API to include OLAP support.  We are currently
+     * trying to come up with a way to put this somewhere else.
+     */
+    public OLAPRootObject getOLAPRootObject();
     
 }

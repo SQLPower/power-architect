@@ -54,7 +54,7 @@ import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
-import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.action.AboutAction;
@@ -768,15 +768,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         delegateSession.setDDLGenerator(generator);
     }
     
-    public List<Schema> getOLAPSchemas() {
-        return delegateSession.getOLAPSchemas();
+    public OLAPRootObject getOLAPRootObject() {
+        return delegateSession.getOLAPRootObject();
     }
     
-    public void setOLAPSchemas(List<Schema> schemas) {
-        delegateSession.setOLAPSchemas(schemas);
-    }
-
-
     /**
      * Creates a new user prompter that uses a modal dialog to pose the given question.
      * 

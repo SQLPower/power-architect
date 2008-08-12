@@ -59,7 +59,7 @@ import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.olap.MondrianXMLWriter;
-import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileManager;
@@ -464,8 +464,8 @@ public class SwingUIProject extends CoreProject {
     
     private void saveOLAP(PrintWriter out) {
         ioo.indent++;
-        for (Schema sch : getSession().getOLAPSchemas()) {
-            MondrianXMLWriter.write(out, sch, false, ioo.indent);
+        for (OLAPSession osession : getSession().getOLAPRootObject().getChildren()) {
+            MondrianXMLWriter.write(out, osession.getSchema(), false, ioo.indent);
         }
         ioo.indent--;
     }
