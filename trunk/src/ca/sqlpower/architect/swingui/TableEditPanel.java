@@ -128,7 +128,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         }
-		table.startCompoundEdit("Table Properties Change");		 //$NON-NLS-1$
+		table.startCompoundEdit(Messages.getString("TableEditPanel.compoundEditName"));		 //$NON-NLS-1$
         try {	
 		    StringBuffer warnings = new StringBuffer();
             //We need to check if the table name and/or primary key name is empty or not
@@ -227,7 +227,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
      * exit the editing dialog window.
      */
     public void dbChildrenRemoved(SQLObjectEvent e) {
-        logger.debug("SQLObject children got removed: " + e);
+        logger.debug("SQLObject children got removed: " + e); //$NON-NLS-1$
         SQLObject[] c = e.getChildren();
 
         for (SQLObject obj : c) {
