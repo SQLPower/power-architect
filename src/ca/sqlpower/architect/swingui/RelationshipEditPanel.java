@@ -18,9 +18,6 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-
 import javax.swing.ButtonGroup;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -40,9 +37,6 @@ import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
 import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEventListener;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -109,11 +103,6 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
     private ArchitectSession session;
     
 	public RelationshipEditPanel(ArchitectSwingSession session) {
-
-        // XXX this looks suspicious. why does it work? shouldn't the events come
-        //     straight from the SQLRelationship object?
-        addUndoEventListener(session.getArchitectFrame().getUndoManager().getEventAdapter());
-        
         this.session = session;
         FormLayout layout = new FormLayout("pref, 4dlu, pref:grow, 4dlu, pref, 4dlu, pref:grow");
         layout.setColumnGroups(new int[][] { { 3, 7 } });
@@ -282,7 +271,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 	    } catch (ArchitectException e) {
 	        throw new ArchitectRuntimeException(e);
 	    }
-		startCompoundEdit("Relationship Properties Change");
+		relationship.startCompoundEdit("Relationship Properties Change");
 		try {
 			relationship.setName(relationshipName.getText());
 			try {
@@ -342,63 +331,22 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
             }
 
 		} finally {
-			endCompoundEdit("Ending new compound edit event in relationship edit panel");
+			relationship.endCompoundEdit("Ending new compound edit event in relationship edit panel");
 		}
 		return true;
 	}
 
 	public void discardChanges() {
-        // TODO revert the changes made
 	    try {
             ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         }
 	}
-	
-	/**
-	 * The list of SQLObject property change event listeners
-	 * used for undo
-	 */
-	private LinkedList<UndoCompoundEventListener> undoEventListeners = new LinkedList<UndoCompoundEventListener>();
-
-	
-	public void addUndoEventListener(UndoCompoundEventListener l) {
-		undoEventListeners.add(l);
-	}
-
-	public void removeUndoEventListener(UndoCompoundEventListener l) {
-		undoEventListeners.remove(l);
-	}
-	
-	private void fireUndoCompoundEvent(UndoCompoundEvent e) {
-		Iterator it = undoEventListeners.iterator();
-		
-		
-		if (e.getType().isStartEvent()) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).compoundEditStart(e);
-			}
-		} else {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).compoundEditEnd(e);
-			}
-		} 
-		
-	}
-	
-	public void startCompoundEdit(String message){
-		fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START,message));
-	}
-	
-	public void endCompoundEdit(String message){
-		fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END,message));
-	}
 
 	public JPanel getPanel() {
 		return panel;
 	}
-
 
     public boolean hasUnsavedChanges() {
         return true;
@@ -407,7 +355,6 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
     public void dbChildrenInserted(SQLObjectEvent e) {
         
     }
-
 
     /**
      * Checks to see if its respective relationship is removed from
@@ -432,11 +379,9 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         }
     }
 
-
     public void dbObjectChanged(SQLObjectEvent e) {
         
     }
-
 
     public void dbStructureChanged(SQLObjectEvent e) {
         

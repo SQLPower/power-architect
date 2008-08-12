@@ -390,6 +390,11 @@ public class UndoManager extends javax.swing.undo.UndoManager {
         return undoing || redoing;
     }
 
+    /**
+     * Returns the event adapter for SQLObjects and compound events. This
+     * is an implementation detail specific to undo/redo on the relational
+     * play pen, and it will be going away soon.
+     */
     public SQLObjectUndoableEventAdapter getEventAdapter() {
         return eventAdapter;
     }

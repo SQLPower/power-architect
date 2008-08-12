@@ -19,8 +19,6 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
-import java.util.Iterator;
-import java.util.LinkedList;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -41,9 +39,6 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEventListener;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.swingui.ColorCellRenderer;
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -71,7 +66,6 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		super(new FormLayout());
 		this.session = session;
 		this.tp = session.getPlayPen().findTablePane(t);
-		addUndoEventListener(session.getUndoManager().getEventAdapter());
 		add(new JLabel(Messages.getString("TableEditPanel.tableNameLabel"))); //$NON-NLS-1$
 		add(name = new JTextField("", 30)); //$NON-NLS-1$
 		add(new JLabel(Messages.getString("TableEditPanel.primaryKeyNameLabel"))); //$NON-NLS-1$
@@ -102,7 +96,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		editTable(t);
 	}
 
-	public void editTable(SQLTable t) {
+	private void editTable(SQLTable t) {
 		table = t;
 		name.setText(t.getName());
         try {
@@ -134,7 +128,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         }
-		startCompoundEdit("Table Properties Change");		 //$NON-NLS-1$
+		table.startCompoundEdit("Table Properties Change");		 //$NON-NLS-1$
         try {	
 		    StringBuffer warnings = new StringBuffer();
             //We need to check if the table name and/or primary key name is empty or not
@@ -187,54 +181,16 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		} catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         } finally {
-			endCompoundEdit("Ending new compound edit event in table edit panel"); //$NON-NLS-1$
+			table.endCompoundEdit("Ending new compound edit event in table edit panel"); //$NON-NLS-1$
 		}
 	}
 
 	public void discardChanges() {
-	    // TODO revert the changes made
 	    try {
             ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         }
-	}
-	
-	/**
-	 * The list of SQLObject property change event listeners
-	 * used for undo
-	 */
-	protected LinkedList<UndoCompoundEventListener> undoEventListeners = new LinkedList<UndoCompoundEventListener>();
-
-	
-	public void addUndoEventListener(UndoCompoundEventListener l) {
-		undoEventListeners.add(l);
-	}
-
-	public void removeUndoEventListener(UndoCompoundEventListener l) {
-		undoEventListeners.remove(l);
-	}
-	
-	protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
-		Iterator it = undoEventListeners.iterator();
-		
-		if (e.getType().isStartEvent()) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).compoundEditStart(e);
-			}
-		} else {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).compoundEditEnd(e);
-			}
-		} 
-	}
-
-	public void startCompoundEdit(String message){
-		fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START,message));
-	}
-	
-	public void endCompoundEdit(String message){
-		fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END,message));
 	}
 	
 	public JPanel getPanel() {

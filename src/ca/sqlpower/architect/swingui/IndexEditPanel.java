@@ -21,8 +21,6 @@ package ca.sqlpower.architect.swingui;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -42,9 +40,6 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.SQLTable.Folder;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEventListener;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.sql.SPDataSourceType;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
@@ -98,7 +93,6 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
 
     private void createGUI(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws ArchitectException {
         this.parent = parent;
-        addUndoEventListener(session.getUndoManager().getEventAdapter());
         PanelBuilder pb = new PanelBuilder((FormLayout) this.getLayout(), this);
         CellConstraints cc = new CellConstraints();
         pb.add(new JLabel(Messages.getString("IndexEditPanel.indexName")), cc.xy(1, 1)); //$NON-NLS-1$
@@ -245,7 +239,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     public boolean applyChanges() {
         columnsTable.cleanUp();
         columnsTable.finalizeIndex();
-        startCompoundEdit("Index Properties Change"); //$NON-NLS-1$
+        index.startCompoundEdit("Index Properties Change"); //$NON-NLS-1$
         try {
             StringBuffer warnings = new StringBuffer();
             //We need to check if the index name and/or primary key name is empty or not
@@ -314,47 +308,11 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         } finally {
-            endCompoundEdit("Ending new compound edit event in index edit panel"); //$NON-NLS-1$
+            index.endCompoundEdit("Ending new compound edit event in index edit panel"); //$NON-NLS-1$
         }
     }
 
     public void discardChanges() {
-    }
-
-    /**
-     * The list of SQLObject property change event listeners
-     * used for undo
-     */
-    protected LinkedList<UndoCompoundEventListener> undoEventListeners = new LinkedList<UndoCompoundEventListener>();
-
-    public void addUndoEventListener(UndoCompoundEventListener l) {
-        undoEventListeners.add(l);
-    }
-
-    public void removeUndoEventListener(UndoCompoundEventListener l) {
-        undoEventListeners.remove(l);
-    }
-
-    protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
-        Iterator it = undoEventListeners.iterator();
-
-        if (e.getType().isStartEvent()) {
-            while (it.hasNext()) {
-                ((UndoCompoundEventListener) it.next()).compoundEditStart(e);
-            }
-        } else {
-            while (it.hasNext()) {
-                ((UndoCompoundEventListener) it.next()).compoundEditEnd(e);
-            }
-        }
-    }
-
-    public void startCompoundEdit(String message) {
-        fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START, message));
-    }
-
-    public void endCompoundEdit(String message) {
-        fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END, message));
     }
 
     public JPanel getPanel() {
