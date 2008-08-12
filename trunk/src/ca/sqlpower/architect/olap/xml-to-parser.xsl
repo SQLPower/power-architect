@@ -20,6 +20,9 @@ package ca.sqlpower.architect.olap;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import org.apache.log4j.Logger;
@@ -38,11 +41,20 @@ public class MondrianXMLReader {
 
     private static final Logger logger = Logger.getLogger(MondrianXMLReader.class);
 
-    public static MondrianModel.Schema parse(File f) throws IOException, SAXException {
+    public static List&lt;MondrianModel.Schema&gt; parse(File f) throws IOException, SAXException {
         XMLReader reader = XMLReaderFactory.createXMLReader();
         MondrianSAXHandler handler = new MondrianSAXHandler();
         reader.setContentHandler(handler);
         InputSource is = new InputSource(new FileInputStream(f));
+        reader.parse(is);
+        return handler.root;
+    }
+    
+    public static List&lt;MondrianModel.Schema&gt; parse(InputStream in) throws IOException, SAXException {
+        XMLReader reader = XMLReaderFactory.createXMLReader();
+        MondrianSAXHandler handler = new MondrianSAXHandler();
+        reader.setContentHandler(handler);
+        InputSource is = new InputSource(in);
         reader.parse(is);
         return handler.root;
     }
@@ -61,7 +73,7 @@ public class MondrianXMLReader {
     
        private Stack&lt;OLAPObject&gt; context = new Stack&lt;OLAPObject&gt;();
        private Locator locator;
-       private MondrianModel.Schema root;
+       private List&lt;MondrianModel.Schema&gt; root = new ArrayList&lt;MondrianModel.Schema&gt;();
        private StringBuilder text;
        
        @Override
@@ -70,46 +82,49 @@ public class MondrianXMLReader {
 	           OLAPObject currentElement;
 	           if (false) {
 	           <xsl:for-each select="Element">
-	               } else if (qName.equals("<xsl:value-of select="@type"/>")) {
-	                   MondrianModel.<xsl:value-of select="@type"/> elem = new MondrianModel.<xsl:value-of select="@type"/>();
-	                   currentElement = elem;
-	                   for (int i = 0; i &lt; atts.getLength(); i++) {
-	                       String aname = atts.getQName(i);
-	                       String aval = atts.getValue(i);
-	                       if (false) {
-	                       <xsl:for-each select="Attribute">
-	                       } else if (aname.equals("<xsl:value-of select="@name"/>")) {
-	                           <xsl:choose>
-	                             <xsl:when test="@type = 'Boolean'">
-	                               elem.set<xsl:call-template name="name-initcap"/>(Boolean.valueOf(aval));
-	                             </xsl:when>
-	                             <xsl:otherwise>
-	                               elem.set<xsl:call-template name="name-initcap"/>(aval);
-	                             </xsl:otherwise>
-	                           </xsl:choose>
-	                       </xsl:for-each>
-	                       } else {
-				              <xsl:choose>
-				                <xsl:when test="@class">
-				                  handle<xsl:value-of select="@class"/>Attribute(elem, aname, aval);
-				                </xsl:when>
-				                <xsl:otherwise>
-				                  logger.warn("Skipping unknown attribute \""+aname+"\" of element \""+elem.getClass()+"\"");
-				                </xsl:otherwise>
-				              </xsl:choose>
-	                       }
-	                   }
-	           </xsl:for-each>
+               } else if (qName.equals("<xsl:value-of select="@type"/>")) {
+                   MondrianModel.<xsl:value-of select="@type"/> elem = new MondrianModel.<xsl:value-of select="@type"/>();
+                   currentElement = elem;
+                   for (int i = 0; i &lt; atts.getLength(); i++) {
+                       String aname = atts.getQName(i);
+                       String aval = atts.getValue(i);
+                       if (false) {
+                       <xsl:for-each select="Attribute">
+                       } else if (aname.equals("<xsl:value-of select="@name"/>")) {
+                           <xsl:choose>
+                             <xsl:when test="@type = 'Boolean'">
+                               elem.set<xsl:call-template name="name-initcap"/>(Boolean.valueOf(aval));
+                             </xsl:when>
+                             <xsl:otherwise>
+                               elem.set<xsl:call-template name="name-initcap"/>(aval);
+                             </xsl:otherwise>
+                           </xsl:choose>
+                       </xsl:for-each>
+                       } else {
+			              <xsl:choose>
+			                <xsl:when test="@class">
+			                  handle<xsl:value-of select="@class"/>Attribute(elem, aname, aval);
+			                </xsl:when>
+			                <xsl:otherwise>
+			                  logger.warn("Skipping unknown attribute \""+aname+"\" of element \""+elem.getClass()+"\"");
+			                </xsl:otherwise>
+			              </xsl:choose>
+                       }
+                   }
+           </xsl:for-each>
 	           } else {
-	               throw new MondrianFileFormatException(locator, "Unknown element type \""+qName+"\"");
+	               currentElement = null;
+	               logger.warn("Unknown element type \"" + qName + "\" at locator: " + locator);
 	           }
-	           if (!context.isEmpty()) {
-                   context.peek().addChild(currentElement);
-               } else {
-	               root = (MondrianModel.Schema) currentElement;
-               }
-	           context.push(currentElement);
-	           logger.debug("Pushed " + currentElement);
+	           if (currentElement != null) {
+		           if (currentElement instanceof MondrianModel.Schema) {
+		               root.add((MondrianModel.Schema) currentElement);
+		           } else if (!context.isEmpty()) {
+		               context.peek().addChild(currentElement);
+		           } 
+		           context.push(currentElement);
+		           logger.debug("Pushed " + currentElement);
+	           }
 	       } catch (Exception ex) {
 	           throw new SAXException("Error at Line: "+locator.getLineNumber()+", Column: "+locator.getColumnNumber(), ex);
 	       }
@@ -156,30 +171,30 @@ public class MondrianXMLReader {
 </xsl:template>
 
 <xsl:template match="Class">
-    private void handle<xsl:value-of select="@class"/>Attribute(MondrianModel.<xsl:value-of select="@class"/> elem, String aname, String aval) {
-        if (false) {
-        <xsl:for-each select="Attribute">
-        } else if (aname.equals("<xsl:value-of select="@name"/>")) {
-            <xsl:choose>
-              <xsl:when test="@type = 'Boolean'">
-                elem.set<xsl:call-template name="name-initcap"/>(Boolean.valueOf(aval));
-              </xsl:when>
-              <xsl:otherwise>
-                elem.set<xsl:call-template name="name-initcap"/>(aval);
-              </xsl:otherwise>
-            </xsl:choose>
-        </xsl:for-each>
-        } else {
-          <xsl:choose>
-            <xsl:when test="@superclass">
-              handle<xsl:value-of select="@superclass"/>Attribute(elem, aname, aval);
-            </xsl:when>
-            <xsl:otherwise>
-              logger.warn("Skipping unknown attribute \""+aname+"\" of element \""+elem.getClass()+"\"");
-            </xsl:otherwise>
-          </xsl:choose>
-        }
-    }
+	    private void handle<xsl:value-of select="@class"/>Attribute(MondrianModel.<xsl:value-of select="@class"/> elem, String aname, String aval) {
+	        if (false) {
+	        <xsl:for-each select="Attribute">
+	        } else if (aname.equals("<xsl:value-of select="@name"/>")) {
+	            <xsl:choose>
+	              <xsl:when test="@type = 'Boolean'">
+	                elem.set<xsl:call-template name="name-initcap"/>(Boolean.valueOf(aval));
+	              </xsl:when>
+	              <xsl:otherwise>
+	                elem.set<xsl:call-template name="name-initcap"/>(aval);
+	              </xsl:otherwise>
+	            </xsl:choose>
+	        </xsl:for-each>
+	        } else {
+	          <xsl:choose>
+	            <xsl:when test="@superclass">
+	              handle<xsl:value-of select="@superclass"/>Attribute(elem, aname, aval);
+	            </xsl:when>
+	            <xsl:otherwise>
+	              logger.warn("Skipping unknown attribute \""+aname+"\" of element \""+elem.getClass()+"\"");
+	            </xsl:otherwise>
+	          </xsl:choose>
+	        }
+	    }
 </xsl:template>
 
 <!-- Returns the initcap version of the "name" attribute of the current element -->

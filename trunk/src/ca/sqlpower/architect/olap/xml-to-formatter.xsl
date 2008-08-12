@@ -39,6 +39,9 @@ public class MondrianXMLWriter {
         write(out, schema, true, 0);
     }
     
+    /**
+     * Writes the xml version tag at the beginning of the output.
+     */
     public static void writeXML(File f, MondrianModel.Schema schema) throws IOException {
         PrintWriter out = new PrintWriter(new FileWriter(f));
         out.println("&lt;?xml version=\"1.0\"?&gt;");

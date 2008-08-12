@@ -37,6 +37,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
+import org.apache.commons.digester.Rule;
 import org.apache.commons.digester.SetPropertiesRule;
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
@@ -47,6 +48,7 @@ import ca.sqlpower.architect.SQLRelationship.Deferrability;
 import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.olap.MondrianXMLReader;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -131,114 +133,140 @@ public class CoreProject {
 
     // ------------- READING THE PROJECT FILE ---------------
 
+    /**
+     * Loads the project data from the given input stream. 
+     * 
+     * Note: the input stream is always closed afterwards.
+     */
     public void load(InputStream in, DataSourceCollection dataSources) throws IOException, ArchitectException {
-        dbcsIdMap = new HashMap();
-        objectIdMap = new HashMap();
-
-        Digester digester = null;
-        
-        // use digester to read from file
+        UnclosableInputStream uin = new UnclosableInputStream(in);
         try {
-            digester = setupDigester();
-            digester.parse(in);
-        } catch (SAXException ex) {
-            logger.error("SAX Exception in project file parse!", ex);
-            String message;
-            if (digester == null) {
-                message = "Couldn't create an XML parser";
+            dbcsIdMap = new HashMap();
+            objectIdMap = new HashMap();
+
+            if (uin.markSupported()) {
+                uin.mark(Integer.MAX_VALUE);
             } else {
-                message = "There is an XML parsing error in project file at Line:" + 
-                digester.getDocumentLocator().getLineNumber() + " Column:" +
-                digester.getDocumentLocator().getColumnNumber();
+                throw new IllegalStateException("Failed to load with an input stream that does not support mark!");
             }
-            throw new ArchitectException(message, ex);
-        } catch (IOException ex) {
-            logger.error("IO Exception in project file parse!", ex);
-            throw new ArchitectException("There was an I/O error while reading the file", ex);
-        } catch (Exception ex) {
-            logger.error("General Exception in project file parse!", ex);
-            throw new ArchitectException("Unexpected Exception", ex);
-        }
+            
+            Digester digester = null;
 
-        SQLObject dbConnectionContainer = ((SQLObject) getSession().getRootObject());
-        dbConnectionContainer.addChild(0, getSession().getTargetDatabase());
-        getSession().getTargetDatabase().setPlayPenDatabase(true);
+            // use digester to read from file
+            try {
+                digester = setupDigester();
+                digester.parse(uin);
+            } catch (SAXException ex) {
+                logger.error("SAX Exception in project file parse!", ex);
+                String message;
+                if (digester == null) {
+                    message = "Couldn't create an XML parser";
+                } else {
+                    message = "There is an XML parsing error in project file at Line:" + 
+                    digester.getDocumentLocator().getLineNumber() + " Column:" +
+                    digester.getDocumentLocator().getColumnNumber();
+                }
+                throw new ArchitectException(message, ex);
+            } catch (IOException ex) {
+                logger.error("IO Exception in project file parse!", ex);
+                throw new ArchitectException("There was an I/O error while reading the file", ex);
+            } catch (Exception ex) {
+                logger.error("General Exception in project file parse!", ex);
+                throw new ArchitectException("Unexpected Exception", ex);
+            }
 
-        // hook up data source parent types
-        for (SQLDatabase db : (List<SQLDatabase>) dbConnectionContainer.getChildren()) {
-            SPDataSource ds = db.getDataSource();
-            String parentTypeId = ds.getPropertiesMap().get(SPDataSource.DBCS_CONNECTION_TYPE);
-            if (parentTypeId != null) {
-                for (SPDataSourceType dstype : dataSources.getDataSourceTypes()) {
-                    if (dstype.getName().equals(parentTypeId)) {
-                        ds.setParentType(dstype);
-                        // TODO unit test that this works
+            SQLObject dbConnectionContainer = ((SQLObject) getSession().getRootObject());
+            dbConnectionContainer.addChild(0, getSession().getTargetDatabase());
+            getSession().getTargetDatabase().setPlayPenDatabase(true);
+
+            // hook up data source parent types
+            for (SQLDatabase db : (List<SQLDatabase>) dbConnectionContainer.getChildren()) {
+                SPDataSource ds = db.getDataSource();
+                String parentTypeId = ds.getPropertiesMap().get(SPDataSource.DBCS_CONNECTION_TYPE);
+                if (parentTypeId != null) {
+                    for (SPDataSourceType dstype : dataSources.getDataSourceTypes()) {
+                        if (dstype.getName().equals(parentTypeId)) {
+                            ds.setParentType(dstype);
+                            // TODO unit test that this works
+                        }
+                    }
+                    if (ds.getParentType() == null) {
+                        logger.error("Data Source \""+ds.getName()+"\" has type \""+parentTypeId+"\", which is not configured in the user prefs.");
+                        // TODO either reconstruct the parent type, or bring this problem to the attention of the user.
+                        // TODO test this
+                    } else {
+                        // TODO test that the referenced parent type is properly configured (has a driver, etc)
+                        // TODO test for this behaviour
                     }
                 }
-                if (ds.getParentType() == null) {
-                    logger.error("Data Source \""+ds.getName()+"\" has type \""+parentTypeId+"\", which is not configured in the user prefs.");
-                    // TODO either reconstruct the parent type, or bring this problem to the attention of the user.
-                    // TODO test this
-                } else {
-                    // TODO test that the referenced parent type is properly configured (has a driver, etc)
-                    // TODO test for this behaviour
-                }
-            }
-            
-        }
-        
-        /*
-         * for backward compatibilty, in the old project file, we have
-         * primaryKeyName in the table attrbute, but nothing
-         * in the sqlIndex that indicates primary key index,
-         * so, we have to set the index as primary key index
-         * if the index name == table.primaryKeyName after load the project,
-         * table.primaryKeyName is save in the map now, not in the table object
-         */
-        for (SQLTable table : (List<SQLTable>)getSession().getTargetDatabase().getTables()) {
 
-            if (logger.isDebugEnabled()) {
-                if (!table.isPopulated()) {
-                    logger.debug("Table ["+table.getName()+"] not populated");
-                } else if (table.getIndicesFolder() == null) {
-                    logger.debug("Table ["+table.getName()+"] has null indices folder");
-                } else {
-                    logger.debug("Table ["+table.getName()+"] index folder contents: "+table.getIndicesFolder().getChildren());
-                }
             }
-            
-            if (table.getIndicesFolder() == null) {
-                logger.debug("this must be a very old version, we have to add the index" +
-                        " folder manually. the table is [" + table.getName() + "]");
-                table.addChild(new Folder(Folder.INDICES, true));
-            }
-            if ( table.getPrimaryKeyIndex() == null) {
-                logger.debug("primary key index is null in table: " + table);
-                logger.debug("number of children found in indices folder: " + table.getIndicesFolder().getChildCount());
-                for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
-                    if (objectIdMap.get(table.getName()+"."+index.getName()) != null) {
-                        index.setPrimaryKeyIndex(true);
-                        break;
+
+            /*
+             * for backward compatibilty, in the old project file, we have
+             * primaryKeyName in the table attrbute, but nothing
+             * in the sqlIndex that indicates primary key index,
+             * so, we have to set the index as primary key index
+             * if the index name == table.primaryKeyName after load the project,
+             * table.primaryKeyName is save in the map now, not in the table object
+             */
+            for (SQLTable table : (List<SQLTable>)getSession().getTargetDatabase().getTables()) {
+
+                if (logger.isDebugEnabled()) {
+                    if (!table.isPopulated()) {
+                        logger.debug("Table ["+table.getName()+"] not populated");
+                    } else if (table.getIndicesFolder() == null) {
+                        logger.debug("Table ["+table.getName()+"] has null indices folder");
+                    } else {
+                        logger.debug("Table ["+table.getName()+"] index folder contents: "+table.getIndicesFolder().getChildren());
                     }
                 }
-            }
-            logger.debug("Table ["+table.getName()+"]2 index folder contents: "+table.getIndicesFolder().getChildren());
-            table.normalizePrimaryKey();
-            logger.debug("Table ["+table.getName()+"]3 index folder contents: "+table.getIndicesFolder().getChildren());
-            
-            if (logger.isDebugEnabled()) {
-                if (!table.isPopulated()) {
-                    logger.debug("Table ["+table.getName()+"] not populated");
-                } else if (table.getIndicesFolder() == null) {
-                    logger.debug("Table ["+table.getName()+"] has null indices folder");
-                } else {
-                    logger.debug("Table ["+table.getName()+"] index folder contents: "+table.getIndicesFolder().getChildren());
+
+                if (table.getIndicesFolder() == null) {
+                    logger.debug("this must be a very old version, we have to add the index" +
+                            " folder manually. the table is [" + table.getName() + "]");
+                    table.addChild(new Folder(Folder.INDICES, true));
                 }
+                if ( table.getPrimaryKeyIndex() == null) {
+                    logger.debug("primary key index is null in table: " + table);
+                    logger.debug("number of children found in indices folder: " + table.getIndicesFolder().getChildCount());
+                    for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
+                        if (objectIdMap.get(table.getName()+"."+index.getName()) != null) {
+                            index.setPrimaryKeyIndex(true);
+                            break;
+                        }
+                    }
+                }
+                logger.debug("Table ["+table.getName()+"]2 index folder contents: "+table.getIndicesFolder().getChildren());
+                table.normalizePrimaryKey();
+                logger.debug("Table ["+table.getName()+"]3 index folder contents: "+table.getIndicesFolder().getChildren());
+
+                if (logger.isDebugEnabled()) {
+                    if (!table.isPopulated()) {
+                        logger.debug("Table ["+table.getName()+"] not populated");
+                    } else if (table.getIndicesFolder() == null) {
+                        logger.debug("Table ["+table.getName()+"] has null indices folder");
+                    } else {
+                        logger.debug("Table ["+table.getName()+"] index folder contents: "+table.getIndicesFolder().getChildren());
+                    }
+                }
+
+            }
+            
+            // returning to the beginning of the inputStream
+            uin.reset();
+
+            try {
+                getSession().setOLAPSchemas(MondrianXMLReader.parse(uin));
+            } catch (SAXException e) {
+                logger.error("Error parsing project file's Mondrian schemas", e);
+                throw new ArchitectException("SAX Exception in project file olap schema parse!", e);
             }
 
+            setModified(false);
+        } finally {
+            uin.forceClose();
         }
-
-        setModified(false);
     }
     
     protected Digester setupDigester() throws ParserConfigurationException, SAXException {
@@ -378,6 +406,8 @@ public class CoreProject {
         FileFactory fileFactory = new FileFactory();
         d.addFactoryCreate("*/file", fileFactory);
         d.addSetNext("*/file", "setFile");
+        
+        
         
         return d;
     }
@@ -819,6 +849,11 @@ public class CoreProject {
             }
         }
     }
+    
+    private class OLAPRule extends Rule {
+        
+    }
+    
 
     /**
      * See {@link #modified}.
