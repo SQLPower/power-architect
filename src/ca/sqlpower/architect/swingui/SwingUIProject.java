@@ -464,13 +464,9 @@ public class SwingUIProject extends CoreProject {
     
     private void saveOLAP(PrintWriter out) {
         ioo.indent++;
-        ioo.println(out, "<olap>");
-        ioo.indent++;
         for (Schema sch : getSession().getOLAPSchemas()) {
             MondrianXMLWriter.write(out, sch, false, ioo.indent);
         }
-        ioo.indent--;
-        ioo.println(out, "</olap>");
         ioo.indent--;
     }
 

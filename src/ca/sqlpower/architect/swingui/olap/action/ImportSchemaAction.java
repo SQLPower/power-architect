@@ -21,6 +21,7 @@ package ca.sqlpower.architect.swingui.olap.action;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.List;
 
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -51,7 +52,11 @@ public class ImportSchemaAction extends AbstractArchitectAction {
             File f = chooser.getSelectedFile();
             Schema loadedSchema = null;
             try {
-                loadedSchema = MondrianXMLReader.parse(f);
+                List<Schema> schemas = MondrianXMLReader.parse(f);
+                if (schemas.size() != 1) {
+                    throw new IllegalArgumentException("The import file must only contain one schema!");
+                }
+                loadedSchema = schemas.get(0);
                 
                 session.getOLAPSchemas().add(loadedSchema);
                 OLAPSchemaEditorPanel panel = new OLAPSchemaEditorPanel(session, loadedSchema);
