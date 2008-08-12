@@ -21,8 +21,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 import org.apache.log4j.Logger;
@@ -34,6 +33,8 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+import ca.sqlpower.architect.SQLDatabase;
+
 /**
  * This is class is generated from xml-to-parser.xsl!  Do not alter it directly.
  */
@@ -41,132 +42,156 @@ public class MondrianXMLReader {
 
     private static final Logger logger = Logger.getLogger(MondrianXMLReader.class);
 
-    public static List&lt;MondrianModel.Schema&gt; parse(File f) throws IOException, SAXException {
-        XMLReader reader = XMLReaderFactory.createXMLReader();
-        MondrianSAXHandler handler = new MondrianSAXHandler();
-        reader.setContentHandler(handler);
-        InputSource is = new InputSource(new FileInputStream(f));
-        reader.parse(is);
-        return handler.root;
+    public static OLAPObject parse(File f, boolean mondrianMode) throws IOException, SAXException {
+        return parse(null, null, new FileInputStream(f), mondrianMode);
     }
-    
-    public static List&lt;MondrianModel.Schema&gt; parse(InputStream in) throws IOException, SAXException {
+
+    public static OLAPObject parse(OLAPRootObject rootObj, Map dbIdMap, File f, boolean mondrianMode) throws IOException, SAXException {
+        return parse(rootObj, dbIdMap, new FileInputStream(f), mondrianMode);
+    }
+
+    public static OLAPObject parse(OLAPRootObject rootObj, Map dbIdMap, InputStream in, boolean mondrianMode) throws IOException, SAXException {
         XMLReader reader = XMLReaderFactory.createXMLReader();
-        MondrianSAXHandler handler = new MondrianSAXHandler();
+        MondrianSAXHandler handler = new MondrianSAXHandler(rootObj, dbIdMap, mondrianMode);
         reader.setContentHandler(handler);
         InputSource is = new InputSource(in);
         reader.parse(is);
         return handler.root;
     }
-    
-    private enum ElementTypes {
-        <xsl:for-each select="Element">
-            <xsl:value-of select="@type"/>,
-        </xsl:for-each>
-        <xsl:for-each select="Class">
-            <xsl:value-of select="@class"/>,
-        </xsl:for-each>
-        UNKNOWN;
-    }
 
     private static class MondrianSAXHandler extends DefaultHandler {
-    
-       private Stack&lt;OLAPObject&gt; context = new Stack&lt;OLAPObject&gt;();
-       private Locator locator;
-       private List&lt;MondrianModel.Schema&gt; root = new ArrayList&lt;MondrianModel.Schema&gt;();
-       private StringBuilder text;
+        private Stack&lt;OLAPObject&gt; context = new Stack&lt;OLAPObject&gt;();
+        private Locator locator;
+        private OLAPObject root;
+        private StringBuilder text;
+        
+        private Attributes currentOSessionAtts;
        
-       @Override
-       public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-           try {
-	           OLAPObject currentElement;
-	           if (false) {
+        private final Map dbIdMap;
+        private final boolean mondrianMode;
+       
+        public MondrianSAXHandler(OLAPRootObject rootObj, Map dbIdMap, boolean mondrianMode) {
+            if (rootObj != null) {
+                this.root = rootObj;
+            }
+            this.dbIdMap = dbIdMap;
+            this.mondrianMode = mondrianMode;
+        }
+
+        @Override
+        public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
+            try {
+	            boolean pushElem = true;
+	            OLAPObject currentElement;
+	            if (qName.equals("olap")) {
+	                currentElement = root;
+	            } else if (qName.equals("olap-session")) {
+	                currentOSessionAtts = atts;
+	                pushElem = false;
+	                currentElement = null;               
 	           <xsl:for-each select="Element">
-               } else if (qName.equals("<xsl:value-of select="@type"/>")) {
-                   MondrianModel.<xsl:value-of select="@type"/> elem = new MondrianModel.<xsl:value-of select="@type"/>();
-                   currentElement = elem;
-                   for (int i = 0; i &lt; atts.getLength(); i++) {
-                       String aname = atts.getQName(i);
-                       String aval = atts.getValue(i);
-                       if (false) {
-                       <xsl:for-each select="Attribute">
-                       } else if (aname.equals("<xsl:value-of select="@name"/>")) {
-                           <xsl:choose>
-                             <xsl:when test="@type = 'Boolean'">
-                               elem.set<xsl:call-template name="name-initcap"/>(Boolean.valueOf(aval));
-                             </xsl:when>
-                             <xsl:otherwise>
-                               elem.set<xsl:call-template name="name-initcap"/>(aval);
-                             </xsl:otherwise>
-                           </xsl:choose>
-                       </xsl:for-each>
-                       } else {
-			              <xsl:choose>
-			                <xsl:when test="@class">
-			                  handle<xsl:value-of select="@class"/>Attribute(elem, aname, aval);
-			                </xsl:when>
-			                <xsl:otherwise>
-			                  logger.warn("Skipping unknown attribute \""+aname+"\" of element \""+elem.getClass()+"\"");
-			                </xsl:otherwise>
-			              </xsl:choose>
-                       }
-                   }
-           </xsl:for-each>
-	           } else {
-	               currentElement = null;
-	               logger.warn("Unknown element type \"" + qName + "\" at locator: " + locator);
-	           }
-	           if (currentElement != null) {
-		           if (currentElement instanceof MondrianModel.Schema) {
-		               root.add((MondrianModel.Schema) currentElement);
-		           } else if (!context.isEmpty()) {
-		               context.peek().addChild(currentElement);
-		           } 
-		           context.push(currentElement);
-		           logger.debug("Pushed " + currentElement);
-	           }
-	       } catch (Exception ex) {
-	           throw new SAXException("Error at Line: "+locator.getLineNumber()+", Column: "+locator.getColumnNumber(), ex);
-	       }
-       }
-       
-       @Override
-       public void characters (char ch[], int start, int length)
-       throws SAXException
-       {
-           if (text == null) {
-               text = new StringBuilder();
-           }
-           OLAPObject elem = context.peek();
-           if (elem instanceof MondrianModel.Value || elem instanceof MondrianModel.SQL || elem instanceof MondrianModel.Formula) {
-               for (int i = start; i &lt; length+start; i++) {
-                   text.append(ch[i]);
-               }
-           }
-       }
-       
-       @Override
-       public void endElement(String uri, String localName, String qName) {
-       	   if (context.peek() instanceof MondrianModel.Value) {
-               ((MondrianModel.Value) context.peek()).setText(text.toString().trim());
-           } else if (context.peek() instanceof MondrianModel.SQL) {
-               ((MondrianModel.SQL) context.peek()).setText(text.toString().trim());
-           } else if (context.peek() instanceof MondrianModel.Formula) {
-               ((MondrianModel.Formula) context.peek()).setText(text.toString().trim());
-           }
-           text = null;
-           OLAPObject popped = context.pop();
-           logger.debug("Popped " + popped);
-       }
-       
-       @Override
-       public void setDocumentLocator(Locator locator) {
-           this.locator = locator;
-       }
-       
+	            } else if (qName.equals("<xsl:value-of select="@type"/>")) {
+                    MondrianModel.<xsl:value-of select="@type"/> elem = new MondrianModel.<xsl:value-of select="@type"/>();
+                    currentElement = elem;
+                    for (int i = 0; i &lt; atts.getLength(); i++) {
+                        String aname = atts.getQName(i);
+                        String aval = atts.getValue(i);
+                        if (false) {
+                        <xsl:for-each select="Attribute">
+                        } else if (aname.equals("<xsl:value-of select="@name"/>")) {
+                             <xsl:choose>
+                              <xsl:when test="@type = 'Boolean'">
+                                elem.set<xsl:call-template name="name-initcap"/>(Boolean.valueOf(aval));
+                              </xsl:when>
+                              <xsl:otherwise>
+                                elem.set<xsl:call-template name="name-initcap"/>(aval);
+                              </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:for-each>
+                        } else {
+			               <xsl:choose>
+			                 <xsl:when test="@class">
+			                   handle<xsl:value-of select="@class"/>Attribute(elem, aname, aval);
+			                 </xsl:when>
+			                 <xsl:otherwise>
+			                   logger.warn("Skipping unknown attribute \""+aname+"\" of element \""+elem.getClass()+"\"");
+			                 </xsl:otherwise>
+			               </xsl:choose>
+                        }
+                    }
+            </xsl:for-each>
+	            } else {
+	                pushElem = false;
+	                currentElement = null;
+	                logger.warn("Unknown element type \"" + qName + "\" at locator: " + locator);
+	            }
+	            if (pushElem) {
+                    if (!context.isEmpty()) {
+                        if (currentElement instanceof MondrianModel.Schema) {
+                            OLAPSession osession = new OLAPSession((MondrianModel.Schema) currentElement);
+                            for (int i = 0; i &lt; currentOSessionAtts.getLength(); i++) {
+                                String aname = currentOSessionAtts.getQName(i);
+                                String aval = currentOSessionAtts.getValue(i);
+                                if (aname.equals("dbcs-ref")) {
+                                    osession.setDatabase((SQLDatabase) dbIdMap.get(aval));
+                                } else {
+                                    logger.warn("Skipping unknown attribute \""+aname+"\" of element \""+OLAPSession.class+"\"");
+                                }
+                            }
+                            context.push(osession);
+                        } else {
+                            context.peek().addChild(currentElement);
+                        }
+                    } else {
+                        if (mondrianMode) {
+                            root = (MondrianModel.Schema) currentElement;
+                        }
+                    }
+                    context.push(currentElement);
+                    logger.debug("Pushed " + currentElement);
+	            }
+	        } catch (Exception ex) {
+	            throw new SAXException("Error at Line: "+locator.getLineNumber()+", Column: "+locator.getColumnNumber(), ex);
+	        }
+        }
+
+        @Override
+        public void characters (char ch[], int start, int length)
+        throws SAXException
+        {
+            if (context.isEmpty()) return;
+            if (text == null) {
+                text = new StringBuilder();
+            }
+            OLAPObject elem = context.peek();
+            if (elem instanceof MondrianModel.Value || elem instanceof MondrianModel.SQL || elem instanceof MondrianModel.Formula) {
+                for (int i = start; i &lt; length+start; i++) {
+                    text.append(ch[i]);
+                }
+            }
+        }
+
+        @Override
+        public void endElement(String uri, String localName, String qName) {
+            if (context.isEmpty()) return;
+        	   if (context.peek() instanceof MondrianModel.Value) {
+                ((MondrianModel.Value) context.peek()).setText(text.toString().trim());
+            } else if (context.peek() instanceof MondrianModel.SQL) {
+                ((MondrianModel.SQL) context.peek()).setText(text.toString().trim());
+            } else if (context.peek() instanceof MondrianModel.Formula) {
+                ((MondrianModel.Formula) context.peek()).setText(text.toString().trim());
+            }
+            text = null;
+            OLAPObject popped = context.pop();
+            logger.debug("Popped " + popped);
+        }
+
+        @Override
+        public void setDocumentLocator(Locator locator) {
+            this.locator = locator;
+        }
        <xsl:apply-templates select="Class"/>
     }
-    
 }
 </xsl:template>
 

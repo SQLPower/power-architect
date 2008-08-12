@@ -464,9 +464,22 @@ public class SwingUIProject extends CoreProject {
     
     private void saveOLAP(PrintWriter out) {
         ioo.indent++;
+        ioo.println(out, "<olap>");
+        ioo.indent++;
         for (OLAPSession osession : getSession().getOLAPRootObject().getChildren()) {
+            ioo.print(out, "<olap-session"); //$NON-NLS-1$
+            if (osession.getDatabase() != null) {
+                ioo.niprint(out, "  dbcs-ref="+ //$NON-NLS-1$
+                        quote(objectIdMap.get(osession.getDatabase()).toString())); //$NON-NLS-1$
+            }
+            ioo.niprintln(out, ">"); //$NON-NLS-1$
+            ioo.indent++;
             MondrianXMLWriter.write(out, osession.getSchema(), false, ioo.indent);
+            ioo.indent--;
+            ioo.println(out, "</olap-session>");
         }
+        ioo.indent--;
+        ioo.println(out, "</olap>");
         ioo.indent--;
     }
 

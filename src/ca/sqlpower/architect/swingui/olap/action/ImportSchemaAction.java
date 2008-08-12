@@ -21,7 +21,6 @@ package ca.sqlpower.architect.swingui.olap.action;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.List;
 
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -29,6 +28,7 @@ import javax.swing.JFileChooser;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.MondrianXMLReader;
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ASUtils;
@@ -53,11 +53,12 @@ public class ImportSchemaAction extends AbstractArchitectAction {
             File f = chooser.getSelectedFile();
             Schema loadedSchema = null;
             try {
-                List<Schema> schemas = MondrianXMLReader.parse(f);
-                if (schemas.size() != 1) {
-                    throw new IllegalArgumentException("The import file must only contain one schema!");
+                OLAPObject olapObj = MondrianXMLReader.parse(f, true);
+                if (olapObj instanceof Schema) {
+                    loadedSchema = (Schema) olapObj;
+                } else {
+                    throw new IllegalStateException("File parse failed to return a schema object!");
                 }
-                loadedSchema = schemas.get(0);
                 
                 session.getOLAPRootObject().addChild(new OLAPSession(loadedSchema));
                 OLAPSchemaEditorPanel panel = new OLAPSchemaEditorPanel(session, loadedSchema);
