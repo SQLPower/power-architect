@@ -36,7 +36,7 @@ import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
-import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.undo.UndoManager;
@@ -332,12 +332,8 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         this.showTheRest = showTheRest;
     }
 
-    public List<Schema> getOLAPSchemas() {
-        return delegateSession.getOLAPSchemas();
-    }
-
-    public void setOLAPSchemas(List<Schema> schemas) {
-        delegateSession.setOLAPSchemas(schemas);
+    public OLAPRootObject getOLAPRootObject() {
+        return delegateSession.getOLAPRootObject();
     }
 
 }
