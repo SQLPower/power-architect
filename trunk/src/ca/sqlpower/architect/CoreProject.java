@@ -37,7 +37,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
-import org.apache.commons.digester.Rule;
 import org.apache.commons.digester.SetPropertiesRule;
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
@@ -257,10 +256,13 @@ public class CoreProject {
             uin.reset();
 
             try {
-                getSession().setOLAPSchemas(MondrianXMLReader.parse(uin));
+                MondrianXMLReader.parse(session.getOLAPRootObject(), objectIdMap, uin, false);
             } catch (SAXException e) {
-                logger.error("Error parsing project file's Mondrian schemas", e);
-                throw new ArchitectException("SAX Exception in project file olap schema parse!", e);
+                logger.error("Error parsing project file's olap schemas!", e);
+                throw new ArchitectException("SAX Exception in project file olap schemas parse!", e);
+            } catch (Exception ex) {
+                logger.error("General Exception in project file olap schemas parse!", ex);
+                throw new ArchitectException("Unexpected Exception", ex);
             }
 
             setModified(false);
@@ -850,11 +852,6 @@ public class CoreProject {
         }
     }
     
-    private class OLAPRule extends Rule {
-        
-    }
-    
-
     /**
      * See {@link #modified}.
      */
