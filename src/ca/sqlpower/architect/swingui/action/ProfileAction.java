@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -154,7 +155,7 @@ public class ProfileAction extends AbstractArchitectAction {
                 if ( o instanceof SQLColumn){
                     tables.add(((SQLColumn)o).getParentTable());
                 } else {
-                    tables.addAll(ArchitectUtils.tablesUnder(o));
+                    tables.addAll(ArchitectUtils.findDescendentsByClass(o, SQLTable.class, new ArrayList<SQLTable>()));
                 }
             }
 

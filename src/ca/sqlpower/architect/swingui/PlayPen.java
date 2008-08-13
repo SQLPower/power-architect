@@ -423,7 +423,7 @@ public class PlayPen extends JPanel
      */
     public List<SQLTable> getTables() throws ArchitectException {
         List<SQLTable> tables = new ArrayList<SQLTable>();
-        ArchitectUtils.extractTables(session.getTargetDatabase(),tables);
+        ArchitectUtils.findDescendentsByClass(session.getTargetDatabase(), SQLTable.class, tables);
         return tables;
 
     }
