@@ -159,6 +159,9 @@ public class OLAPTreeModel implements TreeModel {
 
     private void fireTreeNodeAdded(OLAPObject parent, int childIndex, OLAPObject child) {
         TreeModelEvent e = new TreeModelEvent(this, pathToNode(parent), new int[] { childIndex }, new Object[] { child });
+        if (logger.isDebugEnabled()) {
+            logger.debug("Firing tree node added: " + e);
+        }
         for (int i = treeModelListeners.size() - 1; i >= 0; i--) {
             treeModelListeners.get(i).treeNodesInserted(e);
         }
@@ -175,8 +178,8 @@ public class OLAPTreeModel implements TreeModel {
         List<OLAPObject> path = new ArrayList<OLAPObject>();
         while (o != null) {
             path.add(0, o);
-            o = o.getParent();
             if (o == getRoot()) break;
+            o = o.getParent();
         }
         return new TreePath(path.toArray());
     }
