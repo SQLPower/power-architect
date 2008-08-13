@@ -22,32 +22,23 @@ package ca.sqlpower.architect.swingui.olap;
 import java.awt.Point;
 import java.util.List;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 
-public class DimensionPane extends ContainerPane<SQLTable, SQLColumn> {
+public class DimensionPane extends ContainerPane<Dimension, Hierarchy> {
     
-    private List<SQLColumn> columns;
-
-    public DimensionPane(String dimensionName, SQLTable m, PlayPenContentPane parent) {
+    public DimensionPane(Dimension m, PlayPenContentPane parent) {
         super(parent);
-        
         this.model = m;
-        try {
-            columns = m.getColumns();
-        } catch (ArchitectException e) {
-        }
-        
         updateUI();
     }
     
     @Override
-    protected List<SQLColumn> getItems() {
-        return getColumns();
+    protected List<Hierarchy> getItems() {
+        return model.getHierarchies();
     }
 
 
@@ -63,14 +54,6 @@ public class DimensionPane extends ContainerPane<SQLTable, SQLColumn> {
         ContainerPaneUI ui = (ContainerPaneUI) BasicDimensionPaneUI.createUI(this);
         ui.installUI(this);
         setUI(ui);
-    }
-
-    public SQLTable getDummyTable() {
-        return model;
-    }
-
-    private List<SQLColumn> getColumns() {
-        return columns;
     }
 
     public String getDimensionName() {

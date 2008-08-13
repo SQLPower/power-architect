@@ -19,13 +19,20 @@
 
 package ca.sqlpower.architect.swingui.olap.action;
 
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.swingui.AbstractPlacer;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.olap.DimensionEditPanel;
+import ca.sqlpower.architect.swingui.olap.DimensionPane;
+import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CreateDimensionAction extends AbstractArchitectAction {
 
@@ -40,13 +47,46 @@ public class CreateDimensionAction extends AbstractArchitectAction {
         try {
             Dimension dim = new Dimension();
             dim.setName("New Dimension");
-            schema.addDimension(dim);
             if (playpen.getSelectedContainers().size() >= 1) {
                 // TODO add a DimensionUsage to the selected cube(s)
             }
-            new EditDimensionAction(session, dim, playpen).actionPerformed(e);
+            DimensionPlacer dp = new DimensionPlacer(
+                    new DimensionPane(dim, playpen.getContentPane()));
+            dp.dirtyup();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    private class DimensionPlacer extends AbstractPlacer {
+
+        private final DimensionPane dp;
+
+        DimensionPlacer(DimensionPane cp) {
+            super(CreateDimensionAction.this.playpen);
+            this.dp = cp;
+        }
+        
+        @Override
+        protected String getEditDialogTitle() {
+            return "Dimension Properties";
+        }
+
+        @Override
+        public DataEntryPanel place(Point p) throws ArchitectException {
+            schema.addDimension(dp.getModel());
+            playpen.selectNone();
+            playpen.addPlayPenComponent(dp, p);
+            dp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+
+            DimensionEditPanel editPanel = new DimensionEditPanel(dp.getModel()) {
+                @Override
+                public void discardChanges() {
+                    schema.removeDimension(dp.getModel());
+                    playpen.getContentPane().remove(dp);
+                }
+            };
+            return editPanel;
         }
     }
 
