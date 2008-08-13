@@ -24,8 +24,12 @@ import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 public abstract class OLAPObject {
 
+    private static final Logger logger = Logger.getLogger(OLAPObject.class);
+    
     /**
      * Helper class for registering and notifying property change listeners.
      */
@@ -134,15 +138,23 @@ public abstract class OLAPObject {
     
     protected void fireChildAdded(Class<? extends OLAPObject> childClass, int index, OLAPObject child) {
         OLAPChildEvent e = new OLAPChildEvent(this, childClass, child, index);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Firing childAdded event " + e + " to " + childListeners.size() + " listeners");
+        }
         for (int i = childListeners.size() - 1; i >= 0; i--) {
             childListeners.get(i).olapChildAdded(e);
         }
+        logger.debug("Done firing childAdded event");
     }
 
     protected void fireChildRemoved(Class<? extends OLAPObject> childClass, int index, OLAPObject child) {
         OLAPChildEvent e = new OLAPChildEvent(this, childClass, child, index);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Firing childRemoved event " + e + " to " + childListeners.size() + " listeners");
+        }
         for (int i = childListeners.size() - 1; i >= 0; i--) {
             childListeners.get(i).olapChildRemoved(e);
         }
+        logger.debug("Done firing childRemoved event");
     }
 }

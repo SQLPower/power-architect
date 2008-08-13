@@ -90,4 +90,8 @@ public class OLAPChildEvent {
         return index;
     }
     
+    @Override
+    public String toString() {
+        return "Parent: " + source + "; child: " + child + "; index " + index;
+    }
 }
