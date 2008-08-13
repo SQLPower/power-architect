@@ -76,6 +76,7 @@ public class CreateCubeAction extends AbstractArchitectAction {
                 @Override
                 public void discardChanges() {
                     schema.removeCube(cp.getModel());
+                    playpen.getContentPane().remove(cp);
                 }
             };
             return editPanel;
