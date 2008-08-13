@@ -30,8 +30,8 @@ import javax.swing.JTextField;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.swingui.DataEntryPanel;
@@ -43,14 +43,12 @@ public class SchemaEditPanel implements DataEntryPanel {
     
     private JPanel editorPanel;
     private Schema schema;
-    private final OLAPRootObject rootObj;
     
     private final JComboBox databaseBox;
     private final JTextField nameField;
     
     public SchemaEditPanel(Schema schema, ArchitectSwingSession session) {
         this.schema = schema;
-        this.rootObj = session.getOLAPRootObject();
         
         List<SQLDatabase> databases;
         try {
@@ -72,13 +70,11 @@ public class SchemaEditPanel implements DataEntryPanel {
     }
 
     public boolean applyChanges() {
-        schema.startCompoundEdit("Modify Schema Properties");
         try {
+            schema.startCompoundEdit("Modify Schema Properties");
             schema.setName(nameField.getText());
-            if (schema.getParent() == null) {
-                rootObj.addChild(new OLAPSession(schema));
-            }
-            ((OLAPSession) schema.getParent()).setDatabase((SQLDatabase) databaseBox.getSelectedItem());
+            OLAPSession osession = OLAPUtil.getSession(schema);
+            osession.setDatabase((SQLDatabase) databaseBox.getSelectedItem());
         } finally {
             schema.endCompoundEdit();
         }
