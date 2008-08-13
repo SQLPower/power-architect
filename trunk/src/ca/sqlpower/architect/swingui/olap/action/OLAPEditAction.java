@@ -38,13 +38,18 @@ import ca.sqlpower.swingui.DataEntryPanelBuilder;
  */
 public class OLAPEditAction extends AbstractArchitectAction {
 
-    public OLAPEditAction(ArchitectSwingSession session) {
-        super(session, "New OLAP Schema...", "Creates a new OLAP schema");
+    Schema schema;
+    
+    public OLAPEditAction(ArchitectSwingSession session, Schema schema) {
+        super(session, schema == null ? "New Schema..." : schema.getName(), "Edit OLAP schema");
+        this.schema = schema;
     }
 
     public void actionPerformed(ActionEvent e) {
-        Schema schema = new Schema();
-        schema.setName("New OLAP Schema");
+        if (schema == null) {
+            schema = new Schema();
+            schema.setName("New OLAP Schema");
+        }
         OLAPSchemaEditorPanel panel = new OLAPSchemaEditorPanel(session, schema);
         
         // TODO register listener on schema object and make dialog title track schema name
