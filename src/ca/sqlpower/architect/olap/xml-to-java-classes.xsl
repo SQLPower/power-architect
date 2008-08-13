@@ -282,6 +282,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
   <xsl:choose>
     <xsl:when test="$initcap = 'Hierarchies'">Hierarchy</xsl:when>
     <xsl:when test="$initcap = 'Properties'">Property</xsl:when>
+    <xsl:when test="$initcap = 'Array'">Array</xsl:when>
     <xsl:otherwise><xsl:value-of select="substring($initcap, 1, string-length($initcap)-1)"/></xsl:otherwise>
   </xsl:choose>
 </xsl:template>
