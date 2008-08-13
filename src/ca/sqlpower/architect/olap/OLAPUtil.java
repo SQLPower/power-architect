@@ -21,8 +21,9 @@ package ca.sqlpower.architect.olap;
 
 import java.beans.PropertyChangeListener;
 
-import ca.sqlpower.architect.olap.MondrianModel.Cube;
-import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.SQLCatalog;
+import ca.sqlpower.architect.SQLSchema;
+import ca.sqlpower.architect.SQLTable;
 
 /**
  * A collection of static utility methods for working with the OLAP classes.
@@ -34,25 +35,44 @@ public class OLAPUtil {
     }
 
     /**
-     * Returns the first cube that has the given name, or null if no such cube
-     * has that name.
+     * Finds the OLAPSession that owns the given OLAPObject, by following
+     * parent pointers successively until an ancestor of type OLAPSession
+     * is encountered. If there is no OLAPSession ancestor, returns null.
+     * <p>
+     * Note that when we say <i>ancestor</i> in this doc comment, we include
+     * the given <code>oo</code> object as an "ancestor" of itself.  In other
+     * words, if you pass in an OLAPSession, you will get that same object back.
      * 
-     * @param parent
-     *            The schema to search.
-     * @param name
-     *            The cube name to search for. Must not be null.
-     * @return The first cube having the given name; null if no cube has that
-     *         name.
+     * @param oo The object to start searching at
+     * @return The nearest ancestor of type OLAPObject, or null if there is
+     * no such ancestor.
      */
-    public static Cube findCube(Schema parent, String name) {
-        for (Cube c : parent.getCubes()) {
-            if (name.equals(c.getName())) {
-                return c;
-            }
+    public static OLAPSession getSession(OLAPObject oo) {
+        while (oo != null && !(oo instanceof OLAPSession)) {
+            oo = oo.getParent();
         }
-        return null;
+        return (OLAPSession) oo;
     }
 
+    /**
+     * Mondrian uses a single string as a table name qualifier, so this method
+     * helps by finding the parent schema and/or catalog and produces the correct
+     * Mondrian qualifier for the given table.
+     */
+    public static String getQualifier(SQLTable t) {
+        SQLSchema schema = t.getSchema();
+        SQLCatalog catalog = t.getCatalog();
+        if (catalog == null && schema == null) {
+            return null;
+        } else if (schema == null) {
+            return catalog.getName();
+        } else if (catalog == null) {
+            return schema.getName();
+        } else {
+            return catalog.getName() + "." + schema.getName();
+        }
+    }
+    
     /**
      * Adds the given OLAPChildListener and optional PropertyChangeListener to
      * the given root object and all of its descendants.
