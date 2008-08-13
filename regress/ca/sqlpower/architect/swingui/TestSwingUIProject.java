@@ -284,7 +284,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
 		SwingUIProject p2 = new SwingUIProject(session2);
-		p2.load(new FileInputStream(file), plIni);
+		p2.load(new BufferedInputStream(new FileInputStream(file)), plIni);
 		File tmp2 = File.createTempFile("test2", ".architect");
 		if (deleteOnExit) {
 			tmp2.deleteOnExit();
@@ -1170,7 +1170,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
     public void testParentsConnectedCoreProject() throws Exception {
         // testing using a core project, just for fun
         ArchitectSessionContext ctx = new TestingArchitectSessionContext();
-        ArchitectSession session = ctx.createSession(new StringInputStream(testData));
+        ArchitectSession session = ctx.createSession(new BufferedInputStream(new StringInputStream(testData)));
         CoreProject prj = session.getProject();
         SQLObjectRoot rootObject = session.getRootObject();
         recursiveCheckParenting(rootObject, "Root");
@@ -1213,7 +1213,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
      */
     public void testPlayPenPropertyCoreProject() throws Exception {
         ArchitectSessionContext ctx = new TestingArchitectSessionContext();
-        ArchitectSession session = ctx.createSession(new StringInputStream(testData));
+        ArchitectSession session = ctx.createSession(new BufferedInputStream(new StringInputStream(testData)));
         CoreProject prj = session.getProject();
         SQLObjectRoot rootObject = session.getRootObject();
         SQLDatabase ppdb = (SQLDatabase) rootObject.getChild(0);
