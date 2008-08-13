@@ -64,7 +64,7 @@ public class MeasureEditPanel implements DataEntryPanel {
         } else {
             measure.setCaption(null);
         }
-        measure.setAggregator(((RolapAggregator) (aggregator.getSelectedItem())).name);
+        measure.setAggregator((String) aggregator.getSelectedItem());
         measure.endCompoundEdit();
         return true;
     }
