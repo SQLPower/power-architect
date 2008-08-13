@@ -60,7 +60,9 @@ public class ImportSchemaAction extends AbstractArchitectAction {
                     throw new IllegalStateException("File parse failed to return a schema object!");
                 }
                 
-                session.getOLAPRootObject().addChild(new OLAPSession(loadedSchema));
+                OLAPSession osession = new OLAPSession(loadedSchema);
+                osession.setDatabase(session.getTargetDatabase());
+                session.getOLAPRootObject().addChild(osession);
                 OLAPSchemaEditorPanel panel = new OLAPSchemaEditorPanel(session, loadedSchema);
                 // TODO register listener on schema object and make dialog title track schema name
                 JDialog d = new JDialog(session.getArchitectFrame(), "OLAP Schema Editor");

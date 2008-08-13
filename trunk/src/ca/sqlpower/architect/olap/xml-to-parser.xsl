@@ -151,7 +151,7 @@ public class MondrianXMLReader {
                             OLAPSession osession = new OLAPSession((MondrianModel.Schema) currentElement);
                             for (String aname : currentOSessionAtts.keySet()) {
                                 String aval = currentOSessionAtts.get(aname);
-                                if (aname.equals("dbcs-ref")) {
+                                if (aname.equals("db-ref")) {
                                     osession.setDatabase((SQLDatabase) dbIdMap.get(aval));
                                 } else {
                                     logger.warn("Skipping unknown attribute \""+aname+"\" of element \""+OLAPSession.class+"\"");
