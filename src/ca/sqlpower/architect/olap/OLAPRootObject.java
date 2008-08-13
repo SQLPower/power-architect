@@ -52,6 +52,35 @@ public class OLAPRootObject extends OLAPObject {
         }
     }
     
+    /** 
+     * Removes the given child object, firing an OLAPChildEvent if the child was found.
+     *
+     * @return true if the item was removed (because it was in the list); false if the item was not removed.
+     */
+    public boolean removeOLAPSession(OLAPSession removeChild) {
+        int pos = olapSessions.indexOf(removeChild);
+        if (pos != -1) {
+            removeOLAPSession(pos);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Removes the child object at the given position, firing an OLAPChildEvent.
+     *
+     * @return The item that was removed.
+     */
+    public OLAPSession removeOLAPSession(int pos) {
+        OLAPSession removedItem = olapSessions.remove(pos);
+        if (removedItem != null) {
+            removedItem.setParent(null);
+            fireChildRemoved(OLAPSession.class, pos, removedItem);
+        }
+        return removedItem;
+    }
+    
     /**
      * Returns the ArchtectSession this OLAP Root Object belongs to.
      */
