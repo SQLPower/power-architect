@@ -47,6 +47,7 @@ public class OLAPRootObject extends OLAPObject {
     public void addChild(OLAPObject child) {
         if (child instanceof OLAPSession) {
             olapSessions.add((OLAPSession) child);
+            child.setParent(this);
             fireChildAdded(OLAPSession.class, olapSessions.size(), child);
         }
     }

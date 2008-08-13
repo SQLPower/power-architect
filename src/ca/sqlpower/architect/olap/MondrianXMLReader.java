@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
@@ -18,6 +19,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
 
 /**
  * This is class is generated from xml-to-parser.xsl!  Do not alter it directly.
@@ -30,11 +32,11 @@ public class MondrianXMLReader {
         return parse(null, null, new FileInputStream(f), mondrianMode);
     }
 
-    public static OLAPObject parse(OLAPRootObject rootObj, Map dbIdMap, File f, boolean mondrianMode) throws IOException, SAXException {
+    public static OLAPObject parse(OLAPRootObject rootObj, Map<String, SQLObject> dbIdMap, File f, boolean mondrianMode) throws IOException, SAXException {
         return parse(rootObj, dbIdMap, new FileInputStream(f), mondrianMode);
     }
 
-    public static OLAPObject parse(OLAPRootObject rootObj, Map dbIdMap, InputStream in, boolean mondrianMode) throws IOException, SAXException {
+    public static OLAPObject parse(OLAPRootObject rootObj, Map<String, SQLObject> dbIdMap, InputStream in, boolean mondrianMode) throws IOException, SAXException {
         XMLReader reader = XMLReaderFactory.createXMLReader();
         MondrianSAXHandler handler = new MondrianSAXHandler(rootObj, dbIdMap, mondrianMode);
         reader.setContentHandler(handler);
@@ -49,14 +51,14 @@ public class MondrianXMLReader {
         private OLAPObject root;
         private StringBuilder text;
         
-        private Attributes currentOSessionAtts;
+        private Map<String, String>  currentOSessionAtts;
         
         private boolean inOlap;
        
-        private final Map dbIdMap;
+        private final Map<String, SQLObject> dbIdMap;
         private final boolean mondrianMode;
        
-        public MondrianSAXHandler(OLAPRootObject rootObj, Map dbIdMap, boolean mondrianMode) {
+        public MondrianSAXHandler(OLAPRootObject rootObj, Map<String, SQLObject> dbIdMap, boolean mondrianMode) {
             if (rootObj != null) {
                 this.root = rootObj;
             }
@@ -79,9 +81,14 @@ public class MondrianXMLReader {
 	                currentElement = root;
 	                inOlap = true;
 	            } else if (qName.equals("olap-session")) {
-	                currentOSessionAtts = atts;
+	                currentOSessionAtts = new HashMap<String, String>();
+	                for (int i = 0; i < atts.getLength(); i++) {
+                        String aname = atts.getQName(i);
+                        String aval = atts.getValue(i);
+                        currentOSessionAtts.put(aname, aval);
+	                }
 	                pushElem = false;
-	                currentElement = null;               
+	                currentElement = null;                    
 	           
 	            } else if (qName.equals("Schema")) {
                     MondrianModel.Schema elem = new MondrianModel.Schema();
@@ -1398,9 +1405,8 @@ public class MondrianXMLReader {
                     if (!context.isEmpty()) {
                         if (currentElement instanceof MondrianModel.Schema) {
                             OLAPSession osession = new OLAPSession((MondrianModel.Schema) currentElement);
-                            for (int i = 0; i < currentOSessionAtts.getLength(); i++) {
-                                String aname = currentOSessionAtts.getQName(i);
-                                String aval = currentOSessionAtts.getValue(i);
+                            for (String aname : currentOSessionAtts.keySet()) {
+                                String aval = currentOSessionAtts.get(aname);
                                 if (aname.equals("dbcs-ref")) {
                                     osession.setDatabase((SQLDatabase) dbIdMap.get(aval));
                                 } else {
