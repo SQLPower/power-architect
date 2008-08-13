@@ -33,6 +33,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.action.CreateCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateDimensionAction;
+import ca.sqlpower.architect.swingui.olap.action.CreateMeasureAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateVirtualCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.ExportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
@@ -43,10 +44,7 @@ public class OLAPSchemaEditorPanel {
     private final OLAPTreeModel treeModel;
     
     /**
-     * This is the playpen used within OLAP schema editor. To access this
-     * playpen, call
-     * {@link ArchitectSwingSession#getArchitectFrame()#getOlapSchemaEditor()#getOlapPlayPen()}
-     * <strong>instead of</strong> {@link ArchitectSwingSession#getPlayPen()}.
+     * This is the playpen used within OLAP schema editor.
      */
     private final PlayPen pp;
     private final JPanel panel;
@@ -68,6 +66,7 @@ public class OLAPSchemaEditorPanel {
         toolbar.add(new CreateDimensionAction(session, schema, pp));
         toolbar.add(new CreateCubeAction(session, schema, pp));
         toolbar.add(new CreateVirtualCubeAction(session, schema, pp));
+        toolbar.add(new CreateMeasureAction(session, pp));
         toolbar.add(new ExportSchemaAction(session, schema));
         toolbar.add(new ImportSchemaAction(session));
         
