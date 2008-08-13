@@ -24,6 +24,7 @@ import java.util.concurrent.Callable;
 
 import javax.swing.JDialog;
 
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
@@ -51,6 +52,7 @@ public class OLAPEditAction extends AbstractArchitectAction {
         if (newSchema) {
             schema = new Schema();
             schema.setName("New OLAP Schema");
+            session.getOLAPRootObject().addChild(new OLAPSession(schema));
         }
         OLAPSchemaEditorPanel panel = new OLAPSchemaEditorPanel(session, schema);
         
@@ -73,7 +75,7 @@ public class OLAPEditAction extends AbstractArchitectAction {
             Callable<Boolean> cancelCall = new Callable<Boolean>() {
                 public Boolean call() throws Exception {
                     d.dispose();
-                    // TODO remove new schema from session
+                    session.getOLAPRootObject().removeOLAPSession((OLAPSession) schema.getParent());
                     return true;
                 }
             };
