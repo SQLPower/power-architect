@@ -49,7 +49,19 @@ public static class <xsl:value-of select="@type"/> extends <xsl:call-template na
     public <xsl:value-of select="@type"/>() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("<xsl:value-of select="@type"/>:");
+	    <xsl:for-each select="Attribute|Object">
+	    retStr.append(" <xsl:value-of select="@name"/> = ");
+	    retStr.append(<xsl:value-of select="@name"/>);
+	    retStr.append(",");
+	    </xsl:for-each>
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 <xsl:apply-templates/>
+
 <xsl:call-template name="children-methods"/>
 } // end of element <xsl:value-of select="@type"/>
 </xsl:template>
@@ -80,6 +92,19 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
     }
     
 <xsl:apply-templates/>
+
+	@Override
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("<xsl:value-of select="@class"/>:");
+	    <xsl:for-each select="Attribute|Object">
+	    retStr.append(" <xsl:value-of select="@name"/> = ");
+	    retStr.append(<xsl:value-of select="@name"/>);
+	    retStr.append(",");
+	    </xsl:for-each>
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 <xsl:call-template name="children-methods"/>
 } // end of class <xsl:value-of select="@class"/>
 </xsl:template>

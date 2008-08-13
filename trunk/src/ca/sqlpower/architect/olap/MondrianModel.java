@@ -24,6 +24,25 @@ public static class Schema extends OLAPObject {
     public Schema() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Schema:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" measuresCaption = ");
+	    retStr.append(measuresCaption);
+	    retStr.append(",");
+	    
+	    retStr.append(" defaultRole = ");
+	    retStr.append(defaultRole);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** Name of this schema */
     private String /* */ name;
@@ -645,6 +664,28 @@ public abstract static class CubeDimension extends OLAPObject {
         pcs.firePropertyChange("foreignKey", oldval, newval);
     }
 
+
+	@Override
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("CubeDimension:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" caption = ");
+	    retStr.append(caption);
+	    retStr.append(",");
+	    
+	    retStr.append(" foreignKey = ");
+	    retStr.append(foreignKey);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
+
     @Override
     public List<OLAPObject> getChildren() {
         return Collections.emptyList();
@@ -679,6 +720,37 @@ public static class Cube extends OLAPObject {
     public Cube() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Cube:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" caption = ");
+	    retStr.append(caption);
+	    retStr.append(",");
+	    
+	    retStr.append(" defaultMeasure = ");
+	    retStr.append(defaultMeasure);
+	    retStr.append(",");
+	    
+	    retStr.append(" cache = ");
+	    retStr.append(cache);
+	    retStr.append(",");
+	    
+	    retStr.append(" enabled = ");
+	    retStr.append(enabled);
+	    retStr.append(",");
+	    
+	    retStr.append(" fact = ");
+	    retStr.append(fact);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Name of this cube.
@@ -1094,6 +1166,33 @@ public static class VirtualCube extends OLAPObject {
     public VirtualCube() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("VirtualCube:");
+	    
+	    retStr.append(" enabled = ");
+	    retStr.append(enabled);
+	    retStr.append(",");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" defaultMeasure = ");
+	    retStr.append(defaultMeasure);
+	    retStr.append(",");
+	    
+	    retStr.append(" caption = ");
+	    retStr.append(caption);
+	    retStr.append(",");
+	    
+	    retStr.append(" cubeUsage = ");
+	    retStr.append(cubeUsage);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Whether this element is enabled - if true, then the Virtual
@@ -1490,6 +1589,13 @@ public static class CubeUsages extends OLAPObject {
     public CubeUsages() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("CubeUsages:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private final List<CubeUsage> cubeUsages = new ArrayList<CubeUsage>();
@@ -1604,6 +1710,21 @@ public static class CubeUsage extends OLAPObject {
     public CubeUsage() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("CubeUsage:");
+	    
+	    retStr.append(" cubeName = ");
+	    retStr.append(cubeName);
+	    retStr.append(",");
+	    
+	    retStr.append(" ignoreUnrelatedDimensions = ");
+	    retStr.append(ignoreUnrelatedDimensions);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Name of the cube which the virtualCube uses.
@@ -1670,6 +1791,21 @@ public static class VirtualCubeDimension extends CubeDimension {
     public VirtualCubeDimension() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("VirtualCubeDimension:");
+	    
+	    retStr.append(" cubeName = ");
+	    retStr.append(cubeName);
+	    retStr.append(",");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Name of the cube which the dimension belongs to, or
@@ -1736,6 +1872,25 @@ public static class VirtualCubeMeasure extends OLAPObject {
     public VirtualCubeMeasure() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("VirtualCubeMeasure:");
+	    
+	    retStr.append(" cubeName = ");
+	    retStr.append(cubeName);
+	    retStr.append(",");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" visible = ");
+	    retStr.append(visible);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Name of the cube which the measure belongs to.
@@ -1818,6 +1973,25 @@ public static class DimensionUsage extends CubeDimension {
     public DimensionUsage() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("DimensionUsage:");
+	    
+	    retStr.append(" source = ");
+	    retStr.append(source);
+	    retStr.append(",");
+	    
+	    retStr.append(" level = ");
+	    retStr.append(level);
+	    retStr.append(",");
+	    
+	    retStr.append(" usagePrefix = ");
+	    retStr.append(usagePrefix);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** Name of the source dimension. Must be a dimension in
             this schema. Case-sensitive. */
@@ -1907,6 +2081,29 @@ public static class Dimension extends CubeDimension {
     public Dimension() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Dimension:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" type = ");
+	    retStr.append(type);
+	    retStr.append(",");
+	    
+	    retStr.append(" caption = ");
+	    retStr.append(caption);
+	    retStr.append(",");
+	    
+	    retStr.append(" usagePrefix = ");
+	    retStr.append(usagePrefix);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private String /* */ name;
@@ -2096,6 +2293,57 @@ public static class Hierarchy extends OLAPObject {
     public Hierarchy() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Hierarchy:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" hasAll = ");
+	    retStr.append(hasAll);
+	    retStr.append(",");
+	    
+	    retStr.append(" allMemberName = ");
+	    retStr.append(allMemberName);
+	    retStr.append(",");
+	    
+	    retStr.append(" allMemberCaption = ");
+	    retStr.append(allMemberCaption);
+	    retStr.append(",");
+	    
+	    retStr.append(" allLevelName = ");
+	    retStr.append(allLevelName);
+	    retStr.append(",");
+	    
+	    retStr.append(" primaryKey = ");
+	    retStr.append(primaryKey);
+	    retStr.append(",");
+	    
+	    retStr.append(" primaryKeyTable = ");
+	    retStr.append(primaryKeyTable);
+	    retStr.append(",");
+	    
+	    retStr.append(" defaultMember = ");
+	    retStr.append(defaultMember);
+	    retStr.append(",");
+	    
+	    retStr.append(" memberReaderClass = ");
+	    retStr.append(memberReaderClass);
+	    retStr.append(",");
+	    
+	    retStr.append(" caption = ");
+	    retStr.append(caption);
+	    retStr.append(",");
+	    
+	    retStr.append(" relation = ");
+	    retStr.append(relation);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Name of the hierarchy. If this is not specified, the hierarchy
@@ -2456,6 +2704,93 @@ public static class Level extends OLAPObject {
     public Level() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Level:");
+	    
+	    retStr.append(" approxRowCount = ");
+	    retStr.append(approxRowCount);
+	    retStr.append(",");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" table = ");
+	    retStr.append(table);
+	    retStr.append(",");
+	    
+	    retStr.append(" column = ");
+	    retStr.append(column);
+	    retStr.append(",");
+	    
+	    retStr.append(" nameColumn = ");
+	    retStr.append(nameColumn);
+	    retStr.append(",");
+	    
+	    retStr.append(" ordinalColumn = ");
+	    retStr.append(ordinalColumn);
+	    retStr.append(",");
+	    
+	    retStr.append(" parentColumn = ");
+	    retStr.append(parentColumn);
+	    retStr.append(",");
+	    
+	    retStr.append(" nullParentValue = ");
+	    retStr.append(nullParentValue);
+	    retStr.append(",");
+	    
+	    retStr.append(" type = ");
+	    retStr.append(type);
+	    retStr.append(",");
+	    
+	    retStr.append(" uniqueMembers = ");
+	    retStr.append(uniqueMembers);
+	    retStr.append(",");
+	    
+	    retStr.append(" levelType = ");
+	    retStr.append(levelType);
+	    retStr.append(",");
+	    
+	    retStr.append(" hideMemberIf = ");
+	    retStr.append(hideMemberIf);
+	    retStr.append(",");
+	    
+	    retStr.append(" formatter = ");
+	    retStr.append(formatter);
+	    retStr.append(",");
+	    
+	    retStr.append(" caption = ");
+	    retStr.append(caption);
+	    retStr.append(",");
+	    
+	    retStr.append(" captionColumn = ");
+	    retStr.append(captionColumn);
+	    retStr.append(",");
+	    
+	    retStr.append(" keyExp = ");
+	    retStr.append(keyExp);
+	    retStr.append(",");
+	    
+	    retStr.append(" nameExp = ");
+	    retStr.append(nameExp);
+	    retStr.append(",");
+	    
+	    retStr.append(" ordinalExp = ");
+	    retStr.append(ordinalExp);
+	    retStr.append(",");
+	    
+	    retStr.append(" parentExp = ");
+	    retStr.append(parentExp);
+	    retStr.append(",");
+	    
+	    retStr.append(" closure = ");
+	    retStr.append(closure);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 The estimated number of members in this level.
@@ -2925,6 +3260,25 @@ public static class Closure extends OLAPObject {
     public Closure() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Closure:");
+	    
+	    retStr.append(" parentColumn = ");
+	    retStr.append(parentColumn);
+	    retStr.append(",");
+	    
+	    retStr.append(" childColumn = ");
+	    retStr.append(childColumn);
+	    retStr.append(",");
+	    
+	    retStr.append(" table = ");
+	    retStr.append(table);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private String /* */ parentColumn;
@@ -3002,6 +3356,33 @@ public static class Property extends OLAPObject {
     public Property() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Property:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" column = ");
+	    retStr.append(column);
+	    retStr.append(",");
+	    
+	    retStr.append(" type = ");
+	    retStr.append(type);
+	    retStr.append(",");
+	    
+	    retStr.append(" formatter = ");
+	    retStr.append(formatter);
+	    retStr.append(",");
+	    
+	    retStr.append(" caption = ");
+	    retStr.append(caption);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private String /* */ name;
@@ -3111,6 +3492,49 @@ public static class Measure extends OLAPObject {
     public Measure() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Measure:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" column = ");
+	    retStr.append(column);
+	    retStr.append(",");
+	    
+	    retStr.append(" datatype = ");
+	    retStr.append(datatype);
+	    retStr.append(",");
+	    
+	    retStr.append(" formatString = ");
+	    retStr.append(formatString);
+	    retStr.append(",");
+	    
+	    retStr.append(" aggregator = ");
+	    retStr.append(aggregator);
+	    retStr.append(",");
+	    
+	    retStr.append(" formatter = ");
+	    retStr.append(formatter);
+	    retStr.append(",");
+	    
+	    retStr.append(" caption = ");
+	    retStr.append(caption);
+	    retStr.append(",");
+	    
+	    retStr.append(" visible = ");
+	    retStr.append(visible);
+	    retStr.append(",");
+	    
+	    retStr.append(" measureExp = ");
+	    retStr.append(measureExp);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** Name of this measure. */
     private String /* */ name;
@@ -3375,6 +3799,41 @@ public static class CalculatedMember extends OLAPObject {
     public CalculatedMember() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("CalculatedMember:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" formatString = ");
+	    retStr.append(formatString);
+	    retStr.append(",");
+	    
+	    retStr.append(" caption = ");
+	    retStr.append(caption);
+	    retStr.append(",");
+	    
+	    retStr.append(" formula = ");
+	    retStr.append(formula);
+	    retStr.append(",");
+	    
+	    retStr.append(" dimension = ");
+	    retStr.append(dimension);
+	    retStr.append(",");
+	    
+	    retStr.append(" visible = ");
+	    retStr.append(visible);
+	    retStr.append(",");
+	    
+	    retStr.append(" formulaElement = ");
+	    retStr.append(formulaElement);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Name of this calculated member.
@@ -3604,6 +4063,29 @@ public static class CalculatedMemberProperty extends OLAPObject {
     public CalculatedMemberProperty() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("CalculatedMemberProperty:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" caption = ");
+	    retStr.append(caption);
+	    retStr.append(",");
+	    
+	    retStr.append(" expression = ");
+	    retStr.append(expression);
+	    retStr.append(",");
+	    
+	    retStr.append(" value = ");
+	    retStr.append(value);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Name of this member property.
@@ -3719,6 +4201,25 @@ public static class NamedSet extends OLAPObject {
     public NamedSet() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("NamedSet:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" formula = ");
+	    retStr.append(formula);
+	    retStr.append(",");
+	    
+	    retStr.append(" formulaElement = ");
+	    retStr.append(formulaElement);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Name of this named set.
@@ -3801,6 +4302,13 @@ public static class Formula extends OLAPObject {
     public Formula() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Formula:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
 	private String text;
 	
@@ -3847,6 +4355,21 @@ public static class MemberReaderParameter extends OLAPObject {
     public MemberReaderParameter() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("MemberReaderParameter:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" value = ");
+	    retStr.append(value);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private String /* */ name;
@@ -3907,6 +4430,16 @@ public abstract static class RelationOrJoin extends OLAPObject {
     }
     
 
+
+	@Override
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("RelationOrJoin:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
+
     @Override
     public List<OLAPObject> getChildren() {
         return Collections.emptyList();
@@ -3939,6 +4472,16 @@ public abstract static class Relation extends RelationOrJoin {
     public Relation() {
     }
     
+
+
+	@Override
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Relation:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -3974,6 +4517,17 @@ public static class View extends Relation {
     public View() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("View:");
+	    
+	    retStr.append(" alias = ");
+	    retStr.append(alias);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private String /* */ alias;
@@ -4101,6 +4655,17 @@ public static class SQL extends OLAPObject {
     public SQL() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("SQL:");
+	    
+	    retStr.append(" dialect = ");
+	    retStr.append(dialect);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Dialect of SQL the view is intended for.
@@ -4162,6 +4727,37 @@ public static class Join extends RelationOrJoin {
     public Join() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Join:");
+	    
+	    retStr.append(" leftAlias = ");
+	    retStr.append(leftAlias);
+	    retStr.append(",");
+	    
+	    retStr.append(" leftKey = ");
+	    retStr.append(leftKey);
+	    retStr.append(",");
+	    
+	    retStr.append(" rightAlias = ");
+	    retStr.append(rightAlias);
+	    retStr.append(",");
+	    
+	    retStr.append(" rightKey = ");
+	    retStr.append(rightKey);
+	    retStr.append(",");
+	    
+	    retStr.append(" left = ");
+	    retStr.append(left);
+	    retStr.append(",");
+	    
+	    retStr.append(" right = ");
+	    retStr.append(right);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Defaults to left's alias if left is a table, otherwise
@@ -4285,6 +4881,29 @@ public static class Table extends Relation {
     public Table() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Table:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" schema = ");
+	    retStr.append(schema);
+	    retStr.append(",");
+	    
+	    retStr.append(" alias = ");
+	    retStr.append(alias);
+	    retStr.append(",");
+	    
+	    retStr.append(" filter = ");
+	    retStr.append(filter);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private String /* */ name;
@@ -4526,6 +5145,25 @@ public static class InlineTable extends Relation {
     public InlineTable() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("InlineTable:");
+	    
+	    retStr.append(" alias = ");
+	    retStr.append(alias);
+	    retStr.append(",");
+	    
+	    retStr.append(" columnDefs = ");
+	    retStr.append(columnDefs);
+	    retStr.append(",");
+	    
+	    retStr.append(" rows = ");
+	    retStr.append(rows);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Alias to be used with this table when it is used to
@@ -4610,6 +5248,13 @@ public static class ColumnDefs extends OLAPObject {
     public ColumnDefs() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("ColumnDefs:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private final List<ColumnDef> array = new ArrayList<ColumnDef>();
@@ -4726,6 +5371,21 @@ public static class ColumnDef extends OLAPObject {
     public ColumnDef() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("ColumnDef:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" type = ");
+	    retStr.append(type);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Name of the column.
@@ -4790,6 +5450,13 @@ public static class Rows extends OLAPObject {
     public Rows() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Rows:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private final List<Row> array = new ArrayList<Row>();
@@ -4907,6 +5574,13 @@ public static class Row extends OLAPObject {
     public Row() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Row:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private final List<Value> values = new ArrayList<Value>();
@@ -5024,6 +5698,17 @@ public static class Value extends OLAPObject {
     public Value() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Value:");
+	    
+	    retStr.append(" column = ");
+	    retStr.append(column);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Name of the column.
@@ -5336,6 +6021,24 @@ public abstract static class AggTable extends OLAPObject {
     }
     
 
+
+	@Override
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("AggTable:");
+	    
+	    retStr.append(" ignorecase = ");
+	    retStr.append(ignorecase);
+	    retStr.append(",");
+	    
+	    retStr.append(" factcount = ");
+	    retStr.append(factcount);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
+
     @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
@@ -5422,6 +6125,17 @@ public static class AggName extends AggTable {
     public AggName() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("AggName:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 The Table name of a Specific aggregate table.
@@ -5470,6 +6184,17 @@ public static class AggPattern extends AggTable {
     public AggPattern() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("AggPattern:");
+	    
+	    retStr.append(" pattern = ");
+	    retStr.append(pattern);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 A Table pattern used to define a set of aggregate tables.
@@ -5599,6 +6324,25 @@ public static class AggExclude extends OLAPObject {
     public AggExclude() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("AggExclude:");
+	    
+	    retStr.append(" pattern = ");
+	    retStr.append(pattern);
+	    retStr.append(",");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" ignorecase = ");
+	    retStr.append(ignorecase);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 A Table pattern not to be matched.
@@ -5693,6 +6437,20 @@ public abstract static class AggColumnName extends OLAPObject {
         pcs.firePropertyChange("column", oldval, newval);
     }
 
+
+	@Override
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("AggColumnName:");
+	    
+	    retStr.append(" column = ");
+	    retStr.append(column);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
+
     @Override
     public List<OLAPObject> getChildren() {
         return Collections.emptyList();
@@ -5725,6 +6483,13 @@ public static class AggFactCount extends AggColumnName {
     public AggFactCount() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("AggFactCount:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -5758,6 +6523,13 @@ public static class AggIgnoreColumn extends AggColumnName {
     public AggIgnoreColumn() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("AggIgnoreColumn:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -5794,6 +6566,21 @@ public static class AggForeignKey extends OLAPObject {
     public AggForeignKey() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("AggForeignKey:");
+	    
+	    retStr.append(" factColumn = ");
+	    retStr.append(factColumn);
+	    retStr.append(",");
+	    
+	    retStr.append(" aggColumn = ");
+	    retStr.append(aggColumn);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 The name of the base fact table foreign key.
@@ -5857,6 +6644,21 @@ public static class AggLevel extends OLAPObject {
     public AggLevel() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("AggLevel:");
+	    
+	    retStr.append(" column = ");
+	    retStr.append(column);
+	    retStr.append(",");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 The name of the column mapping to the level name.
@@ -5920,6 +6722,21 @@ public static class AggMeasure extends OLAPObject {
     public AggMeasure() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("AggMeasure:");
+	    
+	    retStr.append(" column = ");
+	    retStr.append(column);
+	    retStr.append(",");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 The name of the column mapping to the measure name.
@@ -5984,6 +6801,16 @@ public abstract static class Expression extends OLAPObject {
     }
     
 
+
+	@Override
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Expression:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
+
     @Override
     public List<OLAPObject> getChildren() {
         return Collections.emptyList();
@@ -6016,6 +6843,21 @@ public static class Column extends Expression {
     public Column() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Column:");
+	    
+	    retStr.append(" table = ");
+	    retStr.append(table);
+	    retStr.append(",");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Alias of the table which contains this column. Not required if
@@ -6137,6 +6979,16 @@ public abstract static class ExpressionView extends Expression {
     }
     
 
+
+	@Override
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("ExpressionView:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
+
     @Override
     public List<OLAPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
@@ -6196,6 +7048,13 @@ public static class KeyExpression extends ExpressionView {
     public KeyExpression() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("KeyExpression:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -6229,6 +7088,13 @@ public static class ParentExpression extends ExpressionView {
     public ParentExpression() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("ParentExpression:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -6262,6 +7128,13 @@ public static class OrdinalExpression extends ExpressionView {
     public OrdinalExpression() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("OrdinalExpression:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -6295,6 +7168,13 @@ public static class NameExpression extends ExpressionView {
     public NameExpression() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("NameExpression:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -6328,6 +7208,13 @@ public static class CaptionExpression extends ExpressionView {
     public CaptionExpression() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("CaptionExpression:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -6361,6 +7248,13 @@ public static class MeasureExpression extends ExpressionView {
     public MeasureExpression() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("MeasureExpression:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -6397,6 +7291,21 @@ public static class Role extends OLAPObject {
     public Role() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Role:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" union = ");
+	    retStr.append(union);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private String /* */ name;
@@ -6554,6 +7463,20 @@ public abstract static class Grant extends OLAPObject {
         pcs.firePropertyChange("access", oldval, newval);
     }
 
+
+	@Override
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Grant:");
+	    
+	    retStr.append(" access = ");
+	    retStr.append(access);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
+
     @Override
     public List<OLAPObject> getChildren() {
         return Collections.emptyList();
@@ -6592,6 +7515,13 @@ public static class SchemaGrant extends Grant {
     public SchemaGrant() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("SchemaGrant:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private final List<CubeGrant> cubeGrants = new ArrayList<CubeGrant>();
@@ -6710,6 +7640,17 @@ public static class CubeGrant extends Grant {
     public CubeGrant() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("CubeGrant:");
+	    
+	    retStr.append(" cube = ");
+	    retStr.append(cube);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** The unique name of the cube */
     private String /* */ cube;
@@ -6906,6 +7847,17 @@ public static class DimensionGrant extends Grant {
     public DimensionGrant() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("DimensionGrant:");
+	    
+	    retStr.append(" dimension = ");
+	    retStr.append(dimension);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** The unique name of the dimension */
     private String /* */ dimension;
@@ -6959,6 +7911,29 @@ public static class HierarchyGrant extends Grant {
     public HierarchyGrant() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("HierarchyGrant:");
+	    
+	    retStr.append(" hierarchy = ");
+	    retStr.append(hierarchy);
+	    retStr.append(",");
+	    
+	    retStr.append(" topLevel = ");
+	    retStr.append(topLevel);
+	    retStr.append(",");
+	    
+	    retStr.append(" bottomLevel = ");
+	    retStr.append(bottomLevel);
+	    retStr.append(",");
+	    
+	    retStr.append(" rollupPolicy = ");
+	    retStr.append(rollupPolicy);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** The unique name of the hierarchy */
     private String /* */ hierarchy;
@@ -7139,6 +8114,21 @@ public static class MemberGrant extends OLAPObject {
     public MemberGrant() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("MemberGrant:");
+	    
+	    retStr.append(" member = ");
+	    retStr.append(member);
+	    retStr.append(",");
+	    
+	    retStr.append(" access = ");
+	    retStr.append(access);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** The unique name of the member */
     private String /* */ member;
@@ -7202,6 +8192,13 @@ public static class Union extends OLAPObject {
     public Union() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Union:");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private final List<RoleUsage> roleUsages = new ArrayList<RoleUsage>();
@@ -7318,6 +8315,17 @@ public static class RoleUsage extends OLAPObject {
     public RoleUsage() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("RoleUsage:");
+	    
+	    retStr.append(" roleName = ");
+	    retStr.append(roleName);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /**  */
     private String /* */ roleName;
@@ -7369,6 +8377,21 @@ public static class UserDefinedFunction extends OLAPObject {
     public UserDefinedFunction() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("UserDefinedFunction:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" className = ");
+	    retStr.append(className);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** Name with which the user-defined function will be referenced in MDX expressions. */
     private String /* */ name;
@@ -7436,6 +8459,33 @@ public static class Parameter extends OLAPObject {
     public Parameter() {
     }
     
+	public String toString() {
+		StringBuilder retStr = new StringBuilder();
+		retStr.append("Parameter:");
+	    
+	    retStr.append(" name = ");
+	    retStr.append(name);
+	    retStr.append(",");
+	    
+	    retStr.append(" description = ");
+	    retStr.append(description);
+	    retStr.append(",");
+	    
+	    retStr.append(" type = ");
+	    retStr.append(type);
+	    retStr.append(",");
+	    
+	    retStr.append(" modifiable = ");
+	    retStr.append(modifiable);
+	    retStr.append(",");
+	    
+	    retStr.append(" defaultValue = ");
+	    retStr.append(defaultValue);
+	    retStr.append(",");
+	    
+	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    return retStr.toString();
+	}
 
     /** 
                 Name of this parameter.
