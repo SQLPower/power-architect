@@ -26,6 +26,7 @@ import javax.swing.JDialog;
 import javax.swing.SwingUtilities;
 
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
@@ -51,9 +52,17 @@ public class EditCubeAction extends AbstractArchitectAction{
     }
 
     public void actionPerformed(ActionEvent e) {
-        DataEntryPanel panel = new CubeEditPanel(cube);
-        JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Cube Properties", "OK");
-        dialog.setLocationRelativeTo(session.getArchitectFrame());
-        dialog.setVisible(true);
+        try {
+            DataEntryPanel panel = new CubeEditPanel(cube);
+            JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Cube Properties", "OK");
+            dialog.setLocationRelativeTo(session.getArchitectFrame());
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            ASUtils.showExceptionDialogNoReport(
+                    dialogOwner,
+                    "Failed to get list of tables in your database. " +
+                    "Perhaps the server is not currently accessible.",
+                    ex);
+        }
     }
 }
