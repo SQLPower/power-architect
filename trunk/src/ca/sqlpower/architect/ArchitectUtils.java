@@ -21,7 +21,6 @@ package ca.sqlpower.architect;
 import java.net.URL;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -255,16 +254,17 @@ public class ArchitectUtils {
 	 *
 	 * @param source the source object (usually the database)
 	 */
-	public static List findDescendentsByClass(SQLObject so, java.lang.Class clazz, List list) throws ArchitectException {
-		if (clazz.isAssignableFrom(so.getClass())) {
-			list.add(so);
+	public static <T extends SQLObject>
+	List<T> findDescendentsByClass(SQLObject so, java.lang.Class<T> clazz, List<T> addTo)
+	throws ArchitectException {
+		if (clazz == so.getClass()) {
+			addTo.add(clazz.cast(so));
 		} else {
-			Iterator it = so.getChildren().iterator();
-			while (it.hasNext()) {
-				findDescendentsByClass((SQLObject) it.next(), clazz, list);
+			for (SQLObject child : (List<? extends SQLObject>) so.getChildren()) {
+				findDescendentsByClass(child, clazz, addTo);
 			}
 		}
-		return list;
+		return addTo;
 	}
 
 
@@ -340,27 +340,6 @@ public class ArchitectUtils {
         }
         return val;
     }
-      /**
-     * Pulls out all SQLTable objects which exist under the start object
-     * and adds them to the given list.
-     *
-     * TODO make this generic so we can ask for any object type
-     *
-     * @param db The database to extract the tables from
-     * @return A flat List consisting of all the SQLTable objects in db.
-     * @throws ArchitectException
-     */
-    public static List<SQLTable> extractTables(SQLObject start, List addTo) throws ArchitectException {
-        if (start.allowsChildren()) {
-            Iterator it = start.getChildren().iterator();
-            while (it.hasNext()) {
-                SQLObject so = (SQLObject) it.next();
-                if (so instanceof SQLTable) addTo.add(so);
-                else extractTables(so, addTo);
-            }
-        }
-        return addTo;
-    }
 
     /**
      * Returns the parent database of <tt>so</tt> or <tt>null</tt> if <tt>so</tt>
@@ -375,23 +354,6 @@ public class ArchitectUtils {
             so = so.getParent();
         }
         return null;
-    }
-
-    /**
-     * returns the tables under the given SQLObject
-     *
-     */
-
-    public static Collection<SQLTable> tablesUnder(SQLObject so) throws ArchitectException {
-        List<SQLTable> tables = new ArrayList<SQLTable>();
-        if (so instanceof SQLTable) {
-            tables.add((SQLTable) so);
-        } else if (so.allowsChildren()) {
-            for (SQLObject child : (List<SQLObject>) so.getChildren()) {
-                tables.addAll(tablesUnder(child));
-            }
-        }
-        return tables;
     }
 
     /**

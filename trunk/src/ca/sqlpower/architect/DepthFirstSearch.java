@@ -152,7 +152,7 @@ public class DepthFirstSearch {
     
     public DepthFirstSearch(SQLDatabase db) throws ArchitectException {
         List<SQLTable> tables = new ArrayList<SQLTable>();
-        ArchitectUtils.extractTables(db, tables);
+        ArchitectUtils.findDescendentsByClass(db, SQLTable.class, tables);
         performSearch(tables);
     }
     
