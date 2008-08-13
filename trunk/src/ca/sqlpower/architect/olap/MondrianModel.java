@@ -4617,7 +4617,7 @@ public static class ColumnDefs extends OLAPObject {
     /** Adds the given child object at the specified position, firing an OLAPChildEvent.
      * 
      */
-    public void addArra(int pos, ColumnDef newChild) {
+    public void addArray(int pos, ColumnDef newChild) {
         array.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(ColumnDef.class) + pos;
@@ -4626,8 +4626,8 @@ public static class ColumnDefs extends OLAPObject {
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
      *  */
-    public void addArra(ColumnDef newChild) {
-        addArra(array.size(), newChild);
+    public void addArray(ColumnDef newChild) {
+        addArray(array.size(), newChild);
     }
     
     /** 
@@ -4635,10 +4635,10 @@ public static class ColumnDefs extends OLAPObject {
      *
      * @return true if the item was removed (because it was in the list); false if the item was not removed.
      */
-    public boolean removeArra(ColumnDef removeChild) {
+    public boolean removeArray(ColumnDef removeChild) {
         int pos = array.indexOf(removeChild);
         if (pos != -1) {
-            removeArra(pos);
+            removeArray(pos);
             return true;
         } else {
             return false;
@@ -4650,7 +4650,7 @@ public static class ColumnDefs extends OLAPObject {
      *
      * @return The item that was removed.
      */
-    public ColumnDef removeArra(int pos) {
+    public ColumnDef removeArray(int pos) {
         ColumnDef removedItem = array.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
@@ -4705,7 +4705,7 @@ public static class ColumnDefs extends OLAPObject {
         if (false) {
         
         } else if (child instanceof ColumnDef) {
-            addArra((ColumnDef) child);
+            addArray((ColumnDef) child);
         
         } else {
             super.addChild(child);
@@ -4797,7 +4797,7 @@ public static class Rows extends OLAPObject {
     /** Adds the given child object at the specified position, firing an OLAPChildEvent.
      * 
      */
-    public void addArra(int pos, Row newChild) {
+    public void addArray(int pos, Row newChild) {
         array.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(Row.class) + pos;
@@ -4806,8 +4806,8 @@ public static class Rows extends OLAPObject {
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
      *  */
-    public void addArra(Row newChild) {
-        addArra(array.size(), newChild);
+    public void addArray(Row newChild) {
+        addArray(array.size(), newChild);
     }
     
     /** 
@@ -4815,10 +4815,10 @@ public static class Rows extends OLAPObject {
      *
      * @return true if the item was removed (because it was in the list); false if the item was not removed.
      */
-    public boolean removeArra(Row removeChild) {
+    public boolean removeArray(Row removeChild) {
         int pos = array.indexOf(removeChild);
         if (pos != -1) {
-            removeArra(pos);
+            removeArray(pos);
             return true;
         } else {
             return false;
@@ -4830,7 +4830,7 @@ public static class Rows extends OLAPObject {
      *
      * @return The item that was removed.
      */
-    public Row removeArra(int pos) {
+    public Row removeArray(int pos) {
         Row removedItem = array.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
@@ -4885,7 +4885,7 @@ public static class Rows extends OLAPObject {
         if (false) {
         
         } else if (child instanceof Row) {
-            addArra((Row) child);
+            addArray((Row) child);
         
         } else {
             super.addChild(child);
