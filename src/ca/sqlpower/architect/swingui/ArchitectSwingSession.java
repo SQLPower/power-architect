@@ -18,12 +18,15 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Window;
+
 import javax.swing.JDialog;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
+import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
 
@@ -260,5 +263,14 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * Sets whether Columns that are not PK, FK, Unique or Indexed should be shown.
      */
     public void setShowTheRest(boolean showTheRest);
+    
+    /**
+     * Shows the schema manager dialog for this session's OLAP Schemas. 
+     * 
+     * @param owner The owner of the dialog.
+     */
+    public void showOLAPSchemaManager(Window owner);    
+    
+    public OLAPRootObject getOLAPRootObject();
     
 }

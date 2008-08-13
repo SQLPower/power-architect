@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Window;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -334,6 +335,9 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     public OLAPRootObject getOLAPRootObject() {
         return delegateSession.getOLAPRootObject();
+    }
+
+    public void showOLAPSchemaManager(Window owner) {
     }
 
 }

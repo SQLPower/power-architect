@@ -64,7 +64,9 @@ public class SchemaEditPanel implements DataEntryPanel {
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
         builder.append("Database", databaseBox = new JComboBox(new Vector<SQLDatabase>(databases)));
-        // TODO default the selected combo box item
+        if (schema.getParent() != null) {
+            databaseBox.setSelectedItem(((OLAPSession)schema.getParent()).getDatabase());
+        }
         builder.append("Name", nameField = new JTextField(schema.getName()));
         editorPanel = builder.getPanel();
     }

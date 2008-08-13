@@ -265,7 +265,7 @@ public class CoreProject {
             
             // returning to the beginning of the inputStream
             uin.reset();
-
+            
             try {
                 MondrianXMLReader.parse(session.getOLAPRootObject(), objectLoadIdMap, uin, false);
             } catch (SAXException e) {
@@ -454,11 +454,21 @@ public class CoreProject {
         @Override
         public Object createObject(Attributes attributes) throws Exception {
             SQLDatabase ppdb = getSession().getTargetDatabase();
-
+            
+            String id = attributes.getValue("id");
+            if (id != null) {
+                objectLoadIdMap.put(id, ppdb);
+            } else {
+                logger.warn("No ID found in database element while loading project!");
+            }
+            
             String dbcsid = attributes.getValue("dbcs-ref");
             if (dbcsid != null) {
                 ppdb.setDataSource(dbcsLoadIdMap.get(dbcsid));
             }
+            
+            objectLoadIdMap.put(id, ppdb);
+            
             return ppdb;
         }
 

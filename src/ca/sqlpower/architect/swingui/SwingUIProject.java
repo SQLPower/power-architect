@@ -461,16 +461,21 @@ public class SwingUIProject extends CoreProject {
             if (out != null) out.close();
         }
     }
+
+    public void save(OutputStream out, String encoding) throws IOException, ArchitectException {
+        save(new PrintWriter(new OutputStreamWriter(out, encoding)), encoding);
+    }
     
     private void saveOLAP(PrintWriter out) {
         ioo.indent++;
         ioo.println(out, "<olap>");
         ioo.indent++;
+        
         for (OLAPSession osession : getSession().getOLAPRootObject().getChildren()) {
             ioo.print(out, "<olap-session"); //$NON-NLS-1$
             if (osession.getDatabase() != null) {
-                ioo.niprint(out, "  dbcs-ref="+ //$NON-NLS-1$
-                        quote(objectSaveIdMap.get(osession.getDatabase()).toString())); //$NON-NLS-1$
+                ioo.niprint(out, " db-ref="+ //$NON-NLS-1$
+                        quote(objectSaveIdMap.get(osession.getDatabase()))); //$NON-NLS-1$
             }
             ioo.niprintln(out, ">"); //$NON-NLS-1$
             ioo.indent++;
@@ -482,11 +487,7 @@ public class SwingUIProject extends CoreProject {
         ioo.println(out, "</olap>");
         ioo.indent--;
     }
-
-    public void save(OutputStream out, String encoding) throws IOException, ArchitectException {
-        save(new PrintWriter(new OutputStreamWriter(out, encoding)), encoding);
-    }
-
+    
     private void saveDataSources(PrintWriter out) throws IOException, ArchitectException {
         // FIXME this needs work.  It should include everything we need in order to build
         //       the referenced parent type from scratch (except the jdbc driver path)
@@ -646,8 +647,9 @@ public class SwingUIProject extends CoreProject {
 
     private void saveTargetDatabase(PrintWriter out) throws IOException, ArchitectException {
         SQLDatabase db = (SQLDatabase) getSession().getTargetDatabase();
-        ioo.println(out, "<target-database dbcs-ref="+ //$NON-NLS-1$
+        ioo.println(out, "<target-database id=\"ppdb\" dbcs-ref="+ //$NON-NLS-1$
                 quote(dbcsSaveIdMap.get(db.getDataSource()))+ ">"); //$NON-NLS-1$
+        objectSaveIdMap.put(db, "ppdb");
         ioo.indent++;
         Iterator it = db.getChildren().iterator();
         while (it.hasNext()) {

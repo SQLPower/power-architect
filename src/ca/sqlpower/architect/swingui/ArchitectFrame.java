@@ -110,6 +110,7 @@ import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaEditorPanel;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
+import ca.sqlpower.architect.swingui.olap.action.OLAPSchemaManagerAction;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -504,6 +505,8 @@ public class ArchitectFrame extends JFrame {
         olapMenu.setMnemonic('o');
         final JMenu olapEditMenu = buildOLAPEditMenu();
         olapMenu.add(olapEditMenu);
+        olapMenu.addSeparator();
+        olapMenu.add(new OLAPSchemaManagerAction(session));
         olapMenu.addMenuListener(new MenuListener(){
             
             private JMenu editMenu = olapEditMenu;

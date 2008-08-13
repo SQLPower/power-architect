@@ -38,15 +38,17 @@ import ca.sqlpower.swingui.DataEntryPanelBuilder;
  */
 public class OLAPEditAction extends AbstractArchitectAction {
 
-    Schema schema;
+    private Schema schema;
+    private final boolean newSchema;
     
     public OLAPEditAction(ArchitectSwingSession session, Schema schema) {
         super(session, schema == null ? "New Schema..." : schema.getName(), "Edit OLAP schema");
         this.schema = schema;
+        newSchema = schema == null; 
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (schema == null) {
+        if (newSchema) {
             schema = new Schema();
             schema.setName("New OLAP Schema");
         }
@@ -59,31 +61,33 @@ public class OLAPEditAction extends AbstractArchitectAction {
         d.setLocationRelativeTo(session.getArchitectFrame());
         d.setVisible(true);
         
-        final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(schema, session);
+        if (newSchema) {
+            final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(schema, session);
 
-        Callable<Boolean> okCall = new Callable<Boolean>() {
-            public Boolean call() throws Exception {
-                return schemaEditPanel.applyChanges();
-            }
-        };
+            Callable<Boolean> okCall = new Callable<Boolean>() {
+                public Boolean call() throws Exception {
+                    return schemaEditPanel.applyChanges();
+                }
+            };
 
-        Callable<Boolean> cancelCall = new Callable<Boolean>() {
-            public Boolean call() throws Exception {
-                d.dispose();
-                // TODO remove new schema from session
-                return true;
-            }
-        };
+            Callable<Boolean> cancelCall = new Callable<Boolean>() {
+                public Boolean call() throws Exception {
+                    d.dispose();
+                    // TODO remove new schema from session
+                    return true;
+                }
+            };
 
-        JDialog schemaEditDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
-                schemaEditPanel,
-                d,
-                "New Schema Properties",
-                "OK",
-                okCall,
-                cancelCall);
-        schemaEditDialog.setLocationRelativeTo(d);
-        schemaEditDialog.setVisible(true);
+            JDialog schemaEditDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
+                    schemaEditPanel,
+                    d,
+                    "New Schema Properties",
+                    "OK",
+                    okCall,
+                    cancelCall);
+            schemaEditDialog.setLocationRelativeTo(d);
+            schemaEditDialog.setVisible(true);
+        }
     }
 
     
