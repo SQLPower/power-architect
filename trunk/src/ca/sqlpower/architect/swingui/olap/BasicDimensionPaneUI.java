@@ -33,7 +33,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
@@ -160,7 +160,7 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
         y += GAP + BOX_LINE_THICKNESS;
         
         g2.setColor(dp.getForegroundColor());
-        g2.drawString(dp.getDummyTable().getName(), BOX_LINE_THICKNESS, y += fontHeight);
+        g2.drawString(dp.getModel().getName(), BOX_LINE_THICKNESS, y += fontHeight);
 
         y+= TABLE_GAP;
         g2.setColor(Color.BLACK);
@@ -169,7 +169,7 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
         // print columns
         int i = 0;
         int hwidth = width - dp.getMargin().right - dp.getMargin().left - BOX_LINE_THICKNESS*2;
-        for (SQLColumn col : dp.getItems()) {
+        for (Hierarchy hier : dp.getItems()) {
             // draws the column
             if (dp.isItemSelected(i)) {
                 if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -178,7 +178,7 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
                         hwidth, fontHeight);
             }
             g2.setColor(dp.getForegroundColor());
-            g2.drawString(col.getShortDisplayName(), BOX_LINE_THICKNESS +
+            g2.drawString(hier.getName(), BOX_LINE_THICKNESS +
                     dp.getMargin().left + i * indentWidth, y += fontHeight);
             i++;
         }
@@ -202,7 +202,7 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
         int width = 0;
 
         Insets insets = c.getInsets();
-        List<SQLColumn> columnList = c.getItems();
+        List<Hierarchy> columnList = c.getItems();
         int cols = columnList.size();
 
         Font font = c.getFont();
@@ -220,15 +220,15 @@ public class BasicDimensionPaneUI extends ContainerPaneUI {
         width = MINIMUM_WIDTH;
 
         width = Math.max(width, calculateTextWidth(c, c.getDimensionName()));
-        width = Math.max(width, calculateTextWidth(c, c.getDummyTable().getName()));
+        width = Math.max(width, calculateTextWidth(c, c.getModel().getName()));
         
         int i = 0;
-        for (SQLColumn col : c.getItems()) {
-            if (col == null) {
+        for (Hierarchy heir : c.getItems()) {
+            if (heir == null) {
                 logger.error("Found null column in dimension '"+c.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
                 throw new NullPointerException("Found null column in dimension '"+c.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
             }
-            width = Math.max(width, calculateTextWidth(c, col.getShortDisplayName()) + i * indentWidth);
+            width = Math.max(width, calculateTextWidth(c, heir.getName()) + i * indentWidth);
             i++;
         }
 
