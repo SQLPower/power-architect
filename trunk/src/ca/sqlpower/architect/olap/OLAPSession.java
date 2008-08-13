@@ -52,6 +52,7 @@ public class OLAPSession extends OLAPObject {
             throw new IllegalStateException(
                     "The given schema already belongs to an OLAP Session");
         }
+        schema.setParent(this);
         this.schema = schema;
     }
 

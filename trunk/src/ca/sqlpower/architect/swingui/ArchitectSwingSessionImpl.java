@@ -54,6 +54,9 @@ import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
+import ca.sqlpower.architect.olap.OLAPChildEvent;
+import ca.sqlpower.architect.olap.OLAPChildListener;
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
@@ -178,7 +181,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         if (sprefs != null) {
             playPen.setRenderingAntialiased(sprefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
         }
-        projectModificationWatcher = new ProjectModificationWatcher(playPen);
+        projectModificationWatcher = new ProjectModificationWatcher(playPen, getOLAPRootObject());
 
         undoManager = new UndoManager(playPen);
         playPen.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
@@ -560,19 +563,23 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * <p>Note: when we implement proper undo/redo support, this class should
      * be replaced with a hook into that system.
      */
-    class ProjectModificationWatcher implements SQLObjectListener, PropertyChangeListener {
+    class ProjectModificationWatcher implements SQLObjectListener, PropertyChangeListener, OLAPChildListener {
 
         /**
          * Sets up a new modification watcher on the given playpen.
          */
-        public ProjectModificationWatcher(PlayPen pp) {
+        public ProjectModificationWatcher(PlayPen pp, OLAPRootObject olapRoot) {
             try {
                 ArchitectUtils.listenToHierarchy(this, getTargetDatabase());
             } catch (ArchitectException e) {
                 logger.error("Can't listen to business model for changes", e); //$NON-NLS-1$
             }
+            
             PlayPenContentPane ppcp = pp.contentPane;
             ppcp.addPropertyChangeListener(this);
+            
+            olapRoot.addChildListener(this);
+            olapRoot.addPropertyChangeListener(this);
         }
 
         /** Marks project dirty, and starts listening to new kids. */
@@ -621,7 +628,22 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         public void propertyChange(PropertyChangeEvent evt) {
             getProject().setModified(true);
             isNew = false;
+        }
 
+        public void olapChildAdded(OLAPChildEvent e) {
+            getProject().setModified(true);
+            OLAPObject child = e.getChild();
+            child.addChildListener(this);
+            child.addPropertyChangeListener(this);
+            isNew = false;
+        }
+
+        public void olapChildRemoved(OLAPChildEvent e) {
+            getProject().setModified(true);
+            OLAPObject child = e.getChild();
+            child.removeChildListener(this);
+            child.removePropertyChangeListener(this);
+            isNew = false;
         }
     }
 
