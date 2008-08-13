@@ -259,7 +259,7 @@ public class SwingUIProject extends CoreProject {
         public Object createObject(Attributes attributes) {
             int x = Integer.parseInt(attributes.getValue("x")); //$NON-NLS-1$
             int y = Integer.parseInt(attributes.getValue("y")); //$NON-NLS-1$
-            SQLTable tab = (SQLTable) objectIdMap.get(attributes.getValue("table-ref")); //$NON-NLS-1$
+            SQLTable tab = (SQLTable) objectLoadIdMap.get(attributes.getValue("table-ref")); //$NON-NLS-1$
             TablePane tp = new TablePane(tab, getSession().getPlayPen().getContentPane());
             
             String bgColorString = attributes.getValue("bgColor"); //$NON-NLS-1$
@@ -289,7 +289,7 @@ public class SwingUIProject extends CoreProject {
             Relationship r = null;
             try {
                 SQLRelationship rel =
-                    (SQLRelationship) objectIdMap.get(attributes.getValue("relationship-ref")); //$NON-NLS-1$
+                    (SQLRelationship) objectLoadIdMap.get(attributes.getValue("relationship-ref")); //$NON-NLS-1$
                 r = new Relationship(rel, getSession().getPlayPen().getContentPane());
                 getSession().getPlayPen().addRelationship(r);
                 r.updateUI();
@@ -434,8 +434,8 @@ public class SwingUIProject extends CoreProject {
      * @throws ArchitectException
      */
     public void save(PrintWriter out, String encoding) throws IOException, ArchitectException {
-        objectIdMap = new IdentityHashMap();
-        dbcsIdMap = new HashMap();
+        objectSaveIdMap = new IdentityHashMap<SQLObject, String>();
+        dbcsSaveIdMap = new HashMap<SPDataSource, String>();
         ioo.indent = 0;
 
         try {
@@ -470,7 +470,7 @@ public class SwingUIProject extends CoreProject {
             ioo.print(out, "<olap-session"); //$NON-NLS-1$
             if (osession.getDatabase() != null) {
                 ioo.niprint(out, "  dbcs-ref="+ //$NON-NLS-1$
-                        quote(objectIdMap.get(osession.getDatabase()).toString())); //$NON-NLS-1$
+                        quote(objectSaveIdMap.get(osession.getDatabase()).toString())); //$NON-NLS-1$
             }
             ioo.niprintln(out, ">"); //$NON-NLS-1$
             ioo.indent++;
@@ -502,10 +502,10 @@ public class SwingUIProject extends CoreProject {
             SQLObject o = (SQLObject) it.next();
             SPDataSource ds = ((SQLDatabase) o).getDataSource();
             if (ds != null) {
-                String id = (String) dbcsIdMap.get(ds);
+                String id = dbcsSaveIdMap.get(ds);
                 if (id == null) {
                     id = "DS"+dsNum; //$NON-NLS-1$
-                    dbcsIdMap.put(ds, id);
+                    dbcsSaveIdMap.put(ds, id);
                 }
                 ioo.println(out, "<data-source id=\""+SQLPowerUtils.escapeXML(id)+"\">"); //$NON-NLS-1$ //$NON-NLS-2$
                 ioo.indent++;
@@ -647,7 +647,7 @@ public class SwingUIProject extends CoreProject {
     private void saveTargetDatabase(PrintWriter out) throws IOException, ArchitectException {
         SQLDatabase db = (SQLDatabase) getSession().getTargetDatabase();
         ioo.println(out, "<target-database dbcs-ref="+ //$NON-NLS-1$
-                quote(dbcsIdMap.get(db.getDataSource()).toString())+ ">"); //$NON-NLS-1$
+                quote(dbcsSaveIdMap.get(db.getDataSource()))+ ">"); //$NON-NLS-1$
         ioo.indent++;
         Iterator it = db.getChildren().iterator();
         while (it.hasNext()) {
@@ -683,7 +683,7 @@ public class SwingUIProject extends CoreProject {
             Color fgColor = tp.getForegroundColor();
             String fgColorString = String.format("0x%02x%02x%02x", fgColor.getRed(), fgColor.getGreen(), fgColor.getBlue()); //$NON-NLS-1$
             
-            ioo.println(out, "<table-pane table-ref="+quote(objectIdMap.get(tp.getModel()).toString())+"" //$NON-NLS-1$ //$NON-NLS-2$
+            ioo.println(out, "<table-pane table-ref="+quote(objectSaveIdMap.get(tp.getModel()))+"" //$NON-NLS-1$ //$NON-NLS-2$
                     +" x=\""+p.x+"\" y=\""+p.y+"\" bgColor=\""+bgColorString+"\" fgColor=\""+fgColorString+ //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
                     "\" rounded=\"" + tp.isRounded() + "\" dashed=\"" + tp.isDashed() + "\" />"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
             if (pm != null) {
@@ -694,7 +694,7 @@ public class SwingUIProject extends CoreProject {
         Iterator it = getSession().getPlayPen().getRelationships().iterator();
         while (it.hasNext()) {
             Relationship r = (Relationship) it.next();
-            ioo.println(out, "<table-link relationship-ref="+quote(objectIdMap.get(r.getModel()).toString()) //$NON-NLS-1$
+            ioo.println(out, "<table-link relationship-ref="+quote(objectSaveIdMap.get(r.getModel())) //$NON-NLS-1$
                     +" pk-x=\""+r.getPkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                     +" pk-y=\""+r.getPkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                     +" fk-x=\""+r.getFkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
@@ -780,7 +780,7 @@ public class SwingUIProject extends CoreProject {
 
     private void printCommonItems(PrintWriter out, ProfileResult profileResult) {
         SQLObject profiledObject = profileResult.getProfiledObject();
-        ioo.print(out, "<profile-result ref-id=\""+objectIdMap.get(profiledObject)+"\"" + //$NON-NLS-1$ //$NON-NLS-2$
+        ioo.print(out, "<profile-result ref-id=\""+objectSaveIdMap.get(profiledObject)+"\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " type=\"" + profileResult.getClass().getName() + "\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " createStartTime=\""+profileResult.getCreateStartTime()+"\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " createEndTime=\""+profileResult.getCreateEndTime()+"\"" + //$NON-NLS-1$ //$NON-NLS-2$
@@ -807,7 +807,7 @@ public class SwingUIProject extends CoreProject {
      * property manually.
      */
     private void saveSQLObject(PrintWriter out, SQLObject o) throws IOException, ArchitectException {
-        String id = (String) objectIdMap.get(o);
+        String id = objectSaveIdMap.get(o);
         if (id != null) {
             ioo.println(out, "<reference ref-id=\""+SQLPowerUtils.escapeXML(id)+"\" />"); //$NON-NLS-1$ //$NON-NLS-2$
             return;
@@ -821,19 +821,19 @@ public class SwingUIProject extends CoreProject {
         propNames.put("name", o.getName()); // note: there was no name attrib for SQLDatabase, SQLRelationship.ColumnMapping, and SQLExceptionNode //$NON-NLS-1$
 
         if (o instanceof SQLDatabase) {
-            id = "DB"+objectIdMap.size(); //$NON-NLS-1$
+            id = "DB"+objectSaveIdMap.size(); //$NON-NLS-1$
             type = "database"; //$NON-NLS-1$
-            propNames.put("dbcs-ref", dbcsIdMap.get(((SQLDatabase) o).getDataSource())); //$NON-NLS-1$
+            propNames.put("dbcs-ref", dbcsSaveIdMap.get(((SQLDatabase) o).getDataSource())); //$NON-NLS-1$
         } else if (o instanceof SQLCatalog) {
-            id = "CAT"+objectIdMap.size(); //$NON-NLS-1$
+            id = "CAT"+objectSaveIdMap.size(); //$NON-NLS-1$
             type = "catalog"; //$NON-NLS-1$
             propNames.put("nativeTerm", ((SQLCatalog) o).getNativeTerm()); //$NON-NLS-1$
         } else if (o instanceof SQLSchema) {
-            id = "SCH"+objectIdMap.size(); //$NON-NLS-1$
+            id = "SCH"+objectSaveIdMap.size(); //$NON-NLS-1$
             type = "schema"; //$NON-NLS-1$
             propNames.put("nativeTerm", ((SQLSchema) o).getNativeTerm()); //$NON-NLS-1$
         } else if (o instanceof SQLTable) {
-            id = "TAB"+objectIdMap.size(); //$NON-NLS-1$
+            id = "TAB"+objectSaveIdMap.size(); //$NON-NLS-1$
             type = "table"; //$NON-NLS-1$
             propNames.put("remarks", ((SQLTable) o).getRemarks()); //$NON-NLS-1$
             propNames.put("objectType", ((SQLTable) o).getObjectType()); //$NON-NLS-1$
@@ -842,15 +842,15 @@ public class SwingUIProject extends CoreProject {
                 pm.setProgress(++progress);
             }
         } else if (o instanceof SQLTable.Folder) {
-            id = "FOL"+objectIdMap.size(); //$NON-NLS-1$
+            id = "FOL"+objectSaveIdMap.size(); //$NON-NLS-1$
             type = "folder"; //$NON-NLS-1$
             propNames.put("type", new Integer(((SQLTable.Folder) o).getType())); //$NON-NLS-1$
         } else if (o instanceof SQLColumn) {
-            id = "COL"+objectIdMap.size(); //$NON-NLS-1$
+            id = "COL"+objectSaveIdMap.size(); //$NON-NLS-1$
             type = "column"; //$NON-NLS-1$
             SQLColumn sourceCol = ((SQLColumn) o).getSourceColumn();
             if (sourceCol != null) {
-                propNames.put("source-column-ref", objectIdMap.get(sourceCol)); //$NON-NLS-1$
+                propNames.put("source-column-ref", objectSaveIdMap.get(sourceCol)); //$NON-NLS-1$
             }
             propNames.put("type", new Integer(((SQLColumn) o).getType())); //$NON-NLS-1$
             propNames.put("sourceDataTypeName", ((SQLColumn) o).getSourceDataTypeName()); //$NON-NLS-1$
@@ -866,10 +866,10 @@ public class SwingUIProject extends CoreProject {
                 propNames.put("autoIncrementSequenceName", ((SQLColumn) o).getAutoIncrementSequenceName()); //$NON-NLS-1$
             }
         } else if (o instanceof SQLRelationship) {
-            id = "REL"+objectIdMap.size(); //$NON-NLS-1$
+            id = "REL"+objectSaveIdMap.size(); //$NON-NLS-1$
             type = "relationship"; //$NON-NLS-1$
-            propNames.put("pk-table-ref", objectIdMap.get(((SQLRelationship) o).getPkTable())); //$NON-NLS-1$
-            propNames.put("fk-table-ref", objectIdMap.get(((SQLRelationship) o).getFkTable())); //$NON-NLS-1$
+            propNames.put("pk-table-ref", objectSaveIdMap.get(((SQLRelationship) o).getPkTable())); //$NON-NLS-1$
+            propNames.put("fk-table-ref", objectSaveIdMap.get(((SQLRelationship) o).getFkTable())); //$NON-NLS-1$
             propNames.put("updateRule", new Integer(((SQLRelationship) o).getUpdateRule().getCode())); //$NON-NLS-1$
             propNames.put("deleteRule", new Integer(((SQLRelationship) o).getDeleteRule().getCode())); //$NON-NLS-1$
             propNames.put("deferrability", new Integer(((SQLRelationship) o).getDeferrability().getCode())); //$NON-NLS-1$
@@ -877,16 +877,16 @@ public class SwingUIProject extends CoreProject {
             propNames.put("fkCardinality", new Integer(((SQLRelationship) o).getFkCardinality())); //$NON-NLS-1$
             propNames.put("identifying", Boolean.valueOf(((SQLRelationship) o).isIdentifying())); //$NON-NLS-1$
         } else if (o instanceof SQLRelationship.ColumnMapping) {
-            id = "CMP"+objectIdMap.size(); //$NON-NLS-1$
+            id = "CMP"+objectSaveIdMap.size(); //$NON-NLS-1$
             type = "column-mapping"; //$NON-NLS-1$
-            propNames.put("pk-column-ref", objectIdMap.get(((SQLRelationship.ColumnMapping) o).getPkColumn())); //$NON-NLS-1$
-            propNames.put("fk-column-ref", objectIdMap.get(((SQLRelationship.ColumnMapping) o).getFkColumn())); //$NON-NLS-1$
+            propNames.put("pk-column-ref", objectSaveIdMap.get(((SQLRelationship.ColumnMapping) o).getPkColumn())); //$NON-NLS-1$
+            propNames.put("fk-column-ref", objectSaveIdMap.get(((SQLRelationship.ColumnMapping) o).getFkColumn())); //$NON-NLS-1$
         } else if (o instanceof SQLExceptionNode) {
-            id = "EXC"+objectIdMap.size(); //$NON-NLS-1$
+            id = "EXC"+objectSaveIdMap.size(); //$NON-NLS-1$
             type = "sql-exception"; //$NON-NLS-1$
             propNames.put("message", ((SQLExceptionNode) o).getMessage()); //$NON-NLS-1$
         } else if (o instanceof SQLIndex) {
-            id = "IDX"+objectIdMap.size(); //$NON-NLS-1$
+            id = "IDX"+objectSaveIdMap.size(); //$NON-NLS-1$
             type = "index"; //$NON-NLS-1$
             SQLIndex index = (SQLIndex) o;
             propNames.put("unique", index.isUnique()); //$NON-NLS-1$
@@ -902,11 +902,11 @@ public class SwingUIProject extends CoreProject {
             propNames.put("primaryKeyIndex", index.isPrimaryKeyIndex()); //$NON-NLS-1$
             propNames.put("filterCondition", index.getFilterCondition()); //$NON-NLS-1$
         } else if (o instanceof SQLIndex.Column) {
-            id = "IDC"+objectIdMap.size(); //$NON-NLS-1$
+            id = "IDC"+objectSaveIdMap.size(); //$NON-NLS-1$
             type = "index-column"; //$NON-NLS-1$
             SQLIndex.Column col = (SQLIndex.Column) o;
             if (col.getColumn() != null) {
-                propNames.put("column-ref", objectIdMap.get(col.getColumn())); //$NON-NLS-1$
+                propNames.put("column-ref", objectSaveIdMap.get(col.getColumn())); //$NON-NLS-1$
             }
             propNames.put("ascendingOrDescending", col.getAscendingOrDescending().name()); //$NON-NLS-1$
         } else {
@@ -914,7 +914,7 @@ public class SwingUIProject extends CoreProject {
                     +o.getClass().getName()+" is not supported!"); //$NON-NLS-1$
         }
 
-        objectIdMap.put(o, id);
+        objectSaveIdMap.put(o, id);
 
         boolean skipChildren = false;
 
