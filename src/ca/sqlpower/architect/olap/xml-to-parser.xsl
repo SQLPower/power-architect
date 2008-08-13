@@ -151,6 +151,7 @@ public class MondrianXMLReader {
                                     logger.warn("Skipping unknown attribute \""+aname+"\" of element \""+OLAPSession.class+"\"");
                                 }
                             }
+                            context.peek().addChild(osession);
                             context.push(osession);
                         } else {
                             context.peek().addChild(currentElement);

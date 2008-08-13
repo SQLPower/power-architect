@@ -67,6 +67,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AlignTableAction;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
@@ -470,7 +471,7 @@ public class ArchitectFrame extends JFrame {
                 // do nothing here
             }
             public void menuDeselected(MenuEvent e) {
-                // do nothin here
+                // do nothing here
             }
             
             public void menuSelected(MenuEvent e) {
@@ -499,9 +500,28 @@ public class ArchitectFrame extends JFrame {
         etlMenu.add(kettleETL);
         menuBar.add(etlMenu);
 
-        JMenu olapMenu = new JMenu(Messages.getString("ArchitectFrame.olapMenu")); //$NON-NLS-1$
+        final JMenu olapMenu = new JMenu(Messages.getString("ArchitectFrame.olapMenu")); //$NON-NLS-1$
         olapMenu.setMnemonic('o');
-        olapMenu.add(new OLAPEditAction(session));
+        final JMenu olapEditMenu = buildOLAPEditMenu();
+        olapMenu.add(olapEditMenu);
+        olapMenu.addMenuListener(new MenuListener(){
+            
+            private JMenu editMenu = olapEditMenu;
+            
+            public void menuCanceled(MenuEvent e) {
+                // do nothing here
+            }
+            public void menuDeselected(MenuEvent e) {
+                // do nothing here
+            }
+            
+            public void menuSelected(MenuEvent e) {
+                // updates for new OLAP schemas
+                olapMenu.remove(editMenu);
+                editMenu = buildOLAPEditMenu();
+                olapMenu.add(editMenu, 0);
+            }
+        });
         menuBar.add(olapMenu);
 
         JMenu toolsMenu = new JMenu(Messages.getString("ArchitectFrame.toolsMenu")); //$NON-NLS-1$
@@ -640,6 +660,15 @@ public class ArchitectFrame extends JFrame {
 
         cp.add(splitPane, BorderLayout.CENTER);
         logger.debug("Added splitpane to content pane"); //$NON-NLS-1$
+    }
+    
+    private JMenu buildOLAPEditMenu() {
+        JMenu menu = new JMenu("Edit Schema");
+        menu.add(new JMenuItem(new OLAPEditAction(session, null)));
+        menu.addSeparator(); for (OLAPSession sess : session.getOLAPRootObject().getChildren()) {
+            menu.add(new JMenuItem(new OLAPEditAction(session, sess.getChildren().get(0))));
+        }
+        return menu;
     }
     
     /**
