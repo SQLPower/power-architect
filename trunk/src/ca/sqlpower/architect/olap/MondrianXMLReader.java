@@ -25,7 +25,7 @@ import ca.sqlpower.architect.SQLDatabase;
 public class MondrianXMLReader {
 
     private static final Logger logger = Logger.getLogger(MondrianXMLReader.class);
-    
+
     public static OLAPObject parse(File f, boolean mondrianMode) throws IOException, SAXException {
         return parse(null, null, new FileInputStream(f), mondrianMode);
     }
@@ -50,6 +50,8 @@ public class MondrianXMLReader {
         private StringBuilder text;
         
         private Attributes currentOSessionAtts;
+        
+        private boolean inOlap;
        
         private final Map dbIdMap;
         private final boolean mondrianMode;
@@ -67,8 +69,15 @@ public class MondrianXMLReader {
             try {
 	            boolean pushElem = true;
 	            OLAPObject currentElement;
+	            
+	            if (qName.equals("olap") || qName.equals("Schema")) {
+	            	inOlap = true;
+	           	}
+	           	if (!inOlap) return;
+	            
 	            if (qName.equals("olap")) {
 	                currentElement = root;
+	                inOlap = true;
 	            } else if (qName.equals("olap-session")) {
 	                currentOSessionAtts = atts;
 	                pushElem = false;
@@ -1379,7 +1388,11 @@ public class MondrianXMLReader {
 	            } else {
 	                pushElem = false;
 	                currentElement = null;
-	                logger.warn("Unknown element type \"" + qName + "\" at locator: " + locator);
+	                if (inOlap) {
+	                	logger.warn("Unknown element type \"" + qName + "\" at locator: " + locator);
+	                } else {
+	                	logger.debug("Unknown element type \"" + qName + "\" at locator: " + locator);	
+	                }
 	            }
 	            if (pushElem) {
                     if (!context.isEmpty()) {
@@ -1430,12 +1443,15 @@ public class MondrianXMLReader {
         @Override
         public void endElement(String uri, String localName, String qName) {
             if (context.isEmpty()) return;
-        	   if (context.peek() instanceof MondrianModel.Value) {
+        	if (context.peek() instanceof MondrianModel.Value) {
                 ((MondrianModel.Value) context.peek()).setText(text.toString().trim());
             } else if (context.peek() instanceof MondrianModel.SQL) {
                 ((MondrianModel.SQL) context.peek()).setText(text.toString().trim());
             } else if (context.peek() instanceof MondrianModel.Formula) {
                 ((MondrianModel.Formula) context.peek()).setText(text.toString().trim());
+            } else if ((context.peek() instanceof OLAPRootObject && !mondrianMode)||
+            		(context.peek() instanceof MondrianModel.Schema && mondrianMode)) {
+            	inOlap = false;
             }
             text = null;
             OLAPObject popped = context.pop();
