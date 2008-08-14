@@ -28,8 +28,16 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.olap.action.EditCubeAction;
+import ca.sqlpower.architect.swingui.olap.action.EditDimensionAction;
+import ca.sqlpower.architect.swingui.olap.action.EditVirtualCubeAction;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
 
@@ -38,14 +46,16 @@ public class OLAPTree extends JTree{
     private static final Logger logger = Logger.getLogger(OLAPTree.class);
     
     private ArchitectSwingSession session;
+    private OLAPEditSession oSession;
     
     private JPopupMenu popup;
     private final Schema schema;
     private JTreeCollapseAllAction collapseAllAction;
     private JTreeExpandAllAction expandAllAction;
     
-    public OLAPTree(ArchitectSwingSession session, Schema schema) {
+    public OLAPTree(ArchitectSwingSession session, OLAPEditSession oSession, Schema schema) {
         this.schema = schema;
+        this.oSession = oSession;
         this.session = session;
         setModel(new OLAPTreeModel(schema));
         addMouseListener(new PopupListener());
@@ -99,8 +109,32 @@ public class OLAPTree extends JTree{
     protected JPopupMenu refreshMenu(TreePath p) {
         logger.debug("refreshMenu is being called."); //$NON-NLS-1$
         JPopupMenu newMenu = new JPopupMenu();
-        newMenu.add(collapseAllAction);
-        newMenu.add(expandAllAction);
+        if (p != null) {
+            OLAPObject obj = (OLAPObject)p.getLastPathComponent();
+            if (obj instanceof Schema) {
+                newMenu.add(oSession.getCreateVirtualCubeAction());
+                newMenu.add(oSession.getCreateCubeAction());
+                newMenu.add(oSession.getCreateDimensionAction());
+                newMenu.add(oSession.getExportSchemaAction());
+            } else if (obj instanceof Dimension) {
+                newMenu.add(new EditDimensionAction(session, (Dimension)obj, oSession.getOlapPlayPen() ));
+            } else if (obj instanceof Cube) {
+                newMenu.add(new EditCubeAction(session, (Cube)obj, oSession.getOlapPlayPen()));
+            } else if (obj instanceof VirtualCube) {
+                newMenu.add(new EditVirtualCubeAction(session, (VirtualCube)obj, oSession.getOlapPlayPen()));
+                newMenu.add(oSession.getCreateCubeAction());
+                newMenu.add(oSession.getCreateDimensionAction());
+                newMenu.add(oSession.getCreateMeasureAction());
+                newMenu.add(oSession.getCreateVirtualCubeAction());
+            } else if (obj instanceof Measure) {
+            }
+            newMenu.addSeparator();
+            
+            newMenu.add(collapseAllAction);
+            newMenu.add(expandAllAction);
+        } else {
+
+        }
         return newMenu;
     }
     

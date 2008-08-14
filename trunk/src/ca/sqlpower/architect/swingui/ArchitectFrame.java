@@ -108,7 +108,6 @@ import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
-import ca.sqlpower.architect.swingui.olap.OLAPSchemaEditorPanel;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPSchemaManagerAction;
@@ -191,8 +190,6 @@ public class ArchitectFrame extends JFrame {
     private Action compareDMAction;
     private Action dataMoverAction;
     
-    private OLAPSchemaEditorPanel olapSchemaEditor;
-
     /**
      * Closes all sessions and terminates the JVM.
      */
@@ -930,11 +927,4 @@ public class ArchitectFrame extends JFrame {
         return focusToChildAction;
     }
 
-    public OLAPSchemaEditorPanel getOlapSchemaEditor() {
-        return olapSchemaEditor;
-    }
-
-    public void setOlapSchemaEditor(OLAPSchemaEditorPanel olapSchemaEditor) {
-        this.olapSchemaEditor = olapSchemaEditor;
-    }
 }
