@@ -41,6 +41,7 @@ public static class Schema extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -683,6 +684,7 @@ public abstract static class CubeDimension extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -749,6 +751,7 @@ public static class Cube extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -1191,6 +1194,7 @@ public static class VirtualCube extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -1594,6 +1598,7 @@ public static class CubeUsages extends OLAPObject {
 		retStr.append("CubeUsages:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -1723,6 +1728,7 @@ public static class CubeUsage extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -1804,6 +1810,11 @@ public static class VirtualCubeDimension extends CubeDimension {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -1889,6 +1900,7 @@ public static class VirtualCubeMeasure extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -1990,6 +2002,11 @@ public static class DimensionUsage extends CubeDimension {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -2102,6 +2119,11 @@ public static class Dimension extends CubeDimension {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -2342,6 +2364,7 @@ public static class Hierarchy extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -2789,6 +2812,7 @@ public static class Level extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -3277,6 +3301,7 @@ public static class Closure extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -3381,6 +3406,7 @@ public static class Property extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -3533,6 +3559,7 @@ public static class Measure extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -3832,6 +3859,7 @@ public static class CalculatedMember extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -4084,6 +4112,7 @@ public static class CalculatedMemberProperty extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -4218,6 +4247,7 @@ public static class NamedSet extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -4307,6 +4337,7 @@ public static class Formula extends OLAPObject {
 		retStr.append("Formula:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -4368,6 +4399,7 @@ public static class MemberReaderParameter extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -4437,6 +4469,7 @@ public abstract static class RelationOrJoin extends OLAPObject {
 		retStr.append("RelationOrJoin:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -4480,6 +4513,11 @@ public abstract static class Relation extends RelationOrJoin {
 		retStr.append("Relation:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -4526,6 +4564,11 @@ public static class View extends Relation {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -4664,6 +4707,7 @@ public static class SQL extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -4756,6 +4800,11 @@ public static class Join extends RelationOrJoin {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -4902,6 +4951,11 @@ public static class Table extends Relation {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -5162,6 +5216,11 @@ public static class InlineTable extends Relation {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -5253,6 +5312,7 @@ public static class ColumnDefs extends OLAPObject {
 		retStr.append("ColumnDefs:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -5384,6 +5444,7 @@ public static class ColumnDef extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -5455,6 +5516,7 @@ public static class Rows extends OLAPObject {
 		retStr.append("Rows:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -5579,6 +5641,7 @@ public static class Row extends OLAPObject {
 		retStr.append("Row:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -5707,6 +5770,7 @@ public static class Value extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -6036,6 +6100,7 @@ public abstract static class AggTable extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -6134,6 +6199,11 @@ public static class AggName extends AggTable {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -6193,6 +6263,11 @@ public static class AggPattern extends AggTable {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -6341,6 +6416,7 @@ public static class AggExclude extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -6448,6 +6524,7 @@ public abstract static class AggColumnName extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -6488,6 +6565,11 @@ public static class AggFactCount extends AggColumnName {
 		retStr.append("AggFactCount:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -6528,6 +6610,11 @@ public static class AggIgnoreColumn extends AggColumnName {
 		retStr.append("AggIgnoreColumn:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -6579,6 +6666,7 @@ public static class AggForeignKey extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -6657,6 +6745,7 @@ public static class AggLevel extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -6735,6 +6824,7 @@ public static class AggMeasure extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -6808,6 +6898,7 @@ public abstract static class Expression extends OLAPObject {
 		retStr.append("Expression:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -6856,6 +6947,11 @@ public static class Column extends Expression {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -6986,6 +7082,11 @@ public abstract static class ExpressionView extends Expression {
 		retStr.append("ExpressionView:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -7053,6 +7154,11 @@ public static class KeyExpression extends ExpressionView {
 		retStr.append("KeyExpression:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -7093,6 +7199,11 @@ public static class ParentExpression extends ExpressionView {
 		retStr.append("ParentExpression:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -7133,6 +7244,11 @@ public static class OrdinalExpression extends ExpressionView {
 		retStr.append("OrdinalExpression:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -7173,6 +7289,11 @@ public static class NameExpression extends ExpressionView {
 		retStr.append("NameExpression:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -7213,6 +7334,11 @@ public static class CaptionExpression extends ExpressionView {
 		retStr.append("CaptionExpression:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -7253,6 +7379,11 @@ public static class MeasureExpression extends ExpressionView {
 		retStr.append("MeasureExpression:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -7304,6 +7435,7 @@ public static class Role extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -7474,6 +7606,7 @@ public abstract static class Grant extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -7520,6 +7653,11 @@ public static class SchemaGrant extends Grant {
 		retStr.append("SchemaGrant:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -7649,6 +7787,11 @@ public static class CubeGrant extends Grant {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -7856,6 +7999,11 @@ public static class DimensionGrant extends Grant {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -7932,6 +8080,11 @@ public static class HierarchyGrant extends Grant {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        
 	    return retStr.toString();
 	}
 
@@ -8127,6 +8280,7 @@ public static class MemberGrant extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -8197,6 +8351,7 @@ public static class Union extends OLAPObject {
 		retStr.append("Union:");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -8324,6 +8479,7 @@ public static class RoleUsage extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -8390,6 +8546,7 @@ public static class UserDefinedFunction extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
@@ -8484,6 +8641,7 @@ public static class Parameter extends OLAPObject {
 	    retStr.append(",");
 	    
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    
 	    return retStr.toString();
 	}
 
