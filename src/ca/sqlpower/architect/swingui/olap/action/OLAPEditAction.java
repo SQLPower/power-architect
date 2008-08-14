@@ -31,7 +31,7 @@ import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
-import ca.sqlpower.architect.swingui.olap.OLAPSchemaEditorPanel;
+import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.SchemaEditPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
@@ -57,7 +57,7 @@ public class OLAPEditAction extends AbstractArchitectAction {
             schema.setName("New OLAP Schema");
             session.getOLAPRootObject().addChild(new OLAPSession(schema));
         }
-        OLAPSchemaEditorPanel panel = new OLAPSchemaEditorPanel(session, schema);
+        OLAPEditSession panel = new OLAPEditSession(session, schema);
         
         final JDialog d = new JDialog(session.getArchitectFrame(), generateDialogTitle());
         schema.addPropertyChangeListener(new PropertyChangeListener() {
