@@ -40,5 +40,5 @@ public interface PaneSection {
      * In the future, we will probably specify a PaneSectionItem interface so this
      * API can apply to TablePane in addition to OLAPPane.
      */
-    List<OLAPObject> getItems();
+    List<? extends OLAPObject> getItems();
 }
