@@ -58,6 +58,11 @@ public static class <xsl:value-of select="@type"/> extends <xsl:call-template na
 	    retStr.append(",");
 	    </xsl:for-each>
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    <xsl:if test="@class">
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        </xsl:if>
 	    return retStr.toString();
 	}
 <xsl:apply-templates/>
@@ -103,6 +108,11 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
 	    retStr.append(",");
 	    </xsl:for-each>
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
+	    <xsl:if test="@superclass">
+	    retStr.append(" [inherited ");
+        retStr.append(super.toString());
+        retStr.append("]");
+        </xsl:if>
 	    return retStr.toString();
 	}
 <xsl:call-template name="children-methods"/>
