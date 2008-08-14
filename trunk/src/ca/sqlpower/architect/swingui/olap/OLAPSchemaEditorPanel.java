@@ -36,7 +36,6 @@ import ca.sqlpower.architect.swingui.olap.action.CreateDimensionAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateMeasureAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateVirtualCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.ExportSchemaAction;
-import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 
 public class OLAPSchemaEditorPanel {
 
@@ -68,7 +67,6 @@ public class OLAPSchemaEditorPanel {
         toolbar.add(new CreateVirtualCubeAction(session, schema, pp));
         toolbar.add(new CreateMeasureAction(session, pp));
         toolbar.add(new ExportSchemaAction(session, schema));
-        toolbar.add(new ImportSchemaAction(session));
         
         panel = new JPanel(new BorderLayout());
         panel.add(
