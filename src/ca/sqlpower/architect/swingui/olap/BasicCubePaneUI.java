@@ -29,9 +29,14 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.font.FontRenderContext;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.olap.OLAPChildEvent;
+import ca.sqlpower.architect.olap.OLAPChildListener;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.swingui.ContainerPane;
@@ -75,17 +80,20 @@ public class BasicCubePaneUI extends ContainerPaneUI {
     
     protected Color selectedColor = new Color(204, 204, 255);
     
+    private final ModelEventHandler modelEventHandler = new ModelEventHandler();
+    
     public static PlayPenComponentUI createUI(PlayPenComponent c) {
         return new BasicCubePaneUI();
     }
 
     public void installUI(PlayPenComponent c) {
         cube = (CubePane) c;
-        // TODO: add property change listener
+        OLAPUtil.listenToHierarchy(cube.getModel(), modelEventHandler, modelEventHandler);
     }
 
     public void uninstallUI(PlayPenComponent c) {
-        // TODO: remove property change listener
+        OLAPUtil.unlistenToHierarchy(cube.getModel(), modelEventHandler, modelEventHandler);
+        cube = null;
     }
 
     public void paint(Graphics2D g) {
@@ -331,6 +339,28 @@ public class BasicCubePaneUI extends ContainerPaneUI {
     }
 
     public void revalidate() {
+        cube.setSize(getPreferredSize());
     }
 
+    private class ModelEventHandler implements PropertyChangeListener, OLAPChildListener {
+
+        public void propertyChange(PropertyChangeEvent evt) {
+            if ("name".equals(evt.getPropertyName())) {
+                // note this could be the name of the cube or any of its child objects,
+                // since we have property change listeners on every object in the subtree under cube
+                cube.revalidate();
+            }
+        }
+
+        public void olapChildAdded(OLAPChildEvent e) {
+            OLAPUtil.listenToHierarchy(e.getChild(), this, this);
+            cube.revalidate();
+        }
+
+        public void olapChildRemoved(OLAPChildEvent e) {
+            OLAPUtil.unlistenToHierarchy(e.getChild(), this, this);
+            cube.revalidate();
+        }
+        
+    }
 }
