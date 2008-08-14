@@ -52,7 +52,7 @@ public class CubePane extends ContainerPane<Cube, OLAPObject> {
     // see also PlayPenComponent
 
     public void updateUI() {
-        ContainerPaneUI ui = (ContainerPaneUI) BasicCubePaneUI.createUI(this);
+        ContainerPaneUI ui = (ContainerPaneUI) BasicCubePaneUI.createUI();
         ui.installUI(this);
         setUI(ui);
     }
@@ -61,7 +61,7 @@ public class CubePane extends ContainerPane<Cube, OLAPObject> {
         return model;
     }
 
-    public String getCubeName() {
+    public String getName() {
         return model.getName();
     }
 

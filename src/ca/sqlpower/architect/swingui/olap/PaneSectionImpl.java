@@ -28,10 +28,10 @@ import ca.sqlpower.architect.olap.OLAPObject;
  */
 public class PaneSectionImpl implements PaneSection {
 
-    private final List<OLAPObject> items;
+    private final List<? extends OLAPObject> items;
     private final String title;
     
-    public PaneSectionImpl(List<OLAPObject> items, String title) {
+    public PaneSectionImpl(List<? extends OLAPObject> items, String title) {
         super();
         this.items = items;
         this.title = title;
@@ -46,7 +46,7 @@ public class PaneSectionImpl implements PaneSection {
      * No matter what, you won't get events from the PaneSection when the item
      * list changes. Consult the model for change notifications.
      */
-    public List<OLAPObject> getItems() {
+    public List<? extends OLAPObject> getItems() {
         return items;
     }
 
