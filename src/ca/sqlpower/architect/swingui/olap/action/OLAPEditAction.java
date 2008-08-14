@@ -20,11 +20,14 @@
 package ca.sqlpower.architect.swingui.olap.action;
 
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.concurrent.Callable;
 
 import javax.swing.JDialog;
 
 import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
@@ -56,8 +59,14 @@ public class OLAPEditAction extends AbstractArchitectAction {
         }
         OLAPSchemaEditorPanel panel = new OLAPSchemaEditorPanel(session, schema);
         
-        // TODO register listener on schema object and make dialog title track schema name
-        final JDialog d = new JDialog(session.getArchitectFrame(), "OLAP Schema Editor");
+        final JDialog d = new JDialog(session.getArchitectFrame(), generateDialogTitle());
+        schema.addPropertyChangeListener(new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent evt) {
+                if (evt.getPropertyName().equals("name")) {
+                    d.setTitle(generateDialogTitle());
+                }
+            }
+        });
         d.setContentPane(panel.getPanel());
         d.pack();
         d.setLocationRelativeTo(session.getArchitectFrame());
@@ -75,7 +84,7 @@ public class OLAPEditAction extends AbstractArchitectAction {
             Callable<Boolean> cancelCall = new Callable<Boolean>() {
                 public Boolean call() throws Exception {
                     d.dispose();
-                    session.getOLAPRootObject().removeOLAPSession((OLAPSession) schema.getParent());
+                    session.getOLAPRootObject().removeOLAPSession(OLAPUtil.getSession(schema));
                     return true;
                 }
             };
@@ -90,6 +99,13 @@ public class OLAPEditAction extends AbstractArchitectAction {
             schemaEditDialog.setLocationRelativeTo(d);
             schemaEditDialog.setVisible(true);
         }
+    }
+    
+    /**
+     * Returns the schema edit dialog's title that includes the schema's name.
+     */
+    private String generateDialogTitle() {
+        return schema.getName() + " - OLAP Schema Editor";
     }
 
     

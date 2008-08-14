@@ -46,7 +46,7 @@ public class ImportSchemaAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        JFileChooser chooser = new JFileChooser();
+        JFileChooser chooser = new JFileChooser(session.getRecentMenu().getMostRecentFile());
         chooser.addChoosableFileFilter(SPSUtils.XML_FILE_FILTER);
         int returnVal = chooser.showOpenDialog(frame);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
