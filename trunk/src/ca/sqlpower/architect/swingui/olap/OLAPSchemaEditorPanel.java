@@ -26,7 +26,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
-import javax.swing.JTree;
 
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -39,8 +38,7 @@ import ca.sqlpower.architect.swingui.olap.action.ExportSchemaAction;
 
 public class OLAPSchemaEditorPanel {
 
-    private final JTree tree;
-    private final OLAPTreeModel treeModel;
+    private final OLAPTree tree;
     
     /**
      * This is the playpen used within OLAP schema editor.
@@ -56,7 +54,7 @@ public class OLAPSchemaEditorPanel {
      * @param schema The schema to edit
      */
     public OLAPSchemaEditorPanel(ArchitectSwingSession session, Schema schema) {
-        tree = new JTree(treeModel = new OLAPTreeModel(schema));
+        tree = new OLAPTree(session, schema);
         tree.setCellRenderer(new OLAPTreeCellRenderer());
         pp = new PlayPen(session); // TODO create OLAPPlayPenFactory class to set this up properly
         session.getArchitectFrame().setOlapSchemaEditor(this);
@@ -89,7 +87,7 @@ public class OLAPSchemaEditorPanel {
         return pp;
     }
     
-    public OLAPTreeModel getOlapTreeModel() {
-        return treeModel;
+    public OLAPTree getOlapTree() {
+        return tree;
     }
 }
