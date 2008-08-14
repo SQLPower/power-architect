@@ -50,6 +50,7 @@ import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -65,7 +66,7 @@ public class OLAPSchemaManager {
     /**
      * The GUI panel.  Lives inside the dialog {@link #d}.
      */
-    private final JPanel panel;
+    private JPanel panel;
 
     /**
      * The Dialog that contains all the GUI;
@@ -79,27 +80,20 @@ public class OLAPSchemaManager {
     
     private ArchitectSwingSession session;
 
-    private final Action newOLAPSchemaAction = new AbstractAction("New...") {
-        public void actionPerformed(ActionEvent e) {
-            new OLAPEditAction(session, null).actionPerformed(e);
-        }
-    };
-
     private final Action editOLAPSchemaAction = new AbstractAction("Edit...") { 
         public void actionPerformed(ActionEvent e) {
-            Schema schema = getSelectedOSession().getSchema();
-            if (schema != null) {
-                new OLAPEditAction(session, schema).actionPerformed(e);
+            OLAPSession oSession = getSelectedOSession();
+            if (oSession != null && oSession.getSchema() != null) {
+                new OLAPEditAction(session, oSession.getSchema()).actionPerformed(e);
             }
         }
     };
 
     private final Action removeOLAPSchemaAction = new AbstractAction("Remove") { 
-
         public void actionPerformed(ActionEvent e) {
             OLAPSession oSession = getSelectedOSession();
-            Schema schema = oSession.getSchema();
             if (oSession != null) {
+                Schema schema = oSession.getSchema();
                 int option = JOptionPane.showConfirmDialog(
                         d,
                         "Do you want to delete this OLAP Schema? " + schema.getName(), //$NON-NLS-1$
@@ -109,6 +103,9 @@ public class OLAPSchemaManager {
                     return;
                 }
                 session.getOLAPRootObject().removeOLAPSession(oSession);
+                
+                editOLAPSchemaAction.setEnabled(false);
+                removeOLAPSchemaAction.setEnabled(false);
             }
         }
     };
@@ -136,7 +133,6 @@ public class OLAPSchemaManager {
     public OLAPSchemaManager(ArchitectSwingSession session) {
         this.session = session;
         olapSessions = session.getOLAPRootObject().getChildren();
-        panel = createPanel();
     }
 
     /**
@@ -156,6 +152,11 @@ public class OLAPSchemaManager {
         if (d != null) {
             d.dispose();
         }
+        
+        if (panel == null) {
+            panel = createPanel();
+        }
+        
         if (panel.getParent() != null) {
             panel.getParent().remove(panel);
         }
@@ -227,8 +228,16 @@ public class OLAPSchemaManager {
 
         ButtonStackBuilder bsb = new ButtonStackBuilder();
 
-        bsb.addGridded(new JButton(newOLAPSchemaAction));
+        JButton newOLAPSchemaButton = new JButton(new OLAPEditAction(session, null));
+        newOLAPSchemaButton.setText("New...");
+        bsb.addGridded(newOLAPSchemaButton);
         bsb.addRelatedGap();
+        
+        JButton importOLAPSchemaButton = new JButton(new ImportSchemaAction(session));
+        importOLAPSchemaButton.setText("Import...");
+        bsb.addGridded(importOLAPSchemaButton);
+        bsb.addRelatedGap();
+        
         bsb.addGridded(new JButton(editOLAPSchemaAction));
         bsb.addRelatedGap();
         bsb.addGridded(new JButton(removeOLAPSchemaAction));
