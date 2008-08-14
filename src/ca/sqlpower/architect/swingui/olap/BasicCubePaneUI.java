@@ -305,11 +305,10 @@ public class BasicCubePaneUI extends ContainerPaneUI {
         int fontHeight = metrics.getHeight();
 
         int numDims = cube.getCube().getDimensions().size();
-        int firstDimStart = fontHeight * 2 + GAP + BOX_LINE_THICKNESS * 2 + TABLE_GAP + cube.getMargin().top;
+        int firstDimStart = cube.getInsets().top + fontHeight * 2 + GAP + BOX_LINE_THICKNESS * 2 + TABLE_GAP + cube.getMargin().top;
         
         int numMeasures = cube.getCube().getMeasures().size();
-        int firstMeasureStart = fontHeight * 2 + GAP + fontHeight + TABLE_GAP + cube.getMargin().top + numDims * fontHeight + 
-        GAP + fontHeight + TABLE_GAP + cube.getMargin().top;
+        int firstMeasureStart = firstDimStart + numDims * fontHeight + GAP + fontHeight + TABLE_GAP + cube.getMargin().top;
 
         if (logger.isDebugEnabled()) logger.debug("p.y = "+p.y); //$NON-NLS-1$
         
@@ -326,7 +325,7 @@ public class BasicCubePaneUI extends ContainerPaneUI {
         } else if (p.y > firstDimStart && p.y <= firstDimStart + numDims * fontHeight) {
             returnVal = (p.y - firstDimStart) / fontHeight;
         } else if (p.y > firstMeasureStart && p.y <= firstMeasureStart + numMeasures * fontHeight) {
-            returnVal = (p.y - firstDimStart + p.y - firstMeasureStart) / fontHeight;
+            returnVal = (p.y - firstMeasureStart) / fontHeight;
         } else {
             returnVal = ContainerPane.ITEM_INDEX_NONE;
         }
