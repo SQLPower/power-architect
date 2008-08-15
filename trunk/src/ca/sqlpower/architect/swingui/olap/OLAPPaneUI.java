@@ -27,12 +27,17 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.font.FontRenderContext;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.olap.OLAPChildEvent;
+import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
@@ -44,24 +49,27 @@ import ca.sqlpower.architect.swingui.PlayPenComponent;
  * Our plan is to eventually move all the generic stuff up into ContainerPaneUI
  * so that BasicTablePaneUI can get simpler.
  */
-public abstract class OLAPPaneUI extends ContainerPaneUI {
+public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> extends ContainerPaneUI {
     
     private static final Logger logger = Logger.getLogger(OLAPPaneUI.class);
     
     /**
      * Thickness (in Java2D units) of the surrounding box.
      */
-    public static final int BOX_LINE_THICKNESS = 1;
+    private static final int BOX_LINE_THICKNESS = 1;
     
     /**
      * Amount of space left between the surrounding box and the text it contains.
      */
-    public static final int GAP = 1;
+    private static final int GAP = 1;
     
     /**
-     * The amount of extra (vertical) space between the dimensions and the measures. 
+     * The amount of extra (vertical) space between one section and the next.
+     * The line dividing the sections is within this gap. 
+     * <p>
+     * By "inter-section" we mean "between sections," not "where two lines meet."
      */
-    public static final int TABLE_GAP = 10;
+    private static final int INTER_SECTION_GAP = 9;
     
     /**
      * The width and height of the arc for a rounded rectangle container. 
@@ -72,34 +80,32 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
      * Doesn't return a preferredSize with width less than this.
      */
     private static final int MINIMUM_WIDTH = 100;
+
+    /**
+     * Amount of extra space after the section header before the first item in the section.
+     */
+    private static final int SECTION_HEADER_GAP = 5;
     
     private Color selectedColor = new Color(204, 204, 255);
     
-    protected ContainerPane<? extends OLAPObject, ? extends OLAPObject> containerPane;
+    protected ContainerPane<T, C> containerPane;
     
-    protected final List<PaneSection> paneSections = new ArrayList<PaneSection>();
+    protected final List<PaneSection<C>> paneSections = new ArrayList<PaneSection<C>>();
 
+    private final ModelEventHandler modelEventHandler = new ModelEventHandler();
+    
     /**
      * Returns this pane's list of sections.
      */
-    public List<PaneSection> getSections() {
+    public List<PaneSection<C>> getSections() {
         return paneSections;
     }
     
-    @Override
-    public int pointToItemIndex(Point p) {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    public Dimension getPreferredSize() {
-        return getPreferredSize(containerPane);
-    }
-    
     /**
-     * Calculates and returns the size of the given containerpane object
+     * Calculates and returns the size of the given ContainerPane object
      */
-    public Dimension getPreferredSize(ContainerPane<?, ?> cp) {
+    public Dimension getPreferredSize() {
+        ContainerPane<?, ?> cp = containerPane;
 
         int height = 0;
         int width = 0;
@@ -117,15 +123,15 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
 
         // Height calculation
         height = insets.top + fontHeight;
-        for (PaneSection ps : paneSections) {
-            height += GAP + fontHeight + TABLE_GAP + cp.getMargin().top + ps.getItems().size() * fontHeight + BOX_LINE_THICKNESS*2;
+        for (PaneSection<C> ps : paneSections) {
+            height += GAP + fontHeight + INTER_SECTION_GAP + cp.getMargin().top + ps.getItems().size() * fontHeight + BOX_LINE_THICKNESS*2;
         }
         height += cp.getMargin().bottom + insets.bottom;
         
         // Width calculation
         width = MINIMUM_WIDTH;
         width = Math.max(width, calculateTextWidth(cp, cp.getName()));
-        for (PaneSection ps : paneSections) {
+        for (PaneSection<C> ps : paneSections) {
             width = Math.max(width, calculateMaxSectionWidth(ps, cp));
         }
         width += insets.left + cp.getMargin().left + BOX_LINE_THICKNESS*2 + cp.getMargin().right + insets.right;
@@ -134,20 +140,17 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
         return new Dimension(width, height);
     }
 
-    public <T extends OLAPObject, C extends OLAPObject> void installUI(ContainerPane<T, C> c) {
+    public void installUI(PlayPenComponent c) {
         containerPane = (ContainerPane<T, C>) c;
+        OLAPUtil.listenToHierarchy(containerPane.getModel(), modelEventHandler, modelEventHandler);
     }
 
-    public void paint(Graphics2D g2) {
-        paint(g2, containerPane);
-        
+    public void uninstallUI(PlayPenComponent c) {
+        OLAPUtil.unlistenToHierarchy(containerPane.getModel(), modelEventHandler, modelEventHandler);
     }
     
-    /**
-     * Paint the containerPane's UI
-     */
-    public void paint(Graphics2D g2, ContainerPane<?, ?> cp) {
-
+    public void paint(Graphics2D g2) {
+        ContainerPane<T, C> cp = containerPane;
         if (logger.isDebugEnabled()) {
             Rectangle clip = g2.getClipBounds();
             if (clip != null) {
@@ -162,19 +165,14 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
             }
         }
 
-        //  We don't want to paint inside the insets or borders.
-        Insets insets = cp.getInsets();
-
         //builds a little buffer to reduce the clipping problem
         //this only seams to work at a non-zoomed level. This could 
         //use a little work (better fix)
         g2.setColor(Color.WHITE);
         g2.fillRect(0, 0, cp.getWidth(), cp.getHeight());
 
-        g2.translate(insets.left, insets.top);
-
-        int width = cp.getWidth() - insets.left - insets.right;
-        int height = cp.getHeight() - insets.top - insets.bottom;
+        int width = cp.getWidth() - 1;
+        int height = cp.getHeight();
 
         Font font = cp.getFont();
         if (font == null) {
@@ -198,7 +196,7 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
         } else {
             g2.setColor(cp.getBackgroundColor());
         }
-        g2.fillRoundRect(0, 0, cp.getWidth(), fontHeight, ARC_LENGTH, ARC_LENGTH);
+        g2.fillRoundRect(0, 0, width, fontHeight, ARC_LENGTH, ARC_LENGTH);
 
         g2.setColor(cp.getForegroundColor());
 
@@ -207,28 +205,37 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
 
         g2.setColor(Color.BLACK);
         
+        y += GAP + BOX_LINE_THICKNESS;
+        
         // Draw each of the individual sections of this container pane.
-        for(PaneSection ps : paneSections) {
+        boolean firstSection = true;
+        for(PaneSection<C> ps : paneSections) {
+            if (!firstSection) {
+                g2.drawLine(
+                        0,     y + (INTER_SECTION_GAP + fontHeight - ascent) / 2,
+                        width, y + (INTER_SECTION_GAP + fontHeight - ascent) / 2);
+                y += INTER_SECTION_GAP;
+            }
             y = drawSection(ps, g2, cp, y);
+            firstSection = false;
         }
         
         // draw box around the component
         g2.setColor(Color.BLACK);
-        g2.drawRoundRect(0, fontHeight+GAP, width-BOX_LINE_THICKNESS, 
+        g2.drawRoundRect(0, fontHeight+GAP, width, 
                 height-(fontHeight+GAP+BOX_LINE_THICKNESS), ARC_LENGTH, ARC_LENGTH);
 
-        g2.translate(-insets.left, -insets.top);
     }
-    
+
     /**
      * This method returns the the name of the given OLAP Object. Its
-     * implementation is different in each of the individual containerpane
-     * objects depending on the type of their children.
+     * method body is different in each of the individual ContainerPane
+     * implementations depending on the type of their children, denoted by C.
      * <p>
      * This method is needed because OLAPObject doesn't have a default getName
      * method.
      */
-    protected abstract String getOLAPChildObjectName(OLAPObject oo);
+    protected abstract String getOLAPChildObjectName(C oo);
  
     public boolean contains(Point p) {
         return containerPane.getBounds().contains(p);
@@ -237,6 +244,134 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
     public void revalidate() {
         containerPane.setSize(getPreferredSize());
     }
+
+    /**
+     * Looks up the section that the given point resides in, and translates the
+     * given point so that it is relative to the top left corner of the returned
+     * section. If the given point is not in any section, the return value will
+     * be null and the <code>p</code> will not have been modified.
+     * 
+     * @param p
+     *            The point in overall component coordinates. <b>This point will
+     *            be modified</b> if this method returns non-null.
+     * @return The section the given point is located in, plus the passed-in
+     *         point will have been translated.
+     */
+    public PaneSection<C> toSectionLocation(Point p) {
+        Font font = containerPane.getFont();
+        FontMetrics metrics = containerPane.getFontMetrics(font);
+        int fontHeight = metrics.getHeight();
+        int ascent = metrics.getAscent();
+
+        logger.debug("SECLOC: searching for section location of y="+p.y);
+        
+        if (p.y <= fontHeight) {
+            logger.debug("y<=fontHeight = "+fontHeight); //$NON-NLS-1$
+            logger.debug("SECLOC: it's in the title");
+            return null;
+        }
+        
+        int translatedY = p.y - fontHeight;
+        logger.debug("SECLOC: looking through sections; translatedY="+translatedY);
+        
+        boolean firstSection = true;
+        for (PaneSection<C> sect : getSections()) {
+            int sectionHeight = fontHeight * sect.getItems().size();
+            if (sect.getTitle() != null) {
+                sectionHeight += fontHeight + SECTION_HEADER_GAP;
+            }
+            if (firstSection) {
+                sectionHeight += (INTER_SECTION_GAP + fontHeight - ascent) / 2;
+                firstSection = false;
+            } else {
+                sectionHeight += INTER_SECTION_GAP;
+            }
+            
+            if (translatedY < sectionHeight) {
+                p.y = translatedY;
+                return sect;
+            }
+            
+            translatedY -= sectionHeight;
+        }
+        
+        return null;
+    }
+    
+    @Override
+    public int pointToItemIndex(Point p) {
+        p = new Point(p);
+        ContainerPane<T, C> cube = containerPane;
+        Font font = cube.getFont();
+        FontMetrics metrics = cube.getFontMetrics(font);
+        int fontHeight = metrics.getHeight();
+        int descent = metrics.getDescent();
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("p.y = "+p.y +
+                    "; fontHeight = " + fontHeight +
+                    "; descent = " + descent); //$NON-NLS-1$
+        }
+        
+        PaneSection<C> sect;
+        int returnVal;
+        if (p.y < 0) {
+            logger.debug("y<0"); //$NON-NLS-1$
+            returnVal = ContainerPane.ITEM_INDEX_NONE;
+        } else if (p.y <= fontHeight) {
+            logger.debug("y<=fontHeight = "+fontHeight); //$NON-NLS-1$
+            returnVal = ContainerPane.ITEM_INDEX_TITLE;
+        } else if ( (sect = toSectionLocation(p)) != null ) {
+            // p is now a coordinate within sect
+            returnVal = firstItemIndex(sect);
+
+            logger.debug("Y is: " + p.y + " In section: " + sect.getTitle() + " and right now returnVal is: " + returnVal);
+
+            // Adjustment for all cases: we're selecting over font area, not from the baseline
+            int adjustment = -descent;
+
+            // sections after the first one have some extra space on top
+            if (sect != getSections().get(0)) {
+                adjustment -= INTER_SECTION_GAP / 2;
+            }
+            
+            // if there is a title, we have to adjust for that
+            if (sect.getTitle() != null) {
+                if (p.y <= fontHeight + SECTION_HEADER_GAP) {
+                    // TODO we need a system for specifying a click on a section title
+                    return ContainerPane.ITEM_INDEX_NONE;
+                } else {
+                    int sectTitleHeight = fontHeight + SECTION_HEADER_GAP;
+                    adjustment -= sectTitleHeight;
+                }
+            }
+            
+            returnVal += (p.y + adjustment) / fontHeight;
+
+        } else {
+            returnVal = ContainerPane.ITEM_INDEX_NONE;
+        }
+        logger.debug("pointToColumnIndex return value is " + returnVal); //$NON-NLS-1$
+        return returnVal;
+    }
+    
+    /**
+     * Returns the index of the first item in the given section.
+     * 
+     * @param sect A section in this pane.
+     * @return
+     */
+    public int firstItemIndex(PaneSection<C> sect) {
+        int index = 0;
+        for (PaneSection<C> s : getSections()) {
+            if (sect == s) {
+                return index;
+            }
+            index += s.getItems().size();
+        }
+        throw new IllegalArgumentException("Given section is not part of this OLAP Pane");
+    }
+
     
     /**
      * Draws the a particular section of a containerPane
@@ -247,45 +382,44 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
      *            The graphics object of the canvas
      * @param cp
      *            The owner container of the sectionPane
-     * @param startingHeight
-     *            Starting height of the drawing process, relative to the
+     * @param startY
+     *            Starting Y coordinate for text baseline, relative to the
      *            component
-     * @return The finishing height after the drawing process, relative to the
+     * @return The Y coordinate of the baseline of the last item drawn, relative to the
      *         component
      */
-    private int drawSection(PaneSection ps, Graphics2D g, ContainerPane<?, ?> cp, int startingHeight) {
+    private int drawSection(PaneSection<C> ps, Graphics2D g, ContainerPane<T, C> cp, final int startY) {
         int width = cp.getWidth() - cp.getInsets().left - cp.getInsets().right;
         FontMetrics metrics = cp.getFontMetrics(cp.getFont());
         int fontHeight = metrics.getHeight();
         int ascent = metrics.getAscent();
-        int maxDescent = metrics.getMaxDescent();
         
-        startingHeight += GAP + BOX_LINE_THICKNESS;
+        int y = startY;
         
         g.setColor(cp.getForegroundColor());
-        g.drawString(ps.getTitle(), BOX_LINE_THICKNESS, startingHeight += fontHeight);
-
-        startingHeight+= TABLE_GAP;
-        g.setColor(Color.BLACK);
-        g.drawLine(0, startingHeight+maxDescent-(TABLE_GAP/2), width-1, startingHeight+maxDescent-(TABLE_GAP/2));
-
-        // print dimensions
+        
+        if (ps.getTitle() != null) {
+            g.drawString(ps.getTitle(), BOX_LINE_THICKNESS, y += fontHeight);
+            y += SECTION_HEADER_GAP;
+        }
+        
+        // print items
         int i = 0;
         int hwidth = width - cp.getMargin().right - cp.getMargin().left - BOX_LINE_THICKNESS*2;
-        for (OLAPObject dim : ps.getItems()) {
-            // draws the dimensions
-            if (cp.isItemSelected(i)) {
+        for (C item : ps.getItems()) {
+            if (cp.isItemSelected(item)) {
                 if (logger.isDebugEnabled()) logger.debug("Item "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$
                 g.setColor(selectedColor);
-                g.fillRect(BOX_LINE_THICKNESS + cp.getMargin().left, startingHeight-ascent+fontHeight,
+                g.fillRect(
+                        BOX_LINE_THICKNESS + cp.getMargin().left, y-ascent+fontHeight,
                         hwidth, fontHeight);
+                g.setColor(cp.getForegroundColor());
             }
-            g.setColor(cp.getForegroundColor());
-            g.drawString(getOLAPChildObjectName(dim), BOX_LINE_THICKNESS +
-                    cp.getMargin().left, startingHeight += fontHeight);
+            g.drawString(getOLAPChildObjectName(item), BOX_LINE_THICKNESS +
+                    cp.getMargin().left, y += fontHeight);
             i++;
         }
-        return startingHeight;
+        return y;
     }
     
     /**
@@ -307,9 +441,9 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
     /**
      * Calculates the width of a sectionPane.
      */
-    private int calculateMaxSectionWidth(PaneSection ps, ContainerPane<?, ?> cp) {
+    private int calculateMaxSectionWidth(PaneSection<C> ps, ContainerPane<?, ?> cp) {
         int width = calculateTextWidth(cp, ps.getTitle());
-        for (OLAPObject oo : ps.getItems()) {
+        for (C oo : ps.getItems()) {
             if (oo == null) {
                 logger.error("Found null column in dimension '"+cp.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
                 throw new NullPointerException("Found null column in dimension '"+cp.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -319,4 +453,25 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
         return width;
     }
 
+    private class ModelEventHandler implements PropertyChangeListener, OLAPChildListener {
+
+        public void propertyChange(PropertyChangeEvent evt) {
+            if ("name".equals(evt.getPropertyName())) {
+                // note this could be the name of the cube or any of its child objects,
+                // since we have property change listeners on every object in the subtree under cube
+                containerPane.revalidate();
+            }
+        }
+
+        public void olapChildAdded(OLAPChildEvent e) {
+            OLAPUtil.listenToHierarchy(e.getChild(), this, this);
+            containerPane.revalidate();
+        }
+
+        public void olapChildRemoved(OLAPChildEvent e) {
+            OLAPUtil.unlistenToHierarchy(e.getChild(), this, this);
+            containerPane.revalidate();
+        }
+        
+    }
 }
