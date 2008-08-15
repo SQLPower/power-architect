@@ -52,6 +52,15 @@ public class OLAPRootObject extends OLAPObject {
         }
     }
     
+    @Override
+    public boolean removeChild(OLAPObject child) {
+        if (child instanceof OLAPSession) {
+            return removeOLAPSession((OLAPSession) child);
+        } else {
+            return super.removeChild(child);
+        }
+    }
+    
     /** 
      * Removes the given child object, firing an OLAPChildEvent if the child was found.
      *
