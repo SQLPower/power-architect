@@ -108,7 +108,7 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
 
         Font font = cp.getFont();
         if (font == null) {
-            logger.error("getPreferredSize(): CubePane is missing font."); //$NON-NLS-1$
+            logger.error("getPreferredSize(): ContainerPane is missing font."); //$NON-NLS-1$
             return null;
         }
 
@@ -178,9 +178,9 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
 
         Font font = cp.getFont();
         if (font == null) {
-            // This happens when the cube exists but has no visible ancestor.
+            // This happens when the containerPane exists but has no visible ancestor.
             // Don't ask me why it's being asked to paint under those circumstances!
-            //logger.error("paint(): Null font in CubePane "+c);
+            //logger.error("paint(): Null font in ContainerPane "+c);
             return;
         }
 
@@ -228,7 +228,7 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
      * This method is needed because OLAPObject doesn't have a default getName
      * method.
      */
-    protected abstract String getOLAPObjectName(OLAPObject oo);
+    protected abstract String getOLAPChildObjectName(OLAPObject oo);
  
     public boolean contains(Point p) {
         return containerPane.getBounds().contains(p);
@@ -281,7 +281,7 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
                         hwidth, fontHeight);
             }
             g.setColor(cp.getForegroundColor());
-            g.drawString(getOLAPObjectName(dim), BOX_LINE_THICKNESS +
+            g.drawString(getOLAPChildObjectName(dim), BOX_LINE_THICKNESS +
                     cp.getMargin().left, startingHeight += fontHeight);
             i++;
         }
@@ -314,7 +314,7 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
                 logger.error("Found null column in dimension '"+cp.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
                 throw new NullPointerException("Found null column in dimension '"+cp.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
             }
-            width = Math.max(width, calculateTextWidth(cp, getOLAPObjectName(oo)));
+            width = Math.max(width, calculateTextWidth(cp, getOLAPChildObjectName(oo)));
         }
         return width;
     }

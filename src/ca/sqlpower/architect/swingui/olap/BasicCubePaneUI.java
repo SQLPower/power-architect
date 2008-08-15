@@ -49,8 +49,8 @@ public class BasicCubePaneUI extends OLAPPaneUI {
     public void installUI(PlayPenComponent c) {
         super.installUI((CubePane) c);
         CubePane cube = (CubePane) containerPane; 
-        PaneSectionImpl dimensionSection = new PaneSectionImpl(cube.getModel().getDimensions(), "Dimensions");
-        PaneSectionImpl measureSection = new PaneSectionImpl(cube.getModel().getMeasures(), "Measures");
+        PaneSection dimensionSection = new PaneSectionImpl(cube.getModel().getDimensions(), "Dimensions");
+        PaneSection measureSection = new PaneSectionImpl(cube.getModel().getMeasures(), "Measures");
         paneSections.add(dimensionSection);
         paneSections.add(measureSection);
         OLAPUtil.listenToHierarchy(cube.getModel(), modelEventHandler, modelEventHandler);
@@ -60,11 +60,13 @@ public class BasicCubePaneUI extends OLAPPaneUI {
         OLAPUtil.unlistenToHierarchy(containerPane.getModel(), modelEventHandler, modelEventHandler);
     }
     
-    protected String getOLAPObjectName(OLAPObject oo) {
+    protected String getOLAPChildObjectName(OLAPObject oo) {
         if (oo instanceof MondrianModel.Dimension) {
             return ((MondrianModel.Dimension) (oo)).getName();
-        } else {
+        } else if (oo instanceof MondrianModel.Measure) {
             return ((MondrianModel.Measure) (oo)).getName();
+        } else {
+            throw new IllegalArgumentException("Given object of type: " + oo.getClass() + " is not a child of Cube: " + containerPane.getName());
         }
     }
 
