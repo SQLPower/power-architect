@@ -1037,21 +1037,29 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
         tablePanePopup.addSeparator();
 
         mi = new JMenuItem();
-        mi.setAction(af.getEditColumnAction());
+        mi.setAction(af.getInsertColumnAction());
         mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         mi = new JMenuItem();
-        mi.setAction(af.getInsertColumnAction());
+        mi.setAction(af.getEditColumnAction());
         mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         tablePanePopup.addSeparator();
 
+        JMenu align = new JMenu(Messages.getString("TablePane.alignTablesMenu")); //$NON-NLS-1$
         mi = new JMenuItem();
-        mi.setAction(af.getEditTableAction());
+        mi.setAction(af.getAlignTableHorizontalAction()); 
         mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        tablePanePopup.add(mi);
+        align.add(mi);
+        
+        
+        mi = new JMenuItem();
+        mi.setAction(af.getAlignTableVerticalAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        align.add(mi);
+        tablePanePopup.add(align);
 
         JMenu tableAppearance = new JMenu(Messages.getString("TablePane.tableAppearances")); //$NON-NLS-1$
         JMenu backgroundColours = new JMenu(Messages.getString("TableEditPanel.tableColourLabel")); //$NON-NLS-1$
@@ -1086,33 +1094,36 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
         }
         tableAppearance.add(backgroundColours);
         tableAppearance.add(foregroundColours);
-        if (getPlayPen().findTablePane(model) != null) {
-            JCheckBoxMenuItem cmi = new JCheckBoxMenuItem(
-                    Messages.getString("TableEditPanel.dashedLinesLabel"), getPlayPen().findTablePane(model).isDashed()); //$NON-NLS-1$
-            cmi.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    getPlayPen().startCompoundEdit("Started setting dashed lines."); //$NON-NLS-1$
-                    for (TablePane tp : getSelectedTablePanes()) {
-                        tp.setDashed(((JCheckBoxMenuItem) (e.getSource())).isSelected());
-                    }
-                    getPlayPen().endCompoundEdit("Finished setting dashed lines."); //$NON-NLS-1$
+        JCheckBoxMenuItem cmi = new JCheckBoxMenuItem(
+                Messages.getString("TableEditPanel.dashedLinesLabel"), isDashed()); //$NON-NLS-1$
+        cmi.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                getPlayPen().startCompoundEdit("Started setting dashed lines."); //$NON-NLS-1$
+                for (TablePane tp : getSelectedTablePanes()) {
+                    tp.setDashed(((JCheckBoxMenuItem) (e.getSource())).isSelected());
                 }
-            });
-            tableAppearance.add(cmi);
-            cmi = new JCheckBoxMenuItem(
-                    Messages.getString("TableEditPanel.roundedCornersLabel"), getPlayPen().findTablePane(model).isRounded()); //$NON-NLS-1$
-            cmi.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    getPlayPen().startCompoundEdit("Started setting rounded edges."); //$NON-NLS-1$
-                    for (TablePane tp : getSelectedTablePanes()) {
-                        tp.setRounded(((JCheckBoxMenuItem) (e.getSource())).isSelected());
-                    }
-                    getPlayPen().endCompoundEdit("Finished setting rounded edges."); //$NON-NLS-1$
+                getPlayPen().endCompoundEdit("Finished setting dashed lines."); //$NON-NLS-1$
+            }
+        });
+        tableAppearance.add(cmi);
+        cmi = new JCheckBoxMenuItem(
+                Messages.getString("TableEditPanel.roundedCornersLabel"), isRounded()); //$NON-NLS-1$
+        cmi.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                getPlayPen().startCompoundEdit("Started setting rounded edges."); //$NON-NLS-1$
+                for (TablePane tp : getSelectedTablePanes()) {
+                    tp.setRounded(((JCheckBoxMenuItem) (e.getSource())).isSelected());
                 }
-            });
-            tableAppearance.add(cmi);
-        }
+                getPlayPen().endCompoundEdit("Finished setting rounded edges."); //$NON-NLS-1$
+            }
+        });
+        tableAppearance.add(cmi);
         tablePanePopup.add(tableAppearance);
+        
+        mi = new JMenuItem();
+        mi.setAction(af.getEditTableAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tablePanePopup.add(mi);
 
         tablePanePopup.addSeparator();
 
@@ -1125,27 +1136,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
         mi.setAction(getPlayPen().sendToBackAction);
         mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
-
-        JMenu align = new JMenu(Messages.getString("TablePane.alignTablesMenu")); //$NON-NLS-1$
-        mi = new JMenuItem();
-        mi.setAction(af.getAlignTableHorizontalAction()); 
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        align.add(mi);
-        
-        
-        mi = new JMenuItem();
-        mi.setAction(af.getAlignTableVerticalAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        align.add(mi);
-        tablePanePopup.add(align);
-        
-        tablePanePopup.addSeparator();
-        
-        mi = new JMenuItem();
-        mi.setAction(af.getDeleteSelectedAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        tablePanePopup.add(mi);
-        
 
         if (logger.isDebugEnabled()) {
             tablePanePopup.addSeparator();
@@ -1179,6 +1169,12 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
                 });
             tablePanePopup.add(mi);
         }
+        
+        tablePanePopup.addSeparator();
+        mi = new JMenuItem();
+        mi.setAction(af.getDeleteSelectedAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tablePanePopup.add(mi);
         
         return tablePanePopup;
     }

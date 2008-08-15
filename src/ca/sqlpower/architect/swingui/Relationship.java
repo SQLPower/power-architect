@@ -138,18 +138,6 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 
 		JMenuItem mi;
 
-		mi = new JMenuItem(af.getEditRelationshipAction());
-		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		popup.add(mi);
-
-		mi = new JMenuItem(af.getDeleteSelectedAction());
-		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		popup.add(mi);
-		
-		mi = new JMenuItem(af.getReverseRelationshipAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        popup.add(mi);
-        
         JMenu setFocusToRelatedTables = new JMenu(Messages.getString("Relationship.setFocusMenu")); //$NON-NLS-1$
         mi = new JMenuItem();
         mi.setAction(af.getFocusToParentAction()); 
@@ -161,22 +149,33 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
         setFocusToRelatedTables.add(mi);
         popup.add(setFocusToRelatedTables);
         
+        mi = new JMenuItem(af.getReverseRelationshipAction());
+        popup.add(mi);
+        
+        mi = new JMenuItem(af.getEditRelationshipAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        popup.add(mi);
+        
         if (logger.isDebugEnabled()) {
+            popup.addSeparator();
             mi = new JMenuItem(new AbstractAction("Show Mappings") { //$NON-NLS-1$
-
                 public void actionPerformed(ActionEvent e) {
                     StringBuffer componentList = new StringBuffer();
-                    for ( ColumnMapping columnMap : getModel().getMappings()) {
-                        
+                    
+                    for (ColumnMapping columnMap : getModel().getMappings()) {
                         componentList.append(columnMap).append("\n"); //$NON-NLS-1$
                     }
+                    
                     JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JTextArea(componentList.toString())));
                 }
-                
             });
- 
             popup.add(mi);
         }
+        
+        popup.addSeparator();
+        mi = new JMenuItem(af.getDeleteSelectedAction());
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        popup.add(mi);
 	}
 
 	public Point getPreferredLocation() {

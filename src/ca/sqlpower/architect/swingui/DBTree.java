@@ -286,17 +286,11 @@ public class DBTree extends JTree implements DragSourceListener {
 				}
 
 				// if the item is not already selected, select it (and deselect everything else)
-                // if the item is already selected, don't touch the selection model
-				if (isTargetDatabaseChild(p)) {
-					if (!isPathSelected(p)) {
-						setSelectionPath(p);
-				    }
-				} else {
-					// multi-select for menus is not supported outside the Target Database
-                    if (!isPathSelected(p)) {
-                        setSelectionPath(p);
-                    }
+				// if the item is already selected, don't touch the selection model
+				if (!isPathSelected(p)) {
+				    setSelectionPath(p);
 				}
+				
 				popup = refreshMenu(p);
                 popup.show(e.getComponent(),
                            e.getX(), e.getY());
@@ -340,25 +334,19 @@ public class DBTree extends JTree implements DragSourceListener {
 		newMenu.addSeparator();
         newMenu.add(new JMenuItem(expandAllAction));
         newMenu.add(new JMenuItem(collapseAllAction));
+        
+        expandAllAction.setEnabled(p != null);
+        collapseAllAction.setEnabled(p != null);
 
 		if (!isTargetDatabaseNode(p) && isTargetDatabaseChild(p)) {
 		    JMenuItem mi;
 		    
 		    newMenu.addSeparator();
 
-		    mi = new JMenuItem(showInPlayPenAction);
-	        newMenu.add(mi);
-	           if (p.getLastPathComponent() instanceof SQLTable ||
-	                   p.getLastPathComponent() instanceof SQLColumn ||
-	                   p.getLastPathComponent() instanceof SQLRelationship) {
-	                mi.setEnabled(true);
-	            } else {
-	                mi.setEnabled(false);
-	            }
-
-			newMenu.addSeparator();
 			ArchitectFrame af = session.getArchitectFrame();
             
+			// index menu items
+			
             mi = new JMenuItem();
             mi.setAction(af.getInsertIndexAction());
             mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
@@ -368,8 +356,30 @@ public class DBTree extends JTree implements DragSourceListener {
             } else {
                 mi.setEnabled(false);
             }
+            
+            mi = new JMenuItem();
+            mi.setAction(af.getEditIndexAction());
+            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+            newMenu.add(mi);
+            if (p.getLastPathComponent() instanceof SQLIndex) {
+                mi.setEnabled(true);
+            } else {
+                mi.setEnabled(false);
+            }
 
             newMenu.addSeparator();
+            
+            // column menu items
+            
+            mi = new JMenuItem();
+            mi.setAction(af.getInsertColumnAction());
+            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+            newMenu.add(mi);
+            if (p.getLastPathComponent() instanceof SQLTable || p.getLastPathComponent() instanceof SQLColumn) {
+                mi.setEnabled(true);
+            } else {
+                mi.setEnabled(false);
+            }
             
 			mi = new JMenuItem();
 			mi.setAction(af.getEditColumnAction());
@@ -381,68 +391,84 @@ public class DBTree extends JTree implements DragSourceListener {
 				mi.setEnabled(false);
 			}
             
-			mi = new JMenuItem();
-			mi.setAction(af.getInsertColumnAction());
-			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
-			newMenu.add(mi);
-			if (p.getLastPathComponent() instanceof SQLTable || p.getLastPathComponent() instanceof SQLColumn) {
-				mi.setEnabled(true);
-			} else {
-				mi.setEnabled(false);
-			}
-
 			newMenu.addSeparator();
 			
-			mi = new JMenuItem();
-			mi.setAction(af.getEditTableAction());
-			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
-			newMenu.add(mi);
-			if (p.getLastPathComponent() instanceof SQLTable) {
-				mi.setEnabled(true);
-				newMenu.addSeparator();
-                JMenu alignTables = new JMenu(Messages.getString("TablePane.alignTablesMenu"));
-                mi = new JMenuItem();
-                mi.setAction(af.getAlignTableHorizontalAction());
-                alignTables.add(mi);
-                mi = new JMenuItem();
-                mi.setAction(af.getAlignTableVerticalAction());
-                alignTables.add(mi);
-                newMenu.add(alignTables);
-                newMenu.addSeparator();
-			} else {
-				mi.setEnabled(false);
-			}
-
-			mi = new JMenuItem();
-			mi.setAction(af.getEditRelationshipAction());
-			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
-			newMenu.add(mi);
-			if (p.getLastPathComponent() instanceof SQLRelationship) {
-				mi.setEnabled(true);
-				newMenu.addSeparator();
-				JMenu setFocus = new JMenu(Messages.getString("Relationship.setFocusMenu"));
-				mi = new JMenuItem();
-				mi.setAction(af.getFocusToParentAction());
-				setFocus.add(mi);
-				mi = new JMenuItem();
-				mi.setAction(af.getFocusToChildAction());
-				setFocus.add(mi);
-				newMenu.add(setFocus);
-				newMenu.addSeparator();
-			} else {
-				mi.setEnabled(false);
-			}
-
+			// relationship menu items
+			
+            JMenu setFocus = new JMenu(Messages.getString("Relationship.setFocusMenu"));
             mi = new JMenuItem();
-            mi.setAction(af.getEditIndexAction());
-            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+            mi.setAction(af.getFocusToParentAction());
+            setFocus.add(mi);
+            mi = new JMenuItem();
+            mi.setAction(af.getFocusToChildAction());
+            setFocus.add(mi);
+            newMenu.add(setFocus);
+            if (p.getLastPathComponent() instanceof SQLRelationship) {
+                setFocus.setEnabled(true);
+            } else {
+                setFocus.setEnabled(false);
+            }
+            
+            mi = new JMenuItem(af.getReverseRelationshipAction());
             newMenu.add(mi);
-            if (p.getLastPathComponent() instanceof SQLIndex) {
+            if (p.getLastPathComponent() instanceof SQLRelationship) {
                 mi.setEnabled(true);
             } else {
                 mi.setEnabled(false);
-            }            
+            }
+            
+            mi = new JMenuItem();
+            mi.setAction(af.getEditRelationshipAction());
+            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+            newMenu.add(mi);
+            if (p.getLastPathComponent() instanceof SQLRelationship) {
+                mi.setEnabled(true);
+            } else {
+                mi.setEnabled(false);
+            }
 
+            // table menu items
+            
+			newMenu.addSeparator();
+
+			JMenu alignTables = new JMenu(Messages.getString("TablePane.alignTablesMenu"));
+            mi = new JMenuItem();
+            mi.setAction(af.getAlignTableHorizontalAction());
+            alignTables.add(mi);
+            mi = new JMenuItem();
+            mi.setAction(af.getAlignTableVerticalAction());
+            alignTables.add(mi);
+            newMenu.add(alignTables);
+            if (p.getLastPathComponent() instanceof SQLTable) {
+                alignTables.setEnabled(true);
+            } else {
+                alignTables.setEnabled(false);
+            }
+            
+            mi = new JMenuItem();
+            mi.setAction(af.getEditTableAction());
+            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+            newMenu.add(mi);
+            if (p.getLastPathComponent() instanceof SQLTable) {
+                mi.setEnabled(true);
+            } else {
+                mi.setEnabled(false);
+            }
+            
+            // other menu items
+            
+            newMenu.addSeparator();
+
+            mi = new JMenuItem(showInPlayPenAction);
+            newMenu.add(mi);
+            if (p.getLastPathComponent() instanceof SQLTable ||
+                    p.getLastPathComponent() instanceof SQLColumn ||
+                    p.getLastPathComponent() instanceof SQLRelationship) {
+                mi.setEnabled(true);
+            } else {
+                mi.setEnabled(false);
+            }
+            
             newMenu.addSeparator();
             
 			mi = new JMenuItem();
@@ -458,7 +484,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			} else {
 				mi.setEnabled(false);
 			}
-		} else if (!isTargetDatabaseNode(p) && p != null) { // clicked on DBCS item in DBTree
+		} else if (p != null && !isTargetDatabaseNode(p)) { // clicked on DBCS item in DBTree
 			newMenu.addSeparator();
 
 			if (p.getLastPathComponent() instanceof SQLDatabase){
