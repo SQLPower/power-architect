@@ -123,6 +123,8 @@ public class OLAPTree extends JTree{
                 newMenu.add(new EditDimensionAction(session, (Dimension)obj, oSession.getOlapPlayPen() ));
                 newMenu.addSeparator();
             } else if (obj instanceof Cube) {
+                newMenu.add(oSession.getCreateDimensionAction());
+                newMenu.add(oSession.getCreateMeasureAction());
                 newMenu.add(new EditCubeAction(session, (Cube)obj, oSession.getOlapPlayPen()));
                 newMenu.addSeparator();
             } else if (obj instanceof VirtualCube) {
