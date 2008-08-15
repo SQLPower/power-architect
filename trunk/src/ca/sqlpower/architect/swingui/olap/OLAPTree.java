@@ -110,28 +110,35 @@ public class OLAPTree extends JTree{
         logger.debug("refreshMenu is being called."); //$NON-NLS-1$
         JPopupMenu newMenu = new JPopupMenu();
         if (p != null) {
+            newMenu.add(collapseAllAction);
+            newMenu.add(expandAllAction);
+            newMenu.addSeparator();
             OLAPObject obj = (OLAPObject)p.getLastPathComponent();
             if (obj instanceof Schema) {
-                newMenu.add(oSession.getCreateVirtualCubeAction());
                 newMenu.add(oSession.getCreateCubeAction());
                 newMenu.add(oSession.getCreateDimensionAction());
+                newMenu.add(oSession.getCreateVirtualCubeAction());
                 newMenu.add(oSession.getExportSchemaAction());
             } else if (obj instanceof Dimension) {
                 newMenu.add(new EditDimensionAction(session, (Dimension)obj, oSession.getOlapPlayPen() ));
+                newMenu.addSeparator();
             } else if (obj instanceof Cube) {
                 newMenu.add(new EditCubeAction(session, (Cube)obj, oSession.getOlapPlayPen()));
+                newMenu.addSeparator();
             } else if (obj instanceof VirtualCube) {
                 newMenu.add(new EditVirtualCubeAction(session, (VirtualCube)obj, oSession.getOlapPlayPen()));
                 newMenu.add(oSession.getCreateCubeAction());
                 newMenu.add(oSession.getCreateDimensionAction());
-                newMenu.add(oSession.getCreateMeasureAction());
                 newMenu.add(oSession.getCreateVirtualCubeAction());
+                newMenu.add(oSession.getCreateMeasureAction());
+                newMenu.addSeparator();
             } else if (obj instanceof Measure) {
             }
-            newMenu.addSeparator();
             
-            newMenu.add(collapseAllAction);
-            newMenu.add(expandAllAction);
+            if (!(obj instanceof Schema)) {
+                newMenu.add(oSession.getOLAPDeleteSelectedAction());
+            }
+
         } else {
 
         }

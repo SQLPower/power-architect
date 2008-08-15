@@ -38,6 +38,7 @@ import ca.sqlpower.architect.swingui.olap.action.EditCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.EditDimensionAction;
 import ca.sqlpower.architect.swingui.olap.action.EditVirtualCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.ExportSchemaAction;
+import ca.sqlpower.architect.swingui.olap.action.OLAPDeleteSelectedAction;
 
 public class OLAPEditSession {
 
@@ -54,6 +55,7 @@ public class OLAPEditSession {
     private final CreateVirtualCubeAction createVirtualCubeAction;
     private final CreateMeasureAction createMeasureAction;
     private final ExportSchemaAction exportSchemaAction;
+    private final OLAPDeleteSelectedAction olapDeleteSelectedAction;
     
     private EditCubeAction editCubeAction;
     private EditVirtualCubeAction editVirtualCubeAction;
@@ -76,6 +78,7 @@ public class OLAPEditSession {
         createVirtualCubeAction = new CreateVirtualCubeAction(session, schema, pp);
         createMeasureAction = new CreateMeasureAction(session, pp);
         exportSchemaAction = new ExportSchemaAction(session, schema);
+        olapDeleteSelectedAction = new OLAPDeleteSelectedAction(session, this);
         
         JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
         toolbar.add(createDimensionAction);
@@ -127,5 +130,9 @@ public class OLAPEditSession {
 
     public ExportSchemaAction getExportSchemaAction() {
         return exportSchemaAction;
+    }
+    
+    public OLAPDeleteSelectedAction getOLAPDeleteSelectedAction() {
+        return olapDeleteSelectedAction;
     }
 }
