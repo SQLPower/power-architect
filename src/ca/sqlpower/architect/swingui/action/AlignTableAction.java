@@ -55,7 +55,6 @@ public class AlignTableAction extends AbstractArchitectAction{
             boolean isHorizontal) {
         super(session, actionName, actionDescription);
         this.isHorizontal = isHorizontal;
-        setEnabled(true);
     }
 
     /**
