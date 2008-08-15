@@ -22,6 +22,8 @@ package ca.sqlpower.architect.swingui.olap.action;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 
+import javax.swing.KeyStroke;
+
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
@@ -40,6 +42,7 @@ public class CreateCubeAction extends AbstractArchitectAction {
     
     public CreateCubeAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
         super(session, pp, "New Cube...", "Create a new cube in this schema", null);
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('c'));
         this.schema = schema;
     }
 
