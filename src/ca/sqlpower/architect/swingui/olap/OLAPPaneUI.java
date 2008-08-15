@@ -96,6 +96,9 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
         return getPreferredSize(containerPane);
     }
     
+    /**
+     * Calculates and returns the size of the given containerpane object
+     */
     public Dimension getPreferredSize(ContainerPane<?, ?> cp) {
 
         int height = 0;
@@ -123,7 +126,7 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
         width = MINIMUM_WIDTH;
         width = Math.max(width, calculateTextWidth(cp, cp.getName()));
         for (PaneSection ps : paneSections) {
-            width = calculateMaxSectionWidth(ps, cp, width);
+            width = Math.max(width, calculateMaxSectionWidth(ps, cp));
         }
         width += insets.left + cp.getMargin().left + BOX_LINE_THICKNESS*2 + cp.getMargin().right + insets.right;
 
@@ -218,9 +221,12 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
     }
     
     /**
-     * This method returns the the name of the given OLAP Object. It's implementation
-     * is dependent to individual containerpane objects. This method is needed because
-     * OLAPObject doesn't have a default getName method.
+     * This method returns the the name of the given OLAP Object. Its
+     * implementation is different in each of the individual containerpane
+     * objects depending on the type of their children.
+     * <p>
+     * This method is needed because OLAPObject doesn't have a default getName
+     * method.
      */
     protected abstract String getOLAPObjectName(OLAPObject oo);
  
@@ -234,11 +240,18 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
     
     /**
      * Draws the a particular section of a containerPane
-     * @param ps The sectionPane representation of the section to be drawn
-     * @param g The graphics object of the canvas
-     * @param cp The owner container of the sectionPane
-     * @param startingHeight Starting height of the drawing process, relative to the component
-     * @return The finishing height after the drawing process, relative to the component
+     * 
+     * @param ps
+     *            The SectionPane representation of the section to be drawn
+     * @param g
+     *            The graphics object of the canvas
+     * @param cp
+     *            The owner container of the sectionPane
+     * @param startingHeight
+     *            Starting height of the drawing process, relative to the
+     *            component
+     * @return The finishing height after the drawing process, relative to the
+     *         component
      */
     private int drawSection(PaneSection ps, Graphics2D g, ContainerPane<?, ?> cp, int startingHeight) {
         int width = cp.getWidth() - cp.getInsets().left - cp.getInsets().right;
@@ -292,10 +305,10 @@ public abstract class OLAPPaneUI extends ContainerPaneUI {
     }
     
     /**
-     * Calculates the width of a sectionPane, given an arbitrary initial value.
+     * Calculates the width of a sectionPane.
      */
-    private int calculateMaxSectionWidth(PaneSection ps, ContainerPane<?, ?> cp, int initialVal) {
-        int width = Math.max(initialVal, calculateTextWidth(cp, ps.getTitle()));
+    private int calculateMaxSectionWidth(PaneSection ps, ContainerPane<?, ?> cp) {
+        int width = calculateTextWidth(cp, ps.getTitle());
         for (OLAPObject oo : ps.getItems()) {
             if (oo == null) {
                 logger.error("Found null column in dimension '"+cp.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
