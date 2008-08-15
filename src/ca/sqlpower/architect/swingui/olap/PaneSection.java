@@ -21,12 +21,12 @@ package ca.sqlpower.architect.swingui.olap;
 
 import java.util.List;
 
-import ca.sqlpower.architect.olap.OLAPObject;
-
 /**
  * Interface for sections of a Pane UI.
+ * 
+ * @param C the type of each item in this pane section
  */
-public interface PaneSection {
+public interface PaneSection<C> {
 
     /**
      * Returns this section's title. If the section should not have a rendered
@@ -36,9 +36,6 @@ public interface PaneSection {
     
     /**
      * Returns the items in this section, in the order they should be displayed.
-     * <p>
-     * In the future, we will probably specify a PaneSectionItem interface so this
-     * API can apply to TablePane in addition to OLAPPane.
      */
-    List<? extends OLAPObject> getItems();
+    List<C> getItems();
 }

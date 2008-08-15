@@ -19,112 +19,49 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Point;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.olap.MondrianModel;
-import ca.sqlpower.architect.olap.OLAPChildEvent;
-import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
-import ca.sqlpower.architect.olap.OLAPUtil;
-import ca.sqlpower.architect.swingui.ContainerPane;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenComponentUI;
 
-public class BasicCubePaneUI extends OLAPPaneUI {
+public class BasicCubePaneUI extends OLAPPaneUI<Cube, OLAPObject> {
 
- private static Logger logger = Logger.getLogger(BasicCubePaneUI.class);
-    
-    private final ModelEventHandler modelEventHandler = new ModelEventHandler();
-    
+    @SuppressWarnings("unused")
+    private static Logger logger = Logger.getLogger(BasicCubePaneUI.class);
+
     public static PlayPenComponentUI createUI() {
         return new BasicCubePaneUI();
     }
 
+    @Override
     public void installUI(PlayPenComponent c) {
         super.installUI((CubePane) c);
         CubePane cube = (CubePane) containerPane; 
-        PaneSection dimensionSection = new PaneSectionImpl(cube.getModel().getDimensions(), "Dimensions");
-        PaneSection measureSection = new PaneSectionImpl(cube.getModel().getMeasures(), "Measures");
+        PaneSection<OLAPObject> dimensionSection = new PaneSectionImpl(cube.getModel().getDimensions(), "Dimensions:");
+        PaneSection<OLAPObject> measureSection = new PaneSectionImpl(cube.getModel().getMeasures(), "Measures:");
         paneSections.add(dimensionSection);
         paneSections.add(measureSection);
-        OLAPUtil.listenToHierarchy(cube.getModel(), modelEventHandler, modelEventHandler);
-    }
-
-    public void uninstallUI(PlayPenComponent c) {
-        OLAPUtil.unlistenToHierarchy(containerPane.getModel(), modelEventHandler, modelEventHandler);
     }
     
+    @Override
+    public void uninstallUI(PlayPenComponent c) {
+        super.uninstallUI(c);
+        paneSections.clear();
+    }
+    
+    @Override
     protected String getOLAPChildObjectName(OLAPObject oo) {
-        if (oo instanceof MondrianModel.Dimension) {
-            return ((MondrianModel.Dimension) (oo)).getName();
-        } else if (oo instanceof MondrianModel.Measure) {
-            return ((MondrianModel.Measure) (oo)).getName();
+        if (oo instanceof Dimension) {
+            return ((Dimension) (oo)).getName();
+        } else if (oo instanceof Measure) {
+            return ((Measure) (oo)).getName();
         } else {
             throw new IllegalArgumentException("Given object of type: " + oo.getClass() + " is not a child of Cube: " + containerPane.getName());
         }
     }
 
-    @Override
-    public int pointToItemIndex(Point p) {
-        CubePane cube = (CubePane) containerPane;
-        Font font = cube.getFont();
-        FontMetrics metrics = cube.getFontMetrics(font);
-        int fontHeight = metrics.getHeight();
-
-        int numDims = cube.getCube().getDimensions().size();
-        int firstDimStart = cube.getInsets().top + fontHeight * 2 + GAP + BOX_LINE_THICKNESS * 2 + TABLE_GAP + cube.getMargin().top;
-        
-        int numMeasures = cube.getCube().getMeasures().size();
-        int firstMeasureStart = firstDimStart + numDims * fontHeight + GAP + fontHeight + TABLE_GAP + cube.getMargin().top;
-
-        if (logger.isDebugEnabled()) logger.debug("p.y = "+p.y); //$NON-NLS-1$
-        
-        int returnVal;
-        
-        logger.debug("font height: " + fontHeight + ", firstColStart: " + firstDimStart); //$NON-NLS-1$ //$NON-NLS-2$
-        
-        if (p.y < 0) {
-            logger.debug("y<0"); //$NON-NLS-1$
-            returnVal = ContainerPane.ITEM_INDEX_NONE;
-        } else if (p.y <= fontHeight) {
-            logger.debug("y<=fontHeight = "+fontHeight); //$NON-NLS-1$
-            returnVal = ContainerPane.ITEM_INDEX_TITLE;
-        } else if (p.y > firstDimStart && p.y <= firstDimStart + numDims * fontHeight) {
-            returnVal = (p.y - firstDimStart) / fontHeight;
-        } else if (p.y > firstMeasureStart && p.y <= firstMeasureStart + numMeasures * fontHeight) {
-            returnVal = (p.y - firstMeasureStart) / fontHeight;
-        } else {
-            returnVal = ContainerPane.ITEM_INDEX_NONE;
-        }
-        logger.debug("pointToColumnIndex return value is " + returnVal); //$NON-NLS-1$
-        return returnVal;
-    }
-    
-    private class ModelEventHandler implements PropertyChangeListener, OLAPChildListener {
-
-        public void propertyChange(PropertyChangeEvent evt) {
-            if ("name".equals(evt.getPropertyName())) {
-                // note this could be the name of the cube or any of its child objects,
-                // since we have property change listeners on every object in the subtree under cube
-                containerPane.revalidate();
-            }
-        }
-
-        public void olapChildAdded(OLAPChildEvent e) {
-            OLAPUtil.listenToHierarchy(e.getChild(), this, this);
-            containerPane.revalidate();
-        }
-
-        public void olapChildRemoved(OLAPChildEvent e) {
-            OLAPUtil.unlistenToHierarchy(e.getChild(), this, this);
-            containerPane.revalidate();
-        }
-        
-    }
 }
