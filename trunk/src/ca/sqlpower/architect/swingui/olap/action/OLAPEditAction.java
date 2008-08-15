@@ -20,14 +20,11 @@
 package ca.sqlpower.architect.swingui.olap.action;
 
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.concurrent.Callable;
 
 import javax.swing.JDialog;
 
 import ca.sqlpower.architect.olap.OLAPSession;
-import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
@@ -42,33 +39,28 @@ import ca.sqlpower.swingui.DataEntryPanelBuilder;
  */
 public class OLAPEditAction extends AbstractArchitectAction {
 
-    private Schema schema;
+    private OLAPSession olapSession;
     private final boolean newSchema;
     
-    public OLAPEditAction(ArchitectSwingSession session, Schema schema) {
-        super(session, schema == null ? "New Schema..." : schema.getName(), "Edit OLAP schema");
-        this.schema = schema;
-        newSchema = schema == null; 
+    public OLAPEditAction(ArchitectSwingSession session, OLAPSession olapSession) {
+        super(session, olapSession == null ? "New Schema..." : olapSession.getSchema().getName(), "Edit OLAP schema");
+        this.olapSession = olapSession;
+        newSchema = olapSession == null; 
     }
 
     public void actionPerformed(ActionEvent e) {
+        Schema schema;
         if (newSchema) {
             schema = new Schema();
             schema.setName("New OLAP Schema");
-            session.getOLAPRootObject().addChild(new OLAPSession(schema));
+            session.getOLAPRootObject().addChild(olapSession = new OLAPSession(schema));
+        } else {
+            schema = olapSession.getSchema();
         }
-        OLAPEditSession panel = new OLAPEditSession(session, schema);
         
-        final JDialog d = new JDialog(session.getArchitectFrame(), generateDialogTitle());
-        schema.addPropertyChangeListener(new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent evt) {
-                if (evt.getPropertyName().equals("name")) {
-                    d.setTitle(generateDialogTitle());
-                }
-            }
-        });
-        d.setContentPane(panel.getPanel());
-        d.pack();
+        OLAPEditSession editSession = session.getOLAPEditSession(olapSession);
+        
+        final JDialog d = editSession.getDialog();
         d.setLocationRelativeTo(session.getArchitectFrame());
         d.setVisible(true);
         
@@ -84,7 +76,7 @@ public class OLAPEditAction extends AbstractArchitectAction {
             Callable<Boolean> cancelCall = new Callable<Boolean>() {
                 public Boolean call() throws Exception {
                     d.dispose();
-                    session.getOLAPRootObject().removeOLAPSession(OLAPUtil.getSession(schema));
+                    session.getOLAPRootObject().removeOLAPSession(olapSession);
                     return true;
                 }
             };
@@ -100,13 +92,4 @@ public class OLAPEditAction extends AbstractArchitectAction {
             schemaEditDialog.setVisible(true);
         }
     }
-    
-    /**
-     * Returns the schema edit dialog's title that includes the schema's name.
-     */
-    private String generateDialogTitle() {
-        return schema.getName() + " - OLAP Schema Editor";
-    }
-
-    
 }

@@ -38,8 +38,10 @@ import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSwingWorker;
 
@@ -338,6 +340,14 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public void showOLAPSchemaManager(Window owner) {
+    }
+
+    public List<OLAPEditSession> getOLAPEditSessions() {
+        return null;
+    }
+    
+    public OLAPEditSession getOLAPEditSession(OLAPSession olapSession) {
+        return null;
     }
 
 }

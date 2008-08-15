@@ -20,13 +20,18 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.BorderLayout;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
-import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 
+import ca.sqlpower.architect.olap.OLAPChildEvent;
+import ca.sqlpower.architect.olap.OLAPChildListener;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -34,13 +39,10 @@ import ca.sqlpower.architect.swingui.olap.action.CreateCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateDimensionAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateMeasureAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateVirtualCubeAction;
-import ca.sqlpower.architect.swingui.olap.action.EditCubeAction;
-import ca.sqlpower.architect.swingui.olap.action.EditDimensionAction;
-import ca.sqlpower.architect.swingui.olap.action.EditVirtualCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.ExportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPDeleteSelectedAction;
 
-public class OLAPEditSession {
+public class OLAPEditSession implements OLAPChildListener {
 
     private final OLAPTree tree;
     
@@ -48,7 +50,12 @@ public class OLAPEditSession {
      * This is the playpen used within OLAP schema editor.
      */
     private final PlayPen pp;
-    private final JPanel panel;
+    private final JDialog d;
+    
+    /**
+     * OLAPSession associated with the schema that this edit session edits.
+     */
+    private final OLAPSession olapSession;
     
     private final CreateDimensionAction createDimensionAction;
     private final CreateCubeAction createCubeAction;
@@ -56,29 +63,38 @@ public class OLAPEditSession {
     private final CreateMeasureAction createMeasureAction;
     private final ExportSchemaAction exportSchemaAction;
     private final OLAPDeleteSelectedAction olapDeleteSelectedAction;
-    
-    private EditCubeAction editCubeAction;
-    private EditVirtualCubeAction editVirtualCubeAction;
-    private EditDimensionAction editDimensionAction;
+     
+    private final ArchitectSwingSession swingSession;
     
     /**
      * Creates a new editor for the given OLAP schema. The schema's OLAPObjects should
-     * all belong to the given session's dbtree and playpen.
+     * all belong to the given session's dbtree and playpen. This should only be called by the
+     * ArchitectSwingSession, see {@link ArchitectSwingSession#getOLAPEditSession(OLAPSession)}.
      * 
-     * @param session The session this editor and the given schema belong to
-     * @param schema The schema to edit
+     * @param session The architect swing session this editor and the given schema belong to.
+     * @param olapSession The OLAPSession of the schema to edit
      */
-    public OLAPEditSession(ArchitectSwingSession session, Schema schema) {
-        tree = new OLAPTree(session, this, schema);
-        tree.setCellRenderer(new OLAPTreeCellRenderer());
-        pp = new PlayPen(session); // TODO create OLAPPlayPenFactory class to set this up properly
+    public OLAPEditSession(ArchitectSwingSession swingSession, OLAPSession olapSession) {
+        this.olapSession = olapSession;
+        this.swingSession = swingSession;
+
+        // listen for when to remove this from the architect session.
+        swingSession.getOLAPRootObject().addChildListener(this);
         
-        createDimensionAction = new CreateDimensionAction(session, schema, pp);
-        createCubeAction = new CreateCubeAction(session, schema, pp);
-        createVirtualCubeAction = new CreateVirtualCubeAction(session, schema, pp);
-        createMeasureAction = new CreateMeasureAction(session, pp);
-        exportSchemaAction = new ExportSchemaAction(session, schema);
-        olapDeleteSelectedAction = new OLAPDeleteSelectedAction(session, this);
+        // add to the architect session's list of edit sessions.
+        swingSession.getOLAPEditSessions().add(this);
+
+        Schema schema = olapSession.getSchema();
+        tree = new OLAPTree(swingSession, this, schema);
+        tree.setCellRenderer(new OLAPTreeCellRenderer());
+        pp = new PlayPen(swingSession); // TODO create OLAPPlayPenFactory class to set this up properly
+        
+        createDimensionAction = new CreateDimensionAction(swingSession, schema, pp);
+        createCubeAction = new CreateCubeAction(swingSession, schema, pp);
+        createVirtualCubeAction = new CreateVirtualCubeAction(swingSession, schema, pp);
+        createMeasureAction = new CreateMeasureAction(swingSession, pp);
+        exportSchemaAction = new ExportSchemaAction(swingSession, schema);
+        olapDeleteSelectedAction = new OLAPDeleteSelectedAction(swingSession, this);
         
         JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
         toolbar.add(createDimensionAction);
@@ -87,7 +103,7 @@ public class OLAPEditSession {
         toolbar.add(createMeasureAction);
         toolbar.add(exportSchemaAction);
         
-        panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout());
         panel.add(
                 new JSplitPane(
                         JSplitPane.HORIZONTAL_SPLIT,
@@ -95,10 +111,25 @@ public class OLAPEditSession {
                         new JScrollPane(pp)),
                 BorderLayout.CENTER);
         panel.add(toolbar, BorderLayout.EAST);
+        
+        d = new JDialog(swingSession.getArchitectFrame(), generateDialogTitle());
+        schema.addPropertyChangeListener(new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent evt) {
+                if (evt.getPropertyName().equals("name")) {
+                    d.setTitle(generateDialogTitle());
+                }
+            }
+        });
+        d.setContentPane(panel);
+        d.pack();
     }
     
-    public JComponent getPanel() {
-        return panel;
+    /**
+     * Returns the OLAP Schema Editor dialog. It does not come with location and
+     * visibility set.
+     */
+    public JDialog getDialog() {
+        return d;
     }
     
     /**
@@ -111,7 +142,23 @@ public class OLAPEditSession {
     public OLAPTree getOlapTree() {
         return tree;
     }
+    
+    /**
+     * Returns the schema edit dialog's title that includes the schema's name.
+     */
+    private String generateDialogTitle() {
+        return olapSession.getSchema().getName() + " - OLAP Schema Editor";
+    }
 
+    /**
+     * Returns the OLAPSession this this edit session edits.
+     */
+    public OLAPSession getOlapSession() {
+        return olapSession;
+    }
+
+    // ------ Action getter methods ------ //
+    
     public CreateDimensionAction getCreateDimensionAction() {
         return createDimensionAction;
     }
@@ -134,5 +181,20 @@ public class OLAPEditSession {
     
     public OLAPDeleteSelectedAction getOLAPDeleteSelectedAction() {
         return olapDeleteSelectedAction;
+    }
+    
+    // ------ OLAPChildListener methods ------ //
+
+    public void olapChildAdded(OLAPChildEvent e) {
+        // do nothing
+    }
+
+    public void olapChildRemoved(OLAPChildEvent e) {
+        if (e.getChild() == olapSession) {
+            // remove from architect's list of edit sessions and stop listening
+            swingSession.getOLAPEditSessions().remove(this);
+            swingSession.getOLAPRootObject().removeChildListener(this);
+            d.dispose();
+        }
     }
 }

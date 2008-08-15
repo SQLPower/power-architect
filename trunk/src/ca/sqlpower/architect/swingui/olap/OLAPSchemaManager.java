@@ -83,8 +83,8 @@ public class OLAPSchemaManager {
     private final Action editOLAPSchemaAction = new AbstractAction("Edit...") { 
         public void actionPerformed(ActionEvent e) {
             OLAPSession oSession = getSelectedOSession();
-            if (oSession != null && oSession.getSchema() != null) {
-                new OLAPEditAction(session, oSession.getSchema()).actionPerformed(e);
+            if (oSession != null) {
+                new OLAPEditAction(session, oSession).actionPerformed(e);
             }
         }
     };

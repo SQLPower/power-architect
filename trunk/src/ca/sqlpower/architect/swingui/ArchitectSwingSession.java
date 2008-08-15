@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Window;
+import java.util.List;
 
 import javax.swing.JDialog;
 
@@ -27,6 +28,8 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
+import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
 
@@ -273,4 +276,21 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     
     public OLAPRootObject getOLAPRootObject();
     
+    /**
+     * Returns a list of the OLAPEditSessions associated with this session's OLAP Schemas.
+     * 
+     * @return the list of edit sessions.
+     */
+    public List<OLAPEditSession> getOLAPEditSessions();
+    
+    
+    /**
+     * Returns the OLAPEditSession that is associated with editing the given
+     * OLAPSession.
+     * 
+     * @param olapSession
+     *            the OLAPSession in question, must not be null.
+     * @return the associated OLAPEditSession, creates a new one if none found.
+     */
+    public OLAPEditSession getOLAPEditSession(OLAPSession olapSession);
 }
