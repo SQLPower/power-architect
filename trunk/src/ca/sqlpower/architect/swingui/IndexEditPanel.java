@@ -239,7 +239,10 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     public boolean applyChanges() {
         columnsTable.cleanUp();
         columnsTable.finalizeIndex();
-        index.startCompoundEdit(Messages.getString("IndexEditPanel.compoundEditName")); //$NON-NLS-1$
+        
+        // if this was done on the index, listeners would only start listening after the index has
+        // been added to its parent and compound edit would not work. Compound edits belong to the parent. 
+        parent.getIndicesFolder().startCompoundEdit(Messages.getString("IndexEditPanel.compoundEditName")); //$NON-NLS-1$
         try {
             StringBuffer warnings = new StringBuffer();
             //We need to check if the index name and/or primary key name is empty or not
@@ -308,7 +311,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         } finally {
-            index.endCompoundEdit(Messages.getString("IndexEditPanel.compoundEditName")); //$NON-NLS-1$
+            parent.getIndicesFolder().endCompoundEdit(Messages.getString("IndexEditPanel.compoundEditName")); //$NON-NLS-1$
         }
     }
 
