@@ -5,9 +5,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -18,33 +19,89 @@ public class MondrianXMLWriter {
 
     private static final Logger logger = Logger.getLogger(MondrianXMLWriter.class);
 
-    public static void write(File f, MondrianModel.Schema schema) throws IOException {
-        PrintWriter out = new PrintWriter(new FileWriter(f));
-        write(out, schema, true, 0);
-    }
-    
-    public static void writeXML(File f, MondrianModel.Schema schema) throws IOException {
+    /**
+     * Exports an OLAP schema to a file in the Mondrian schema xml format.
+     * 
+     * @param f
+     *            The output file.
+     * @param schema
+     *            The schema to be exported.
+     * @throws IOException
+     *             If creating a file writer for the given file failed.
+     */
+    public static void exportXML(File f, MondrianModel.Schema schema) throws IOException {
         PrintWriter out = new PrintWriter(new FileWriter(f));
         out.println("<?xml version=\"1.0\"?>");
-        write(out, schema, true, 0);
+        MondrianXMLWriter writer = new MondrianXMLWriter(out);
+        writer.writeSchema(schema);
+        out.flush();
+        out.close();
     }
 
-    public static void write(PrintWriter out, MondrianModel.Schema schema, boolean closeWriter, int indent) {
-        MondrianXMLWriter writer = new MondrianXMLWriter(out);
-        writer.indent = indent;
+    /**
+     * Writes the xml representation of an OLAP schema to a file in the
+     * Architect format. This is the same as calling
+     * {@link #write(PrintWriter, MondrianModel.Schema, boolean, int, Map)} with
+     * default values.
+     * 
+     * @param f
+     *            The output file.
+     * @param schema
+     *            The schema to be written.
+     * @return A map of the OLAPObjects in the schema and their
+     *         generated ids.
+     * @throws IOException
+     *             If creating a file writer for the given file failed.
+     */
+    public static Map<OLAPObject, String> write(File f, MondrianModel.Schema schema) throws IOException {
+        PrintWriter out = new PrintWriter(new FileWriter(f));
+        return write(out, schema, true, 0, new IdentityHashMap<OLAPObject, String>());
+    }
+
+    /**
+     * Writes the xml representation of an OLAP schema to a print writer in the
+     * Architect format.
+     * 
+     * @param out
+     *            The PrintWriter to write to.
+     * @param schema
+     *            The schema to be written.
+     * @param closeWriter
+     *            Indicates whether the print writer should be closed
+     *            afterwards.
+     * @param indent
+     *            The number of spaces to start indent by.
+     * @param idMap
+     *            A map of OLAPObjects and corresponding ids. This map should not contain
+     *            any object in the given schema. Must not be null.
+     * @return An updated map from the given idMap, adding in the OLAPObjects in
+     *         the given schema.
+     */
+    public static Map<OLAPObject, String> write(PrintWriter out, MondrianModel.Schema schema, boolean closeWriter,
+    		int indent, Map<OLAPObject, String> idMap) {
+        MondrianXMLWriter writer = new MondrianXMLWriter(out, indent, idMap);
         writer.writeSchema(schema);
         out.flush();
         if (closeWriter) {
 	        out.close();
 	    }
+        return idMap;
     }
     
     private final PrintWriter out;
     
     private int indent;
     
+    private Map<OLAPObject, String> idMap;
+    
     public MondrianXMLWriter(PrintWriter out) {
         this.out = out;
+    }
+    
+    public MondrianXMLWriter(PrintWriter out, int indent, Map<OLAPObject, String> idMap) {
+        this(out);
+        this.indent = indent;
+        this.idMap = idMap;
     }
     
     private void indentLine() {
@@ -322,8 +379,19 @@ public class MondrianXMLWriter {
 
     public void writeSchema(MondrianModel.Schema elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
@@ -331,8 +399,8 @@ public class MondrianXMLWriter {
         
         atts.put("defaultRole", elem.getDefaultRole());
         
-        writeStartTag("Schema", atts);
         
+        writeStartTag("Schema", atts);
         
         
 
@@ -403,8 +471,19 @@ public class MondrianXMLWriter {
 
     public void writeCube(MondrianModel.Cube elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
@@ -416,8 +495,8 @@ public class MondrianXMLWriter {
         
         atts.put("enabled", elem.getEnabled());
         
-        writeStartTag("Cube", atts);
         
+        writeStartTag("Cube", atts);
         
         
 
@@ -465,8 +544,19 @@ public class MondrianXMLWriter {
 
     public void writeVirtualCube(MondrianModel.VirtualCube elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("enabled", elem.getEnabled());
         
@@ -476,8 +566,8 @@ public class MondrianXMLWriter {
         
         atts.put("caption", elem.getCaption());
         
-        writeStartTag("VirtualCube", atts);
         
+        writeStartTag("VirtualCube", atts);
         
         
 
@@ -525,11 +615,22 @@ public class MondrianXMLWriter {
 
     public void writeCubeUsages(MondrianModel.CubeUsages elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
+        
         
         writeStartTag("CubeUsages", atts);
-        
         
         
 
@@ -569,15 +670,26 @@ public class MondrianXMLWriter {
 
     public void writeCubeUsage(MondrianModel.CubeUsage elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("cubeName", elem.getCubeName());
         
         atts.put("ignoreUnrelatedDimensions", elem.getIgnoreUnrelatedDimensions());
         
-        writeStartTag("CubeUsage", atts);
         
+        writeStartTag("CubeUsage", atts);
         
         
 
@@ -615,8 +727,19 @@ public class MondrianXMLWriter {
 
     public void writeVirtualCubeDimension(MondrianModel.VirtualCubeDimension elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("cubeName", elem.getCubeName());
         
@@ -624,8 +747,8 @@ public class MondrianXMLWriter {
         
         populateCubeDimensionAttributes(elem, atts);
         
-        writeStartTag("VirtualCubeDimension", atts);
         
+        writeStartTag("VirtualCubeDimension", atts);
         
         
 
@@ -665,8 +788,19 @@ public class MondrianXMLWriter {
 
     public void writeVirtualCubeMeasure(MondrianModel.VirtualCubeMeasure elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("cubeName", elem.getCubeName());
         
@@ -674,8 +808,8 @@ public class MondrianXMLWriter {
         
         atts.put("visible", elem.getVisible());
         
-        writeStartTag("VirtualCubeMeasure", atts);
         
+        writeStartTag("VirtualCubeMeasure", atts);
         
         
 
@@ -713,8 +847,19 @@ public class MondrianXMLWriter {
 
     public void writeDimensionUsage(MondrianModel.DimensionUsage elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("source", elem.getSource());
         
@@ -724,8 +869,8 @@ public class MondrianXMLWriter {
         
         populateCubeDimensionAttributes(elem, atts);
         
-        writeStartTag("DimensionUsage", atts);
         
+        writeStartTag("DimensionUsage", atts);
         
         
 
@@ -765,8 +910,19 @@ public class MondrianXMLWriter {
 
     public void writeDimension(MondrianModel.Dimension elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
@@ -778,8 +934,8 @@ public class MondrianXMLWriter {
         
         populateCubeDimensionAttributes(elem, atts);
         
-        writeStartTag("Dimension", atts);
         
+        writeStartTag("Dimension", atts);
         
         
 
@@ -821,8 +977,19 @@ public class MondrianXMLWriter {
 
     public void writeHierarchy(MondrianModel.Hierarchy elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
@@ -844,8 +1011,8 @@ public class MondrianXMLWriter {
         
         atts.put("caption", elem.getCaption());
         
-        writeStartTag("Hierarchy", atts);
         
+        writeStartTag("Hierarchy", atts);
         
         
 
@@ -889,8 +1056,19 @@ public class MondrianXMLWriter {
 
     public void writeLevel(MondrianModel.Level elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("approxRowCount", elem.getApproxRowCount());
         
@@ -922,8 +1100,8 @@ public class MondrianXMLWriter {
         
         atts.put("captionColumn", elem.getCaptionColumn());
         
-        writeStartTag("Level", atts);
         
+        writeStartTag("Level", atts);
         
         
 
@@ -973,15 +1151,26 @@ public class MondrianXMLWriter {
 
     public void writeClosure(MondrianModel.Closure elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("parentColumn", elem.getParentColumn());
         
         atts.put("childColumn", elem.getChildColumn());
         
-        writeStartTag("Closure", atts);
         
+        writeStartTag("Closure", atts);
         
         
 
@@ -1021,8 +1210,19 @@ public class MondrianXMLWriter {
 
     public void writeProperty(MondrianModel.Property elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
@@ -1034,8 +1234,8 @@ public class MondrianXMLWriter {
         
         atts.put("caption", elem.getCaption());
         
-        writeStartTag("Property", atts);
         
+        writeStartTag("Property", atts);
         
         
 
@@ -1073,8 +1273,19 @@ public class MondrianXMLWriter {
 
     public void writeMeasure(MondrianModel.Measure elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
@@ -1092,8 +1303,8 @@ public class MondrianXMLWriter {
         
         atts.put("visible", elem.getVisible());
         
-        writeStartTag("Measure", atts);
         
+        writeStartTag("Measure", atts);
         
         
 
@@ -1135,8 +1346,19 @@ public class MondrianXMLWriter {
 
     public void writeCalculatedMember(MondrianModel.CalculatedMember elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
@@ -1150,8 +1372,8 @@ public class MondrianXMLWriter {
         
         atts.put("visible", elem.getVisible());
         
-        writeStartTag("CalculatedMember", atts);
         
+        writeStartTag("CalculatedMember", atts);
         
         
 
@@ -1193,8 +1415,19 @@ public class MondrianXMLWriter {
 
     public void writeCalculatedMemberProperty(MondrianModel.CalculatedMemberProperty elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
@@ -1204,8 +1437,8 @@ public class MondrianXMLWriter {
         
         atts.put("value", elem.getValue());
         
-        writeStartTag("CalculatedMemberProperty", atts);
         
+        writeStartTag("CalculatedMemberProperty", atts);
         
         
 
@@ -1243,15 +1476,26 @@ public class MondrianXMLWriter {
 
     public void writeNamedSet(MondrianModel.NamedSet elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
         atts.put("formula", elem.getFormula());
         
-        writeStartTag("NamedSet", atts);
         
+        writeStartTag("NamedSet", atts);
         
         
 
@@ -1291,11 +1535,22 @@ public class MondrianXMLWriter {
 
     public void writeFormula(MondrianModel.Formula elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
+        
         
         writeStartTag("Formula", atts);
-        
         
         
 
@@ -1341,15 +1596,26 @@ public class MondrianXMLWriter {
 
     public void writeMemberReaderParameter(MondrianModel.MemberReaderParameter elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
         atts.put("value", elem.getValue());
         
-        writeStartTag("MemberReaderParameter", atts);
         
+        writeStartTag("MemberReaderParameter", atts);
         
         
 
@@ -1417,15 +1683,26 @@ public class MondrianXMLWriter {
 
     public void writeView(MondrianModel.View elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("alias", elem.getAlias());
         
         populateRelationAttributes(elem, atts);
         
-        writeStartTag("View", atts);
         
+        writeStartTag("View", atts);
         
         
 
@@ -1467,13 +1744,24 @@ public class MondrianXMLWriter {
 
     public void writeSQL(MondrianModel.SQL elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("dialect", elem.getDialect());
         
-        writeStartTag("SQL", atts);
         
+        writeStartTag("SQL", atts);
         
         
 
@@ -1519,8 +1807,19 @@ public class MondrianXMLWriter {
 
     public void writeJoin(MondrianModel.Join elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("leftAlias", elem.getLeftAlias());
         
@@ -1532,8 +1831,8 @@ public class MondrianXMLWriter {
         
         populateRelationOrJoinAttributes(elem, atts);
         
-        writeStartTag("Join", atts);
         
+        writeStartTag("Join", atts);
         
         
 
@@ -1577,8 +1876,19 @@ public class MondrianXMLWriter {
 
     public void writeTable(MondrianModel.Table elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
@@ -1588,8 +1898,8 @@ public class MondrianXMLWriter {
         
         populateRelationAttributes(elem, atts);
         
-        writeStartTag("Table", atts);
         
+        writeStartTag("Table", atts);
         
         
 
@@ -1635,15 +1945,26 @@ public class MondrianXMLWriter {
 
     public void writeInlineTable(MondrianModel.InlineTable elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("alias", elem.getAlias());
         
         populateRelationAttributes(elem, atts);
         
-        writeStartTag("InlineTable", atts);
         
+        writeStartTag("InlineTable", atts);
         
         
 
@@ -1687,11 +2008,22 @@ public class MondrianXMLWriter {
 
     public void writeColumnDefs(MondrianModel.ColumnDefs elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
+        
         
         writeStartTag("ColumnDefs", atts);
-        
         
         
 
@@ -1731,15 +2063,26 @@ public class MondrianXMLWriter {
 
     public void writeColumnDef(MondrianModel.ColumnDef elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
         atts.put("type", elem.getType());
         
-        writeStartTag("ColumnDef", atts);
         
+        writeStartTag("ColumnDef", atts);
         
         
 
@@ -1777,11 +2120,22 @@ public class MondrianXMLWriter {
 
     public void writeRows(MondrianModel.Rows elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
+        
         
         writeStartTag("Rows", atts);
-        
         
         
 
@@ -1821,11 +2175,22 @@ public class MondrianXMLWriter {
 
     public void writeRow(MondrianModel.Row elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
+        
         
         writeStartTag("Row", atts);
-        
         
         
 
@@ -1865,13 +2230,24 @@ public class MondrianXMLWriter {
 
     public void writeValue(MondrianModel.Value elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("column", elem.getColumn());
         
-        writeStartTag("Value", atts);
         
+        writeStartTag("Value", atts);
         
         
 
@@ -1942,15 +2318,26 @@ public class MondrianXMLWriter {
 
     public void writeAggName(MondrianModel.AggName elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
         populateAggTableAttributes(elem, atts);
         
-        writeStartTag("AggName", atts);
         
+        writeStartTag("AggName", atts);
         
         
 
@@ -1990,15 +2377,26 @@ public class MondrianXMLWriter {
 
     public void writeAggPattern(MondrianModel.AggPattern elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("pattern", elem.getPattern());
         
         populateAggTableAttributes(elem, atts);
         
-        writeStartTag("AggPattern", atts);
         
+        writeStartTag("AggPattern", atts);
         
         
 
@@ -2040,8 +2438,19 @@ public class MondrianXMLWriter {
 
     public void writeAggExclude(MondrianModel.AggExclude elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("pattern", elem.getPattern());
         
@@ -2049,8 +2458,8 @@ public class MondrianXMLWriter {
         
         atts.put("ignorecase", elem.getIgnorecase());
         
-        writeStartTag("AggExclude", atts);
         
+        writeStartTag("AggExclude", atts);
         
         
 
@@ -2103,13 +2512,24 @@ public class MondrianXMLWriter {
 
     public void writeAggFactCount(MondrianModel.AggFactCount elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         populateAggColumnNameAttributes(elem, atts);
         
-        writeStartTag("AggFactCount", atts);
         
+        writeStartTag("AggFactCount", atts);
         
         
 
@@ -2149,13 +2569,24 @@ public class MondrianXMLWriter {
 
     public void writeAggIgnoreColumn(MondrianModel.AggIgnoreColumn elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         populateAggColumnNameAttributes(elem, atts);
         
-        writeStartTag("AggIgnoreColumn", atts);
         
+        writeStartTag("AggIgnoreColumn", atts);
         
         
 
@@ -2195,15 +2626,26 @@ public class MondrianXMLWriter {
 
     public void writeAggForeignKey(MondrianModel.AggForeignKey elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("factColumn", elem.getFactColumn());
         
         atts.put("aggColumn", elem.getAggColumn());
         
-        writeStartTag("AggForeignKey", atts);
         
+        writeStartTag("AggForeignKey", atts);
         
         
 
@@ -2241,15 +2683,26 @@ public class MondrianXMLWriter {
 
     public void writeAggLevel(MondrianModel.AggLevel elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("column", elem.getColumn());
         
         atts.put("name", elem.getName());
         
-        writeStartTag("AggLevel", atts);
         
+        writeStartTag("AggLevel", atts);
         
         
 
@@ -2287,15 +2740,26 @@ public class MondrianXMLWriter {
 
     public void writeAggMeasure(MondrianModel.AggMeasure elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("column", elem.getColumn());
         
         atts.put("name", elem.getName());
         
-        writeStartTag("AggMeasure", atts);
         
+        writeStartTag("AggMeasure", atts);
         
         
 
@@ -2346,8 +2810,19 @@ public class MondrianXMLWriter {
 
     public void writeColumn(MondrianModel.Column elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("table", elem.getTable());
         
@@ -2355,8 +2830,8 @@ public class MondrianXMLWriter {
         
         populateExpressionAttributes(elem, atts);
         
-        writeStartTag("Column", atts);
         
+        writeStartTag("Column", atts);
         
         
 
@@ -2415,13 +2890,24 @@ public class MondrianXMLWriter {
 
     public void writeKeyExpression(MondrianModel.KeyExpression elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         populateExpressionViewAttributes(elem, atts);
         
-        writeStartTag("KeyExpression", atts);
         
+        writeStartTag("KeyExpression", atts);
         
         
 
@@ -2461,13 +2947,24 @@ public class MondrianXMLWriter {
 
     public void writeParentExpression(MondrianModel.ParentExpression elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         populateExpressionViewAttributes(elem, atts);
         
-        writeStartTag("ParentExpression", atts);
         
+        writeStartTag("ParentExpression", atts);
         
         
 
@@ -2507,13 +3004,24 @@ public class MondrianXMLWriter {
 
     public void writeOrdinalExpression(MondrianModel.OrdinalExpression elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         populateExpressionViewAttributes(elem, atts);
         
-        writeStartTag("OrdinalExpression", atts);
         
+        writeStartTag("OrdinalExpression", atts);
         
         
 
@@ -2553,13 +3061,24 @@ public class MondrianXMLWriter {
 
     public void writeNameExpression(MondrianModel.NameExpression elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         populateExpressionViewAttributes(elem, atts);
         
-        writeStartTag("NameExpression", atts);
         
+        writeStartTag("NameExpression", atts);
         
         
 
@@ -2599,13 +3118,24 @@ public class MondrianXMLWriter {
 
     public void writeCaptionExpression(MondrianModel.CaptionExpression elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         populateExpressionViewAttributes(elem, atts);
         
-        writeStartTag("CaptionExpression", atts);
         
+        writeStartTag("CaptionExpression", atts);
         
         
 
@@ -2645,13 +3175,24 @@ public class MondrianXMLWriter {
 
     public void writeMeasureExpression(MondrianModel.MeasureExpression elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         populateExpressionViewAttributes(elem, atts);
         
-        writeStartTag("MeasureExpression", atts);
         
+        writeStartTag("MeasureExpression", atts);
         
         
 
@@ -2691,13 +3232,24 @@ public class MondrianXMLWriter {
 
     public void writeRole(MondrianModel.Role elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
-        writeStartTag("Role", atts);
         
+        writeStartTag("Role", atts);
         
         
 
@@ -2754,13 +3306,24 @@ public class MondrianXMLWriter {
 
     public void writeSchemaGrant(MondrianModel.SchemaGrant elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         populateGrantAttributes(elem, atts);
         
-        writeStartTag("SchemaGrant", atts);
         
+        writeStartTag("SchemaGrant", atts);
         
         
 
@@ -2802,15 +3365,26 @@ public class MondrianXMLWriter {
 
     public void writeCubeGrant(MondrianModel.CubeGrant elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("cube", elem.getCube());
         
         populateGrantAttributes(elem, atts);
         
-        writeStartTag("CubeGrant", atts);
         
+        writeStartTag("CubeGrant", atts);
         
         
 
@@ -2854,15 +3428,26 @@ public class MondrianXMLWriter {
 
     public void writeDimensionGrant(MondrianModel.DimensionGrant elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("dimension", elem.getDimension());
         
         populateGrantAttributes(elem, atts);
         
-        writeStartTag("DimensionGrant", atts);
         
+        writeStartTag("DimensionGrant", atts);
         
         
 
@@ -2902,8 +3487,19 @@ public class MondrianXMLWriter {
 
     public void writeHierarchyGrant(MondrianModel.HierarchyGrant elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("hierarchy", elem.getHierarchy());
         
@@ -2915,8 +3511,8 @@ public class MondrianXMLWriter {
         
         populateGrantAttributes(elem, atts);
         
-        writeStartTag("HierarchyGrant", atts);
         
+        writeStartTag("HierarchyGrant", atts);
         
         
 
@@ -2958,15 +3554,26 @@ public class MondrianXMLWriter {
 
     public void writeMemberGrant(MondrianModel.MemberGrant elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("member", elem.getMember());
         
         atts.put("access", elem.getAccess());
         
-        writeStartTag("MemberGrant", atts);
         
+        writeStartTag("MemberGrant", atts);
         
         
 
@@ -3004,11 +3611,22 @@ public class MondrianXMLWriter {
 
     public void writeUnion(MondrianModel.Union elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
+        
         
         writeStartTag("Union", atts);
-        
         
         
 
@@ -3048,13 +3666,24 @@ public class MondrianXMLWriter {
 
     public void writeRoleUsage(MondrianModel.RoleUsage elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("roleName", elem.getRoleName());
         
-        writeStartTag("RoleUsage", atts);
         
+        writeStartTag("RoleUsage", atts);
         
         
 
@@ -3092,15 +3721,26 @@ public class MondrianXMLWriter {
 
     public void writeUserDefinedFunction(MondrianModel.UserDefinedFunction elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
         atts.put("className", elem.getClassName());
         
-        writeStartTag("UserDefinedFunction", atts);
         
+        writeStartTag("UserDefinedFunction", atts);
         
         
 
@@ -3138,8 +3778,19 @@ public class MondrianXMLWriter {
 
     public void writeParameter(MondrianModel.Parameter elem) {
 
+		
+		
 		boolean oneTag = true;
         Map<String, Object> atts = new LinkedHashMap<String, Object>();
+		if (idMap != null) {
+			String id = Integer.toString(idMap.size());
+			if (idMap.put(elem, id) != null) {
+				throw new IllegalStateException("Duplicate OLAPObject found: " + elem);
+			}
+			atts.put("id", id);
+		}
+		
+		
         
         atts.put("name", elem.getName());
         
@@ -3151,8 +3802,8 @@ public class MondrianXMLWriter {
         
         atts.put("defaultValue", elem.getDefaultValue());
         
-        writeStartTag("Parameter", atts);
         
+        writeStartTag("Parameter", atts);
         
         
 

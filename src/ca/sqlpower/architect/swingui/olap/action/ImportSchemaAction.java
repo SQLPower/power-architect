@@ -53,7 +53,7 @@ public class ImportSchemaAction extends AbstractArchitectAction {
             File f = chooser.getSelectedFile();
             Schema loadedSchema = null;
             try {
-                OLAPObject olapObj = MondrianXMLReader.parse(f, true);
+                OLAPObject olapObj = MondrianXMLReader.importXML(f);
                 if (olapObj instanceof Schema) {
                     loadedSchema = (Schema) olapObj;
                 } else {
