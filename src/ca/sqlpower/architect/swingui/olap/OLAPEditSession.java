@@ -87,7 +87,7 @@ public class OLAPEditSession implements OLAPChildListener {
         Schema schema = olapSession.getSchema();
         tree = new OLAPTree(swingSession, this, schema);
         tree.setCellRenderer(new OLAPTreeCellRenderer());
-        pp = new PlayPen(swingSession); // TODO create OLAPPlayPenFactory class to set this up properly
+        pp = OLAPPlayPenFactory.createPlayPen(swingSession, this);
         
         createDimensionAction = new CreateDimensionAction(swingSession, schema, pp);
         createCubeAction = new CreateCubeAction(swingSession, schema, pp);

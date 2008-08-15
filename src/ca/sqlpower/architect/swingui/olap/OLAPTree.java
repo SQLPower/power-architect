@@ -29,15 +29,8 @@ import javax.swing.tree.TreePath;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.OLAPObject;
-import ca.sqlpower.architect.olap.MondrianModel.Cube;
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
-import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
-import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.olap.action.EditCubeAction;
-import ca.sqlpower.architect.swingui.olap.action.EditDimensionAction;
-import ca.sqlpower.architect.swingui.olap.action.EditVirtualCubeAction;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
 
@@ -45,23 +38,17 @@ public class OLAPTree extends JTree{
 
     private static final Logger logger = Logger.getLogger(OLAPTree.class);
     
-    private ArchitectSwingSession session;
-    private OLAPEditSession oSession;
+    private final ContextMenuFactory menuFactory;
     
-    private JPopupMenu popup;
-    private final Schema schema;
-    private JTreeCollapseAllAction collapseAllAction;
-    private JTreeExpandAllAction expandAllAction;
+    private final JTreeCollapseAllAction collapseAllAction;
+    private final JTreeExpandAllAction expandAllAction;
     
     public OLAPTree(ArchitectSwingSession session, OLAPEditSession oSession, Schema schema) {
-        this.schema = schema;
-        this.oSession = oSession;
-        this.session = session;
         setModel(new OLAPTreeModel(schema));
         addMouseListener(new PopupListener());
         collapseAllAction = new JTreeCollapseAllAction(this, "Collaspe All");
         expandAllAction = new JTreeExpandAllAction(this, "Expand All");
-         
+        menuFactory = new ContextMenuFactory(session, oSession);
     }
     
  // ----------------- popup menu stuff ----------------
@@ -96,55 +83,23 @@ public class OLAPTree extends JTree{
                 if (!isPathSelected(p)) {
                     setSelectionPath(p);
                 }
-                popup = refreshMenu(p);
-                popup.show(e.getComponent(),
-                           e.getX(), e.getY());
+                
+                OLAPObject lpc = (OLAPObject)p.getLastPathComponent();
+                if (lpc != null) {
+                    JPopupMenu popup = menuFactory.createContextMenu(lpc);
+                    
+                    popup.addSeparator();
+                    popup.add(collapseAllAction);
+                    popup.add(expandAllAction);
+
+                    popup.show(e.getComponent(),
+                               e.getX(), e.getY());
+                }
+                
             } else {
                 if ( p == null && !isPress && e.getButton() == MouseEvent.BUTTON1 )
                     setSelectionPath(null);
             }
         }
     }
-
-    protected JPopupMenu refreshMenu(TreePath p) {
-        logger.debug("refreshMenu is being called."); //$NON-NLS-1$
-        JPopupMenu newMenu = new JPopupMenu();
-        if (p != null) {
-            newMenu.add(collapseAllAction);
-            newMenu.add(expandAllAction);
-            newMenu.addSeparator();
-            OLAPObject obj = (OLAPObject)p.getLastPathComponent();
-            if (obj instanceof Schema) {
-                newMenu.add(oSession.getCreateCubeAction());
-                newMenu.add(oSession.getCreateDimensionAction());
-                newMenu.add(oSession.getCreateVirtualCubeAction());
-                newMenu.add(oSession.getExportSchemaAction());
-            } else if (obj instanceof Dimension) {
-                newMenu.add(new EditDimensionAction(session, (Dimension)obj, oSession.getOlapPlayPen() ));
-                newMenu.addSeparator();
-            } else if (obj instanceof Cube) {
-                newMenu.add(oSession.getCreateDimensionAction());
-                newMenu.add(oSession.getCreateMeasureAction());
-                newMenu.add(new EditCubeAction(session, (Cube)obj, oSession.getOlapPlayPen()));
-                newMenu.addSeparator();
-            } else if (obj instanceof VirtualCube) {
-                newMenu.add(new EditVirtualCubeAction(session, (VirtualCube)obj, oSession.getOlapPlayPen()));
-                newMenu.add(oSession.getCreateCubeAction());
-                newMenu.add(oSession.getCreateDimensionAction());
-                newMenu.add(oSession.getCreateVirtualCubeAction());
-                newMenu.add(oSession.getCreateMeasureAction());
-                newMenu.addSeparator();
-            } else if (obj instanceof Measure) {
-            }
-            
-            if (!(obj instanceof Schema)) {
-                newMenu.add(oSession.getOLAPDeleteSelectedAction());
-            }
-
-        } else {
-
-        }
-        return newMenu;
-    }
-    
 }
