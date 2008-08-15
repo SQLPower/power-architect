@@ -122,6 +122,8 @@ public class OLAPEditSession implements OLAPChildListener {
         });
         d.setContentPane(panel);
         d.pack();
+        
+        OLAPPlayPenFactory.setupOLAPKeyboardActions(pp, this);
     }
     
     /**

@@ -460,7 +460,14 @@ public class PlayPen extends JPanel
         tSpec.setOdbcDsn(dbcs.getOdbcDsn());
     }
 
-    void setupKeyboardActions() {
+    /**
+     * Sets up the generic keyboard actions for this playpen. This should only
+     * be called once, which is normally done at the time the playpen is
+     * created. If no keyboard actions (zoom, delete selected, cursor up/down
+     * for item selection) are desired, just don't call this when creating your
+     * playpen.
+     */
+    public void setupKeyboardActions() {
         
         String KEY_DELETE_SELECTED = "ca.sqlpower.architect.swingui.PlayPen.KEY_DELETE_SELECTED"; //$NON-NLS-1$
         ArchitectFrame af = session.getArchitectFrame();

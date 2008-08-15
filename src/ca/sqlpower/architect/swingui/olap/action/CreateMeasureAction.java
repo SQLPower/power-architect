@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import javax.swing.JDialog;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
@@ -71,6 +72,7 @@ public class CreateMeasureAction extends AbstractArchitectAction {
     
     public CreateMeasureAction(ArchitectSwingSession session, PlayPen olapPlayPen) {
         super(session, olapPlayPen, "New Measure", null, null);
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('m'));
         PlayPenWatcher ppw = new PlayPenWatcher();
         playpen.addSelectionListener(ppw);
         ppw.updateStatus();

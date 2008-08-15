@@ -22,6 +22,8 @@ package ca.sqlpower.architect.swingui.olap.action;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 
+import javax.swing.KeyStroke;
+
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
@@ -40,6 +42,7 @@ public class CreateDimensionAction extends AbstractArchitectAction {
 
     public CreateDimensionAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
         super(session, pp, "New Dimension...", "Create a new shared dimension in this schema", null);
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('d'));
         this.schema = schema;
     }
 
