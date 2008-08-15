@@ -115,4 +115,14 @@ public class OLAPSession extends OLAPObject {
         throw new UnsupportedOperationException(
                 "OLAPSession has exactly one child (the Schema) for its entire lifetime");
     }
+    
+    /**
+     * Throws an exception, because you can't add or remove children from this
+     * type of OLAP Object.
+     */
+    @Override
+    public boolean removeChild(OLAPObject child) {
+        throw new UnsupportedOperationException(
+                "OLAPSession has exactly one child (the Schema) for its entire lifetime");
+    }
 }

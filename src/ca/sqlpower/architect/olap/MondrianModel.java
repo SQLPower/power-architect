@@ -602,6 +602,39 @@ public static class Schema extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof Parameter) {
+            return removeParameter((Parameter) child);
+        
+        } else if (child instanceof Dimension) {
+            return removeDimension((Dimension) child);
+        
+        } else if (child instanceof Cube) {
+            return removeCube((Cube) child);
+        
+        } else if (child instanceof VirtualCube) {
+            return removeVirtualCube((VirtualCube) child);
+        
+        } else if (child instanceof NamedSet) {
+            return removeNamedSet((NamedSet) child);
+        
+        } else if (child instanceof Role) {
+            return removeRole((Role) child);
+        
+        } else if (child instanceof UserDefinedFunction) {
+            return removeUserDefinedFunction((UserDefinedFunction) child);
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element Schema
 /** 
@@ -705,6 +738,18 @@ public abstract static class CubeDimension extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -1154,6 +1199,34 @@ public static class Cube extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof CubeDimension) {
+            return removeDimension((CubeDimension) child);
+        
+        } else if (child instanceof Measure) {
+            return removeMeasure((Measure) child);
+        
+        } else if (child instanceof CalculatedMember) {
+            return removeCalculatedMember((CalculatedMember) child);
+        
+        } else if (child instanceof NamedSet) {
+            return removeNamedSet((NamedSet) child);
+        
+        } else if (child instanceof Relation) {
+            setFact(null);
+            return true;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element Cube
 /** 
@@ -1579,6 +1652,34 @@ public static class VirtualCube extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof VirtualCubeDimension) {
+            return removeDimension((VirtualCubeDimension) child);
+        
+        } else if (child instanceof VirtualCubeMeasure) {
+            return removeMeasure((VirtualCubeMeasure) child);
+        
+        } else if (child instanceof CalculatedMember) {
+            return removeCalculatedMember((CalculatedMember) child);
+        
+        } else if (child instanceof NamedSet) {
+            return removeNamedSet((NamedSet) child);
+        
+        } else if (child instanceof CubeUsages) {
+            setCubeUsage(null);
+            return true;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element VirtualCube
 /** 
@@ -1703,6 +1804,21 @@ public static class CubeUsages extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof CubeUsage) {
+            return removeCubeUsage((CubeUsage) child);
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element CubeUsages
 /**  */
@@ -1780,6 +1896,18 @@ public static class CubeUsage extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -1866,6 +1994,18 @@ public static class VirtualCubeDimension extends CubeDimension {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -1967,6 +2107,18 @@ public static class VirtualCubeMeasure extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -2076,6 +2228,18 @@ public static class DimensionUsage extends CubeDimension {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -2293,6 +2457,21 @@ public static class Dimension extends CubeDimension {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof Hierarchy) {
+            return removeHierarchy((Hierarchy) child);
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -2712,6 +2891,28 @@ public static class Hierarchy extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof Level) {
+            return removeLevel((Level) child);
+        
+        } else if (child instanceof MemberReaderParameter) {
+            return removeMemberReaderParameter((MemberReaderParameter) child);
+        
+        } else if (child instanceof RelationOrJoin) {
+            setRelation(null);
+            return true;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -3267,6 +3468,41 @@ public static class Level extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof Property) {
+            return removeProperty((Property) child);
+        
+        } else if (child instanceof KeyExpression) {
+            setKeyExp(null);
+            return true;
+        
+        } else if (child instanceof NameExpression) {
+            setNameExp(null);
+            return true;
+        
+        } else if (child instanceof OrdinalExpression) {
+            setOrdinalExp(null);
+            return true;
+        
+        } else if (child instanceof ParentExpression) {
+            setParentExp(null);
+            return true;
+        
+        } else if (child instanceof Closure) {
+            setClosure(null);
+            return true;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element Level
 /** 
@@ -3364,6 +3600,22 @@ public static class Closure extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof Table) {
+            setTable(null);
+            return true;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -3503,6 +3755,18 @@ public static class Property extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -3814,6 +4078,25 @@ public static class Measure extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof CalculatedMemberProperty) {
+            return removeMemberPropertie((CalculatedMemberProperty) child);
+        
+        } else if (child instanceof MeasureExpression) {
+            setMeasureExp(null);
+            return true;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element Measure
 /**  */
@@ -4076,6 +4359,25 @@ public static class CalculatedMember extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof CalculatedMemberProperty) {
+            return removeMemberPropertie((CalculatedMemberProperty) child);
+        
+        } else if (child instanceof Formula) {
+            setFormulaElement(null);
+            return true;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element CalculatedMember
 /** 
@@ -4201,6 +4503,18 @@ public static class CalculatedMemberProperty extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element CalculatedMemberProperty
 /** 
@@ -4320,6 +4634,22 @@ public static class NamedSet extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof Formula) {
+            setFormulaElement(null);
+            return true;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element NamedSet
 /**  */
@@ -4371,6 +4701,18 @@ public static class Formula extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -4449,6 +4791,18 @@ public static class MemberReaderParameter extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element MemberReaderParameter
 /** A table or a join */
@@ -4490,6 +4844,18 @@ public abstract static class RelationOrJoin extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -4538,6 +4904,18 @@ public abstract static class Relation extends RelationOrJoin {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -4686,6 +5064,21 @@ public static class View extends Relation {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof SQL) {
+            return removeSelect((SQL) child);
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element View
 /**  */
@@ -4756,6 +5149,18 @@ public static class SQL extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -4915,6 +5320,26 @@ public static class Join extends RelationOrJoin {
             }
         } else {
         	super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+		if (false) {
+			return false;
+		} else if (child instanceof RelationOrJoin) {
+            if (getLeft() == child) {
+            	setLeft(null);
+            	return true;
+            } else if (getRight() == child) {
+                setRight(null);
+                return true;
+            }
+            return false;
+        } else {
+        	return super.removeChild(child);
         }
 			    
     }
@@ -5187,6 +5612,28 @@ public static class Table extends Relation {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof AggExclude) {
+            return removeAggExclude((AggExclude) child);
+        
+        } else if (child instanceof AggTable) {
+            return removeAggTable((AggTable) child);
+        
+        } else if (child instanceof SQL) {
+            setFilter(null);
+            return true;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element Table
 /**  */
@@ -5292,6 +5739,26 @@ public static class InlineTable extends Relation {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof ColumnDefs) {
+            setColumnDefs(null);
+            return true;
+        
+        } else if (child instanceof Rows) {
+            setRows(null);
+            return true;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -5417,6 +5884,21 @@ public static class ColumnDefs extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof ColumnDef) {
+            return removeArray((ColumnDef) child);
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element ColumnDefs
 /** 
@@ -5496,6 +5978,18 @@ public static class ColumnDef extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -5618,6 +6112,21 @@ public static class Rows extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof Row) {
+            return removeArray((Row) child);
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -5746,6 +6255,21 @@ public static class Row extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof Value) {
+            return removeValue((Value) child);
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element Row
 /** 
@@ -5819,6 +6343,18 @@ public static class Value extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -6178,6 +6714,34 @@ public abstract static class AggTable extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof AggIgnoreColumn) {
+            return removeIgnoreColumn((AggIgnoreColumn) child);
+        
+        } else if (child instanceof AggForeignKey) {
+            return removeForeignKey((AggForeignKey) child);
+        
+        } else if (child instanceof AggMeasure) {
+            return removeMeasure((AggMeasure) child);
+        
+        } else if (child instanceof AggLevel) {
+            return removeLevel((AggLevel) child);
+        
+        } else if (child instanceof AggFactCount) {
+            setFactcount(null);
+            return true;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of class AggTable
 /**  */
@@ -6239,6 +6803,18 @@ public static class AggName extends AggTable {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -6387,6 +6963,21 @@ public static class AggPattern extends AggTable {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof AggExclude) {
+            return removeExclude((AggExclude) child);
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element AggPattern
 /**  */
@@ -6485,6 +7076,18 @@ public static class AggExclude extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element AggExclude
 /**  */
@@ -6548,6 +7151,18 @@ public abstract static class AggColumnName extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of class AggColumnName
 /**  */
@@ -6593,6 +7208,18 @@ public static class AggFactCount extends AggColumnName {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element AggFactCount
 /**  */
@@ -6635,6 +7262,18 @@ public static class AggIgnoreColumn extends AggColumnName {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -6720,6 +7359,18 @@ public static class AggForeignKey extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element AggForeignKey
 /**  */
@@ -6796,6 +7447,18 @@ public static class AggLevel extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -6878,6 +7541,18 @@ public static class AggMeasure extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element AggMeasure
 /**  */
@@ -6919,6 +7594,18 @@ public abstract static class Expression extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -7003,6 +7690,18 @@ public static class Column extends Expression {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -7137,6 +7836,21 @@ public abstract static class ExpressionView extends Expression {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof SQL) {
+            return removeExpression((SQL) child);
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of class ExpressionView
 /**  */
@@ -7179,6 +7893,18 @@ public static class KeyExpression extends ExpressionView {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -7227,6 +7953,18 @@ public static class ParentExpression extends ExpressionView {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element ParentExpression
 /**  */
@@ -7269,6 +8007,18 @@ public static class OrdinalExpression extends ExpressionView {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -7317,6 +8067,18 @@ public static class NameExpression extends ExpressionView {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element NameExpression
 /**  */
@@ -7362,6 +8124,18 @@ public static class CaptionExpression extends ExpressionView {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element CaptionExpression
 /**  */
@@ -7404,6 +8178,18 @@ public static class MeasureExpression extends ExpressionView {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -7569,6 +8355,25 @@ public static class Role extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof SchemaGrant) {
+            return removeSchemaGrant((SchemaGrant) child);
+        
+        } else if (child instanceof Union) {
+            setUnion(null);
+            return true;
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element Role
 /**  */
@@ -7627,6 +8432,18 @@ public abstract static class Grant extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -7759,6 +8576,21 @@ public static class SchemaGrant extends Grant {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof CubeGrant) {
+            return removeCubeGrant((CubeGrant) child);
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -7971,6 +8803,24 @@ public static class CubeGrant extends Grant {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof DimensionGrant) {
+            return removeDimensionGrant((DimensionGrant) child);
+        
+        } else if (child instanceof HierarchyGrant) {
+            return removeHierarchyGrant((HierarchyGrant) child);
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element CubeGrant
 /** 
@@ -8037,6 +8887,18 @@ public static class DimensionGrant extends Grant {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -8250,6 +9112,21 @@ public static class HierarchyGrant extends Grant {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof MemberGrant) {
+            return removeMemberGrant((MemberGrant) child);
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element HierarchyGrant
 /** 
@@ -8327,6 +9204,18 @@ public static class MemberGrant extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -8456,6 +9345,21 @@ public static class Union extends OLAPObject {
         }
 			    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else if (child instanceof RoleUsage) {
+            return removeRoleUsage((RoleUsage) child);
+        
+        } else {
+            return super.removeChild(child);
+        }
+			    
+    }
 
 } // end of element Union
 /** 
@@ -8513,6 +9417,18 @@ public static class RoleUsage extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -8597,6 +9513,18 @@ public static class UserDefinedFunction extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
@@ -8741,6 +9669,18 @@ public static class Parameter extends OLAPObject {
         
         } else {
             super.addChild(child);
+        }
+			    
+    }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		
+        if (false) {
+        	return false;
+        
+        } else {
+            return super.removeChild(child);
         }
 			    
     }
