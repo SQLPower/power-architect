@@ -44,7 +44,7 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
     public void actionPerformed(ActionEvent arg0) {
         TreePath[] tps = editSession.getOlapTree().getSelectionPaths();
         if (tps.length > 1 ) {
-            int decision = JOptionPane.showConfirmDialog(editSession.getPanel(), "Are you sure you want to delete the following " + tps.length + " items?",
+            int decision = JOptionPane.showConfirmDialog(editSession.getDialog(), "Are you sure you want to delete the following " + tps.length + " items?",
                             "Multiple Delete", JOptionPane.YES_NO_OPTION);
             if (decision != JOptionPane.YES_OPTION ) {
                 return;

@@ -63,11 +63,9 @@ public class ImportSchemaAction extends AbstractArchitectAction {
                 OLAPSession osession = new OLAPSession(loadedSchema);
                 osession.setDatabase(session.getTargetDatabase());
                 session.getOLAPRootObject().addChild(osession);
-                OLAPEditSession panel = new OLAPEditSession(session, loadedSchema);
-                // TODO register listener on schema object and make dialog title track schema name
-                JDialog d = new JDialog(session.getArchitectFrame(), "OLAP Schema Editor");
-                d.setContentPane(panel.getPanel());
-                d.pack();
+                OLAPEditSession editSession = session.getOLAPEditSession(osession);
+                
+                JDialog d = editSession.getDialog();
                 d.setLocationRelativeTo(session.getArchitectFrame());
                 d.setVisible(true);
             } catch (Exception ex) {

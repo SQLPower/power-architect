@@ -56,11 +56,13 @@ import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
+import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSUtils;
@@ -135,6 +137,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private boolean showUnique = true;
     private boolean showTheRest = true;
     
+    private List<OLAPEditSession> olapEditSessions;
+    
     /**
      * The database connection manager GUI for this session context (because all sessions
      * share the same set of database connections).
@@ -191,16 +195,18 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         projectModificationWatcher = new ProjectModificationWatcher(playPen);
 
         undoManager = new UndoManager(playPen);
-        playPen.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
-        playPen.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter());
-        playPen.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", undoManager.getEventAdapter());
-        playPen.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", undoManager.getEventAdapter());
-        playPen.getPlayPenContentPane().addPropertyChangeListener("dashed", undoManager.getEventAdapter());
-        playPen.getPlayPenContentPane().addPropertyChangeListener("rounded", undoManager.getEventAdapter());
+        playPen.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter()); //$NON-NLS-1$
+        playPen.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter()); //$NON-NLS-1$
+        playPen.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", undoManager.getEventAdapter()); //$NON-NLS-1$
+        playPen.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", undoManager.getEventAdapter()); //$NON-NLS-1$
+        playPen.getPlayPenContentPane().addPropertyChangeListener("dashed", undoManager.getEventAdapter()); //$NON-NLS-1$
+        playPen.getPlayPenContentPane().addPropertyChangeListener("rounded", undoManager.getEventAdapter()); //$NON-NLS-1$
 
         lifecycleListener = new ArrayList<SessionLifecycleListener<ArchitectSwingSession>>();
 
         swingWorkers = new HashSet<SPSwingWorker>();
+        
+        olapEditSessions = new ArrayList<OLAPEditSession>();
     }
 
     public void initGUI() throws ArchitectException {
@@ -866,5 +872,21 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     public void showOLAPSchemaManager(Window owner) {
         olapSchemaManager.showDialog(owner);
+    }
+
+    public List<OLAPEditSession> getOLAPEditSessions() {
+        return olapEditSessions;
+    }
+    
+    public OLAPEditSession getOLAPEditSession(OLAPSession olapSession) {
+        if (olapSession == null) {
+            throw new NullPointerException(Messages.getString("ArchitectSwingSessionImpl.nullOlapSession")); //$NON-NLS-1$
+        }
+        for (OLAPEditSession editSession : getOLAPEditSessions()) {
+            if (editSession.getOlapSession() == olapSession) {
+                return editSession;
+            }
+        }
+        return new OLAPEditSession(this, olapSession);
     }
 }
