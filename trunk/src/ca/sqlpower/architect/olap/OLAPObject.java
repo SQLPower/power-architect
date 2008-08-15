@@ -95,6 +95,22 @@ public abstract class OLAPObject {
     }
     
     /**
+     * Removes the given child on this OLAPObject if this type of OLAPObject has
+     * the applicable removeXXX() or setXXX(null) method for the given object's type.
+     * <p>
+     * This method in the abstract base class always throws the IllegalArgumentException
+     * because no children or properties are defined at this level.
+     * 
+     * @param child
+     *             The child to remove.
+     * @throws IllegalArgumentException
+     *             if this object doesn't support child's type.
+     */
+    public boolean removeChild(OLAPObject child) {
+        throw new IllegalArgumentException(getClass().getName() + " doesn't allow children of type " + child.getClass());
+    }
+    
+    /**
      * Changes this OLAPObject's parent reference. It is the parent's
      * responsibility to manage the reference, so this method is
      * package-private.

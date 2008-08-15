@@ -304,6 +304,44 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
 			</xsl:otherwise>    
 		</xsl:choose>    
     }
+    
+    @Override
+    public boolean removeChild(OLAPObject child) {
+		<xsl:choose>
+			<xsl:when test="@type='Join'">
+		if (false) {
+			return false;
+		} else if (child instanceof RelationOrJoin) {
+            if (getLeft() == child) {
+            	setLeft(null);
+            	return true;
+            } else if (getRight() == child) {
+                setRight(null);
+                return true;
+            }
+            return false;
+        } else {
+        	return super.removeChild(child);
+        }
+			</xsl:when>
+			<xsl:otherwise>
+        if (false) {
+        	return false;
+        <xsl:for-each select="Array">
+        } else if (child instanceof <xsl:value-of select="@type"/>) {
+            return remove<xsl:call-template name="name-initcap-nonplural"/>((<xsl:value-of select="@type"/>) child);
+        </xsl:for-each>
+        <xsl:for-each select="Object">
+        } else if (child instanceof <xsl:value-of select="@type"/>) {
+            set<xsl:call-template name="name-initcap"/>(null);
+            return true;
+        </xsl:for-each>
+        } else {
+            return super.removeChild(child);
+        }
+			</xsl:otherwise>    
+		</xsl:choose>    
+    }
 </xsl:template>
 
 <!-- Returns the initcap version of the "name" attribute of the current element -->
