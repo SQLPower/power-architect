@@ -28,17 +28,78 @@ public class MondrianXMLReader {
 
     private static final Logger logger = Logger.getLogger(MondrianXMLReader.class);
 
-    public static OLAPObject parse(File f, boolean mondrianMode) throws IOException, SAXException {
-        return parse(null, null, new FileInputStream(f), mondrianMode);
-    }
-
-    public static OLAPObject parse(OLAPRootObject rootObj, Map<String, SQLObject> dbIdMap, File f, boolean mondrianMode) throws IOException, SAXException {
-        return parse(rootObj, dbIdMap, new FileInputStream(f), mondrianMode);
-    }
-
-    public static OLAPObject parse(OLAPRootObject rootObj, Map<String, SQLObject> dbIdMap, InputStream in, boolean mondrianMode) throws IOException, SAXException {
+    /**
+     * Imports an OLAP schema from a Mondrian schema xml file.
+     * 
+     * @param f
+     *            The file to read from.
+     * @return The Schema that will be populated with the objects from the file.
+     * @throws IOException
+     *             If the file could not be read.
+     * @throws SAXException
+     *             If the xml in the file is malformed.
+     */
+    public static OLAPObject importXML(File f) throws IOException, SAXException {
         XMLReader reader = XMLReaderFactory.createXMLReader();
-        MondrianSAXHandler handler = new MondrianSAXHandler(rootObj, dbIdMap, mondrianMode);
+        MondrianSAXHandler handler = new MondrianSAXHandler();
+        reader.setContentHandler(handler);
+        InputSource is = new InputSource(new FileInputStream(f));
+        reader.parse(is);
+        return handler.root;
+    }
+
+    /**
+     * Reads in the OLAPObjects from an Architect file. This is essentially the
+     * same as calling {@link #parse(InputStream, OLAPRootObject, Map, Map)}.
+     * 
+     * @param f
+     *            The file to load from.
+     * @param rootObj
+     *            The OLAPRootObject that will be populated with all the
+     *            OLAPObjects from the file, must not be null.
+     * @param dbIdMap
+     *            A map containing references to SQLDatabases from the architect
+     *            project, must not be null.
+     * @param olapIdMap
+     *            A map that will be populated with the OLAPObjects from the
+     *            file and their generated ids, must not be null.
+     * @return The OLAPRootObject that will be populated with the objects from
+     *         the file.
+     * @throws IOException
+     *             If the file could not be read.
+     * @throws SAXException
+     *             If the xml in the file is malformed.
+     */
+    public static OLAPObject parse(File f, OLAPRootObject rootObj,
+            Map<String, SQLObject> dbIdMap, Map<String, OLAPObject> olapIdMap) throws IOException, SAXException {
+        return parse(new FileInputStream(f), rootObj, dbIdMap, olapIdMap);
+    }
+
+    /**
+     * Reads in OLAPObjects from an InputStream in the Architect OLAP format.
+     * 
+     * @param in
+     *            The InputStream to read from, must support mark.
+     * @param rootObj
+     *            The OLAPRootObject that will be populated with all the
+     *            OLAPObjects from the file, must not be null.
+     * @param dbIdMap
+     *            A map containing references to SQLDatabases from the architect
+     *            project, must not be null.
+     * @param olapIdMap
+     *            A map that will be populated with the OLAPObjects from the
+     *            file and their generated ids, must not be null.
+     * @return The OLAPRootObject that will be populated with the objects from
+     *         the file.
+     * @throws IOException
+     *             If the input stream could not be read.
+     * @throws SAXException
+     *             If the xml in the input stream is malformed.
+     */
+    public static OLAPObject parse(InputStream in, OLAPRootObject rootObj, Map<String, SQLObject> dbIdMap,
+            Map<String, OLAPObject> olapIdMap) throws IOException, SAXException {
+        XMLReader reader = XMLReaderFactory.createXMLReader();
+        MondrianSAXHandler handler = new MondrianSAXHandler(rootObj, dbIdMap, olapIdMap);
         reader.setContentHandler(handler);
         InputSource is = new InputSource(in);
         reader.parse(is);
@@ -55,15 +116,20 @@ public class MondrianXMLReader {
         
         private boolean inOlap;
        
-        private final Map<String, SQLObject> dbIdMap;
-        private final boolean mondrianMode;
+        private final boolean importMode;
+        
+        private Map<String, SQLObject> dbIdMap;
+        private Map<String, OLAPObject> olapIdMap;
+        
+        public MondrianSAXHandler() {
+            this.importMode = true;
+        }
        
-        public MondrianSAXHandler(OLAPRootObject rootObj, Map<String, SQLObject> dbIdMap, boolean mondrianMode) {
-            if (rootObj != null) {
-                this.root = rootObj;
-            }
+        public MondrianSAXHandler(OLAPRootObject rootObj, Map<String, SQLObject> dbIdMap, Map<String, OLAPObject> olapIdMap) {
+            this.importMode = false;
+            this.root = rootObj;
             this.dbIdMap = dbIdMap;
-            this.mondrianMode = mondrianMode;
+            this.olapIdMap = olapIdMap;
         }
 
         @Override
@@ -87,8 +153,9 @@ public class MondrianXMLReader {
                         String aval = atts.getValue(i);
                         currentOSessionAtts.put(aname, aval);
 	                }
+	                currentOSessionAtts.put("id", Integer.toString(olapIdMap.size()));
 	                pushElem = false;
-	                currentElement = null;                    
+	                currentElement = null;                  
 	           
 	            } else if (qName.equals("Schema")) {
                     MondrianModel.Schema elem = new MondrianModel.Schema();
@@ -96,7 +163,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -123,7 +191,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -158,7 +227,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("enabled")) {
                              
@@ -189,7 +259,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -204,7 +275,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("cubeName")) {
                              
@@ -227,7 +299,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("cubeName")) {
                              
@@ -250,7 +323,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("cubeName")) {
                              
@@ -277,7 +351,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("source")) {
                              
@@ -304,7 +379,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -335,7 +411,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -390,7 +467,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("approxRowCount")) {
                              
@@ -465,7 +543,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("parentColumn")) {
                              
@@ -488,7 +567,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -523,7 +603,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -570,7 +651,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -609,7 +691,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -640,7 +723,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -663,7 +747,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -678,7 +763,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -701,7 +787,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("alias")) {
                              
@@ -720,7 +807,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("dialect")) {
                              
@@ -739,7 +827,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("leftAlias")) {
                              
@@ -770,7 +859,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -797,7 +887,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("alias")) {
                              
@@ -816,7 +907,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -831,7 +923,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -854,7 +947,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -869,7 +963,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -884,7 +979,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("column")) {
                              
@@ -903,7 +999,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -922,7 +1019,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("pattern")) {
                              
@@ -941,7 +1039,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("pattern")) {
                              
@@ -968,7 +1067,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -983,7 +1083,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -998,7 +1099,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("factColumn")) {
                              
@@ -1021,7 +1123,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("column")) {
                              
@@ -1044,7 +1147,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("column")) {
                              
@@ -1067,7 +1171,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("table")) {
                              
@@ -1090,7 +1195,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -1105,7 +1211,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -1120,7 +1227,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -1135,7 +1243,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -1150,7 +1259,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -1165,7 +1275,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -1180,7 +1291,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -1199,7 +1311,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -1214,7 +1327,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("cube")) {
                              
@@ -1233,7 +1347,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("dimension")) {
                              
@@ -1252,7 +1367,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("hierarchy")) {
                              
@@ -1283,7 +1399,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("member")) {
                              
@@ -1306,7 +1423,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else {
 			               
@@ -1321,7 +1439,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("roleName")) {
                              
@@ -1340,7 +1459,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -1363,7 +1483,8 @@ public class MondrianXMLReader {
                     for (int i = 0; i < atts.getLength(); i++) {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
-                        if (false) {
+                        if (olapIdMap != null && aname.equals("id")) {
+                        	olapIdMap.put(aval, elem);
                         
                         } else if (aname.equals("name")) {
                              
@@ -1409,6 +1530,8 @@ public class MondrianXMLReader {
                                 String aval = currentOSessionAtts.get(aname);
                                 if (aname.equals("db-ref")) {
                                     osession.setDatabase((SQLDatabase) dbIdMap.get(aval));
+                                } else if (olapIdMap != null && aname.equals("id")) {
+                                	olapIdMap.put(aval, osession);
                                 } else {
                                     logger.warn("Skipping unknown attribute \""+aname+"\" of element \""+OLAPSession.class+"\"");
                                 }
@@ -1419,7 +1542,7 @@ public class MondrianXMLReader {
                             context.peek().addChild(currentElement);
                         }
                     } else {
-                        if (mondrianMode) {
+                        if (importMode) {
                             root = (MondrianModel.Schema) currentElement;
                         }
                     }
@@ -1456,8 +1579,8 @@ public class MondrianXMLReader {
                 ((MondrianModel.SQL) context.peek()).setText(text.toString().trim());
             } else if (context.peek() instanceof MondrianModel.Formula) {
                 ((MondrianModel.Formula) context.peek()).setText(text.toString().trim());
-            } else if ((context.peek() instanceof OLAPRootObject && !mondrianMode)||
-            		(context.peek() instanceof MondrianModel.Schema && mondrianMode)) {
+            } else if ((context.peek() instanceof OLAPRootObject && !importMode)||
+            		(context.peek() instanceof MondrianModel.Schema && importMode)) {
             	inOlap = false;
             }
             text = null;

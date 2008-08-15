@@ -48,6 +48,7 @@ import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.olap.MondrianXMLReader;
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -107,13 +108,23 @@ public class CoreProject {
     /**
      * This map maps String ID codes to SQLObject instances used in loading.
      */
-    protected Map<String, SQLObject> objectLoadIdMap;
+    protected Map<String, SQLObject> sqlObjectLoadIdMap;
     
     /**
      * This holds mappings from SQLObject instance to String ID used in saving.
      */
-    protected Map<SQLObject, String> objectSaveIdMap;
+    protected Map<SQLObject, String> sqlObjectSaveIdMap;
 
+    /**
+     * This map maps String ID codes to OLAPObject instances used in loading.
+     */
+    protected Map<String, OLAPObject> olapObjectLoadIdMap;
+    
+    /**
+     * This holds mappings from OLAPObject instance to String ID used in saving.
+     */
+    protected Map<OLAPObject, String> olapObjectSaveIdMap;
+    
     /**
      * This map maps String ID codes to DBCS instances used in loading.
      */
@@ -152,7 +163,8 @@ public class CoreProject {
         UnclosableInputStream uin = new UnclosableInputStream(in);
         try {
             dbcsLoadIdMap = new HashMap<String, SPDataSource>();
-            objectLoadIdMap = new HashMap<String, SQLObject>();
+            sqlObjectLoadIdMap = new HashMap<String, SQLObject>();
+            olapObjectLoadIdMap = new HashMap<String, OLAPObject>();
 
             if (uin.markSupported()) {
                 uin.mark(Integer.MAX_VALUE);
@@ -241,7 +253,7 @@ public class CoreProject {
                     logger.debug("primary key index is null in table: " + table);
                     logger.debug("number of children found in indices folder: " + table.getIndicesFolder().getChildCount());
                     for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
-                        if (objectLoadIdMap.get(table.getName()+"."+index.getName()) != null) {
+                        if (sqlObjectLoadIdMap.get(table.getName()+"."+index.getName()) != null) {
                             index.setPrimaryKeyIndex(true);
                             break;
                         }
@@ -267,7 +279,7 @@ public class CoreProject {
             uin.reset();
             
             try {
-                MondrianXMLReader.parse(session.getOLAPRootObject(), objectLoadIdMap, uin, false);
+                MondrianXMLReader.parse(uin, session.getOLAPRootObject(), sqlObjectLoadIdMap, olapObjectLoadIdMap);
             } catch (SAXException e) {
                 logger.error("Error parsing project file's olap schemas!", e);
                 throw new ArchitectException("SAX Exception in project file olap schemas parse!", e);
@@ -275,7 +287,7 @@ public class CoreProject {
                 logger.error("General Exception in project file olap schemas parse!", ex);
                 throw new ArchitectException("Unexpected Exception", ex);
             }
-
+            
             setModified(false);
         } finally {
             uin.forceClose();
@@ -457,7 +469,7 @@ public class CoreProject {
             
             String id = attributes.getValue("id");
             if (id != null) {
-                objectLoadIdMap.put(id, ppdb);
+                sqlObjectLoadIdMap.put(id, ppdb);
             } else {
                 logger.warn("No ID found in database element while loading project!");
             }
@@ -467,7 +479,7 @@ public class CoreProject {
                 ppdb.setDataSource(dbcsLoadIdMap.get(dbcsid));
             }
             
-            objectLoadIdMap.put(id, ppdb);
+            sqlObjectLoadIdMap.put(id, ppdb);
             
             return ppdb;
         }
@@ -486,7 +498,7 @@ public class CoreProject {
 
             String id = attributes.getValue("id");
             if (id != null) {
-                objectLoadIdMap.put(id, db);
+                sqlObjectLoadIdMap.put(id, db);
             } else {
                 logger.warn("No ID found in database element while loading project!");
             }
@@ -517,7 +529,7 @@ public class CoreProject {
             SQLSchema schema = new SQLSchema(startPopulated);
             String id = attributes.getValue("id");
             if (id != null) {
-                objectLoadIdMap.put(id, schema);
+                sqlObjectLoadIdMap.put(id, schema);
             } else {
                 logger.warn("No ID found in database element while loading project!");
             }
@@ -537,8 +549,8 @@ public class CoreProject {
             String pkName = attributes.getValue("primaryKeyName");
 
             if (id != null) {
-                objectLoadIdMap.put(id, tab);
-                objectLoadIdMap.put(id+"."+pkName, tab);
+                sqlObjectLoadIdMap.put(id, tab);
+                sqlObjectLoadIdMap.put(id+"."+pkName, tab);
             } else {
                 logger.warn("No ID found in table element while loading project!");
             }
@@ -593,14 +605,14 @@ public class CoreProject {
 
             String id = attributes.getValue("id");
             if (id != null) {
-                objectLoadIdMap.put(id, col);
+                sqlObjectLoadIdMap.put(id, col);
             } else {
                 logger.warn("No ID found in column element while loading project!");
             }
 
             String sourceId = attributes.getValue("source-column-ref");
             if (sourceId != null) {
-                col.setSourceColumn((SQLColumn) objectLoadIdMap.get(sourceId));
+                col.setSourceColumn((SQLColumn) sqlObjectLoadIdMap.get(sourceId));
             }
 
             return col;
@@ -617,7 +629,7 @@ public class CoreProject {
 
             String id = attributes.getValue("id");
             if (id != null) {
-                objectLoadIdMap.put(id, exc);
+                sqlObjectLoadIdMap.put(id, exc);
             } else {
                 logger.warn("No ID found in exception element while loading project!");
             }
@@ -639,7 +651,7 @@ public class CoreProject {
 
             String id = attributes.getValue("id");
             if (id != null) {
-                objectLoadIdMap.put(id, rel);
+                sqlObjectLoadIdMap.put(id, rel);
             } else {
                 logger.warn("No ID found in relationship element while loading project!");
             }
@@ -648,8 +660,8 @@ public class CoreProject {
             String pkTableId = attributes.getValue("pk-table-ref");
 
             if (fkTableId != null && pkTableId != null) {
-                SQLTable fkTable = (SQLTable) objectLoadIdMap.get(fkTableId);
-                SQLTable pkTable = (SQLTable) objectLoadIdMap.get(pkTableId);
+                SQLTable fkTable = (SQLTable) sqlObjectLoadIdMap.get(fkTableId);
+                SQLTable pkTable = (SQLTable) sqlObjectLoadIdMap.get(pkTableId);
                 try {
                     rel.attachRelationship(pkTable, fkTable, false);
                 } catch (ArchitectException e) {
@@ -675,19 +687,19 @@ public class CoreProject {
 
             String id = attributes.getValue("id");
             if (id != null) {
-                objectLoadIdMap.put(id, cmap);
+                sqlObjectLoadIdMap.put(id, cmap);
             } else {
                 logger.warn("No ID found in column-mapping element while loading project!");
             }
 
             String fkColumnId = attributes.getValue("fk-column-ref");
             if (fkColumnId != null) {
-                cmap.setFkColumn((SQLColumn) objectLoadIdMap.get(fkColumnId));
+                cmap.setFkColumn((SQLColumn) sqlObjectLoadIdMap.get(fkColumnId));
             }
 
             String pkColumnId = attributes.getValue("pk-column-ref");
             if (pkColumnId != null) {
-                cmap.setPkColumn((SQLColumn) objectLoadIdMap.get(pkColumnId));
+                cmap.setPkColumn((SQLColumn) sqlObjectLoadIdMap.get(pkColumnId));
             }
 
             return cmap;
@@ -710,7 +722,7 @@ public class CoreProject {
             logger.debug("Loading index: "+attributes.getValue("name"));
             String id = attributes.getValue("id");
             if (id != null) {
-                objectLoadIdMap.put(id, index);
+                sqlObjectLoadIdMap.put(id, index);
             } else {
                 logger.warn("No ID found in index element while loading project!");
             }
@@ -734,14 +746,14 @@ public class CoreProject {
 
             String id = attributes.getValue("id");
             if (id != null) {
-                objectLoadIdMap.put(id, col);
+                sqlObjectLoadIdMap.put(id, col);
             } else {
                 logger.warn("No ID found in index-column element while loading project!");
             }
 
             String referencedColId = attributes.getValue("column-ref");
             if (referencedColId != null) {
-                SQLColumn column = (SQLColumn) objectLoadIdMap.get(referencedColId);
+                SQLColumn column = (SQLColumn) sqlObjectLoadIdMap.get(referencedColId);
                 col.setColumn(column);
             }
             for (int i = 0; i < attributes.getLength(); i++) {
@@ -807,14 +819,14 @@ public class CoreProject {
             if (className == null) {
                 throw new ArchitectException("Missing mandatory attribute \"type\" in <profile-result> element");
             } else if (className.equals(TableProfileResult.class.getName())) {
-                SQLTable t = (SQLTable) objectLoadIdMap.get(refid);
+                SQLTable t = (SQLTable) sqlObjectLoadIdMap.get(refid);
                 
                 // XXX we should actually store the settings together with each profile result, not rehash the current defaults
                 tableProfileResult = new TableProfileResult(t, session.getProfileManager().getDefaultProfileSettings());
                 
                 return tableProfileResult;
             } else if (className.equals(ColumnProfileResult.class.getName())) {
-                SQLColumn c = (SQLColumn) objectLoadIdMap.get(refid);
+                SQLColumn c = (SQLColumn) sqlObjectLoadIdMap.get(refid);
                 if (tableProfileResult == null) {
                     throw new IllegalArgumentException("Column result does not have a parent");
                 }

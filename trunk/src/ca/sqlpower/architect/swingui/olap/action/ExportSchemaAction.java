@@ -30,6 +30,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.MondrianXMLWriter;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.ProgressAction;
 import ca.sqlpower.swingui.SPSUtils;
@@ -58,12 +59,12 @@ public class ExportSchemaAction extends ProgressAction {
 
     @Override
     public void doStuff(MonitorableImpl monitor, Map<String, Object> properties) {
-        
+        File f = (File) properties.get(FILE_KEY);
         try {
-            MondrianXMLWriter.writeXML((File)properties.get(FILE_KEY), schema);
+            MondrianXMLWriter.exportXML(f, schema);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            logger.error("Failed to save " + f.getName() + " for schema: " + schema);
+            ASUtils.showExceptionDialog(session, "Could not save xml schema file.", e);
         }
     }
 
