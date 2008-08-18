@@ -61,12 +61,17 @@ import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.olap.MondrianXMLWriter;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
+import ca.sqlpower.architect.swingui.olap.CubePane;
+import ca.sqlpower.architect.swingui.olap.DimensionPane;
+import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.util.SQLPowerUtils;
@@ -135,25 +140,33 @@ public class SwingUIProject extends CoreProject {
         Digester d = super.setupDigester();
 
         // the play pen
-        PlayPenFactory ppFactory = new PlayPenFactory();
+        RelationalPlayPenFactory ppFactory = new RelationalPlayPenFactory();
         d.addFactoryCreate("architect-project/play-pen", ppFactory); //$NON-NLS-1$
         
         //Sets the view point again in the case that the viewport was invalid in the factory
-        d.addRule("architect-project/play-pen", new Rule() { //$NON-NLS-1$
+        d.addRule("*/play-pen", new Rule() { //$NON-NLS-1$
             @Override
             public void end() throws Exception {
                 super.end();
-                getSession().getPlayPen().setInitialViewPosition();
+                
+                Object topItem = getDigester().peek();
+                if (!(topItem instanceof PlayPen)) {
+                    logger.error("Expected a PlayPen object on top of stack but found: " + topItem); //$NON-NLS-1$
+                    throw new IllegalStateException("PlayPen object not found!"); //$NON-NLS-1$
+                }
+                
+                PlayPen pp = (PlayPen) topItem;
+                pp.setInitialViewPosition();
             }
         });
         
         TablePaneFactory tablePaneFactory = new TablePaneFactory();
-        d.addFactoryCreate("architect-project/play-pen/table-pane", tablePaneFactory); //$NON-NLS-1$
+        d.addFactoryCreate("*/play-pen/table-pane", tablePaneFactory); //$NON-NLS-1$
         // factory will add the tablepanes to the playpen
-
+        
         PPRelationshipFactory ppRelationshipFactory = new PPRelationshipFactory();
-        d.addFactoryCreate("architect-project/play-pen/table-link", ppRelationshipFactory); //$NON-NLS-1$
-
+        d.addFactoryCreate("*/play-pen/table-link", ppRelationshipFactory); //$NON-NLS-1$
+        
         CompareDMSettingFactory settingFactory = new CompareDMSettingFactory();
         d.addFactoryCreate("architect-project/compare-dm-settings", settingFactory); //$NON-NLS-1$
         d.addSetProperties("architect-project/compare-dm-settings"); //$NON-NLS-1$
@@ -170,26 +183,42 @@ public class SwingUIProject extends CoreProject {
         d.addFactoryCreate("architect-project/create-kettle-job-settings", ckjsFactory); //$NON-NLS-1$
         d.addSetProperties("architect-project/create-kettle-job-settings"); //$NON-NLS-1$
 
+        // olap factories
+        
+        OLAPEditSessionFactory editSessionFactory = new OLAPEditSessionFactory();
+        d.addFactoryCreate("architect-project/olap-gui/olap-edit-session", editSessionFactory); //$NON-NLS-1$
+        
+        OLAPPlayPenFactory olapPPFactory = new OLAPPlayPenFactory();
+        d.addFactoryCreate("architect-project/olap-gui/olap-edit-session/play-pen", olapPPFactory); //$NON-NLS-1$
+
+        CubePaneFactory cubePaneFactory = new CubePaneFactory();
+        d.addFactoryCreate("*/play-pen/cube-pane", cubePaneFactory); //$NON-NLS-1$
+        
+        DimensionPaneFactory dimensionPaneFactory = new DimensionPaneFactory();
+        d.addFactoryCreate("*/play-pen/dimension-pane", dimensionPaneFactory); //$NON-NLS-1$
+
         return d;
     }
     
-    
-
-    private class PlayPenFactory extends AbstractObjectCreationFactory {
+    private class OLAPPlayPenFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
-        	String zoomLevel = attributes.getValue("zoom"); //$NON-NLS-1$
-        	if (zoomLevel != null) {
-        	    getSession().getPlayPen().setZoom(Double.parseDouble(zoomLevel));
-        	}
-        	
-        	String viewportX = attributes.getValue("viewportX"); //$NON-NLS-1$
-        	String viewportY = attributes.getValue("viewportY"); //$NON-NLS-1$
-        	
-        	if (viewportX != null && viewportY != null) {
-        	    Point viewPoint = new Point(Integer.parseInt(viewportX), Integer.parseInt(viewportY));
-        		getSession().getPlayPen().setViewPosition(viewPoint);
-        	}
-        	logger.debug("Viewport position is " + getSession().getPlayPen().getViewPosition()); //$NON-NLS-1$
+            Object topItem = getDigester().peek();
+            if (!(topItem instanceof OLAPEditSession)) {
+                logger.error("Expected parent OLAPEditSession object on top of stack but found: " + topItem); //$NON-NLS-1$
+                throw new IllegalStateException("Parent OLAPEditSession not found!"); //$NON-NLS-1$
+            }
+            
+            OLAPEditSession editSession = (OLAPEditSession) topItem;
+            PlayPen pp = editSession.getOlapPlayPen();
+            setupGenericPlayPen(pp, attributes);
+            return pp;
+        }
+    }
+    
+    private class RelationalPlayPenFactory extends AbstractObjectCreationFactory {
+        public Object createObject(Attributes attributes) {
+            PlayPen pp = getSession().getPlayPen();
+        	setupGenericPlayPen(pp, attributes);
         	
         	// default values in playpen are true
         	String showPrimary = attributes.getValue("showPrimary"); //$NON-NLS-1$
@@ -252,16 +281,48 @@ public class SwingUIProject extends CoreProject {
                 direct = false;
             }
             getSession().setRelationshipLinesDirect(direct);
-            return getSession().getPlayPen();
+            return pp;
         }
+
+    }
+    
+    /**
+     * Sets up everything in common between all types of playpens.
+     * 
+     * @param pp
+     *            the play pen to set up
+     * @param attributes
+     *            The attributes from the start tag
+     */
+    private void setupGenericPlayPen(PlayPen pp, Attributes attributes) {
+        String zoomLevel = attributes.getValue("zoom"); //$NON-NLS-1$
+        if (zoomLevel != null) {
+            pp.setZoom(Double.parseDouble(zoomLevel));
+        }
+        
+        String viewportX = attributes.getValue("viewportX"); //$NON-NLS-1$
+        String viewportY = attributes.getValue("viewportY"); //$NON-NLS-1$
+        
+        if (viewportX != null && viewportY != null) {
+            Point viewPoint = new Point(Integer.parseInt(viewportX), Integer.parseInt(viewportY));
+            pp.setViewPosition(viewPoint);
+        }
+        logger.debug("Viewport position is " + pp.getViewPosition()); //$NON-NLS-1$
     }
 
     private class TablePaneFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
+            Object topItem = getDigester().peek();
+            if (!(topItem instanceof PlayPen)) {
+                logger.error("Expected parent PlayPen object on top of stack but found: " + topItem); //$NON-NLS-1$
+                throw new IllegalStateException("Parent PlayPen object not found!"); //$NON-NLS-1$
+            }
+            
+            PlayPen pp = (PlayPen) topItem;
             int x = Integer.parseInt(attributes.getValue("x")); //$NON-NLS-1$
             int y = Integer.parseInt(attributes.getValue("y")); //$NON-NLS-1$
             SQLTable tab = (SQLTable) sqlObjectLoadIdMap.get(attributes.getValue("table-ref")); //$NON-NLS-1$
-            TablePane tp = new TablePane(tab, getSession().getPlayPen().getContentPane());
+            TablePane tp = new TablePane(tab, pp.getContentPane());
             
             String bgColorString = attributes.getValue("bgColor"); //$NON-NLS-1$
             if (bgColorString != null) {
@@ -280,19 +341,64 @@ public class SwingUIProject extends CoreProject {
             boolean dashed = "true".equals(attributes.getValue("dashed")); //$NON-NLS-1$ //$NON-NLS-2$
             tp.setDashed(dashed);
                 
-            getSession().getPlayPen().addTablePane(tp, new Point(x, y));
+            pp.addTablePane(tp, new Point(x, y));
             return tp;
+        }
+    }
+    
+    private class CubePaneFactory extends AbstractObjectCreationFactory {
+        public Object createObject(Attributes attributes) {
+            Object topItem = getDigester().peek();
+            if (!(topItem instanceof PlayPen)) {
+                logger.error("Expected parent PlayPen object on top of stack but found: " + topItem); //$NON-NLS-1$
+                throw new IllegalStateException("Parent PlayPen object not found!"); //$NON-NLS-1$
+            }
+            
+            PlayPen pp = (PlayPen) topItem;
+            int x = Integer.parseInt(attributes.getValue("x")); //$NON-NLS-1$
+            int y = Integer.parseInt(attributes.getValue("y")); //$NON-NLS-1$
+            Cube cube = (Cube) olapObjectLoadIdMap.get(attributes.getValue("cube-ref")); //$NON-NLS-1$
+            CubePane cp = new CubePane(cube, pp.getContentPane());
+                
+            pp.addPlayPenComponent(cp, new Point(x, y));
+            return cp;
+        }
+    }
+    
+    private class DimensionPaneFactory extends AbstractObjectCreationFactory {
+        public Object createObject(Attributes attributes) {
+            Object topItem = getDigester().peek();
+            if (!(topItem instanceof PlayPen)) {
+                logger.error("Expected parent PlayPen object on top of stack but found: " + topItem); //$NON-NLS-1$
+                throw new IllegalStateException("Parent PlayPen object not found!"); //$NON-NLS-1$
+            }
+            
+            PlayPen pp = (PlayPen) topItem;
+            int x = Integer.parseInt(attributes.getValue("x")); //$NON-NLS-1$
+            int y = Integer.parseInt(attributes.getValue("y")); //$NON-NLS-1$
+            Dimension dim = (Dimension) olapObjectLoadIdMap.get(attributes.getValue("dimension-ref")); //$NON-NLS-1$
+            DimensionPane cp = new DimensionPane(dim, pp.getContentPane());
+                
+            pp.addPlayPenComponent(cp, new Point(x, y));
+            return cp;
         }
     }
 
     private class PPRelationshipFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
+            Object topItem = getDigester().peek();
+            if (!(topItem instanceof PlayPen)) {
+                logger.error("Expected parent PlayPen object on top of stack but found: " + topItem); //$NON-NLS-1$
+                throw new IllegalStateException("Parent PlayPen object not found!"); //$NON-NLS-1$
+            }
+            
+            PlayPen pp = (PlayPen) topItem;
             Relationship r = null;
             try {
                 SQLRelationship rel =
                     (SQLRelationship) sqlObjectLoadIdMap.get(attributes.getValue("relationship-ref")); //$NON-NLS-1$
-                r = new Relationship(rel, getSession().getPlayPen().getContentPane());
-                getSession().getPlayPen().addRelationship(r);
+                r = new Relationship(rel, pp.getContentPane());
+                pp.addRelationship(r);
                 r.updateUI();
 
                 int pkx = Integer.parseInt(attributes.getValue("pk-x")); //$NON-NLS-1$
@@ -315,6 +421,16 @@ public class SwingUIProject extends CoreProject {
         }
     }
 
+    private class OLAPEditSessionFactory extends AbstractObjectCreationFactory {
+        public Object createObject(Attributes attributes) {
+            OLAPSession oSession =
+                (OLAPSession) olapObjectLoadIdMap.get(attributes.getValue("osession-ref")); //$NON-NLS-1$
+            OLAPEditSession editSession = new OLAPEditSession(getSession(), oSession);
+            getSession().getOLAPEditSessions().add(editSession);
+            return editSession;
+        }
+    }
+    
 
     private class CreateKettleJobSettingsFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) throws SQLException {
@@ -451,10 +567,11 @@ public class SwingUIProject extends CoreProject {
             saveDDLGenerator(out);
             saveCompareDMSettings(out);
             saveCreateKettleJobSettings(out);
-            savePlayPen(out);
+            savePlayPen(out, getSession().getPlayPen(), true);
             saveProfiles(out);
-            saveOLAP(out);
             
+            saveOLAP(out);
+            saveOLAPGUI(out);
             
             ioo.indent--;
             ioo.println(out, "</architect-project>"); //$NON-NLS-1$
@@ -470,29 +587,51 @@ public class SwingUIProject extends CoreProject {
     
     private void saveOLAP(PrintWriter out) {
         ioo.indent++;
-        ioo.println(out, "<olap>");
+        ioo.println(out, "<olap>"); //$NON-NLS-1$
         ioo.indent++;
         
         for (OLAPSession osession : getSession().getOLAPRootObject().getChildren()) {
             String id = Integer.toString(olapObjectSaveIdMap.size());
             if (olapObjectSaveIdMap.put(osession, id) != null) {
-                throw new IllegalStateException("Duplicate OLAPObject found: " + osession);
+                logger.debug("Duplicate OLAPObject in project file xml: " + osession); //$NON-NLS-1$
+                throw new IllegalStateException("Duplicate OLAPObject found in project file!"); //$NON-NLS-1$
             }
-            ioo.print(out, "<olap-session id=\"" + id + "\""); //$NON-NLS-1$
+            StringBuilder tagText = new StringBuilder();
+            tagText.append("<olap-session id=").append(quote(id)); //$NON-NLS-1$
             
             if (osession.getDatabase() != null) {
-                ioo.niprint(out, " db-ref="+ //$NON-NLS-1$
-                        quote(sqlObjectSaveIdMap.get(osession.getDatabase()))); //$NON-NLS-1$
+                tagText.append(" db-ref="); //$NON-NLS-1$
+                tagText.append(quote(sqlObjectSaveIdMap.get(osession.getDatabase())));
             }
-            ioo.niprintln(out, ">"); //$NON-NLS-1$
+            tagText.append(">"); //$NON-NLS-1$
+            ioo.println(out, tagText.toString());
             
             ioo.indent++;
             MondrianXMLWriter.write(out, osession.getSchema(), false, ioo.indent, olapObjectSaveIdMap);
             ioo.indent--;
-            ioo.println(out, "</olap-session>");
+            ioo.println(out, "</olap-session>"); //$NON-NLS-1$
         }
         ioo.indent--;
-        ioo.println(out, "</olap>");
+        ioo.println(out, "</olap>"); //$NON-NLS-1$
+        ioo.indent--;
+    }
+    
+    private void saveOLAPGUI(PrintWriter out) {
+        ioo.indent++;
+        ioo.println(out, "<olap-gui>");
+        
+        ioo.indent++;
+        for (OLAPEditSession editSession : getSession().getOLAPEditSessions()) {
+            ioo.println(out, "<olap-edit-session osession-ref=" + //$NON-NLS-1$ 
+                    quote(olapObjectSaveIdMap.get(editSession.getOlapSession())) + ">"); //$NON-NLS-1$ 
+            ioo.indent++;
+            savePlayPen(out, editSession.getOlapPlayPen(), false);
+            ioo.indent--;
+            ioo.println(out, "</olap-edit-session>"); //$NON-NLS-1$
+        }
+        ioo.indent--;
+        
+        ioo.println(out, "</olap-gui>");
         ioo.indent--;
     }
     
@@ -657,7 +796,7 @@ public class SwingUIProject extends CoreProject {
         SQLDatabase db = (SQLDatabase) getSession().getTargetDatabase();
         ioo.println(out, "<target-database id=\"ppdb\" dbcs-ref="+ //$NON-NLS-1$
                 quote(dbcsSaveIdMap.get(db.getDataSource()))+ ">"); //$NON-NLS-1$
-        sqlObjectSaveIdMap.put(db, "ppdb");
+        sqlObjectSaveIdMap.put(db, "ppdb"); //$NON-NLS-1$
         ioo.indent++;
         Iterator it = db.getChildren().iterator();
         while (it.hasNext()) {
@@ -668,51 +807,74 @@ public class SwingUIProject extends CoreProject {
         ioo.println(out, "</target-database>"); //$NON-NLS-1$
     }
 
-    private void savePlayPen(PrintWriter out) throws IOException, ArchitectException {
-        String relStyle = getSession().getRelationshipLinesDirect() ?
-                RELATIONSHIP_STYLE_DIRECT : RELATIONSHIP_STYLE_RECTILINEAR;
-        ioo.println(out, "<play-pen zoom=\"" + getSession().getPlayPen().getZoom() +  //$NON-NLS-1$
-        		"\" viewportX=\"" + getSession().getPlayPen().getViewPosition().x +  //$NON-NLS-1$
-        		"\" viewportY=\"" + getSession().getPlayPen().getViewPosition().y +  //$NON-NLS-1$
-        		"\" relationship-style="+quote(relStyle) + //$NON-NLS-1$
-        		" showPrimaryTag=\"" + getSession().isShowPkTag() + //$NON-NLS-1$
-        		"\" showForeignTag=\"" + getSession().isShowFkTag() + //$NON-NLS-1$
-        		"\" showAlternateTag=\"" + getSession().isShowAkTag() + //$NON-NLS-1$
-        		"\" showPrimary=\"" + getSession().isShowPrimary() + //$NON-NLS-1$
-        		"\" showForeign=\"" + getSession().isShowForeign() + //$NON-NLS-1$
-        		"\" showIndexed=\"" + getSession().isShowIndexed() + //$NON-NLS-1$
-        		"\" showUnique=\"" + getSession().isShowUnique() + //$NON-NLS-1$
-        		"\" showTheRest=\"" + getSession().isShowTheRest() + "\">"); //$NON-NLS-1$ //$NON-NLS-2$
+    private void savePlayPen(PrintWriter out, PlayPen pp, boolean isRelational) {
+        StringBuilder tagText = new StringBuilder();
+        tagText.append("<play-pen zoom=\"").append(pp.getZoom()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+        tagText.append(" viewportX=\"").append(pp.getViewPosition().x).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+        tagText.append(" viewportY=\"").append(pp.getViewPosition().y).append("\"");  //$NON-NLS-1$ //$NON-NLS-2$
+        
+        if (isRelational) {
+            String relStyle = getSession().getRelationshipLinesDirect() ?
+                    RELATIONSHIP_STYLE_DIRECT : RELATIONSHIP_STYLE_RECTILINEAR;
+            tagText.append(" relationship-style=").append(quote(relStyle)); //$NON-NLS-1$
+            tagText.append(" showPrimaryTag=\"").append(getSession().isShowPkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" showForeignTag=\"").append(getSession().isShowFkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" showAlternateTag=\"").append(getSession().isShowAkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" showPrimary=\"").append(getSession().isShowPrimary()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" showForeign=\"").append(getSession().isShowForeign()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" showIndexed=\"").append(getSession().isShowIndexed()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" showUnique=\"").append(getSession().isShowUnique()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" showTheRest=\"").append(getSession().isShowTheRest()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+        }
+        tagText.append(">"); //$NON-NLS-1$
+        ioo.println(out, tagText.toString());
+        
         ioo.indent++;
-        for(int i = getSession().getPlayPen().getTablePanes().size()-1; i>= 0; i--) {
-            TablePane tp = getSession().getPlayPen().getTablePanes().get(i);
-            Point p = tp.getLocation();
-            
-            Color bgColor = tp.getBackgroundColor();
-            String bgColorString = String.format("0x%02x%02x%02x", bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue()); //$NON-NLS-1$
-            Color fgColor = tp.getForegroundColor();
-            String fgColorString = String.format("0x%02x%02x%02x", fgColor.getRed(), fgColor.getGreen(), fgColor.getBlue()); //$NON-NLS-1$
-            
-            ioo.println(out, "<table-pane table-ref="+quote(sqlObjectSaveIdMap.get(tp.getModel()))+"" //$NON-NLS-1$ //$NON-NLS-2$
-                    +" x=\""+p.x+"\" y=\""+p.y+"\" bgColor=\""+bgColorString+"\" fgColor=\""+fgColorString+ //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-                    "\" rounded=\"" + tp.isRounded() + "\" dashed=\"" + tp.isDashed() + "\" />"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-            if (pm != null) {
-                pm.setProgress(++progress);
+        savePlayPenComponents(out, pp);
+        ioo.indent--;
+
+        ioo.println(out, "</play-pen>"); //$NON-NLS-1$
+    }
+    
+    private void savePlayPenComponents(PrintWriter out, PlayPen pp) {
+        for (PlayPenComponent ppc : pp.getPlayPenComponents()) {
+            if (ppc instanceof TablePane) {
+                TablePane tp = (TablePane) ppc;
+                Point p = tp.getLocation();
+                
+                Color bgColor = tp.getBackgroundColor();
+                String bgColorString = String.format("0x%02x%02x%02x", bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue()); //$NON-NLS-1$
+                Color fgColor = tp.getForegroundColor();
+                String fgColorString = String.format("0x%02x%02x%02x", fgColor.getRed(), fgColor.getGreen(), fgColor.getBlue()); //$NON-NLS-1$
+                
+                ioo.println(out, "<table-pane table-ref="+quote(sqlObjectSaveIdMap.get(tp.getModel()))  //$NON-NLS-1$
+                        +" x=\""+p.x+"\" y=\""+p.y+"\" bgColor="+ quote(bgColorString) + " fgColor=" + quote(fgColorString) + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+                        " rounded=\"" + tp.isRounded() + "\" dashed=\"" + tp.isDashed() + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                if (pm != null) {
+                    pm.setProgress(++progress);
+                }
+            } else if (ppc instanceof Relationship) {
+                Relationship r = (Relationship) ppc;
+                ioo.println(out, "<table-link relationship-ref="+quote(sqlObjectSaveIdMap.get(r.getModel())) //$NON-NLS-1$
+                        +" pk-x=\""+r.getPkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" pk-y=\""+r.getPkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" fk-x=\""+r.getFkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" fk-y=\""+r.getFkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$
+            } else if (ppc instanceof CubePane) {
+                CubePane cp = (CubePane) ppc;
+                Point p = cp.getLocation();
+                ioo.println(out, "<cube-pane cube-ref="+quote(olapObjectSaveIdMap.get(cp.getModel())) //$NON-NLS-1$
+                        +" x=\""+p.x+"\" y=\""+p.y+"\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+            } else if (ppc instanceof DimensionPane) {
+                DimensionPane dp = (DimensionPane) ppc;
+                Point p = dp.getLocation();
+                ioo.println(out, "<dimension-pane dimension-ref="+quote(olapObjectSaveIdMap.get(dp.getModel())) //$NON-NLS-1$
+                        +" x=\""+p.x+"\" y=\""+p.y+"\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+            } else {
+                logger.warn("Skipping unhandled playpen component: " + ppc); //$NON-NLS-1$
             }
         }
-
-        Iterator it = getSession().getPlayPen().getRelationships().iterator();
-        while (it.hasNext()) {
-            Relationship r = (Relationship) it.next();
-            ioo.println(out, "<table-link relationship-ref="+quote(sqlObjectSaveIdMap.get(r.getModel())) //$NON-NLS-1$
-                    +" pk-x=\""+r.getPkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                    +" pk-y=\""+r.getPkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                    +" fk-x=\""+r.getFkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                    +" fk-y=\""+r.getFkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                    +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\" />"); //$NON-NLS-1$ //$NON-NLS-2$
-        }
-        ioo.indent--;
-        ioo.println(out, "</play-pen>"); //$NON-NLS-1$
     }
 
     /**

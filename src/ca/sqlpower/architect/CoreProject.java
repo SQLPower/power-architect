@@ -172,6 +172,21 @@ public class CoreProject {
                 throw new IllegalStateException("Failed to load with an input stream that does not support mark!");
             }
             
+            // parse the Mondrian business model parts first because the olap id
+            // map is needed in the digester for parsing the olap gui
+            try {
+                MondrianXMLReader.parse(uin, session.getOLAPRootObject(), sqlObjectLoadIdMap, olapObjectLoadIdMap);
+            } catch (SAXException e) {
+                logger.error("Error parsing project file's olap schemas!", e);
+                throw new ArchitectException("SAX Exception in project file olap schemas parse!", e);
+            } catch (Exception ex) {
+                logger.error("General Exception in project file olap schemas parse!", ex);
+                throw new ArchitectException("Unexpected Exception", ex);
+            }
+
+            // returning to the beginning of the inputStream
+            uin.reset();
+            
             Digester digester = null;
 
             // use digester to read from file
@@ -273,19 +288,6 @@ public class CoreProject {
                     }
                 }
 
-            }
-            
-            // returning to the beginning of the inputStream
-            uin.reset();
-            
-            try {
-                MondrianXMLReader.parse(uin, session.getOLAPRootObject(), sqlObjectLoadIdMap, olapObjectLoadIdMap);
-            } catch (SAXException e) {
-                logger.error("Error parsing project file's olap schemas!", e);
-                throw new ArchitectException("SAX Exception in project file olap schemas parse!", e);
-            } catch (Exception ex) {
-                logger.error("General Exception in project file olap schemas parse!", ex);
-                throw new ArchitectException("Unexpected Exception", ex);
             }
             
             setModified(false);
