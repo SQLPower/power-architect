@@ -38,7 +38,7 @@ public class BasicCubePaneUI extends OLAPPaneUI<Cube, OLAPObject> {
     @Override
     public void installUI(PlayPenComponent c) {
         super.installUI((CubePane) c);
-        CubePane cube = (CubePane) containerPane; 
+        CubePane cube = (CubePane) olapPane; 
         PaneSection<OLAPObject> dimensionSection = new PaneSectionImpl(cube.getModel().getDimensions(), "Dimensions:");
         PaneSection<OLAPObject> measureSection = new PaneSectionImpl(cube.getModel().getMeasures(), "Measures:");
         paneSections.add(dimensionSection);

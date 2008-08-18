@@ -37,7 +37,7 @@ public class BasicDimensionPaneUI extends OLAPPaneUI<Dimension, Hierarchy> {
     @Override
     public void installUI(PlayPenComponent c) {
         super.installUI(c);
-        paneSections.add(new PaneSectionImpl<Hierarchy>(containerPane.getModel().getHierarchies(), null));
+        paneSections.add(new PaneSectionImpl<Hierarchy>(olapPane.getModel().getHierarchies(), null));
     }
     
     @Override
