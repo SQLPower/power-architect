@@ -89,17 +89,18 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     protected OLAPPane<T, C> olapPane;
     
     private final ModelEventHandler modelEventHandler = new ModelEventHandler();
-    
+
     /**
-     * Calculates and returns the size of the given ContainerPane object
+     * Calculates and returns the ideal size for this OLAPPane. If you override
+     * or change the {@link #paint(Graphics2D)} or
+     * {@link #drawSection(PaneSection, Graphics2D, ContainerPane, int)}
+     * methods, you will have to override this method as well to compensate.
      */
     public Dimension getPreferredSize() {
         ContainerPane<?, ?> cp = olapPane;
 
         int height = 0;
         int width = 0;
-
-        Insets insets = cp.getInsets();
 
         Font font = cp.getFont();
         if (font == null) {
@@ -110,12 +111,24 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         FontMetrics metrics = cp.getFontMetrics(font);
         int fontHeight = metrics.getHeight();
 
-        // Height calculation
-        height = insets.top + fontHeight;
+        height += fontHeight + GAP + BOX_LINE_THICKNESS;
         for (PaneSection<C> ps : olapPane.getSections()) {
-            height += GAP + fontHeight + INTER_SECTION_GAP + cp.getMargin().top + ps.getItems().size() * fontHeight + BOX_LINE_THICKNESS*2;
+            if (ps.getTitle() != null) {
+                height += fontHeight + SECTION_HEADER_GAP; 
+            }
+            height += ps.getItems().size() * fontHeight;
         }
-        height += cp.getMargin().bottom + insets.bottom;
+        height += INTER_SECTION_GAP * (olapPane.getSections().size() - 1);
+        height += BOX_LINE_THICKNESS;
+
+        /*
+         * If there are no named sections, the box will get squished down too
+         * much. This establishes a reasonable minimum height based on font size
+         * (so unfortunately there can't be a MINUMUM_HEIGHT constant)
+         */
+        if (height < fontHeight * 3) {
+            height = fontHeight * 3;
+        }
         
         // Width calculation
         width = MINIMUM_WIDTH;
@@ -123,6 +136,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         for (PaneSection<C> ps : olapPane.getSections()) {
             width = Math.max(width, calculateMaxSectionWidth(ps, cp));
         }
+        Insets insets = cp.getMargin();
         width += insets.left + cp.getMargin().left + BOX_LINE_THICKNESS*2 + cp.getMargin().right + insets.right;
 
         // Pack width and height into a awt.Dimension object
@@ -190,7 +204,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         g2.setColor(cp.getForegroundColor());
 
         // print containerPane name
-        g2.drawString(cp.getModel().getName(), 0, y += ascent);
+        g2.drawString(cp.getModel().getName(), 0, y += ascent); // XXX should add font height, no?
 
         g2.setColor(Color.BLACK);
         
