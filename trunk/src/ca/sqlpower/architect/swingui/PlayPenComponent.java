@@ -55,7 +55,6 @@ public abstract class PlayPenComponent implements Selectable {
     protected Color backgroundColor;
     protected Color foregroundColor;
     private Insets insets = new Insets(0,0,0,0);
-    private String name;
     private String toolTipText;
     private boolean opaque;
     

@@ -19,16 +19,14 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
-import java.awt.Point;
 import java.util.List;
 
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
-import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 
-public class CubePane extends ContainerPane<Cube, OLAPObject> {
+public class CubePane extends OLAPPane<Cube, OLAPObject> {
 
     public CubePane(Cube model, PlayPenContentPane parent) {
         super(parent);
@@ -42,15 +40,6 @@ public class CubePane extends ContainerPane<Cube, OLAPObject> {
         return model.getChildren();
     }
 
-
-    @Override
-    public int pointToItemIndex(Point p) {
-        return ((ContainerPaneUI) getUI()).pointToItemIndex(p);
-    }
-    
-    // ---------------------- PlayPenComponent Overrides ----------------------
-    // see also PlayPenComponent
-
     public void updateUI() {
         ContainerPaneUI ui = (ContainerPaneUI) BasicCubePaneUI.createUI();
         ui.installUI(this);
@@ -59,10 +48,6 @@ public class CubePane extends ContainerPane<Cube, OLAPObject> {
 
     public Cube getCube() {
         return model;
-    }
-
-    public String getName() {
-        return model.getName();
     }
 
     @Override
