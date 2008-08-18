@@ -46,7 +46,7 @@ public class OLAPTree extends JTree{
     public OLAPTree(ArchitectSwingSession session, OLAPEditSession oSession, Schema schema) {
         setModel(new OLAPTreeModel(schema));
         addMouseListener(new PopupListener());
-        collapseAllAction = new JTreeCollapseAllAction(this, "Collaspe All");
+        collapseAllAction = new JTreeCollapseAllAction(this, "Collapse All");
         expandAllAction = new JTreeExpandAllAction(this, "Expand All");
         menuFactory = new ContextMenuFactory(session, oSession);
     }
@@ -80,21 +80,22 @@ public class OLAPTree extends JTree{
                     setSelectionPath(p);
                 }
 
+                OLAPObject lpc = null;
                 if (p != null) {
                     logger.debug("selected node object type is: " + p.getLastPathComponent().getClass().getName()); //$NON-NLS-1$
-                    
-                    OLAPObject lpc = (OLAPObject) p.getLastPathComponent();
-                    if (lpc != null) {
-                        JPopupMenu popup = menuFactory.createContextMenu(lpc);
-                        
-                        popup.addSeparator();
-                        popup.add(collapseAllAction);
-                        popup.add(expandAllAction);
-                        
-                        popup.show(e.getComponent(),
-                                e.getX(), e.getY());
-                    }
+                    lpc = (OLAPObject) p.getLastPathComponent();
                 }
+
+                JPopupMenu popup = menuFactory.createContextMenu(lpc);
+
+                if (lpc != null) {
+                    popup.addSeparator();
+                    popup.add(collapseAllAction);
+                    popup.add(expandAllAction);
+                }
+
+                popup.show(e.getComponent(),
+                        e.getX(), e.getY());
             } else {
                 if ( p == null && !isPress && e.getButton() == MouseEvent.BUTTON1 )
                     setSelectionPath(null);

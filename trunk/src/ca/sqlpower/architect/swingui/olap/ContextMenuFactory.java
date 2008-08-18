@@ -36,6 +36,8 @@ import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PopupMenuFactory;
 import ca.sqlpower.architect.swingui.olap.action.EditCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.EditDimensionAction;
+import ca.sqlpower.architect.swingui.olap.action.EditMeasureAction;
+import ca.sqlpower.architect.swingui.olap.action.EditSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.EditVirtualCubeAction;
 
 /**
@@ -62,24 +64,38 @@ public class ContextMenuFactory implements PopupMenuFactory {
      */
     public JPopupMenu createContextMenu(OLAPObject obj) {
         JPopupMenu m = new JPopupMenu();
-        if (obj instanceof Schema || obj == null) {
+        
+        if (obj == null) {
             m.add(oSession.getCreateCubeAction());
             m.add(oSession.getCreateDimensionAction());
             m.add(oSession.getCreateVirtualCubeAction());
+            m.addSeparator();
+            m.add(oSession.getExportSchemaAction());
+        } else if (obj instanceof Schema) {
+            m.add(oSession.getCreateCubeAction());
+            m.add(oSession.getCreateDimensionAction());
+            m.add(oSession.getCreateVirtualCubeAction());
+            m.addSeparator();
+            m.add(new EditSchemaAction(session,(Schema) obj, oSession.getOlapPlayPen()));
+            m.addSeparator();
             m.add(oSession.getExportSchemaAction());
         } else if (obj instanceof Dimension) {
-            m.add(new EditDimensionAction(session, (Dimension)obj, oSession.getOlapPlayPen() ));
+            m.add(oSession.getCreateHierarchyAction());
+            m.addSeparator();
+            m.add(new EditDimensionAction(session, (Dimension)obj, oSession.getOlapPlayPen()));
         } else if (obj instanceof Cube) {
             m.add(oSession.getCreateDimensionAction());
             m.add(oSession.getCreateMeasureAction());
+            m.addSeparator();
             m.add(new EditCubeAction(session, (Cube)obj, oSession.getOlapPlayPen()));
         } else if (obj instanceof VirtualCube) {
-            m.add(new EditVirtualCubeAction(session, (VirtualCube)obj, oSession.getOlapPlayPen()));
             m.add(oSession.getCreateCubeAction());
             m.add(oSession.getCreateDimensionAction());
-            m.add(oSession.getCreateVirtualCubeAction());
             m.add(oSession.getCreateMeasureAction());
+            m.addSeparator();
+            m.add(new EditVirtualCubeAction(session, (VirtualCube)obj, oSession.getOlapPlayPen()));
         } else if (obj instanceof Measure) {
+            m.add(new EditMeasureAction(session, (Measure) obj, oSession.getOlapPlayPen()));
         }
         
         if (obj != null && !(obj instanceof Schema)) {

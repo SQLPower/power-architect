@@ -28,7 +28,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
@@ -47,15 +46,10 @@ public class SchemaEditPanel implements DataEntryPanel {
     private final JComboBox databaseBox;
     private final JTextField nameField;
     
-    public SchemaEditPanel(Schema schema, ArchitectSwingSession session) {
+    public SchemaEditPanel(ArchitectSwingSession session, Schema schema) throws ArchitectException {
         this.schema = schema;
         
-        List<SQLDatabase> databases;
-        try {
-            databases = session.getRootObject().getChildren();
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
-        }
+        List<SQLDatabase> databases = session.getRootObject().getChildren();
         
         FormLayout layout = new FormLayout(
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
@@ -83,8 +77,7 @@ public class SchemaEditPanel implements DataEntryPanel {
     }
 
     public void discardChanges() {
-        // TODO Auto-generated method stub
-        
+        // nothing to do
     }
 
     public JComponent getPanel() {
@@ -92,8 +85,7 @@ public class SchemaEditPanel implements DataEntryPanel {
     }
 
     public boolean hasUnsavedChanges() {
-        // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 
 }

@@ -28,6 +28,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
@@ -94,6 +95,10 @@ public class OLAPTreeCellRenderer extends DefaultTreeCellRenderer {
         } else if (value instanceof VirtualCubeMeasure) {
             VirtualCubeMeasure measure = (VirtualCubeMeasure) value;
             setText(measure.getName() + " (VirtualCubeMeasure)");
+            setIcon(columnIcon);
+        } else if (value instanceof Hierarchy) {
+            Hierarchy hierarchy = (Hierarchy) value;
+            setText(hierarchy.getName() + " (Hierarchy)");
             setIcon(columnIcon);
         } else {
             setIcon(null);

@@ -26,6 +26,7 @@ import javax.swing.JDialog;
 
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
@@ -65,31 +66,38 @@ public class OLAPEditAction extends AbstractArchitectAction {
         d.setVisible(true);
         
         if (newSchema) {
-            final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(schema, session);
+            try {
+                final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(session, schema);
 
-            Callable<Boolean> okCall = new Callable<Boolean>() {
-                public Boolean call() throws Exception {
-                    return schemaEditPanel.applyChanges();
-                }
-            };
+                Callable<Boolean> okCall = new Callable<Boolean>() {
+                    public Boolean call() throws Exception {
+                        return schemaEditPanel.applyChanges();
+                    }
+                };
 
-            Callable<Boolean> cancelCall = new Callable<Boolean>() {
-                public Boolean call() throws Exception {
-                    d.dispose();
-                    session.getOLAPRootObject().removeOLAPSession(olapSession);
-                    return true;
-                }
-            };
+                Callable<Boolean> cancelCall = new Callable<Boolean>() {
+                    public Boolean call() throws Exception {
+                        d.dispose();
+                        session.getOLAPRootObject().removeOLAPSession(olapSession);
+                        return true;
+                    }
+                };
 
-            JDialog schemaEditDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
-                    schemaEditPanel,
-                    d,
-                    "New Schema Properties",
-                    "OK",
-                    okCall,
-                    cancelCall);
-            schemaEditDialog.setLocationRelativeTo(d);
-            schemaEditDialog.setVisible(true);
+                JDialog schemaEditDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
+                        schemaEditPanel,
+                        d,
+                        "New Schema Properties",
+                        "OK",
+                        okCall,
+                        cancelCall);
+                schemaEditDialog.setLocationRelativeTo(d);
+                schemaEditDialog.setVisible(true);
+            } catch (Exception ex) {
+                ASUtils.showExceptionDialogNoReport(
+                        session.getArchitectFrame(),
+                        "Failed to get list of databases.",
+                        ex);
+            }
         }
     }
 }
