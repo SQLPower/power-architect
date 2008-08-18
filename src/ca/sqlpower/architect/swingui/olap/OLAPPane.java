@@ -20,6 +20,8 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Point;
+import java.util.ArrayList;
+import java.util.List;
 
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.swingui.ContainerPane;
@@ -34,9 +36,23 @@ import ca.sqlpower.architect.swingui.PlayPenContentPane;
  */
 public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> extends ContainerPane<T, C> {
 
-    
+    /**
+     * The sections of this OLAP Pane. There must always be at least one section.
+     * The set of sections is allowed to change at any time, but an appropriate
+     * event will be fired when it does change.
+     */
+    protected final List<PaneSection<C>> sections = new ArrayList<PaneSection<C>>();
+
+
     protected OLAPPane(PlayPenContentPane parent) {
         super(parent);
+    }
+    
+    /**
+     * Returns this pane's list of sections.
+     */
+    public List<PaneSection<C>> getSections() {
+        return sections;
     }
 
     @Override

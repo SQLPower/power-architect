@@ -31,6 +31,7 @@ public class DimensionPane extends OLAPPane<Dimension, Hierarchy> {
     public DimensionPane(Dimension m, PlayPenContentPane parent) {
         super(parent);
         this.model = m;
+        sections.add(new PaneSectionImpl<Hierarchy>(model.getHierarchies(), null));
         updateUI();
     }
     
