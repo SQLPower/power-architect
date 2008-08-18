@@ -47,6 +47,8 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
+import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.profile.event.ProfileResultEvent;
 import ca.sqlpower.architect.profile.event.ProfileResultListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -356,7 +358,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
             }
             progressBar.setVisible(false);
             if(ProfileRowComponent.this.getParent() != null) {
-                ((ProfileManagerView)(ProfileRowComponent.this.getParent().getParent().getParent().getParent())).sort();
+                fireProfileChangedEvent();
             }
         }
 
@@ -484,6 +486,23 @@ public class ProfileRowComponent extends JPanel implements Selectable {
             } else {
                 listener.itemDeselected(e);
             }
+        }
+    }
+    
+    private final List<ProfileChangeListener> profileListeners = new ArrayList<ProfileChangeListener>();
+    
+    public void addProfileChangeListener(ProfileChangeListener pcl) {
+        profileListeners.add(pcl);
+    }
+    
+    public void removeProfileChangeListener(ProfileChangeListener pcl) {
+        profileListeners.remove(pcl);
+    }
+    
+    private void fireProfileChangedEvent() {
+        ProfileChangeEvent e = new ProfileChangeEvent(pm, pm.getResults());
+        for (int i = profileListeners.size() - 1; i >= 0; i--) {
+            profileListeners.get(i).profileListChanged(e);
         }
     }
 }
