@@ -201,7 +201,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         g2.setColor(cp.getForegroundColor());
 
         // print containerPane name
-        g2.drawString(cp.getName(), 0, y += ascent);
+        g2.drawString(cp.getModel().getName(), 0, y += ascent);
 
         g2.setColor(Color.BLACK);
         
@@ -227,16 +227,6 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
 
     }
 
-    /**
-     * This method returns the the name of the given OLAP Object. Its
-     * method body is different in each of the individual ContainerPane
-     * implementations depending on the type of their children, denoted by C.
-     * <p>
-     * This method is needed because OLAPObject doesn't have a default getName
-     * method.
-     */
-    protected abstract String getOLAPChildObjectName(C oo);
- 
     public boolean contains(Point p) {
         return containerPane.getBounds().contains(p);
     }
@@ -415,7 +405,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
                         hwidth, fontHeight);
                 g.setColor(cp.getForegroundColor());
             }
-            g.drawString(getOLAPChildObjectName(item), BOX_LINE_THICKNESS +
+            g.drawString(item.getName(), BOX_LINE_THICKNESS +
                     cp.getMargin().left, y += fontHeight);
             i++;
         }
@@ -448,7 +438,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
                 logger.error("Found null column in dimension '"+cp.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
                 throw new NullPointerException("Found null column in dimension '"+cp.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
             }
-            width = Math.max(width, calculateTextWidth(cp, getOLAPChildObjectName(oo)));
+            width = Math.max(width, calculateTextWidth(cp, oo.getName()));
         }
         return width;
     }
@@ -456,6 +446,9 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     private class ModelEventHandler implements PropertyChangeListener, OLAPChildListener {
 
         public void propertyChange(PropertyChangeEvent evt) {
+            logger.debug("Property Change: " +
+                    evt.getPropertyName() + ": " +
+                    evt.getOldValue() + " -> " + evt.getNewValue());
             if ("name".equals(evt.getPropertyName())) {
                 // note this could be the name of the cube or any of its child objects,
                 // since we have property change listeners on every object in the subtree under cube

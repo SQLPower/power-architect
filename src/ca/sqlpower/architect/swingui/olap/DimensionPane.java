@@ -41,6 +41,10 @@ public class DimensionPane extends ContainerPane<Dimension, Hierarchy> {
         return model.getHierarchies();
     }
 
+    @Override
+    public String getName() {
+        return model.getName();
+    }
 
     @Override
     public int pointToItemIndex(Point p) {

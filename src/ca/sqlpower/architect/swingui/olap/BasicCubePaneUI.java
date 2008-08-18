@@ -23,8 +23,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
-import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenComponentUI;
 
@@ -53,15 +51,4 @@ public class BasicCubePaneUI extends OLAPPaneUI<Cube, OLAPObject> {
         paneSections.clear();
     }
     
-    @Override
-    protected String getOLAPChildObjectName(OLAPObject oo) {
-        if (oo instanceof Dimension) {
-            return ((Dimension) (oo)).getName();
-        } else if (oo instanceof Measure) {
-            return ((Measure) (oo)).getName();
-        } else {
-            throw new IllegalArgumentException("Given object of type: " + oo.getClass() + " is not a child of Cube: " + containerPane.getName());
-        }
-    }
-
 }

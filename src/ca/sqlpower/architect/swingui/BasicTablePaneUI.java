@@ -420,8 +420,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		else if (e.getPropertyName().equals("preferredSize")) return; //$NON-NLS-1$
 		else if (e.getPropertyName().equals("insertionPoint")) return; //$NON-NLS-1$
 		else if (e.getPropertyName().equals("model.tableName")) { //$NON-NLS-1$
-			// helps with debugging to keep component names identical with model -- it's not visual
-			tablePane.setName(tablePane.getModel().getName());
+		    // we will get this event again from the model itself
 			return;
 		} 
 		tablePane.revalidate();

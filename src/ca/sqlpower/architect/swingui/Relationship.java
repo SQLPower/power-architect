@@ -236,6 +236,11 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 		return model;
 	}
 
+	@Override
+	public String getName() {
+	    return model.getName();
+	}
+	
 	public void setPkTable(TablePane tp) {
 		if (pkTable != null) {
 			pkTable.removePropertyChangeListener(tpbListener);

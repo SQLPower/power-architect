@@ -21,17 +21,15 @@ package ca.sqlpower.architect.swingui.olap;
 
 import java.util.List;
 
-import ca.sqlpower.architect.olap.OLAPObject;
-
 /**
  * Generic implementation of a pane section. Should suffice for most uses.
  */
-public class PaneSectionImpl implements PaneSection {
+public class PaneSectionImpl<C> implements PaneSection<C> {
 
-    private final List<? extends OLAPObject> items;
+    private final List<C> items;
     private final String title;
     
-    public PaneSectionImpl(List<? extends OLAPObject> items, String title) {
+    public PaneSectionImpl(List<C> items, String title) {
         super();
         this.items = items;
         this.title = title;
@@ -46,7 +44,7 @@ public class PaneSectionImpl implements PaneSection {
      * No matter what, you won't get events from the PaneSection when the item
      * list changes. Consult the model for change notifications.
      */
-    public List<? extends OLAPObject> getItems() {
+    public List<C> getItems() {
         return items;
     }
 
