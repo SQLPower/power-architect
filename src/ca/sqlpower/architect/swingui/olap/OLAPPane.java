@@ -19,37 +19,38 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
-import java.util.List;
+import java.awt.Point;
 
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
-import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
-import ca.sqlpower.architect.swingui.ContainerPaneUI;
+import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 
-public class DimensionPane extends OLAPPane<Dimension, Hierarchy> {
+/**
+ * A class that provides all the generic behaviour applicable to OLAP
+ * playpen components that have titles and sections of selectable items.
+ *
+ * @param <T> The model's type 
+ * @param <C> The item type. If there are mixed item types, this will be OLAPObject.
+ */
+public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> extends ContainerPane<T, C> {
+
     
-    public DimensionPane(Dimension m, PlayPenContentPane parent) {
+    protected OLAPPane(PlayPenContentPane parent) {
         super(parent);
-        this.model = m;
-        updateUI();
+    }
+
+    @Override
+    public String getName() {
+        return model.getName();
+    }
+
+    @Override
+    public int pointToItemIndex(Point p) {
+        return getUI().pointToItemIndex(p);
     }
     
     @Override
-    protected List<Hierarchy> getItems() {
-        return model.getHierarchies();
-    }
-
-    // ---------------------- PlayPenComponent Overrides ----------------------
-    // see also PlayPenComponent
-
-    public void updateUI() {
-        ContainerPaneUI ui = (ContainerPaneUI) BasicDimensionPaneUI.createUI(this);
-        ui.installUI(this);
-        setUI(ui);
-    }
-
-    @Override
-    public String toString() {
-        return "DimensionPane: " + model; //$NON-NLS-1$
+    public OLAPPaneUI<T, C> getUI() {
+        return (OLAPPaneUI<T, C>) super.getUI();
     }
 }
