@@ -23,7 +23,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
-import ca.sqlpower.architect.swingui.PlayPenComponent;
 
 public class BasicDimensionPaneUI extends OLAPPaneUI<Dimension, Hierarchy> {
     
@@ -32,18 +31,6 @@ public class BasicDimensionPaneUI extends OLAPPaneUI<Dimension, Hierarchy> {
 
     public static BasicDimensionPaneUI createUI(DimensionPane dp) {
         return new BasicDimensionPaneUI();
-    }
-    
-    @Override
-    public void installUI(PlayPenComponent c) {
-        super.installUI(c);
-        paneSections.add(new PaneSectionImpl<Hierarchy>(olapPane.getModel().getHierarchies(), null));
-    }
-    
-    @Override
-    public void uninstallUI(PlayPenComponent c) {
-        super.uninstallUI(c);
-        paneSections.clear();
     }
 
 }

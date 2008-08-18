@@ -23,7 +23,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
-import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenComponentUI;
 
 public class BasicCubePaneUI extends OLAPPaneUI<Cube, OLAPObject> {
@@ -33,22 +32,6 @@ public class BasicCubePaneUI extends OLAPPaneUI<Cube, OLAPObject> {
 
     public static PlayPenComponentUI createUI() {
         return new BasicCubePaneUI();
-    }
-
-    @Override
-    public void installUI(PlayPenComponent c) {
-        super.installUI((CubePane) c);
-        CubePane cube = (CubePane) olapPane; 
-        PaneSection<OLAPObject> dimensionSection = new PaneSectionImpl(cube.getModel().getDimensions(), "Dimensions:");
-        PaneSection<OLAPObject> measureSection = new PaneSectionImpl(cube.getModel().getMeasures(), "Measures:");
-        paneSections.add(dimensionSection);
-        paneSections.add(measureSection);
-    }
-    
-    @Override
-    public void uninstallUI(PlayPenComponent c) {
-        super.uninstallUI(c);
-        paneSections.clear();
     }
     
 }

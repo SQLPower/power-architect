@@ -29,8 +29,6 @@ import java.awt.Rectangle;
 import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -90,16 +88,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     
     protected OLAPPane<T, C> olapPane;
     
-    protected final List<PaneSection<C>> paneSections = new ArrayList<PaneSection<C>>();
-
     private final ModelEventHandler modelEventHandler = new ModelEventHandler();
-    
-    /**
-     * Returns this pane's list of sections.
-     */
-    public List<PaneSection<C>> getSections() {
-        return paneSections;
-    }
     
     /**
      * Calculates and returns the size of the given ContainerPane object
@@ -123,7 +112,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
 
         // Height calculation
         height = insets.top + fontHeight;
-        for (PaneSection<C> ps : paneSections) {
+        for (PaneSection<C> ps : olapPane.getSections()) {
             height += GAP + fontHeight + INTER_SECTION_GAP + cp.getMargin().top + ps.getItems().size() * fontHeight + BOX_LINE_THICKNESS*2;
         }
         height += cp.getMargin().bottom + insets.bottom;
@@ -131,7 +120,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         // Width calculation
         width = MINIMUM_WIDTH;
         width = Math.max(width, calculateTextWidth(cp, cp.getName()));
-        for (PaneSection<C> ps : paneSections) {
+        for (PaneSection<C> ps : olapPane.getSections()) {
             width = Math.max(width, calculateMaxSectionWidth(ps, cp));
         }
         width += insets.left + cp.getMargin().left + BOX_LINE_THICKNESS*2 + cp.getMargin().right + insets.right;
@@ -209,7 +198,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         
         // Draw each of the individual sections of this container pane.
         boolean firstSection = true;
-        for(PaneSection<C> ps : paneSections) {
+        for(PaneSection<C> ps : olapPane.getSections()) {
             if (!firstSection) {
                 g2.drawLine(
                         0,     y + (INTER_SECTION_GAP + fontHeight - ascent) / 2,
@@ -265,7 +254,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         logger.debug("SECLOC: looking through sections; translatedY="+translatedY);
         
         boolean firstSection = true;
-        for (PaneSection<C> sect : getSections()) {
+        for (PaneSection<C> sect : olapPane.getSections()) {
             int sectionHeight = fontHeight * sect.getItems().size();
             if (sect.getTitle() != null) {
                 sectionHeight += fontHeight + SECTION_HEADER_GAP;
@@ -321,7 +310,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
             int adjustment = -descent;
 
             // sections after the first one have some extra space on top
-            if (sect != getSections().get(0)) {
+            if (sect != olapPane.getSections().get(0)) {
                 adjustment -= INTER_SECTION_GAP / 2;
             }
             
@@ -353,7 +342,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
      */
     public int firstItemIndex(PaneSection<C> sect) {
         int index = 0;
-        for (PaneSection<C> s : getSections()) {
+        for (PaneSection<C> s : olapPane.getSections()) {
             if (sect == s) {
                 return index;
             }

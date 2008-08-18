@@ -30,8 +30,11 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
 
     public CubePane(Cube model, PlayPenContentPane parent) {
         super(parent);
-        
         this.model = model;
+        PaneSection<OLAPObject> dimensionSection = new PaneSectionImpl(model.getDimensions(), "Dimensions:");
+        PaneSection<OLAPObject> measureSection = new PaneSectionImpl(model.getMeasures(), "Measures:");
+        sections.add(dimensionSection);
+        sections.add(measureSection);
         updateUI();
     }
     
