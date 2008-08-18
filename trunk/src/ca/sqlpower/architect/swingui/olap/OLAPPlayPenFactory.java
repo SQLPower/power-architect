@@ -78,5 +78,7 @@ public class OLAPPlayPenFactory {
         im.put((KeyStroke) oSession.getCreateDimensionAction().getValue(Action.ACCELERATOR_KEY), "NEW DIMENSION"); //$NON-NLS-1$
         am.put("NEW DIMENSION", oSession.getCreateDimensionAction()); //$NON-NLS-1$
         
+        im.put((KeyStroke) oSession.getCreateHierarchyAction().getValue(Action.ACCELERATOR_KEY), "NEW HIERARCHY"); //$NON-NLS-1$
+        am.put("NEW HIERARCHY", oSession.getCreateHierarchyAction()); //$NON-NLS-1$
     }
 }
