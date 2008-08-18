@@ -27,7 +27,6 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
-import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.UndoManager;
@@ -273,8 +272,6 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * @param owner The owner of the dialog.
      */
     public void showOLAPSchemaManager(Window owner);    
-    
-    public OLAPRootObject getOLAPRootObject();
     
     /**
      * Returns a list of the OLAPEditSessions associated with this session's OLAP Schemas.
