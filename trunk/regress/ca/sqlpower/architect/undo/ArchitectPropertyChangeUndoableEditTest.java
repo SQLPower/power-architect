@@ -293,6 +293,12 @@ public class ArchitectPropertyChangeUndoableEditTest extends TestCase {
             return null;
         }
 
+        @Override
+        public String getName() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+        
         public boolean isSelected() {
             return false;
         }

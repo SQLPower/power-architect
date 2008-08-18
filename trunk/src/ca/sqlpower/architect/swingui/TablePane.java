@@ -392,10 +392,17 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
 		} catch (ArchitectException e) {
 			logger.error("Caught exception while listening to new model", e); //$NON-NLS-1$
 		}
-		setName("TablePane: "+model.getShortDisplayName()); //$NON-NLS-1$
-
 	}
 
+	@Override
+	public String getName() {
+	    if (model == null) {
+	        return null;
+	    } else {
+	        return model.getName();
+	    }
+	}
+	
 	/**
 	 * See {@link #insertionPoint}.
 	 */

@@ -173,4 +173,14 @@ public abstract class OLAPObject {
         }
         logger.debug("Done firing childRemoved event");
     }
+    
+    /**
+     * Default implementation. Subclasses that have actual names will override this
+     * method.
+     */
+    public String getName() {
+        String name = getClass().getName();
+        name = name.substring(name.lastIndexOf('.'));
+        return name + "@" + Integer.toHexString(System.identityHashCode(this));
+    }
 }

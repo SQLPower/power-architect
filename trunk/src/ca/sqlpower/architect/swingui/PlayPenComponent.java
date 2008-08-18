@@ -267,13 +267,12 @@ public abstract class PlayPenComponent implements Selectable {
         repaint(0, r.x, r.y, r.width, r.height);
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    /**
+     * Returns the user-visible name for this component--often the same as
+     * getModel().getName(), but this depends entirely on the subclass's idea
+     * of what in the model constitutes its name.
+     */
+    public abstract String getName();
 
     /**
      * Adds a property change listener to the existing list.

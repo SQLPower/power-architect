@@ -43,4 +43,9 @@ public class PlayPenComponentImpl extends PlayPenComponent {
 	public Object getModel() {
 		return null;
 	}
+	
+	@Override
+	public String getName() {
+	    return null;
+	}
 }
