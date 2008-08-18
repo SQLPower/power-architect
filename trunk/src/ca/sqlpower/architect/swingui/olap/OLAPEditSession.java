@@ -55,20 +55,20 @@ public class OLAPEditSession implements OLAPChildListener {
     /**
      * The dialog this edit session lives in.
      */
-    private final JDialog d;
+    private JDialog d;
     
     /**
      * OLAPSession associated with the schema that this edit session edits.
      */
     private final OLAPSession olapSession;
     
-    private final CreateDimensionAction createDimensionAction;
-    private final CreateCubeAction createCubeAction;
-    private final CreateVirtualCubeAction createVirtualCubeAction;
-    private final CreateMeasureAction createMeasureAction;
-    private final CreateHierarchyAction createHierarchyAction;
-    private final ExportSchemaAction exportSchemaAction;
-    private final OLAPDeleteSelectedAction olapDeleteSelectedAction;
+    private CreateDimensionAction createDimensionAction;
+    private CreateCubeAction createCubeAction;
+    private CreateVirtualCubeAction createVirtualCubeAction;
+    private CreateMeasureAction createMeasureAction;
+    private CreateHierarchyAction createHierarchyAction;
+    private ExportSchemaAction exportSchemaAction;
+    private OLAPDeleteSelectedAction olapDeleteSelectedAction;
      
     private final ArchitectSwingSession swingSession;
 
@@ -91,11 +91,28 @@ public class OLAPEditSession implements OLAPChildListener {
         // add to the architect session's list of edit sessions.
         swingSession.getOLAPEditSessions().add(this);
 
-        Schema schema = olapSession.getSchema();
-        tree = new OLAPTree(swingSession, this, schema);
+        tree = new OLAPTree(swingSession, this, olapSession.getSchema());
         tree.setCellRenderer(new OLAPTreeCellRenderer());
         pp = OLAPPlayPenFactory.createPlayPen(swingSession, this);
-        
+    }
+    
+    /**
+     * Returns the OLAP Schema Editor dialog. It does not come with location and
+     * visibility set.
+     */
+    public JDialog getDialog() {
+        if (d == null) {
+            initGUI();
+        }
+        return d;
+    }
+    
+    /**
+     * Builds the gui components used by this edit session. The PlayPen and OLAPTree
+     * will not work properly until this has been called.
+     */
+    private void initGUI() {
+        Schema schema = olapSession.getSchema();
         createDimensionAction = new CreateDimensionAction(swingSession, schema, pp);
         createCubeAction = new CreateCubeAction(swingSession, schema, pp);
         createVirtualCubeAction = new CreateVirtualCubeAction(swingSession, schema, pp);
@@ -122,7 +139,7 @@ public class OLAPEditSession implements OLAPChildListener {
         panel.add(toolbar, BorderLayout.EAST);
         
         d = new JDialog(swingSession.getArchitectFrame(), generateDialogTitle());
-        schema.addPropertyChangeListener(new PropertyChangeListener() {
+        olapSession.getSchema().addPropertyChangeListener(new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
                 if (evt.getPropertyName().equals("name")) {
                     d.setTitle(generateDialogTitle());
@@ -133,14 +150,6 @@ public class OLAPEditSession implements OLAPChildListener {
         d.pack();
         
         OLAPPlayPenFactory.setupOLAPKeyboardActions(pp, this);
-    }
-    
-    /**
-     * Returns the OLAP Schema Editor dialog. It does not come with location and
-     * visibility set.
-     */
-    public JDialog getDialog() {
-        return d;
     }
     
     /**

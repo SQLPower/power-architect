@@ -41,7 +41,6 @@ public class OLAPPlayPenFactory {
         PlayPen pp = new PlayPen(session);
         
         pp.setPopupFactory(new ContextMenuFactory(session, oSession));
-        pp.setupKeyboardActions();
         
         return pp;
     }
@@ -59,6 +58,8 @@ public class OLAPPlayPenFactory {
      *            actions to register.
      */
     static void setupOLAPKeyboardActions(PlayPen pp, OLAPEditSession oSession) {
+        pp.setupKeyboardActions();
+        
         InputMap im = pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = pp.getActionMap();
         
