@@ -1133,6 +1133,17 @@ public class PlayPen extends JPanel
 		}
 		return tablePanes;
 	}
+	
+	/**
+	 * Returns a list of the playpen components in this playpen.
+	 */
+	public List<PlayPenComponent> getPlayPenComponents() {
+	    LinkedList<PlayPenComponent> ppcs = new LinkedList<PlayPenComponent>();
+	    for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
+	        ppcs.add(contentPane.getComponent(i));
+        }
+	    return ppcs;
+	}
 
     /**
      * Returns the already in use table names. Useful for
