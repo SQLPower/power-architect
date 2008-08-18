@@ -75,27 +75,26 @@ public class OLAPTree extends JTree{
             if (e.isPopupTrigger()) {
                 logger.debug("TreePath is: " + p); //$NON-NLS-1$
 
-                if (p != null) {
-                    logger.debug("selected node object type is: " + p.getLastPathComponent().getClass().getName()); //$NON-NLS-1$
-                }
-
                 // if the item is already selected, don't touch the selection model
                 if (!isPathSelected(p)) {
                     setSelectionPath(p);
                 }
-                
-                OLAPObject lpc = (OLAPObject)p.getLastPathComponent();
-                if (lpc != null) {
-                    JPopupMenu popup = menuFactory.createContextMenu(lpc);
-                    
-                    popup.addSeparator();
-                    popup.add(collapseAllAction);
-                    popup.add(expandAllAction);
 
-                    popup.show(e.getComponent(),
-                               e.getX(), e.getY());
+                if (p != null) {
+                    logger.debug("selected node object type is: " + p.getLastPathComponent().getClass().getName()); //$NON-NLS-1$
+                    
+                    OLAPObject lpc = (OLAPObject) p.getLastPathComponent();
+                    if (lpc != null) {
+                        JPopupMenu popup = menuFactory.createContextMenu(lpc);
+                        
+                        popup.addSeparator();
+                        popup.add(collapseAllAction);
+                        popup.add(expandAllAction);
+                        
+                        popup.show(e.getComponent(),
+                                e.getX(), e.getY());
+                    }
                 }
-                
             } else {
                 if ( p == null && !isPress && e.getButton() == MouseEvent.BUTTON1 )
                     setSelectionPath(null);
