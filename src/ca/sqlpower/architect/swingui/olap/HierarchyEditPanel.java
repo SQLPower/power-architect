@@ -19,53 +19,48 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import mondrian.rolap.RolapAggregator;
-import ca.sqlpower.architect.olap.MondrianModel.Measure;
+import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class MeasureEditPanel implements DataEntryPanel {
+public class HierarchyEditPanel implements DataEntryPanel {
     
-    private final Measure measure;
+    private final Hierarchy hierarchy;
     private final JPanel panel;
     private JTextField name;
     private JTextField captionField;
-    private JComboBox aggregator;
     
     /**
-     * Creates a new property editor for the given OLAP Measure. 
+     * Creates a new property editor for the given OLAP Hierarchy. 
      * 
-     * @param cube The data model of the measure to edit
+     * @param cube The data model of the hierarchy to edit
      */
-    public MeasureEditPanel(Measure measure) {
-        this.measure = measure;
+    public HierarchyEditPanel(Hierarchy hierarchy) {
+        this.hierarchy = hierarchy;
         
         FormLayout layout = new FormLayout(
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
-        builder.append("Name", name = new JTextField(measure.getName()));
-        builder.append("Caption", captionField = new JTextField(measure.getCaption()));
-        builder.append("Aggregator", aggregator = new JComboBox(RolapAggregator.enumeration.getNames()));
+        builder.append("Name", name = new JTextField(hierarchy.getName()));
+        builder.append("Caption", captionField = new JTextField(hierarchy.getCaption()));
         panel = builder.getPanel();
     }
     public boolean applyChanges() {
-        measure.startCompoundEdit("Modify measure properties");
-        measure.setName(name.getText());
+        hierarchy.startCompoundEdit("Modify hierarchy properties");
+        hierarchy.setName(name.getText());
         if (!(captionField.getText().equals(""))) {
-            measure.setCaption(captionField.getText());
+            hierarchy.setCaption(captionField.getText());
         } else {
-            measure.setCaption(null);
+            hierarchy.setCaption(null);
         }
-        measure.setAggregator((String) aggregator.getSelectedItem());
-        measure.endCompoundEdit();
+        hierarchy.endCompoundEdit();
         return true;
     }
 
