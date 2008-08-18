@@ -88,7 +88,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     
     private Color selectedColor = new Color(204, 204, 255);
     
-    protected ContainerPane<T, C> containerPane;
+    protected OLAPPane<T, C> olapPane;
     
     protected final List<PaneSection<C>> paneSections = new ArrayList<PaneSection<C>>();
 
@@ -105,7 +105,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
      * Calculates and returns the size of the given ContainerPane object
      */
     public Dimension getPreferredSize() {
-        ContainerPane<?, ?> cp = containerPane;
+        ContainerPane<?, ?> cp = olapPane;
 
         int height = 0;
         int width = 0;
@@ -141,16 +141,16 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     }
 
     public void installUI(PlayPenComponent c) {
-        containerPane = (ContainerPane<T, C>) c;
-        OLAPUtil.listenToHierarchy(containerPane.getModel(), modelEventHandler, modelEventHandler);
+        olapPane = (OLAPPane<T, C>) c;
+        OLAPUtil.listenToHierarchy(olapPane.getModel(), modelEventHandler, modelEventHandler);
     }
 
     public void uninstallUI(PlayPenComponent c) {
-        OLAPUtil.unlistenToHierarchy(containerPane.getModel(), modelEventHandler, modelEventHandler);
+        OLAPUtil.unlistenToHierarchy(olapPane.getModel(), modelEventHandler, modelEventHandler);
     }
     
     public void paint(Graphics2D g2) {
-        ContainerPane<T, C> cp = containerPane;
+        ContainerPane<T, C> cp = olapPane;
         if (logger.isDebugEnabled()) {
             Rectangle clip = g2.getClipBounds();
             if (clip != null) {
@@ -228,11 +228,11 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     }
 
     public boolean contains(Point p) {
-        return containerPane.getBounds().contains(p);
+        return olapPane.getBounds().contains(p);
     }
 
     public void revalidate() {
-        containerPane.setSize(getPreferredSize());
+        olapPane.setSize(getPreferredSize());
     }
 
     /**
@@ -248,8 +248,8 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
      *         point will have been translated.
      */
     public PaneSection<C> toSectionLocation(Point p) {
-        Font font = containerPane.getFont();
-        FontMetrics metrics = containerPane.getFontMetrics(font);
+        Font font = olapPane.getFont();
+        FontMetrics metrics = olapPane.getFontMetrics(font);
         int fontHeight = metrics.getHeight();
         int ascent = metrics.getAscent();
 
@@ -291,7 +291,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     @Override
     public int pointToItemIndex(Point p) {
         p = new Point(p);
-        ContainerPane<T, C> cube = containerPane;
+        ContainerPane<T, C> cube = olapPane;
         Font font = cube.getFont();
         FontMetrics metrics = cube.getFontMetrics(font);
         int fontHeight = metrics.getHeight();
@@ -452,18 +452,18 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
             if ("name".equals(evt.getPropertyName())) {
                 // note this could be the name of the cube or any of its child objects,
                 // since we have property change listeners on every object in the subtree under cube
-                containerPane.revalidate();
+                olapPane.revalidate();
             }
         }
 
         public void olapChildAdded(OLAPChildEvent e) {
             OLAPUtil.listenToHierarchy(e.getChild(), this, this);
-            containerPane.revalidate();
+            olapPane.revalidate();
         }
 
         public void olapChildRemoved(OLAPChildEvent e) {
             OLAPUtil.unlistenToHierarchy(e.getChild(), this, this);
-            containerPane.revalidate();
+            olapPane.revalidate();
         }
         
     }
