@@ -47,6 +47,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import org.apache.log4j.Logger;
@@ -307,6 +308,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         logger.debug("Populating profile manager view from profile manager " + System.identityHashCode(pm)); //$NON-NLS-1$
         for (TableProfileResult result : pm.getResults()) {
             ProfileRowComponent myRowComponent = new ProfileRowComponent(result, pm);
+            myRowComponent.addProfileChangeListener(this);
             list.add(myRowComponent);
             myRowComponent.addSelectionListener(resultListPanel);
             resultListPanel.add(myRowComponent);
@@ -451,6 +453,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
             if ( pr instanceof TableProfileResult){
                 myRowComponent = new ProfileRowComponent((TableProfileResult)pr, pm);
                 myRowComponent.addSelectionListener(resultListPanel);
+                myRowComponent.addProfileChangeListener(this);
                 list.add(myRowComponent);
                 tpr.add((TableProfileResult) pr);
                 pm.setProcessingOrder(tpr);
@@ -479,17 +482,26 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         }
         doSearch(searchText.getText());
     }
+    
+    public void profileListChanged(ProfileChangeEvent e) {
+        Runnable runner = new Runnable() {
+            public void run() {
+                sort();
+            }
+        };
+        try {
+            SwingUtilities.invokeLater(runner);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }    
 
     /**
      * Sorts the list either alphabetically or chronologically.
      */
-    public void sort() {
+    private void sort() {
         Collections.sort(showingRows, comparator);
-        updateResultListPanel();
         updateStatus();
+        updateResultListPanel();
     }
-
-    public void profileListChanged(ProfileChangeEvent e) {
-        logger.debug("ProfileChanged method not yet implemented."); //$NON-NLS-1$
-    }    
 }
