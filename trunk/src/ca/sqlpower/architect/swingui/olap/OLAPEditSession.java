@@ -37,6 +37,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.action.CreateCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateDimensionAction;
+import ca.sqlpower.architect.swingui.olap.action.CreateHierarchyAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateMeasureAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateVirtualCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.ExportSchemaAction;
@@ -50,6 +51,10 @@ public class OLAPEditSession implements OLAPChildListener {
      * This is the playpen used within OLAP schema editor.
      */
     private final PlayPen pp;
+    
+    /**
+     * The dialog this edit session lives in.
+     */
     private final JDialog d;
     
     /**
@@ -61,10 +66,12 @@ public class OLAPEditSession implements OLAPChildListener {
     private final CreateCubeAction createCubeAction;
     private final CreateVirtualCubeAction createVirtualCubeAction;
     private final CreateMeasureAction createMeasureAction;
+    private final CreateHierarchyAction createHierarchyAction;
     private final ExportSchemaAction exportSchemaAction;
     private final OLAPDeleteSelectedAction olapDeleteSelectedAction;
      
     private final ArchitectSwingSession swingSession;
+
     
     /**
      * Creates a new editor for the given OLAP schema. The schema's OLAPObjects should
@@ -93,6 +100,7 @@ public class OLAPEditSession implements OLAPChildListener {
         createCubeAction = new CreateCubeAction(swingSession, schema, pp);
         createVirtualCubeAction = new CreateVirtualCubeAction(swingSession, schema, pp);
         createMeasureAction = new CreateMeasureAction(swingSession, pp);
+        createHierarchyAction = new CreateHierarchyAction(swingSession, pp);
         exportSchemaAction = new ExportSchemaAction(swingSession, schema);
         olapDeleteSelectedAction = new OLAPDeleteSelectedAction(swingSession, this);
         
@@ -101,6 +109,7 @@ public class OLAPEditSession implements OLAPChildListener {
         toolbar.add(createCubeAction);
         toolbar.add(createVirtualCubeAction);
         toolbar.add(createMeasureAction);
+        toolbar.add(createHierarchyAction);
         toolbar.add(exportSchemaAction);
         
         JPanel panel = new JPanel(new BorderLayout());
@@ -175,6 +184,10 @@ public class OLAPEditSession implements OLAPChildListener {
 
     public CreateMeasureAction getCreateMeasureAction() {
         return createMeasureAction;
+    }
+
+    public CreateHierarchyAction getCreateHierarchyAction() {
+        return createHierarchyAction;
     }
 
     public ExportSchemaAction getExportSchemaAction() {
