@@ -103,6 +103,8 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.action.CancelAction;
+import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
+import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
@@ -410,6 +412,7 @@ public class PlayPen extends JPanel
      * stop using it.
      */
     public void destroy() {
+        firePlayPenLifecycleEvent();
         try {
             removeHierarcyListeners(session.getTargetDatabase());
         } catch (ArchitectException ex) {
@@ -2681,6 +2684,21 @@ public class PlayPen extends JPanel
             tp.updateHiddenColumns();
             tp.revalidate();
             tp.repaint();
+        }
+    }
+    
+    // PlayPen Lifecycle Event
+    
+    private final List<PlayPenLifecycleListener> lifecycleListeners = new ArrayList<PlayPenLifecycleListener>();
+    
+    public void addPlayPenLifecycleListener(PlayPenLifecycleListener ppll) {
+        lifecycleListeners.add(ppll);
+    }
+    
+    private void firePlayPenLifecycleEvent() {
+        PlayPenLifecycleEvent evt = new PlayPenLifecycleEvent(this);
+        for (int i = lifecycleListeners.size() - 1; i >= 0; i--) {
+            lifecycleListeners.get(i).PlayPenLifeEnding(evt);
         }
     }
 }
