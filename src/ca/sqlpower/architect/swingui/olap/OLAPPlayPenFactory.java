@@ -29,8 +29,14 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.olap.OLAPChildEvent;
+import ca.sqlpower.architect.olap.OLAPChildListener;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
+import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
 
 public class OLAPPlayPenFactory {
 
@@ -45,7 +51,11 @@ public class OLAPPlayPenFactory {
         }
         
         PlayPen pp = new PlayPen(session);
+        OLAPModelListener ppcl = new OLAPModelListener(pp, oSession);
+        pp.addPlayPenLifecycleListener(ppcl);
+        
         pp.setPopupFactory(new ContextMenuFactory(session, oSession));
+        OLAPUtil.listenToHierarchy(((OLAPTreeModel) (oSession.getOlapTree().getModel())).getRoot(), ppcl, null);
         
         return pp;
     }
@@ -97,10 +107,6 @@ public class OLAPPlayPenFactory {
         pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) oSession.getZoomNormalAction().getValue(Action.ACCELERATOR_KEY), "ZOOM RESET"); //$NON-NLS-1$
         pp.getActionMap().put("ZOOM RESET", oSession.getZoomNormalAction()); //$NON-NLS-1$
         
-        
-        
-        
-        
         im.put((KeyStroke) oSession.getCreateCubeAction().getValue(Action.ACCELERATOR_KEY), "NEW CUBE"); //$NON-NLS-1$
         am.put("NEW CUBE", oSession.getCreateCubeAction()); //$NON-NLS-1$
 
@@ -112,5 +118,52 @@ public class OLAPPlayPenFactory {
         
         im.put((KeyStroke) oSession.getCreateHierarchyAction().getValue(Action.ACCELERATOR_KEY), "NEW HIERARCHY"); //$NON-NLS-1$
         am.put("NEW HIERARCHY", oSession.getCreateHierarchyAction()); //$NON-NLS-1$
+    }
+    
+    /**
+     * An instance of this OLAPChildListener will listen to tree model structural
+     * changes.
+     * <p>
+     * It is used for playpen to update its contentpane when business model
+     * structure changes.
+     */
+    private static class OLAPModelListener implements OLAPChildListener, PlayPenLifecycleListener {
+        
+        private final PlayPen pp;
+        private final OLAPEditSession session;
+
+        public OLAPModelListener(PlayPen pp, OLAPEditSession oSession) {
+            this.pp = pp;
+            session = oSession;
+        }
+        
+        public void olapChildAdded(OLAPChildEvent e) {
+            OLAPUtil.listenToHierarchy(e.getChild(), this, null);
+            
+        }
+
+        public void olapChildRemoved(OLAPChildEvent e) {
+            OLAPUtil.unlistenToHierarchy(e.getChild(), this, null);
+
+            for (int j = 0; j < pp.getContentPane().getComponentCount(); j++) {
+                if (pp.getContentPane().getComponent(j) instanceof OLAPPane) {
+                    OLAPPane<?, ?> olapPane = (OLAPPane<?, ?>) pp.getContentPane().getComponent(j);
+                    if (pp.getContentPane().getComponent(j).getModel() == e.getChild()) {
+                        olapPane.setSelected(false,SelectionEvent.SINGLE_SELECT);
+                        pp.getContentPane().remove(j);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Clean up after playpen life cycle ends. This can be the case when a
+         * temporary playpen is created and then destroyed. This will
+         * automatically detach itself from the business model, so that the
+         * temporary playpen can be garbage collected.
+         */
+        public void PlayPenLifeEnding(PlayPenLifecycleEvent e) {
+            OLAPUtil.unlistenToHierarchy(((OLAPTreeModel) (session.getOlapTree().getModel())).getRoot(), this, null);
+        }
     }
 }
