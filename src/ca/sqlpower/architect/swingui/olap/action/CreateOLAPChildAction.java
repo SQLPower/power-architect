@@ -140,7 +140,7 @@ public abstract class CreateOLAPChildAction<C extends OLAPObject> extends Abstra
         JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 mep,
                 SwingUtilities.getWindowAncestor(playpen),
-                "Measure Properties",
+                friendlyChildName + " Properties",
                 "OK",
                 okCall,
                 cancelCall);
