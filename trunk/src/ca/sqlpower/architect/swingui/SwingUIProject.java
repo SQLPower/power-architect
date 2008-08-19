@@ -40,7 +40,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
-import org.apache.commons.digester.Rule;
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -132,7 +131,12 @@ public class SwingUIProject extends CoreProject {
     public void load(InputStream in, DataSourceCollection dataSources) throws IOException, ArchitectException {
         super.load(in, dataSources);
         
-
+        // set the view positions again in the case that the viewport was invalid earlier.
+        getSession().getPlayPen().setInitialViewPosition();
+        for (OLAPEditSession editSession : getSession().getOLAPEditSessions()) {
+            editSession.getOlapPlayPen().setInitialViewPosition();
+        }
+        
         // TODO change this to load the undo history from a file
         getSession().getUndoManager().discardAllEdits();
     }
@@ -143,23 +147,6 @@ public class SwingUIProject extends CoreProject {
         // the play pen
         RelationalPlayPenFactory ppFactory = new RelationalPlayPenFactory();
         d.addFactoryCreate("architect-project/play-pen", ppFactory); //$NON-NLS-1$
-        
-        //Sets the view point again in the case that the viewport was invalid in the factory
-        d.addRule("*/play-pen", new Rule() { //$NON-NLS-1$
-            @Override
-            public void end() throws Exception {
-                super.end();
-                
-                Object topItem = getDigester().peek();
-                if (!(topItem instanceof PlayPen)) {
-                    logger.error("Expected a PlayPen object on top of stack but found: " + topItem); //$NON-NLS-1$
-                    throw new IllegalStateException("PlayPen object not found!"); //$NON-NLS-1$
-                }
-                
-                PlayPen pp = (PlayPen) topItem;
-                pp.setInitialViewPosition();
-            }
-        });
         
         TablePaneFactory tablePaneFactory = new TablePaneFactory();
         d.addFactoryCreate("*/play-pen/table-pane", tablePaneFactory); //$NON-NLS-1$
