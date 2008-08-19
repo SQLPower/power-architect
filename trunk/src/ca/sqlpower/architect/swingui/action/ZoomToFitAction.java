@@ -45,9 +45,14 @@ public class ZoomToFitAction extends AbstractArchitectAction {
      * Creates a new zoom action tied to the gicen session's play pen.
      * By default, this action gives itself the accelerator key "z" with
      * no modifiers.
+     * @param pp 
      */
-    public ZoomToFitAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("ZoomToFitAction.name"), Messages.getString("ZoomToFitAction.description"), "zoom_fit"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    public ZoomToFitAction(ArchitectSwingSession session, PlayPen pp) {
+        super(session, 
+                pp, 
+                Messages.getString("ZoomToFitAction.name"), //$NON-NLS-1$ 
+                Messages.getString("ZoomToFitAction.description"), //$NON-NLS-1$ 
+                "zoom_fit"); //$NON-NLS-1$
         putValue(AbstractAction.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
     }
     

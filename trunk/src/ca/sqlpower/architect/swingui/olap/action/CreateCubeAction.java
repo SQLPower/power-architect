@@ -41,7 +41,7 @@ public class CreateCubeAction extends AbstractArchitectAction {
     private final Schema schema;
     
     public CreateCubeAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
-        super(session, pp, "New Cube...", "Create a new cube in this schema", null);
+        super(session, pp, "New Cube...", "Create a new cube in this schema", (String) null);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('c'));
         this.schema = schema;
     }
@@ -79,7 +79,6 @@ public class CreateCubeAction extends AbstractArchitectAction {
                 @Override
                 public void discardChanges() {
                     schema.removeCube(cp.getModel());
-                    playpen.getContentPane().remove(cp);
                 }
             };
             return editPanel;

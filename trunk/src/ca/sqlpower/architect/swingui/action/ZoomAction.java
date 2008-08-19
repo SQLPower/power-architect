@@ -32,6 +32,7 @@ import javax.swing.KeyStroke;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 
 
@@ -44,8 +45,9 @@ public class ZoomAction extends AbstractArchitectAction implements PropertyChang
 	public static final String ZOOM_OUT = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_OUT"; //$NON-NLS-1$
 	public static final String ZOOM_ALL = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_ALL"; //$NON-NLS-1$
 
-	public ZoomAction(ArchitectSwingSession session, double amount) {
+	public ZoomAction(ArchitectSwingSession session, PlayPen pp, double amount) {
         super(session,
+              pp,
               amount > 0.0 ? Messages.getString("ZoomAction.zoomInActionName") : Messages.getString("ZoomAction.zoomOutActionName"), //$NON-NLS-1$ //$NON-NLS-2$
               amount > 0.0 ? Messages.getString("ZoomAction.zoomInActionDescription") : Messages.getString("ZoomAction.zoomOutActionDescription"), //$NON-NLS-1$ //$NON-NLS-2$
               amount > 0.0 ? "zoom_in" : "zoom_out");         //$NON-NLS-1$ //$NON-NLS-2$

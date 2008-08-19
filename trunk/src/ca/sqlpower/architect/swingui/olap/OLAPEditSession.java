@@ -23,6 +23,7 @@ import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -34,7 +35,12 @@ import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
+import ca.sqlpower.architect.swingui.action.ZoomAction;
+import ca.sqlpower.architect.swingui.action.ZoomResetAction;
+import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateDimensionAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateHierarchyAction;
@@ -62,6 +68,13 @@ public class OLAPEditSession implements OLAPChildListener {
      */
     private final OLAPSession olapSession;
     
+    public static final double ZOOM_STEP = 0.25;
+    
+    private ZoomAction zoomInAction;
+    private ZoomAction zoomOutAction;
+    private ZoomResetAction zoomNormalAction;
+    private ZoomToFitAction zoomToFitAction;
+    private DeleteSelectedAction deleteSelectedAction;
     private CreateDimensionAction createDimensionAction;
     private CreateCubeAction createCubeAction;
     private CreateVirtualCubeAction createVirtualCubeAction;
@@ -113,6 +126,11 @@ public class OLAPEditSession implements OLAPChildListener {
      */
     private void initGUI() {
         Schema schema = olapSession.getSchema();
+        zoomInAction = new ZoomAction(swingSession, pp, ZOOM_STEP);
+        zoomOutAction = new ZoomAction(swingSession, pp, ZOOM_STEP * -1.0);
+        zoomNormalAction = new ZoomResetAction(swingSession, pp);
+        zoomToFitAction = new ZoomToFitAction(swingSession, pp);
+        zoomToFitAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.zoomToFitActionDescription")); //$NON-NLS-1$
         createDimensionAction = new CreateDimensionAction(swingSession, schema, pp);
         createCubeAction = new CreateCubeAction(swingSession, schema, pp);
         createVirtualCubeAction = new CreateVirtualCubeAction(swingSession, schema, pp);
@@ -122,11 +140,21 @@ public class OLAPEditSession implements OLAPChildListener {
         olapDeleteSelectedAction = new OLAPDeleteSelectedAction(swingSession, this);
         
         JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
+        toolbar.add(zoomInAction);
+        toolbar.add(zoomOutAction);
+        toolbar.add(zoomNormalAction);
+        toolbar.add(zoomToFitAction);
+        
+        toolbar.addSeparator();
+        
         toolbar.add(createDimensionAction);
         toolbar.add(createCubeAction);
         toolbar.add(createVirtualCubeAction);
         toolbar.add(createMeasureAction);
         toolbar.add(createHierarchyAction);
+        
+        toolbar.addSeparator();
+        
         toolbar.add(exportSchemaAction);
         
         JPanel panel = new JPanel(new BorderLayout());
@@ -220,5 +248,25 @@ public class OLAPEditSession implements OLAPChildListener {
             swingSession.getOLAPRootObject().removeChildListener(this);
             d.dispose();
         }
+    }
+
+    public ZoomAction getZoomInAction() {
+        return zoomInAction;
+    }
+
+    public ZoomAction getZoomOutAction() {
+        return zoomOutAction;
+    }
+
+    public ZoomResetAction getZoomNormalAction() {
+        return zoomNormalAction;
+    }
+
+    public ZoomToFitAction getZoomToFitAction() {
+        return zoomToFitAction;
+    }
+
+    public DeleteSelectedAction getDeleteSelectedAction() {
+        return deleteSelectedAction;
     }
 }

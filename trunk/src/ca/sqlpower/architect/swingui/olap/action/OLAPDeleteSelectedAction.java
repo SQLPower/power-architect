@@ -37,7 +37,7 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
     private final OLAPEditSession editSession;
     
     public OLAPDeleteSelectedAction(ArchitectSwingSession session, OLAPEditSession editSession) {
-        super(session, editSession.getOlapPlayPen(), "Delete Selected", "Delete selected item.", null);
+        super(session, editSession.getOlapPlayPen(), "Delete Selected", "Delete selected item.", (String) null);
         this.editSession = editSession;
     }
     

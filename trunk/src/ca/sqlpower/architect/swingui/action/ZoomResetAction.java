@@ -28,11 +28,16 @@ import javax.swing.Action;
 import javax.swing.KeyStroke;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPen;
 
 public class ZoomResetAction extends AbstractArchitectAction implements Action {
 
-    public ZoomResetAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("ZoomResetAction.name"), Messages.getString("ZoomResetAction.description"), "zoom_reset"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    public ZoomResetAction(ArchitectSwingSession session, PlayPen pp) {
+        super(session,
+                pp,
+                Messages.getString("ZoomResetAction.name"),
+                Messages.getString("ZoomResetAction.description"),
+                "zoom_reset"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     }

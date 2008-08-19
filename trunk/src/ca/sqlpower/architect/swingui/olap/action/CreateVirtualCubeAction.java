@@ -32,7 +32,7 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
     private final Schema schema;
 
     public CreateVirtualCubeAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
-        super(session, pp, "New Virtual Cube...", "Create a new Virtual Cube in this schema", null);
+        super(session, pp, "New Virtual Cube...", "Create a new Virtual Cube in this schema", (String) null);
         this.schema = schema;
     }
 
