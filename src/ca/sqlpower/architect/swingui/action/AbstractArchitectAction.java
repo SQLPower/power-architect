@@ -92,6 +92,33 @@ public abstract class AbstractArchitectAction extends AbstractAction {
                         (Icon) null :
                         SPSUtils.createIcon(iconResourceName, actionName, ArchitectSwingSessionContext.ICON_SIZE));
     }
+    
+    /**
+     * Helper constructor that all architect action subclasses that use an icon will call.
+     * Ensures that the session, its frame, and its frame's playpen are
+     * all non-null.
+     * 
+     * @param session The session that this action will operate on. Must not be null.
+     * @param pp The play pen to use. For actions that deal with the relational
+     * play pen, this should be the ArchitectSwingSession's play pen. For OLAP actions,
+     * this should be the appropriate OLAP play pen.
+     * @param actionName The name for this action. This will appear in menu items.
+     * @param actionDescription This action's description. Appears in tooltips.
+     * @param iconResourceName The resource name of the icon. See
+     * {@link SPSUtils#createIcon(String, String, int))} for details.
+     */
+    public AbstractArchitectAction(
+            ArchitectSwingSession session,
+            PlayPen pp,
+            String actionName,
+            String actionDescription,
+            String iconResourceName) {
+        
+        this(session, pp, actionName, actionDescription,
+                iconResourceName == null ?
+                        (Icon) null :
+                            SPSUtils.createIcon(iconResourceName, actionName, ArchitectSwingSessionContext.ICON_SIZE));
+    }
 
     /**
      * Helper constructor that all architect action subclasses that use an icon will call.
