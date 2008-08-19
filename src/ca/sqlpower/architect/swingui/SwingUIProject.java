@@ -27,6 +27,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -504,7 +505,7 @@ public class SwingUIProject extends CoreProject {
             } else {
                 pmMax = ArchitectUtils.countTables((SQLObject) getSession().getSourceDatabases().getModel().getRoot());
             }
-            logger.error("Setting progress monitor maximum to "+pmMax); //$NON-NLS-1$
+            logger.debug("Setting progress monitor maximum to "+pmMax); //$NON-NLS-1$
             pm.setMaximum(pmMax);
             pm.setProgress(progress);
             pm.setMillisToDecideToPopup(0);
@@ -837,7 +838,11 @@ public class SwingUIProject extends CoreProject {
     }
     
     private void savePlayPenComponents(PrintWriter out, PlayPen pp) {
-        for (PlayPenComponent ppc : pp.getPlayPenComponents()) {
+        List<PlayPenComponent> ppcs = pp.getPlayPenComponents();
+        Collections.reverse(ppcs);
+        
+        // save the container panes.
+        for (PlayPenComponent ppc : ppcs) {
             if (ppc instanceof TablePane) {
                 TablePane tp = (TablePane) ppc;
                 Point p = tp.getLocation();
@@ -853,14 +858,6 @@ public class SwingUIProject extends CoreProject {
                 if (pm != null) {
                     pm.setProgress(++progress);
                 }
-            } else if (ppc instanceof Relationship) {
-                Relationship r = (Relationship) ppc;
-                ioo.println(out, "<table-link relationship-ref="+quote(sqlObjectSaveIdMap.get(r.getModel())) //$NON-NLS-1$
-                        +" pk-x=\""+r.getPkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                        +" pk-y=\""+r.getPkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                        +" fk-x=\""+r.getFkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                        +" fk-y=\""+r.getFkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                        +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$
             } else if (ppc instanceof CubePane) {
                 CubePane cp = (CubePane) ppc;
                 Point p = cp.getLocation();
@@ -871,6 +868,27 @@ public class SwingUIProject extends CoreProject {
                 Point p = dp.getLocation();
                 ioo.println(out, "<dimension-pane dimension-ref="+quote(olapObjectSaveIdMap.get(dp.getModel())) //$NON-NLS-1$
                         +" x=\""+p.x+"\" y=\""+p.y+"\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+            }
+        }
+        
+        // save the connectors.
+        for (PlayPenComponent ppc : ppcs) {
+            if (ppc instanceof Relationship) {
+                Relationship r = (Relationship) ppc;
+                logger.warn("<table-link relationship-ref="+quote(sqlObjectSaveIdMap.get(r.getModel())) //$NON-NLS-1$
+                        +" pk-x=\""+r.getPkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" pk-y=\""+r.getPkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" fk-x=\""+r.getFkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" fk-y=\""+r.getFkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\"/>");
+                ioo.println(out, "<table-link relationship-ref="+quote(sqlObjectSaveIdMap.get(r.getModel())) //$NON-NLS-1$
+                        +" pk-x=\""+r.getPkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" pk-y=\""+r.getPkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" fk-x=\""+r.getFkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" fk-y=\""+r.getFkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$
+            } else if (ppc instanceof ContainerPane) {
+                // do nothing, already handled.
             } else {
                 logger.warn("Skipping unhandled playpen component: " + ppc); //$NON-NLS-1$
             }
