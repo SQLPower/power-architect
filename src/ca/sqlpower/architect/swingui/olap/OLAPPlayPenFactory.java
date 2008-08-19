@@ -19,16 +19,22 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.awt.event.KeyEvent;
+
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
+import org.apache.log4j.Logger;
+
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 
 public class OLAPPlayPenFactory {
+
+    private static final Logger logger = Logger.getLogger(OLAPPlayPenFactory.class);
 
     public static PlayPen createPlayPen(ArchitectSwingSession session, OLAPEditSession oSession) {
         if (session == null) {
@@ -39,7 +45,6 @@ public class OLAPPlayPenFactory {
         }
         
         PlayPen pp = new PlayPen(session);
-        
         pp.setPopupFactory(new ContextMenuFactory(session, oSession));
         
         return pp;
@@ -69,6 +74,32 @@ public class OLAPPlayPenFactory {
         if (am == null) {
             throw new NullPointerException("Null action map");
         }
+        
+        
+        String KEY_DELETE_SELECTED = "ca.sqlpower.architect.swingui.PlayPen.KEY_DELETE_SELECTED"; //$NON-NLS-1$
+
+        InputMap inputMap = pp.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), KEY_DELETE_SELECTED);
+        pp.getActionMap().put(KEY_DELETE_SELECTED, oSession.getDeleteSelectedAction());
+        if (oSession.getDeleteSelectedAction() == null) logger.warn("oSession.deleteSelectedAction is null!"); //$NON-NLS-1$
+
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) oSession.getZoomToFitAction().getValue(Action.ACCELERATOR_KEY), "ZOOM TO FIT"); //$NON-NLS-1$
+        pp.getActionMap().put("ZOOM TO FIT", oSession.getZoomToFitAction()); //$NON-NLS-1$
+
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) oSession.getZoomInAction().getValue(Action.ACCELERATOR_KEY), "ZOOM IN"); //$NON-NLS-1$
+        pp.getActionMap().put("ZOOM IN", oSession.getZoomInAction()); //$NON-NLS-1$
+
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) oSession.getZoomOutAction().getValue(Action.ACCELERATOR_KEY), "ZOOM OUT"); //$NON-NLS-1$
+        pp.getActionMap().put("ZOOM OUT", oSession.getZoomOutAction()); //$NON-NLS-1$
+
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) oSession.getZoomNormalAction().getValue(Action.ACCELERATOR_KEY), "ZOOM RESET"); //$NON-NLS-1$
+        pp.getActionMap().put("ZOOM RESET", oSession.getZoomNormalAction()); //$NON-NLS-1$
+        
+        
+        
+        
         
         im.put((KeyStroke) oSession.getCreateCubeAction().getValue(Action.ACCELERATOR_KEY), "NEW CUBE"); //$NON-NLS-1$
         am.put("NEW CUBE", oSession.getCreateCubeAction()); //$NON-NLS-1$

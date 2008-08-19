@@ -45,7 +45,7 @@ public class EditMeasureAction extends AbstractArchitectAction{
     private final Window dialogOwner;
 
     public EditMeasureAction(ArchitectSwingSession session, Measure measure, PlayPen pp) {
-        super(session, pp, "Measure Properties...", "Edit the properties of "+measure.getName()+" in a dialog", null);
+        super(session, pp, "Measure Properties...", "Edit the properties of "+measure.getName()+" in a dialog", (String) null);
         this.dialogOwner = SwingUtilities.getWindowAncestor(pp);
         this.measure = measure;
     }

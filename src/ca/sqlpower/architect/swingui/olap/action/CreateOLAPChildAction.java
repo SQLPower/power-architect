@@ -107,7 +107,7 @@ public abstract class CreateOLAPChildAction<C extends OLAPObject> extends Abstra
     public CreateOLAPChildAction(ArchitectSwingSession session, PlayPen olapPlayPen,
             String friendlyChildName, Class<? extends OLAPPane<?, ? super C>> paneClass,
                     String friendlyParentName, char accelKey) {
-        super(session, olapPlayPen, "New " + friendlyChildName, null, null);
+        super(session, olapPlayPen, "New " + friendlyChildName, null, (String) null);
         this.friendlyChildName = friendlyChildName;
         this.paneClass = paneClass;
         this.friendlyParentName = friendlyParentName;

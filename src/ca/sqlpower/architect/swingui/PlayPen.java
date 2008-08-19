@@ -468,31 +468,10 @@ public class PlayPen extends JPanel
      * playpen.
      */
     public void setupKeyboardActions() {
-        
-        String KEY_DELETE_SELECTED = "ca.sqlpower.architect.swingui.PlayPen.KEY_DELETE_SELECTED"; //$NON-NLS-1$
-        ArchitectFrame af = session.getArchitectFrame();
-
         InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), KEY_DELETE_SELECTED);
-        getActionMap().put(KEY_DELETE_SELECTED, af.getDeleteSelectedAction());
-        if (af.getDeleteSelectedAction() == null) logger.warn("af.deleteSelectedAction is null!"); //$NON-NLS-1$
-
+        
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL"); //$NON-NLS-1$
         getActionMap().put("CANCEL", new CancelAction(this)); //$NON-NLS-1$
-
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomToFitAction().getValue(Action.ACCELERATOR_KEY), "ZOOM TO FIT"); //$NON-NLS-1$
-        getActionMap().put("ZOOM TO FIT", af.getZoomToFitAction()); //$NON-NLS-1$
-
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomInAction().getValue(Action.ACCELERATOR_KEY), "ZOOM IN"); //$NON-NLS-1$
-        getActionMap().put("ZOOM IN", af.getZoomInAction()); //$NON-NLS-1$
-
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomOutAction().getValue(Action.ACCELERATOR_KEY), "ZOOM OUT"); //$NON-NLS-1$
-        getActionMap().put("ZOOM OUT", af.getZoomOutAction()); //$NON-NLS-1$
-
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomResetAction().getValue(Action.ACCELERATOR_KEY), "ZOOM RESET"); //$NON-NLS-1$
-        getActionMap().put("ZOOM RESET", af.getZoomResetAction()); //$NON-NLS-1$
 
         final Object KEY_SELECT_UPWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_UPWARD"; //$NON-NLS-1$
         final Object KEY_SELECT_DOWNWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_DOWNWARD"; //$NON-NLS-1$

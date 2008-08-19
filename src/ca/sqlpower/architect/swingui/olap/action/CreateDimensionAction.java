@@ -41,7 +41,7 @@ public class CreateDimensionAction extends AbstractArchitectAction {
     private final Schema schema;
 
     public CreateDimensionAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
-        super(session, pp, "New Dimension...", "Create a new shared dimension in this schema", null);
+        super(session, pp, "New Dimension...", "Create a new shared dimension in this schema", (String) null);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('d'));
         this.schema = schema;
     }
@@ -86,7 +86,6 @@ public class CreateDimensionAction extends AbstractArchitectAction {
                 @Override
                 public void discardChanges() {
                     schema.removeDimension(dp.getModel());
-                    playpen.getContentPane().remove(dp);
                 }
             };
             return editPanel;

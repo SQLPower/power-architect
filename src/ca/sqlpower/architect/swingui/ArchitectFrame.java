@@ -364,12 +364,12 @@ public class ArchitectFrame extends JFrame {
 
         exportPlaypenToPDFAction = new ExportPlaypenToPDFAction(session);
 
-        zoomInAction = new ZoomAction(session, ZOOM_STEP);
-        zoomOutAction = new ZoomAction(session, ZOOM_STEP * -1.0);
+        zoomInAction = new ZoomAction(session, session.getPlayPen(), ZOOM_STEP);
+        zoomOutAction = new ZoomAction(session, session.getPlayPen(), ZOOM_STEP * -1.0);
 
-        zoomNormalAction = new ZoomResetAction(session);
+        zoomNormalAction = new ZoomResetAction(session, session.getPlayPen());
 
-        zoomToFitAction = new ZoomToFitAction(session);
+        zoomToFitAction = new ZoomToFitAction(session, session.getPlayPen());
         zoomToFitAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.zoomToFitActionDescription")); //$NON-NLS-1$
 
         undoAction = new UndoAction(session, session.getUndoManager());
