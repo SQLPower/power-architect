@@ -75,7 +75,12 @@ public class CubeEditPanel implements DataEntryPanel {
         builder.append("Name", nameField = new JTextField(cube.getName()));
         builder.append("Table", tableChooser = new JComboBox(new Vector<SQLTable>(tables)));
         builder.append("Caption", captionField = new JTextField(cube.getCaption()));
-        builder.append("Default Measure", defMeasure = new JComboBox(cube.getMeasures().toArray()));
+        
+        // default measure is optional so we need to add in a null option
+        List<Measure> measures = new ArrayList<Measure>(cube.getMeasures());
+        measures.add(0, null);
+        builder.append("Default Measure", defMeasure = new JComboBox(measures.toArray()));
+        defMeasure.setRenderer(new OLAPObjectListCellRenderer());
         for (Measure ms : cube.getMeasures()) {
             if (ms.getName().equals(cube.getDefaultMeasure())) {
                 defMeasure.setSelectedItem(ms);
@@ -84,6 +89,7 @@ public class CubeEditPanel implements DataEntryPanel {
         }
         panel = builder.getPanel();
     }
+    
     public boolean applyChanges() {
         try {
             cube.startCompoundEdit("Modify cube properties");
@@ -100,9 +106,8 @@ public class CubeEditPanel implements DataEntryPanel {
             } else {
                 cube.setCaption(null);
             }
-            if (defMeasure.getSelectedItem() != null) {
-                cube.setDefaultMeasure(defMeasure.getSelectedItem().toString());
-            }
+            Measure ms = (Measure) defMeasure.getSelectedItem();
+            cube.setDefaultMeasure(ms == null ? null : ms.getName());
         } finally {
             cube.endCompoundEdit();
         }

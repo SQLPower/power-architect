@@ -54,6 +54,9 @@ public class MeasureEditPanel implements DataEntryPanel {
         builder.append("Name", name = new JTextField(measure.getName()));
         builder.append("Caption", captionField = new JTextField(measure.getCaption()));
         builder.append("Aggregator", aggregator = new JComboBox(RolapAggregator.enumeration.getNames()));
+        if (measure.getAggregator() != null) {
+            aggregator.setSelectedItem(measure.getAggregator());
+        }
         panel = builder.getPanel();
     }
     public boolean applyChanges() {
