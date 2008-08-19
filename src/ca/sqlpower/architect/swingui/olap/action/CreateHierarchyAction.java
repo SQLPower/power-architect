@@ -19,97 +19,32 @@
 
 package ca.sqlpower.architect.swingui.olap.action;
 
-import java.awt.event.ActionEvent;
-import java.util.List;
-import java.util.concurrent.Callable;
-
-import javax.swing.JDialog;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.PlayPenComponent;
-import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
-import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.HierarchyEditPanel;
-import ca.sqlpower.swingui.DataEntryPanelBuilder;
+import ca.sqlpower.swingui.DataEntryPanel;
 
 /**
  * Action for adding a hierarchy to the selected dimension.
  */
-public class CreateHierarchyAction extends AbstractArchitectAction {
+public class CreateHierarchyAction extends CreateOLAPChildAction<Hierarchy> {
 
-    /**
-     * Watches the playpen and sets the properties of this action according
-     * to what's going on.
-     */
-    private class PlayPenWatcher implements SelectionListener {
-
-        private void updateStatus() {
-            List<PlayPenComponent> selectedItems = playpen.getSelectedItems();
-            String description;
-            if (selectedItems.size() == 1 && selectedItems.get(0) instanceof DimensionPane) {
-                setEnabled(true);
-                description = "Add a hierarchy to " + selectedItems.get(0).getName();
-            } else {
-                setEnabled(false);
-                description = "Add hierarchy to selected dimension";
-            }
-            putValue(SHORT_DESCRIPTION, description);
-        }
-        
-        public void itemDeselected(SelectionEvent e) {
-            updateStatus();
-        }
-
-        public void itemSelected(SelectionEvent e) {
-            updateStatus();
-        }
-        
-    }
-    
     public CreateHierarchyAction(ArchitectSwingSession session, PlayPen olapPlayPen) {
-        super(session, olapPlayPen, "New Hierarchy", null, null);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('h'));
-        PlayPenWatcher ppw = new PlayPenWatcher();
-        playpen.addSelectionListener(ppw);
-        ppw.updateStatus();
+        super(session, olapPlayPen, "Hierarchy", DimensionPane.class, "Dimension", 'h');
     }
 
-    public void actionPerformed(ActionEvent e) {
-        List<PlayPenComponent> selectedItems = playpen.getSelectedItems();
-        DimensionPane cp = (DimensionPane) selectedItems.get(0);
-        final Dimension dimension = cp.getModel();
-        final Hierarchy h = new Hierarchy();
+    @Override
+    protected Hierarchy createChildInstance() {
+        Hierarchy h = new Hierarchy();
         h.setName("New Hierarchy");
-        dimension.addHierarchy(h);
-        
-        final HierarchyEditPanel hep = new HierarchyEditPanel(h);
-        Callable<Boolean> okCall = new Callable<Boolean>() {
-            public Boolean call() throws Exception {
-                return hep.applyChanges();
-            }
-        };
-        Callable<Boolean> cancelCall = new Callable<Boolean>() {
-            public Boolean call() throws Exception {
-                dimension.removeHierarchy(h);
-                return true;
-            }
-        };
-        JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
-                hep,
-                SwingUtilities.getWindowAncestor(playpen),
-                "Hierarchy Properties",
-                "OK",
-                okCall,
-                cancelCall);
-        d.setLocationRelativeTo(playpen);
-        d.setVisible(true);
+        return h;
+    }
+
+    @Override
+    protected DataEntryPanel createDataEntryPanel(Hierarchy model) {
+        return new HierarchyEditPanel(model);
     }
     
 }
