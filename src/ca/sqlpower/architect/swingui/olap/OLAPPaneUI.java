@@ -408,7 +408,8 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
                         hwidth, fontHeight);
                 g.setColor(cp.getForegroundColor());
             }
-            g.drawString(item.getName(), BOX_LINE_THICKNESS +
+            String itemName = item.getName() == null ? "(null)" : item.getName();
+            g.drawString(itemName, BOX_LINE_THICKNESS +
                     cp.getMargin().left, y += fontHeight);
             i++;
         }
