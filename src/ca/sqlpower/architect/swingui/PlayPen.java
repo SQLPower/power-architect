@@ -1779,15 +1779,14 @@ public class PlayPen extends JPanel
 	}
 
 	protected void fireSelectionEvent(SelectionEvent e) {
-		Iterator it = selectionListeners.iterator();
 		if (e.getType() == SelectionEvent.SELECTION_EVENT) {
-			while (it.hasNext()) {
-				((SelectionListener) it.next()).itemSelected(e);
+			for (int i = selectionListeners.size() - 1; i >= 0; i--) {
+				((SelectionListener) selectionListeners.get(i)).itemSelected(e);
 			}
 		} else if (e.getType() == SelectionEvent.DESELECTION_EVENT) {
-			while (it.hasNext()) {
-				((SelectionListener) it.next()).itemDeselected(e);
-			}
+		    for (int i = selectionListeners.size() - 1; i >= 0; i--) {
+                ((SelectionListener) selectionListeners.get(i)).itemSelected(e);
+            }
 		} else {
 			throw new IllegalStateException("Unknown selection event type "+e.getType()); //$NON-NLS-1$
 		}
