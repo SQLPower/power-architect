@@ -21,6 +21,7 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Window;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JDialog;
@@ -343,7 +344,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public List<OLAPEditSession> getOLAPEditSessions() {
-        return null;
+        return Collections.emptyList();
     }
     
     public OLAPEditSession getOLAPEditSession(OLAPSession olapSession) {
