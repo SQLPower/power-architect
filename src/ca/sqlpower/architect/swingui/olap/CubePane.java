@@ -49,10 +49,6 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
         setUI(ui);
     }
 
-    public Cube getCube() {
-        return model;
-    }
-
     @Override
     public String toString() {
         return "CubePane: " + model.getName(); //$NON-NLS-1$

@@ -68,6 +68,9 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
      */
     protected boolean selected;
     
+    private boolean rounded;
+    private boolean dashed;
+    
     protected T model;
     
     /**
@@ -250,6 +253,38 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
      * Returns a list of the items to be displayed with the model.  
      */
     protected abstract List<C> getItems();
+    
+    /**
+     * Indicates whether the corners are rounded. 
+     */
+    public boolean isRounded() {
+        return rounded;
+    }
+
+    /**
+     * Sets whether the corners are rounded. 
+     */
+    public void setRounded(boolean isRounded) {
+        boolean oldValue = rounded;
+        rounded = isRounded;
+        firePropertyChange("rounded", oldValue, isRounded); //$NON-NLS-1$
+    }
+
+    /**
+     * Indicates whether the lines are dashed/normal. 
+     */
+    public boolean isDashed() {
+        return dashed;
+    }
+
+    /**
+     * Sets whether the lines are dashed. 
+     */
+    public void setDashed(boolean isDashed) {
+        boolean oldValue = dashed;
+        dashed = isDashed;
+        firePropertyChange("dashed", oldValue, isDashed); //$NON-NLS-1$
+    }
     
     // --------------------- Selectable Methods ---------------------
 

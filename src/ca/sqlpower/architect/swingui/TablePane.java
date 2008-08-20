@@ -114,9 +114,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
 	 * dragged.  At all other times, it should be null.
 	 */
 	protected SQLColumn draggingColumn;
-	
-	private boolean rounded = false;
-	private boolean dashed = false;
 
     private boolean fullyQualifiedNameInHeader = false;
 
@@ -141,8 +138,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
 		
 		this.foregroundColor = tp.getForegroundColor();
 		this.backgroundColor = tp.getBackgroundColor();
-		this.dashed = tp.isDashed();
-		this.rounded = tp.isRounded();
+		setDashed(tp.isDashed());
+		setRounded(tp.isRounded());
 		
 		try {
 			PlayPenComponentUI newUi = tp.getUI().getClass().newInstance();
@@ -919,38 +916,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
         } catch (ArchitectException ex) {
             throw new ArchitectRuntimeException(ex);
         }
-    }
-
-    /**
-     * Indicates whether the corners are rounded. 
-     */
-    public boolean isRounded() {
-        return rounded;
-    }
-
-    /**
-     * Sets whether the corners are rounded. 
-     */
-    public void setRounded(boolean isRounded) {
-        boolean oldValue = rounded;
-        rounded = isRounded;
-        firePropertyChange("rounded", oldValue, isRounded); //$NON-NLS-1$
-    }
-
-    /**
-     * Indicates whether the lines are dashed/normal. 
-     */
-    public boolean isDashed() {
-        return dashed;
-    }
-
-    /**
-     * Sets whether the lines are dashed. 
-     */
-    public void setDashed(boolean isDashed) {
-        boolean oldValue = dashed;
-        dashed = isDashed;
-        firePropertyChange("dashed", oldValue, isDashed); //$NON-NLS-1$
     }
 
     /**
