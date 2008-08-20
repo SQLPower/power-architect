@@ -456,6 +456,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
 	// ------------------ utility methods ---------------------
 
 	@Override
+	@Deprecated
     public int pointToItemIndex(Point p) {
         return ((TablePaneUI) getUI()).pointToItemIndex(p);
     }

@@ -81,7 +81,7 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
     /**
      * Tracks which items in this container are currently selected.
      */
-    private final Set<C> selectedItems = new HashSet<C>();
+    protected final Set<C> selectedItems = new HashSet<C>();
 
     protected ContainerPane(PlayPenContentPane parent) {
         super(parent);
@@ -142,7 +142,7 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
                             deSelectEverythingElse(evt);
                             selectNone();
                         }
-                        pp.setMouseMode(MouseModeType.SELECT_COLUMN);
+                        pp.setMouseMode(MouseModeType.SELECT_ITEM);
                     }
                     if (isItemSelected(clickItem)) {
                         componentPreviouslySelected = true;
@@ -311,6 +311,7 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
     
     // --------------------- item selection support --------------------
     
+    @Deprecated
     public abstract int pointToItemIndex(Point p);
 
     /**
@@ -353,8 +354,7 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
      * Selects the item, firing an ItemSelectionEvent. If i < 0,
      * {@link #selectNone()} is called.
      * 
-     * @param i
-     *            index to {@link #getItems()}
+     * @param i index to {@link #getItems()}
      */
     public void selectItem(int i) {
         if (i < 0) {
@@ -368,7 +368,7 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
     /**
      * Selects the item, firing an ItemSelectionEvent.
      * 
-     * @param i index to {@link #getItems()}
+     * @param item The item to select.
      */
     public void selectItem(C item) {
         selectedItems.add(item);
