@@ -22,8 +22,8 @@ package ca.sqlpower.architect.swingui.olap.action;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -33,8 +33,12 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.olap.MondrianXMLReader;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.ASUtils;
@@ -44,6 +48,7 @@ import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
+import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -117,56 +122,80 @@ public class ImportSchemaAction extends AbstractArchitectAction {
         PlayPen pp = editSession.getOlapPlayPen();
         Schema schema = editSession.getOlapSession().getSchema();
         
-        List<DimensionPane> dimensionPanes = new ArrayList<DimensionPane>();
-        List<CubePane> cubePanes = new ArrayList<CubePane>();
-        List<VirtualCubePane> virtualCubePanes = new ArrayList<VirtualCubePane>();
+        Map<String, DimensionPane> dimPaneMap = new HashMap<String, DimensionPane>();
+        Map<String, CubePane> cubePaneMap = new HashMap<String, CubePane>();
+        Map<String, VirtualCubePane> vCubePaneMap = new HashMap<String, VirtualCubePane>();
         
-        // stores the maximum height of the components in each section and used to
+        // stores the maximum height of the container panes in each section and used to
         // calculate the starting point of the next section.
-        int dimensionMaxHeight = 0;
+        int dimMaxHeight = 0;
         int cubeMaxHeight = 0;
-        int virtualCubeMaxHeight = 0;
+        int vCubeMaxHeight = 0;
         
-        // creates the gui components for each child of the schema that we support.
+        // creates the gui components for container panes.
         for (OLAPObject child : schema.getChildren()) {
             if (child instanceof Dimension) {
                 Dimension dim = (Dimension) child;
                 DimensionPane dimPane = new DimensionPane(dim, pp.getContentPane());
-                dimensionPanes.add(dimPane);
-                dimensionMaxHeight = Math.max(dimensionMaxHeight, dimPane.getPreferredSize().height);
+                dimPaneMap.put(OLAPUtil.nameFor(dim), dimPane);
+                dimMaxHeight = Math.max(dimMaxHeight, dimPane.getPreferredSize().height);
             } else if (child instanceof Cube) {
                 Cube cube = (Cube) child;
                 CubePane cubePane = new CubePane(cube, pp.getContentPane());
-                cubePanes.add(cubePane);
+                cubePaneMap.put(OLAPUtil.nameFor(cube), cubePane);
                 cubeMaxHeight = Math.max(cubeMaxHeight, cubePane.getPreferredSize().height);
             } else if (child instanceof VirtualCube) {
                 VirtualCube vCube = (VirtualCube) child;
                 VirtualCubePane vCubePane = new VirtualCubePane(vCube, pp.getContentPane());
-                virtualCubePanes.add(vCubePane);
-                virtualCubeMaxHeight = Math.max(virtualCubeMaxHeight, vCubePane.getPreferredSize().height);
+                vCubePaneMap.put(OLAPUtil.nameFor(vCube), vCubePane);
+                vCubeMaxHeight = Math.max(vCubeMaxHeight, vCubePane.getPreferredSize().height);
             } else {
                 logger.warn("Unsupported gui component, skipping over: " + child);
             }
         }
         
-        // add the components to their corresponding sections.
-        
+        // add the container panes to their corresponding sections.
         Point p = new Point(INITIAL_POINT);
-        for (DimensionPane dimPane : dimensionPanes) {
+        for (DimensionPane dimPane : dimPaneMap.values()) {
             pp.addPlayPenComponent(dimPane, p);
             p.translate(dimPane.getPreferredSize().width + HORIZONTAL_OFFSET, 0);
         }
         
-        p.setLocation(INITIAL_POINT.x, p.y + dimensionMaxHeight + VERTICAL_OFFSET);
-        for (CubePane cubePane : cubePanes) {
+        p.setLocation(INITIAL_POINT.x, p.y + dimMaxHeight + VERTICAL_OFFSET);
+        for (CubePane cubePane : cubePaneMap.values()) {
             pp.addPlayPenComponent(cubePane, p);
             p.translate(cubePane.getPreferredSize().width + HORIZONTAL_OFFSET, 0);
         }
         
         p.setLocation(INITIAL_POINT.x, p.y + cubeMaxHeight + VERTICAL_OFFSET);
-        for (VirtualCubePane vCubePane : virtualCubePanes) {
+        for (VirtualCubePane vCubePane : vCubePaneMap.values()) {
             pp.addPlayPenComponent(vCubePane, p);
             p.translate(vCubePane.getPreferredSize().width + HORIZONTAL_OFFSET, 0);
+        }
+        
+        // creates the gui components for the usages.
+        for (OLAPObject child : schema.getChildren()) {
+            if (child instanceof VirtualCube) {
+                VirtualCube vCube = (VirtualCube) child;
+                if (vCube.getCubeUsage() == null) continue;
+                for (CubeUsage cubeUsage : vCube.getCubeUsage().getCubeUsages()) {
+                    CubePane cubePane = cubePaneMap.get(cubeUsage.getCubeName());
+                    VirtualCubePane vCubePane = vCubePaneMap.get(OLAPUtil.nameFor(vCube));
+                    UsageComponent uc = new UsageComponent(pp.getContentPane(), cubeUsage, cubePane, vCubePane);
+                    pp.getContentPane().add(uc, pp.getContentPane().getComponentCount());
+                }
+            } else if (child instanceof Cube) {
+                Cube cube = (Cube) child;
+                for (CubeDimension dim : cube.getDimensions()) {
+                    if (dim instanceof DimensionUsage) {
+                        DimensionUsage dimUsage = (DimensionUsage) dim;
+                        DimensionPane dimPane = dimPaneMap.get(dimUsage.getSource());
+                        CubePane cubePane = cubePaneMap.get(OLAPUtil.nameFor(cube));
+                        UsageComponent uc = new UsageComponent(pp.getContentPane(), dimUsage, dimPane, cubePane);
+                        pp.getContentPane().add(uc, pp.getContentPane().getComponentCount());
+                    }
+                }
+            }
         }
     }
     
