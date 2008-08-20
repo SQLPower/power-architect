@@ -19,22 +19,35 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Line2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenComponentUI;
 
 public class UsageComponentUI implements PlayPenComponentUI {
+    
+    private static final Logger logger = Logger.getLogger(UsageComponent.class);
 
     /**
      * The usage component this delegate belongs to.
      */
     private UsageComponent c;
+    
+    /**
+     * The maximum distance from the visible line of this component that is
+     * still considered "inside" it. The value of this variable influences the
+     * {@link #contains(Point)} method.
+     */
+    private double selectionFuzziness = 3.1415926545;
     
     /**
      * Handles changes in the components that affect the appearance of this component.
@@ -50,13 +63,30 @@ public class UsageComponentUI implements PlayPenComponentUI {
         
     };
     
+    public boolean intersects(Rectangle rubberBand) {
+        Point p1c = centreOf(c.getPane1().getBounds());
+        Point p2c = centreOf(c.getPane2().getBounds());
+        Line2D line = new Line2D.Double(p1c.x, p1c.y, p2c.x, p2c.y);
+        return line.intersects(
+                rubberBand.x, rubberBand.y, rubberBand.width, rubberBand.height);
+    }
+    
     public boolean contains(Point p) {
-        return c.getBounds().contains(p); // TODO respect shape of line
+        Point p1c = centreOf(c.getPane1().getBounds());
+        Point p2c = centreOf(c.getPane2().getBounds());
+        boolean containsPoint =
+            Line2D.ptLineDist(p1c.x, p1c.y, p2c.x, p2c.y, p.x, p.y) <= selectionFuzziness;
+        logger.debug("Contains point " + p + "? " + containsPoint);
+        return containsPoint;
     }
 
     public Dimension getPreferredSize() {
-        // TODO Auto-generated method stub
-        return null;
+        Point p1c = centreOf(c.getPane1().getBounds());
+        Point p2c = centreOf(c.getPane2().getBounds());
+        
+        return new Dimension(
+                Math.abs(p1c.x - p2c.x),
+                Math.abs(p1c.y - p2c.y));
     }
 
     public void paint(Graphics2D g2) {
@@ -69,7 +99,11 @@ public class UsageComponentUI implements PlayPenComponentUI {
         p1c.translate(-c.getX(), -c.getY());
         p2c.translate(-c.getX(), -c.getY());
 
-        g2.setColor(c.getForegroundColor());
+        if (c.isSelected()) {
+            g2.setColor(Color.RED);
+        } else {
+            g2.setColor(c.getForegroundColor());
+        }
         g2.drawLine(p1c.x, p1c.y, p2c.x, p2c.y);
     }
 
