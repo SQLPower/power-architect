@@ -32,6 +32,7 @@ public class DimensionPane extends OLAPPane<Dimension, Hierarchy> {
         super(parent);
         this.model = m;
         sections.add(new PaneSectionImpl<Hierarchy>(model.getHierarchies(), null));
+        setRounded(true);
         updateUI();
     }
     
