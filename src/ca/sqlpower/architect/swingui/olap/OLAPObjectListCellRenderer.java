@@ -28,11 +28,11 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.OLAPUtil;
 
 /**
- * Renders an OLAPObject item in a list by {@link OLAPObject#getName()}. This
- * will fail if the displayed OLAPObject does not support the method. Null
- * objects are displayed as an empty box.
+ * Renders an OLAPObject item in a list by {@link OLAPUtil#nameFor(OLAPObject)}.
+ * Null objects are displayed as an empty box.
  * 
  */
 public class OLAPObjectListCellRenderer extends DefaultListCellRenderer {
@@ -40,14 +40,12 @@ public class OLAPObjectListCellRenderer extends DefaultListCellRenderer {
     public Component getListCellRendererComponent(JList list, Object value,
             int index, boolean isSelected, boolean cellHasFocus) {
         super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-        if (value != null) {
-            setText(((OLAPObject) value).getName());
-        }
+        setText(OLAPUtil.nameFor((OLAPObject) value));
         
         Font font = getFont();
         FontMetrics metrics = getFontMetrics(font);
         int fontHeight = metrics.getHeight();
-        int fontWidth = Math.max(100, metrics.stringWidth(getText()));;
+        int fontWidth = getText() == null ? 100 : Math.max(100, metrics.stringWidth(getText()));
         setPreferredSize(new Dimension(fontWidth, fontHeight));
         
         return this;
