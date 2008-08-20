@@ -21,10 +21,20 @@ package ca.sqlpower.architect.olap;
 
 import java.beans.PropertyChangeListener;
 
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLCatalog;
+import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
+import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
+import ca.sqlpower.architect.olap.MondrianModel.InlineTable;
+import ca.sqlpower.architect.olap.MondrianModel.Join;
+import ca.sqlpower.architect.olap.MondrianModel.RelationOrJoin;
+import ca.sqlpower.architect.olap.MondrianModel.Table;
+import ca.sqlpower.architect.olap.MondrianModel.View;
 
 /**
  * A collection of static utility methods for working with the OLAP classes.
@@ -143,6 +153,61 @@ public class OLAPUtil {
             return ((CubeUsage) obj).getCubeName();
         } else {
             return obj.getName();
+        }
+    }
+
+    /**
+     * Retrieves the SQLTable that represents the data source for the given
+     * cube.
+     * 
+     * @param hierarchy
+     *            the hierarchy whose data source to retrieve
+     * @return The table whose columns represent the columns of cube's source
+     *         table (or view, inline table, or join), or null if the hierarchy
+     *         has no table selected.
+     * @throws ArchitectException
+     *             if populating the necessary SQLObjects fails
+     */
+    public static SQLTable tableForHierarchy(Hierarchy hier) throws ArchitectException {
+        OLAPSession session = getSession(hier);
+        SQLDatabase database = session.getDatabase();
+        RelationOrJoin relation = hier.getRelation();
+        
+        // If this hierarchy belongs to a shared dimension, its relation is all we can get.
+        // But if this hierarchy belongs to a private dimension, its cube's fact specifies
+        // the default table.
+        if (relation == null && hier.getParent().getParent() instanceof Cube) {
+            Cube owningCube = (Cube) hier.getParent().getParent();
+            relation = owningCube.getFact();
+        }
+        
+        if (relation == null) {
+            return null;
+        } else if (relation instanceof Table) {
+            Table table = (Table) relation;
+            String qualifier = table.getSchema();
+            String name = table.getName();
+            if (qualifier == null || qualifier.length() == 0) {
+                return (SQLTable) database.getChildByName(name);
+            } else if (qualifier.contains(".")) {
+                String cat = qualifier.substring(0, qualifier.indexOf('.'));
+                String schema = qualifier.substring(qualifier.indexOf('.') + 1);
+                return database.getTableByName(cat, schema, name);
+            } else if (ArchitectUtils.isCompatibleWithHierarchy(database, qualifier, null, name)) {
+                return database.getTableByName(qualifier, null, name);
+            } else if (ArchitectUtils.isCompatibleWithHierarchy(database, null, qualifier, name)) {
+                return database.getTableByName(null, qualifier, name);
+            } else {
+                return null;
+            }
+        } else if (relation instanceof View) {
+            throw new UnsupportedOperationException("Views not implemented yet");
+        } else if (relation instanceof InlineTable) {
+            throw new UnsupportedOperationException("Inline tables not implemented yet");
+        } else if (relation instanceof Join) {
+            throw new UnsupportedOperationException("Join not implemented yet");
+        } else {
+            throw new IllegalStateException("Can't produce SQLTable for unknown Relation type " + relation.getClass().getName());
         }
     }
 }

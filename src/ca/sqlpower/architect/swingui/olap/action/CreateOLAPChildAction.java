@@ -47,7 +47,7 @@ import ca.sqlpower.swingui.DataEntryPanelBuilder;
  *
  * @param <C> The type of item being added
  */
-public abstract class CreateOLAPChildAction<C extends OLAPObject> extends AbstractArchitectAction {
+public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends OLAPObject> extends AbstractArchitectAction {
 
     /**
      * Watches the playpen and sets the properties of this action according
@@ -83,7 +83,7 @@ public abstract class CreateOLAPChildAction<C extends OLAPObject> extends Abstra
     
     private final String friendlyParentName;
     private final String friendlyChildName;
-    private final Class<? extends OLAPPane<?, ?>> paneClass;
+    private final Class<P> paneClass;
 
     /**
      * Creates a new generic adding action.
@@ -105,7 +105,7 @@ public abstract class CreateOLAPChildAction<C extends OLAPObject> extends Abstra
      *            from the keyboard.
      */
     public CreateOLAPChildAction(ArchitectSwingSession session, PlayPen olapPlayPen,
-            String friendlyChildName, Class<? extends OLAPPane<?, ?>> paneClass,
+            String friendlyChildName, Class<P> paneClass,
                     String friendlyParentName, char accelKey) {
         super(session, olapPlayPen, "New " + friendlyChildName, null, (String) null);
         this.friendlyChildName = friendlyChildName;
@@ -119,10 +119,8 @@ public abstract class CreateOLAPChildAction<C extends OLAPObject> extends Abstra
 
     public void actionPerformed(ActionEvent e) {
         List<PlayPenComponent> selectedItems = playpen.getSelectedItems();
-        Object pane = selectedItems.get(0);
-        final OLAPObject parent = paneClass.cast(pane).getModel();
-        final C child = createChildInstance();
-        parent.addChild(child);
+        P pane = paneClass.cast(selectedItems.get(0));
+        final C child = addNewChild(pane);
         
         final DataEntryPanel mep = createDataEntryPanel(child);
         
@@ -133,7 +131,7 @@ public abstract class CreateOLAPChildAction<C extends OLAPObject> extends Abstra
         };
         Callable<Boolean> cancelCall = new Callable<Boolean>() {
             public Boolean call() throws Exception {
-                parent.removeChild(child);
+                child.getParent().removeChild(child);
                 return true;
             }
         };
@@ -149,12 +147,14 @@ public abstract class CreateOLAPChildAction<C extends OLAPObject> extends Abstra
     }
 
     /**
-     * Creates a new child of type C, and sets its default property values.
+     * Creates a new child of type C, sets good default values for its
+     * properties, and adds it to the model as appropriate.
      * 
-     * @return A new unparented child instance with reasonable default property
-     *         values.
+     * @return A new child instance with reasonable default property values,
+     *         which has been added into the business model tree in the
+     *         appropriate place.
      */
-    protected abstract C createChildInstance();
+    protected abstract C addNewChild(P selectedPane);
 
     /**
      * Creates a DataEntryPanel for editing the given child item.
