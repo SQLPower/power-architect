@@ -29,16 +29,17 @@ import ca.sqlpower.swingui.DataEntryPanel;
 /**
  * Action for adding a hierarchy to the selected dimension.
  */
-public class CreateHierarchyAction extends CreateOLAPChildAction<Hierarchy> {
+public class CreateHierarchyAction extends CreateOLAPChildAction<DimensionPane, Hierarchy> {
 
     public CreateHierarchyAction(ArchitectSwingSession session, PlayPen olapPlayPen) {
         super(session, olapPlayPen, "Hierarchy", DimensionPane.class, "Dimension", 'h');
     }
 
     @Override
-    protected Hierarchy createChildInstance() {
+    protected Hierarchy addNewChild(DimensionPane pane) {
         Hierarchy h = new Hierarchy();
         h.setName("New Hierarchy");
+        pane.getModel().addHierarchy(h);
         return h;
     }
 

@@ -45,6 +45,7 @@ import ca.sqlpower.architect.swingui.olap.action.CreateCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateDimensionAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateDimensionUsageAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateHierarchyAction;
+import ca.sqlpower.architect.swingui.olap.action.CreateLevelAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateMeasureAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateVirtualCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.ExportSchemaAction;
@@ -81,6 +82,7 @@ public class OLAPEditSession implements OLAPChildListener {
     private CreateVirtualCubeAction createVirtualCubeAction;
     private CreateMeasureAction createMeasureAction;
     private CreateHierarchyAction createHierarchyAction;
+    private CreateLevelAction createLevelAction;
     private CreateDimensionUsageAction createDimensionUsageAction;
     private ExportSchemaAction exportSchemaAction;
     private OLAPDeleteSelectedAction olapDeleteSelectedAction;
@@ -138,6 +140,7 @@ public class OLAPEditSession implements OLAPChildListener {
         createVirtualCubeAction = new CreateVirtualCubeAction(swingSession, schema, pp);
         createMeasureAction = new CreateMeasureAction(swingSession, pp);
         createHierarchyAction = new CreateHierarchyAction(swingSession, pp);
+        createLevelAction = new CreateLevelAction(swingSession, pp);
         createDimensionUsageAction = new CreateDimensionUsageAction(swingSession, pp);
         exportSchemaAction = new ExportSchemaAction(swingSession, schema);
         olapDeleteSelectedAction = new OLAPDeleteSelectedAction(swingSession, this);
@@ -155,6 +158,7 @@ public class OLAPEditSession implements OLAPChildListener {
         toolbar.add(createVirtualCubeAction);
         toolbar.add(createMeasureAction);
         toolbar.add(createHierarchyAction);
+        toolbar.add(createLevelAction);
         toolbar.add(createDimensionUsageAction);
         
         toolbar.addSeparator();
@@ -229,6 +233,10 @@ public class OLAPEditSession implements OLAPChildListener {
 
     public CreateHierarchyAction getCreateHierarchyAction() {
         return createHierarchyAction;
+    }
+
+    public CreateLevelAction getCreateLevelAction() {
+        return createLevelAction;
     }
 
     public ExportSchemaAction getExportSchemaAction() {

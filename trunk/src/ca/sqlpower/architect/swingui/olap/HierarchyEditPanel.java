@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -33,8 +34,9 @@ public class HierarchyEditPanel implements DataEntryPanel {
     
     private final Hierarchy hierarchy;
     private final JPanel panel;
-    private JTextField name;
-    private JTextField captionField;
+    private final JTextField name;
+    private final JTextField captionField;
+    private final JComboBox tableChooser;
     
     /**
      * Creates a new property editor for the given OLAP Hierarchy. 
@@ -50,6 +52,8 @@ public class HierarchyEditPanel implements DataEntryPanel {
         builder.setDefaultDialogBorder();
         builder.append("Name", name = new JTextField(hierarchy.getName()));
         builder.append("Caption", captionField = new JTextField(hierarchy.getCaption()));
+        builder.append("Table", tableChooser = new JComboBox());
+        // TODO get list of available tables (refactor from cube editor)
         panel = builder.getPanel();
     }
     public boolean applyChanges() {

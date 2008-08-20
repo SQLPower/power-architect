@@ -26,16 +26,17 @@ import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.MeasureEditPanel;
 import ca.sqlpower.swingui.DataEntryPanel;
 
-public class CreateMeasureAction extends CreateOLAPChildAction<Measure> {
+public class CreateMeasureAction extends CreateOLAPChildAction<CubePane, Measure> {
     
     public CreateMeasureAction(ArchitectSwingSession session, PlayPen olapPlayPen) {
         super(session, olapPlayPen, "Measure", CubePane.class, "Cube", 'm');
     }
 
     @Override
-    protected Measure createChildInstance() {
+    protected Measure addNewChild(CubePane pane) {
         Measure m = new Measure();
         m.setName("New Measure");
+        pane.getModel().addMeasure(m);
         return m;
     }
 
