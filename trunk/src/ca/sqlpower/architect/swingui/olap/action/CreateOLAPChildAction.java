@@ -83,7 +83,7 @@ public abstract class CreateOLAPChildAction<C extends OLAPObject> extends Abstra
     
     private final String friendlyParentName;
     private final String friendlyChildName;
-    private final Class<? extends OLAPPane<?, ? super C>> paneClass;
+    private final Class<? extends OLAPPane<?, ?>> paneClass;
 
     /**
      * Creates a new generic adding action.
@@ -105,7 +105,7 @@ public abstract class CreateOLAPChildAction<C extends OLAPObject> extends Abstra
      *            from the keyboard.
      */
     public CreateOLAPChildAction(ArchitectSwingSession session, PlayPen olapPlayPen,
-            String friendlyChildName, Class<? extends OLAPPane<?, ? super C>> paneClass,
+            String friendlyChildName, Class<? extends OLAPPane<?, ?>> paneClass,
                     String friendlyParentName, char accelKey) {
         super(session, olapPlayPen, "New " + friendlyChildName, null, (String) null);
         this.friendlyChildName = friendlyChildName;
