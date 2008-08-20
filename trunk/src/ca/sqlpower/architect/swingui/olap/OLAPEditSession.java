@@ -43,6 +43,7 @@ import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateDimensionAction;
+import ca.sqlpower.architect.swingui.olap.action.CreateDimensionUsageAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateHierarchyAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateMeasureAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateVirtualCubeAction;
@@ -80,6 +81,7 @@ public class OLAPEditSession implements OLAPChildListener {
     private CreateVirtualCubeAction createVirtualCubeAction;
     private CreateMeasureAction createMeasureAction;
     private CreateHierarchyAction createHierarchyAction;
+    private CreateDimensionUsageAction createDimensionUsageAction;
     private ExportSchemaAction exportSchemaAction;
     private OLAPDeleteSelectedAction olapDeleteSelectedAction;
      
@@ -136,6 +138,7 @@ public class OLAPEditSession implements OLAPChildListener {
         createVirtualCubeAction = new CreateVirtualCubeAction(swingSession, schema, pp);
         createMeasureAction = new CreateMeasureAction(swingSession, pp);
         createHierarchyAction = new CreateHierarchyAction(swingSession, pp);
+        createDimensionUsageAction = new CreateDimensionUsageAction(swingSession, pp);
         exportSchemaAction = new ExportSchemaAction(swingSession, schema);
         olapDeleteSelectedAction = new OLAPDeleteSelectedAction(swingSession, this);
         
@@ -152,6 +155,7 @@ public class OLAPEditSession implements OLAPChildListener {
         toolbar.add(createVirtualCubeAction);
         toolbar.add(createMeasureAction);
         toolbar.add(createHierarchyAction);
+        toolbar.add(createDimensionUsageAction);
         
         toolbar.addSeparator();
         
@@ -268,5 +272,9 @@ public class OLAPEditSession implements OLAPChildListener {
 
     public DeleteSelectedAction getDeleteSelectedAction() {
         return deleteSelectedAction;
+    }
+
+    public CreateDimensionUsageAction getCreateDimensionUsageAction() {
+        return createDimensionUsageAction;
     }
 }
