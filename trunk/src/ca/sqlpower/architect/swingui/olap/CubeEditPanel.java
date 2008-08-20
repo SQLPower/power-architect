@@ -20,7 +20,6 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
 
@@ -30,10 +29,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
@@ -47,7 +43,6 @@ public class CubeEditPanel implements DataEntryPanel {
     
     private final Cube cube;
     private final JPanel panel;
-    private final OLAPSession osession;
     private JTextField nameField;
     private JTextField captionField;
     private JComboBox defMeasure;
@@ -60,14 +55,9 @@ public class CubeEditPanel implements DataEntryPanel {
      */
     public CubeEditPanel(Cube cube) throws ArchitectException {
         this.cube = cube;
-        osession = OLAPUtil.getSession(cube);
-        SQLDatabase db = osession.getDatabase();
-        List<SQLTable> tables;
-        if (db != null) {
-            tables = ArchitectUtils.findDescendentsByClass(db, SQLTable.class, new ArrayList<SQLTable>());
-        } else {
-            tables = Collections.emptyList();
-        }
+        
+        List<SQLTable> tables = OLAPUtil.getAvailableTables(cube);
+        
         FormLayout layout = new FormLayout(
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
