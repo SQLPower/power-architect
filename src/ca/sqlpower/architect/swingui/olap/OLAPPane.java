@@ -21,6 +21,7 @@ package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -29,9 +30,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.JDialog;
+import javax.swing.SwingUtilities;
+
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
@@ -39,6 +45,8 @@ import ca.sqlpower.architect.swingui.PlayPenCoordinate;
 import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 /**
  * A class that provides all the generic behaviour applicable to OLAP
@@ -102,6 +110,21 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
         return (OLAPPaneUI<T, C>) super.getUI();
     }
     
+    /**
+     * Creates a edit dialog for the OLAPObject that is at the location
+     * represented by the given coordinate.
+     * 
+     * @param coord
+     *            Containas information about the OLAPObject that the edit
+     *            dialog should be created for.
+     * 
+     * @return A DataEntryPanel for editting the OLAPObject, null if location is
+     *         invalid.
+     * @throws ArchitectException
+     *             If creating an edit dialog failed.
+     */
+    public abstract DataEntryPanel createEditDialog(PlayPenCoordinate<T, C> coord) throws ArchitectException;
+    
     @Override
     public void handleMouseEvent(MouseEvent evt) {
         PlayPen pp = getPlayPen();
@@ -123,6 +146,21 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                         deselectItem(clickedCoor.getItem());
                     }
                     
+                }
+            } else if (evt.getClickCount() == 2 && evt.getButton() == MouseEvent.BUTTON1) {
+                try {
+                    DataEntryPanel panel = createEditDialog(clickedCoor);
+                    if (panel != null) {
+                        Window owner = SwingUtilities.getWindowAncestor(getPlayPen());
+                        JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, owner,
+                                "Modify Properties", "OK");
+                        dialog.setLocationRelativeTo(owner);
+                        dialog.setVisible(true);
+                    }
+                } catch (ArchitectException e) {
+                    logger.debug("Error from creating edit dialog at coordinate: " + clickedCoor, e);
+                    ASUtils.showExceptionDialogNoReport(SwingUtilities.getWindowAncestor(getPlayPen()),
+                            "Failed to create edit dialog!", e);
                 }
             }
         } else if (evt.getID() == MouseEvent.MOUSE_PRESSED) {

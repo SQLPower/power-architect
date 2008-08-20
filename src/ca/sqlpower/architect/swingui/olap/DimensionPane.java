@@ -22,6 +22,7 @@ package ca.sqlpower.architect.swingui.olap;
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
@@ -29,6 +30,8 @@ import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
+import ca.sqlpower.architect.swingui.PlayPenCoordinate;
+import ca.sqlpower.swingui.DataEntryPanel;
 
 /**
  * Visual representation of a dimension. It keeps its sections in sync with the
@@ -70,6 +73,10 @@ public class DimensionPane extends OLAPPane<Dimension, Level> {
             return hierarchy.getName();
         }
         
+        public Hierarchy getHierarchy() {
+            return hierarchy;
+        }
+        
     }
 
     private final HierarchyWatcher hierarchyWatcher = new HierarchyWatcher();
@@ -106,5 +113,30 @@ public class DimensionPane extends OLAPPane<Dimension, Level> {
     @Override
     public String toString() {
         return "DimensionPane: " + model; //$NON-NLS-1$
+    }
+    
+    @Override
+    public DataEntryPanel createEditDialog(PlayPenCoordinate<Dimension, Level> coord) throws ArchitectException {
+        DataEntryPanel panel;
+        // TODO add getName() method to DataEntryPanel.
+        if (coord.getIndex() == PlayPenCoordinate.ITEM_INDEX_TITLE) {
+            panel = new DimensionEditPanel(model);
+        } else if (coord.getIndex() == PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE) {
+            if (coord.getSection() instanceof HierarchySection) {
+                panel = new HierarchyEditPanel(((HierarchySection) coord.getSection()).getHierarchy());
+            } else {
+                throw new IllegalArgumentException("Edit dialog for type " + coord.getSection().getClass() + " cannot be created!");
+            }
+        } else if (coord.getIndex() > PlayPenCoordinate.ITEM_INDEX_TITLE){
+            if (coord.getItem() instanceof Level) {
+                panel = new LevelEditPanel((Level) coord.getItem());
+            } else {
+                throw new IllegalArgumentException("Edit dialog for type " + coord.getItem().getClass() + " cannot be created!");
+            }
+        } else {
+            panel = null;
+        }
+        
+        return panel;
     }
 }
