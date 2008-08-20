@@ -19,12 +19,19 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.util.List;
+import java.util.Vector;
+
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
+import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -43,17 +50,19 @@ public class HierarchyEditPanel implements DataEntryPanel {
      * 
      * @param cube The data model of the hierarchy to edit
      */
-    public HierarchyEditPanel(Hierarchy hierarchy) {
+    public HierarchyEditPanel(Hierarchy hierarchy) throws ArchitectException {
         this.hierarchy = hierarchy;
         
+        List<SQLTable> tables = OLAPUtil.getAvailableTables(hierarchy);
+
         FormLayout layout = new FormLayout(
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
         builder.append("Name", name = new JTextField(hierarchy.getName()));
         builder.append("Caption", captionField = new JTextField(hierarchy.getCaption()));
-        builder.append("Table", tableChooser = new JComboBox());
-        // TODO get list of available tables (refactor from cube editor)
+        builder.append("Table", tableChooser = new JComboBox(new Vector<SQLTable>(tables)));
+        tableChooser.setSelectedItem(OLAPUtil.tableForHierarchy(hierarchy)); // XXX this isn't quite right.. it would set the default as the local value
         panel = builder.getPanel();
     }
     public boolean applyChanges() {
@@ -63,6 +72,13 @@ public class HierarchyEditPanel implements DataEntryPanel {
             hierarchy.setCaption(captionField.getText());
         } else {
             hierarchy.setCaption(null);
+        }
+        if (tableChooser.getSelectedItem() != null) {
+            SQLTable stable = (SQLTable) tableChooser.getSelectedItem();
+            Table table = new Table();
+            table.setName(stable.getName());
+            table.setSchema(OLAPUtil.getQualifier(stable));
+            hierarchy.setRelation(table);
         }
         hierarchy.endCompoundEdit();
         return true;

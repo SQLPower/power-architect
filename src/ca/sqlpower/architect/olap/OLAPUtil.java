@@ -20,6 +20,9 @@
 package ca.sqlpower.architect.olap;
 
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
@@ -209,5 +212,29 @@ public class OLAPUtil {
         } else {
             throw new IllegalStateException("Can't produce SQLTable for unknown Relation type " + relation.getClass().getName());
         }
+    }
+
+    /**
+     * Compiles a list of all accessible tables in the database being used by
+     * this OLAP object's session.
+     * 
+     * @param obj
+     *            An object in the session you want the table list for.
+     * @return The list of all accessible tables. If the OLAP session doesn't
+     *         have a database chosen, an empty list is returned.
+     * @throws ArchitectException
+     *             If there is a problem populating the list of tables (for example,
+     *             the database might not be reachable).
+     */
+    public static List<SQLTable> getAvailableTables(OLAPObject obj) throws ArchitectException {
+        OLAPSession osession = OLAPUtil.getSession(obj);
+        SQLDatabase db = osession.getDatabase();
+        List<SQLTable> tables;
+        if (db != null) {
+            tables = ArchitectUtils.findDescendentsByClass(db, SQLTable.class, new ArrayList<SQLTable>());
+        } else {
+            tables = Collections.emptyList();
+        }
+        return tables;
     }
 }
