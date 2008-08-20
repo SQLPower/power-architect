@@ -154,6 +154,13 @@ public class OLAPUtil {
         
         if (obj instanceof CubeUsage) {
             return ((CubeUsage) obj).getCubeName();
+        } else if (obj instanceof Hierarchy) {
+            // Hierarchy default name is name of its parent Dimension
+            if (obj.getName() == null && obj.getParent() != null) {
+                return obj.getParent().getName();
+            } else {
+                return obj.getName();
+            }
         } else {
             return obj.getName();
         }

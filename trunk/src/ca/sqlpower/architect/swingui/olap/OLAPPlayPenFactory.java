@@ -118,7 +118,10 @@ public class OLAPPlayPenFactory {
         
         im.put((KeyStroke) oSession.getCreateHierarchyAction().getValue(Action.ACCELERATOR_KEY), "NEW HIERARCHY"); //$NON-NLS-1$
         am.put("NEW HIERARCHY", oSession.getCreateHierarchyAction()); //$NON-NLS-1$
-    }
+
+        im.put((KeyStroke) oSession.getCreateLevelAction().getValue(Action.ACCELERATOR_KEY), "NEW LEVEL"); //$NON-NLS-1$
+        am.put("NEW LEVEL", oSession.getCreateLevelAction()); //$NON-NLS-1$
+}
     
     /**
      * An instance of this OLAPChildListener will listen to tree model structural

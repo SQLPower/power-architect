@@ -62,12 +62,6 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
     
     private static final Logger logger = Logger.getLogger(ContainerPane.class);
     
-    /**
-     * A selected ContainerPane is one that the user has clicked on.  It
-     * will appear more prominently than non-selected ContainerPane.
-     */
-    protected boolean selected;
-    
     private boolean rounded;
     private boolean dashed;
     
@@ -285,30 +279,19 @@ public abstract class ContainerPane<T extends Object, C extends Object> extends 
         dashed = isDashed;
         firePropertyChange("dashed", oldValue, isDashed); //$NON-NLS-1$
     }
-    
-    // --------------------- Selectable Methods ---------------------
 
     /**
-     * See {@link #selected}.
+     * Overridden so that the items get deselected when the whole container
+     * is deselected.
      */
-    public boolean isSelected() {
-        return selected;
-    }
-
-    /**
-     * See {@link #selected}.
-     */
+    @Override
     public void setSelected(boolean isSelected, int multiSelectType) {
         if (isSelected == false) {
             selectNone();
         }
-        if (selected != isSelected) {
-            selected = isSelected;
-            fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT,multiSelectType));
-            repaint();
-        }
+        super.setSelected(isSelected, multiSelectType);
     }
-    
+
     // --------------------- item selection support --------------------
     
     @Deprecated
