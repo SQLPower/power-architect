@@ -1034,15 +1034,26 @@ public class PlayPen extends JPanel
 	 * @return A reference to the TablePane that has t as a model, or
 	 * null if no such TablePane is in the play pen.
 	 */
+	@Deprecated
 	public TablePane findTablePane(SQLTable t) {
-		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
-			PlayPenComponent c = contentPane.getComponent(i);
-			if (c instanceof TablePane
-				&& ((TablePane) c).getModel() == t) {
-				return (TablePane) c;
-			}
-		}
-		return null;
+		return (TablePane) findPPComponent(t);
+	}
+	
+	/**
+	 * Searches this PlayPen's children for a PlayPenComponent with the
+	 * given model.
+	 * 
+	 * @return A reference to the PlayPenComponent with the given
+	 * model, or null if no such PlayPenComponent is in the play pen 
+	 */
+	public PlayPenComponent findPPComponent(Object model) {
+	    for (int i = 0; i < contentPane.getComponentCount(); i++) {
+            PlayPenComponent ppc = contentPane.getComponent(i);
+            if (ppc.getModel() == model) {
+                return ppc;
+            }
+        }
+	    return null;
 	}
 
 	/**
@@ -1079,15 +1090,9 @@ public class PlayPen extends JPanel
 	 * @return A reference to the Relationsip that has r as a model, or
 	 * null if no such Relationship is in the play pen.
 	 */
+	@Deprecated
 	public Relationship findRelationship(SQLRelationship r) {
-		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
-			PlayPenComponent c = contentPane.getComponent(i);
-			if (c instanceof Relationship
-				&& ((Relationship) c).getModel() == r) {
-				return (Relationship) c;
-			}
-		}
-		return null;
+		return (Relationship) findPPComponent(r);
 	}
 
 	/**
