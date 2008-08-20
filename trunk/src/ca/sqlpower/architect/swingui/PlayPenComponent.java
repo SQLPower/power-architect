@@ -420,7 +420,9 @@ public abstract class PlayPenComponent implements Selectable {
     }
     
     public boolean contains(Point p) {
-        return getUI().contains(p);
+        boolean containsPoint = getUI().contains(p);
+        logger.debug("" + this + " contains " + p + "? " + containsPoint);
+        return containsPoint;
     }
 
     public void paint(Graphics2D g2) {
@@ -487,7 +489,14 @@ public abstract class PlayPenComponent implements Selectable {
     }
 
     /**
+     * Tells this component it is selected or deselected. If isSelected is different
+     * from the current selection state for this component, a SelectionEvent will be
+     * fired to all selection listeners.
+     * <p>
      * See {@link #selected}.
+     * 
+     * @param isSelected The new selection state for this component
+     * @param multiSelectType One of the type codes from {@link SelectionEvent}.
      */
     public void setSelected(boolean isSelected, int multiSelectType) {
         if (selected != isSelected) {

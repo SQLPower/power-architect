@@ -23,8 +23,10 @@ import java.awt.Color;
 import java.awt.event.MouseEvent;
 
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
 
 /**
  * A component that visually indicates a usage of one olap pane by another. For example,
@@ -73,9 +75,22 @@ public class UsageComponent extends PlayPenComponent {
 
     @Override
     public void handleMouseEvent(MouseEvent evt) {
-        // TODO select/deselect
+        PlayPen pp = getPlayPen();
+        if (evt.getID() == MouseEvent.MOUSE_PRESSED) {
+            if (!isSelected()) {
+                pp.selectNone();
+                setSelected(true, SelectionEvent.SINGLE_SELECT);
+            }
+        } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
+            setSelected(getUI().intersects(pp.getRubberBand()), SelectionEvent.SINGLE_SELECT);
+        }
     }
 
+    @Override
+    public UsageComponentUI getUI() {
+        return (UsageComponentUI) super.getUI();
+    }
+    
     /**
      * Returns one of the panes that this usage component connects together.
      */
