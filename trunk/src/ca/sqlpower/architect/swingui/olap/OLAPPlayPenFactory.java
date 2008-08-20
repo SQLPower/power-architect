@@ -55,7 +55,7 @@ public class OLAPPlayPenFactory {
         pp.addPlayPenLifecycleListener(ppcl);
         
         pp.setPopupFactory(new ContextMenuFactory(session, oSession));
-        OLAPUtil.listenToHierarchy(((OLAPTreeModel) (oSession.getOlapTree().getModel())).getRoot(), ppcl, null);
+        OLAPUtil.listenToHierarchy(oSession.getOlapSession().getSchema(), ppcl, null);
         
         return pp;
     }
@@ -163,7 +163,7 @@ public class OLAPPlayPenFactory {
          * temporary playpen can be garbage collected.
          */
         public void PlayPenLifeEnding(PlayPenLifecycleEvent e) {
-            OLAPUtil.unlistenToHierarchy(((OLAPTreeModel) (session.getOlapTree().getModel())).getRoot(), this, null);
+            OLAPUtil.unlistenToHierarchy(session.getOlapSession().getSchema(), this, null);
         }
     }
 }
