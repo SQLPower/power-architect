@@ -77,6 +77,7 @@ public class CreateDimensionUsageAction extends AbstractArchitectAction
         if (!active) {
             logger.debug(">>>>>> Adding to selectable listeners, preparing to start the creation.");
             playpen.fireCancel();
+            playpen.selectNone();
             playpen.addSelectionListener(this);
             playpen.addCancelableListener(this);
             cursorManager.placeModeStarted();
@@ -87,8 +88,7 @@ public class CreateDimensionUsageAction extends AbstractArchitectAction
     }
 
     public void itemDeselected(SelectionEvent e) {
-        logger.debug(">>>>>> Item deselected.");
-        reset();
+        logger.debug(">>>>>> Item deselected (ignoring).");
     }
 
     public void itemSelected(SelectionEvent e) {
