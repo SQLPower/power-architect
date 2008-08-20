@@ -24,6 +24,7 @@ import java.beans.PropertyChangeListener;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
 
 /**
  * A collection of static utility methods for working with the OLAP classes.
@@ -122,6 +123,26 @@ public class OLAPUtil {
         }
         for (OLAPObject child : root.getChildren()) {
             unlistenToHierarchy(child, ocl, pcl);
+        }
+    }
+    
+    /**
+     * {@link OLAPObject#getName()} does not always return the correct name so
+     * this method helps by finding the proper name for those exceptions and
+     * returns the correct value.
+     * 
+     * @param obj
+     *            The object to find the name of.
+     * 
+     * @return The name of the given object, null if the object is null itself.
+     */
+    public static String nameFor(OLAPObject obj) {
+        if (obj == null) return null;
+        
+        if (obj instanceof CubeUsage) {
+            return ((CubeUsage) obj).getCubeName();
+        } else {
+            return obj.getName();
         }
     }
 }
