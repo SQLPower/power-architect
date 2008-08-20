@@ -19,6 +19,9 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -53,7 +56,12 @@ public class VirtualCubeEditPanel implements DataEntryPanel {
         builder.setDefaultDialogBorder();
         builder.append("Name", nameField = new JTextField(vCube.getName()));
         builder.append("Caption", captionField = new JTextField(vCube.getCaption()));
-        builder.append("Default Measure", defMeasure = new JComboBox(vCube.getMeasures().toArray()));
+        
+        // default measure is optional so we need to add in a null option
+        List<VirtualCubeMeasure> measures = new ArrayList<VirtualCubeMeasure>(vCube.getMeasures());
+        measures.add(0, null);
+        builder.append("Default Measure", defMeasure = new JComboBox(measures.toArray()));
+        defMeasure.setRenderer(new OLAPObjectListCellRenderer());
         for (VirtualCubeMeasure vMs : vCube.getMeasures()) {
             if (vMs.getName().equals(vCube.getDefaultMeasure())) {
                 defMeasure.setSelectedItem(vMs);
@@ -71,9 +79,8 @@ public class VirtualCubeEditPanel implements DataEntryPanel {
         } else {
             vCube.setCaption(null);
         }
-        if (defMeasure.getSelectedItem() != null) {
-            vCube.setDefaultMeasure(defMeasure.getSelectedItem().toString());
-        }
+        VirtualCubeMeasure ms = (VirtualCubeMeasure) defMeasure.getSelectedItem();
+        vCube.setDefaultMeasure(ms == null ? null : ms.getName());
         vCube.endCompoundEdit();
         return true;
     }

@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect.swingui.olap;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -26,6 +27,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -72,7 +74,15 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     /**
      * The width and height of the arc for a rounded rectangle container. 
      */
-    private static final int ARC_LENGTH = 7;
+    private static final int ARC_LENGTH = 10;
+    
+    /**
+     * Dashed and normal strokes for different line styles.
+     */
+    private static final BasicStroke DASHED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL, 1.0f, new float[] { 15.0f, 4.0f }, 0.0f);
+
+    private static final BasicStroke NORMAL_STROKE = new BasicStroke(1.0f);
     
     /**
      * Doesn't return a preferredSize with width less than this.
@@ -153,7 +163,15 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     }
     
     public void paint(Graphics2D g2) {
-        ContainerPane<T, C> cp = olapPane;
+        OLAPPane<T, C> op = olapPane;
+        Stroke oldStroke = g2.getStroke();
+        
+        if (op.isDashed()) {
+            g2.setStroke(DASHED_STROKE);
+        } else {
+            g2.setStroke(NORMAL_STROKE);
+        }
+
         if (logger.isDebugEnabled()) {
             Rectangle clip = g2.getClipBounds();
             if (clip != null) {
@@ -161,23 +179,24 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
                 clip.width--;
                 clip.height--;
                 g2.draw(clip);
-                g2.setColor(cp.getForegroundColor());
+                g2.setColor(op.getForegroundColor());
                 logger.debug("Clipping region: "+g2.getClip()); //$NON-NLS-1$
             } else {
                 logger.debug("Null clipping region"); //$NON-NLS-1$
             }
         }
+        
 
         //builds a little buffer to reduce the clipping problem
         //this only seams to work at a non-zoomed level. This could 
         //use a little work (better fix)
         g2.setColor(Color.WHITE);
-        g2.fillRect(0, 0, cp.getWidth(), cp.getHeight());
+        g2.fillRect(0, 0, op.getWidth(), op.getHeight());
 
-        int width = cp.getWidth() - 1;
-        int height = cp.getHeight();
+        int width = op.getWidth() - 1;
+        int height = op.getHeight();
 
-        Font font = cp.getFont();
+        Font font = op.getFont();
         if (font == null) {
             // This happens when the containerPane exists but has no visible ancestor.
             // Don't ask me why it's being asked to paint under those circumstances!
@@ -185,26 +204,30 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
             return;
         }
 
-        FontMetrics metrics = cp.getFontMetrics(font);
+        FontMetrics metrics = op.getFontMetrics(font);
         int fontHeight = metrics.getHeight();
         int ascent = metrics.getAscent();
         int y = 0;
 
-        g2.setColor(cp.getPlayPen().getBackground());
+        g2.setColor(op.getPlayPen().getBackground());
         g2.fillRect(0, 0, width, height);
         // no need to reset to foreground: next operation always changes the colour
 
-        if (cp.isSelected()) {
-            g2.setColor(cp.getBackgroundColor().darker());
+        if (op.isSelected()) {
+            g2.setColor(op.getBackgroundColor().darker());
         } else {
-            g2.setColor(cp.getBackgroundColor());
+            g2.setColor(op.getBackgroundColor());
         }
-        g2.fillRoundRect(0, 0, width, fontHeight, ARC_LENGTH, ARC_LENGTH);
+        if (op.isRounded()) {
+            g2.fillRoundRect(0, 0, width, fontHeight, ARC_LENGTH, ARC_LENGTH);
+        } else {
+            g2.fillRect(0, 0, width, fontHeight);
+        }
 
-        g2.setColor(cp.getForegroundColor());
+        g2.setColor(op.getForegroundColor());
 
         // print containerPane name
-        g2.drawString(cp.getModel().getName(), 0, y += ascent); // XXX should add font height, no?
+        g2.drawString(op.getModel().getName(), 0, y += ascent); // XXX should add font height, no?
 
         g2.setColor(Color.BLACK);
         
@@ -219,15 +242,21 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
                         width, y + (INTER_SECTION_GAP + fontHeight - ascent) / 2);
                 y += INTER_SECTION_GAP;
             }
-            y = drawSection(ps, g2, cp, y);
+            y = drawSection(ps, g2, op, y);
             firstSection = false;
         }
         
         // draw box around the component
         g2.setColor(Color.BLACK);
-        g2.drawRoundRect(0, fontHeight+GAP, width, 
-                height-(fontHeight+GAP+BOX_LINE_THICKNESS), ARC_LENGTH, ARC_LENGTH);
-
+        if (op.isRounded()) {
+            g2.drawRoundRect(0, fontHeight+GAP, width, 
+                    height-(fontHeight+GAP+BOX_LINE_THICKNESS), ARC_LENGTH, ARC_LENGTH);
+        } else {
+            g2.drawRect(0, fontHeight+GAP, width,
+                    height-(fontHeight+GAP+BOX_LINE_THICKNESS));
+        }
+        
+        g2.setStroke(oldStroke);
     }
 
     public boolean contains(Point p) {

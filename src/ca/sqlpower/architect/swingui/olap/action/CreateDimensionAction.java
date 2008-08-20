@@ -47,18 +47,14 @@ public class CreateDimensionAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        try {
-            Dimension dim = new Dimension();
-            dim.setName("New Dimension");
-            if (playpen.getSelectedContainers().size() >= 1) {
-                // TODO add a DimensionUsage to the selected cube(s)
-            }
-            DimensionPlacer dp = new DimensionPlacer(
-                    new DimensionPane(dim, playpen.getContentPane()));
-            dp.dirtyup();
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        Dimension dim = new Dimension();
+        dim.setName("New Dimension");
+        if (playpen.getSelectedContainers().size() >= 1) {
+            // TODO add a DimensionUsage to the selected cube(s)
         }
+        DimensionPlacer dp = new DimensionPlacer(
+                new DimensionPane(dim, playpen.getContentPane()));
+        dp.dirtyup();
     }
 
     private class DimensionPlacer extends AbstractPlacer {
