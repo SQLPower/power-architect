@@ -19,13 +19,20 @@
 
 package ca.sqlpower.architect.swingui.olap.action;
 
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
+import ca.sqlpower.architect.swingui.AbstractPlacer;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.olap.VirtualCubeEditPanel;
+import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
+import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CreateVirtualCubeAction extends AbstractArchitectAction {
 
@@ -37,14 +44,41 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        try {
-            VirtualCube vCube = new VirtualCube();
-            vCube.setName("New Virtual Cube");
-            schema.addVirtualCube(vCube);
-            new EditVirtualCubeAction(session, vCube, playpen).actionPerformed(e);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
+        VirtualCube vCube = new VirtualCube();
+        vCube.setName("New Virtual Cube");
+        VirtualCubePane cp = new VirtualCubePane(vCube, playpen.getContentPane());
+        VirtualCubePlacer cubePlacer = new VirtualCubePlacer(cp);
+        cubePlacer.dirtyup();
     }
 
+    private class VirtualCubePlacer extends AbstractPlacer {
+
+        private final VirtualCubePane vcp;
+
+        VirtualCubePlacer(VirtualCubePane vcp) {
+            super(CreateVirtualCubeAction.this.playpen);
+            this.vcp = vcp;
+        }
+        
+        @Override
+        protected String getEditDialogTitle() {
+            return "Virtual Cube Properties";
+        }
+
+        @Override
+        public DataEntryPanel place(Point p) throws ArchitectException {
+            schema.addVirtualCube(vcp.getModel());
+            playpen.selectNone();
+            playpen.addPlayPenComponent(vcp, p);
+            vcp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+
+            VirtualCubeEditPanel editPanel = new VirtualCubeEditPanel(vcp.getModel()) {
+                @Override
+                public void discardChanges() {
+                    schema.removeVirtualCube(vcp.getModel());
+                }
+            };
+            return editPanel;
+        }
+    }
 }

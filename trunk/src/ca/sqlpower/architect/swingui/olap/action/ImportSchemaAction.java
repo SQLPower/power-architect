@@ -36,6 +36,7 @@ import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -43,6 +44,7 @@ import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
+import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.swingui.SPSUtils;
 
 public class ImportSchemaAction extends AbstractArchitectAction {
@@ -115,26 +117,33 @@ public class ImportSchemaAction extends AbstractArchitectAction {
         PlayPen pp = editSession.getOlapPlayPen();
         Schema schema = editSession.getOlapSession().getSchema();
         
-        List<DimensionPane> dps = new ArrayList<DimensionPane>();
-        List<CubePane> cps = new ArrayList<CubePane>();
+        List<DimensionPane> dimensionPanes = new ArrayList<DimensionPane>();
+        List<CubePane> cubePanes = new ArrayList<CubePane>();
+        List<VirtualCubePane> virtualCubePanes = new ArrayList<VirtualCubePane>();
         
         // stores the maximum height of the components in each section and used to
         // calculate the starting point of the next section.
-        int dpMaxHeight = 0;
-        int cpMaxHeight = 0;
+        int dimensionMaxHeight = 0;
+        int cubeMaxHeight = 0;
+        int virtualCubeMaxHeight = 0;
         
         // creates the gui components for each child of the schema that we support.
         for (OLAPObject child : schema.getChildren()) {
             if (child instanceof Dimension) {
-                Dimension d = (Dimension) child;
-                DimensionPane dp = new DimensionPane(d, pp.getContentPane());
-                dps.add(dp);
-                dpMaxHeight = Math.max(dpMaxHeight, dp.getPreferredSize().height);
+                Dimension dim = (Dimension) child;
+                DimensionPane dimPane = new DimensionPane(dim, pp.getContentPane());
+                dimensionPanes.add(dimPane);
+                dimensionMaxHeight = Math.max(dimensionMaxHeight, dimPane.getPreferredSize().height);
             } else if (child instanceof Cube) {
-                Cube c = (Cube) child;
-                CubePane cp = new CubePane(c, pp.getContentPane());
-                cps.add(cp);
-                cpMaxHeight = Math.max(cpMaxHeight, cp.getPreferredSize().height);
+                Cube cube = (Cube) child;
+                CubePane cubePane = new CubePane(cube, pp.getContentPane());
+                cubePanes.add(cubePane);
+                cubeMaxHeight = Math.max(cubeMaxHeight, cubePane.getPreferredSize().height);
+            } else if (child instanceof VirtualCube) {
+                VirtualCube vCube = (VirtualCube) child;
+                VirtualCubePane vCubePane = new VirtualCubePane(vCube, pp.getContentPane());
+                virtualCubePanes.add(vCubePane);
+                virtualCubeMaxHeight = Math.max(virtualCubeMaxHeight, vCubePane.getPreferredSize().height);
             } else {
                 logger.warn("Unsupported gui component, skipping over: " + child);
             }
@@ -143,15 +152,21 @@ public class ImportSchemaAction extends AbstractArchitectAction {
         // add the components to their corresponding sections.
         
         Point p = new Point(INITIAL_POINT);
-        for (DimensionPane dp : dps) {
-            pp.addPlayPenComponent(dp, p);
-            p.translate(dp.getPreferredSize().width + HORIZONTAL_OFFSET, 0);
+        for (DimensionPane dimPane : dimensionPanes) {
+            pp.addPlayPenComponent(dimPane, p);
+            p.translate(dimPane.getPreferredSize().width + HORIZONTAL_OFFSET, 0);
         }
         
-        p.setLocation(INITIAL_POINT.x, p.y + dpMaxHeight + VERTICAL_OFFSET);
-        for (CubePane cp : cps) {
-            pp.addPlayPenComponent(cp, p);
-            p.translate(cp.getPreferredSize().width + HORIZONTAL_OFFSET, 0);
+        p.setLocation(INITIAL_POINT.x, p.y + dimensionMaxHeight + VERTICAL_OFFSET);
+        for (CubePane cubePane : cubePanes) {
+            pp.addPlayPenComponent(cubePane, p);
+            p.translate(cubePane.getPreferredSize().width + HORIZONTAL_OFFSET, 0);
+        }
+        
+        p.setLocation(INITIAL_POINT.x, p.y + cubeMaxHeight + VERTICAL_OFFSET);
+        for (VirtualCubePane vCubePane : virtualCubePanes) {
+            pp.addPlayPenComponent(vCubePane, p);
+            p.translate(vCubePane.getPreferredSize().width + HORIZONTAL_OFFSET, 0);
         }
     }
     
