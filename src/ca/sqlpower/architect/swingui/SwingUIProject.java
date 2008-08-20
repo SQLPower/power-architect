@@ -63,6 +63,7 @@ import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileManager;
@@ -72,6 +73,7 @@ import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
+import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.util.SQLPowerUtils;
@@ -181,6 +183,9 @@ public class SwingUIProject extends CoreProject {
 
         CubePaneFactory cubePaneFactory = new CubePaneFactory();
         d.addFactoryCreate("*/play-pen/cube-pane", cubePaneFactory); //$NON-NLS-1$
+        
+        VirtualCubePaneFactory virtualCubePaneFactory = new VirtualCubePaneFactory();
+        d.addFactoryCreate("*/play-pen/virtual-cube-pane", virtualCubePaneFactory); //$NON-NLS-1$
         
         DimensionPaneFactory dimensionPaneFactory = new DimensionPaneFactory();
         d.addFactoryCreate("*/play-pen/dimension-pane", dimensionPaneFactory); //$NON-NLS-1$
@@ -350,6 +355,25 @@ public class SwingUIProject extends CoreProject {
                 
             pp.addPlayPenComponent(cp, new Point(x, y));
             return cp;
+        }
+    }
+    
+    private class VirtualCubePaneFactory extends AbstractObjectCreationFactory {
+        public Object createObject(Attributes attributes) {
+            Object topItem = getDigester().peek();
+            if (!(topItem instanceof PlayPen)) {
+                logger.error("Expected parent PlayPen object on top of stack but found: " + topItem); //$NON-NLS-1$
+                throw new IllegalStateException("Parent PlayPen object not found!"); //$NON-NLS-1$
+            }
+            
+            PlayPen pp = (PlayPen) topItem;
+            int x = Integer.parseInt(attributes.getValue("x")); //$NON-NLS-1$
+            int y = Integer.parseInt(attributes.getValue("y")); //$NON-NLS-1$
+            VirtualCube virtualCube = (VirtualCube) olapObjectLoadIdMap.get(attributes.getValue("vCube-ref")); //$NON-NLS-1$
+            VirtualCubePane vcp = new VirtualCubePane(virtualCube, pp.getContentPane());
+                
+            pp.addPlayPenComponent(vcp, new Point(x, y));
+            return vcp;
         }
     }
     
@@ -855,6 +879,13 @@ public class SwingUIProject extends CoreProject {
                 Point p = dp.getLocation();
                 ioo.println(out, "<dimension-pane dimension-ref="+quote(olapObjectSaveIdMap.get(dp.getModel())) //$NON-NLS-1$
                         +" x=\""+p.x+"\" y=\""+p.y+"\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+            } else if (ppc instanceof VirtualCubePane) {
+                VirtualCubePane vcp = (VirtualCubePane) ppc;
+                Point p = vcp.getLocation();
+                ioo.println(out, "<virtual-cube-pane vCube-ref="+quote(olapObjectSaveIdMap.get(vcp.getModel())) //$NON-NLS-1$
+                        +" x=\""+p.x+"\" y=\""+p.y+"\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+            } else if (ppc instanceof ContainerPane) {
+                logger.warn("Skipping unhandled playpen component: " + ppc); //$NON-NLS-1$
             }
         }
         
