@@ -295,7 +295,11 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
                         int removedIdx = e.getChangedIndices()[i];
                         deselectItem(removedCol);
                         mostRecentSelectedRemoval = removedCol;
-                        mostRecentSelectedReplacement = getItems().get(Math.min(removedIdx, getItems().size() - 1));
+                        if (getItems().isEmpty()) {
+                            mostRecentSelectedReplacement = null;
+                        } else {
+                            mostRecentSelectedReplacement = getItems().get(Math.min(removedIdx, getItems().size() - 1));
+                        }
                         selectItem(mostRecentSelectedReplacement);
                         logger.debug("Remembering as most recent selection: " + mostRecentSelectedRemoval);
                     } else {

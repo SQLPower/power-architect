@@ -283,6 +283,22 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
     }
 
     /**
+     * Test for actual regression where you get an ArrayIndexOutOfBoundsException
+     * when trying to move the only column into the PK.
+     */
+    public void testMoveOnlyColumn() throws Exception {
+        while (t.getColumns().size() > 1) {
+            t.removeColumn(0);
+        }
+        assertEquals(1, t.getColumns().size());
+        
+        tp.selectItem(0);
+        
+        // this was throwing an exception
+        t.getColumn(0).setPrimaryKeySeq(0);
+        
+    }
+    /**
      * When you delete a column (say, the 4th one) from a table, the new 4th
      * column should be selected. This helps when deleting several columns.
      */
