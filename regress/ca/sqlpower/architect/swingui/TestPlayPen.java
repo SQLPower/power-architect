@@ -337,6 +337,9 @@ public class TestPlayPen extends TestCase {
 	        copyIgnoreProperties.add("x");
 	        copyIgnoreProperties.add("y");
 	        
+	        copyIgnoreProperties.add("draggingTablePanes");
+	        copyIgnoreProperties.add("rubberBand");
+	        
 	        // we're not sure if zoom should be duplicated...
 	        // it might mess up printing?!?!?
 	        copyIgnoreProperties.add("zoom");
