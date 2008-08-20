@@ -35,6 +35,7 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
+import ca.sqlpower.architect.swingui.olap.UsageComponent;
 
 /**
  * Creates a dimension usage using similar techniques from CreateRelationshipAction
@@ -98,26 +99,31 @@ public class CreateDimensionUsageAction extends AbstractArchitectAction
             return;
         }
 
-        if (s instanceof DimensionPane && dp == null && cp == null) {
+        if (s instanceof DimensionPane && dp == null) {
             logger.debug(">>>>>> First selection");
             dp = (DimensionPane) s;
-        } else if (s instanceof CubePane && dp != null && cp == null) {
+        } else if (s instanceof CubePane && cp == null) {
             logger.debug(">>>>>> Second selection");
             cp = (CubePane) s;
-            try {
-                DimensionUsage du = new DimensionUsage();
-                du.setName("New DimensionUsage");
-                du.setSource(dp.getName());
-                cp.getModel().addChild(du);
-            } finally {
-                reset();
-            }
         } else {
             if (logger.isDebugEnabled()) {
                 logger.debug("The user clicked on an irrelevant component: "+s); //$NON-NLS-1$
                 logger.debug(">>>>>> Wrong component selected, supposed to discard all data.");
             }
             reset();
+        }
+        
+        if (cp != null && dp != null) {
+            try {
+                DimensionUsage du = new DimensionUsage();
+                du.setName("New DimensionUsage");
+                du.setSource(dp.getName());
+                cp.getModel().addChild(du);
+                UsageComponent uc = new UsageComponent(playpen.getContentPane(), du, dp, cp);
+                playpen.getContentPane().add(uc, playpen.getContentPane().getComponentCount());
+            } finally {
+                reset();
+            }
         }
     }
 

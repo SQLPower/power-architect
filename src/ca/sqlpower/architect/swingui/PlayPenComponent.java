@@ -62,6 +62,13 @@ public abstract class PlayPenComponent implements Selectable {
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
+    /**
+     * A selected component is one that the user has clicked on. It will appear
+     * more prominently than non-selected ContainerPane, and its status as
+     * selected makes it the target of actions that are invoked on the playpen.
+     */
+    protected boolean selected;
+
     protected boolean componentPreviouslySelected;
     
     protected PlayPenComponent(PlayPenContentPane parent) {
@@ -472,4 +479,21 @@ public abstract class PlayPenComponent implements Selectable {
         }
     }
 
+    /**
+     * See {@link #selected}.
+     */
+    public boolean isSelected() {
+        return selected;
+    }
+
+    /**
+     * See {@link #selected}.
+     */
+    public void setSelected(boolean isSelected, int multiSelectType) {
+        if (selected != isSelected) {
+            selected = isSelected;
+            fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT, multiSelectType));
+            repaint();
+        }
+    }
 }
