@@ -52,4 +52,8 @@ public class PaneSectionImpl<C> implements PaneSection<C> {
         return title;
     }
 
+    @Override
+    public String toString() {
+        return getTitle();
+    }
 }

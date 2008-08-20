@@ -41,6 +41,7 @@ import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.PlayPenCoordinate;
 
 /**
  * Does all of the generic painting and event handling that applies to
@@ -268,18 +269,23 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     }
 
     /**
-     * Looks up the section that the given point resides in, and translates the
-     * given point so that it is relative to the top left corner of the returned
-     * section. If the given point is not in any section, the return value will
-     * be null and the <code>p</code> will not have been modified.
+     * Looks up the section that the given point resides in, and may translate
+     * the given point so that it is relative to the top left corner of the
+     * returned section. If the given point is not in any section, the return
+     * value will be null and the <code>p</code> will not have been modified.
      * 
-     * @param p
+     * @param point
      *            The point in overall component coordinates. <b>This point will
-     *            be modified</b> if this method returns non-null.
+     *            be modified</b> if this method returns non-null and editPoint
+     *            is true.
+     * @param editPoint
+     *            If the given point should be edited or not.
      * @return The section the given point is located in, plus the passed-in
-     *         point will have been translated.
+     *         point may have been translated.
      */
-    public PaneSection<C> toSectionLocation(Point p) {
+    public PaneSection<C> toSectionLocation(Point point, boolean editPoint) {
+        Point p = editPoint ? point : new Point(point);
+        
         Font font = olapPane.getFont();
         FontMetrics metrics = olapPane.getFontMetrics(font);
         int fontHeight = metrics.getHeight();
@@ -321,11 +327,11 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     }
     
     @Override
+    @Deprecated
     public int pointToItemIndex(Point p) {
         p = new Point(p);
-        ContainerPane<T, C> cube = olapPane;
-        Font font = cube.getFont();
-        FontMetrics metrics = cube.getFontMetrics(font);
+        Font font = olapPane.getFont();
+        FontMetrics metrics = olapPane.getFontMetrics(font);
         int fontHeight = metrics.getHeight();
         int descent = metrics.getDescent();
 
@@ -339,11 +345,11 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         int returnVal;
         if (p.y < 0) {
             logger.debug("y<0"); //$NON-NLS-1$
-            returnVal = ContainerPane.ITEM_INDEX_NONE;
+            returnVal = PlayPenCoordinate.ITEM_INDEX_NONE;
         } else if (p.y <= fontHeight) {
             logger.debug("y<=fontHeight = "+fontHeight); //$NON-NLS-1$
-            returnVal = ContainerPane.ITEM_INDEX_TITLE;
-        } else if ( (sect = toSectionLocation(p)) != null ) {
+            returnVal = PlayPenCoordinate.ITEM_INDEX_TITLE;
+        } else if ( (sect = toSectionLocation(p, true)) != null ) {
             // p is now a coordinate within sect
             returnVal = firstItemIndex(sect);
 
@@ -361,7 +367,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
             if (sect.getTitle() != null) {
                 if (p.y <= fontHeight + SECTION_HEADER_GAP) {
                     // TODO we need a system for specifying a click on a section title
-                    return ContainerPane.ITEM_INDEX_NONE;
+                    return PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE;
                 } else {
                     int sectTitleHeight = fontHeight + SECTION_HEADER_GAP;
                     adjustment -= sectTitleHeight;
@@ -371,9 +377,84 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
             returnVal += (p.y + adjustment) / fontHeight;
 
         } else {
-            returnVal = ContainerPane.ITEM_INDEX_NONE;
+            returnVal = PlayPenCoordinate.ITEM_INDEX_NONE;
         }
-        logger.debug("pointToColumnIndex return value is " + returnVal); //$NON-NLS-1$
+        logger.debug("pointToItemIndex return value is " + returnVal); //$NON-NLS-1$
+        return returnVal;
+    }
+
+    /**
+     * Translates the given point into a {@link PlayPenCoordinate}.
+     * 
+     * @param p The point to be translated.
+     * 
+     * @return The PlayPenCoordinate that represents the point.
+     */
+    public PlayPenCoordinate<T, C> pointToPPCoordinate(Point p) {
+        p = new Point(p);
+        Font font = olapPane.getFont();
+        FontMetrics metrics = olapPane.getFontMetrics(font);
+        int fontHeight = metrics.getHeight();
+        int descent = metrics.getDescent();
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("p.y = "+p.y +
+                    "; fontHeight = " + fontHeight +
+                    "; descent = " + descent); //$NON-NLS-1$
+        }
+        
+        PaneSection<C> sect;
+        C item;
+        int index;
+        if (p.y < 0) {
+            logger.debug("y<0"); //$NON-NLS-1$
+            index = PlayPenCoordinate.ITEM_INDEX_NONE;
+            sect = null;
+            item = null;
+        } else if (p.y <= fontHeight) {
+            logger.debug("y<=fontHeight = "+fontHeight); //$NON-NLS-1$
+            index = PlayPenCoordinate.ITEM_INDEX_TITLE;
+            sect = null;
+            item = null;
+        } else if (toSectionLocation(p, false) != null) {
+            sect = toSectionLocation(p, true);
+            logger.debug("Y is: " + p.y + " In section: " + sect.getTitle());
+
+            // Adjustment for all cases: we're selecting over font area, not from the baseline
+            int adjustment = -descent;
+
+            // sections after the first one have some extra space on top
+            if (sect != olapPane.getSections().get(0)) {
+                adjustment -= INTER_SECTION_GAP / 2;
+            }
+            
+            // if there is a title, we have to adjust for that
+            if (sect.getTitle() != null) {
+                if (p.y <= fontHeight + SECTION_HEADER_GAP) {
+                    PlayPenCoordinate<T, C> returnVal = new PlayPenCoordinate<T, C>(olapPane, sect, PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE, null);
+                    logger.debug("pointToPPCoordinate returnVal is: " + returnVal);
+                    return returnVal;
+                } else {
+                    int sectTitleHeight = fontHeight + SECTION_HEADER_GAP;
+                    adjustment -= sectTitleHeight;
+                }
+            }
+            
+            index = (p.y + adjustment) / fontHeight;
+            if (index >= sect.getItems().size()) {
+                index = PlayPenCoordinate.ITEM_INDEX_NONE;
+                item = null;
+            } else {
+                item = sect.getItems().get(index);
+            }
+
+        } else {
+            index = PlayPenCoordinate.ITEM_INDEX_NONE;
+            sect = null;
+            item = null;
+        }
+        PlayPenCoordinate<T, C> returnVal = new PlayPenCoordinate<T, C>(olapPane, sect, index, item);
+        logger.debug("pointToPPCoordinate returnVal is: " + returnVal);
         return returnVal;
     }
     
@@ -410,7 +491,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
      * @return The Y coordinate of the baseline of the last item drawn, relative to the
      *         component
      */
-    private int drawSection(PaneSection<C> ps, Graphics2D g, ContainerPane<T, C> cp, final int startY) {
+    private int drawSection(PaneSection<C> ps, Graphics2D g, OLAPPane<T, C> cp, final int startY) {
         int width = cp.getWidth() - cp.getInsets().left - cp.getInsets().right;
         FontMetrics metrics = cp.getFontMetrics(cp.getFont());
         int fontHeight = metrics.getHeight();
@@ -418,16 +499,24 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         
         int y = startY;
         
+        int hwidth = width - cp.getMargin().right - cp.getMargin().left - BOX_LINE_THICKNESS*2;
         g.setColor(cp.getForegroundColor());
         
         if (ps.getTitle() != null) {
+            if (cp.isSectionSelected(ps)) {
+                if (logger.isDebugEnabled()) logger.debug("Section " + ps.getTitle() + " is selected"); //$NON-NLS-1$ //$NON-NLS-2$
+                g.setColor(selectedColor);
+                g.fillRect(
+                        BOX_LINE_THICKNESS + cp.getMargin().left, y-ascent+fontHeight,
+                        hwidth, fontHeight);
+                g.setColor(cp.getForegroundColor());
+            }
             g.drawString(ps.getTitle(), BOX_LINE_THICKNESS, y += fontHeight);
             y += SECTION_HEADER_GAP;
         }
         
         // print items
         int i = 0;
-        int hwidth = width - cp.getMargin().right - cp.getMargin().left - BOX_LINE_THICKNESS*2;
         for (C item : ps.getItems()) {
             if (cp.isItemSelected(item)) {
                 if (logger.isDebugEnabled()) logger.debug("Item "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$

@@ -31,6 +31,7 @@ public abstract class ContainerPaneUI implements PlayPenComponentUI, Serializabl
      * Subclass of DimensionPaneUI will implement this method to calculate column index
      * given a point on the playpenComponent.
      */
+    @Deprecated
     public abstract int pointToItemIndex(Point p);
 
 }

@@ -135,7 +135,8 @@ public class PlayPen extends JPanel
 						CREATING_RELATIONSHIP,
 						SELECT_TABLE,
 						SELECT_RELATIONSHIP,
-						SELECT_COLUMN,
+						SELECT_ITEM,
+						SELECT_SECTION,
 						MULTI_SELECT,
 						RUBBERBAND_MOVE}
 	private MouseModeType mouseMode = MouseModeType.IDLE;
@@ -2270,6 +2271,18 @@ public class PlayPen extends JPanel
 			}
 		}
 	}
+
+    public Rectangle getRubberBand() {
+        return rubberBand;
+    }
+    
+    public boolean isDraggingTablePanes() {
+        return draggingTablePanes;
+    }
+
+    public void setDraggingTablePanes(boolean draggingTablePanes) {
+        this.draggingTablePanes = draggingTablePanes;
+    }
 
 	// ---------- Floating Table Listener ------------
 

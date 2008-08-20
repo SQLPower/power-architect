@@ -381,7 +381,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		} else {
 		    returnVal = ContainerPane.ITEM_INDEX_NONE;
 		}
-		logger.debug("pointToColumnIndex return value is " + returnVal); //$NON-NLS-1$
+		logger.debug("pointToItemIndex return value is " + returnVal); //$NON-NLS-1$
 		return returnVal;
 	}
 
