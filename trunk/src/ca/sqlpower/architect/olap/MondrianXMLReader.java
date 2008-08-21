@@ -153,7 +153,6 @@ public class MondrianXMLReader {
                         String aval = atts.getValue(i);
                         currentOSessionAtts.put(aname, aval);
 	                }
-	                currentOSessionAtts.put("id", Integer.toString(olapIdMap.size()));
 	                pushElem = false;
 	                currentElement = null;                  
 	           

@@ -73,6 +73,8 @@ import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
+import ca.sqlpower.architect.swingui.olap.OLAPPane;
+import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
@@ -106,7 +108,17 @@ public class SwingUIProject extends CoreProject {
     private static final String RELATIONSHIP_STYLE_DIRECT = "direct"; //$NON-NLS-1$
 
     private static final Logger logger = Logger.getLogger(SwingUIProject.class);
+    
+    /**
+     * This holds mappings from OLAPPane instance to String ID used in saving.
+     */
+    private Map<OLAPPane<?, ?>, String> olapPaneSaveIdMap;
 
+    /**
+     * This map maps String ID codes to OLAPPane instances used in loading.
+     */
+    protected  Map<String, OLAPPane<?, ?>> olapPaneLoadIdMap;
+    
     /**
      * Shows progress during saves and loads.
      */
@@ -131,6 +143,8 @@ public class SwingUIProject extends CoreProject {
     // ------------- READING THE PROJECT FILE ---------------
 
     public void load(InputStream in, DataSourceCollection dataSources) throws IOException, ArchitectException {
+        olapPaneLoadIdMap = new HashMap<String, OLAPPane<?, ?>>();
+        
         super.load(in, dataSources);
         
         // set the view positions again in the case that the viewport was invalid earlier.
@@ -189,6 +203,9 @@ public class SwingUIProject extends CoreProject {
         
         DimensionPaneFactory dimensionPaneFactory = new DimensionPaneFactory();
         d.addFactoryCreate("*/play-pen/dimension-pane", dimensionPaneFactory); //$NON-NLS-1$
+        
+        UsageComponentFactory usageCompFactory = new UsageComponentFactory();
+        d.addFactoryCreate("*/play-pen/usage-comp", usageCompFactory); //$NON-NLS-1$
 
         return d;
     }
@@ -350,10 +367,18 @@ public class SwingUIProject extends CoreProject {
             PlayPen pp = (PlayPen) topItem;
             int x = Integer.parseInt(attributes.getValue("x")); //$NON-NLS-1$
             int y = Integer.parseInt(attributes.getValue("y")); //$NON-NLS-1$
-            Cube cube = (Cube) olapObjectLoadIdMap.get(attributes.getValue("cube-ref")); //$NON-NLS-1$
+            Cube cube = (Cube) olapObjectLoadIdMap.get(attributes.getValue("model-ref")); //$NON-NLS-1$
             CubePane cp = new CubePane(cube, pp.getContentPane());
                 
             pp.addPlayPenComponent(cp, new Point(x, y));
+            
+            String id = attributes.getValue("id");
+            if (id != null) {
+                olapPaneLoadIdMap.put(id, cp);
+            } else {
+                logger.warn("No ID element found in cube pane element while loading project!");
+            }
+            
             return cp;
         }
     }
@@ -369,10 +394,18 @@ public class SwingUIProject extends CoreProject {
             PlayPen pp = (PlayPen) topItem;
             int x = Integer.parseInt(attributes.getValue("x")); //$NON-NLS-1$
             int y = Integer.parseInt(attributes.getValue("y")); //$NON-NLS-1$
-            VirtualCube virtualCube = (VirtualCube) olapObjectLoadIdMap.get(attributes.getValue("vCube-ref")); //$NON-NLS-1$
+            VirtualCube virtualCube = (VirtualCube) olapObjectLoadIdMap.get(attributes.getValue("model-ref")); //$NON-NLS-1$
             VirtualCubePane vcp = new VirtualCubePane(virtualCube, pp.getContentPane());
                 
             pp.addPlayPenComponent(vcp, new Point(x, y));
+            
+            String id = attributes.getValue("id");
+            if (id != null) {
+                olapPaneLoadIdMap.put(id, vcp);
+            } else {
+                logger.warn("No ID element found in virtual cube pane element while loading project!");
+            }
+            
             return vcp;
         }
     }
@@ -388,11 +421,19 @@ public class SwingUIProject extends CoreProject {
             PlayPen pp = (PlayPen) topItem;
             int x = Integer.parseInt(attributes.getValue("x")); //$NON-NLS-1$
             int y = Integer.parseInt(attributes.getValue("y")); //$NON-NLS-1$
-            Dimension dim = (Dimension) olapObjectLoadIdMap.get(attributes.getValue("dimension-ref")); //$NON-NLS-1$
-            DimensionPane cp = new DimensionPane(dim, pp.getContentPane());
+            Dimension dim = (Dimension) olapObjectLoadIdMap.get(attributes.getValue("model-ref")); //$NON-NLS-1$
+            DimensionPane dp = new DimensionPane(dim, pp.getContentPane());
                 
-            pp.addPlayPenComponent(cp, new Point(x, y));
-            return cp;
+            pp.addPlayPenComponent(dp, new Point(x, y));
+            
+            String id = attributes.getValue("id");
+            if (id != null) {
+                olapPaneLoadIdMap.put(id, dp);
+            } else {
+                logger.warn("No ID element found in dimension pane element while loading project!");
+            }
+            
+            return dp;
         }
     }
 
@@ -430,6 +471,25 @@ public class SwingUIProject extends CoreProject {
                         +" not setting custom connection points"); //$NON-NLS-1$
             }
             return r;
+        }
+    }
+    
+    private class UsageComponentFactory extends AbstractObjectCreationFactory {
+        public Object createObject(Attributes attributes) {
+            Object topItem = getDigester().peek();
+            if (!(topItem instanceof PlayPen)) {
+                logger.error("Expected parent PlayPen object on top of stack but found: " + topItem); //$NON-NLS-1$
+                throw new IllegalStateException("Parent PlayPen object not found!"); //$NON-NLS-1$
+            }
+            
+            PlayPen pp = (PlayPen) topItem;
+            OLAPObject model = olapObjectLoadIdMap.get(attributes.getValue("model-ref")); //$NON-NLS-1$
+            OLAPPane<?, ?> pane1 = olapPaneLoadIdMap.get(attributes.getValue("pane1-ref")); //$NON-NLS-1$
+            OLAPPane<?, ?> pane2 = olapPaneLoadIdMap.get(attributes.getValue("pane2-ref")); //$NON-NLS-1$
+            UsageComponent usageComp = new UsageComponent(pp.getContentPane(), model, pane1, pane2);
+            
+            pp.getContentPane().add(usageComp, pp.getContentPane().getComponentCount());
+            return usageComp;
         }
     }
 
@@ -566,6 +626,8 @@ public class SwingUIProject extends CoreProject {
         sqlObjectSaveIdMap = new IdentityHashMap<SQLObject, String>();
         olapObjectSaveIdMap = new IdentityHashMap<OLAPObject, String>();
         dbcsSaveIdMap = new HashMap<SPDataSource, String>();
+        olapPaneSaveIdMap = new HashMap<OLAPPane<?,?>, String>();
+        
         ioo.indent = 0;
 
         try {
@@ -872,18 +934,33 @@ public class SwingUIProject extends CoreProject {
             } else if (ppc instanceof CubePane) {
                 CubePane cp = (CubePane) ppc;
                 Point p = cp.getLocation();
-                ioo.println(out, "<cube-pane cube-ref="+quote(olapObjectSaveIdMap.get(cp.getModel())) //$NON-NLS-1$
-                        +" x=\""+p.x+"\" y=\""+p.y+"\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+
+                String modelId = olapObjectSaveIdMap.get(cp.getModel());
+                String paneId = "CP" + olapPaneSaveIdMap.size(); //$NON-NLS-1$
+                
+                ioo.println(out, "<cube-pane id=" + quote(paneId) + " model-ref=" + quote(modelId) //$NON-NLS-1$ //$NON-NLS-2$
+                        + " x=\"" + p.x + "\" y=\"" + p.y+"\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                olapPaneSaveIdMap.put(cp, paneId);
             } else if (ppc instanceof DimensionPane) {
                 DimensionPane dp = (DimensionPane) ppc;
                 Point p = dp.getLocation();
-                ioo.println(out, "<dimension-pane dimension-ref="+quote(olapObjectSaveIdMap.get(dp.getModel())) //$NON-NLS-1$
-                        +" x=\""+p.x+"\" y=\""+p.y+"\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                
+                String paneId = "DP" + olapPaneSaveIdMap.size();
+                String modelId = olapObjectSaveIdMap.get(dp.getModel());
+                
+                ioo.println(out, "<dimension-pane id=" + quote(paneId) + " model-ref=" + quote(modelId) //$NON-NLS-1$ //$NON-NLS-2$
+                        + " x=\"" + p.x + "\" y=\"" + p.y + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                olapPaneSaveIdMap.put(dp, paneId);
             } else if (ppc instanceof VirtualCubePane) {
                 VirtualCubePane vcp = (VirtualCubePane) ppc;
                 Point p = vcp.getLocation();
-                ioo.println(out, "<virtual-cube-pane vCube-ref="+quote(olapObjectSaveIdMap.get(vcp.getModel())) //$NON-NLS-1$
-                        +" x=\""+p.x+"\" y=\""+p.y+"\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                
+                String paneId = "VCP" + olapPaneSaveIdMap.size();
+                String modelId = olapObjectSaveIdMap.get(vcp.getModel());
+                
+                ioo.println(out, "<virtual-cube-pane id=" + quote(paneId) + " model-ref=" + quote(modelId) //$NON-NLS-1$ //$NON-NLS-2$
+                        + " x=\"" + p.x + "\" y=\"" + p.y + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                olapPaneSaveIdMap.put(vcp, paneId);
             } else if (ppc instanceof ContainerPane) {
                 logger.warn("Skipping unhandled playpen component: " + ppc); //$NON-NLS-1$
             }
@@ -893,18 +970,20 @@ public class SwingUIProject extends CoreProject {
         for (PlayPenComponent ppc : ppcs) {
             if (ppc instanceof Relationship) {
                 Relationship r = (Relationship) ppc;
-                logger.warn("<table-link relationship-ref="+quote(sqlObjectSaveIdMap.get(r.getModel())) //$NON-NLS-1$
-                        +" pk-x=\""+r.getPkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                        +" pk-y=\""+r.getPkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                        +" fk-x=\""+r.getFkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                        +" fk-y=\""+r.getFkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                        +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\"/>");
                 ioo.println(out, "<table-link relationship-ref="+quote(sqlObjectSaveIdMap.get(r.getModel())) //$NON-NLS-1$
                         +" pk-x=\""+r.getPkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" pk-y=\""+r.getPkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" fk-x=\""+r.getFkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" fk-y=\""+r.getFkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$
+            } else if (ppc instanceof UsageComponent) {
+                UsageComponent usageComp = (UsageComponent) ppc;
+                String modelId = olapObjectSaveIdMap.get(usageComp.getModel());
+                String pane1Id = olapPaneSaveIdMap.get(usageComp.getPane1());
+                String pane2Id = olapPaneSaveIdMap.get(usageComp.getPane2());
+                
+                ioo.println(out, "<usage-comp model-ref=" + quote(modelId) + //$NON-NLS-1$
+                        " pane1-ref=" + quote(pane1Id) + " pane2-ref=" + quote(pane2Id) + "/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
             } else if (ppc instanceof ContainerPane) {
                 // do nothing, already handled.
             } else {
