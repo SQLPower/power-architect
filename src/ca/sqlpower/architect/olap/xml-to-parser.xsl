@@ -169,7 +169,6 @@ public class MondrianXMLReader {
                         String aval = atts.getValue(i);
                         currentOSessionAtts.put(aname, aval);
 	                }
-	                currentOSessionAtts.put("id", Integer.toString(olapIdMap.size()));
 	                pushElem = false;
 	                currentElement = null;                  
 	           <xsl:for-each select="Element">
@@ -180,7 +179,7 @@ public class MondrianXMLReader {
                         String aname = atts.getQName(i);
                         String aval = atts.getValue(i);
                         if (olapIdMap != null &amp;&amp; aname.equals("id")) {
-                        	olapIdMap.put(aval, elem);
+                       		olapIdMap.put(aval, elem);
                         <xsl:for-each select="Attribute">
                         } else if (aname.equals("<xsl:value-of select="@name"/>")) {
                              <xsl:choose>
@@ -222,7 +221,7 @@ public class MondrianXMLReader {
                                 if (aname.equals("db-ref")) {
                                     osession.setDatabase((SQLDatabase) dbIdMap.get(aval));
                                 } else if (olapIdMap != null &amp;&amp; aname.equals("id")) {
-                                	olapIdMap.put(aval, osession);
+                       				olapIdMap.put(aval, osession);
                                 } else {
                                     logger.warn("Skipping unknown attribute \""+aname+"\" of element \""+OLAPSession.class+"\"");
                                 }
