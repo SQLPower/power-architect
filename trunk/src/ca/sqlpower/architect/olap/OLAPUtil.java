@@ -31,13 +31,18 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.InlineTable;
 import ca.sqlpower.architect.olap.MondrianModel.Join;
 import ca.sqlpower.architect.olap.MondrianModel.RelationOrJoin;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.olap.MondrianModel.View;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 
 /**
  * A collection of static utility methods for working with the OLAP classes.
@@ -243,5 +248,75 @@ public class OLAPUtil {
             tables = Collections.emptyList();
         }
         return tables;
+    }
+    
+    /**
+     * Finds and returns a Cube in the given schema with the given name. Note
+     * that this might not be accurate if the schema contains cubes with the
+     * same name.
+     * 
+     * @param sch
+     *            The schema to search in.
+     * @param name
+     *            Name of the cube to search for.
+     * 
+     * @return A Cube with the given name from the given schema, null if not
+     *         found.
+     */
+    public static Cube findCube(Schema sch, String name) {
+        for (Cube c : sch.getCubes()) {
+            if (c.getName().equals(name)) {
+                return c;
+            }
+        }
+        return null;
+    } 
+    
+    /**
+     * Finds and returns a Dimension in the given schema that the given
+     * CubeDimension represents. This is useful for finding the base Dimension
+     * that a DimensionUsage or a VirtualCubeDimension refers to. It is safe to
+     * call this method with a Dimension as parameter, it will just return the
+     * same object. Note that this might not be accurate if there are dimensions
+     * with the same name.
+     * 
+     * @param sch
+     *            The schema to search in.
+     * @param cubeDim
+     *            The CubeDimension "reference" to the base Dimension that will
+     *            be returned.
+     * @return The base Dimension that the given CubeDimension represents, null
+     *         if not found.
+     */
+    public static Dimension findDimension(Schema sch, CubeDimension cubeDim) {
+        if (cubeDim instanceof Dimension) {
+            return (Dimension) cubeDim;
+        } else if (cubeDim instanceof DimensionUsage) {
+            for (Dimension dim : sch.getDimensions()) {
+                if (dim.getName().equals(((DimensionUsage) cubeDim).getSource())) {
+                    return dim;
+                }
+            }
+        } else if (cubeDim instanceof VirtualCubeDimension) {
+            VirtualCubeDimension vCubeDim = (VirtualCubeDimension) cubeDim;
+            if (vCubeDim.getCubeName() == null) {
+                for (Dimension d : sch.getDimensions()) {
+                    if (d.getName().equals(vCubeDim.getName())) {
+                        return d;
+                    }
+                }
+            } else {
+                Cube c = findCube(sch, vCubeDim.getCubeName());
+                for (CubeDimension d : c.getDimensions()) {
+                    if (d.getName().equals(vCubeDim.getName())) {
+                        return findDimension(sch, d);
+                    }
+                }
+            }
+        } else {
+            // How do you enter the 4th dimension?!?!? ;)
+            throw new UnsupportedOperationException("CubeDimension of type " + cubeDim.getClass() + " not recognized.");
+        }
+        return null;
     }
 }
