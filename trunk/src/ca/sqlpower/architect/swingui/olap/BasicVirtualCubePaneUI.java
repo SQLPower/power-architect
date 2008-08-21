@@ -26,13 +26,12 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
-import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenComponentUI;
 
-public class BasicVirtualCubePaneUI extends OLAPPaneUI<Cube, OLAPObject> {
+public class BasicVirtualCubePaneUI extends OLAPPaneUI<VirtualCube, OLAPObject> {
 
     @SuppressWarnings("unused")
     private static Logger logger = Logger.getLogger(BasicVirtualCubePaneUI.class);
@@ -47,15 +46,15 @@ public class BasicVirtualCubePaneUI extends OLAPPaneUI<Cube, OLAPObject> {
     public void installUI(PlayPenComponent c) {
         super.installUI(c);
         VirtualCubePane vcp = (VirtualCubePane) c;
-        OLAPUtil.listenToHierarchy(vcp.getCube().getCubeUsage(), modelEventHandler, modelEventHandler);
-        vcp.getCube().addPropertyChangeListener(cubeUsageWatcher);
+        OLAPUtil.listenToHierarchy(vcp.getModel().getCubeUsage(), modelEventHandler, modelEventHandler);
+        vcp.getModel().addPropertyChangeListener(cubeUsageWatcher);
     }
     
     @Override
     public void uninstallUI(PlayPenComponent c) {
         VirtualCubePane vcp = (VirtualCubePane) c;
-        OLAPUtil.unlistenToHierarchy(vcp.getCube().getCubeUsage(), modelEventHandler, modelEventHandler);
-        vcp.getCube().removePropertyChangeListener(cubeUsageWatcher);
+        OLAPUtil.unlistenToHierarchy(vcp.getModel().getCubeUsage(), modelEventHandler, modelEventHandler);
+        vcp.getModel().removePropertyChangeListener(cubeUsageWatcher);
         super.uninstallUI(c);
     }
 
