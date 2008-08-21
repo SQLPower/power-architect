@@ -21,33 +21,32 @@ package ca.sqlpower.architect.swingui.olap.action;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.CubePane;
-import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
+import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 
 /**
- * Creates a dimension usage after the user clicks a DimensionPane and a
- * CubePane.
+ * Creates a cube usage after the user clicks a CubePane and a
+ * VirtualCubePane.
  */
-public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane, CubePane> {
+public class CreateCubeUsageAction extends CreateUsageAction<CubePane, VirtualCubePane> {
 
     @SuppressWarnings("unused")
-    private static final Logger logger = Logger.getLogger(CreateDimensionUsageAction.class);
+    private static final Logger logger = Logger.getLogger(CreateCubeUsageAction.class);
 
-    public CreateDimensionUsageAction(ArchitectSwingSession session, PlayPen pp) {
-        super(session, pp, DimensionPane.class, CubePane.class, "Dimension Usage");
+    public CreateCubeUsageAction(ArchitectSwingSession session, PlayPen pp) {
+        super(session, pp, CubePane.class, VirtualCubePane.class, "Cube Usage");
     }
 
     @Override
-    protected void createUsage(DimensionPane dp, CubePane cp) {
-        DimensionUsage du = new DimensionUsage();
-        du.setName(dp.getModel().getName());
-        du.setSource(dp.getName());
-        cp.getModel().addChild(du);
-        UsageComponent uc = new UsageComponent(playpen.getContentPane(), du, dp, cp);
+    protected void createUsage(CubePane cp, VirtualCubePane vcp) {
+        CubeUsage cu = new CubeUsage();
+        cu.setCubeName(cp.getModel().getName());
+        vcp.getModel().getCubeUsage().addCubeUsage(cu);
+        UsageComponent uc = new UsageComponent(playpen.getContentPane(), cu, cp, vcp);
         playpen.getContentPane().add(uc, playpen.getContentPane().getComponentCount());
     }
 

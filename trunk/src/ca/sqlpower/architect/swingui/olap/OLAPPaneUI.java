@@ -99,7 +99,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     
     protected OLAPPane<T, C> olapPane;
     
-    private final ModelEventHandler modelEventHandler = new ModelEventHandler();
+    protected final ModelEventHandler modelEventHandler = new ModelEventHandler();
 
     /**
      * Calculates and returns the ideal size for this OLAPPane. If you override

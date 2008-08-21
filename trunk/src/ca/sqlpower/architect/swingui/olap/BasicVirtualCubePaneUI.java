@@ -19,10 +19,17 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenComponentUI;
 
 public class BasicVirtualCubePaneUI extends OLAPPaneUI<Cube, OLAPObject> {
@@ -30,8 +37,48 @@ public class BasicVirtualCubePaneUI extends OLAPPaneUI<Cube, OLAPObject> {
     @SuppressWarnings("unused")
     private static Logger logger = Logger.getLogger(BasicVirtualCubePaneUI.class);
 
+    private final CubeUsageWatcher cubeUsageWatcher = new CubeUsageWatcher();
+    
     public static PlayPenComponentUI createUI() {
         return new BasicVirtualCubePaneUI();
     }
     
+    @Override
+    public void installUI(PlayPenComponent c) {
+        super.installUI(c);
+        VirtualCubePane vcp = (VirtualCubePane) c;
+        OLAPUtil.listenToHierarchy(vcp.getCube().getCubeUsage(), modelEventHandler, modelEventHandler);
+        vcp.getCube().addPropertyChangeListener(cubeUsageWatcher);
+    }
+    
+    @Override
+    public void uninstallUI(PlayPenComponent c) {
+        VirtualCubePane vcp = (VirtualCubePane) c;
+        OLAPUtil.unlistenToHierarchy(vcp.getCube().getCubeUsage(), modelEventHandler, modelEventHandler);
+        vcp.getCube().removePropertyChangeListener(cubeUsageWatcher);
+        super.uninstallUI(c);
+    }
+
+    /**
+     * CubeUsages are a property of VirtualCube instead of a child. This means
+     * OLAPUtil.listenToHierarchy() doesn't pick them up. So we have to listen
+     * and unlisten to this tree of OLAPObjects separately. This situation gets
+     * set up in {@link BasicVirtualCubePaneUI#installUI()}.
+     * <p>
+     * But what if someone comes along and calls
+     * {@link VirtualCube#setCubeUsage(CubeUsages)}? Well, it's CubeUsageWatcher
+     * to the rescue.
+     */
+    private class CubeUsageWatcher implements PropertyChangeListener {
+
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (evt.getSource() == olapPane.getModel() && "cubeUsage".equals(evt.getPropertyName())) {
+                CubeUsages oldUsages = (CubeUsages) evt.getOldValue();
+                CubeUsages newUsages = (CubeUsages) evt.getNewValue();
+                OLAPUtil.unlistenToHierarchy(oldUsages, modelEventHandler, modelEventHandler);
+                OLAPUtil.listenToHierarchy(newUsages, modelEventHandler, modelEventHandler);
+            }
+        }
+        
+    }
 }

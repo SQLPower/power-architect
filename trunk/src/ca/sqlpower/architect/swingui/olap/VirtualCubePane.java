@@ -19,11 +19,11 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
-import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
@@ -35,7 +35,10 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
     public VirtualCubePane(VirtualCube model, PlayPenContentPane parent) {
         super(parent);
         this.model = model;
-        PaneSection<OLAPObject> cubeSection = new PaneSectionImpl(model.getCubeUsage() == null ? Collections.emptyList() : model.getCubeUsage().getCubeUsages(), "Cube Usages:");
+        if (model.getCubeUsage() == null) {
+            model.setCubeUsage(new CubeUsages());
+        }
+        PaneSection<OLAPObject> cubeSection = new PaneSectionImpl(model.getCubeUsage().getCubeUsages(), "Cube Usages:");
         PaneSection<OLAPObject> dimensionSection = new PaneSectionImpl(model.getDimensions(), "Dimensions:");
         PaneSection<OLAPObject> measureSection = new PaneSectionImpl(model.getMeasures(), "Measures:");
         sections.add(cubeSection);
