@@ -137,18 +137,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
         PlayPenCoordinate<T, C> clickedCoor = pointToPPCoordinate(p);
         int clickedIndex = clickedCoor.getIndex();
         if (evt.getID() == MouseEvent.MOUSE_CLICKED) {
-            if (evt.getClickCount() == 1 && evt.getButton() == MouseEvent.BUTTON1) {
-                if (componentPreviouslySelected) {
-                    if (isSelected() && clickedIndex == PlayPenCoordinate.ITEM_INDEX_TITLE) {
-                        setSelected(false, SelectionEvent.SINGLE_SELECT);
-                    } else if (clickedIndex == PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE) {
-                        deselectSection(clickedCoor.getSection());
-                    } else if (clickedIndex > PlayPenCoordinate.ITEM_INDEX_TITLE) {
-                        deselectItem(clickedCoor.getItem());
-                    }
-                    
-                }
-            } else if (evt.getClickCount() == 2 && evt.getButton() == MouseEvent.BUTTON1) {
+            if (evt.getClickCount() == 2 && evt.getButton() == MouseEvent.BUTTON1) {
                 try {
                     DataEntryPanel panel = createEditDialog(clickedCoor);
                     if (panel != null) {
