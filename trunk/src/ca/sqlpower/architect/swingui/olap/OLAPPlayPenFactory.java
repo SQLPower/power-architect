@@ -92,8 +92,7 @@ public class OLAPPlayPenFactory {
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), KEY_DELETE_SELECTED);
-        pp.getActionMap().put(KEY_DELETE_SELECTED, oSession.getDeleteSelectedAction());
-        if (oSession.getDeleteSelectedAction() == null) logger.warn("oSession.deleteSelectedAction is null!"); //$NON-NLS-1$
+        pp.getActionMap().put(KEY_DELETE_SELECTED, oSession.getOLAPDeleteSelectedAction());
 
         pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) oSession.getZoomToFitAction().getValue(Action.ACCELERATOR_KEY), "ZOOM TO FIT"); //$NON-NLS-1$
         pp.getActionMap().put("ZOOM TO FIT", oSession.getZoomToFitAction()); //$NON-NLS-1$
