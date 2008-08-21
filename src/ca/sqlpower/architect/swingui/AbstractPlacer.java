@@ -116,6 +116,7 @@ public abstract class AbstractPlacer extends MouseAdapter implements CancelableL
      * comes first.
      */
     public void dirtyup() {
+        playpen.fireCancel();
         playpen.getCursorManager().placeModeStarted();
         playpen.addMouseListener(this);
         playpen.addCancelableListener(this);
