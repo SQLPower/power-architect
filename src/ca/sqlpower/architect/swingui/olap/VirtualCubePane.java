@@ -23,8 +23,15 @@ import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.OLAPUtil;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
@@ -77,7 +84,21 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
         } else if (coord.getIndex() == PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE) {
             panel = null;
         } else if (coord.getIndex() > PlayPenCoordinate.ITEM_INDEX_TITLE){
-            panel = null;
+            if (coord.getItem() instanceof CubeUsage) {
+                String name = ((CubeUsage) coord.getItem()).getCubeName();
+                Cube c = OLAPUtil.findCube((Schema) model.getParent(), name);
+                if (c == null) throw new NullPointerException("Couldn't find cube!");
+                panel = new CubeEditPanel(c);
+            } else if (coord.getItem() instanceof VirtualCubeDimension) {
+                Dimension d = OLAPUtil.findDimension((Schema) model.getParent(), ((VirtualCubeDimension) coord.getItem()));
+                if (d == null) throw new NullPointerException("Couldn't find dimension!");
+                panel = new DimensionEditPanel(d);
+            } else if (coord.getItem() instanceof VirtualCubeMeasure) {
+                // there's no direct relation between a virtual cube measure and the original measure...
+                panel = null;
+            } else {
+                throw new IllegalArgumentException("Edit dialog for type " + coord.getItem().getClass() + " cannot be created!");
+            }
         } else {
             panel = null;
         }

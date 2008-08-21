@@ -158,7 +158,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                         dialog.setLocationRelativeTo(owner);
                         dialog.setVisible(true);
                     }
-                } catch (ArchitectException e) {
+                } catch (Exception e) {
                     logger.debug("Error from creating edit dialog at coordinate: " + clickedCoor, e);
                     ASUtils.showExceptionDialogNoReport(SwingUtilities.getWindowAncestor(getPlayPen()),
                             "Failed to create edit dialog!", e);
