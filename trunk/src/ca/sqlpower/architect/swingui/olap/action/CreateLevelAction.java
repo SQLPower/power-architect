@@ -45,17 +45,33 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
         if (d.getHierarchies().size() == 0) {
             d.addHierarchy(new Hierarchy());
         }
+        
         Hierarchy newParent;
-        List<Level> selectedItems = pane.getSelectedItems();
-        if (selectedItems.size() == 0) {
-            newParent = d.getHierarchies().get(0);
+        int newIndex;
+        
+        // If there are levels selected, we'll add after the last one
+        List<Level> levels = pane.getSelectedItems();
+        if (!levels.isEmpty()) {
+            Level addAfter = levels.get(levels.size() - 1);
+            newParent = (Hierarchy) addAfter.getParent();
+            newIndex = newParent.getLevels().indexOf(addAfter) + 1;
+
         } else {
-            newParent = (Hierarchy) selectedItems.get(0).getParent();
+            // no levels were selected, so we'll add to the end of the selected section
+            // (or the first section if nothing was selected at all)
+            newParent = d.getHierarchies().get(0);
+            for (int i = 0; i < d.getHierarchies().size(); i++) {
+                if (pane.isSectionSelected(pane.getSections().get(i))) {
+                    newParent = d.getHierarchies().get(i);
+                    break;
+                }
+            }
+            newIndex = newParent.getLevels().size();
         }
         
         Level l = new Level();
         l.setName("New Level");
-        newParent.addLevel(l);
+        newParent.addLevel(newIndex, l);
         return l;
     }
 
