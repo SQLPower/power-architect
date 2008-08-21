@@ -24,6 +24,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -48,8 +49,10 @@ import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
+import ca.sqlpower.architect.swingui.olap.SchemaEditPanel;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.SPSUtils;
 
 public class ImportSchemaAction extends AbstractArchitectAction {
@@ -91,16 +94,49 @@ public class ImportSchemaAction extends AbstractArchitectAction {
                     throw new IllegalStateException("File parse failed to return a schema object!");
                 }
                 
-                OLAPSession osession = new OLAPSession(loadedSchema);
+                final OLAPSession osession = new OLAPSession(loadedSchema);
                 osession.setDatabase(session.getTargetDatabase());
                 session.getOLAPRootObject().addChild(osession);
                 OLAPEditSession editSession = session.getOLAPEditSession(osession);
                 
                 addGUIComponents(editSession);
                 
-                JDialog d = editSession.getDialog();
+                final JDialog d = editSession.getDialog();
                 d.setLocationRelativeTo(session.getArchitectFrame());
                 d.setVisible(true);
+                try {
+                    final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(session, loadedSchema);
+
+                    Callable<Boolean> okCall = new Callable<Boolean>() {
+                        public Boolean call() throws Exception {
+                            return schemaEditPanel.applyChanges();
+                        }
+                    };
+
+                    Callable<Boolean> cancelCall = new Callable<Boolean>() {
+                        public Boolean call() throws Exception {
+                            d.dispose();
+                            session.getOLAPRootObject().removeOLAPSession(osession);
+                            return true;
+                        }
+                    };
+
+                    JDialog schemaEditDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
+                            schemaEditPanel,
+                            d,
+                            "New Schema Properties",
+                            "OK",
+                            okCall,
+                            cancelCall);
+                    schemaEditDialog.setLocationRelativeTo(d);
+                    schemaEditDialog.setVisible(true);
+                } catch (Exception ex) {
+                    ASUtils.showExceptionDialogNoReport(
+                            session.getArchitectFrame(),
+                            "Failed to get list of databases.",
+                            ex);
+                }
+                
             } catch (Exception ex) {
                 logger.error("Failed to parse " + f.getName() + ".");
                 ASUtils.showExceptionDialog(session, "Could not read xml schema file.", ex);
