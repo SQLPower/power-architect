@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.JDialog;
+import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
@@ -311,5 +312,9 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
         
         selectedSections.clear();
         repaint();
+    }
+    
+    public JPopupMenu getPopup() {
+        return getPlayPen().getPopupFactory().createPopupMenu();
     }
 }
