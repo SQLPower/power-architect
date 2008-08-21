@@ -41,6 +41,7 @@ import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateCubeAction;
+import ca.sqlpower.architect.swingui.olap.action.CreateCubeUsageAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateDimensionAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateDimensionUsageAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateHierarchyAction;
@@ -82,6 +83,7 @@ public class OLAPEditSession implements OLAPChildListener {
     private CreateHierarchyAction createHierarchyAction;
     private CreateLevelAction createLevelAction;
     private CreateDimensionUsageAction createDimensionUsageAction;
+    private CreateCubeUsageAction createCubeUsageAction;
     private ExportSchemaAction exportSchemaAction;
     private OLAPDeleteSelectedAction olapDeleteSelectedAction;
      
@@ -140,6 +142,7 @@ public class OLAPEditSession implements OLAPChildListener {
         createHierarchyAction = new CreateHierarchyAction(swingSession, pp);
         createLevelAction = new CreateLevelAction(swingSession, pp);
         createDimensionUsageAction = new CreateDimensionUsageAction(swingSession, pp);
+        createCubeUsageAction = new CreateCubeUsageAction(swingSession, pp);
         exportSchemaAction = new ExportSchemaAction(swingSession, schema);
         olapDeleteSelectedAction = new OLAPDeleteSelectedAction(swingSession, this);
         
@@ -158,6 +161,7 @@ public class OLAPEditSession implements OLAPChildListener {
         toolbar.add(createHierarchyAction);
         toolbar.add(createLevelAction);
         toolbar.add(createDimensionUsageAction);
+        toolbar.add(createCubeUsageAction);
         
         toolbar.addSeparator();
         
