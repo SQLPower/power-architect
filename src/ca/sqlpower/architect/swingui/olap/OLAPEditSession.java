@@ -37,7 +37,6 @@ import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
@@ -76,7 +75,6 @@ public class OLAPEditSession implements OLAPChildListener {
     private ZoomAction zoomOutAction;
     private ZoomResetAction zoomNormalAction;
     private ZoomToFitAction zoomToFitAction;
-    private DeleteSelectedAction deleteSelectedAction;
     private CreateDimensionAction createDimensionAction;
     private CreateCubeAction createCubeAction;
     private CreateVirtualCubeAction createVirtualCubeAction;
@@ -276,10 +274,6 @@ public class OLAPEditSession implements OLAPChildListener {
 
     public ZoomToFitAction getZoomToFitAction() {
         return zoomToFitAction;
-    }
-
-    public DeleteSelectedAction getDeleteSelectedAction() {
-        return deleteSelectedAction;
     }
 
     public CreateDimensionUsageAction getCreateDimensionUsageAction() {
