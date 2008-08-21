@@ -17,6 +17,8 @@
 <xsl:template match="/Model">
 package ca.sqlpower.architect.olap;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -36,6 +38,11 @@ import org.xml.sax.helpers.XMLReaderFactory;
 
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 
 /**
  * This is class is generated from xml-to-parser.xsl!  Do not alter it directly.
@@ -61,6 +68,7 @@ public class MondrianXMLReader {
         reader.setContentHandler(handler);
         InputSource is = new InputSource(new FileInputStream(f));
         reader.parse(is);
+        hookupListeners(handler.root);        
         return handler.root;
     }
 
@@ -87,7 +95,7 @@ public class MondrianXMLReader {
      *             If the xml in the file is malformed.
      */
     public static OLAPObject parse(File f, OLAPRootObject rootObj,
-            Map&lt;String, SQLObject&gt; dbIdMap, Map&lt;String, OLAPObject&gt; olapIdMap) throws IOException, SAXException {
+            Map&lt;String, SQLObject> dbIdMap, Map&lt;String, OLAPObject&gt; olapIdMap) throws IOException, SAXException {
         return parse(new FileInputStream(f), rootObj, dbIdMap, olapIdMap);
     }
 
@@ -113,13 +121,136 @@ public class MondrianXMLReader {
      *             If the xml in the input stream is malformed.
      */
     public static OLAPObject parse(InputStream in, OLAPRootObject rootObj, Map&lt;String, SQLObject&gt; dbIdMap,
-            Map&lt;String, OLAPObject&gt; olapIdMap) throws IOException, SAXException {
+            Map&lt;String, OLAPObject> olapIdMap) throws IOException, SAXException {
         XMLReader reader = XMLReaderFactory.createXMLReader();
         MondrianSAXHandler handler = new MondrianSAXHandler(rootObj, dbIdMap, olapIdMap);
         reader.setContentHandler(handler);
         InputSource is = new InputSource(in);
         reader.parse(is);
+        hookupListeners(handler.root);
         return handler.root;
+    }
+    
+    /**
+     * Attaches listeners to all the Cube and Dimensions in the given OLAP model
+     * so that they will update themselves accordingly then the CubeUsages or
+     * DimensionUsages they are using changes.
+     * 
+     * @param root
+     *            The root of the OLAP model
+     * 
+     */
+    private static void hookupListeners(OLAPObject root) {
+        // Maps Dimension names to the Dimension object.
+        Map&lt;String, Dimension> publicDimensions = new HashMap&lt;String, Dimension&gt;();
+        // Maps Cube names to the Cube object.
+        Map&lt;String, Cube> cubes = new HashMap&lt;String, Cube&gt;();
+        findDimensionNames(root, publicDimensions);
+        findCubeNames(root, cubes);
+        recursiveDimensionHookupListeners(root, publicDimensions);
+        recursiveCubeHookupListeners(root, cubes);
+    }
+
+    /**
+     * Finds all the dimensions in the given OLAP model and adds them to a map,
+     * so they can be found later for the DimensionUsages.  This only finds
+     * public dimensions for now.
+     * 
+     * @param parent
+     *            The root of the OLAP model
+     * @param dimensions
+     *            The map to keep track of all the dimensions in the model
+     */
+    private static void findDimensionNames(OLAPObject parent, Map&lt;String, Dimension&gt; dimensions) {
+        for (OLAPObject child : parent.getChildren()) {
+            if (child instanceof Dimension) {
+                dimensions.put(child.getName(), (Dimension) child);
+            } else if (child.allowsChildren() &amp;&amp; !(child instanceof Cube)) {
+                findDimensionNames(child, dimensions);
+            }
+        }
+    }
+    
+    /**
+     * Finds all the cubes in the given OLAP model and adds them to a map, so
+     * they can be found later for the CubeUsages.
+     * 
+     * @param parent
+     *            The root of the OLAP model
+     * @param cubes
+     *            The map to keep track of all the cubes in the model
+     */
+    private static void findCubeNames(OLAPObject parent, Map&lt;String, Cube&gt; cubes) {
+        for (OLAPObject child : parent.getChildren()) {
+            if (child instanceof Cube) {
+                cubes.put(child.getName(), (Cube) child);
+            } else if (child.allowsChildren()) {
+                findCubeNames(child, cubes);
+            }
+        }
+    }
+    
+    /**
+     * Attaches listeners to all the Dimensions in the given OLAP model.
+     * 
+     * @param parent
+     *            The root of the OLAP model
+     * @param dimensions
+     *            The map of Dimensions that links Dimensions to DimensionUsages
+     */
+    private static void recursiveDimensionHookupListeners(OLAPObject parent, Map&lt;String, Dimension&gt; dimensions) {
+        for (OLAPObject child : parent.getChildren()) {
+            if (child instanceof DimensionUsage) {
+                final DimensionUsage du = (DimensionUsage) child;
+                Dimension dim = dimensions.get(du.getSource());
+                if (dim == null) {
+                    throw new IllegalStateException("Corrupt xml" + du);
+                } else {
+                    dim.addPropertyChangeListener(new PropertyChangeListener() {
+                        public void propertyChange(PropertyChangeEvent evt) {
+                            if ("name".equals(evt.getPropertyName())) {
+                                du.setSource((String) evt.getNewValue());
+                                du.setName((String) evt.getNewValue()); 
+                            }
+                        }
+                    });
+                }
+            } else if (child.allowsChildren()) {
+                recursiveDimensionHookupListeners(child, dimensions);
+            }
+        }
+    }
+    
+    /**
+     * Attaches listeners to all the Cubes in the given OLAP model.
+     * 
+     * @param parent
+     *            The root of the OLAP model
+     * @param dimensions
+     *            The map of Dimensions that links Cubes to CubeUsage(s)
+     */
+    private static void recursiveCubeHookupListeners(OLAPObject parent, Map&lt;String, Cube&gt; cubes) {
+        for (OLAPObject child : parent.getChildren()) {
+            if (child instanceof VirtualCube) {
+                VirtualCube vCube = (VirtualCube) child;
+                for (final CubeUsage cu : vCube.getCubeUsage().getCubeUsages()) {
+                    Cube cube = cubes.get(cu.getCubeName());
+                    if (cube == null) {
+                        throw new IllegalStateException("Corrupt xml" + cu);
+                    } else {
+                        cube.addPropertyChangeListener(new PropertyChangeListener() {
+                            public void propertyChange(PropertyChangeEvent evt) {
+                                if ("name".equals(evt.getPropertyName())) {
+                                    cu.setCubeName((String) evt.getNewValue());
+                                }
+                            }
+                        });
+                    }
+                }
+            } else if (child.allowsChildren()) {
+                recursiveCubeHookupListeners(child, cubes);
+            }
+        }
     }
 
     private static class MondrianSAXHandler extends DefaultHandler {

@@ -66,10 +66,6 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
         setUI(ui);
     }
 
-    public VirtualCube getCube() {
-        return model;
-    }
-
     @Override
     public String toString() {
         return "VirtualCubePane: " + model.getName(); //$NON-NLS-1$

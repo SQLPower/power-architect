@@ -526,8 +526,8 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
                         hwidth, fontHeight);
                 g.setColor(cp.getForegroundColor());
             }
-            String itemName = item.getName() == null ? "(null)" : item.getName();
-            g.drawString(itemName, BOX_LINE_THICKNESS +
+            String itemName = OLAPUtil.nameFor(item);
+            g.drawString(itemName == null ? "(null)" : itemName, BOX_LINE_THICKNESS +
                     cp.getMargin().left, y += fontHeight);
             i++;
         }
@@ -571,7 +571,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
             logger.debug("Property Change: " +
                     evt.getPropertyName() + ": " +
                     evt.getOldValue() + " -> " + evt.getNewValue());
-            if ("name".equals(evt.getPropertyName())) {
+            if ("name".equals(evt.getPropertyName()) || "cubeName".equals(evt.getPropertyName())) {
                 // note this could be the name of the cube or any of its child objects,
                 // since we have property change listeners on every object in the subtree under cube
                 olapPane.revalidate();
