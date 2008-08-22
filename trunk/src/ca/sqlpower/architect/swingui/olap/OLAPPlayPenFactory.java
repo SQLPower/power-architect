@@ -34,6 +34,7 @@ import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -145,15 +146,13 @@ public class OLAPPlayPenFactory {
         }
 
         public void olapChildRemoved(OLAPChildEvent e) {
+            System.out.println("Children removed " + e.getChild());
             OLAPUtil.unlistenToHierarchy(e.getChild(), this, null);
-
-            for (int j = 0; j < pp.getContentPane().getComponentCount(); j++) {
-                if (pp.getContentPane().getComponent(j) instanceof OLAPPane) {
-                    OLAPPane<?, ?> olapPane = (OLAPPane<?, ?>) pp.getContentPane().getComponent(j);
-                    if (pp.getContentPane().getComponent(j).getModel() == e.getChild()) {
-                        olapPane.setSelected(false,SelectionEvent.SINGLE_SELECT);
-                        pp.getContentPane().remove(j);
-                    }
+            
+            for (PlayPenComponent ppc : pp.getPlayPenComponents()) {
+                if (ppc.getModel() == e.getChild()) {
+                    ppc.setSelected(false, SelectionEvent.SINGLE_SELECT);
+                    pp.getContentPane().remove(ppc);
                 }
             }
         }
