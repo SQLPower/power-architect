@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
@@ -24,8 +26,10 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 
 /**
@@ -126,13 +130,49 @@ public class MondrianXMLReader {
      */
     private static void hookupListeners(OLAPObject root) {
         // Maps Dimension names to the Dimension object.
-        Map<String, Dimension> publicDimensions = new HashMap<String, Dimension>();
+        final Map<String, Dimension> publicDimensions = new HashMap<String, Dimension>();
         // Maps Cube names to the Cube object.
         Map<String, Cube> cubes = new HashMap<String, Cube>();
+        
         findDimensionNames(root, publicDimensions);
         findCubeNames(root, cubes);
-        recursiveDimensionHookupListeners(root, publicDimensions);
-        recursiveCubeHookupListeners(root, cubes);
+        
+        // Maps Dimensions to all DimensionUsages that refer to the Dimension
+        final Map<Dimension, List<DimensionUsage>> dimensionUsageMap = new HashMap<Dimension, List<DimensionUsage>>();
+        recursiveDimensionHookupListeners(root, publicDimensions, dimensionUsageMap);
+        // Maps Cubes to all CubeUsages that refer to the Cube
+        final Map<Cube, List<CubeUsage>> cubeUsageMap = new HashMap<Cube, List<CubeUsage>>();
+        recursiveCubeHookupListeners(root, cubes, cubeUsageMap);
+        
+        final Schema schema = OLAPUtil.getSession(root).getSchema();
+        schema.addChildListener(new OLAPChildListener(){
+            public void olapChildAdded(OLAPChildEvent e) {
+                // do nothing.
+            }
+
+            public void olapChildRemoved(OLAPChildEvent e) {
+                if (e.getChild() instanceof Dimension) {
+                    Dimension dim = (Dimension) e.getChild();
+                    List<DimensionUsage> dimUsages = dimensionUsageMap.get(dim);
+                    if (dimUsages != null) {
+                        for (DimensionUsage du : dimUsages) {
+                            Cube c = (Cube) du.getParent();
+                            c.removeDimension(du);
+                        }
+                    }
+                } else if (e.getChild() instanceof Cube) {
+                    Cube cube = (Cube) e.getChild();
+                    List<CubeUsage> cubeUsages = cubeUsageMap.get(cube);
+                    if (cubeUsages != null) {
+                        for (CubeUsage cu : cubeUsages) {
+                            CubeUsages c = (CubeUsages) cu.getParent();
+                            c.removeCubeUsage(cu);
+                        }
+                    }
+                }
+            }
+            
+        });
     }
 
     /**
@@ -182,7 +222,8 @@ public class MondrianXMLReader {
      * @param dimensions
      *            The map of Dimensions that links Dimensions to DimensionUsages
      */
-    private static void recursiveDimensionHookupListeners(OLAPObject parent, Map<String, Dimension> dimensions) {
+    private static void recursiveDimensionHookupListeners(OLAPObject parent, Map<String, Dimension> dimensions, Map<Dimension, List<DimensionUsage>> dimensionUsageMap) {
+        
         for (OLAPObject child : parent.getChildren()) {
             if (child instanceof DimensionUsage) {
                 final DimensionUsage du = (DimensionUsage) child;
@@ -198,9 +239,19 @@ public class MondrianXMLReader {
                             }
                         }
                     });
+                    
+                    // Builds the map of Dimensions to their DimensionUsages
+                    List<DimensionUsage> dimUsages = dimensionUsageMap.get(dim);
+                    if (dimUsages != null) {
+                        dimUsages.add(du);
+                    } else {
+                        dimUsages = new ArrayList<DimensionUsage>();
+                        dimUsages.add(du);
+                        dimensionUsageMap.put(dim, dimUsages);
+                    }
                 }
             } else if (child.allowsChildren()) {
-                recursiveDimensionHookupListeners(child, dimensions);
+                recursiveDimensionHookupListeners(child, dimensions, dimensionUsageMap);
             }
         }
     }
@@ -213,7 +264,7 @@ public class MondrianXMLReader {
      * @param dimensions
      *            The map of Dimensions that links Cubes to CubeUsage(s)
      */
-    private static void recursiveCubeHookupListeners(OLAPObject parent, Map<String, Cube> cubes) {
+    private static void recursiveCubeHookupListeners(OLAPObject parent, Map<String, Cube> cubes, Map<Cube, List<CubeUsage>> cubeUsageMap) {
         for (OLAPObject child : parent.getChildren()) {
             if (child instanceof VirtualCube) {
                 VirtualCube vCube = (VirtualCube) child;
@@ -229,10 +280,20 @@ public class MondrianXMLReader {
                                 }
                             }
                         });
+                        
+                        // Builds the map of Cubes to their CubeUsages
+                        List<CubeUsage> cubeUsages = cubeUsageMap.get(cube);
+                        if (cubeUsages != null) {
+                            cubeUsages.add(cu);
+                        } else {
+                            cubeUsages = new ArrayList<CubeUsage>();
+                            cubeUsages.add(cu);
+                            cubeUsageMap.put(cube, cubeUsages);
+                        }
                     }
                 }
             } else if (child.allowsChildren()) {
-                recursiveCubeHookupListeners(child, cubes);
+                recursiveCubeHookupListeners(child, cubes, cubeUsageMap);
             }
         }
     }
