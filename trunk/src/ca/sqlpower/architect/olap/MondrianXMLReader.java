@@ -25,12 +25,14 @@ import org.xml.sax.helpers.XMLReaderFactory;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 
 /**
  * This is class is generated from xml-to-parser.xsl!  Do not alter it directly.
@@ -120,36 +122,60 @@ public class MondrianXMLReader {
     }
     
     /**
-     * Attaches listeners to all the Cube and Dimensions in the given OLAP model
-     * so that they will update themselves accordingly then the CubeUsages or
-     * DimensionUsages they are using changes.
+     * Attaches listeners to all the Cube and Dimensions in the given OLAP model.
+     * See {@link #hookupListeneresToSchema(Schema)}.
      * 
      * @param root
-     *            The root of the OLAP model
+     *            The root of the OLAP model.
      * 
      */
     private static void hookupListeners(OLAPObject root) {
-        // Maps Dimension names to the Dimension object.
+        if (root instanceof Schema) {
+            hookupListeneresToSchema((Schema) root);
+        } else if (root instanceof OLAPRootObject) {
+            for (OLAPSession osession : ((OLAPRootObject) root).getChildren()) {
+                hookupListeneresToSchema(osession.getSchema());
+            }
+        } else {
+            logger.warn("Unkown root for OLAP model, skipping listener hookup: " + root);
+        }
+    }
+    
+    /**
+     * Attaches listeners to all the Cube and Dimensions in the given Schema
+     * so that changes will cause the CubeUsages, DimensionUsages or
+     * VirtualCubeDimension that references them to update.
+     * 
+     * @param schema
+     *            The schema to hookup listeners for.
+     * 
+     */
+    private static void hookupListeneresToSchema(Schema schema) {
+        // maps public Dimension name to object, used to hookup DimensionUsages.
         final Map<String, Dimension> publicDimensions = new HashMap<String, Dimension>();
-        // Maps Cube names to the Cube object.
-        Map<String, Cube> cubes = new HashMap<String, Cube>();
+        // maps non-public "Dimension name" to object, used to hookup VirtualCubeDimensions.
+        final Map<CubeDimensionKey, CubeDimension> cubeDimensionMap = new HashMap<CubeDimensionKey, CubeDimension>();
+        // maps Cube name to object, used to hookup CubeUsages.
+        final Map<String, Cube> cubes = new HashMap<String, Cube>();
         
-        findDimensionNames(root, publicDimensions);
-        findCubeNames(root, cubes);
-        
-        // Maps Dimensions to all DimensionUsages that refer to the Dimension
+        // usages maps used to hookup removal listeners.
         final Map<Dimension, List<DimensionUsage>> dimensionUsageMap = new HashMap<Dimension, List<DimensionUsage>>();
-        recursiveDimensionHookupListeners(root, publicDimensions, dimensionUsageMap);
-        // Maps Cubes to all CubeUsages that refer to the Cube
         final Map<Cube, List<CubeUsage>> cubeUsageMap = new HashMap<Cube, List<CubeUsage>>();
-        recursiveCubeHookupListeners(root, cubes, cubeUsageMap);
+
+        // first populate the maps that map object name to object.
+        findDimensionNames(schema, publicDimensions, cubeDimensionMap);
+        findCubeNames(schema, cubes);
         
-        final Schema schema = OLAPUtil.getSession(root).getSchema();
+        // then hookup listeners that monitors name changes and populate maps that map object to usages.
+        recursiveDimensionHookupListeners(schema, publicDimensions, dimensionUsageMap, cubeDimensionMap);
+        recursiveCubeHookupListeners(schema, cubes, cubeUsageMap);
+        
+        // now hookup listeners that will remove usages when the referenced object is removed.
         schema.addChildListener(new OLAPChildListener(){
             public void olapChildAdded(OLAPChildEvent e) {
                 // do nothing.
             }
-
+            
             public void olapChildRemoved(OLAPChildEvent e) {
                 if (e.getChild() instanceof Dimension) {
                     Dimension dim = (Dimension) e.getChild();
@@ -176,33 +202,41 @@ public class MondrianXMLReader {
     }
 
     /**
-     * Finds all the dimensions in the given OLAP model and adds them to a map,
-     * so they can be found later for the DimensionUsages.  This only finds
-     * public dimensions for now.
+     * Recursively populates the given maps with the "names" of Dimensions in
+     * the parent object.
      * 
      * @param parent
-     *            The root of the OLAP model
+     *            The parent object to search through.
      * @param dimensions
-     *            The map to keep track of all the dimensions in the model
+     *            The map of public Dimension names to Dimension objects that
+     *            will be populated.
+     * @param cubeDimensionMap
+     *            The map of non-public Dimension "names" to CubeDimension
+     *            objects that will be populated. See {@link CubeDimensionKey}
+     *            about "names".
      */
-    private static void findDimensionNames(OLAPObject parent, Map<String, Dimension> dimensions) {
+    private static void findDimensionNames(OLAPObject parent, Map<String, Dimension> dimensions,
+            Map<CubeDimensionKey, CubeDimension> cubeDimensionMap) {
         for (OLAPObject child : parent.getChildren()) {
-            if (child instanceof Dimension) {
+            if (parent instanceof Cube && child instanceof CubeDimension) {
+                CubeDimensionKey cubeDimKey = new CubeDimensionKey(parent.getName(), child.getName());
+                cubeDimensionMap.put(cubeDimKey, (CubeDimension) child);
+            } else if (child instanceof Dimension) {
                 dimensions.put(child.getName(), (Dimension) child);
-            } else if (child.allowsChildren() && !(child instanceof Cube)) {
-                findDimensionNames(child, dimensions);
+            } else if (child.allowsChildren()) {
+                findDimensionNames(child, dimensions, cubeDimensionMap);
             }
         }
     }
     
     /**
-     * Finds all the cubes in the given OLAP model and adds them to a map, so
-     * they can be found later for the CubeUsages.
+     * Recursively populates the given map with the names of Cubes in the parent
+     * object.
      * 
      * @param parent
-     *            The root of the OLAP model
+     *            The parent object to search through.
      * @param cubes
-     *            The map to keep track of all the cubes in the model
+     *            The map of Cube names to Cube objects that will be populated.
      */
     private static void findCubeNames(OLAPObject parent, Map<String, Cube> cubes) {
         for (OLAPObject child : parent.getChildren()) {
@@ -215,86 +249,248 @@ public class MondrianXMLReader {
     }
     
     /**
-     * Attaches listeners to all the Dimensions in the given OLAP model.
+     * Hooks up listeners to Dimensions in the given parent object, so that the
+     * DimensionUsage or VirtualCubeDimension that references the Dimension will
+     * update from name changes. Also populates the maps with Dimension to
+     * referencing DimensionUsages.
      * 
      * @param parent
-     *            The root of the OLAP model
+     *            The parent object to search through.
      * @param dimensions
-     *            The map of Dimensions that links Dimensions to DimensionUsages
+     *            Map of public Dimension names to objects.
+     * @param dimensionUsageMap
+     *            Map of Dimension to referencing DimensionUsages that will be
+     *            populated.
+     * @param cubeDimensionMap
+     *            Map of non-public Dimension "names" to objects, see
+     *            {@link CubeDimensionKey} about "names".
      */
-    private static void recursiveDimensionHookupListeners(OLAPObject parent, Map<String, Dimension> dimensions, Map<Dimension, List<DimensionUsage>> dimensionUsageMap) {
-        
+    private static void recursiveDimensionHookupListeners(OLAPObject parent, Map<String, Dimension> dimensions,
+            Map<Dimension, List<DimensionUsage>> dimensionUsageMap,
+            Map<CubeDimensionKey, CubeDimension> cubeDimensionMap) {
         for (OLAPObject child : parent.getChildren()) {
             if (child instanceof DimensionUsage) {
+                // DimensionUsage can only reference public dimensions, find it
+                // from that list.
                 final DimensionUsage du = (DimensionUsage) child;
                 Dimension dim = dimensions.get(du.getSource());
                 if (dim == null) {
-                    throw new IllegalStateException("Corrupt xml" + du);
+                    logger.error("Can't find the Dimension that this DimensionUsage references: " + du);
+                    throw new IllegalStateException("The xml is corrupted, invalid reference by: " + du);
                 } else {
+                    // Hookup listeners to watch for Dimension name changes, to
+                    // update DimensionUsage's dimension reference. Updates the
+                    // source reference and its own name to match
+                    // the Dimension's.
                     dim.addPropertyChangeListener(new PropertyChangeListener() {
                         public void propertyChange(PropertyChangeEvent evt) {
                             if ("name".equals(evt.getPropertyName())) {
                                 du.setSource((String) evt.getNewValue());
-                                du.setName((String) evt.getNewValue()); 
+                                du.setName((String) evt.getNewValue());
                             }
                         }
                     });
-                    
-                    // Builds the map of Dimensions to their DimensionUsages
+
+                    // add to map that will be used for removal listeners.
                     List<DimensionUsage> dimUsages = dimensionUsageMap.get(dim);
-                    if (dimUsages != null) {
-                        dimUsages.add(du);
-                    } else {
+                    if (dimUsages == null) {
+                        // first DimensionUsage to reference this Dimension,
+                        // make a new list and add as new entry.
                         dimUsages = new ArrayList<DimensionUsage>();
                         dimUsages.add(du);
                         dimensionUsageMap.put(dim, dimUsages);
+                    } else {
+                        // add to the list in the entry.
+                        dimUsages.add(du);
                     }
                 }
+            } else if (child instanceof VirtualCubeDimension) {
+                // VirtualCubeDimensions are complicated...
+                final VirtualCubeDimension vcd = (VirtualCubeDimension) child;
+                Dimension dim;
+
+                if (vcd.getCubeName() == null) {
+                    // public dimension, find it from the public dimension list.
+                    dim = dimensions.get(vcd.getName());
+                } else {
+                    // non-public dimension, find the CubeDimension that it
+                    // references first.
+                    CubeDimensionKey cubeDimKey = new CubeDimensionKey(vcd.getCubeName(), vcd.getName());
+                    CubeDimension cd = cubeDimensionMap.get(cubeDimKey);
+
+                    if (cd == null) {
+                        logger.error("Can't find the CubeDimension that this VirtualCubeDimension references: " + vcd);
+                        throw new IllegalStateException(
+                                "The xml is corrupted, invalid reference by: " + vcd);
+                    }
+
+                    if (cd instanceof Dimension) {
+                        // the VirtualCubeDimension references a private
+                        // Dimension in a Cube
+                        dim = (Dimension) cd;
+                    } else if (cd instanceof DimensionUsage) {
+                        // the VirtualCubeDimension references a DimensionUsage,
+                        // need to find the referenced public Dimension.
+                        DimensionUsage du = (DimensionUsage) cd;
+                        dim = dimensions.get(du.getSource());
+                    } else {
+                        logger.warn("Unknown type of CubeDimension, skipping listener hookup: " + cd);
+                        continue;
+                    }
+
+                    // need to hookup listeners to watch Cube name changes, to
+                    // update VirtualCubeDimension cube reference.
+                    Cube c = (Cube) cd.getParent();
+                    c.addPropertyChangeListener(new PropertyChangeListener() {
+                        public void propertyChange(PropertyChangeEvent evt) {
+                            if ("name".equals(evt.getPropertyName())) {
+                                vcd.setCubeName((String) evt.getNewValue());
+                            }
+                        }
+                    });
+                }
+
+                if (dim == null) {
+                    logger.error("Can't find the Dimension that this VirtualCubeDimension references: " + vcd);
+                    throw new IllegalStateException(
+                            "The xml is corrupted, invalid reference by: " + vcd);
+                } else {
+                    // hookup listeners to watch Dimension name changes, to
+                    // update VirtualCubeDimension dimension reference.
+                    dim.addPropertyChangeListener(new PropertyChangeListener() {
+                        public void propertyChange(PropertyChangeEvent evt) {
+                            if ("name".equals(evt.getPropertyName())) {
+                                vcd.setName((String) evt.getNewValue());
+                            }
+                        }
+                    });
+                }
             } else if (child.allowsChildren()) {
-                recursiveDimensionHookupListeners(child, dimensions, dimensionUsageMap);
+                recursiveDimensionHookupListeners(child, dimensions, dimensionUsageMap, cubeDimensionMap);
             }
         }
     }
     
     /**
-     * Attaches listeners to all the Cubes in the given OLAP model.
+     * Hookup listeners to Cubes in the given parent object, so that the
+     * CubeUsage that references the Cube will update from name changes. Also
+     * populates the maps with Cube to referencing CubeUsages.
      * 
      * @param parent
-     *            The root of the OLAP model
-     * @param dimensions
-     *            The map of Dimensions that links Cubes to CubeUsage(s)
+     *            The parent object to search through.
+     * @param cubes
+     *            Maps Cube names to objects.
+     * @param cubeUsageMap
+     *            Map of Cube to CubeUsages that will be populated.
      */
-    private static void recursiveCubeHookupListeners(OLAPObject parent, Map<String, Cube> cubes, Map<Cube, List<CubeUsage>> cubeUsageMap) {
+    private static void recursiveCubeHookupListeners(OLAPObject parent, Map<String, Cube> cubes,
+            Map<Cube, List<CubeUsage>> cubeUsageMap) {
         for (OLAPObject child : parent.getChildren()) {
             if (child instanceof VirtualCube) {
                 VirtualCube vCube = (VirtualCube) child;
-                for (final CubeUsage cu : vCube.getCubeUsage().getCubeUsages()) {
-                    Cube cube = cubes.get(cu.getCubeName());
-                    if (cube == null) {
-                        throw new IllegalStateException("Corrupt xml" + cu);
-                    } else {
-                        cube.addPropertyChangeListener(new PropertyChangeListener() {
-                            public void propertyChange(PropertyChangeEvent evt) {
-                                if ("name".equals(evt.getPropertyName())) {
-                                    cu.setCubeName((String) evt.getNewValue());
-                                }
-                            }
-                        });
-                        
-                        // Builds the map of Cubes to their CubeUsages
-                        List<CubeUsage> cubeUsages = cubeUsageMap.get(cube);
-                        if (cubeUsages != null) {
-                            cubeUsages.add(cu);
+                if (vCube.getCubeUsage() != null) {
+                    for (final CubeUsage cu : vCube.getCubeUsage().getCubeUsages()) {
+                        Cube cube = cubes.get(cu.getCubeName());
+                        if (cube == null) {
+                            logger.error("Can't find the Cube that this CubeUsage references: " + cu);
+                            throw new IllegalStateException("The xml is corrupted, invalid reference by: " + cu);
                         } else {
-                            cubeUsages = new ArrayList<CubeUsage>();
-                            cubeUsages.add(cu);
-                            cubeUsageMap.put(cube, cubeUsages);
+                            // hookup listener to Cube for name changes to
+                            // update the CubeUsage.
+                            cube.addPropertyChangeListener(new PropertyChangeListener() {
+                                public void propertyChange(PropertyChangeEvent evt) {
+                                    if ("name".equals(evt.getPropertyName())) {
+                                        cu.setCubeName((String) evt.getNewValue());
+                                    }
+                                }
+                            });
+
+                            // add to map that will be used for removal
+                            // listeners.
+                            List<CubeUsage> cubeUsages = cubeUsageMap.get(cube);
+                            if (cubeUsages != null) {
+                                cubeUsages.add(cu);
+                            } else {
+                                cubeUsages = new ArrayList<CubeUsage>();
+                                cubeUsages.add(cu);
+                                cubeUsageMap.put(cube, cubeUsages);
+                            }
                         }
                     }
                 }
             } else if (child.allowsChildren()) {
                 recursiveCubeHookupListeners(child, cubes, cubeUsageMap);
             }
+        }
+    }
+    
+    /**
+     * A composite key class that holds the cubeName and name properties in a
+     * VirtualCubeDimension. The cubeName property identifies the name of Cube
+     * that holds the CubeDimension and the name property identifies the name of
+     * the CubeDimenion. This will form the key used to find the CubeDimension
+     * that a VirtualCubeDimension is referencing.
+     * 
+     */
+    private static class CubeDimensionKey {
+        private final String cubeName;
+        private final String dimensionName;
+        
+        public CubeDimensionKey(String cubeName, String dimensionName) {
+            this.cubeName = cubeName;
+            this.dimensionName = dimensionName;
+        }
+
+        public String getCubeName() {
+            return cubeName;
+        }
+
+        public String getDimensionName() {
+            return dimensionName;
+        }
+        
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof CubeDimensionKey)) {
+                return false;
+            }
+            
+            if (this == obj) {
+                return true;
+            }
+            
+            final CubeDimensionKey other = (CubeDimensionKey) obj;
+            if (getCubeName() == null) {
+                if (other.getCubeName() != null) {
+                    return false;
+                }
+            } else if (!getCubeName().equals(other.getCubeName())) {
+                return false;
+            }
+            
+            if (getDimensionName() == null) {
+                if (other.getDimensionName() != null) {
+                    return false;
+                }
+            } else if (!getDimensionName().equals(other.getDimensionName())) {
+                return false;
+            }
+            
+            return true;
+        }
+        
+        @Override
+        public int hashCode() {
+            final int PRIME = 31;
+            int result = 0;
+            result = PRIME * result + ((getCubeName() == null) ? 0 : getCubeName().hashCode());
+            result = PRIME * result + ((getDimensionName() == null) ? 0 : getDimensionName().hashCode());
+            return result;
+        }
+       
+        @Override
+        public String toString() {
+            return getCubeName() + "." + getDimensionName();
         }
     }
 
