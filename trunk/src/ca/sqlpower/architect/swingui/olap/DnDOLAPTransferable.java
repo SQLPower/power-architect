@@ -69,6 +69,8 @@ public class DnDOLAPTransferable implements Transferable, java.io.Serializable {
                     c.add(pane.getSections().indexOf(section));
                     c.add(ppco.getIndex());
                     
+                    coords.add(c);
+                    
                     if (name.length() != 0) {
                         name.append("\n");
                     }
@@ -98,8 +100,44 @@ public class DnDOLAPTransferable implements Transferable, java.io.Serializable {
         return coords;
     }
 	
-	public List<PlayPenCoordinate<?, ?>> resolve(PlayPen pp) {
-	    return null; // TODO
+	/**
+	 * Gets back the objects given to the transferable constructor, subject to a
+	 * few limitations:
+	 * <ul>
+	 *  <marquee scrolldelay="10" scrollamount="1" >
+	 *  <li>pp must be the same playpen passed in to the constructor
+	 *  </marquee>
+	 *  <marquee  scrolldelay="10" scrollamount="2">
+	 *  <li>pp's content pane must not have been added to or removed
+	 *      from since the constructor was invoked
+	 *  </marquee>
+     *  <marquee  scrolldelay="10" scrollamount="2" direction="right">
+	 *  <li>none of the panes represented in the selection must have
+	 *      had any items or sections added or removed.
+     *  </marquee>
+	 * </ul>
+	 */
+	public static List<PlayPenCoordinate<? extends OLAPObject,? extends OLAPObject>> resolve(PlayPen pp, List<List<Integer>> coords) {
+	    List<PlayPenCoordinate<? extends OLAPObject,? extends OLAPObject>> items =
+	        new ArrayList<PlayPenCoordinate<? extends OLAPObject,? extends OLAPObject>>();
+	    for (List<Integer> coord : coords) {
+	        int paneIndex = coord.get(0);
+	        int sectIndex = coord.get(1);
+	        int itemIndex = coord.get(2);
+	        OLAPPane<OLAPObject,OLAPObject> ppc = (OLAPPane<OLAPObject,OLAPObject>)
+	                pp.getPlayPenContentPane().getComponent(paneIndex);
+	        PaneSection<OLAPObject> s = ppc.getSections().get(sectIndex);
+	        OLAPObject item;
+	        if (itemIndex >= 0) {
+	            item = s.getItems().get(itemIndex);
+	        } else {
+	            item = null;
+	        }
+	        PlayPenCoordinate<OLAPObject,OLAPObject> ppco =
+	            new PlayPenCoordinate<OLAPObject,OLAPObject>(ppc, s, itemIndex, item);
+	        items.add(ppco);
+	    }
+	    return items;
 	}
 
 	@Override

@@ -101,6 +101,8 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     
     protected final ModelEventHandler modelEventHandler = new ModelEventHandler();
 
+    protected final PaneEventHandler paneEventHandler = new PaneEventHandler();
+
     /**
      * Calculates and returns the ideal size for this OLAPPane. If you override
      * or change the {@link #paint(Graphics2D)} or
@@ -157,10 +159,12 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     public void installUI(PlayPenComponent c) {
         olapPane = (OLAPPane<T, C>) c;
         OLAPUtil.listenToHierarchy(olapPane.getModel(), modelEventHandler, modelEventHandler);
+        olapPane.addPropertyChangeListener(paneEventHandler);
     }
 
     public void uninstallUI(PlayPenComponent c) {
         OLAPUtil.unlistenToHierarchy(olapPane.getModel(), modelEventHandler, modelEventHandler);
+        olapPane.removePropertyChangeListener(paneEventHandler);
     }
     
     public void paint(Graphics2D g2) {
@@ -258,6 +262,10 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         }
         
         g2.setStroke(oldStroke);
+        
+        if (olapPane.getInsertionPoint() != null) {
+            g2.fill3DRect(10, 10, 30, 30, true);
+        }
     }
 
     public boolean contains(Point p) {
@@ -586,6 +594,16 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         public void olapChildRemoved(OLAPChildEvent e) {
             OLAPUtil.unlistenToHierarchy(e.getChild(), this, this);
             olapPane.revalidate();
+        }
+        
+    }
+    
+    private class PaneEventHandler implements PropertyChangeListener {
+
+        public void propertyChange(PropertyChangeEvent evt) {
+            if ("insertionPoint".equals(evt.getPropertyName())) {
+                olapPane.repaint();
+            }
         }
         
     }

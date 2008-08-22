@@ -1859,13 +1859,13 @@ public class PlayPen extends JPanel
 	public class PlayPenDropListener implements DropTargetListener {
 
 		/**
-		 * When the user moves over a table pane, its drop target's
+		 * When the user moves over a container pane, its drop target's
 		 * dragEnter method will be called, and this variable will
-		 * reference it.  When the user moves off of a table pane, its
+		 * reference it.  When the user moves off of a pane, its
 		 * dragExit method will be called, and this variable will
 		 * reference null (or a different table pane).
 		 */
-		protected TablePane tpTarget;
+		protected ContainerPane<?,?> tpTarget;
 
 		/**
 		 * Called while a drag operation is ongoing, when the mouse
@@ -1885,7 +1885,7 @@ public class PlayPen extends JPanel
 		public void dragExit(DropTargetEvent dte) {
 			logger.debug("Drag exit"); //$NON-NLS-1$
             if (tpTarget != null) {
-            		tpTarget.getDropTargetListener().dragExit(dte);
+            		tpTarget.dragExit(dte);
             }
 
 		}
@@ -1899,19 +1899,24 @@ public class PlayPen extends JPanel
 			PlayPen pp = (PlayPen) dtde.getDropTargetContext().getComponent();
 			Point sp = pp.unzoomPoint(new Point(dtde.getLocation()));
 			PlayPenComponent ppc = pp.contentPane.getComponentAt(sp);
-			TablePane tp = ppc != null && ppc instanceof TablePane ? (TablePane) ppc : null;
+			ContainerPane<?, ?> tp;
+			if (ppc instanceof ContainerPane<?, ?>) {
+			    tp = (ContainerPane<?, ?>) ppc;
+			} else {
+			    tp = null;
+			}
 
 			if (tp != tpTarget) {
 				if (tpTarget != null) {
-					tpTarget.getDropTargetListener().dragExit(dtde);
+					tpTarget.dragExit(dtde);
 				}
 				tpTarget = tp;
 				if (tpTarget != null) {
-					tpTarget.getDropTargetListener().dragEnter(dtde);
+					tpTarget.dragEnter(dtde);
 				}
 			}
 			if (tpTarget != null) {
-				tpTarget.getDropTargetListener().dragOver(dtde);
+				tpTarget.dragOver(dtde);
 			} else {
 				dtde.acceptDrag(DnDConstants.ACTION_COPY);
 			}
@@ -1924,7 +1929,7 @@ public class PlayPen extends JPanel
 		public void drop(DropTargetDropEvent dtde) {
 			logger.info("Drop: I am over dtde="+dtde); //$NON-NLS-1$
 			if (tpTarget != null) {
-				tpTarget.getDropTargetListener().drop(dtde);
+				tpTarget.drop(dtde);
 				return;
 			}
 
