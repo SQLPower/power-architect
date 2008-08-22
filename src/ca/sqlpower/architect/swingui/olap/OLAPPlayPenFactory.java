@@ -146,7 +146,6 @@ public class OLAPPlayPenFactory {
         }
 
         public void olapChildRemoved(OLAPChildEvent e) {
-            System.out.println("Children removed " + e.getChild());
             OLAPUtil.unlistenToHierarchy(e.getChild(), this, null);
             
             for (PlayPenComponent ppc : pp.getPlayPenComponents()) {

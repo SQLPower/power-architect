@@ -26,6 +26,8 @@ import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
+import ca.sqlpower.architect.swingui.event.PlayPenContentEvent;
+import ca.sqlpower.architect.swingui.event.PlayPenContentListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 
 /**
@@ -37,6 +39,8 @@ public class UsageComponent extends PlayPenComponent {
     private final OLAPObject model;
     private final OLAPPane<?, ?> pane1;
     private final OLAPPane<?, ?> pane2;
+    
+    private final OLAPPanesWatcher olapPanesWatcher = new OLAPPanesWatcher();
 
     public UsageComponent(PlayPenContentPane parent, OLAPObject model, OLAPPane<?, ?> pane1, OLAPPane<?, ?> pane2) {
         super(parent);
@@ -46,6 +50,7 @@ public class UsageComponent extends PlayPenComponent {
         setOpaque(false);
         setForegroundColor(Color.BLACK);
         updateUI();
+        parent.addPlayPenContentListener(olapPanesWatcher);
     }
     
     /**
@@ -105,4 +110,20 @@ public class UsageComponent extends PlayPenComponent {
         return pane2;
     }
 
+    /**
+     * Watches the panes that the usage is connected to, if either are removed,
+     * then the component will remove itself.
+     */
+    private class OLAPPanesWatcher implements PlayPenContentListener {
+
+        public void PlayPenComponentAdded(PlayPenContentEvent e) {
+            // do nothing.
+        }
+
+        public void PlayPenComponentRemoved(PlayPenContentEvent e) {
+            if (e.getPlayPenComponent() == pane1 || e.getPlayPenComponent() == pane2) {
+                getPlayPen().getContentPane().remove(UsageComponent.this);
+            }
+        }
+    }
 }
