@@ -293,6 +293,35 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
         }
         return selectedSects;
     }
+    
+    
+    /**
+     * Returns a list of the sections that are currently in the selection that
+     * also currently exist in the model. If a section title is selected,
+     * the selection state of its items is not considered; the section itself
+     * will be in the returned list and none of its items will. This is consistent
+     * with other multi-select GUIs we looked at.
+     */
+    public List<PlayPenCoordinate<T, C>> getSelectedCoordinates() {
+        List<PlayPenCoordinate<T, C>> selection = new ArrayList<PlayPenCoordinate<T,C>>();
+        for (PaneSection<C> sect : getSections()) {
+            if (isSectionSelected(sect)) {
+                selection.add(new PlayPenCoordinate<T, C>(
+                        this, sect, PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE, null));
+            } else {
+                int i = 0;
+                for (C item : sect.getItems()) {
+                    if (isItemSelected(item)) {
+                        selection.add(new PlayPenCoordinate<T, C>(
+                                this, sect, i, item));
+                    }
+                    i++;
+                }
+            }
+        }
+        return selection;
+    }
+
    
     @Override
     public void selectNone() {
@@ -310,7 +339,14 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
     
     @Override
     public Transferable createTransferableForSelection() {
-        // TODO Auto-generated method stub
-        return null;
+        
+        // eclipse wouldn't let us do the obvious thing, so we're actually going to
+        // make a copy of the list!
+        List<PlayPenCoordinate<?, ?>> annoying = new ArrayList<PlayPenCoordinate<?, ?>>();
+        for (PlayPenCoordinate<T, C> ridiculous : getSelectedCoordinates()) {
+            annoying.add(ridiculous);
+        }
+        
+        return new DnDOLAPTransferable(getPlayPen(), annoying);
     }
 }

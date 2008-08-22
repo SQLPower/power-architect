@@ -19,6 +19,8 @@
 
 package ca.sqlpower.architect.swingui;
 
+import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.swingui.olap.OLAPPane;
 import ca.sqlpower.architect.swingui.olap.PaneSection;
 
 /**
@@ -27,7 +29,7 @@ import ca.sqlpower.architect.swingui.olap.PaneSection;
  * @param <T> The type of the model of the pane.
  * @param <I> The type of the items of the pane.
  */
-public class PlayPenCoordinate <T extends Object, I extends Object> {
+public class PlayPenCoordinate <T extends OLAPObject, I extends OLAPObject> {
     
     /**
      * A special item index that represents the titlebar area.
@@ -47,7 +49,7 @@ public class PlayPenCoordinate <T extends Object, I extends Object> {
     /**
      * The pane that the represented location is within.
      */
-    private final ContainerPane<T, I> pane;
+    private final OLAPPane<T, I> pane;
     
     /**
      * The section of the represented location.
@@ -64,14 +66,14 @@ public class PlayPenCoordinate <T extends Object, I extends Object> {
      */
     private final int index;
     
-    public PlayPenCoordinate(ContainerPane<T, I> pane, PaneSection<I> section, int index, I item) {
+    public PlayPenCoordinate(OLAPPane<T, I> pane, PaneSection<I> section, int index, I item) {
         this.pane = pane;
         this.section = section;
         this.index = index;
         this.item = item;
     }
 
-    public ContainerPane<T, I> getPane() {
+    public OLAPPane<T, I> getPane() {
         return pane;
     }
 
