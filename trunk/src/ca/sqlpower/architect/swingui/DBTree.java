@@ -186,34 +186,6 @@ public class DBTree extends JTree implements DragSourceListener {
 		return dup;
 	}
 
-
-	/**
-	 * Creates an integer array which holds the child indices of each
-	 * node starting from the root which lead to node "node."
-	 *
-	 * @param node A node in this tree.
-	 */
-	public int[] getDnDPathToNode(SQLObject node) {
-		DBTreeModel m = (DBTreeModel) getModel();
-		List<SQLObject[]> sopList = m.getPathsToNode(node);
-		SQLObject[] sop = sopList.get(0);
-		int[] dndp = new int[sop.length-1];
-		SQLObject current = sop[0];
-		for (int i = 1; i < sop.length; i++) {
-			dndp[i-1] = m.getIndexOfChild(current, sop[i]);
-			current = sop[i];
-		}
-		return dndp;
-	}
-
-	public SQLObject getNodeForDnDPath(int[] path) throws ArchitectException {
-		SQLObject current = (SQLObject) getModel().getRoot();
-		for (int i = 0; i < path.length; i++) {
-			current = current.getChild(path[i]);
-		}
-		return current;
-	}
-
 	public int getRowForNode(SQLObject node) {
 		DBTreeModel m = (DBTreeModel) getModel();
 		TreePath path = new TreePath(m.getPathToNode(node));
@@ -953,13 +925,18 @@ public class DBTree extends JTree implements DragSourceListener {
 				return;
 			} else {
 				// export list of DnD-type tree paths
-				ArrayList paths = new ArrayList(p.length);
+			    StringBuilder userVisibleName = new StringBuilder();
+				ArrayList<int[]> paths = new ArrayList<int[]>(p.length);
 				for (int i = 0; i < p.length; i++) {
 					// ignore any playpen tables
-					if (t.getDnDPathToNode((SQLObject) p[i].getLastPathComponent())[0]  !=0 )
-					{
-						paths.add(t.getDnDPathToNode((SQLObject) p[i].getLastPathComponent()));
-					}
+				    SQLObject so = (SQLObject) p[i].getLastPathComponent();
+                    if (DnDTreePathTransferable.getDnDPathToNode(so, (SQLObject) t.getModel().getRoot())[0] != 0) {
+                        paths.add(DnDTreePathTransferable.getDnDPathToNode(so, (SQLObject) t.getModel().getRoot()));
+                        if (userVisibleName.length() != 0) {
+                            userVisibleName.append("\n");
+                        }
+                        userVisibleName.append(so.getName());
+                    }
 				}
 				logger.info("DBTree: exporting list of DnD-type tree paths"); //$NON-NLS-1$
 
@@ -967,7 +944,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				dge.getDragSource().startDrag
 					(dge,
 					 null, //DragSource.DefaultCopyNoDrop,
-					 new DnDTreePathTransferable(paths),
+					 new DnDTreePathTransferable(paths, userVisibleName.toString()),
 					 t);
 			}
  		}

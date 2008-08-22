@@ -20,8 +20,8 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Window;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -243,8 +243,9 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                 }
             }
         } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
-            setSelected(pp.getRubberBand().intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
-        } 
+            logger.debug("Mouse moved/dragged to " + evt.getPoint());
+//            setSelected(pp.getRubberBand().intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
+        }
     }
     
     // -- Section selection methods -- //
@@ -305,5 +306,11 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
     
     public JPopupMenu getPopup() {
         return getPlayPen().getPopupFactory().createPopupMenu();
+    }
+    
+    @Override
+    public Transferable createTransferableForSelection() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
