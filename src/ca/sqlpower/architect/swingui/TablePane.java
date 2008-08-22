@@ -21,16 +21,7 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Color;
 import java.awt.Insets;
 import java.awt.Point;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DragSourceDragEvent;
-import java.awt.dnd.DragSourceDropEvent;
-import java.awt.dnd.DragSourceEvent;
-import java.awt.dnd.DragSourceListener;
-import java.awt.dnd.DropTargetDragEvent;
-import java.awt.dnd.DropTargetDropEvent;
-import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,7 +37,6 @@ import java.util.Set;
 
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -60,7 +50,6 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.InsertionPointWatcher;
-import ca.sqlpower.architect.LockedColumnException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
@@ -74,7 +63,7 @@ import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.SPSUtils;
 
-public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements DragSourceListener, LayoutNode {
+public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements LayoutNode {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
 
@@ -566,267 +555,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
 		}
 		return true;
 	}
-	// ------------------------ DROP TARGET LISTENER ------------------------
-
-	/**
-	 * Tracks incoming objects and adds successfully dropped objects
-	 * at the current mouse position.
-	 */
-	public static class TablePaneDropListener implements DropTargetListener {
-
-		protected TablePane tp;
-		
-		public TablePaneDropListener(TablePane tp) {
-			this.tp = tp;
-		}
-
-		/**
-		 * Called while a drag operation is ongoing, when the mouse
-		 * pointer enters the operable part of the drop site for the
-		 * DropTarget registered with this listener.
-		 *
-		 * <p>NOTE: This method is expected to be called from the
-		 * PlayPen's dragOver method (not directly by Swing), and as
-		 * such the DropTargetContext (and the mouse co-ordinates)
-		 * will be of the PlayPen.
-		 */
-		public void dragEnter(DropTargetDragEvent dtde) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("DragEnter event on "+tp.getName()); //$NON-NLS-1$
-			}
-		}
-
-		/**
-		 * Called while a drag operation is ongoing, when the mouse
-		 * pointer has exited the operable part of the drop site for the
-		 * DropTarget registered with this listener.
-		 *
-		 * <p>NOTE: This method is expected to be called from the
-		 * PlayPen's dragOver method (not directly by Swing), and as
-		 * such the DropTargetContext (and the mouse co-ordinates)
-		 * will be of the PlayPen.
-		 */
-		public void dragExit(DropTargetEvent dte) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("DragExit event on "+tp.getName()); //$NON-NLS-1$
-			}
-			tp.setInsertionPoint(ITEM_INDEX_NONE);
-		}
-
-		/**
-		 * Called when a drag operation is ongoing, while the mouse
-		 * pointer is still over the operable part of the drop site for
-		 * the DropTarget registered with this listener.
-		 *
-		 * <p>NOTE: This method is expected to be called from the
-		 * PlayPen's dragOver method (not directly by Swing), and as
-		 * such the DropTargetContext (and the mouse co-ordinates)
-		 * will be of the PlayPen.
-		 */
-		public void dragOver(DropTargetDragEvent dtde) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("DragOver event on "+tp.getName()+": "+dtde); //$NON-NLS-1$ //$NON-NLS-2$
-				logger.debug("Drop Action = "+dtde.getDropAction()); //$NON-NLS-1$
-				logger.debug("Source Actions = "+dtde.getSourceActions()); //$NON-NLS-1$
-			}
-			dtde.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE & dtde.getDropAction());
-			Point loc = tp.getPlayPen().unzoomPoint(new Point(dtde.getLocation()));
-			loc.x -= tp.getX();
-			loc.y -= tp.getY();
-			int idx = tp.pointToItemIndex(loc);
-			tp.setInsertionPoint(idx);
-		}
-
-		/**
-		 * Called when the drag operation has terminated with a drop on
-		 * the operable part of the drop site for the DropTarget
-		 * registered with this listener.
-		 *
-		 * <p>NOTE: This method is expected to be called from the
-		 * PlayPen's dragOver method (not directly by Swing), and as
-		 * such the DropTargetContext (and the mouse co-ordinates)
-		 * will be of the PlayPen.
-		 */
-		public void drop(DropTargetDropEvent dtde) {
-			PlayPen pp = tp.getPlayPen();
-			Point loc = pp.unzoomPoint(new Point(dtde.getLocation()));
-			loc.x -= tp.getX();
-			loc.y -= tp.getY();
-
-			logger.debug("Drop target drop event on "+tp.getName()+": "+dtde); //$NON-NLS-1$ //$NON-NLS-2$
-			Transferable t = dtde.getTransferable();
-			DataFlavor importFlavor = bestImportFlavor(pp, t.getTransferDataFlavors());
-			if (importFlavor == null) {
-				dtde.rejectDrop();
-				tp.setInsertionPoint(ITEM_INDEX_NONE);
-			} else {
-				try {
-					DBTree dbtree = pp.getSession().getSourceDatabases();  // XXX: bad
-					int insertionPoint = tp.pointToItemIndex(loc);
-
-					ArrayList<int[]> paths = (ArrayList<int[]>) t.getTransferData(importFlavor);
-					logger.debug("Importing items from tree: "+paths); //$NON-NLS-1$
-
-					// put the undo event adapter into a drag and drop state
-					pp.startCompoundEdit("Drag and Drop"); //$NON-NLS-1$
-
-					ArrayList<SQLObject> droppedItems = new ArrayList<SQLObject>();
-					for (int[] path : paths) {
-						droppedItems.add(dbtree.getNodeForDnDPath(path));
-					}
-
-                    boolean success = false;
-                    
-                    //Check to see if the drag and drop will change the current relationship
-                    List<SQLRelationship> importedKeys = tp.getModel().getImportedKeys();
-                    
-                    boolean newColumnsInPk = false;
-                    if (insertionPoint == COLUMN_INDEX_END_OF_PK) {
-                        newColumnsInPk = true;
-                    } else if (insertionPoint == COLUMN_INDEX_START_OF_NON_PK) {
-                        newColumnsInPk = false;
-                    } else if (insertionPoint == ITEM_INDEX_TITLE) {
-                        newColumnsInPk = true;
-                    } else if (insertionPoint < 0) {
-                        newColumnsInPk = false;
-                    } else if (insertionPoint < tp.getModel().getPkSize()) {
-                        newColumnsInPk = true;
-                    }
-
-                    try {
-                        for (int i = 0; i < importedKeys.size(); i++) {
-                            // Not dealing with self-referencing tables right now.
-                            if (importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
-                            for (int j = 0; j < droppedItems.size(); j++) {
-                                if (importedKeys.get(i).containsFkColumn((SQLColumn)(droppedItems.get(j)))) {
-                                    importedKeys.get(i).setIdentifying(newColumnsInPk);
-                                    break;
-                                }
-                            }
-                        }
-                        success = tp.insertObjects(droppedItems, insertionPoint);
-                    } catch (LockedColumnException ex ) {
-                        JOptionPane.showConfirmDialog(pp,
-                                "Could not delete the column " + //$NON-NLS-1$
-                                ex.getCol().getName() +
-                                " because it is part of\n" + //$NON-NLS-1$
-                                "the relationship \""+ex.getLockingRelationship()+"\".\n\n", //$NON-NLS-1$ //$NON-NLS-2$
-                                "Column is Locked", //$NON-NLS-1$
-                                JOptionPane.CLOSED_OPTION);
-                        success = false;
-                    } 
-
-					if (success) {
-						dtde.acceptDrop(DnDConstants.ACTION_COPY); // XXX: not always true
-					} else {
-						dtde.rejectDrop();
-					}
-					dtde.dropComplete(success);
-				} catch (Exception ex) {
-					logger.error("Error processing drop operation", ex); //$NON-NLS-1$
-					dtde.rejectDrop();
-					dtde.dropComplete(false);
-					ASUtils.showExceptionDialogNoReport(tp.getParent().getOwner(),
-                        "Error processing drop operation", ex); //$NON-NLS-1$
-                } finally {
-					tp.setInsertionPoint(ITEM_INDEX_NONE);
-					try {
-                        tp.getModel().normalizePrimaryKey();
-                    } catch (ArchitectException e) {
-                        logger.error("Error processing normalize PrimaryKey", e); //$NON-NLS-1$
-                        ASUtils.showExceptionDialogNoReport(tp.getParent().getOwner(),
-                                "Error processing normalize PrimaryKey after processing drop operation", e); //$NON-NLS-1$
-                    }
-
-					// put the undo event adapter into a regular state
-					pp.endCompoundEdit("End drag and drop"); //$NON-NLS-1$
-				}
-			}
-		}
-
-		/**
-		 * Called if the user has modified the current drop gesture.
-		 */
-		public void dropActionChanged(DropTargetDragEvent dtde) {
-            // we don't care
-		}
-
-		/**
-		 * Chooses the best import flavour from the flavors array for
-		 * importing into c.  The current implementation actually just
-		 * chooses the first acceptable flavour.
-		 *
-		 * @return The first acceptable DataFlavor in the flavors
-		 * list, or null if no acceptable flavours are present.
-		 */
-		public DataFlavor bestImportFlavor(JComponent c, DataFlavor[] flavors) {
-			logger.debug("can I import "+Arrays.asList(flavors)); //$NON-NLS-1$
- 			for (int i = 0; i < flavors.length; i++) {
-				String cls = flavors[i].getDefaultRepresentationClassAsString();
-				logger.debug("representation class = "+cls); //$NON-NLS-1$
-				logger.debug("mime type = "+flavors[i].getMimeType()); //$NON-NLS-1$
-				logger.debug("type = "+flavors[i].getPrimaryType()); //$NON-NLS-1$
-				logger.debug("subtype = "+flavors[i].getSubType()); //$NON-NLS-1$
-				logger.debug("class = "+flavors[i].getParameter("class")); //$NON-NLS-1$ //$NON-NLS-2$
-				logger.debug("isSerializedObject = "+flavors[i].isFlavorSerializedObjectType()); //$NON-NLS-1$
-				logger.debug("isInputStream = "+flavors[i].isRepresentationClassInputStream()); //$NON-NLS-1$
-				logger.debug("isRemoteObject = "+flavors[i].isFlavorRemoteObjectType()); //$NON-NLS-1$
-				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType)); //$NON-NLS-1$
-
-
- 				if (flavors[i].equals(DnDTreePathTransferable.TREEPATH_ARRAYLIST_FLAVOR)) {
-					logger.debug("YES"); //$NON-NLS-1$
- 					return flavors[i];
-				}
- 			}
-			logger.debug("NO!"); //$NON-NLS-1$
- 			return null;
-		}
-
-		/**
-		 * This is set up this way because this DropTargetListener was
-		 * derived from a TransferHandler.  It works, so no sense in
-		 * changing it.
-		 */
-		public boolean canImport(JComponent c, DataFlavor[] flavors) {
-			return bestImportFlavor(c, flavors) != null;
-		}
-	}
-
-	public void mouseEntered(MouseEvent evt) {
-        // we don't do anything about this at the moment
-	}
-
-	public void mouseExited(MouseEvent evt) {
-        // we don't do anything about this at the moment
-	}
-
-	// --------------------- Drag Source Listener ------------------------
-	public void dragEnter(DragSourceDragEvent dsde) {
-        // don't care
-	}
-
-	public void dragOver(DragSourceDragEvent dsde) {
-        // don't care
-	}
-
-	public void dropActionChanged(DragSourceDragEvent dsde) {
-        // don't care
-	}
-
-	public void dragExit(DragSourceEvent dse) {
-        // don't care
-	}
-
-	public void dragDropEnd(DragSourceDropEvent dsde) {
-		if (dsde.getDropSuccess()) {
-			logger.debug("Succesful drop"); //$NON-NLS-1$
-		} else {
-			logger.debug("Unsuccesful drop"); //$NON-NLS-1$
-		}
-		draggingColumn = null;
-	}
-
+	
     /**
      * Changes the foreground colour of a column.  This is useful when outside forces
      * want to colour in a column.
@@ -1181,6 +910,30 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Dra
                     }
                 }
             }
+        }
+    }
+
+    public Transferable createTransferableForSelection() {
+        ArrayList<int[]> paths = new ArrayList<int[]>();
+        StringBuilder userVisibleName = new StringBuilder();
+        for (SQLColumn column: getSelectedItems()) {
+
+            int[] path = DnDTreePathTransferable.getDnDPathToNode(column, getPlayPen().getSession().getRootObject());
+            if (logger.isDebugEnabled()) {
+                logger.debug("Path to dragged node: "+Arrays.toString(path)); //$NON-NLS-1$
+            }
+            // export list of DnD-type tree paths
+            paths.add(path);
+
+            if (userVisibleName.length() != 0) {
+                userVisibleName.append("\n");
+            }
+            userVisibleName.append(column.getName());
+        }
+        if (paths.isEmpty()) {
+            return null;
+        } else {
+            return new DnDTreePathTransferable(paths, userVisibleName.toString());
         }
     }
 }

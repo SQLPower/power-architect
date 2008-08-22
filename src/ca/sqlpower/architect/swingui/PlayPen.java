@@ -71,13 +71,14 @@ import java.util.WeakHashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JTextArea;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitor;
@@ -1943,7 +1944,7 @@ public class PlayPen extends JPanel
 					DBTree dbtree = session.getSourceDatabases();
 					List sqlObjects = new ArrayList();
 					while(it.hasNext()) {
-						Object oo = dbtree.getNodeForDnDPath((int[])it.next());
+						Object oo = DnDTreePathTransferable.getNodeForDnDPath((SQLObject) dbtree.getModel().getRoot(), (int[])it.next());
 						if (oo instanceof SQLObject) {
 							sqlObjects.add(oo);
 						} else {
@@ -2029,6 +2030,18 @@ public class PlayPen extends JPanel
 	public class TablePaneDragGestureListener implements DragGestureListener {
 		public void dragGestureRecognized(DragGestureEvent dge) {
 
+            // ignore drag events that aren't from the left mouse button
+            if (dge.getTriggerEvent() instanceof MouseEvent
+               && (dge.getTriggerEvent().getModifiers() & InputEvent.BUTTON1_MASK) == 0)
+                return;
+
+            // ignore drag events if we're in the middle of a createRelationship
+            // XXX this is backwards--the action should disable DnD on the playpen by setting a flag
+            if (session.getArchitectFrame().createRelationshipIsActive()) {
+                logger.debug("CreateRelationship() is active, short circuiting DnD."); //$NON-NLS-1$
+                return;
+            }
+
 			if (draggingTablePanes) {
 				logger.debug(
 						"TablePaneDragGestureListener: ignoring drag event " + //$NON-NLS-1$
@@ -2039,84 +2052,56 @@ public class PlayPen extends JPanel
 			MouseEvent triggerEvent = (MouseEvent) dge.getTriggerEvent();
             PlayPenComponent c = contentPane.getComponentAt(unzoomPoint(triggerEvent.getPoint()));
 
-			if ( c instanceof TablePane ) {
-				TablePane tp = (TablePane) c;
-				int colIndex = ContainerPane.ITEM_INDEX_NONE;
+			if ( c instanceof ContainerPane ) {
+				ContainerPane<?,?> tp = (ContainerPane<?,?>) c;
 
 				Point dragOrigin = tp.getPlayPen().unzoomPoint(new Point(dge.getDragOrigin()));
 				dragOrigin.x -= tp.getX();
 				dragOrigin.y -= tp.getY();
 
-				// ignore drag events that aren't from the left mouse button
-				if (dge.getTriggerEvent() instanceof MouseEvent
-				   && (dge.getTriggerEvent().getModifiers() & InputEvent.BUTTON1_MASK) == 0)
-					return;
+				logger.debug("Recognized drag gesture on "+tp.getName()+"! origin="+dragOrigin); //$NON-NLS-1$ //$NON-NLS-2$
 
-				// ignore drag events if we're in the middle of a createRelationship
-				if (session.getArchitectFrame().createRelationshipIsActive()) {
-					logger.debug("CreateRelationship() is active, short circuiting DnD."); //$NON-NLS-1$
-					return;
+				Transferable transferableSelection = tp.createTransferableForSelection();
+				if (transferableSelection != null) {
+                    DnDLabel label = new DnDLabel(transferableSelection.toString());
+                    Dimension labelSize = label.getPreferredSize();
+                    label.setSize(labelSize);  // because a LayoutManager would normally do this
+                    BufferedImage dragImage = new BufferedImage(
+                            labelSize.width, labelSize.height,
+                            BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D imageGraphics = dragImage.createGraphics();
+                    label.paint(imageGraphics);
+                    imageGraphics.dispose();
+                    dge.getDragSource().startDrag(
+				            dge, null, dragImage, new Point(0, 0), transferableSelection, tp);
 				}
-
-				colIndex = tp.pointToItemIndex(dragOrigin);
-				logger.debug("Recognized drag gesture on "+tp.getName()+"! origin="+dragOrigin //$NON-NLS-1$ //$NON-NLS-2$
-							 +"; col="+colIndex); //$NON-NLS-1$
-
-				try {
-					logger.debug("DGL: colIndex="+colIndex+",columnsSize="+tp.getModel().getColumns().size()); //$NON-NLS-1$ //$NON-NLS-2$
-					if (colIndex == ContainerPane.ITEM_INDEX_TITLE) {
-						// we don't use this because it often misses drags
-						// that start near the edge of the titlebar
-//						logger.debug("Discarding drag on titlebar (handled by mousePressed())");
-//						draggingTablePanes = true;
-						throw new UnsupportedOperationException("We don't use DnD for dragging table panes"); //$NON-NLS-1$
-					} else if (colIndex >= 0 && colIndex < tp.getModel().getColumns().size()) {
-						// export column as DnD event
-						if (logger.isDebugEnabled()) {
-							logger.debug("Exporting column "+colIndex+" with DnD"); //$NON-NLS-1$ //$NON-NLS-2$
-						}
-
-						tp.draggingColumn = tp.getModel().getColumn(colIndex);
-						DBTree tree = session.getSourceDatabases();
-						ArrayList paths = new ArrayList();
-                        for (SQLColumn column: tp.getSelectedItems()) {
-
-                            int[] path = tree.getDnDPathToNode(column);
-                            if (logger.isDebugEnabled()) {
-                                StringBuffer array = new StringBuffer();
-                                for (int i = 0; i < path.length; i++) {
-                                    array.append(path[i]);
-                                    array.append(","); //$NON-NLS-1$
-                                }
-                                logger.debug("Path to dragged node: "+array); //$NON-NLS-1$
-                            }
-                            // export list of DnD-type tree paths
-                            paths.add(path);
-                        }
-						logger.info("TablePaneDragGestureListener: exporting "+paths.size()+"-item list of DnD-type tree path"); //$NON-NLS-1$ //$NON-NLS-2$
-						JLabel label = new JLabel(tp.getModel().getName()+"."+tp.draggingColumn.getName()); //$NON-NLS-1$
-						Dimension labelSize = label.getPreferredSize();
-						label.setSize(labelSize);  // because a LayoutManager would normally do this
-						BufferedImage dragImage = new BufferedImage(labelSize.width, labelSize.height,
-																  BufferedImage.TYPE_4BYTE_ABGR);
-						Graphics2D imageGraphics = dragImage.createGraphics();
-						// XXX: it would be nice to make this transparent, but initial attempts using AlphaComposite failed (on OS X)
-						label.repaint();
-						imageGraphics.dispose();
-						dge.getDragSource().startDrag(dge, null, dragImage, new Point(0, 0),
-													new DnDTreePathTransferable(paths), tp);
-					}
-				} catch (ArchitectException ex) {
-					logger.error("Couldn't drag column", ex); //$NON-NLS-1$
-					ASUtils.showExceptionDialog(session, Messages.getString("PlayPen.couldNotDragColumn"), ex); //$NON-NLS-1$
-				}
-			} else {
-				return;
 			}
 		}
 	}
 
+	/**
+	 * A nice multi-line translucent label that produces a good drag-and-drop image.
+	 */
+	private class DnDLabel extends JTextArea {
+	
+        private static final int BORDER_WIDTH = 5;
 
+        DnDLabel(String text) {
+            super(text);
+            setOpaque(false);
+            setBackground(new Color(0xcc333333, true));
+            setForeground(Color.WHITE);
+            setBorder(BorderFactory.createEmptyBorder(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
+	    }
+        
+        @Override
+        public void paint(Graphics g) {
+            g.setColor(getBackground());
+            g.fillRoundRect(0, 0, getWidth(), getHeight(), BORDER_WIDTH * 3, BORDER_WIDTH * 3);
+            super.paint(g);
+        }
+	}
+	
 	/**
 	 * The PPMouseListener class receives all mouse and mouse motion
 	 * events in the PlayPen.  It tries to dispatch them to the
