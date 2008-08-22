@@ -21,7 +21,12 @@ package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Point;
 import java.awt.Window;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -30,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -38,6 +44,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -71,6 +78,13 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * Tracks which scetions in this container are currently selected.
      */
     protected final Set<PaneSection<C>> selectedSections = new HashSet<PaneSection<C>>();
+
+    /**
+     * The point where a dropped item would be inserted if the drop were
+     * to happen now. This is mostly important as a visual clue for the
+     * user while dragging over this pane.
+     */
+    private PlayPenCoordinate<T, C> insertionPoint;
 
 
     protected OLAPPane(PlayPenContentPane parent) {
@@ -348,5 +362,152 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
         }
         
         return new DnDOLAPTransferable(getPlayPen(), annoying);
+    }
+    
+    // ------------------------ DROP TARGET LISTENER ------------------------
+
+    /**
+     * Called while a drag operation is ongoing, when the mouse
+     * pointer enters the operable part of the drop site for the
+     * DropTarget registered with this listener.
+     *
+     * <p>NOTE: This method is expected to be called from the
+     * PlayPen's dragOver method (not directly by Swing), and as
+     * such the DropTargetContext (and the mouse co-ordinates)
+     * will be of the PlayPen.
+     */
+    public void dragEnter(DropTargetDragEvent dtde) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("DragEnter event on "+getName()); //$NON-NLS-1$
+        }
+    }
+
+    /**
+     * Called while a drag operation is ongoing, when the mouse
+     * pointer has exited the operable part of the drop site for the
+     * DropTarget registered with this listener.
+     *
+     * <p>NOTE: This method is expected to be called from the
+     * PlayPen's dragOver method (not directly by Swing), and as
+     * such the DropTargetContext (and the mouse co-ordinates)
+     * will be of the PlayPen.
+     */
+    public void dragExit(DropTargetEvent dte) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("DragExit event on "+getName()); //$NON-NLS-1$
+        }
+        setInsertionPoint(null);
+    }
+
+    /**
+     * Called when a drag operation is ongoing, while the mouse
+     * pointer is still over the operable part of the drop site for
+     * the DropTarget registered with this listener.
+     *
+     * <p>NOTE: This method is expected to be called from the
+     * PlayPen's dragOver method (not directly by Swing), and as
+     * such the DropTargetContext (and the mouse co-ordinates)
+     * will be of the PlayPen.
+     */
+    public void dragOver(DropTargetDragEvent dtde) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("DragOver event on "+getName()+": "+dtde); //$NON-NLS-1$ //$NON-NLS-2$
+            logger.debug("Drop Action = "+dtde.getDropAction()); //$NON-NLS-1$
+            logger.debug("Source Actions = "+dtde.getSourceActions()); //$NON-NLS-1$
+        }
+        dtde.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE & dtde.getDropAction());
+        Point loc = getPlayPen().unzoomPoint(new Point(dtde.getLocation()));
+        loc.x -= getX();
+        loc.y -= getY();
+        setInsertionPoint(pointToPPCoordinate(loc));
+    }
+
+    /**
+     * Called when the drag operation has terminated with a drop on
+     * the operable part of the drop site for the DropTarget
+     * registered with this listener.
+     *
+     * <p>NOTE: This method is expected to be called from the
+     * PlayPen's dragOver method (not directly by Swing), and as
+     * such the DropTargetContext (and the mouse co-ordinates)
+     * will be of the PlayPen.
+     */
+    public void drop(DropTargetDropEvent dtde) {
+        logger.debug("Drop target drop event on "+getName()+": "+dtde); //$NON-NLS-1$ //$NON-NLS-2$
+        try {
+            Transferable t = dtde.getTransferable();
+            DataFlavor importFlavor = bestImportFlavor(null, t.getTransferDataFlavors());
+            logger.debug("Import flavor: " + importFlavor);
+            if (importFlavor == null) {
+                dtde.rejectDrop();
+                return;
+            }
+            List<List<Integer>> paths = (List<List<Integer>>) t.getTransferData(importFlavor);
+            logger.debug("Paths = " + paths);
+            List<PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject>> items =
+                DnDOLAPTransferable.resolve(getPlayPen(), paths);
+            logger.debug("Resolved Paths = " + items);
+            boolean accepted = false;
+            for (PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject> ppco : items) {
+                if (ppco.getItem() instanceof Measure) {
+                    logger.debug("Trying to add measure " + ppco.getItem());
+                    // TODO offer this to the OLAPPane subclass via abstract method
+                    getModel().addChild(ppco.getItem());
+                    accepted = true;
+                }
+            }
+            dtde.acceptDrop(DnDConstants.ACTION_MOVE);
+            dtde.dropComplete(accepted);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            setInsertionPoint(null);
+        }
+    }
+
+    /**
+     * Called if the user has modified the current drop gesture.
+     */
+    public void dropActionChanged(DropTargetDragEvent dtde) {
+        // we don't care
+    }
+
+    /**
+     * Chooses the best import flavour from the flavors array for
+     * importing into c.
+     *
+     * @return The first acceptable DataFlavor in the flavors
+     * list, or null if no acceptable flavours are present.
+     */
+    public DataFlavor bestImportFlavor(JComponent c, DataFlavor[] flavors) {
+        for (DataFlavor f : flavors) {
+            if (f == DnDOLAPTransferable.PP_COORDINATE_FLAVOR) {
+                return f;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Changes the insertion point and fires a property change to
+     * that effect.
+     * 
+     * @param newIP The new insertion point. Null is allowed, and means
+     * there shouldn't be a visible insertion point.
+     */
+    public void setInsertionPoint(PlayPenCoordinate<T, C> newIP) {
+        PlayPenCoordinate<T, C> oldIP = insertionPoint;
+        insertionPoint = newIP;
+        firePropertyChange("insertionPoint", oldIP, newIP);
+    }
+    
+    /**
+     * Returns the current insertion point. The insertion point is the
+     * point directly above the item at the returned coordinate. Therefore,
+     * the coordinate might be one item index beyond the last item in
+     * the section.
+     */
+    public PlayPenCoordinate<T, C> getInsertionPoint() {
+        return insertionPoint;
     }
 }
