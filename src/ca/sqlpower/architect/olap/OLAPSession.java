@@ -42,6 +42,13 @@ public class OLAPSession extends OLAPObject {
     private final Schema schema;
     
     /**
+     * Watches over the schema and makes updates to DimensionUsages,
+     * VirtualCubeDimensions and CubeUsages as the object they reference makes a
+     * name change or gets removed.
+     */
+    private final SchemaWatcher schemaWatcher;
+    
+    /**
      * Creates the OLAP Session for the given schema. That schema must
      * not already belong to another session.
      * 
@@ -54,6 +61,7 @@ public class OLAPSession extends OLAPObject {
         }
         schema.setParent(this);
         this.schema = schema;
+        schemaWatcher = new SchemaWatcher(schema);
     }
 
     /**
