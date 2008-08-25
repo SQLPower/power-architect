@@ -23,6 +23,9 @@ import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 
 /**
@@ -132,5 +135,37 @@ public class OLAPSession extends OLAPObject {
     public boolean removeChild(OLAPObject child) {
         throw new UnsupportedOperationException(
                 "OLAPSession has exactly one child (the Schema) for its entire lifetime");
+    }
+
+    /**
+     * Returns a public dimension in the child schema with the given name.
+     * 
+     * @param name The name to search by.
+     * @return A public Dimension with the name, or null if not found.
+     */
+    public Dimension findPublicDimension(String name) {
+        return schemaWatcher.findPublicDimension(name);
+    }
+    
+    /**
+     * Returns a CubeDimension in the child schema with the given name and in a
+     * particular Cube.
+     * 
+     * @param cubeName Name of the Cube to search in.
+     * @param dimName Name of the CubeDimension to search for.
+     * @return A CubeDimension in the Cube with the name, or null if not found.
+     */
+    public CubeDimension findCubeDimension(String cubeName, String dimName) {
+        return schemaWatcher.findCubeDimension(cubeName, dimName);
+    }
+    
+    /**
+     * Returns a Cube in the child schema with the given name.
+     * 
+     * @param name The name to search by.
+     * @return A Cube with the name, or null if not found.
+     */
+    public Cube findCube(String name) {
+        return schemaWatcher.findCube(name);
     }
 }
