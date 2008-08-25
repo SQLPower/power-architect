@@ -24,13 +24,15 @@ import java.util.List;
 /**
  * Generic implementation of a pane section. Should suffice for most uses.
  */
-public class PaneSectionImpl<C> implements PaneSection<C> {
+public abstract class OLAPPaneSection<C> implements PaneSection<C> {
 
     private final List<C> items;
     private final String title;
+    private final Class<C> type;
     
-    public PaneSectionImpl(List<C> items, String title) {
+    public OLAPPaneSection(Class<C> type, List<C> items, String title) {
         super();
+        this.type = type;
         this.items = items;
         this.title = title;
     }
@@ -52,6 +54,17 @@ public class PaneSectionImpl<C> implements PaneSection<C> {
         return title;
     }
 
+    public Class<C> getItemType() {
+        return type;
+    }
+    
+    /**
+     * Calls addItem(getItems().size(), item).
+     */
+    public void addItem(C item) {
+        addItem(getItems().size(), item);
+    }
+    
     @Override
     public String toString() {
         return getTitle();

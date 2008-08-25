@@ -19,11 +19,15 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
@@ -34,11 +38,27 @@ import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CubePane extends OLAPPane<Cube, OLAPObject> {
 
+    private static final Logger logger = Logger.getLogger(CubePane.class);
+    
     public CubePane(Cube model, PlayPenContentPane parent) {
         super(parent);
         this.model = model;
-        PaneSection<OLAPObject> dimensionSection = new PaneSectionImpl(model.getDimensions(), "Dimensions:");
-        PaneSection<OLAPObject> measureSection = new PaneSectionImpl(model.getMeasures(), "Measures:");
+        
+        PaneSection<CubeDimension> dimensionSection =
+            new OLAPPaneSection<CubeDimension>(CubeDimension.class, model.getDimensions(), "Dimensions:") {
+
+            public void addItem(int idx, CubeDimension item) {
+                CubePane.this.model.addDimension(idx, item);
+            }
+        };
+        
+        PaneSection<Measure> measureSection = new OLAPPaneSection<Measure>(Measure.class, model.getMeasures(), "Measures:") {
+
+            public void addItem(int idx, Measure item) {
+                CubePane.this.model.addMeasure(idx, item);
+            }
+        };
+        
         sections.add(dimensionSection);
         sections.add(measureSection);
         updateUI();
@@ -85,6 +105,16 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
         
         return panel;
     }
-    
+
+    @Override
+    protected List<OLAPObject> filterDroppableItems(List<OLAPObject> items) {
+        List<OLAPObject> filtered = new ArrayList<OLAPObject>();
+        for (OLAPObject item : items) {
+            if (item instanceof Measure || item instanceof Dimension) {
+                filtered.add(item);
+            }
+        }
+        return filtered;
+    }
 
 }

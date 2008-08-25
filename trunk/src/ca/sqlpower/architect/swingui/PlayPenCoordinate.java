@@ -54,7 +54,7 @@ public class PlayPenCoordinate <T extends OLAPObject, I extends OLAPObject> {
     /**
      * The section of the represented location.
      */
-    private final PaneSection<I> section;
+    private final PaneSection<? extends I> section;
     
     /**
      * The item of the represented location.
@@ -66,7 +66,7 @@ public class PlayPenCoordinate <T extends OLAPObject, I extends OLAPObject> {
      */
     private final int index;
     
-    public PlayPenCoordinate(OLAPPane<T, I> pane, PaneSection<I> section, int index, I item) {
+    public PlayPenCoordinate(OLAPPane<T, I> pane, PaneSection<? extends I> section, int index, I item) {
         this.pane = pane;
         this.section = section;
         this.index = index;
@@ -77,7 +77,7 @@ public class PlayPenCoordinate <T extends OLAPObject, I extends OLAPObject> {
         return pane;
     }
 
-    public PaneSection<I> getSection() {
+    public PaneSection<? extends I> getSection() {
         return section;
     }
 

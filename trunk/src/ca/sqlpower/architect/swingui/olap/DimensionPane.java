@@ -25,6 +25,7 @@ import java.util.List;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
@@ -75,6 +76,18 @@ public class DimensionPane extends OLAPPane<Dimension, Level> {
         
         public Hierarchy getHierarchy() {
             return hierarchy;
+        }
+        
+        public Class<Level> getItemType() {
+            return Level.class;
+        }
+
+        public void addItem(int idx, Level item) {
+            hierarchy.addLevel(idx, item);
+        }
+
+        public void addItem(Level item) {
+            addItem(getItems().size(), item);
         }
         
     }
@@ -138,5 +151,16 @@ public class DimensionPane extends OLAPPane<Dimension, Level> {
         }
         
         return panel;
+    }
+
+    @Override
+    protected List<Level> filterDroppableItems(List<OLAPObject> items) {
+        List<Level> filtered = new ArrayList<Level>();
+        for (OLAPObject item : items) {
+            if (item instanceof Level) {
+                filtered.add((Level) item);
+            }
+        }
+        return filtered;
     }
 }

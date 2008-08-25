@@ -266,11 +266,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			    } else {
 				    y += ip * fontHeight + PK_GAP;
 				}
-				g2.drawLine(5, y, width - 6, y);
-				g2.drawLine(2, y-3, 5, y);
-				g2.drawLine(2, y+3, 5, y);
-				g2.drawLine(width - 3, y-3, width - 6, y);
-				g2.drawLine(width - 3, y+3, width - 6, y);
+			    paintInsertionPoint(g2, y, width);
 			}
 			
 			g.translate(-insets.left, -insets.top);
