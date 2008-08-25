@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -44,9 +45,27 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
         if (model.getCubeUsage() == null) {
             model.setCubeUsage(new CubeUsages());
         }
-        PaneSection<OLAPObject> cubeSection = new PaneSectionImpl(model.getCubeUsage().getCubeUsages(), "Cube Usages:");
-        PaneSection<OLAPObject> dimensionSection = new PaneSectionImpl(model.getDimensions(), "Dimensions:");
-        PaneSection<OLAPObject> measureSection = new PaneSectionImpl(model.getMeasures(), "Measures:");
+        PaneSection<CubeUsage> cubeSection =
+            new OLAPPaneSection<CubeUsage>(CubeUsage.class, model.getCubeUsage().getCubeUsages(), "Cube Usages:") {
+
+            public void addItem(int idx, CubeUsage item) {
+                VirtualCubePane.this.model.getCubeUsage().addCubeUsage(idx, item);
+            }
+        };
+        PaneSection<VirtualCubeDimension> dimensionSection =
+            new OLAPPaneSection<VirtualCubeDimension>(VirtualCubeDimension.class, model.getDimensions(), "Dimensions:") {
+
+            public void addItem(int idx, VirtualCubeDimension item) {
+                VirtualCubePane.this.model.addDimension(idx, item);
+            }
+        };
+        PaneSection<VirtualCubeMeasure> measureSection =
+            new OLAPPaneSection<VirtualCubeMeasure>(VirtualCubeMeasure.class, model.getMeasures(), "Measures:") {
+            
+            public void addItem(int idx, VirtualCubeMeasure item) {
+                VirtualCubePane.this.model.addMeasure(idx, item);
+            }
+        };
         sections.add(cubeSection);
         sections.add(dimensionSection);
         sections.add(measureSection);
@@ -100,5 +119,18 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
         }
         
         return panel;
+    }
+
+    @Override
+    protected List<OLAPObject> filterDroppableItems(List<OLAPObject> items) {
+        List<OLAPObject> filtered = new ArrayList<OLAPObject>();
+        for (OLAPObject item : items) {
+            if (item instanceof CubeUsage ||
+                    item instanceof VirtualCubeDimension ||
+                    item instanceof VirtualCubeMeasure) {
+                filtered.add(item);
+            }
+        }
+        return filtered;
     }
 }

@@ -126,7 +126,7 @@ public class DnDOLAPTransferable implements Transferable, java.io.Serializable {
 	        int itemIndex = coord.get(2);
 	        OLAPPane<OLAPObject,OLAPObject> ppc = (OLAPPane<OLAPObject,OLAPObject>)
 	                pp.getPlayPenContentPane().getComponent(paneIndex);
-	        PaneSection<OLAPObject> s = ppc.getSections().get(sectIndex);
+	        PaneSection<? extends OLAPObject> s = ppc.getSections().get(sectIndex);
 	        OLAPObject item;
 	        if (itemIndex >= 0) {
 	            item = s.getItems().get(itemIndex);

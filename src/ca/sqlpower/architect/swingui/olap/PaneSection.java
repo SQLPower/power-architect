@@ -38,4 +38,27 @@ public interface PaneSection<C> {
      * Returns the items in this section, in the order they should be displayed.
      */
     List<C> getItems();
+    
+    /**
+     * Returns the type of items that appear in this section.
+     */
+    Class<C> getItemType();
+
+    /**
+     * Inserts the given item at the given index within this section.
+     * 
+     * @param idx
+     *            The index to add at. Must be between 0 and getItems().size()
+     *            inclusive.
+     * @param item
+     *            The item to add.
+     */
+    void addItem(int idx, C item);
+    
+    /**
+     * Inserts the given item at the end of this section.
+     * 
+     * @param item The item to add.
+     */
+    void addItem(C item);
 }

@@ -125,7 +125,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         int fontHeight = metrics.getHeight();
 
         height += fontHeight + GAP + BOX_LINE_THICKNESS;
-        for (PaneSection<C> ps : olapPane.getSections()) {
+        for (PaneSection<? extends C> ps : olapPane.getSections()) {
             if (ps.getTitle() != null) {
                 height += fontHeight + SECTION_HEADER_GAP; 
             }
@@ -146,7 +146,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         // Width calculation
         width = MINIMUM_WIDTH;
         width = Math.max(width, calculateTextWidth(cp, cp.getName()));
-        for (PaneSection<C> ps : olapPane.getSections()) {
+        for (PaneSection<? extends C> ps : olapPane.getSections()) {
             width = Math.max(width, calculateMaxSectionWidth(ps, cp));
         }
         Insets insets = cp.getMargin();
@@ -240,7 +240,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         
         // Draw each of the individual sections of this container pane.
         boolean firstSection = true;
-        for(PaneSection<C> ps : olapPane.getSections()) {
+        for(PaneSection<? extends C> ps : olapPane.getSections()) {
             if (!firstSection) {
                 g2.drawLine(
                         0,     y + (INTER_SECTION_GAP + fontHeight - ascent) / 2,
@@ -263,9 +263,6 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         
         g2.setStroke(oldStroke);
         
-        if (olapPane.getInsertionPoint() != null) {
-            g2.fill3DRect(10, 10, 30, 30, true);
-        }
     }
 
     public boolean contains(Point p) {
@@ -291,7 +288,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
      * @return The section the given point is located in, plus the passed-in
      *         point may have been translated.
      */
-    public PaneSection<C> toSectionLocation(Point point, boolean editPoint) {
+    public PaneSection<? extends C> toSectionLocation(Point point, boolean editPoint) {
         Point p = editPoint ? point : new Point(point);
         
         Font font = olapPane.getFont();
@@ -311,7 +308,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         logger.debug("SECLOC: looking through sections; translatedY="+translatedY);
         
         boolean firstSection = true;
-        for (PaneSection<C> sect : olapPane.getSections()) {
+        for (PaneSection<? extends C> sect : olapPane.getSections()) {
             int sectionHeight = fontHeight * sect.getItems().size();
             if (sect.getTitle() != null) {
                 sectionHeight += fontHeight + SECTION_HEADER_GAP;
@@ -349,7 +346,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
                     "; descent = " + descent); //$NON-NLS-1$
         }
         
-        PaneSection<C> sect;
+        PaneSection<? extends C> sect;
         int returnVal;
         if (p.y < 0) {
             logger.debug("y<0"); //$NON-NLS-1$
@@ -411,7 +408,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
                     "; descent = " + descent); //$NON-NLS-1$
         }
         
-        PaneSection<C> sect;
+        PaneSection<? extends C> sect;
         C item;
         int index;
         if (p.y < 0) {
@@ -472,9 +469,9 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
      * @param sect A section in this pane.
      * @return
      */
-    public int firstItemIndex(PaneSection<C> sect) {
+    public int firstItemIndex(PaneSection<? extends C> sect) {
         int index = 0;
-        for (PaneSection<C> s : olapPane.getSections()) {
+        for (PaneSection<? extends C> s : olapPane.getSections()) {
             if (sect == s) {
                 return index;
             }
@@ -499,11 +496,16 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
      * @return The Y coordinate of the baseline of the last item drawn, relative to the
      *         component
      */
-    private int drawSection(PaneSection<C> ps, Graphics2D g, OLAPPane<T, C> cp, final int startY) {
+    private int drawSection(PaneSection<? extends C> ps, Graphics2D g, OLAPPane<T, C> cp, final int startY) {
+        PlayPenCoordinate<T, C> insertionPoint = olapPane.getInsertionPoint();
+        if (insertionPoint == null || insertionPoint.getSection() != ps) {
+            insertionPoint = null;
+        }
         int width = cp.getWidth() - cp.getInsets().left - cp.getInsets().right;
         FontMetrics metrics = cp.getFontMetrics(cp.getFont());
         int fontHeight = metrics.getHeight();
         int ascent = metrics.getAscent();
+        int insertionPointAdjustment = metrics.getDescent();
         
         int y = startY;
         
@@ -519,8 +521,15 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
                         hwidth, fontHeight);
                 g.setColor(cp.getForegroundColor());
             }
+
             g.drawString(ps.getTitle(), BOX_LINE_THICKNESS, y += fontHeight);
             y += SECTION_HEADER_GAP;
+        }
+
+        // putting the insertion point above the section title looks dumb, so we do it here instead
+        if (insertionPoint != null &&
+                insertionPoint.getIndex() == PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE) {
+            paintInsertionPoint(g, y + insertionPointAdjustment, hwidth);
         }
         
         // print items
@@ -534,11 +543,24 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
                         hwidth, fontHeight);
                 g.setColor(cp.getForegroundColor());
             }
+            
+            if (insertionPoint != null &&
+                    insertionPoint.getIndex() == i) {
+                paintInsertionPoint(g, y + insertionPointAdjustment, hwidth);
+            }
+
             String itemName = OLAPUtil.nameFor(item);
             g.drawString(itemName == null ? "(null)" : itemName, BOX_LINE_THICKNESS +
                     cp.getMargin().left, y += fontHeight);
             i++;
         }
+        
+        // in case insertion point is after last item
+        if (insertionPoint != null &&
+                insertionPoint.getIndex() == i) {
+            paintInsertionPoint(g, y + insertionPointAdjustment, hwidth);
+        }
+
         return y;
     }
     
@@ -561,7 +583,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     /**
      * Calculates the width of a sectionPane.
      */
-    private int calculateMaxSectionWidth(PaneSection<C> ps, ContainerPane<?, ?> cp) {
+    private int calculateMaxSectionWidth(PaneSection<? extends C> ps, ContainerPane<?, ?> cp) {
         int width = calculateTextWidth(cp, ps.getTitle());
         for (C oo : ps.getItems()) {
             if (oo == null) {

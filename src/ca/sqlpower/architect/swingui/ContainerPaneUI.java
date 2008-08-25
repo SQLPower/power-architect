@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.io.Serializable;
 
@@ -34,4 +35,11 @@ public abstract class ContainerPaneUI implements PlayPenComponentUI, Serializabl
     @Deprecated
     public abstract int pointToItemIndex(Point p);
 
+    protected void paintInsertionPoint(Graphics2D g2, int y, int width) {
+        g2.drawLine(5, y, width - 6, y);
+        g2.drawLine(2, y-3, 5, y);
+        g2.drawLine(2, y+3, 5, y);
+        g2.drawLine(width - 3, y-3, width - 6, y);
+        g2.drawLine(width - 3, y+3, width - 6, y);
+    }
 }

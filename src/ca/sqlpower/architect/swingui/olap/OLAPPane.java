@@ -44,7 +44,8 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPObject;
-import ca.sqlpower.architect.olap.MondrianModel.Measure;
+import ca.sqlpower.architect.olap.OLAPUtil;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -72,12 +73,12 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * The set of sections is allowed to change at any time, but an appropriate
      * event will be fired when it does change.
      */
-    protected final List<PaneSection<C>> sections = new ArrayList<PaneSection<C>>();
+    protected final List<PaneSection<? extends C>> sections = new ArrayList<PaneSection<? extends C>>();
     
     /**
      * Tracks which scetions in this container are currently selected.
      */
-    protected final Set<PaneSection<C>> selectedSections = new HashSet<PaneSection<C>>();
+    protected final Set<PaneSection<? extends C>> selectedSections = new HashSet<PaneSection<? extends C>>();
 
     /**
      * The point where a dropped item would be inserted if the drop were
@@ -94,7 +95,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
     /**
      * Returns this pane's list of sections.
      */
-    public List<PaneSection<C>> getSections() {
+    public List<PaneSection<? extends C>> getSections() {
         return sections;
     }
 
@@ -278,7 +279,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * Selects the section.
      * 
      */
-    public void selectSection(PaneSection<C> sect) {
+    public void selectSection(PaneSection<? extends C> sect) {
         selectedSections.add(sect);
         repaint();
     }
@@ -290,7 +291,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      *            The section to check
      * @return true if section is currently selected.
      */
-    public boolean isSectionSelected(PaneSection<C> sect) {
+    public boolean isSectionSelected(PaneSection<? extends C> sect) {
         return selectedSections.contains(sect);
     }
     
@@ -298,9 +299,9 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * Returns a list of the sections that are currently in the selection that
      * also currently exist in the model.
      */
-    public List<PaneSection<C>> getSelectedSections() {
-        List<PaneSection<C>> selectedSects = new ArrayList<PaneSection<C>>();
-        for (PaneSection<C> sect : getSections()) {
+    public List<PaneSection<? extends C>> getSelectedSections() {
+        List<PaneSection<? extends C>> selectedSects = new ArrayList<PaneSection<? extends C>>();
+        for (PaneSection<? extends C> sect : getSections()) {
             if (isSectionSelected(sect)) {
                 selectedSects.add(sect);
             }
@@ -318,7 +319,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      */
     public List<PlayPenCoordinate<T, C>> getSelectedCoordinates() {
         List<PlayPenCoordinate<T, C>> selection = new ArrayList<PlayPenCoordinate<T,C>>();
-        for (PaneSection<C> sect : getSections()) {
+        for (PaneSection<? extends C> sect : getSections()) {
             if (isSectionSelected(sect)) {
                 selection.add(new PlayPenCoordinate<T, C>(
                         this, sect, PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE, null));
@@ -434,7 +435,9 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      */
     public void drop(DropTargetDropEvent dtde) {
         logger.debug("Drop target drop event on "+getName()+": "+dtde); //$NON-NLS-1$ //$NON-NLS-2$
+        Schema schema = OLAPUtil.getSession(getModel()).getSchema();
         try {
+            schema.startCompoundEdit("Drag and Drop");
             Transferable t = dtde.getTransferable();
             DataFlavor importFlavor = bestImportFlavor(null, t.getTransferDataFlavors());
             logger.debug("Import flavor: " + importFlavor);
@@ -444,26 +447,105 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
             }
             List<List<Integer>> paths = (List<List<Integer>>) t.getTransferData(importFlavor);
             logger.debug("Paths = " + paths);
-            List<PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject>> items =
+            List<PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject>> coords =
                 DnDOLAPTransferable.resolve(getPlayPen(), paths);
-            logger.debug("Resolved Paths = " + items);
-            boolean accepted = false;
-            for (PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject> ppco : items) {
-                if (ppco.getItem() instanceof Measure) {
-                    logger.debug("Trying to add measure " + ppco.getItem());
-                    // TODO offer this to the OLAPPane subclass via abstract method
-                    getModel().addChild(ppco.getItem());
-                    accepted = true;
+            logger.debug("Resolved Paths = " + coords);
+            List<OLAPObject> items = new ArrayList<OLAPObject>();
+            for (PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject> coord : coords) {
+                if (coord.getIndex() == PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE) {
+                    for (OLAPObject item : coord.getSection().getItems()) {
+                        items.add(item);
+                    }
+                } else if (coord.getIndex() >= 0) {
+                    if (coord.getItem() == null) {
+                        throw new NullPointerException(
+                                "Found a coordinate with nonnegative " +
+                                "item index but null item: " + coord);
+                    }
+                    items.add(coord.getItem());
                 }
             }
+            
+            List<C> acceptedItems = filterDroppableItems(items);
+            
+            // XXX we don't want to weaken the type here (PaneSection<C> would be better)
+            // but without this, the whole thing collapses
+            PaneSection<OLAPObject> insertSection = (PaneSection<OLAPObject>) getInsertionPoint().getSection();
+            int insertIndex = getInsertionPoint().getIndex();
+
+            if (insertSection == null) {
+                insertSection = (PaneSection<OLAPObject>) sections.get(0);
+                insertIndex = insertSection.getItems().size();
+            }
+
+            for (C item : acceptedItems) {
+                logger.debug("Trying to add " + item);
+                if (item.getParent() != null) {
+
+                    /*
+                     * this is the index of the item we want to move, in the
+                     * section we plan to move it _to_. This is only relevant
+                     * when moving an item to a new place it the same section.
+                     * If this DnD operation is from one section to a different
+                     * section, removedItemIndex will be -1, which is expected
+                     * and handled properly below.
+                     * 
+                     * Why all the fuss? If you are moving an item down within
+                     * the section it came from, the insertion point's index
+                     * has to be adjusted to account for the subsequent items
+                     * shifting up to take the place of the removed item.
+                     */
+                    int removedItemIndex = insertSection.getItems().indexOf(item);
+                    logger.debug("Removed item index in target section: " + removedItemIndex);
+
+                    item.getParent().removeChild(item);
+
+                    if (removedItemIndex >= 0 &&
+                            insertSection.getItemType().isInstance(item) &&
+                            insertIndex > removedItemIndex) {
+                        insertIndex--;
+                    }
+                }
+
+                if (insertIndex >= 0 && insertSection.getItemType().isInstance(item)) {
+                    insertSection.addItem(insertIndex++, item);
+                } else {
+                    getModel().addChild(item);
+                }
+            }
+
+            if (!acceptedItems.isEmpty()) {
+                getPlayPen().selectNone();
+                setSelected(true, SelectionEvent.SINGLE_SELECT);
+                for (C item : acceptedItems) {
+                    selectItem(item);
+                }
+            }
+            
             dtde.acceptDrop(DnDConstants.ACTION_MOVE);
-            dtde.dropComplete(accepted);
+            dtde.dropComplete(!acceptedItems.isEmpty());
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
             setInsertionPoint(null);
+            schema.endCompoundEdit();
         }
     }
+
+    /**
+     * Accepts a clump of items that have been dragged from elsewhere (normally
+     * the tree or another pane). Implementations of this method are free to
+     * pick and choose which items to import.
+     * <p>
+     * This method will always be called by the superclass in the context of a
+     * compound edit on the schema this pane's model belongs to.
+     * 
+     * @param items
+     *            The items that were dropped.
+     * @return The list of items that can be dropped on this pane. It will be
+     *         some subset of the given list of items.
+     */
+    protected abstract List<C> filterDroppableItems(List<OLAPObject> items);
 
     /**
      * Called if the user has modified the current drop gesture.
