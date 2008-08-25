@@ -66,6 +66,11 @@ public class OLAPEditSession implements OLAPChildListener {
     private JDialog d;
     
     /**
+     * The scroll pane of which the PlayPen is in.
+     */
+    private JScrollPane ppScrollPane;
+    
+    /**
      * OLAPSession associated with the schema that this edit session edits.
      */
     private final OLAPSession olapSession;
@@ -167,12 +172,13 @@ public class OLAPEditSession implements OLAPChildListener {
         
         toolbar.add(exportSchemaAction);
         
+        ppScrollPane = new JScrollPane(pp);
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(
                 new JSplitPane(
                         JSplitPane.HORIZONTAL_SPLIT,
                         new JScrollPane(tree),
-                        new JScrollPane(pp)),
+                        ppScrollPane),
                 BorderLayout.CENTER);
         panel.add(toolbar, BorderLayout.EAST);
         
@@ -187,6 +193,7 @@ public class OLAPEditSession implements OLAPChildListener {
         d.setContentPane(panel);
         d.pack();
         
+        OLAPPlayPenFactory.setupOLAPMouseWheelActions(pp, this);
         OLAPPlayPenFactory.setupOLAPKeyboardActions(pp, this);
     }
     
@@ -199,6 +206,13 @@ public class OLAPEditSession implements OLAPChildListener {
     
     public OLAPTree getOlapTree() {
         return tree;
+    }
+    
+    /**
+     * Returns the scroll pane that the PlayPen is in.
+     */
+    public JScrollPane getPPScrollPane() {
+        return ppScrollPane;
     }
     
     /**

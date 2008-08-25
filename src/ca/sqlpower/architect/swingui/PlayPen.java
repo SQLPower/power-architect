@@ -262,6 +262,23 @@ public class PlayPen extends JPanel
 	protected Action sendToBackAction;
 	
 	/**
+	 * The zoom in action used by the mouse listener.
+	 */
+	protected Action zoomInAction;
+	
+	/**
+     * The zoom out action used by the mouse listener.
+     */
+	protected Action zoomOutAction;
+	
+	/**
+     * The component that is used my the mouse listener to be scrolled.
+     * Will always be a JScrollPane, but since the ArchitectFrame returns
+     * it as a Component this field is also a Component.
+     */
+	protected Component ppScrollPane;
+	
+	/**
 	 * This dialog box is for editting the PlayPen's DB Connection spec.
 	 */
 	protected JDialog dbcsDialog;
@@ -612,6 +629,73 @@ public class PlayPen extends JPanel
 		child.setLocation((int) ((double) x / zoom), (int) ((double) y / zoom));
 	}
 
+	/**
+     * Returns the zoom in action that the mouse uses for this PlayPen. If none
+     * has been set, it returns the default zoom in action from the
+     * ArchitectFrame.
+     */
+	public Action getMouseZoomInAction(){
+        if (zoomInAction == null) {
+            System.out.println("Don't you DARE Zoom In!");
+            return session.getArchitectFrame().getZoomInAction();
+        }
+        return zoomInAction;
+    }
+    
+	/**
+     * Sets the zoom in action for which the mouse uses for this PlayPen.
+     * 
+     * @param zoomInAction
+     *            The zoom in action for the mouse to use in this PlayPen.
+     */
+	public void setMouseZoomInAction(Action zoomInAction){
+        this.zoomInAction = zoomInAction;
+    }
+    
+    /**
+     * Returns the zoom out action that the mouse uses for this PlayPen. If none
+     * has been set, it returns the default zoom in action from the
+     * ArchitectFrame.
+     */
+	public Action getMouseZoomOutAction(){
+        if (zoomOutAction == null) {
+            return session.getArchitectFrame().getZoomOutAction();
+        }
+        return zoomOutAction;
+    }
+    
+    /**
+     * Sets the zoom out action for which the mouse uses for this PlayPen.
+     * 
+     * @param zoomOutAction
+     *            The zoom out action for the mouse to use in this PlayPen.
+     */
+	public void setMouseZoomOutAction(Action zoomOutAction){
+        this.zoomOutAction = zoomOutAction;
+    }
+    
+    /**
+     * Returns the scrollPane used in this PlayPen. If none has been set, it
+     * returns the default scrollPane from the ArchitectFrame
+     */
+	public Component getScrollPane(){
+        if (ppScrollPane == null) {
+            return session.getArchitectFrame().splitPane.getRightComponent();
+        }
+        return ppScrollPane;
+    }
+    
+	/**
+     * Sets the scrollPane that will be scrolled when the mouse wheel is moved
+     * for this PlayPen.
+     * 
+     * @param ppScrollPane
+     *            The scrollPane to be scrolled when the mouse wheel is moved
+     */
+	public void setScrollPane(Component ppScrollPane){
+        this.ppScrollPane = ppScrollPane;
+    }
+	
 	/**
 	 * Modifies the given point p in model space to apparent position
 	 * in screen space.
@@ -2254,13 +2338,15 @@ public class PlayPen extends JPanel
 
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			if ( (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0 ) {
-				if ( e.getWheelRotation() > 0 )
-					session.getArchitectFrame().getZoomInAction().actionPerformed(null);
-				else
-					session.getArchitectFrame().getZoomOutAction().actionPerformed(null);
+				if ( e.getWheelRotation() > 0 ) {
+				    getMouseZoomInAction().actionPerformed(null);
+				}
+				else {
+				    getMouseZoomOutAction().actionPerformed(null);
+				}
 			}
 			else {
-				MouseWheelListener[] ml = session.getArchitectFrame().splitPane.getRightComponent().getMouseWheelListeners();
+				MouseWheelListener[] ml = getScrollPane().getMouseWheelListeners();
 				for ( MouseWheelListener m : ml )
 					m.mouseWheelMoved(e);
 			}

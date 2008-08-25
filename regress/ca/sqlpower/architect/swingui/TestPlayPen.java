@@ -340,6 +340,13 @@ public class TestPlayPen extends TestCase {
 	        copyIgnoreProperties.add("draggingTablePanes");
 	        copyIgnoreProperties.add("rubberBand");
 	        
+	        // These should not be copied because any new PlayPen needs
+	        // different values or else it will not work on the new
+	        // PlayPen.
+	        copyIgnoreProperties.add("mouseZoomInAction");
+	        copyIgnoreProperties.add("mouseZoomOutAction");
+	        copyIgnoreProperties.add("scrollPane");
+	        
 	        // we're not sure if zoom should be duplicated...
 	        // it might mess up printing?!?!?
 	        copyIgnoreProperties.add("zoom");
