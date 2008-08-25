@@ -34,12 +34,16 @@ import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.validation.Validator;
+import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.StatusComponent;
+import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
+import ca.sqlpower.validation.swingui.ValidationHandler;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class CubeEditPanel implements DataEntryPanel {
+public class CubeEditPanel implements ValidatableDataEntryPanel {
     
     private final Cube cube;
     private final JPanel panel;
@@ -47,6 +51,12 @@ public class CubeEditPanel implements DataEntryPanel {
     private JTextField captionField;
     private JComboBox defMeasure;
     private JComboBox tableChooser;
+    
+    /**
+     * Validation handler for errors in the dialog
+     */
+    private FormValidationHandler handler;
+    private StatusComponent status = new StatusComponent();
     
     /**
      * Creates a new property editor for the given OLAP Cube. 
@@ -62,6 +72,7 @@ public class CubeEditPanel implements DataEntryPanel {
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
+        builder.append(status, 3);
         builder.append("Name", nameField = new JTextField(cube.getName()));
         builder.append("Table", tableChooser = new JComboBox(new Vector<SQLTable>(tables)));
         builder.append("Caption", captionField = new JTextField(cube.getCaption()));
@@ -78,6 +89,10 @@ public class CubeEditPanel implements DataEntryPanel {
             }
         }
         panel = builder.getPanel();
+        
+        handler = new FormValidationHandler(status);
+        Validator validator = new OLAPObjectNameValidator(cube, true);
+        handler.addValidateObject(nameField, validator);
     }
     
     public boolean applyChanges() {
@@ -114,5 +129,9 @@ public class CubeEditPanel implements DataEntryPanel {
 
     public boolean hasUnsavedChanges() {
         return true;
+    }
+
+    public ValidationHandler getValidationHandler() {
+        return handler;
     }
 }

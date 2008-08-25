@@ -251,72 +251,96 @@ public class OLAPUtil {
     }
     
     /**
-     * Finds and returns a Cube in the given schema with the given name. Note
-     * that this might not be accurate if the schema contains cubes with the
-     * same name.
+     * Finds and returns the Cube that the given CubeUsage references.
      * 
-     * @param sch
-     *            The schema to search in.
-     * @param name
-     *            Name of the cube to search for.
+     * @param CubeUsage
+     *            The CubeUsage to search by, OLAPSession ancestor must not be
+     *            null.
      * 
-     * @return A Cube with the given name from the given schema, null if not
-     *         found.
+     * @return The Cube that the CubeUsage references, or null if not found.
      */
-    public static Cube findCube(Schema sch, String name) {
-        for (Cube c : sch.getCubes()) {
-            if (c.getName().equals(name)) {
-                return c;
-            }
+    public static Cube findReferencedCube(CubeUsage cu) {
+        OLAPSession olapSession = getSession(cu);
+        if (olapSession == null) {
+            throw new IllegalArgumentException("Can't find OLAPSession ancestor: " + cu);
         }
-        return null;
+        return olapSession.findCube(cu.getCubeName());
     } 
     
     /**
-     * Finds and returns a Dimension in the given schema that the given
-     * CubeDimension represents. This is useful for finding the base Dimension
-     * that a DimensionUsage or a VirtualCubeDimension refers to. It is safe to
-     * call this method with a Dimension as parameter, it will just return the
-     * same object. Note that this might not be accurate if there are dimensions
-     * with the same name.
+     * Finds and returns the base Dimension that the given CubeDimension
+     * references. It is safe to call this method with a Dimension as parameter,
+     * it will just return the same object.
      * 
-     * @param sch
-     *            The schema to search in.
      * @param cubeDim
-     *            The CubeDimension "reference" to the base Dimension that will
-     *            be returned.
-     * @return The base Dimension that the given CubeDimension represents, null
-     *         if not found.
+     *            The CubeDimension to search by, OLAPSession ancestor must not
+     *            be null.
+     * @return The base Dimension that the CubeDimension represents, or null if
+     *         not found.
      */
-    public static Dimension findDimension(Schema sch, CubeDimension cubeDim) {
+    public static Dimension findReferencedDimension(CubeDimension cubeDim) {
+        OLAPSession olapSession = getSession(cubeDim);
+        if (olapSession == null) {
+            throw new IllegalArgumentException("Can't find OLAPSession ancestor: " + cubeDim);
+        }
+        
         if (cubeDim instanceof Dimension) {
             return (Dimension) cubeDim;
         } else if (cubeDim instanceof DimensionUsage) {
-            for (Dimension dim : sch.getDimensions()) {
-                if (dim.getName().equals(((DimensionUsage) cubeDim).getSource())) {
-                    return dim;
-                }
-            }
+            String dimName = ((DimensionUsage) cubeDim).getSource();
+            return olapSession.findPublicDimension(dimName);
         } else if (cubeDim instanceof VirtualCubeDimension) {
             VirtualCubeDimension vCubeDim = (VirtualCubeDimension) cubeDim;
             if (vCubeDim.getCubeName() == null) {
-                for (Dimension d : sch.getDimensions()) {
-                    if (d.getName().equals(vCubeDim.getName())) {
-                        return d;
-                    }
-                }
+                return olapSession.findPublicDimension(vCubeDim.getName());
             } else {
-                Cube c = findCube(sch, vCubeDim.getCubeName());
-                for (CubeDimension d : c.getDimensions()) {
-                    if (d.getName().equals(vCubeDim.getName())) {
-                        return findDimension(sch, d);
-                    }
+                CubeDimension cd = olapSession.findCubeDimension(vCubeDim.getCubeName(), vCubeDim.getName());
+                
+                if (cd == null) {
+                    return null;
+                } else if (cd instanceof Dimension) {
+                    return (Dimension) cd;
+                } else if (cd instanceof DimensionUsage) {
+                    DimensionUsage du = (DimensionUsage) cd;
+                    return olapSession.findPublicDimension(du.getSource());
+                } else {
+                    throw new IllegalStateException("Invalid reference by VirtualCubeDimension: " + vCubeDim);
                 }
             }
         } else {
             // How do you enter the 4th dimension?!?!? ;)
             throw new UnsupportedOperationException("CubeDimension of type " + cubeDim.getClass() + " not recognized.");
         }
-        return null;
+    }
+    
+    /**
+     * Checks if the given name would be unique for the given OLAPObject.
+     * 
+     * @param oo
+     *            The OLAPObject to check, OLAPSession ancestor must not be
+     *            null.
+     * @param name
+     *            The name to check for.
+     * @return True if the given object is the only object in its schema with
+     *         the given name, false otherwise.
+     */
+    public static boolean isNameUnique(OLAPObject oo, String name) {
+        OLAPSession olapSession = getSession(oo);
+        if (olapSession == null) {
+            throw new IllegalArgumentException("Can't find OLAPSession ancestor: " + oo);
+        }
+        
+        OLAPObject foundObj;
+        if (oo instanceof Cube) {
+            foundObj = olapSession.findCube(name);
+        } else if (oo instanceof Dimension && oo.getParent() instanceof Schema) {
+            foundObj = olapSession.findPublicDimension(name);
+        } else if (oo instanceof CubeDimension && oo.getParent() instanceof Cube) {
+            foundObj = olapSession.findCubeDimension(oo.getParent().getName(), oo.getName());
+        } else {
+            return true;
+        }
+        
+        return foundObj == null || foundObj == oo;
     }
 }

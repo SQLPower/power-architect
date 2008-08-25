@@ -447,6 +447,45 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
     }
     
     /**
+     * Searches through the map of public dimensions for one with the given
+     * name and returns it.
+     * 
+     * @param name
+     *            The name to search by.
+     * @return A Dimension with the given name, or null if none found.
+     */
+    public Dimension findPublicDimension(String name) {
+        return publicDimensions.get(name);
+    }
+    
+    /**
+     * Searches through the map of CubeDimensions for one with a
+     * {@link CubeDimensionKey} that matches the given cube name and dimension
+     * name and returns it.
+     * 
+     * @param cubeName
+     *            Part of the {@link CubeDimensionKey} to search by.
+     * @param dimName
+     *            Part of the {@link CubeDimensionKey} to search by.
+     * @return A CubeDimension identified by a {@link CubeDimensionKey} that
+     *         represents the given names, or null with none found.
+     */
+    public CubeDimension findCubeDimension(String cubeName, String dimName) {
+        return cubeDimensions.get(new CubeDimensionKey(cubeName, dimName));
+    }
+    
+    /**
+     * Finds and returns the map of Cubes for one with the given name.
+     * 
+     * @param name
+     *            The name to search by.
+     * @return A Cube with the given name, or null if none found.
+     */
+    public Cube findCube(String name) {
+        return cubes.get(name);
+    }
+    
+    /**
      * A composite key class that holds the cubeName and name properties in a
      * VirtualCubeDimension. The cubeName property identifies the name of Cube
      * that holds the CubeDimension and the name property identifies the name of
@@ -515,5 +554,4 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
             return getCubeName() + "." + getDimensionName();
         }
     }
-
 }

@@ -28,7 +28,6 @@ import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
-import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
@@ -81,12 +80,13 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
             panel = null;
         } else if (coord.getIndex() > PlayPenCoordinate.ITEM_INDEX_TITLE){
             if (coord.getItem() instanceof CubeUsage) {
-                String name = ((CubeUsage) coord.getItem()).getCubeName();
-                Cube c = OLAPUtil.findCube((Schema) model.getParent(), name);
+                CubeUsage cu = (CubeUsage) coord.getItem();
+                Cube c = OLAPUtil.findReferencedCube(cu);
                 if (c == null) throw new NullPointerException("Couldn't find cube!");
                 panel = new CubeEditPanel(c);
             } else if (coord.getItem() instanceof VirtualCubeDimension) {
-                Dimension d = OLAPUtil.findDimension((Schema) model.getParent(), ((VirtualCubeDimension) coord.getItem()));
+                VirtualCubeDimension vcd = (VirtualCubeDimension) coord.getItem();
+                Dimension d = OLAPUtil.findReferencedDimension(vcd);
                 if (d == null) throw new NullPointerException("Couldn't find dimension!");
                 panel = new DimensionEditPanel(d);
             } else if (coord.getItem() instanceof VirtualCubeMeasure) {

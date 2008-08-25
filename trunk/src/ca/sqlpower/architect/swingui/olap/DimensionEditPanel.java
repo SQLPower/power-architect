@@ -26,18 +26,28 @@ import javax.swing.JTextField;
 
 import mondrian.olap.DimensionType;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.validation.Validator;
+import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.StatusComponent;
+import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
+import ca.sqlpower.validation.swingui.ValidationHandler;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class DimensionEditPanel implements DataEntryPanel {
+public class DimensionEditPanel implements ValidatableDataEntryPanel {
 
     private final Dimension dimension;
     private final JPanel panel;
     private JTextField nameField;
     private JTextField captionField;
     private JComboBox typeBox;
+    
+    /**
+     * Validation handler for errors in the dialog
+     */
+    private FormValidationHandler handler;
+    private StatusComponent status = new StatusComponent();
     
     /**
      * Creates a new property editor for the given OLAP dimension. 
@@ -51,6 +61,7 @@ public class DimensionEditPanel implements DataEntryPanel {
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
+        builder.append(status, 3);
         builder.append("Name", nameField = new JTextField(dimension.getName()));
         builder.append("Caption", captionField = new JTextField(dimension.getCaption()));
         builder.append("Type", typeBox = new JComboBox(DimensionType.values()));
@@ -60,6 +71,10 @@ public class DimensionEditPanel implements DataEntryPanel {
             typeBox.setSelectedItem(DimensionType.StandardDimension);
         }
         panel = builder.getPanel();
+        
+        handler = new FormValidationHandler(status);
+        Validator validator = new OLAPObjectNameValidator(dimension, true);
+        handler.addValidateObject(nameField, validator);
     }
     public boolean applyChanges() {
         dimension.startCompoundEdit("Started modifying dimension properties");
@@ -89,6 +104,9 @@ public class DimensionEditPanel implements DataEntryPanel {
 
     public boolean hasUnsavedChanges() {
         return true;
+    }
+    public ValidationHandler getValidationHandler() {
+        return handler;
     }
 
 }
