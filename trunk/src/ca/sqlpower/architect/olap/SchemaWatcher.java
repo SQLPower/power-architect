@@ -282,7 +282,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
     public void olapChildRemoved(OLAPChildEvent e) {
         if (e.getSource() instanceof Cube && e.getChild() instanceof CubeDimension) {
             CubeDimension cd = (CubeDimension) e.getChild();
-            Cube c = (Cube) cd.getParent();
+            Cube c = (Cube) e.getSource();
             cubeDimensions.remove(new CubeDimensionKey(c.getName(), cd.getName()));
             
             // remove the VirtualCubeDimensions referencing this CubeDimension.
