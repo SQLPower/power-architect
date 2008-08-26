@@ -319,7 +319,7 @@ public class OLAPUtil {
     
     /**
      * Checks if the name is unique for an OLAPObject, relies on
-     * {@link OLAPObject#getName()} for name comparisons.
+     * {@link OLAPObject#getName()} for name comparisons, case insensitive.
      * 
      * @param parent
      *            The object that will be the parent.
@@ -347,7 +347,7 @@ public class OLAPUtil {
         } else if (type == Measure.class) {
             Cube c = (Cube) parent;
             for (Measure m : c.getMeasures()) {
-                if (m.getName().equals(name)) {
+                if (m.getName().equalsIgnoreCase(name)) {
                     return false;
                 }
             }
@@ -355,7 +355,7 @@ public class OLAPUtil {
         } else if (type == Level.class) {
             Hierarchy h = (Hierarchy) parent;
             for (Level l : h.getLevels()) {
-                if (l.getName().equals(name)) {
+                if (l.getName().equalsIgnoreCase(name)) {
                     return false;
                 }
             }
@@ -364,11 +364,11 @@ public class OLAPUtil {
             Dimension d = (Dimension) parent;
             for (Hierarchy h : d.getHierarchies()) {
                 // null name is the same as having the parent's name.
-                if (name == null || name.equals(parent.getName())) {
-                    if (h.getName() == null || h.getName().equals(parent.getName())) {
+                if (name == null || name.equalsIgnoreCase(parent.getName())) {
+                    if (h.getName() == null || h.getName().equalsIgnoreCase(parent.getName())) {
                         return false;
                     }
-                } else if (name.equals(h.getName())) {
+                } else if (name.equalsIgnoreCase(h.getName())) {
                     return false;
                 }
             }
@@ -376,7 +376,7 @@ public class OLAPUtil {
         } else if (type == CubeUsage.class) {
             VirtualCube vCube = (VirtualCube) parent;
             for (CubeUsage usage : vCube.getCubeUsage().getCubeUsages()) {
-                if (usage.getCubeName().equals(name)) {
+                if (usage.getCubeName().equalsIgnoreCase(name)) {
                     return false;
                 }
             }
@@ -384,7 +384,7 @@ public class OLAPUtil {
         } else if (type == DimensionUsage.class) {
             Cube c = (Cube) parent;
             for (CubeDimension cd : c.getDimensions()) {
-                if (cd.getName().equals(name)) {
+                if (cd.getName().equalsIgnoreCase(name)) {
                     return false;
                 }
             }

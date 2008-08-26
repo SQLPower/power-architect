@@ -58,7 +58,7 @@ public class OLAPObjectNameValidator implements Validator {
             } else {
                 return ValidateResult.createValidateResult(Status.FAIL, "A name is required.");
             }
-        } else if (!value.equals(obj.getName()) && !OLAPUtil.isNameUnique(parent, obj.getClass(), value)) {
+        } else if (!value.equalsIgnoreCase(obj.getName()) && !OLAPUtil.isNameUnique(parent, obj.getClass(), value)) {
             return ValidateResult.createValidateResult(Status.FAIL, "Name already exists.");
         }
 
