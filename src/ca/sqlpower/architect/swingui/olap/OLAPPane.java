@@ -45,12 +45,14 @@ import javax.swing.SwingUtilities;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
 import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
@@ -599,4 +601,42 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
         return insertionPoint;
     }
     
+    /**
+     * Returns all the UsageComponents in the play pen that this pane
+     * is the "pane2" for. This is part of the LayoutNode interface.
+     */
+    public final List<LayoutEdge> getInboundEdges() {
+        List<LayoutEdge> edges = new ArrayList<LayoutEdge>();
+        
+        for (PlayPenComponent ppc : getPlayPen().getPlayPenComponents()) {
+            if (ppc instanceof UsageComponent) {
+                UsageComponent uc = (UsageComponent) ppc;
+                if (uc.getPane2() == this) {
+                    edges.add(uc);
+                }
+            }
+        }
+        
+        return edges;
+    }
+
+    /**
+     * Returns all the UsageComponents in the play pen that this pane
+     * is the "pane1" for. This is part of the LayoutNode interface.
+     */
+    public final List<LayoutEdge> getOutboundEdges() {
+        List<LayoutEdge> edges = new ArrayList<LayoutEdge>();
+        
+        for (PlayPenComponent ppc : getPlayPen().getPlayPenComponents()) {
+            if (ppc instanceof UsageComponent) {
+                UsageComponent uc = (UsageComponent) ppc;
+                if (uc.getPane1() == this) {
+                    edges.add(uc);
+                }
+            }
+        }
+        
+        return edges;
+    }
+
 }

@@ -64,12 +64,11 @@ import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
-import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.SPSUtils;
 
-public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements LayoutNode {
+public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
 
@@ -827,13 +826,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> implements Lay
      */
     public boolean canImport(JComponent c, DataFlavor[] flavors) {
         return bestImportFlavor(c, flavors) != null;
-    }
-
-    
-    // ------- LayoutNode methods that we didn't already happen to implement --------
-
-    public String getNodeName() {
-        return getName();
     }
 
     public List<LayoutEdge> getInboundEdges() {

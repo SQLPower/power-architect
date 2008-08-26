@@ -374,7 +374,7 @@ public class ArchitectFrame extends JFrame {
 
         undoAction = new UndoAction(session, session.getUndoManager());
         redoAction = new RedoAction(session, session.getUndoManager());
-        autoLayoutAction = new AutoLayoutAction(session, Messages.getString("ArchitectFrame.autoLayoutActionName"), Messages.getString("ArchitectFrame.autoLayoutActionDescription"), "auto_layout"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        autoLayoutAction = new AutoLayoutAction(session, session.getPlayPen(), Messages.getString("ArchitectFrame.autoLayoutActionName"), Messages.getString("ArchitectFrame.autoLayoutActionDescription"), "auto_layout"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         autoLayout = new FruchtermanReingoldForceLayout();
         autoLayoutAction.setLayout(autoLayout);
         exportDDLAction = new ExportDDLAction(session);

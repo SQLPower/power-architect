@@ -30,6 +30,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 
+import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -37,6 +38,7 @@ import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
@@ -91,8 +93,10 @@ public class OLAPEditSession implements OLAPChildListener {
     private CreateCubeUsageAction createCubeUsageAction;
     private ExportSchemaAction exportSchemaAction;
     private OLAPDeleteSelectedAction olapDeleteSelectedAction;
+    private AutoLayoutAction autoLayoutAction;
      
     private final ArchitectSwingSession swingSession;
+
 
     
     /**
@@ -116,6 +120,8 @@ public class OLAPEditSession implements OLAPChildListener {
         tree = new OLAPTree(swingSession, this, olapSession.getSchema());
         tree.setCellRenderer(new OLAPTreeCellRenderer());
         pp = OLAPPlayPenFactory.createPlayPen(swingSession, this);
+
+        // Don't create actions here. PlayPen is currently null.
     }
     
     /**
@@ -150,7 +156,9 @@ public class OLAPEditSession implements OLAPChildListener {
         createCubeUsageAction = new CreateCubeUsageAction(swingSession, pp);
         exportSchemaAction = new ExportSchemaAction(swingSession, schema);
         olapDeleteSelectedAction = new OLAPDeleteSelectedAction(swingSession, this);
-        
+        autoLayoutAction = new AutoLayoutAction(swingSession, pp, "Automatic Layout", "Automatic Layout", "auto_layout"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        autoLayoutAction.setLayout(new FruchtermanReingoldForceLayout());
+
         JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
         toolbar.add(zoomInAction);
         toolbar.add(zoomOutAction);
@@ -158,7 +166,11 @@ public class OLAPEditSession implements OLAPChildListener {
         toolbar.add(zoomToFitAction);
         
         toolbar.addSeparator();
-        
+
+        toolbar.add(autoLayoutAction);
+
+        toolbar.addSeparator();
+
         toolbar.add(createDimensionAction);
         toolbar.add(createCubeAction);
         toolbar.add(createVirtualCubeAction);
@@ -261,6 +273,10 @@ public class OLAPEditSession implements OLAPChildListener {
     
     public OLAPDeleteSelectedAction getOLAPDeleteSelectedAction() {
         return olapDeleteSelectedAction;
+    }
+
+    public AutoLayoutAction getAutoLayoutAction() {
+        return autoLayoutAction;
     }
     
     // ------ OLAPChildListener methods ------ //

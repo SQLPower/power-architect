@@ -102,6 +102,7 @@ public class RelationalPlayPenFactory {
             AutoLayoutAction layoutAction =
                 new AutoLayoutAction(
                         session,
+                        session.getPlayPen(),
                         Messages.getString("PlayPen.straightenLinesActionName"),  //$NON-NLS-1$
                         Messages.getString("PlayPen.straightenLinesActionDescription"), //$NON-NLS-1$
                         icon); 

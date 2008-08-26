@@ -45,7 +45,7 @@ public class TestAutoLayoutAction extends TestCase {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
 		ArchitectSwingSession session = context.createSession();
         PlayPen pp = session.getPlayPen();
-		layoutAction = new AutoLayoutAction(session, "Tree Layout", "Basic tree layout", "auto_layout");
+		layoutAction = new AutoLayoutAction(session, session.getPlayPen(), "Tree Layout", "Basic tree layout", "auto_layout");
 		layout = new BasicTreeAutoLayout();
 		pp.repaint();
 		//action = af.getAutoLayoutAction();
