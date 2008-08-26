@@ -26,18 +26,28 @@ import javax.swing.JTextField;
 
 import mondrian.rolap.RolapAggregator;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.validation.Validator;
+import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.StatusComponent;
+import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
+import ca.sqlpower.validation.swingui.ValidationHandler;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class MeasureEditPanel implements DataEntryPanel {
+public class MeasureEditPanel implements ValidatableDataEntryPanel {
     
     private final Measure measure;
     private final JPanel panel;
     private JTextField name;
     private JTextField captionField;
     private JComboBox aggregator;
+    
+    /**
+     * Validation handler for errors in the dialog
+     */
+    private FormValidationHandler handler;
+    private StatusComponent status = new StatusComponent();
     
     /**
      * Creates a new property editor for the given OLAP Measure. 
@@ -51,12 +61,18 @@ public class MeasureEditPanel implements DataEntryPanel {
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
+        builder.append(status, 3);
         builder.append("Name", name = new JTextField(measure.getName()));
         builder.append("Caption", captionField = new JTextField(measure.getCaption()));
         builder.append("Aggregator", aggregator = new JComboBox(RolapAggregator.enumeration.getNames()));
         if (measure.getAggregator() != null) {
             aggregator.setSelectedItem(measure.getAggregator());
         }
+        
+        handler = new FormValidationHandler(status);
+        Validator validator = new OLAPObjectNameValidator(measure.getParent(), measure, false);
+        handler.addValidateObject(name, validator);
+        
         panel = builder.getPanel();
     }
     public boolean applyChanges() {
@@ -82,6 +98,9 @@ public class MeasureEditPanel implements DataEntryPanel {
 
     public boolean hasUnsavedChanges() {
         return true;
+    }
+    public ValidationHandler getValidationHandler() {
+        return handler;
     }
 
 }

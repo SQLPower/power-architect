@@ -63,6 +63,11 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
      * Maps Cube name to object.
      */
     private final Map<String, Cube> cubes = new HashMap<String, Cube>();
+    
+    /**
+     * Maps VirtualCube name to object.
+     */
+    private final Map<String, VirtualCube> vCubes = new HashMap<String, VirtualCube>();
 
     /**
      * Maps Dimension to a list of DimensionUsages that references it.
@@ -103,6 +108,8 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
                 cubeDimensions.put(cubeDimKey, (CubeDimension) child);
             } else if (child instanceof Dimension) {
                 publicDimensions.put(child.getName(), (Dimension) child);
+            } else if (child instanceof VirtualCube) {
+                vCubes.put(child.getName(), (VirtualCube) child);
             }
             
             if (child.allowsChildren()) {
@@ -253,6 +260,8 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
             addToCubeUsagesMap(cu);
         } else if (e.getChild() instanceof VirtualCube) {
             VirtualCube vc = (VirtualCube) e.getChild();
+            vCubes.put(vc.getName(), vc);
+            
             CubeUsages cubeUsages = vc.getCubeUsage();
             
             // CubeUsages are a property of VirtualCube instead of a child. This means
@@ -273,7 +282,8 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
     public void olapChildRemoved(OLAPChildEvent e) {
         if (e.getSource() instanceof Cube && e.getChild() instanceof CubeDimension) {
             CubeDimension cd = (CubeDimension) e.getChild();
-            cubeDimensions.remove(cd);
+            Cube c = (Cube) cd.getParent();
+            cubeDimensions.remove(new CubeDimensionKey(c.getName(), cd.getName()));
             
             // remove the VirtualCubeDimensions referencing this CubeDimension.
             List<VirtualCubeDimension> vCubeDims = vCubeDimensionMap.get(cd);
@@ -293,7 +303,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
             }
         } else if (e.getChild() instanceof Dimension) {
             Dimension dim = (Dimension) e.getChild();
-            publicDimensions.remove(dim);
+            publicDimensions.remove(dim.getName());
             
             // remove the DimensionUsages referencing this Dimension.
             List<DimensionUsage> dimUsages = dimensionUsageMap.get(dim);
@@ -316,7 +326,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
             vCubeDimensionMap.remove(dim);
         } else if (e.getChild() instanceof Cube) {
             Cube cube = (Cube) e.getChild();
-            cubes.remove(cube);
+            cubes.remove(cube.getName());
             
             // remove the CubeUsages referencing this Cube.
             List<CubeUsage> cubeUsages = cubeUsageMap.get(cube);
@@ -346,6 +356,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
             }
         } else if (e.getChild() instanceof VirtualCube) {
             VirtualCube vc = (VirtualCube) e.getChild();
+            vCubes.remove(vc.getName());
             
             // CubeUsages are a property of VirtualCube instead of a child. This means
             // OLAPUtil.listenToHierarchy() doesn't pick them up. So we have to listen
@@ -442,13 +453,19 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
                 
                 cubes.remove(oldName);
                 cubes.put(newName, cube);
+            } else if (evt.getSource() instanceof VirtualCube) {
+                VirtualCube vCube = (VirtualCube) evt.getSource();
+                String oldName = (String) evt.getOldValue();
+                String newName = (String) evt.getNewValue();
+                
+                vCubes.remove(oldName);
+                vCubes.put(newName, vCube);
             }
         }
     }
     
     /**
-     * Searches through the map of public dimensions for one with the given
-     * name and returns it.
+     * Finds and returns a Dimension with the given name.
      * 
      * @param name
      *            The name to search by.
@@ -459,9 +476,8 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
     }
     
     /**
-     * Searches through the map of CubeDimensions for one with a
-     * {@link CubeDimensionKey} that matches the given cube name and dimension
-     * name and returns it.
+     * Finds and returns a CubeDimension with a {@link CubeDimensionKey} that
+     * matches the given cube name and dimension name.
      * 
      * @param cubeName
      *            Part of the {@link CubeDimensionKey} to search by.
@@ -475,7 +491,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
     }
     
     /**
-     * Finds and returns the map of Cubes for one with the given name.
+     * Finds and returns a Cube with the given name.
      * 
      * @param name
      *            The name to search by.
@@ -483,6 +499,17 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
      */
     public Cube findCube(String name) {
         return cubes.get(name);
+    }
+    
+    /**
+     * Finds and returns a VirtualCube with the given name.
+     * 
+     * @param name
+     *            The name to search by.
+     * @return A VirtualCube with the given name, or null if none found.
+     */
+    public VirtualCube findVirtualCube(String name) {
+        return vCubes.get(name);
     }
     
     /**

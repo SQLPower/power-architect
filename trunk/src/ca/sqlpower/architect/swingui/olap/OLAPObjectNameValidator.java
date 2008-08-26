@@ -26,8 +26,9 @@ import ca.sqlpower.validation.ValidateResult;
 import ca.sqlpower.validation.Validator;
 
 /**
- * A simple validator for OLAPObjects that checks for invalid names.
- *
+ * A simple validator for OLAPObjects that checks for invalid names, relies on
+ * {@link OLAPObject#getName()} for name comparisons.
+ * 
  */
 public class OLAPObjectNameValidator implements Validator {
     
@@ -51,16 +52,14 @@ public class OLAPObjectNameValidator implements Validator {
 
         if (value == null || value.length() == 0) {
             if (allowNull) {
-                if (OLAPUtil.nameFor(obj) != null && !OLAPUtil.isNameUnique(parent, obj.getClass(), null)) {
+                if (obj.getName() != null && !OLAPUtil.isNameUnique(parent, obj.getClass(), null)) {
                     return ValidateResult.createValidateResult(Status.FAIL, "Name already exists.");
                 }
             } else {
                 return ValidateResult.createValidateResult(Status.FAIL, "A name is required.");
             }
-        } else {
-            if (!(value.equals(OLAPUtil.nameFor(obj))) && !OLAPUtil.isNameUnique(parent, obj.getClass(), value)) {
-                return ValidateResult.createValidateResult(Status.FAIL, "Name already exists.");
-            }
+        } else if (!value.equals(obj.getName()) && !OLAPUtil.isNameUnique(parent, obj.getClass(), value)) {
+            return ValidateResult.createValidateResult(Status.FAIL, "Name already exists.");
         }
 
         return ValidateResult.createValidateResult(Status.OK, "");

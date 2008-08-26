@@ -29,18 +29,29 @@ import javax.swing.JTextField;
 
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.validation.Validator;
+import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.StatusComponent;
+import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
+import ca.sqlpower.validation.swingui.ValidationHandler;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class VirtualCubeEditPanel implements DataEntryPanel {
+public class VirtualCubeEditPanel implements ValidatableDataEntryPanel {
 
     private final VirtualCube vCube;
     private final JPanel panel;
     private JTextField nameField;
     private JTextField captionField;
     private JComboBox defMeasure;
+    
+    /**
+     * Validation handler for errors in the dialog
+     */
+    private FormValidationHandler handler;
+    private StatusComponent status = new StatusComponent();
+    
     
     /**
      * Creates a new property editor for the given OLAP Virtual Cube. 
@@ -54,6 +65,7 @@ public class VirtualCubeEditPanel implements DataEntryPanel {
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
+        builder.append(status, 3);
         builder.append("Name", nameField = new JTextField(vCube.getName()));
         builder.append("Caption", captionField = new JTextField(vCube.getCaption()));
         
@@ -68,6 +80,11 @@ public class VirtualCubeEditPanel implements DataEntryPanel {
                 break;
             }
         }
+        
+        handler = new FormValidationHandler(status);
+        Validator validator = new OLAPObjectNameValidator(vCube.getParent(), vCube, false);
+        handler.addValidateObject(nameField, validator);
+        
         panel = builder.getPanel();
     }
     
@@ -95,6 +112,10 @@ public class VirtualCubeEditPanel implements DataEntryPanel {
 
     public boolean hasUnsavedChanges() {
         return true;
+    }
+
+    public ValidationHandler getValidationHandler() {
+        return handler;
     }
 
 }

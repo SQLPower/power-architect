@@ -38,10 +38,13 @@ import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.InlineTable;
 import ca.sqlpower.architect.olap.MondrianModel.Join;
+import ca.sqlpower.architect.olap.MondrianModel.Level;
+import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.RelationOrJoin;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.olap.MondrianModel.View;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 
 /**
@@ -314,7 +317,8 @@ public class OLAPUtil {
     }
     
     /**
-     * Checks if the name is unique for an OLAPObject.
+     * Checks if the name is unique for an OLAPObject, relies on
+     * {@link OLAPObject#getName()} for name comparisons.
      * 
      * @param parent
      *            The object that will be the parent.
@@ -331,15 +335,43 @@ public class OLAPUtil {
             throw new IllegalArgumentException("Can't find OLAPSession ancestor: " + parent);
         }
         
-        OLAPObject foundObj;
         if (type == Cube.class) {
-            foundObj = olapSession.findCube(name);
+            return olapSession.findCube(name) == null;
         } else if (type == Dimension.class && parent instanceof Schema) {
-            foundObj = olapSession.findPublicDimension(name);
+            return olapSession.findPublicDimension(name) == null;
+        } else if (type == VirtualCube.class) {
+            return olapSession.findVirtualCube(name) == null;
+        } else if (type == Measure.class) {
+            Cube c = (Cube) parent;
+            for (Measure m : c.getMeasures()) {
+                if (m.getName().equals(name)) {
+                    return false;
+                }
+            }
+            return true;
+        } else if (type == Level.class) {
+            Hierarchy h = (Hierarchy) parent;
+            for (Level l : h.getLevels()) {
+                if (l.getName().equals(name)) {
+                    return false;
+                }
+            }
+            return true;
+        } else if (type == Hierarchy.class) {
+            Dimension d = (Dimension) parent;
+            for (Hierarchy h : d.getHierarchies()) {
+                // null name is the same as having the parent's name.
+                if (name == null || name.equals(parent.getName())) {
+                    if (h.getName() == null || h.getName().equals(parent.getName())) {
+                        return false;
+                    }
+                } else if (name.equals(h.getName())) {
+                    return false;
+                }
+            }
+            return true;
         } else {
             return true;
         }
-        
-        return foundObj == null;
     }
 }

@@ -32,18 +32,29 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.validation.Validator;
+import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.StatusComponent;
+import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
+import ca.sqlpower.validation.swingui.ValidationHandler;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class HierarchyEditPanel implements DataEntryPanel {
+public class HierarchyEditPanel implements ValidatableDataEntryPanel {
     
     private final Hierarchy hierarchy;
     private final JPanel panel;
     private final JTextField name;
     private final JTextField captionField;
     private final JComboBox tableChooser;
+    
+    /**
+     * Validation handler for errors in the dialog
+     */
+    private FormValidationHandler handler;
+    private StatusComponent status = new StatusComponent();
+    
     
     /**
      * Creates a new property editor for the given OLAP Hierarchy. 
@@ -59,15 +70,25 @@ public class HierarchyEditPanel implements DataEntryPanel {
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
+        builder.append(status, 3);
         builder.append("Name", name = new JTextField(hierarchy.getName()));
         builder.append("Caption", captionField = new JTextField(hierarchy.getCaption()));
         builder.append("Table", tableChooser = new JComboBox(new Vector<SQLTable>(tables)));
         tableChooser.setSelectedItem(OLAPUtil.tableForHierarchy(hierarchy)); // XXX this isn't quite right.. it would set the default as the local value
+        
+        handler = new FormValidationHandler(status);
+        Validator validator = new OLAPObjectNameValidator(hierarchy.getParent(), hierarchy, true);
+        handler.addValidateObject(name, validator);
+        
         panel = builder.getPanel();
     }
     public boolean applyChanges() {
         hierarchy.startCompoundEdit("Modify hierarchy properties");
-        hierarchy.setName(name.getText());
+        if (!(name.getText().equals(""))) {
+            hierarchy.setName(name.getText());
+        } else {
+            hierarchy.setName(null);
+        }
         if (!(captionField.getText().equals(""))) {
             hierarchy.setCaption(captionField.getText());
         } else {
@@ -94,6 +115,9 @@ public class HierarchyEditPanel implements DataEntryPanel {
 
     public boolean hasUnsavedChanges() {
         return true;
+    }
+    public ValidationHandler getValidationHandler() {
+        return handler;
     }
 
 }
