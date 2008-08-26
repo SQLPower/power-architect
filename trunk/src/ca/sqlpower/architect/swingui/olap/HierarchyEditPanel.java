@@ -22,6 +22,7 @@ package ca.sqlpower.architect.swingui.olap;
 import java.util.List;
 import java.util.Vector;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -48,6 +49,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
     private final JTextField name;
     private final JTextField captionField;
     private final JComboBox tableChooser;
+    private final JCheckBox hasAll;
     
     /**
      * Validation handler for errors in the dialog
@@ -73,6 +75,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
         builder.append(status, 3);
         builder.append("Name", name = new JTextField(hierarchy.getName()));
         builder.append("Caption", captionField = new JTextField(hierarchy.getCaption()));
+        builder.append("Has All", hasAll = new JCheckBox("Has All", hierarchy.getHasAll() != null ? hierarchy.getHasAll() : true));
         builder.append("Table", tableChooser = new JComboBox(new Vector<SQLTable>(tables)));
         tableChooser.setSelectedItem(OLAPUtil.tableForHierarchy(hierarchy)); // XXX this isn't quite right.. it would set the default as the local value
         
@@ -94,6 +97,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
         } else {
             hierarchy.setCaption(null);
         }
+        hierarchy.setHasAll(hasAll.isSelected());
         if (tableChooser.getSelectedItem() != null) {
             SQLTable stable = (SQLTable) tableChooser.getSelectedItem();
             Table table = new Table();
