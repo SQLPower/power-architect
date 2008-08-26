@@ -139,9 +139,11 @@ public class OLAPSession extends OLAPObject {
     }
 
     /**
-     * Returns a public dimension in the child schema with the given name.
+     * Returns a public dimension in the child schema with the given name, case
+     * insensitive.
      * 
-     * @param name The name to search by.
+     * @param name
+     *            The name to search by.
      * @return A public Dimension with the name, or null if not found.
      */
     public Dimension findPublicDimension(String name) {
@@ -150,7 +152,7 @@ public class OLAPSession extends OLAPObject {
     
     /**
      * Returns a CubeDimension in the child schema with the given name and
-     * parent Cube.
+     * parent Cube, case insensitive.
      * 
      * @param cubeName Name of the Cube to search in.
      * @param dimName Name of the CubeDimension to search for.

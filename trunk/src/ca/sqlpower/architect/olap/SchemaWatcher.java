@@ -50,22 +50,24 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
     private static final Logger logger = Logger.getLogger(SchemaWatcher.class);
 
     /**
-     * Maps Dimension name to object for public Dimensions.
+     * Maps Dimension name to object for public Dimensions. Names must be kept
+     * in lower case.
      */
     private final Map<String, Dimension> publicDimensions = new HashMap<String, Dimension>();
 
     /**
-     * Maps CubeDimension "name" to object, see {@link CubeDimensionKey}.
+     * Maps CubeDimension "name" to object, see {@link CubeDimensionKey}. Names
+     * must be kept in lower case.
      */
     private final Map<CubeDimensionKey, CubeDimension> cubeDimensions = new HashMap<CubeDimensionKey, CubeDimension>();
     
     /**
-     * Maps Cube name to object.
+     * Maps Cube name to object. Names must be kept in lower case.
      */
     private final Map<String, Cube> cubes = new HashMap<String, Cube>();
     
     /**
-     * Maps VirtualCube name to object.
+     * Maps VirtualCube name to object. Names must be kept in lower case.
      */
     private final Map<String, VirtualCube> vCubes = new HashMap<String, VirtualCube>();
 
@@ -102,14 +104,14 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
     private void populateNameToObjectMaps(OLAPObject parent) {
         for (OLAPObject child : parent.getChildren()) {
             if (child instanceof Cube) {
-                cubes.put(child.getName(), (Cube) child);
+                cubes.put(child.getName().toLowerCase(), (Cube) child);
             } else if (parent instanceof Cube && child instanceof CubeDimension) {
                 CubeDimensionKey cubeDimKey = new CubeDimensionKey(parent.getName(), child.getName());
                 cubeDimensions.put(cubeDimKey, (CubeDimension) child);
             } else if (child instanceof Dimension) {
-                publicDimensions.put(child.getName(), (Dimension) child);
+                publicDimensions.put(child.getName().toLowerCase(), (Dimension) child);
             } else if (child instanceof VirtualCube) {
-                vCubes.put(child.getName(), (VirtualCube) child);
+                vCubes.put(child.getName().toLowerCase(), (VirtualCube) child);
             }
             
             if (child.allowsChildren()) {
@@ -156,7 +158,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
      * @param du The object to add, must not be null.
      */
     private void addToDimensionUsagesMap(DimensionUsage du) {
-        Dimension dim = publicDimensions.get(du.getSource());
+        Dimension dim = publicDimensions.get(du.getSource().toLowerCase());
         if (dim == null) {
             logger.error("Can't find the Dimension that this DimensionUsage references: " + du);
             throw new IllegalStateException("The schema structure is corrupted, invalid reference by: " + du);
@@ -181,7 +183,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
         CubeDimension cd;
         if (vcd.getCubeName() == null) {
             // the referenced CubeDimension was public.
-            cd = publicDimensions.get(vcd.getName());
+            cd = publicDimensions.get(vcd.getName().toLowerCase());
         } else {
             // non-public CubeDimension referenced.
             CubeDimensionKey cubeDimKey = new CubeDimensionKey(vcd.getCubeName(), vcd.getName());
@@ -210,7 +212,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
      * @param cu The object to add, must not be null.
      */
     private void addToCubeUsagesMap(CubeUsage cu) {
-        Cube cube = cubes.get(cu.getCubeName());
+        Cube cube = cubes.get(cu.getCubeName().toLowerCase());
         if (cube == null) {
             logger.error("Can't find the Cube that this CubeUsage references: " + cu);
             throw new IllegalStateException("The schema structure is corrupted, invalid reference by: " + cu);
@@ -238,10 +240,10 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
             }
         } else if (e.getChild() instanceof Dimension) {
             Dimension d = (Dimension) e.getChild();
-            publicDimensions.put(d.getName(), d);
+            publicDimensions.put(d.getName().toLowerCase(), d);
         } else if (e.getChild() instanceof Cube) {
             Cube c = (Cube) e.getChild();
-            cubes.put(c.getName(), c);
+            cubes.put(c.getName().toLowerCase(), c);
             
             // go through the CubeDimensions within the added Cube.
             for (CubeDimension cd : c.getDimensions()) {
@@ -260,7 +262,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
             addToCubeUsagesMap(cu);
         } else if (e.getChild() instanceof VirtualCube) {
             VirtualCube vc = (VirtualCube) e.getChild();
-            vCubes.put(vc.getName(), vc);
+            vCubes.put(vc.getName().toLowerCase(), vc);
             
             CubeUsages cubeUsages = vc.getCubeUsage();
             
@@ -303,7 +305,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
             }
         } else if (e.getChild() instanceof Dimension) {
             Dimension dim = (Dimension) e.getChild();
-            publicDimensions.remove(dim.getName());
+            publicDimensions.remove(dim.getName().toLowerCase());
             
             // remove the DimensionUsages referencing this Dimension.
             List<DimensionUsage> dimUsages = dimensionUsageMap.get(dim);
@@ -326,7 +328,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
             vCubeDimensionMap.remove(dim);
         } else if (e.getChild() instanceof Cube) {
             Cube cube = (Cube) e.getChild();
-            cubes.remove(cube.getName());
+            cubes.remove(cube.getName().toLowerCase());
             
             // remove the CubeUsages referencing this Cube.
             List<CubeUsage> cubeUsages = cubeUsageMap.get(cube);
@@ -356,7 +358,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
             }
         } else if (e.getChild() instanceof VirtualCube) {
             VirtualCube vc = (VirtualCube) e.getChild();
-            vCubes.remove(vc.getName());
+            vCubes.remove(vc.getName().toLowerCase());
             
             // CubeUsages are a property of VirtualCube instead of a child. This means
             // OLAPUtil.listenToHierarchy() doesn't pick them up. So we have to listen
@@ -411,8 +413,8 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
                         }
                     }
                     
-                    publicDimensions.remove(oldName);
-                    publicDimensions.put(newName, dim);
+                    publicDimensions.remove(oldName.toLowerCase());
+                    publicDimensions.put(newName.toLowerCase(), dim);
                 } else if (dim.getParent() instanceof Cube) {
                     String cubeName = dim.getParent().getName();
                     cubeDimensions.remove(new CubeDimensionKey(cubeName, dim.getName()));
@@ -451,33 +453,32 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
                     }
                 }
                 
-                cubes.remove(oldName);
-                cubes.put(newName, cube);
+                cubes.remove(oldName.toLowerCase());
+                cubes.put(newName.toLowerCase(), cube);
             } else if (evt.getSource() instanceof VirtualCube) {
                 VirtualCube vCube = (VirtualCube) evt.getSource();
                 String oldName = (String) evt.getOldValue();
                 String newName = (String) evt.getNewValue();
                 
-                vCubes.remove(oldName);
-                vCubes.put(newName, vCube);
+                vCubes.remove(oldName.toLowerCase());
+                vCubes.put(newName.toLowerCase(), vCube);
             }
         }
     }
     
     /**
-     * Finds and returns a Dimension with the given name.
+     * Finds and returns a Dimension with the given name, case insensitive.
      * 
-     * @param name
-     *            The name to search by.
+     * @param name The name to search by.
      * @return A Dimension with the given name, or null if none found.
      */
     public Dimension findPublicDimension(String name) {
-        return publicDimensions.get(name);
+        return publicDimensions.get(name.toLowerCase());
     }
     
     /**
      * Finds and returns a CubeDimension with a {@link CubeDimensionKey} that
-     * matches the given cube name and dimension name.
+     * matches the given cube name and dimension name, case insensitive.
      * 
      * @param cubeName
      *            Part of the {@link CubeDimensionKey} to search by.
@@ -491,33 +492,32 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
     }
     
     /**
-     * Finds and returns a Cube with the given name.
+     * Finds and returns a Cube with the given name, case insensitive.
      * 
-     * @param name
-     *            The name to search by.
+     * @param name The name to search by.
      * @return A Cube with the given name, or null if none found.
      */
     public Cube findCube(String name) {
-        return cubes.get(name);
+        return cubes.get(name.toLowerCase());
     }
     
     /**
-     * Finds and returns a VirtualCube with the given name.
+     * Finds and returns a VirtualCube with the given name, case insensitive.
      * 
-     * @param name
-     *            The name to search by.
+     * @param name The name to search by.
      * @return A VirtualCube with the given name, or null if none found.
      */
     public VirtualCube findVirtualCube(String name) {
-        return vCubes.get(name);
+        return vCubes.get(name.toLowerCase());
     }
     
     /**
      * A composite key class that holds the cubeName and name properties in a
      * VirtualCubeDimension. The cubeName property identifies the name of Cube
      * that holds the CubeDimension and the name property identifies the name of
-     * the CubeDimenion. This will form the key used to find the CubeDimension
-     * that a VirtualCubeDimension is referencing.
+     * the CubeDimenion. Both strings are converted to lower case at
+     * constructor. This will form the key used to find the CubeDimension that a
+     * VirtualCubeDimension is referencing.
      * 
      */
     private class CubeDimensionKey {
@@ -525,8 +525,8 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
         private final String dimensionName;
 
         public CubeDimensionKey(String cubeName, String dimensionName) {
-            this.cubeName = cubeName;
-            this.dimensionName = dimensionName;
+            this.cubeName = cubeName.toLowerCase();
+            this.dimensionName = dimensionName.toLowerCase();
         }
 
         public String getCubeName() {
