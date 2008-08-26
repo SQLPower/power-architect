@@ -91,7 +91,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         panel = builder.getPanel();
         
         handler = new FormValidationHandler(status);
-        Validator validator = new OLAPObjectNameValidator(cube, true);
+        Validator validator = new OLAPObjectNameValidator(cube.getParent(), cube, false);
         handler.addValidateObject(nameField, validator);
     }
     

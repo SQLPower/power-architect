@@ -314,33 +314,32 @@ public class OLAPUtil {
     }
     
     /**
-     * Checks if the given name would be unique for the given OLAPObject.
+     * Checks if the name is unique for an OLAPObject.
      * 
-     * @param oo
-     *            The OLAPObject to check, OLAPSession ancestor must not be
-     *            null.
+     * @param parent
+     *            The object that will be the parent.
+     * @param type
+     *            The type of the object.
      * @param name
-     *            The name to check for.
-     * @return True if the given object is the only object in its schema with
-     *         the given name, false otherwise.
+     *            The name to check for, can be null.
+     * @return False if any child of the given type from the parent has the
+     *         given name, true otherwise.
      */
-    public static boolean isNameUnique(OLAPObject oo, String name) {
-        OLAPSession olapSession = getSession(oo);
+    public static boolean isNameUnique(OLAPObject parent, Class<? extends OLAPObject> type, String name) {
+        OLAPSession olapSession = getSession(parent);
         if (olapSession == null) {
-            throw new IllegalArgumentException("Can't find OLAPSession ancestor: " + oo);
+            throw new IllegalArgumentException("Can't find OLAPSession ancestor: " + parent);
         }
         
         OLAPObject foundObj;
-        if (oo instanceof Cube) {
+        if (type == Cube.class) {
             foundObj = olapSession.findCube(name);
-        } else if (oo instanceof Dimension && oo.getParent() instanceof Schema) {
+        } else if (type == Dimension.class && parent instanceof Schema) {
             foundObj = olapSession.findPublicDimension(name);
-        } else if (oo instanceof CubeDimension && oo.getParent() instanceof Cube) {
-            foundObj = olapSession.findCubeDimension(oo.getParent().getName(), oo.getName());
         } else {
             return true;
         }
         
-        return foundObj == null || foundObj == oo;
+        return foundObj == null;
     }
 }
