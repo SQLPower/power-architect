@@ -256,14 +256,15 @@ public class OLAPUtil {
     /**
      * Finds and returns the Cube that the given CubeUsage references.
      * 
+     * @param vCube
+     *            Parent of the CubeUsage, used to find OLAPSession ancestor.
      * @param CubeUsage
-     *            The CubeUsage to search by, OLAPSession ancestor must not be
-     *            null.
+     *            The CubeUsage to search by.
      * 
      * @return The Cube that the CubeUsage references, or null if not found.
      */
-    public static Cube findReferencedCube(CubeUsage cu) {
-        OLAPSession olapSession = getSession(cu);
+    public static Cube findReferencedCube(VirtualCube vCube, CubeUsage cu) {
+        OLAPSession olapSession = getSession(vCube);
         if (olapSession == null) {
             throw new IllegalArgumentException("Can't find OLAPSession ancestor: " + cu);
         }
