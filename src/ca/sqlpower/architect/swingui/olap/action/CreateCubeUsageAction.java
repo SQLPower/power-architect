@@ -19,8 +19,11 @@
 
 package ca.sqlpower.architect.swingui.olap.action;
 
+import javax.swing.JOptionPane;
+
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -43,11 +46,17 @@ public class CreateCubeUsageAction extends CreateUsageAction<CubePane, VirtualCu
 
     @Override
     protected void createUsage(CubePane cp, VirtualCubePane vcp) {
-        CubeUsage cu = new CubeUsage();
-        cu.setCubeName(cp.getModel().getName());
-        vcp.getModel().getCubeUsage().addCubeUsage(cu);
-        UsageComponent uc = new UsageComponent(playpen.getContentPane(), cu, cp, vcp);
-        playpen.getContentPane().add(uc, playpen.getContentPane().getComponentCount());
+        if (OLAPUtil.isNameUnique(vcp.getModel(), CubeUsage.class, cp.getModel().getName())) {
+            CubeUsage cu = new CubeUsage();
+            cu.setCubeName(cp.getModel().getName());
+            vcp.getModel().getCubeUsage().addCubeUsage(cu);
+            UsageComponent uc = new UsageComponent(playpen.getContentPane(), cu, cp, vcp);
+            playpen.getContentPane().add(uc, playpen.getContentPane().getComponentCount());
+        } else {
+            String errorMsg = "Cube Usage \"" + cp.getModel().getName() + "\" alreadys exists in \"" +
+                    vcp.getModel().getName() + "\"\nCube Usage was not created.";
+            JOptionPane.showMessageDialog(playpen, errorMsg, "Duplicate Cube Usage", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
 }

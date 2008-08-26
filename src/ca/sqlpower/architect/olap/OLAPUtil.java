@@ -340,6 +340,8 @@ public class OLAPUtil {
             return olapSession.findCube(name) == null;
         } else if (type == Dimension.class && parent instanceof Schema) {
             return olapSession.findPublicDimension(name) == null;
+        } else if (type == Dimension.class && parent instanceof Cube) {
+            return olapSession.findCubeDimension(parent.getName(), name) == null;
         } else if (type == VirtualCube.class) {
             return olapSession.findVirtualCube(name) == null;
         } else if (type == Measure.class) {
@@ -367,6 +369,22 @@ public class OLAPUtil {
                         return false;
                     }
                 } else if (name.equals(h.getName())) {
+                    return false;
+                }
+            }
+            return true;
+        } else if (type == CubeUsage.class) {
+            VirtualCube vCube = (VirtualCube) parent;
+            for (CubeUsage usage : vCube.getCubeUsage().getCubeUsages()) {
+                if (usage.getCubeName().equals(name)) {
+                    return false;
+                }
+            }
+            return true;
+        } else if (type == DimensionUsage.class) {
+            Cube c = (Cube) parent;
+            for (CubeDimension cd : c.getDimensions()) {
+                if (cd.getName().equals(name)) {
                     return false;
                 }
             }
