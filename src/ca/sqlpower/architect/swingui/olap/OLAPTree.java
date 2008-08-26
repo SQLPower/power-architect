@@ -21,6 +21,8 @@ package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
@@ -29,7 +31,14 @@ import javax.swing.tree.TreePath;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
+import ca.sqlpower.architect.olap.MondrianModel.Level;
+import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
@@ -43,7 +52,10 @@ public class OLAPTree extends JTree{
     private final JTreeCollapseAllAction collapseAllAction;
     private final JTreeExpandAllAction expandAllAction;
     
+    private Schema schema;
+    
     public OLAPTree(ArchitectSwingSession session, OLAPEditSession oSession, Schema schema) {
+        this.schema = schema;
         setModel(new OLAPTreeModel(schema));
         addMouseListener(new PopupListener());
         collapseAllAction = new JTreeCollapseAllAction(this, "Collapse All");
@@ -102,4 +114,50 @@ public class OLAPTree extends JTree{
             }
         }
     }
+    
+    /**
+     * Returns the TreePath built from the getParent() of the given OLAPObject.
+     * 
+     * @param obj OLAPObject to build TreePath upon.
+     * @return TreePath for given object.
+     */
+    public TreePath getTreePathForNode(OLAPObject o) {
+        List<OLAPObject> path = new ArrayList<OLAPObject>();
+        while (o != null) {
+            path.add(0, o);
+            if (o == schema) break;
+            o = o.getParent();
+        }
+        return new TreePath(path.toArray());
+    }
+    
+    /**
+     * Removes all selections of objects that are not represented on the playpen.
+     * 
+     */
+    public void clearNonPlayPenSelections() {
+        if (getSelectionPaths() == null) return;
+        for (TreePath tp : getSelectionPaths()) {
+            OLAPObject obj = (OLAPObject) tp.getLastPathComponent();
+            if (!(obj instanceof Cube || obj instanceof VirtualCube || obj instanceof Measure
+                    || obj instanceof CubeDimension || obj instanceof VirtualCubeMeasure
+                    || obj instanceof Level || obj instanceof Hierarchy)) {
+                removeSelectionPath(tp);
+            }
+        }
+    }
+    
+    /**
+     * Checks to see if the Schema reference from the the OLAPTree is the
+     * same as the one held by the PlayPen.  If it is, we are looking at the
+     * Schema.
+     */
+    protected boolean isSchemaNode(TreePath tp) {
+        if (tp == null) {
+            return false;
+        } else {
+            return schema == tp.getLastPathComponent();
+        }
+    }
+
 }

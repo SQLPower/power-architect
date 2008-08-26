@@ -103,11 +103,30 @@ import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.olap.MondrianModel;
+import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
+import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
+import ca.sqlpower.architect.olap.MondrianModel.Level;
+import ca.sqlpower.architect.olap.MondrianModel.Measure;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.architect.swingui.olap.CubePane;
+import ca.sqlpower.architect.swingui.olap.DimensionPane;
+import ca.sqlpower.architect.swingui.olap.OLAPPane;
+import ca.sqlpower.architect.swingui.olap.OLAPTree;
+import ca.sqlpower.architect.swingui.olap.PaneSection;
+import ca.sqlpower.architect.swingui.olap.UsageComponent;
+import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
+import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
@@ -636,7 +655,6 @@ public class PlayPen extends JPanel
      */
 	public Action getMouseZoomInAction(){
         if (zoomInAction == null) {
-            System.out.println("Don't you DARE Zoom In!");
             return session.getArchitectFrame().getZoomInAction();
         }
         return zoomInAction;
@@ -2693,6 +2711,353 @@ public class PlayPen extends JPanel
         }
         ignoreTreeSelection = false;
     }
+    
+    /**
+     * Selects the playpen component that represents the given OLAPObjects.
+     * If the given OLAPObjects aren't in the playpen, this method has no effect.
+     *
+     * @param selection A list of OLAPObjects.
+     * @throws ArchitectException 
+     */
+    public void selectObjects(List<OLAPObject> selections, OLAPTree tree) throws ArchitectException {
+        if (ignoreTreeSelection) return;
+        ignoreTreeSelection = true;
+        logger.debug("selecting: " + selections); //$NON-NLS-1$
+
+        // Parent objects to select because a child object was selected.
+        List<OLAPObject> extraSelections = new ArrayList<OLAPObject>();
+
+        // Objects that were already selected, only used for debugging.
+        List<OLAPObject> ignoredObjs = new ArrayList<OLAPObject>();
+
+        for (OLAPObject obj : selections) {
+            if (obj instanceof Cube) {
+                selectCube((Cube) obj, ignoredObjs);
+            } else if (obj instanceof VirtualCube) {
+                selectVirtualCube((VirtualCube) obj, ignoredObjs);
+            } else if (obj instanceof MondrianModel.Dimension || obj instanceof DimensionUsage) {
+                selectDimension(obj, ignoredObjs, extraSelections, tree);
+            } else if (obj instanceof Measure) {
+                selectMeasure((Measure) obj, ignoredObjs, extraSelections, tree);
+            } else if (obj instanceof VirtualCubeDimension || obj instanceof VirtualCubeMeasure) {
+                selectItemFromVirtualCube(obj, ignoredObjs, extraSelections, tree);
+            } else if (obj instanceof Hierarchy) {
+                selectHierarchy((Hierarchy) obj, ignoredObjs, extraSelections, tree);
+            } else if (obj instanceof Level) {
+                selectLevel((Level) obj, ignoredObjs, extraSelections, tree);
+            }
+
+            logger.debug("selectObjects ignoring: " + ignoredObjs); //$NON-NLS-1$
+            logger.debug("selectObjects adding tables selections: " + extraSelections); //$NON-NLS-1$
+
+            // Deselects all other playpen components.
+            for (PlayPenComponent comp : getSelectedItems()) {
+                if (comp instanceof CubePane) {
+                    CubePane cp = (CubePane) comp;
+                    if (!selections.contains(cp.getModel()) && !extraSelections.contains(cp.getModel())) {
+                        cp.setSelected(false, SelectionEvent.SINGLE_SELECT);
+                    }
+
+                    // Cannot deselect Objects while going through the selected items.
+                    List<OLAPObject> oos = new ArrayList<OLAPObject>();
+
+                    for (OLAPObject oo : cp.getSelectedItems()) {
+                        if (!selections.contains(oo) && !extraSelections.contains(oo)) {
+                            oos.add(oo);
+                        }
+                    }
+                    for (OLAPObject oo : oos) {
+                        cp.deselectItem(oo);
+                    }
+                } else if (comp instanceof VirtualCubePane) {
+                    VirtualCubePane vcp = (VirtualCubePane) comp;
+                    if (!selections.contains(vcp.getModel()) && !extraSelections.contains(vcp.getModel())) {
+                        vcp.setSelected(false, SelectionEvent.SINGLE_SELECT);
+                    }
+
+                    // Cannot deselect Objects while going through the selected items.
+                    List<OLAPObject> oos = new ArrayList<OLAPObject>();
+
+                    for (OLAPObject oo : vcp.getSelectedItems()) {
+                        if (!selections.contains(oo) && !extraSelections.contains(oo)) {
+                            oos.add(oo);
+                        }
+                    }
+                    for (OLAPObject oo : oos) {
+                        vcp.deselectItem(oo);
+                    }
+                } else if (comp instanceof DimensionPane) {
+                    DimensionPane dp = (DimensionPane) comp;
+                    if (!selections.contains(dp.getModel()) && !extraSelections.contains(dp.getModel())) {
+                        dp.setSelected(false, SelectionEvent.SINGLE_SELECT);
+                    }
+
+                    // Cannot deselect Objects while going through the selected items.
+                    List<OLAPObject> oos = new ArrayList<OLAPObject>();
+
+                    for (OLAPObject oo : dp.getSelectedItems()) {
+                        if (!selections.contains(oo) && !extraSelections.contains(oo)) {
+                            oos.add(oo);
+                        }
+                    }
+                    
+                    // Get the hierarchies from the sections and add them.
+                    for (PaneSection<? extends Level> hs : dp.getSelectedSections()) {
+                        if (hs instanceof HierarchySection) {
+                            if (!selections.contains(((HierarchySection) hs).getHierarchy()) 
+                                    && !extraSelections.contains(((HierarchySection) hs).getHierarchy())) {
+                                oos.add(((HierarchySection) hs).getHierarchy());
+                            }
+                        }
+                    }
+                    for (OLAPObject oo : oos) {
+                        if (oo instanceof Level) {
+                            dp.deselectItem((Level) oo);
+                        } else if (oo instanceof Hierarchy) {
+                            dp.deselectSection(dp.findSection((Hierarchy) oo));
+                        }
+                    }
+                } else if (comp instanceof UsageComponent) {
+                    UsageComponent uc = (UsageComponent) comp;
+                    if (!selections.contains(uc.getModel()) && !extraSelections.contains(uc.getModel())) {
+                        uc.setSelected(false, SelectionEvent.SINGLE_SELECT);
+                    }
+                } else {
+                    throw new IllegalArgumentException("Unknown PlayPenComponent type " + comp.getClass() + "!");
+                }
+
+            }
+        }
+        ignoreTreeSelection = false;
+    }
+    
+    /**
+     * Uses the given cube to select the matching CubePane on the PlayPen.
+     * 
+     * @param cube The Cube whose pane is to be selected.
+     * @param ignoredObjs A list of ingored objects used for debugging.
+     * @return The CubePane that was selected or null if none was selected.
+     */
+    private CubePane selectCube(Cube cube, List<OLAPObject> ignoredObjs) {
+        CubePane cp = (CubePane)findPPComponent(cube);
+        if (cp != null && !cp.isSelected()) {
+            cp.setSelected(true, SelectionEvent.SINGLE_SELECT);
+        } else {
+            ignoredObjs.add(cube);
+        }
+        return cp;
+    }
+    
+    /**
+     * Uses the given virtualCube to select the matching VirtualCubePane on the PlayPen.
+     * 
+     * @param vCube The VirtualCube whose pane is to be selected.
+     * @param ignoredObjs A list of ingored objects used for debugging.
+     * @return The VirtualCubePane that was selected or null if none was selected.
+     */
+    private VirtualCubePane selectVirtualCube(VirtualCube vCube, List<OLAPObject> ignoredObjs) {
+        VirtualCubePane vcp = (VirtualCubePane)findPPComponent(vCube);
+        if (vcp != null && !vcp.isSelected()) {
+            vcp.setSelected(true, SelectionEvent.SINGLE_SELECT);
+        } else {
+            ignoredObjs.add(vCube);
+        }
+        return vcp;
+    }
+    
+    /**
+     * Uses the given OLAPObject (which has to be Dimension or DimnesionUsage) to
+     * select the matching CubePane or DimensionPane on the PlayPen. Also
+     * ensures the OLAPTree also selects the dimension and it's parent if the
+     * dimension's parent is a cube and not the schema.
+     * 
+     * @param obj
+     *            The Dimension or DimensionUsage whose pane is to be selected.
+     * @param ignoredObjs
+     *            A list of ingored objects used for debugging.
+     * @param extraSelections
+     *            A list of items that are selected, but not directly from the
+     *            user.
+     * @param tree
+     *            The OLAPTree assoicated with this PlayPen.
+     * @return The OLAPPane that was selected or null if none was selected.
+     */
+    private OLAPPane<?, ?> selectDimension(OLAPObject obj, List<OLAPObject> ignoredObjs, List<OLAPObject> extraSelections, OLAPTree tree) {
+        if (obj.getParent() instanceof Cube) {
+            CubePane cp = selectCube((Cube) obj.getParent(), ignoredObjs);
+            if (cp != null) {
+                selectParents(obj, cp.getModel(), tree, extraSelections);
+                cp.selectItem(obj);
+            }
+            return cp;
+        } else if (obj.getParent() instanceof Schema) {
+            DimensionPane dp = (DimensionPane)findPPComponent(obj);
+            if (dp != null && !dp.isSelected()) {
+                dp.setSelected(true, SelectionEvent.SINGLE_SELECT);
+            } else {
+                ignoredObjs.add(obj);
+            }
+            return dp;
+        } else {
+            throw new IllegalArgumentException("Parent type " + obj.getParent().getClass() 
+                    + " is not a valid parent for type " + obj.getClass() + "!");
+        }
+    }
+    
+    /**
+     * Uses the given Measure to select the matching Measure and CubePane on the
+     * PlayPen. Also ensures the OLAPTree also selects the measure and the cube.
+     * 
+     * @param measure
+     *            The measure to be selected in the playPen.
+     * @param ignoredObjs
+     *            A list of ingored objects used for debugging.
+     * @param extraSelections
+     *            A list of items that are selected, but not directly from the
+     *            user.
+     * @param tree
+     *            The OLAPTree assoicated with this PlayPen.
+     * @return The CubePane that was selected or null if none was selected.
+     */
+    private CubePane selectMeasure(Measure measure, List<OLAPObject> ignoredObjs, List<OLAPObject> extraSelections, OLAPTree tree) {
+        if (measure.getParent() instanceof Cube) {
+            CubePane cp = selectCube((Cube) measure.getParent(), ignoredObjs);
+            if (cp != null) {
+                selectParents(measure, cp.getModel(), tree, extraSelections);
+                cp.selectItem(measure);
+            }
+            return cp;
+        } else {
+            throw new IllegalArgumentException("Parent type " + measure.getParent().getClass() 
+                    + " is not a valid parent for type " + measure.getClass() + "!");
+        }
+    }
+    
+    /**
+     * Uses the given VirtualCubeMeasure or VirtualCubeDimension to select the
+     * matching Object and VirtualCubePane on the PlayPen. Also ensures the
+     * OLAPTree also selects the object and the virtualCube.
+     * 
+     * @param obj
+     *            The VirtualCubeMeasure or VirtualCubeDimensionto be select in
+     *            the playPen.
+     * @param ignoredObjs
+     *            A list of ingored objects used for debugging.
+     * @param extraSelections
+     *            A list of items that are selected, but not directly from the
+     *            user.
+     * @param tree
+     *            The OLAPTree assoicated with this PlayPen.
+     * @return The VirtualCubePane that was selected or null if none was
+     *         selected.
+     */
+    private VirtualCubePane selectItemFromVirtualCube(OLAPObject obj, List<OLAPObject> ignoredObjs, List<OLAPObject> extraSelections, OLAPTree tree) {
+        if (obj.getParent() instanceof VirtualCube) {
+            VirtualCubePane vcp = selectVirtualCube((VirtualCube) obj.getParent(), ignoredObjs);
+            if (vcp != null) {
+                selectParents(obj, vcp.getModel(), tree, extraSelections);
+                vcp.selectItem(obj);
+            }
+            return vcp;
+        } else {
+            throw new IllegalArgumentException("Parent type " + obj.getParent().getClass() 
+                    + " is not a valid parent for type " + obj.getClass() + "!");
+        }
+    }
+    
+    /**
+     * Uses the given Hierarchy to select the matching Hierarchy and it's
+     * DimensionPane on the PlayPen. Also ensures the OLAPTree also selects the
+     * hierarchy and the dimension.
+     * 
+     * @param hierarchy
+     *            The hierarchy to be selected in the playPen.
+     * @param ignoredObjs
+     *            A list of ingored objects used for debugging.
+     * @param extraSelections
+     *            A list of items that are selected, but not directly from the
+     *            user.
+     * @param tree
+     *            The OLAPTree assoicated with this PlayPen.
+     * @return The DimensionPane that was selected or null if none was selected.
+     */
+    private DimensionPane selectHierarchy(Hierarchy hierarchy, List<OLAPObject> ignoredObjs, List<OLAPObject> extraSelections, OLAPTree tree) {
+        if (hierarchy.getParent() instanceof MondrianModel.Dimension) {
+            DimensionPane dp = (DimensionPane)selectDimension(hierarchy.getParent(), ignoredObjs, extraSelections, tree);
+            if (dp != null) {
+                selectParents(hierarchy, dp.getModel(), tree, extraSelections);
+                dp.selectSection(dp.findSection((Hierarchy) hierarchy));
+            } else {
+                throw new NullPointerException("OLAPPane that contains " + hierarchy.getClass() + " not found.");
+            }
+            return dp;
+        } else {
+            throw new IllegalArgumentException("Parent type " + hierarchy.getParent().getClass() 
+                    + " is not a valid parent for type " + hierarchy.getClass() + "!");
+        }
+    }
+    
+    /**
+     * Uses the given Level to select the matching Level and DimensionPane on
+     * the PlayPen. Also ensures the OLAPTree also selects the level and the
+     * dimension.
+     * 
+     * @param level
+     *            The level to be selected in the playPen.
+     * @param ignoredObjs
+     *            A list of ingored objects used for debugging.
+     * @param extraSelections
+     *            A list of items that are selected, but not directly from the
+     *            user.
+     * @param tree
+     *            The OLAPTree assoicated with this PlayPen.
+     * @return The DimensionPane that was selected or null if none was selected.
+     */
+    private DimensionPane selectLevel(Level level, List<OLAPObject> ignoredObjs, List<OLAPObject> extraSelections, OLAPTree tree) {
+        if (level.getParent() instanceof Hierarchy) {
+            DimensionPane dp = (DimensionPane)selectDimension(level.getParent().getParent(), ignoredObjs, extraSelections, tree);
+            if (dp != null) {
+                selectParents(level, dp.getModel(), tree, extraSelections);
+                dp.selectItem((Level) level);
+            } else {
+                throw new NullPointerException("OLAPPane that contains " + level.getClass() + " not found.");
+            }
+            return dp;
+        } else {
+            throw new IllegalArgumentException("Parent type " + level.getParent().getClass() 
+                    + " is not a valid parent for type " + level.getClass() + "!");
+        }
+    }
+    
+    /**
+     * Uses the given OLAPObjects and selects them on the given OLAPTree.
+     * 
+     * @param obj
+     *            The object to be selected on the Tree.
+     * @param parent
+     *            The object's parent to be selected on the Tree.
+     * @param tree
+     *            The OLAPTree assoicated with this PlayPen.
+     * @param extraSelections
+     *            A list of items that are selected, but not directly from the
+     *            user.
+     */
+    private void selectParents(OLAPObject obj, OLAPObject parent, OLAPTree tree, List<OLAPObject> extraSelections) {
+        // ensures the table is selected on the dbTree
+        TreePath tp = tree.getTreePathForNode(parent);
+        if (!tree.isPathSelected(tp)) {
+            tree.addSelectionPath(tp);
+            tree.clearNonPlayPenSelections();
+
+            // ensures column tree path is selected after the table
+            TreePath childPath = tree.getTreePathForNode(obj);
+            tree.removeSelectionPath(childPath);
+            tree.addSelectionPath(childPath);
+        }
+        extraSelections.add(parent);
+    }
+
+    
 
 	public PlayPenContentPane getPlayPenContentPane() {
 		return contentPane;

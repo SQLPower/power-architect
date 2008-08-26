@@ -20,6 +20,7 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -30,6 +31,7 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -259,7 +261,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
             }
         } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
             logger.debug("Mouse moved/dragged to " + evt.getPoint());
-//            setSelected(pp.getRubberBand().intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
+            setSelected(pp.getRubberBand().intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
         }
     }
     
@@ -270,8 +272,10 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * 
      * @param sect the section to deselect.
      */
-    public void deselectSection(PaneSection<C> sect) {
+    public void deselectSection(PaneSection<? extends C> sect) {
         selectedSections.remove(sect);
+        // TODO make a firePlayPenCoordinateEvent and change this event to that
+        fireItemsDeselected(Collections.singleton((C) null));
         repaint();
     }
 
@@ -281,6 +285,8 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      */
     public void selectSection(PaneSection<? extends C> sect) {
         selectedSections.add(sect);
+        // TODO make a firePlayPenCoordinateEvent and change this event to that
+        fireItemsSelected(Collections.singleton((C) null));
         repaint();
     }
 
@@ -592,4 +598,5 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
     public PlayPenCoordinate<T, C> getInsertionPoint() {
         return insertionPoint;
     }
+    
 }
