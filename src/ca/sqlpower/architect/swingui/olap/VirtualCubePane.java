@@ -100,7 +100,7 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
         } else if (coord.getIndex() > PlayPenCoordinate.ITEM_INDEX_TITLE){
             if (coord.getItem() instanceof CubeUsage) {
                 CubeUsage cu = (CubeUsage) coord.getItem();
-                Cube c = OLAPUtil.findReferencedCube(cu);
+                Cube c = OLAPUtil.findReferencedCube(model, cu);
                 if (c == null) throw new NullPointerException("Couldn't find cube!");
                 panel = new CubeEditPanel(c);
             } else if (coord.getItem() instanceof VirtualCubeDimension) {
