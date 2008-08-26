@@ -78,7 +78,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
         builder.append("Caption", captionField = new JTextField(hierarchy.getCaption()));
         builder.append("Has All", hasAll = new JCheckBox("Has All", hierarchy.getHasAll() != null ? hierarchy.getHasAll() : true));
         builder.append("Table", tableChooser = new JComboBox(new Vector<SQLTable>(tables)));
-        builder.append("All Level Name", allLevelName = new JTextField("(All)"));
+        builder.append("All Level Name", allLevelName = new JTextField(hierarchy.getAllLevelName() != null ? hierarchy.getAllLevelName() : "(All)"));
         tableChooser.setSelectedItem(OLAPUtil.tableForHierarchy(hierarchy)); // XXX this isn't quite right.. it would set the default as the local value
         
         handler = new FormValidationHandler(status);
