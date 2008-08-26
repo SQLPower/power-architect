@@ -19,8 +19,11 @@
 
 package ca.sqlpower.architect.swingui.olap.action;
 
+import javax.swing.JOptionPane;
+
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -43,12 +46,18 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
 
     @Override
     protected void createUsage(DimensionPane dp, CubePane cp) {
-        DimensionUsage du = new DimensionUsage();
-        du.setName(dp.getModel().getName());
-        du.setSource(dp.getName());
-        cp.getModel().addChild(du);
-        UsageComponent uc = new UsageComponent(playpen.getContentPane(), du, dp, cp);
-        playpen.getContentPane().add(uc, playpen.getContentPane().getComponentCount());
+        if (OLAPUtil.isNameUnique(cp.getModel(), DimensionUsage.class, dp.getModel().getName())) {
+            DimensionUsage du = new DimensionUsage();
+            du.setName(dp.getModel().getName());
+            du.setSource(dp.getModel().getName());
+            cp.getModel().addChild(du);
+            UsageComponent uc = new UsageComponent(playpen.getContentPane(), du, dp, cp);
+            playpen.getContentPane().add(uc, playpen.getContentPane().getComponentCount());
+        } else {
+            String errorMsg = "Cube Dimension \"" + dp.getModel().getName() + "\" already exists in \"" +
+                    cp.getModel().getName() + "\".\nDimension Usage was not created.";
+            JOptionPane.showMessageDialog(playpen, errorMsg, "Duplicate Cube Dimension", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
 }
