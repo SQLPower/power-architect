@@ -23,6 +23,7 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.AbstractPlacer;
@@ -45,7 +46,13 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
 
     public void actionPerformed(ActionEvent e) {
         VirtualCube vCube = new VirtualCube();
-        vCube.setName("New Virtual Cube");
+
+        int count = 1;
+        while (!OLAPUtil.isNameUnique(schema, VirtualCube.class, "New Virtual Cube " + count)) {
+            count++;
+        }
+        vCube.setName("New Virtual Cube " + count);
+        
         VirtualCubePane cp = new VirtualCubePane(vCube, playpen.getContentPane());
         VirtualCubePlacer cubePlacer = new VirtualCubePlacer(cp);
         cubePlacer.dirtyup();

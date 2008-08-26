@@ -30,12 +30,16 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.validation.Validator;
+import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.StatusComponent;
+import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
+import ca.sqlpower.validation.swingui.ValidationHandler;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class LevelEditPanel implements DataEntryPanel {
+public class LevelEditPanel implements ValidatableDataEntryPanel {
 
     private final Level level;
     private final JPanel panel;
@@ -43,6 +47,12 @@ public class LevelEditPanel implements DataEntryPanel {
     private JTextField captionField;
     private JComboBox columnChooser;
 
+    /**
+     * Validation handler for errors in the dialog
+     */
+    private FormValidationHandler handler;
+    private StatusComponent status = new StatusComponent();
+    
     /**
      * Creates a new property editor for the given level of a hierarchy.
      * 
@@ -58,6 +68,7 @@ public class LevelEditPanel implements DataEntryPanel {
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
+        builder.append(status, 3);
         builder.append("Name", name = new JTextField(level.getName()));
         builder.append("Caption", captionField = new JTextField(level.getCaption()));
         builder.append("Column", columnChooser = new JComboBox());
@@ -70,8 +81,15 @@ public class LevelEditPanel implements DataEntryPanel {
             columnChooser.addItem("Parent dimension has no table");
             columnChooser.setEnabled(false);
         }
+        
+        handler = new FormValidationHandler(status);
+        Validator validator = new OLAPObjectNameValidator(level.getParent(), level, false);
+        handler.addValidateObject(name, validator);
+        
+        
         panel = builder.getPanel();
     }
+    
     public boolean applyChanges() {
         level.startCompoundEdit("Modify Level Properties");
         level.setName(name.getText());
@@ -98,6 +116,10 @@ public class LevelEditPanel implements DataEntryPanel {
 
     public boolean hasUnsavedChanges() {
         return true;
+    }
+
+    public ValidationHandler getValidationHandler() {
+        return handler;
     }
 
 

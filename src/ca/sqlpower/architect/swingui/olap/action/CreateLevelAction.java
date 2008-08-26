@@ -23,6 +23,7 @@ import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
@@ -70,7 +71,13 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
         }
         
         Level l = new Level();
-        l.setName("New Level");
+
+        int count = 1;
+        while (!OLAPUtil.isNameUnique(newParent, Level.class, "New Level " + count)) {
+            count++;
+        }
+        l.setName("New Level " + count);
+        
         newParent.addLevel(newIndex, l);
         return l;
     }

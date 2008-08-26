@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui.olap.action;
 
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -35,7 +36,13 @@ public class CreateMeasureAction extends CreateOLAPChildAction<CubePane, Measure
     @Override
     protected Measure addNewChild(CubePane pane) {
         Measure m = new Measure();
-        m.setName("New Measure");
+        
+        int count = 1;
+        while (!OLAPUtil.isNameUnique(pane.getModel(), Measure.class, "New Measure " + count)) {
+            count++;
+        }
+        m.setName("New Measure " + count);
+        
         pane.getModel().addMeasure(m);
         return m;
     }

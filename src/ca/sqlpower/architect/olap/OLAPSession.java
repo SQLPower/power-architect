@@ -27,6 +27,7 @@ import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 
 /**
  * The collection of objects that support editing and use of an OLAP schema.
@@ -148,8 +149,8 @@ public class OLAPSession extends OLAPObject {
     }
     
     /**
-     * Returns a CubeDimension in the child schema with the given name and in a
-     * particular Cube.
+     * Returns a CubeDimension in the child schema with the given name and
+     * parent Cube.
      * 
      * @param cubeName Name of the Cube to search in.
      * @param dimName Name of the CubeDimension to search for.
@@ -167,5 +168,15 @@ public class OLAPSession extends OLAPObject {
      */
     public Cube findCube(String name) {
         return schemaWatcher.findCube(name);
+    }
+    
+    /**
+     * Returns a VirtualCube in the child schema with the given name.
+     * 
+     * @param name The name to search by.
+     * @return A VirtualCube with the name, or null if not found.
+     */
+    public VirtualCube findVirtualCube(String name) {
+        return schemaWatcher.findVirtualCube(name);
     }
 }

@@ -54,7 +54,7 @@ public class CreateDimensionAction extends AbstractArchitectAction {
         while (!OLAPUtil.isNameUnique(schema, Dimension.class, "New Dimension " + count)) {
             count++;
         }
-        dim.setName("New Cube " + count);
+        dim.setName("New Dimension " + count);
         
         if (playpen.getSelectedContainers().size() >= 1) {
             // TODO add a DimensionUsage to the selected cube(s)
