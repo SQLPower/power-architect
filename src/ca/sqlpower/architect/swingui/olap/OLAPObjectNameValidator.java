@@ -26,34 +26,44 @@ import ca.sqlpower.validation.ValidateResult;
 import ca.sqlpower.validation.Validator;
 
 /**
- * A simple validator for OLAPObjects that checks for empty and unique names.
+ * A simple validator for OLAPObjects that checks for invalid names.
  *
  */
 public class OLAPObjectNameValidator implements Validator {
     
-    private final OLAPObject oo;
+    private final OLAPObject parent;
+    private final OLAPObject obj;
     
     /**
-     * Indicates whether to check if the name is empty or null; true to check,
-     * false for otherwise.
+     * Indicates whether name can be null. If true, empty string will also be
+     * treated as null.
      */
-    private final boolean checkEmptyName;
+    private final boolean allowNull;
     
-    public OLAPObjectNameValidator(OLAPObject oo, boolean checkEmptyName) {
-        this.oo = oo;
-        this.checkEmptyName = checkEmptyName;
+    public OLAPObjectNameValidator(OLAPObject parent, OLAPObject obj, boolean allowNull) {
+        this.parent = parent;
+        this.obj = obj;
+        this.allowNull = allowNull;
     }
 
     public ValidateResult validate(Object contents) {
         String value = (String) contents;
-        if (checkEmptyName && (value == null || value.trim().length() == 0)) {
-            return ValidateResult.createValidateResult(Status.FAIL, 
-                    "A name is required.");
-        } else if (OLAPUtil.isNameUnique(oo, value)) {
-            return ValidateResult.createValidateResult(Status.OK, "");
+
+        if (value == null || value.length() == 0) {
+            if (allowNull) {
+                if (OLAPUtil.nameFor(obj) != null && !OLAPUtil.isNameUnique(parent, obj.getClass(), null)) {
+                    return ValidateResult.createValidateResult(Status.FAIL, "Name already exists.");
+                }
+            } else {
+                return ValidateResult.createValidateResult(Status.FAIL, "A name is required.");
+            }
         } else {
-            return ValidateResult.createValidateResult(Status.FAIL, "Name already exists.");
+            if (!(value.equals(OLAPUtil.nameFor(obj))) && !OLAPUtil.isNameUnique(parent, obj.getClass(), value)) {
+                return ValidateResult.createValidateResult(Status.FAIL, "Name already exists.");
+            }
         }
+
+        return ValidateResult.createValidateResult(Status.OK, "");
     }
 
 }

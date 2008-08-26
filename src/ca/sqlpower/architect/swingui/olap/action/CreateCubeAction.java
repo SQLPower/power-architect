@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.KeyStroke;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.AbstractPlacer;
@@ -48,7 +49,13 @@ public class CreateCubeAction extends AbstractArchitectAction {
 
     public void actionPerformed(ActionEvent e) {
         Cube cube = new Cube();
-        cube.setName("New Cube");
+        
+        int count = 1;
+        while (!OLAPUtil.isNameUnique(schema, Cube.class, "New Cube " + count)) {
+            count++;
+        }
+        cube.setName("New Cube " + count);
+        
         CubePane cp = new CubePane(cube, playpen.getContentPane());
         CubePlacer cubePlacer = new CubePlacer(cp);
         cubePlacer.dirtyup();

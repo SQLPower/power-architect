@@ -73,7 +73,7 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
         panel = builder.getPanel();
         
         handler = new FormValidationHandler(status);
-        Validator validator = new OLAPObjectNameValidator(dimension, true);
+        Validator validator = new OLAPObjectNameValidator(dimension.getParent(), dimension, false);
         handler.addValidateObject(nameField, validator);
     }
     public boolean applyChanges() {

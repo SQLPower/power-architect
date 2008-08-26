@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.KeyStroke;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.AbstractPlacer;
@@ -48,7 +49,13 @@ public class CreateDimensionAction extends AbstractArchitectAction {
 
     public void actionPerformed(ActionEvent e) {
         Dimension dim = new Dimension();
-        dim.setName("New Dimension");
+        
+        int count = 1;
+        while (!OLAPUtil.isNameUnique(schema, Dimension.class, "New Dimension " + count)) {
+            count++;
+        }
+        dim.setName("New Cube " + count);
+        
         if (playpen.getSelectedContainers().size() >= 1) {
             // TODO add a DimensionUsage to the selected cube(s)
         }
