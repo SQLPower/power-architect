@@ -20,24 +20,46 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
+import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
+import ca.sqlpower.architect.olap.MondrianModel.Level;
+import ca.sqlpower.architect.olap.MondrianModel.Measure;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
+import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
+import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
+import ca.sqlpower.architect.swingui.event.PlayPenContentEvent;
+import ca.sqlpower.architect.swingui.event.PlayPenContentListener;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 
 public class OLAPPlayPenFactory {
 
@@ -58,6 +80,10 @@ public class OLAPPlayPenFactory {
         pp.setPopupFactory(new ContextMenuFactory(session, oSession));
         OLAPUtil.listenToHierarchy(oSession.getOlapSession().getSchema(), ppcl, null);
         
+        SelectionSynchronizer synchronizer = new SelectionSynchronizer(oSession.getOlapTree(), pp);
+        pp.addSelectionListener(synchronizer);
+        oSession.getOlapTree().addTreeSelectionListener(synchronizer);
+        pp.getContentPane().addPlayPenContentListener(synchronizer);
         return pp;
     }
 
@@ -181,6 +207,190 @@ public class OLAPPlayPenFactory {
          */
         public void PlayPenLifeEnding(PlayPenLifecycleEvent e) {
             OLAPUtil.unlistenToHierarchy(session.getOlapSession().getSchema(), this, null);
+        }
+    }
+    
+    static class SelectionSynchronizer 
+    implements SelectionListener,
+            ItemSelectionListener<Cube, OLAPObject>,
+            TreeSelectionListener, PlayPenContentListener {
+
+        private int eventDepth = 0;
+        private final OLAPTree tree;
+        private final PlayPen pp;
+        
+        public SelectionSynchronizer(OLAPTree tree, PlayPen pp) {
+            this.tree = tree;
+            this.pp = pp;
+        }
+        
+        /**
+         * Synchronizes the olapTree selection with the playpen selections
+         * @throws ArchitectException 
+         * 
+         */
+        public void updateOLAPTree() {
+            if (eventDepth != 1) return;
+            tree.clearSelection();
+            List<TreePath> selectionPaths = new ArrayList<TreePath>();
+            boolean addedPaths = false;
+            // Keep track of the last tree path
+            TreePath lastPath = null;
+            // finds all the TreePaths to select
+            for (PlayPenComponent comp : pp.getSelectedItems()) {
+                TreePath tp = tree.getTreePathForNode((OLAPObject) comp.getModel());
+                if (!selectionPaths.contains(tp)) {
+                    selectionPaths.add(tp);
+                    addedPaths = true;
+                    lastPath = tp;
+                }
+
+                if (comp instanceof VirtualCubePane) {
+                    for (OLAPObject oo :((VirtualCubePane) comp).getSelectedItems()) {
+                        tp = tree.getTreePathForNode(oo);
+                        if (!selectionPaths.contains(tp)) {
+                            selectionPaths.add(tp);
+                            addedPaths = true;
+                            lastPath = tp;
+                        }
+                    }
+                } else if (comp instanceof CubePane) {
+                    for (OLAPObject oo :((CubePane) comp).getSelectedItems()) {
+                        tp = tree.getTreePathForNode(oo);
+                        if (!selectionPaths.contains(tp)) {
+                            selectionPaths.add(tp);
+                            addedPaths = true;
+                            lastPath = tp;
+                        }
+                    }
+                } else if (comp instanceof DimensionPane) {
+                    for (OLAPObject oo :((DimensionPane) comp).getSelectedItems()) {
+                        tp = tree.getTreePathForNode(oo);
+                        if (!selectionPaths.contains(tp)) {
+                            selectionPaths.add(tp);
+                            addedPaths = true;
+                            lastPath = tp;
+                        }
+                    }
+                    for (PaneSection<? extends Level> sect :((DimensionPane) comp).getSelectedSections()) {
+                        Hierarchy hierarchy;
+                        if (sect instanceof HierarchySection) {
+                            hierarchy = ((HierarchySection) sect).getHierarchy();
+                        } else {
+                            throw new IllegalArgumentException("Unknown section type " + sect.getClass() + " in a DimensionPane!");
+                        }
+                        tp = tree.getTreePathForNode(hierarchy);
+                        if (!selectionPaths.contains(tp)) {
+                            selectionPaths.add(tp);
+                            addedPaths = true;
+                            lastPath = tp;
+                        }
+                    }
+                } else if (comp instanceof UsageComponent) {
+                    tp = tree.getTreePathForNode(((UsageComponent) comp).getModel());
+                    if (!selectionPaths.contains(tp)) {
+                        selectionPaths.add(tp);
+                        addedPaths = true;
+                        lastPath = tp;
+                    }
+                }
+            }
+
+            // Scroll to last tree path.
+            if (lastPath != null) {
+                tree.scrollPathToVisible(lastPath);
+            }
+
+            tree.setSelectionPaths(selectionPaths.toArray(new TreePath[selectionPaths.size()]));
+            if (addedPaths) {
+                tree.clearNonPlayPenSelections();
+            }
+        }
+
+        /**
+         * Selects the corresponding objects from the give TreePaths on the PlayPen.
+         * 
+         * @param treePaths TreePaths containing the objects to select.
+         */
+        private void selectInPlayPen(TreePath[] treePaths) {
+            if (eventDepth != 1) return;
+            if (treePaths == null) {
+                pp.selectNone();
+            } else {
+                List<OLAPObject> objects = new ArrayList<OLAPObject>();
+                for (TreePath tp : treePaths) {
+                    OLAPObject obj = (OLAPObject) tp.getLastPathComponent();
+                    // only select playpen represented objects.
+                    if ((obj instanceof Cube || obj instanceof VirtualCube || obj instanceof Measure
+                            || obj instanceof CubeDimension || obj instanceof VirtualCubeMeasure
+                            || obj instanceof Level || obj instanceof Hierarchy) &&
+                            !objects.contains(obj)) {
+                        objects.add(obj);
+                    }
+                }
+                try {
+                    pp.selectObjects(objects, tree);
+                } catch (ArchitectException e) {
+                    throw new ArchitectRuntimeException(e);
+                }
+            }
+        }
+
+        public void itemDeselected(SelectionEvent e) {
+            try {
+                eventDepth++;
+                updateOLAPTree();
+            } finally {
+                eventDepth--;
+            }
+        }
+
+        public void itemSelected(SelectionEvent e) {
+            try {
+                eventDepth++;
+                updateOLAPTree();
+            } finally {
+                eventDepth--;
+            }
+        }
+        
+        public void valueChanged(TreeSelectionEvent e) {
+            try {
+                eventDepth++;
+                selectInPlayPen(((JTree) e.getSource()).getSelectionPaths());
+            } finally {
+                eventDepth--;
+            }
+        }
+
+        public void PlayPenComponentAdded(PlayPenContentEvent e) {
+            if (e.getPlayPenComponent() instanceof CubePane) {
+                ((CubePane) e.getPlayPenComponent()).addItemSelectionListener(this);
+            }
+        }
+
+        public void PlayPenComponentRemoved(PlayPenContentEvent e) {
+            if (e.getPlayPenComponent() instanceof CubePane) {
+                ((CubePane) e.getPlayPenComponent()).removeItemSelectionListener(this);
+            }
+        }
+
+        public void itemsDeselected(ItemSelectionEvent<Cube, OLAPObject> e) {
+            try {
+                eventDepth++;
+                updateOLAPTree();
+            } finally {
+                eventDepth--;
+            }
+        }
+
+        public void itemsSelected(ItemSelectionEvent<Cube, OLAPObject> e) {
+            try {
+                eventDepth++;
+                updateOLAPTree();
+            } finally {
+                eventDepth--;
+            }
         }
     }
 }

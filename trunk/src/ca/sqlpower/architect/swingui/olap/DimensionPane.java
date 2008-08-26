@@ -57,7 +57,7 @@ public class DimensionPane extends OLAPPane<Dimension, Level> {
         
     }
     
-    private class HierarchySection implements PaneSection<Level> {
+    public class HierarchySection implements PaneSection<Level> {
 
         private final Hierarchy hierarchy;
 
@@ -162,5 +162,20 @@ public class DimensionPane extends OLAPPane<Dimension, Level> {
             }
         }
         return filtered;
+    }
+    
+    /**
+     * Returns the HierarchySection that contains the given hierarchy.
+     * Returns null if it was not found.
+     */
+    public HierarchySection findSection(Hierarchy hierarchy) {
+        for (PaneSection<? extends Level> hs : sections) {
+           if (hs instanceof HierarchySection) {
+               if (((HierarchySection) hs).getHierarchy() == hierarchy){
+                   return ((HierarchySection) hs);
+               }
+           }
+        }
+        return null;
     }
 }
