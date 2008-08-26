@@ -38,6 +38,7 @@ import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CubePane extends OLAPPane<Cube, OLAPObject> {
 
+    @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(CubePane.class);
     
     public CubePane(Cube model, PlayPenContentPane parent) {

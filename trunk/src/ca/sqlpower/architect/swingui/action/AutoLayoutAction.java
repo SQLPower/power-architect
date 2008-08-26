@@ -35,7 +35,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.LayoutAnimator;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 
 public class AutoLayoutAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(AutoLayoutAction.class);
@@ -46,16 +46,18 @@ public class AutoLayoutAction extends AbstractArchitectAction {
 
 	private int framesPerSecond = 25;
 
-    public AutoLayoutAction(ArchitectSwingSession session, String name, String description, String iconResourceName) {
-        super(session, name, description, iconResourceName);
+    public AutoLayoutAction(ArchitectSwingSession session, PlayPen playPen, String name, String description, String iconResourceName) {
+        super(session, playPen, name, description, iconResourceName);
     }
 
-    public AutoLayoutAction(ArchitectSwingSession session, String name, String description, Icon icon) {
-        super(session, name, description, icon);
+    public AutoLayoutAction(ArchitectSwingSession session, PlayPen playPen, String name, String description, Icon icon) {
+        super(session, playPen, name, description, icon);
     }
 
 	public void actionPerformed(ActionEvent evt) {
         
+	    logger.debug("Auto layout action starting...");
+	    
         // This funny construction creates a new instance of the current
         // type of layout.  It would be better to ask client code for a
         // layout factory, then use the factory to make new instances for
@@ -67,43 +69,64 @@ public class AutoLayoutAction extends AbstractArchitectAction {
             throw new RuntimeException(e);
         }
 
-        // ok, if it's broken, let's just fail silently and pretend the user missed the button. (that was sarcasm)
-		if (layout != null) {
-			List<? extends LayoutNode> tablePanes = new ArrayList<TablePane>();
-	        for (ContainerPane<?, ?> cp : getPlayPen().getSelectedContainers()) {
-	            if (cp instanceof TablePane) {
-	                ((List<TablePane>) tablePanes).add((TablePane) cp);
-	            }
-	        }
-            List<LayoutNode> notLaidOut = new ArrayList<LayoutNode>(playpen.getTablePanes());
-            notLaidOut.removeAll(tablePanes);
- 			Point layoutAreaOffset = new Point();
-			if (tablePanes.size() == 0 || tablePanes.size() == 1) {
-				tablePanes = playpen.getTablePanes();
-			} else if (tablePanes.size() != playpen.getTablePanes().size()){
-				int maxWidth =0;
-				for (LayoutNode tp : notLaidOut){
-					int width = tp.getWidth()+tp.getX();
-					if (width > maxWidth) {
-						maxWidth = width;
-					}
-				}
-				layoutAreaOffset = new Point(maxWidth,0);
-			}
+        logger.debug("Created new Layout instance: " + layout);
 
-			List<? extends LayoutEdge> relationships = playpen.getRelationships();
-			logger.debug("About to do layout. tablePanes="+tablePanes); //$NON-NLS-1$
-			logger.debug("About to do layout. relationships="+relationships); //$NON-NLS-1$
+        List<LayoutNode> nodes = new ArrayList<LayoutNode>();
+        for (ContainerPane<?, ?> cp : getPlayPen().getSelectedContainers()) {
+            if (cp instanceof LayoutNode) {
+                nodes.add((LayoutNode) cp);
+            }
+        }
+        
+        // XXX the following block of code is a bit disturbing. Needs refactoring after we figure out what it's supposed to do.
+        List<LayoutNode> notLaidOut = extractLayoutNodes(playpen);
+        notLaidOut.removeAll(nodes);
+        Point layoutAreaOffset = new Point();
+        if (nodes.size() == 0 || nodes.size() == 1) {
+            nodes = extractLayoutNodes(playpen);
+        } else if (nodes.size() != extractLayoutNodes(playpen).size()){
+            int maxWidth = 0;
+            for (LayoutNode tp : notLaidOut) {
+                int width = tp.getWidth() + tp.getX();
+                if (width > maxWidth) {
+                    maxWidth = width;
+                }
+            }
+            layoutAreaOffset = new Point(maxWidth,0);
+        }
+
+        List<LayoutEdge> edges = extractLayoutEdges(playpen);
+        logger.debug("About to do layout. nodes=" + nodes); //$NON-NLS-1$
+        logger.debug("About to do layout. edges=" + edges); //$NON-NLS-1$
 
 
-			Rectangle layoutArea = new Rectangle(layoutAreaOffset, layout.getNewArea(tablePanes));
-			layout.setup(tablePanes, relationships, layoutArea);
-            LayoutAnimator anim = new LayoutAnimator(playpen, layout);
-            anim.setAnimationEnabled(animationEnabled);
-            anim.setFramesPerSecond(framesPerSecond);
-			anim.startAnimation();
-		}
+        Rectangle layoutArea = new Rectangle(layoutAreaOffset, layout.getNewArea(nodes));
+        layout.setup(nodes, edges, layoutArea);
+        LayoutAnimator anim = new LayoutAnimator(playpen, layout);
+        anim.setAnimationEnabled(animationEnabled);
+        anim.setFramesPerSecond(framesPerSecond);
+        anim.startAnimation();
 	}
+
+    private static List<LayoutNode> extractLayoutNodes(PlayPen pp) {
+        List<LayoutNode> nodes = new ArrayList<LayoutNode>();
+        for (PlayPenComponent ppc : pp.getPlayPenComponents()) {
+            if (ppc instanceof LayoutNode) {
+                nodes.add((LayoutNode) ppc);
+            }
+        }
+        return nodes;
+    }
+
+    private static List<LayoutEdge> extractLayoutEdges(PlayPen pp) {
+        List<LayoutEdge> edges = new ArrayList<LayoutEdge>();
+        for (PlayPenComponent ppc : pp.getPlayPenComponents()) {
+            if (ppc instanceof LayoutEdge) {
+                edges.add((LayoutEdge) ppc);
+            }
+        }
+        return edges;
+    }
 
 	public boolean isAnimationEnabled() {
 		return animationEnabled;

@@ -22,6 +22,8 @@ package ca.sqlpower.architect.swingui.olap;
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 
+import ca.sqlpower.architect.layout.LayoutEdge;
+import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
@@ -34,7 +36,7 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
  * A component that visually indicates a usage of one olap pane by another. For example,
  * a dimension usage or a cube usage.
  */
-public class UsageComponent extends PlayPenComponent {
+public class UsageComponent extends PlayPenComponent implements LayoutEdge {
 
     private final OLAPObject model;
     private final OLAPPane<?, ?> pane1;
@@ -125,5 +127,13 @@ public class UsageComponent extends PlayPenComponent {
                 getPlayPen().getContentPane().remove(UsageComponent.this);
             }
         }
+    }
+
+    public LayoutNode getHeadNode() {
+        return pane2;
+    }
+
+    public LayoutNode getTailNode() {
+        return pane1;
     }
 }

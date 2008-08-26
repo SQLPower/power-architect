@@ -46,6 +46,7 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
@@ -60,7 +61,7 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
  */
 public abstract class ContainerPane<T extends Object, C extends Object>
 extends PlayPenComponent
-implements DragSourceListener {
+implements DragSourceListener, LayoutNode {
     
     /**
      * A special item index that represents the titlebar area.
@@ -564,4 +565,12 @@ implements DragSourceListener {
      * If there is nothing transferable selected, returns null.
      */
     public abstract Transferable createTransferableForSelection();
+    
+    
+    /**
+     * Simple implementation for LayoutNode interface. Simply calls getName().
+     */
+    public String getNodeName() {
+        return getName();
+    }
 }
