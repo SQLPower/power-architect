@@ -4666,6 +4666,10 @@ public static class Formula extends OLAPObject {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("Formula:");
 	    
+		retStr.append("text = ");
+		retStr.append(text);
+		retStr.append(",");
+		
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
 	    
 	    return retStr.toString();
@@ -5099,6 +5103,10 @@ public static class SQL extends OLAPObject {
 	    retStr.append(dialect);
 	    retStr.append(",");
 	    
+		retStr.append("text = ");
+		retStr.append(text);
+		retStr.append(",");
+		
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
 	    
 	    return retStr.toString();
@@ -6293,6 +6301,10 @@ public static class Value extends OLAPObject {
 	    retStr.append(column);
 	    retStr.append(",");
 	    
+		retStr.append("text = ");
+		retStr.append(text);
+		retStr.append(",");
+		
 	    retStr = retStr.deleteCharAt(retStr.length()-1);
 	    
 	    return retStr.toString();
