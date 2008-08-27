@@ -91,7 +91,6 @@ public class DimensionUsageEditPanel implements DataEntryPanel{
         SQLColumn selectedCol = (SQLColumn) foreignKeyChooser.getSelectedItem();
         String pk = selectedCol.getName();
         dimensionUsage.setForeignKey(pk);
-        dimension.setForeignKey(pk);
         dimensionUsage.endCompoundEdit();
         return true;
     }
