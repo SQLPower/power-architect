@@ -49,6 +49,7 @@ import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.olap.MondrianXMLReader;
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -165,6 +166,10 @@ public class CoreProject {
             dbcsLoadIdMap = new HashMap<String, SPDataSource>();
             sqlObjectLoadIdMap = new HashMap<String, SQLObject>();
             olapObjectLoadIdMap = new HashMap<String, OLAPObject>();
+            
+            // sqlObjectLoadIdMap is not ready yet when parsing the olap objects
+            // so this keeps track of the id of the SQLDatabase that OLAPSessions reference.
+            Map<OLAPSession, String> sessionDbMap = new HashMap<OLAPSession, String>();
 
             if (uin.markSupported()) {
                 uin.mark(Integer.MAX_VALUE);
@@ -175,7 +180,7 @@ public class CoreProject {
             // parse the Mondrian business model parts first because the olap id
             // map is needed in the digester for parsing the olap gui
             try {
-                MondrianXMLReader.parse(uin, session.getOLAPRootObject(), sqlObjectLoadIdMap, olapObjectLoadIdMap);
+                MondrianXMLReader.parse(uin, session.getOLAPRootObject(), sessionDbMap, olapObjectLoadIdMap);
             } catch (SAXException e) {
                 logger.error("Error parsing project file's olap schemas!", e);
                 throw new ArchitectException("SAX Exception in project file olap schemas parse!", e);
@@ -288,6 +293,14 @@ public class CoreProject {
                     }
                 }
 
+            }
+            
+            // now that the sqlObjectLoadIdMap is populated, we can set the
+            // OLAPSessions' database.
+            for (Map.Entry<OLAPSession, String> entry : sessionDbMap.entrySet()) {
+                OLAPSession oSession = entry.getKey();
+                SQLDatabase db = (SQLDatabase) sqlObjectLoadIdMap.get(entry.getValue());
+                oSession.setDatabase(db);
             }
             
             setModified(false);
