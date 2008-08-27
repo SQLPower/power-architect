@@ -63,6 +63,7 @@ import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 
 public class OLAPPlayPenFactory {
 
+    @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(OLAPPlayPenFactory.class);
 
     public static PlayPen createPlayPen(ArchitectSwingSession session, OLAPEditSession oSession) {
