@@ -32,6 +32,8 @@ import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.Icon;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.OLAPChildEvent;
@@ -93,7 +95,9 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     /**
      * Amount of extra space after the section header before the first item in the section.
      */
-    private static final int SECTION_HEADER_GAP = 5;
+    private static final int SECTION_HEADER_VGAP = 5;
+
+    private static final int ICON_TITLE_HGAP = 5;
     
     private Color selectedColor = new Color(204, 204, 255);
     
@@ -127,7 +131,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         height += fontHeight + GAP + BOX_LINE_THICKNESS;
         for (PaneSection<? extends C> ps : olapPane.getSections()) {
             if (ps.getTitle() != null) {
-                height += fontHeight + SECTION_HEADER_GAP; 
+                height += fontHeight + SECTION_HEADER_VGAP; 
             }
             height += ps.getItems().size() * fontHeight;
         }
@@ -145,7 +149,10 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         
         // Width calculation
         width = MINIMUM_WIDTH;
-        width = Math.max(width, calculateTextWidth(cp, cp.getName()));
+        width = Math.max(
+                width,
+                calculateTextWidth(cp, cp.getName()) +
+                    OSUtils.iconFor(olapPane.getModel()).getIconWidth() + ICON_TITLE_HGAP);
         for (PaneSection<? extends C> ps : olapPane.getSections()) {
             width = Math.max(width, calculateMaxSectionWidth(ps, cp));
         }
@@ -231,8 +238,11 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
 
         g2.setColor(op.getForegroundColor());
 
+        Icon icon = OSUtils.iconFor(op.getModel());
+        icon.paintIcon(null, g2, 0, 0);
+        
         // print containerPane name
-        g2.drawString(op.getModel().getName(), 0, y += ascent); // XXX should add font height, no?
+        g2.drawString(op.getModel().getName(), icon.getIconWidth() + ICON_TITLE_HGAP, y += ascent); // XXX should add font height, no?
 
         g2.setColor(Color.BLACK);
         
@@ -311,7 +321,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         for (PaneSection<? extends C> sect : olapPane.getSections()) {
             int sectionHeight = fontHeight * sect.getItems().size();
             if (sect.getTitle() != null) {
-                sectionHeight += fontHeight + SECTION_HEADER_GAP;
+                sectionHeight += fontHeight + SECTION_HEADER_VGAP;
             }
             if (firstSection) {
                 sectionHeight += (INTER_SECTION_GAP + fontHeight - ascent) / 2;
@@ -370,11 +380,11 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
             
             // if there is a title, we have to adjust for that
             if (sect.getTitle() != null) {
-                if (p.y <= fontHeight + SECTION_HEADER_GAP) {
+                if (p.y <= fontHeight + SECTION_HEADER_VGAP) {
                     // TODO we need a system for specifying a click on a section title
                     return PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE;
                 } else {
-                    int sectTitleHeight = fontHeight + SECTION_HEADER_GAP;
+                    int sectTitleHeight = fontHeight + SECTION_HEADER_VGAP;
                     adjustment -= sectTitleHeight;
                 }
             }
@@ -435,12 +445,12 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
             
             // if there is a title, we have to adjust for that
             if (sect.getTitle() != null) {
-                if (p.y <= fontHeight + SECTION_HEADER_GAP) {
+                if (p.y <= fontHeight + SECTION_HEADER_VGAP) {
                     PlayPenCoordinate<T, C> returnVal = new PlayPenCoordinate<T, C>(olapPane, sect, PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE, null);
                     logger.debug("pointToPPCoordinate returnVal is: " + returnVal);
                     return returnVal;
                 } else {
-                    int sectTitleHeight = fontHeight + SECTION_HEADER_GAP;
+                    int sectTitleHeight = fontHeight + SECTION_HEADER_VGAP;
                     adjustment -= sectTitleHeight;
                 }
             }
@@ -523,7 +533,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
             }
 
             g.drawString(ps.getTitle(), BOX_LINE_THICKNESS, y += fontHeight);
-            y += SECTION_HEADER_GAP;
+            y += SECTION_HEADER_VGAP;
         }
 
         // putting the insertion point above the section title looks dumb, so we do it here instead
