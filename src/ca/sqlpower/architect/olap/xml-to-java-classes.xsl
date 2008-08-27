@@ -245,6 +245,11 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         <xsl:for-each select="Array">
         children.addAll(<xsl:value-of select="@name"/>);
         </xsl:for-each>
+        <xsl:for-each select="Object">
+        if (<xsl:value-of select="@name"/> != null) {
+        	children.add(<xsl:value-of select="@name"/>);
+        }
+        </xsl:for-each>
         return Collections.unmodifiableList(children);
     }
     
