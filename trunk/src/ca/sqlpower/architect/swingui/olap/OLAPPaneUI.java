@@ -600,7 +600,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
                 logger.error("Found null column in dimension '"+cp.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
                 throw new NullPointerException("Found null column in dimension '"+cp.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
             }
-            width = Math.max(width, calculateTextWidth(cp, oo.getName()));
+            width = Math.max(width, calculateTextWidth(cp, OLAPUtil.nameFor(oo)));
         }
         return width;
     }
