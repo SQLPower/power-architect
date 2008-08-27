@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -29,6 +30,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
@@ -51,6 +53,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
     private final JComboBox tableChooser;
     private final JCheckBox hasAll;
     private final JTextField allLevelName;
+    private final JComboBox primaryKeyName;
     
     /**
      * Validation handler for errors in the dialog
@@ -80,6 +83,22 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
         builder.append("Table", tableChooser = new JComboBox(new Vector<SQLTable>(tables)));
         builder.append("All Level Name", allLevelName = new JTextField(hierarchy.getAllLevelName() != null ? hierarchy.getAllLevelName() : "(All)"));
         tableChooser.setSelectedItem(OLAPUtil.tableForHierarchy(hierarchy)); // XXX this isn't quite right.. it would set the default as the local value
+        SQLTable selectedTable = (SQLTable) tableChooser.getSelectedItem();
+        List<SQLColumn> pk = new ArrayList<SQLColumn>();
+        if (selectedTable != null) {
+            for (SQLColumn col : selectedTable.getColumns()) {
+                if (col.isPrimaryKey()) {
+                    pk.add(col);
+                }
+            }
+            if (pk.isEmpty()) {
+                throw new IllegalStateException("Primary key in a hierarchy should always be " +
+                		"specified from the selected table, but selected table contains no primary key");
+            }
+        } else {
+            throw new IllegalStateException("Selected source table must not be null");
+        }
+        builder.append("Primary Key", primaryKeyName = new JComboBox(new Vector<SQLColumn>(pk)));
         
         handler = new FormValidationHandler(status);
         Validator validator = new OLAPObjectNameValidator(hierarchy.getParent(), hierarchy, true);
@@ -108,6 +127,8 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
             hierarchy.setRelation(table);
         }
         hierarchy.setAllLevelName(allLevelName.getText());
+        SQLColumn column = (SQLColumn) primaryKeyName.getSelectedItem();
+        hierarchy.setPrimaryKey(column.getName());
         hierarchy.endCompoundEdit();
         return true;
     }
