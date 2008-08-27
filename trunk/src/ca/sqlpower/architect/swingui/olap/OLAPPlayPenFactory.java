@@ -189,12 +189,10 @@ public class OLAPPlayPenFactory {
             OLAPUtil.unlistenToHierarchy(e.getChild(), this, null);
             // Go through the list backwards when removing to eliminate problems.
             for (int j = pp.getContentPane().getComponentCount() - 1; j >= 0; j--) {
-                if (pp.getContentPane().getComponent(j) instanceof OLAPPane) {
-                    OLAPPane<?, ?> olapPane = (OLAPPane<?, ?>) pp.getContentPane().getComponent(j);
-                    if (olapPane.getModel() == e.getChild()) {
-                        olapPane.setSelected(false, SelectionEvent.SINGLE_SELECT);
-                        pp.getContentPane().remove(j);
-                    }
+                PlayPenComponent ppc = pp.getContentPane().getComponent(j);
+                if (ppc.getModel() == e.getChild()) {
+                    ppc.setSelected(false, SelectionEvent.SINGLE_SELECT);
+                    pp.getContentPane().remove(j);
                 }
             } 
         }

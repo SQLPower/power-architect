@@ -371,6 +371,10 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
                 OLAPUtil.unlistenToHierarchy(cubeUsages, this, this);
             }
             vc.removePropertyChangeListener(this);
+        } else if (e.getChild() instanceof VirtualCubeDimension) {
+            for (List<VirtualCubeDimension> vCubeDims : vCubeDimensionMap.values()) {
+                vCubeDims.remove(e.getChild());
+            }
         }
 
         OLAPUtil.unlistenToHierarchy(e.getChild(), this, this);
