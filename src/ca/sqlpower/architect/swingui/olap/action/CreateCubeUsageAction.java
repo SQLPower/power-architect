@@ -28,6 +28,7 @@ import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.CubePane;
+import ca.sqlpower.architect.swingui.olap.OSUtils;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 
@@ -41,7 +42,7 @@ public class CreateCubeUsageAction extends CreateUsageAction<CubePane, VirtualCu
     private static final Logger logger = Logger.getLogger(CreateCubeUsageAction.class);
 
     public CreateCubeUsageAction(ArchitectSwingSession session, PlayPen pp) {
-        super(session, pp, CubePane.class, VirtualCubePane.class, "Cube Usage");
+        super(session, pp, CubePane.class, VirtualCubePane.class, "Cube Usage", OSUtils.CUBE_USAGE_ADD_ICON);
     }
 
     @Override

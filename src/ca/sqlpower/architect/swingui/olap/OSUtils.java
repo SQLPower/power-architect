@@ -47,28 +47,49 @@ import ca.sqlpower.swingui.BlankIcon;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**
- * A collection of utility methods for the OLAP Swing UI.
+ * A collection of utility methods for the OLAP Swing UI. Also the place
+ * where we keep all the icons.
  */
 public class OSUtils {
 
     public static final ImageIcon CUBE_ICON = SPSUtils.createIcon("olap/cube", "Cube"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon CUBE_ADD_ICON = SPSUtils.createIcon("olap/cubeAdd", "New Cube"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon CUBE_USAGE_ICON = SPSUtils.createIcon("olap/cubeUsage", "Cube Usage"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon CUBE_USAGE_ADD_ICON = SPSUtils.createIcon("olap/cubeUsageAdd", "New Cube Usage"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon DIMENSION_ICON = SPSUtils.createIcon("olap/dimension", "Dimension"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon DIMENSION_ADD_ICON = SPSUtils.createIcon("olap/dimensionAdd", "New Dimension"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon FORMULA_ICON = SPSUtils.createIcon("olap/formula", "Formula"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon FORMULA_ADD_ICON = SPSUtils.createIcon("olap/formulaAdd", "New Formula"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon HIERARCHY_ICON = SPSUtils.createIcon("olap/hierarchy", "Hierarchy"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon HIERARCHY_ADD_ICON = SPSUtils.createIcon("olap/hierarchyAdd", "New Hierarchy"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon LEVEL_ICON = SPSUtils.createIcon("olap/level", "Level"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon LEVEL_ADD_ICON = SPSUtils.createIcon("olap/levelAdd", "New Level"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon LEVEL_PROP_ICON = SPSUtils.createIcon("olap/levelProperty", "Level Property"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon LEVEL_PROP_ADD_ICON = SPSUtils.createIcon("olap/levelPropertyAdd", "New Level Property"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon MEASURE_ICON = SPSUtils.createIcon("olap/measure", "Measure"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon MEASURE_ADD_ICON = SPSUtils.createIcon("olap/measureAdd", "New Measure"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon MEASURE_PROP_ICON = SPSUtils.createIcon("olap/measureProperty", "Measure Property"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon MEASURE_PROP_ADD_ICON = SPSUtils.createIcon("olap/measurePropertyAdd", "New Measure Property"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon NAMED_SET_ICON = SPSUtils.createIcon("olap/namedSet", "Named Set"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon NAMED_SET_ADD_ICON = SPSUtils.createIcon("olap/namedSetAdd", "New Named Set"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon SCHEMA_ICON = SPSUtils.createIcon("olap/schema", "Schema"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon SCHEMA_ADD_ICON = SPSUtils.createIcon("olap/schemaAdd", "New Schema"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon SEC_GRANT_ICON = SPSUtils.createIcon("olap/securityGrant", "Grant"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon SEC_GRANT_ADD_ICON = SPSUtils.createIcon("olap/securityGrantAdd", "New Grant"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon SEC_CUBE_GRANT_ICON = SPSUtils.createIcon("olap/cubeGrant", "Cube Grant"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon SEC_CUBE_GRANT_ADD_ICON = SPSUtils.createIcon("olap/cubeGrantAdd", "New Cube Grant"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon SEC_HIERARCHY_GRANT_ICON = SPSUtils.createIcon("olap/hierarchyGrant", "Hierarchy Grant"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon SEC_HIERARCHY_GRANT_ADD_ICON = SPSUtils.createIcon("olap/hierarchyGrantAdd", "New Hierarchy Grant"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon SEC_SCHEMA_GRANT_ICON = SPSUtils.createIcon("olap/schemaGrant", "Schema Grant"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon SEC_SCHEMA_GRANT_ADD_ICON = SPSUtils.createIcon("olap/schemaGrantAdd", "New Schema Grant"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon SEC_ROLE_ICON = SPSUtils.createIcon("olap/securityRole", "Role"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon SEC_ROLE_ADD_ICON = SPSUtils.createIcon("olap/securityRoleAdd", "New Role"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon SEC_UNION_ICON = SPSUtils.createIcon("olap/securityUnion", "Union"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon SEC_UNION_ADD_ICON = SPSUtils.createIcon("olap/securityUnionAdd", "New Union"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon VIRTUAL_CUBE_ICON = SPSUtils.createIcon("olap/virtualCube", "Virtual Cube"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon VIRTUAL_CUBE_ADD_ICON = SPSUtils.createIcon("olap/virtualCubeAdd", "New Virtual Cube"); //$NON-NLS-1$ //$NON-NLS-2$
+
+    public static final ImageIcon SCHEMA_EXPORT_ICON = SPSUtils.createIcon("olap/schemaExport", "Export Schema"); //$NON-NLS-1$ //$NON-NLS-2$
 
     /**
      * Returns the appropriate icon for the given OLAP object.
@@ -81,51 +102,68 @@ public class OSUtils {
      *         returned.
      */
     public static Icon iconFor(OLAPObject value) {
+        return iconFor(value, false);
+    }
+
+    /**
+     * Returns the appropriate icon for the given OLAP object.
+     * 
+     * @param value
+     *            The object you want an icon for
+     * @param addVariant
+     *            true for the variant of the icon with an "add" badge, false
+     *            for the undecorated icon.
+     * @return The most appropriate icon for the given object. The icon size
+     *         will be 16x16, and it will have an alpha mask. If no appropriate
+     *         icon is available, a completely transparent 16x16 icon will be
+     *         returned.
+     */
+    public static Icon iconFor(OLAPObject value, boolean addVariant) {
         if (false) {
         } else if (value instanceof CalculatedMember) {
-            return FORMULA_ICON;
+            return addVariant ? FORMULA_ADD_ICON : FORMULA_ICON;
         } else if (value instanceof Cube) {
-            return CUBE_ICON;
+            return addVariant ? CUBE_ADD_ICON : CUBE_ICON;
         } else if (value instanceof CubeUsage) {
-            return CUBE_USAGE_ICON;
+            return addVariant ? CUBE_USAGE_ADD_ICON : CUBE_USAGE_ICON;
         } else if (value instanceof CubeDimension) {
-            return DIMENSION_ICON;
+            return addVariant ? DIMENSION_ADD_ICON : DIMENSION_ICON;
         } else if (value instanceof Formula) {
-            return FORMULA_ICON;
+            return addVariant ? FORMULA_ADD_ICON : FORMULA_ICON;
         } else if (value instanceof Hierarchy) {
-            return HIERARCHY_ICON;
+            return addVariant ? HIERARCHY_ADD_ICON : HIERARCHY_ICON;
         } else if (value instanceof Level) {
-            return LEVEL_ICON;
+            return addVariant ? LEVEL_ADD_ICON : LEVEL_ICON;
         } else if (value instanceof Property && value.getParent() instanceof Level) {
-            return LEVEL_PROP_ICON;
+            return addVariant ? LEVEL_PROP_ADD_ICON : LEVEL_PROP_ICON;
         } else if (value instanceof Measure) {
-            return MEASURE_ICON;
+            return addVariant ? MEASURE_ADD_ICON : MEASURE_ICON;
         } else if (value instanceof Property && value.getParent() instanceof Measure) {
-            return MEASURE_PROP_ICON;
+            return addVariant ? MEASURE_PROP_ADD_ICON : MEASURE_PROP_ICON;
         } else if (value instanceof MemberGrant) {
-            return SEC_GRANT_ICON;
+            return addVariant ? SEC_GRANT_ADD_ICON : SEC_GRANT_ICON;
         } else if (value instanceof NamedSet) {
-            return NAMED_SET_ICON;
+            return addVariant ? NAMED_SET_ADD_ICON : NAMED_SET_ICON;
         } else if (value instanceof Schema) {
-            return SCHEMA_ICON;
+            return addVariant ? SCHEMA_ADD_ICON : SCHEMA_ICON;
         } else if (value instanceof CubeGrant) {
-            return SEC_CUBE_GRANT_ICON;
+            return addVariant ? SEC_CUBE_GRANT_ADD_ICON : SEC_CUBE_GRANT_ICON;
 //      } else if (value instanceof DimensionGrant) {  TODO get this icon
-//          return SEC_DIMENSION_GRANT_ICON;
+//          return addVariant ? SEC_DIMENSION_GRANT_ADD_ICON : SEC_DIMENSION_GRANT_ICON;
         } else if (value instanceof HierarchyGrant) {
-            return SEC_HIERARCHY_GRANT_ICON;
+            return addVariant ? SEC_HIERARCHY_GRANT_ADD_ICON : SEC_HIERARCHY_GRANT_ICON;
         } else if (value instanceof SchemaGrant) {
-            return SEC_SCHEMA_GRANT_ICON;
+            return addVariant ? SEC_SCHEMA_GRANT_ADD_ICON : SEC_SCHEMA_GRANT_ICON;
         } else if (value instanceof Grant) {
-            return SEC_GRANT_ICON;
+            return addVariant ? SEC_GRANT_ADD_ICON : SEC_GRANT_ICON;
         } else if (value instanceof Role) {
-            return SEC_ROLE_ICON;
+            return addVariant ? SEC_ROLE_ADD_ICON : SEC_ROLE_ICON;
         } else if (value instanceof Union) {
-            return SEC_UNION_ICON;
+            return addVariant ? SEC_UNION_ADD_ICON : SEC_UNION_ICON;
         } else if (value instanceof VirtualCube) {
-            return VIRTUAL_CUBE_ICON;
+            return addVariant ? VIRTUAL_CUBE_ADD_ICON : VIRTUAL_CUBE_ICON;
         } else if (value instanceof VirtualCubeMeasure) {
-            return MEASURE_ICON;
+            return addVariant ? MEASURE_ADD_ICON : MEASURE_ICON;
         }
 
         return BlankIcon.getInstance(16, 16);

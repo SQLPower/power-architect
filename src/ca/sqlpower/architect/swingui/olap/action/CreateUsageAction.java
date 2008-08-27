@@ -22,6 +22,8 @@ package ca.sqlpower.architect.swingui.olap.action;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Icon;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -79,8 +81,9 @@ implements ActionListener, SelectionListener, CancelableListener {
             PlayPen pp,
             Class<P1> pane1Class,
             Class<P2> pane2Class,
-            String name) {
-        super(session, pp, "New " + name, "Creates a " + name, (String) null);
+            String name,
+            Icon icon) {
+        super(session, pp, "New " + name + "...", "Create a new " + name, icon);
         this.pane1Class = pane1Class;
         this.pane2Class = pane2Class;
         cursorManager = playpen.getCursorManager();

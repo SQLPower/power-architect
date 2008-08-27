@@ -35,6 +35,7 @@ import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.olap.DimensionEditPanel;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
+import ca.sqlpower.architect.swingui.olap.OSUtils;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CreateDimensionAction extends AbstractArchitectAction {
@@ -42,7 +43,7 @@ public class CreateDimensionAction extends AbstractArchitectAction {
     private final Schema schema;
 
     public CreateDimensionAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
-        super(session, pp, "New Dimension...", "Create a new shared dimension in this schema", (String) null);
+        super(session, pp, "New Dimension...", "Create a new shared dimension in this schema", OSUtils.DIMENSION_ADD_ICON);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('d'));
         this.schema = schema;
     }

@@ -34,6 +34,7 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.RecentMenu;
 import ca.sqlpower.architect.swingui.action.ProgressAction;
+import ca.sqlpower.architect.swingui.olap.OSUtils;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.MonitorableImpl;
 
@@ -48,7 +49,7 @@ public class ExportSchemaAction extends ProgressAction {
     private RecentMenu recent;
     
     public ExportSchemaAction(ArchitectSwingSession session, Schema schema) {
-        super(session, "Export Schema...", "Exports Schema to xml" ); //$NON-NLS-1$ //$NON-NLS-2$
+        super(session, "Export Schema...", "Export Schema to xml", OSUtils.SCHEMA_EXPORT_ICON); //$NON-NLS-1$ //$NON-NLS-2$
         this.session = session;
         this.schema = schema;
         this.recent = session.getRecentMenu();

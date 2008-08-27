@@ -23,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import javax.swing.Icon;
 import javax.swing.JDialog;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -103,11 +104,13 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
      * @param accelKey
      *            The key character that should be used to invoke this action
      *            from the keyboard.
+     * @param icon
+     *            The icon for this action.
      */
     public CreateOLAPChildAction(ArchitectSwingSession session, PlayPen olapPlayPen,
             String friendlyChildName, Class<P> paneClass,
-                    String friendlyParentName, char accelKey) {
-        super(session, olapPlayPen, "New " + friendlyChildName, null, (String) null);
+            String friendlyParentName, char accelKey, Icon icon) {
+        super(session, olapPlayPen, "New " + friendlyChildName + "...", null, icon);
         this.friendlyChildName = friendlyChildName;
         this.paneClass = paneClass;
         this.friendlyParentName = friendlyParentName;
