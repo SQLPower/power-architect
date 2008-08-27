@@ -32,6 +32,7 @@ import ca.sqlpower.architect.olap.MondrianXMLWriter;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.RecentMenu;
 import ca.sqlpower.architect.swingui.action.ProgressAction;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.MonitorableImpl;
@@ -44,11 +45,13 @@ public class ExportSchemaAction extends ProgressAction {
     
     private ArchitectSwingSession session;
     private Schema schema;
+    private RecentMenu recent;
     
     public ExportSchemaAction(ArchitectSwingSession session, Schema schema) {
         super(session, "Export Schema...", "Exports Schema to xml" ); //$NON-NLS-1$ //$NON-NLS-2$
         this.session = session;
         this.schema = schema;
+        this.recent = session.getRecentMenu();
     }
     
     @Override
@@ -81,7 +84,7 @@ public class ExportSchemaAction extends ProgressAction {
     @Override
     public boolean setup(MonitorableImpl monitor, Map<String, Object> properties) {
         monitor.setStarted(true);
-        JFileChooser chooser = new JFileChooser(session.getRecentMenu().getMostRecentFile());
+        JFileChooser chooser = new JFileChooser(recent.getMostRecentFile());
         chooser.addChoosableFileFilter(SPSUtils.XML_FILE_FILTER);
         
         File file = null;
@@ -113,6 +116,7 @@ public class ExportSchemaAction extends ProgressAction {
         
         logger.debug("Saving to file: " + file.getName() + "(" + file.getPath() + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     
+        recent.putRecentFileName(file.getAbsolutePath());
         properties.put(FILE_KEY,file);
         return true;
     }
