@@ -97,8 +97,7 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
             } else if (coord.getItem() instanceof DimensionUsage) {
                 UsageComponent usageComp = (UsageComponent) getPlayPen().findPPComponent(coord.getItem());
                 Dimension dimension = (Dimension) usageComp.getPane1().getModel();
-                DimensionUsage dimensionUsage = (DimensionUsage) usageComp.getModel();
-                panel = new DimensionUsageEditPanel(dimensionUsage, dimension);
+                panel = new DimensionEditPanel(dimension);
             } else {
                 throw new IllegalArgumentException("Edit dialog for type " + coord.getItem().getClass() + " cannot be created!");
             }

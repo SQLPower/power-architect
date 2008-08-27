@@ -20,17 +20,26 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Color;
+import java.awt.Window;
 import java.awt.event.MouseEvent;
+
+import javax.swing.JDialog;
+import javax.swing.SwingUtilities;
 
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.event.PlayPenContentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenContentListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 /**
  * A component that visually indicates a usage of one olap pane by another. For example,
@@ -90,6 +99,33 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
             }
         } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
             setSelected(getUI().intersects(pp.getRubberBand()), SelectionEvent.SINGLE_SELECT);
+        } else if (evt.getID() == MouseEvent.MOUSE_CLICKED) {
+            if (evt.getClickCount() == 2 && evt.getButton() == MouseEvent.BUTTON1) {
+                if (model instanceof DimensionUsage) {
+                    try {
+                        DimensionUsage du = (DimensionUsage) model;
+                        Dimension d;
+                        if (pane1.getModel() instanceof Dimension) {
+                            d = (Dimension) pane1.getModel();
+                        } else if (pane2.getModel() instanceof Dimension) {
+                            d = (Dimension) pane2.getModel();
+                        } else {
+                            throw new IllegalStateException("Couldn't find referenced Dimension of: " + du);
+                        }
+                        DataEntryPanel panel = new DimensionUsageEditPanel(du, d);
+                        if (panel != null) {
+                            Window owner = SwingUtilities.getWindowAncestor(getPlayPen());
+                            JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, owner,
+                                    "Modify Properties", "OK");
+                            dialog.setLocationRelativeTo(owner);
+                            dialog.setVisible(true);
+                        }
+                    } catch (Exception e) {
+                        ASUtils.showExceptionDialogNoReport(SwingUtilities.getWindowAncestor(getPlayPen()),
+                                "Failed to create edit dialog!", e);
+                    }
+                }
+            }
         }
     }
 
