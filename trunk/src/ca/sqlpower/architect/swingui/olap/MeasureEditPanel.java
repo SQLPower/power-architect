@@ -19,13 +19,28 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import mondrian.rolap.RolapAggregator;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.olap.OLAPUtil;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
+import ca.sqlpower.architect.olap.MondrianModel.MeasureExpression;
+import ca.sqlpower.architect.olap.MondrianModel.SQL;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
 import ca.sqlpower.validation.swingui.StatusComponent;
@@ -42,6 +57,10 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
     private JTextField name;
     private JTextField captionField;
     private JComboBox aggregator;
+    private JComboBox columnChooser;
+    private JRadioButton columnRadioButton;
+    private JTextArea expression;
+    private JRadioButton expRadioButton;
     
     /**
      * Validation handler for errors in the dialog
@@ -53,8 +72,10 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
      * Creates a new property editor for the given OLAP Measure. 
      * 
      * @param cube The data model of the measure to edit
+     * @throws ArchitectException
+     *             if populating the necessary SQLObjects fails
      */
-    public MeasureEditPanel(Measure measure) {
+    public MeasureEditPanel(Measure measure) throws ArchitectException {
         this.measure = measure;
         
         FormLayout layout = new FormLayout(
@@ -69,12 +90,74 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
             aggregator.setSelectedItem(measure.getAggregator());
         }
         
+        builder.appendSeparator("Value");
+        
+        Action radioButtonsAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent arg0) {
+                columnChooser.setEnabled(columnRadioButton.isSelected());
+                expression.setEnabled(expRadioButton.isSelected());
+            }
+        };
+        
+        columnRadioButton = new JRadioButton();
+        columnRadioButton.setAction(radioButtonsAction);
+        columnRadioButton.setText("Use Column");
+        expRadioButton = new JRadioButton();
+        expRadioButton.setAction(radioButtonsAction);
+        expRadioButton.setText("Use Expression");
+        
+        ButtonGroup buttonGroup = new ButtonGroup();
+        buttonGroup.add(columnRadioButton);
+        buttonGroup.add(expRadioButton);
+        
+        builder.append(columnRadioButton, 3); 
+        builder.append(columnChooser = new JComboBox(), 3);
+        builder.append(expRadioButton, 3); 
+        builder.append(new JScrollPane(expression = new JTextArea(4, 30)), 3);
+        expression.setLineWrap(true);
+        
+        SQLTable cubeTable = OLAPUtil.tableForCube((Cube) measure.getParent());
+        boolean enableColumns = false;
+        if (cubeTable == null) {
+            columnChooser.addItem("Parent Cube has no table");
+        } else if (cubeTable.getColumns().size() == 0) {
+            columnChooser.addItem("Parent Cube table has no columns");
+        } else {
+            for (SQLColumn col : cubeTable.getColumns()) {
+                columnChooser.addItem(col);
+                if (col.getName().equalsIgnoreCase(measure.getColumn())) {
+                    columnChooser.setSelectedItem(col);
+                    columnRadioButton.doClick();
+                }
+            }
+            enableColumns = true;
+        }
+        columnChooser.setEnabled(enableColumns);
+        columnRadioButton.setEnabled(enableColumns);
+        
+        SQL exp = null;
+        MeasureExpression mExp = measure.getMeasureExp();
+        if (mExp != null) {
+            for (SQL sql : measure.getMeasureExp().getExpressions()) {
+                // we only support generic expressions right now.
+                if (sql.getDialect() != null && sql.getDialect().equalsIgnoreCase("generic")) {
+                    exp = sql;
+                }
+            }
+        }
+        expression.setText(exp == null ? "" : exp.getText());
+        
+        if (!columnRadioButton.isSelected()) {
+            expRadioButton.doClick();
+        }
+        
         handler = new FormValidationHandler(status);
         Validator validator = new OLAPObjectNameValidator(measure.getParent(), measure, false);
         handler.addValidateObject(name, validator);
         
         panel = builder.getPanel();
     }
+    
     public boolean applyChanges() {
         measure.startCompoundEdit("Modify measure properties");
         measure.setName(name.getText());
@@ -84,6 +167,38 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
             measure.setCaption(null);
         }
         measure.setAggregator((String) aggregator.getSelectedItem());
+
+        if (expRadioButton.isSelected()) {
+            MeasureExpression mExp = measure.getMeasureExp();
+            if (mExp == null) {
+                mExp = new MeasureExpression();
+                measure.setMeasureExp(mExp);
+            }
+
+            SQL exp = null;
+            for (SQL sql : mExp.getExpressions()) {
+                // we only support generic expressions right now.
+                if (sql.getDialect() != null && sql.getDialect().equalsIgnoreCase("generic")) {
+                    exp = sql;
+                }
+            }
+            if (exp == null) {
+                exp = new SQL();
+                exp.setDialect("generic");
+                mExp.addExpression(exp);
+            }
+            exp.setText(expression.getText());
+            
+            // a measure must have either column or expression but not both.
+            measure.setColumn(null);
+        } else {
+            SQLColumn col = (SQLColumn) columnChooser.getSelectedItem();
+            measure.setColumn(col.getName());
+            
+            // a measure must have either column or expression but not both.
+            measure.setMeasureExp(null);
+        }
+        
         measure.endCompoundEdit();
         return true;
     }
