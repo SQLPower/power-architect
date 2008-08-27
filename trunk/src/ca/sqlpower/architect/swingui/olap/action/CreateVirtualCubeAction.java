@@ -31,6 +31,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.olap.OSUtils;
 import ca.sqlpower.architect.swingui.olap.VirtualCubeEditPanel;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.swingui.DataEntryPanel;
@@ -40,7 +41,7 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
     private final Schema schema;
 
     public CreateVirtualCubeAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
-        super(session, pp, "New Virtual Cube...", "Create a new Virtual Cube in this schema", (String) null);
+        super(session, pp, "New Virtual Cube...", "Create a new Virtual Cube in this schema", OSUtils.VIRTUAL_CUBE_ADD_ICON);
         this.schema = schema;
     }
 

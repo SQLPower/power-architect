@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -49,8 +50,8 @@ public abstract class ProgressAction extends AbstractArchitectAction {
             ArchitectSwingSession session,
             String actionName,
             String actionDescription,
-            String iconResourceName) {
-        super(session, actionName, actionDescription, iconResourceName);
+            Icon icon) {
+        super(session, actionName, actionDescription, icon);
     }
 
     public ProgressAction(

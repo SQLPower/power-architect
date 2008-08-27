@@ -35,6 +35,7 @@ import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.olap.CubeEditPanel;
 import ca.sqlpower.architect.swingui.olap.CubePane;
+import ca.sqlpower.architect.swingui.olap.OSUtils;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CreateCubeAction extends AbstractArchitectAction {
@@ -42,7 +43,7 @@ public class CreateCubeAction extends AbstractArchitectAction {
     private final Schema schema;
     
     public CreateCubeAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
-        super(session, pp, "New Cube...", "Create a new cube in this schema", (String) null);
+        super(session, pp, "New Cube...", "Create a new cube in this schema", OSUtils.CUBE_ADD_ICON);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('c'));
         this.schema = schema;
     }

@@ -31,12 +31,13 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.LevelEditPanel;
+import ca.sqlpower.architect.swingui.olap.OSUtils;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Level> {
 
     public CreateLevelAction(ArchitectSwingSession session, PlayPen olapPlayPen) {
-        super(session, olapPlayPen, "Level", DimensionPane.class, "Hierarchy", 'l');
+        super(session, olapPlayPen, "Level", DimensionPane.class, "Hierarchy", 'l', OSUtils.LEVEL_ADD_ICON);
     }
 
     @Override

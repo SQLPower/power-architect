@@ -52,7 +52,7 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
     private static final Logger logger = Logger.getLogger(CreateDimensionUsageAction.class);
 
     public CreateDimensionUsageAction(ArchitectSwingSession session, PlayPen pp) {
-        super(session, pp, DimensionPane.class, CubePane.class, "Dimension Usage");
+        super(session, pp, DimensionPane.class, CubePane.class, "Dimension Usage", null);
     }
 
     @Override

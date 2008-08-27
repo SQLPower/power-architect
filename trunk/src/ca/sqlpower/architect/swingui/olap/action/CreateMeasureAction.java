@@ -27,12 +27,13 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.MeasureEditPanel;
+import ca.sqlpower.architect.swingui.olap.OSUtils;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CreateMeasureAction extends CreateOLAPChildAction<CubePane, Measure> {
     
     public CreateMeasureAction(ArchitectSwingSession session, PlayPen olapPlayPen) {
-        super(session, olapPlayPen, "Measure", CubePane.class, "Cube", 'm');
+        super(session, olapPlayPen, "Measure", CubePane.class, "Cube", 'm', OSUtils.MEASURE_ADD_ICON);
     }
 
     @Override

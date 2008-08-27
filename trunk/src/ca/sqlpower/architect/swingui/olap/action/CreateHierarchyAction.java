@@ -27,6 +27,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.HierarchyEditPanel;
+import ca.sqlpower.architect.swingui.olap.OSUtils;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 /**
@@ -35,7 +36,7 @@ import ca.sqlpower.swingui.DataEntryPanel;
 public class CreateHierarchyAction extends CreateOLAPChildAction<DimensionPane, Hierarchy> {
 
     public CreateHierarchyAction(ArchitectSwingSession session, PlayPen olapPlayPen) {
-        super(session, olapPlayPen, "Hierarchy", DimensionPane.class, "Dimension", 'h');
+        super(session, olapPlayPen, "Hierarchy", DimensionPane.class, "Dimension", 'h', OSUtils.HIERARCHY_ADD_ICON);
     }
 
     @Override
