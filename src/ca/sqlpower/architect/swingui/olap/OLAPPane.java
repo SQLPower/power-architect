@@ -105,7 +105,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
 
     @Override
     public String getName() {
-        return model.getName();
+        return OLAPUtil.nameFor(model);
     }
 
     @Override
