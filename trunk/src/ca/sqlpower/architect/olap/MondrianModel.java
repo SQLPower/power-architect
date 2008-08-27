@@ -1140,6 +1140,10 @@ public static class Cube extends OLAPObject {
         
         children.addAll(namedSets);
         
+        if (fact != null) {
+        	children.add(fact);
+        }
+        
         return Collections.unmodifiableList(children);
     }
     
@@ -1592,6 +1596,10 @@ public static class VirtualCube extends OLAPObject {
         children.addAll(calculatedMembers);
         
         children.addAll(namedSets);
+        
+        if (cubeUsage != null) {
+        	children.add(cubeUsage);
+        }
         
         return Collections.unmodifiableList(children);
     }
@@ -2847,6 +2855,10 @@ public static class Hierarchy extends OLAPObject {
         
         children.addAll(memberReaderParameters);
         
+        if (relation != null) {
+        	children.add(relation);
+        }
+        
         return Collections.unmodifiableList(children);
     }
     
@@ -3414,6 +3426,26 @@ public static class Level extends OLAPObject {
         List<OLAPObject> children = new ArrayList<OLAPObject>();
         
         children.addAll(properties);
+        
+        if (keyExp != null) {
+        	children.add(keyExp);
+        }
+        
+        if (nameExp != null) {
+        	children.add(nameExp);
+        }
+        
+        if (ordinalExp != null) {
+        	children.add(ordinalExp);
+        }
+        
+        if (parentExp != null) {
+        	children.add(parentExp);
+        }
+        
+        if (closure != null) {
+        	children.add(closure);
+        }
         
         return Collections.unmodifiableList(children);
     }
@@ -4037,6 +4069,10 @@ public static class Measure extends OLAPObject {
         
         children.addAll(memberProperties);
         
+        if (measureExp != null) {
+        	children.add(measureExp);
+        }
+        
         return Collections.unmodifiableList(children);
     }
     
@@ -4317,6 +4353,10 @@ public static class CalculatedMember extends OLAPObject {
         List<OLAPObject> children = new ArrayList<OLAPObject>();
         
         children.addAll(memberProperties);
+        
+        if (formulaElement != null) {
+        	children.add(formulaElement);
+        }
         
         return Collections.unmodifiableList(children);
     }
@@ -5573,6 +5613,10 @@ public static class Table extends Relation {
         
         children.addAll(aggTables);
         
+        if (filter != null) {
+        	children.add(filter);
+        }
+        
         return Collections.unmodifiableList(children);
     }
     
@@ -6666,6 +6710,10 @@ public abstract static class AggTable extends OLAPObject {
         children.addAll(measures);
         
         children.addAll(levels);
+        
+        if (factcount != null) {
+        	children.add(factcount);
+        }
         
         return Collections.unmodifiableList(children);
     }
@@ -8325,6 +8373,10 @@ public static class Role extends OLAPObject {
         List<OLAPObject> children = new ArrayList<OLAPObject>();
         
         children.addAll(schemaGrants);
+        
+        if (union != null) {
+        	children.add(union);
+        }
         
         return Collections.unmodifiableList(children);
     }
