@@ -77,6 +77,11 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         builder.append("Table", tableChooser = new JComboBox(new Vector<SQLTable>(tables)));
         builder.append("Caption", captionField = new JTextField(cube.getCaption()));
         
+        SQLTable t = OLAPUtil.tableForCube(cube);
+        if (t != null) {
+            tableChooser.setSelectedItem(t);
+        }
+        
         // default measure is optional so we need to add in a null option
         List<Measure> measures = new ArrayList<Measure>(cube.getMeasures());
         measures.add(0, null);
