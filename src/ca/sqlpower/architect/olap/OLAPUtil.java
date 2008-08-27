@@ -176,11 +176,11 @@ public class OLAPUtil {
 
     /**
      * Retrieves the SQLTable that represents the data source for the given
-     * cube.
+     * hierarchy.
      * 
      * @param hierarchy
      *            the hierarchy whose data source to retrieve
-     * @return The table whose columns represent the columns of cube's source
+     * @return The table whose columns represent the columns of hierarchy's source
      *         table (or view, inline table, or join), or null if the hierarchy
      *         has no table selected.
      * @throws ArchitectException
@@ -199,6 +199,38 @@ public class OLAPUtil {
             relation = owningCube.getFact();
         }
         
+        return tableForRelationOrJoin(database, relation);
+    }
+    
+    /**
+     * Retrieves the SQLTable that represents the data source for the given cube.
+     * 
+     * @param cube The cube whose data source to retrieve.
+     * @return The table whose columns represent the columns of cube's source
+     *         table (or view, inline table, or join), or null if the cube
+     *         has no table set.
+     * @throws ArchitectException
+     *             if populating the necessary SQLObjects fails.
+     */             
+    public static SQLTable tableForCube(Cube cube) throws ArchitectException {
+        OLAPSession session = getSession(cube);
+        SQLDatabase database = session.getDatabase();
+        
+        RelationOrJoin relation = cube.getFact();
+        return tableForRelationOrJoin(database, relation);
+    }
+    
+    /**
+     * Helper method to find the SQLTable that a RelationOrJoin represents.
+     * 
+     * @param database The database to search for the table in.
+     * @param relation The RelationOrJoin identifying the table.
+     * @return The SQLTable that the given relation represents, or null if non
+     *         found.
+     * @throws ArchitectException
+     *             if populating the necessary SQLObjects fails
+     */
+    private static SQLTable tableForRelationOrJoin(SQLDatabase database, RelationOrJoin relation) throws ArchitectException {
         if (relation == null) {
             return null;
         } else if (relation instanceof Table) {
