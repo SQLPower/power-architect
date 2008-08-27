@@ -25,6 +25,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import mondrian.olap.DimensionType;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.olap.OLAPUtil;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
@@ -42,6 +47,7 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
     private JTextField nameField;
     private JTextField captionField;
     private JComboBox typeBox;
+    private JComboBox foreignKeyChooser;
     
     /**
      * Validation handler for errors in the dialog
@@ -53,8 +59,10 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
      * Creates a new property editor for the given OLAP dimension. 
      * 
      * @param dimension The dimension to edit
+     * @throws ArchitectException
+     *             if digging up the source table results in a database error
      */
-    public DimensionEditPanel(Dimension dimension) {
+    public DimensionEditPanel(Dimension dimension) throws ArchitectException {
         this.dimension = dimension;
 
         FormLayout layout = new FormLayout(
@@ -65,11 +73,34 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
         builder.append("Name", nameField = new JTextField(dimension.getName()));
         builder.append("Caption", captionField = new JTextField(dimension.getCaption()));
         builder.append("Type", typeBox = new JComboBox(DimensionType.values()));
+        
         if (dimension.getType() != null) {
             typeBox.setSelectedItem(DimensionType.valueOf(dimension.getType()));
         } else {
             typeBox.setSelectedItem(DimensionType.StandardDimension);
         }
+        
+        // private dimensions only.
+        if (dimension.getParent() instanceof Cube) {
+            builder.append("Foreign Key", foreignKeyChooser = new JComboBox());
+            Cube cube = (Cube) dimension.getParent();
+            SQLTable factTable = OLAPUtil.tableForCube(cube);
+            if (factTable == null) {
+                foreignKeyChooser.addItem("Parent Cube has no fact table");
+                foreignKeyChooser.setEnabled(false);
+            } else if (factTable.getColumns().isEmpty()) {
+                foreignKeyChooser.addItem("Parent Cube Fact table has no columns");
+                foreignKeyChooser.setEnabled(false);
+            } else {
+                for (SQLColumn col : factTable.getColumns()) {
+                    foreignKeyChooser.addItem(col);
+                    if (col.getName().equals(dimension.getForeignKey())) {
+                        foreignKeyChooser.setSelectedItem(col);
+                    }
+                }
+            }
+        }
+        
         panel = builder.getPanel();
         
         handler = new FormValidationHandler(status);
@@ -90,6 +121,13 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
         } else {
             dimension.setType(DimensionType.StandardDimension.toString());
         }
+        
+        if (foreignKeyChooser != null && foreignKeyChooser.isEnabled()) {
+            SQLColumn selectedCol = (SQLColumn) foreignKeyChooser.getSelectedItem();
+            String pk = selectedCol.getName();
+            dimension.setForeignKey(pk);
+        }
+        
         dimension.endCompoundEdit();
         return true;
     }

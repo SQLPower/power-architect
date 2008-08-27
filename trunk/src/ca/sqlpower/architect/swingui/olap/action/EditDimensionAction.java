@@ -25,6 +25,8 @@ import java.awt.event.ActionEvent;
 import javax.swing.JDialog;
 import javax.swing.SwingUtilities;
 
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -57,11 +59,15 @@ public class EditDimensionAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        DataEntryPanel panel = new DimensionEditPanel(dimension);
-        JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
-                panel, dialogOwner, "Dimension Properties", "OK");
-        dialog.setLocationRelativeTo(session.getArchitectFrame());
-        dialog.setVisible(true);
+        try {
+            DataEntryPanel panel = new DimensionEditPanel(dimension);
+            JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
+                    panel, dialogOwner, "Dimension Properties", "OK");
+            dialog.setLocationRelativeTo(session.getArchitectFrame());
+            dialog.setVisible(true);
+        } catch (ArchitectException ex) {
+            throw new ArchitectRuntimeException(ex);
+        }
     }
 
 }

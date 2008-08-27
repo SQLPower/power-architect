@@ -76,6 +76,9 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
         if (dimensionTable != null) {
             for (SQLColumn col : dimensionTable.getColumns()) {
                 columnChooser.addItem(col);
+                if (col.getName().equalsIgnoreCase(level.getColumn())) {
+                    columnChooser.setSelectedItem(col);
+                }
             }
         } else {
             columnChooser.addItem("Parent dimension has no table");
