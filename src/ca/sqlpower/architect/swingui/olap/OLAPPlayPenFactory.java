@@ -43,12 +43,8 @@ import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
-import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
-import ca.sqlpower.architect.olap.MondrianModel.Measure;
-import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
-import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
@@ -323,13 +319,7 @@ public class OLAPPlayPenFactory {
                 List<OLAPObject> objects = new ArrayList<OLAPObject>();
                 for (TreePath tp : treePaths) {
                     OLAPObject obj = (OLAPObject) tp.getLastPathComponent();
-                    // only select playpen represented objects.
-                    if ((obj instanceof Cube || obj instanceof VirtualCube || obj instanceof Measure
-                            || obj instanceof CubeDimension || obj instanceof VirtualCubeMeasure
-                            || obj instanceof Level || obj instanceof Hierarchy) &&
-                            !objects.contains(obj)) {
-                        objects.add(obj);
-                    }
+                    objects.add(obj);
                 }
                 try {
                     pp.selectObjects(objects, tree);
