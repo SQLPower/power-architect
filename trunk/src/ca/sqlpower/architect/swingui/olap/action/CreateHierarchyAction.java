@@ -22,7 +22,6 @@ package ca.sqlpower.architect.swingui.olap.action;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.olap.OLAPUtil;
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -50,15 +49,6 @@ public class CreateHierarchyAction extends CreateOLAPChildAction<DimensionPane, 
         h.setName("New Hierarchy " + count);
         
         pane.getModel().addHierarchy(h);
-        /*
-         * If parent dimension is a private dimension, then first default the
-         * parimaryKey value to the foreignKey value of the parent dimension. A
-         * user is still able to modify this property.
-         */
-        Dimension dimension = (Dimension) h.getParent();
-        if (dimension.getForeignKey() != null) {
-            h.setPrimaryKey(dimension.getForeignKey());
-        }
         
         return h;
     }
