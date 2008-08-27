@@ -24,6 +24,8 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.Icon;
 
 import org.apache.log4j.Logger;
@@ -106,6 +108,17 @@ public class AutoLayoutAction extends AbstractArchitectAction {
         anim.setAnimationEnabled(animationEnabled);
         anim.setFramesPerSecond(framesPerSecond);
         anim.startAnimation();
+        
+        Clip clip;
+        try {
+            if ( (evt.getModifiers() & ActionEvent.SHIFT_MASK) != 0) {
+                clip = AudioSystem.getClip();
+                clip.open(AudioSystem.getAudioInputStream(getClass().getResource("/sounds/boingoingoingoingoing.wav")));
+                clip.start();
+            }
+        } catch (Exception ex) {
+            logger.debug("Couldn't play sound. Sigh.", ex);
+        }
 	}
 
     private static List<LayoutNode> extractLayoutNodes(PlayPen pp) {
