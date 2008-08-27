@@ -25,6 +25,8 @@ import java.awt.event.ActionEvent;
 import javax.swing.JDialog;
 import javax.swing.SwingUtilities;
 
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -51,9 +53,13 @@ public class EditMeasureAction extends AbstractArchitectAction{
     }
 
     public void actionPerformed(ActionEvent e) {
-        DataEntryPanel panel = new MeasureEditPanel(measure);
-        JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Measure Properties", "OK");
-        dialog.setLocationRelativeTo(session.getArchitectFrame());
-        dialog.setVisible(true);
+        try {
+            DataEntryPanel panel = new MeasureEditPanel(measure);
+            JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Measure Properties", "OK");
+            dialog.setLocationRelativeTo(session.getArchitectFrame());
+            dialog.setVisible(true);
+        } catch (ArchitectException ex) {
+            throw new ArchitectRuntimeException(ex);
+        }    
     }
 }

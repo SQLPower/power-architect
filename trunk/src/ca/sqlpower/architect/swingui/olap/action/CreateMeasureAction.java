@@ -19,6 +19,8 @@
 
 package ca.sqlpower.architect.swingui.olap.action;
 
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -49,7 +51,11 @@ public class CreateMeasureAction extends CreateOLAPChildAction<CubePane, Measure
 
     @Override
     protected DataEntryPanel createDataEntryPanel(Measure model) {
-        return new MeasureEditPanel(model);
+        try {
+            return new MeasureEditPanel(model);
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
     }
     
 }
