@@ -34,8 +34,6 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
 
 /**
  * This is class is generated from xml-to-parser.xsl!  Do not alter it directly.
@@ -73,9 +71,9 @@ public class MondrianXMLReader {
      * @param rootObj
      *            The OLAPRootObject that will be populated with all the
      *            OLAPObjects from the file, must not be null.
-     * @param dbIdMap
-     *            A map containing references to SQLDatabases from the architect
-     *            project, must not be null.
+     * @param sessionDbMap
+     *            A map that will be populated with entries of OLAPSession to
+     *            the id of the SQLDatabase that they reference, must not be null.
      * @param olapIdMap
      *            A map that will be populated with the OLAPObjects from the
      *            file and their generated ids, must not be null.
@@ -87,8 +85,8 @@ public class MondrianXMLReader {
      *             If the xml in the file is malformed.
      */
     public static OLAPObject parse(File f, OLAPRootObject rootObj,
-            Map&lt;String, SQLObject&gt; dbIdMap, Map&lt;String, OLAPObject&gt; olapIdMap) throws IOException, SAXException {
-        return parse(new FileInputStream(f), rootObj, dbIdMap, olapIdMap);
+            Map&lt;OLAPSession, String&gt; sessionDbMap, Map&lt;String, OLAPObject&gt; olapIdMap) throws IOException, SAXException {
+        return parse(new FileInputStream(f), rootObj, sessionDbMap, olapIdMap);
     }
 
     /**
@@ -99,9 +97,9 @@ public class MondrianXMLReader {
      * @param rootObj
      *            The OLAPRootObject that will be populated with all the
      *            OLAPObjects from the file, must not be null.
-     * @param dbIdMap
-     *            A map containing references to SQLDatabases from the architect
-     *            project, must not be null.
+     * @param sessionDbMap
+     *            A map that will be populated with entries of OLAPSession to
+     *            the id of the SQLDatabase that they reference, must not be null.
      * @param olapIdMap
      *            A map that will be populated with the OLAPObjects from the
      *            file and their generated ids, must not be null.
@@ -112,10 +110,10 @@ public class MondrianXMLReader {
      * @throws SAXException
      *             If the xml in the input stream is malformed.
      */
-    public static OLAPObject parse(InputStream in, OLAPRootObject rootObj, Map&lt;String, SQLObject&gt; dbIdMap,
+    public static OLAPObject parse(InputStream in, OLAPRootObject rootObj, Map&lt;OLAPSession, String&gt; sessionDbMap,
             Map&lt;String, OLAPObject&gt; olapIdMap) throws IOException, SAXException {
         XMLReader reader = XMLReaderFactory.createXMLReader();
-        MondrianSAXHandler handler = new MondrianSAXHandler(rootObj, dbIdMap, olapIdMap);
+        MondrianSAXHandler handler = new MondrianSAXHandler(rootObj, sessionDbMap, olapIdMap);
         reader.setContentHandler(handler);
         InputSource is = new InputSource(in);
         reader.parse(is);
@@ -134,17 +132,18 @@ public class MondrianXMLReader {
        
         private final boolean importMode;
         
-        private Map&lt;String, SQLObject&gt; dbIdMap;
+        private Map&lt;OLAPSession, String&gt; sessionDbMap;
         private Map&lt;String, OLAPObject&gt; olapIdMap;
         
         public MondrianSAXHandler() {
             this.importMode = true;
         }
        
-        public MondrianSAXHandler(OLAPRootObject rootObj, Map&lt;String, SQLObject&gt; dbIdMap, Map&lt;String, OLAPObject&gt; olapIdMap) {
+        public MondrianSAXHandler(OLAPRootObject rootObj, Map&lt;OLAPSession, String&gt; sessionDbMap, Map&lt;String,
+        		OLAPObject&gt; olapIdMap) {
             this.importMode = false;
             this.root = rootObj;
-            this.dbIdMap = dbIdMap;
+            this.sessionDbMap = sessionDbMap;
             this.olapIdMap = olapIdMap;
         }
 
@@ -218,8 +217,8 @@ public class MondrianXMLReader {
                             OLAPSession osession = new OLAPSession((MondrianModel.Schema) currentElement);
                             for (String aname : currentOSessionAtts.keySet()) {
                                 String aval = currentOSessionAtts.get(aname);
-                                if (aname.equals("db-ref")) {
-                                    osession.setDatabase((SQLDatabase) dbIdMap.get(aval));
+                                if (sessionDbMap != null &amp;&amp; aname.equals("db-ref")) {
+                                    sessionDbMap.put(osession, aval);
                                 } else if (olapIdMap != null &amp;&amp; aname.equals("id")) {
                        				olapIdMap.put(aval, osession);
                                 } else {
