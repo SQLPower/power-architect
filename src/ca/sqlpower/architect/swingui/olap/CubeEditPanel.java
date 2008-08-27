@@ -77,9 +77,14 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         builder.append("Table", tableChooser = new JComboBox(new Vector<SQLTable>(tables)));
         builder.append("Caption", captionField = new JTextField(cube.getCaption()));
         
-        SQLTable t = OLAPUtil.tableForCube(cube);
-        if (t != null) {
-            tableChooser.setSelectedItem(t);
+        if (tables.isEmpty()) {
+            tableChooser.addItem("Database has no tables");
+            tableChooser.setEnabled(false);
+        } else {
+            SQLTable t = OLAPUtil.tableForCube(cube);
+            if (tables.contains(t)) {
+                tableChooser.setSelectedItem(t);
+            }
         }
         
         // default measure is optional so we need to add in a null option
@@ -103,12 +108,14 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
     public boolean applyChanges() {
         try {
             cube.startCompoundEdit("Modify cube properties");
-            SQLTable table = (SQLTable) tableChooser.getSelectedItem();
-            if (table != null) {
-                Table t = new Table();
-                t.setName(table.getName());
-                t.setSchema(OLAPUtil.getQualifier(table));
-                cube.setFact(t);
+            if (tableChooser.isEnabled()) {
+                SQLTable table = (SQLTable) tableChooser.getSelectedItem();
+                if (table != null) {
+                    Table t = new Table();
+                    t.setName(table.getName());
+                    t.setSchema(OLAPUtil.getQualifier(table));
+                    cube.setFact(t);
+                }
             }
             cube.setName(nameField.getText());
             if (!(captionField.getText().equals(""))) {

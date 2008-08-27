@@ -22,6 +22,7 @@ package ca.sqlpower.architect.swingui.olap;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.List;
+import java.util.Vector;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -71,6 +72,8 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
     public HierarchyEditPanel(Hierarchy hierarchy) throws ArchitectException {
         this.hierarchy = hierarchy;
         
+        List<SQLTable> tables = OLAPUtil.getAvailableTables(hierarchy);
+        
         FormLayout layout = new FormLayout(
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
@@ -82,28 +85,21 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
         hasAll.setSelected(hierarchy.getHasAll() != null ? hierarchy.getHasAll() : true);
         builder.append("All Level Name", allLevelName = new JTextField(hierarchy.getAllLevelName() != null ? hierarchy.getAllLevelName() : "(All)"));
 
-        builder.append("Table", tableChooser = new JComboBox());
+        builder.append("Table", tableChooser = new JComboBox((new Vector<SQLTable>(tables))));
         builder.append("Primary Key", primaryKey = new JComboBox());
         
-        List<SQLTable> tables = OLAPUtil.getAvailableTables(hierarchy);
         if (tables.isEmpty()) {
             tableChooser.addItem("Database has no tables");
             tableChooser.setEnabled(false);
             primaryKey.addItem("Table not selected");
             primaryKey.setEnabled(false);
         } else {
-            for (SQLTable tab : tables) {
-                tableChooser.addItem(tab);
-            }
-            
             SQLTable t = OLAPUtil.tableForHierarchy(hierarchy);
-            if (t != null && tables.contains(t)) {
+            if (tables.contains(t)) {
                 tableChooser.setSelectedItem(t);
             } else {
                 t = (SQLTable) tableChooser.getSelectedItem();
             }
-            tableChooser.setEnabled(true);
-
             updateColumns(hierarchy.getPrimaryKey());
         }
         

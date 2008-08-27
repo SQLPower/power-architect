@@ -31,7 +31,6 @@ import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
-import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -71,11 +70,19 @@ public class DimensionUsageEditPanel implements DataEntryPanel{
         builder.append("Foreign Key", foreignKeyChooser = new JComboBox());
 
         Cube cube = (Cube) dimensionUsage.getParent();
-        SQLTable factTable = OLAPUtil.getSQLTableFromOLAPTable(OLAPUtil.getSession(cube).getDatabase(), (Table) (cube.getFact()));
-        for (SQLColumn col : factTable.getColumns()) {
-            foreignKeyChooser.addItem(col);
-            if (col.getName().equals(dimensionUsage.getForeignKey())) {
-                foreignKeyChooser.setSelectedItem(col);
+        SQLTable factTable = OLAPUtil.tableForCube(cube);
+        if (factTable == null) {
+            foreignKeyChooser.addItem("Parent Cube has no fact table");
+            foreignKeyChooser.setEnabled(false);
+        } else if (factTable.getColumns().isEmpty()) {
+            foreignKeyChooser.addItem("Parent Cube Fact table has no columns");
+            foreignKeyChooser.setEnabled(false);
+        } else {
+            for (SQLColumn col : factTable.getColumns()) {
+                foreignKeyChooser.addItem(col);
+                if (col.getName().equals(dimensionUsage.getForeignKey())) {
+                    foreignKeyChooser.setSelectedItem(col);
+                }
             }
         }
         panel = builder.getPanel();
@@ -88,9 +95,13 @@ public class DimensionUsageEditPanel implements DataEntryPanel{
         } else {
             dimensionUsage.setCaption(null);
         }
-        SQLColumn selectedCol = (SQLColumn) foreignKeyChooser.getSelectedItem();
-        String pk = selectedCol.getName();
-        dimensionUsage.setForeignKey(pk);
+
+        if (foreignKeyChooser.isEnabled()) {
+            SQLColumn selectedCol = (SQLColumn) foreignKeyChooser.getSelectedItem();
+            String pk = selectedCol.getName();
+            dimensionUsage.setForeignKey(pk);
+            dimension.setForeignKey(pk);
+        }
         dimensionUsage.endCompoundEdit();
         return true;
     }
