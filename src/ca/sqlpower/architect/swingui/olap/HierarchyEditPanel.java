@@ -19,8 +19,9 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -29,6 +30,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
@@ -51,6 +54,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
     private final JComboBox tableChooser;
     private final JCheckBox hasAll;
     private final JTextField allLevelName;
+    private final JComboBox primaryKey;
     
     /**
      * Validation handler for errors in the dialog
@@ -67,8 +71,6 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
     public HierarchyEditPanel(Hierarchy hierarchy) throws ArchitectException {
         this.hierarchy = hierarchy;
         
-        List<SQLTable> tables = OLAPUtil.getAvailableTables(hierarchy);
-
         FormLayout layout = new FormLayout(
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
@@ -76,10 +78,40 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
         builder.append(status, 3);
         builder.append("Name", name = new JTextField(hierarchy.getName()));
         builder.append("Caption", captionField = new JTextField(hierarchy.getCaption()));
-        builder.append("Has All", hasAll = new JCheckBox("Has All", hierarchy.getHasAll() != null ? hierarchy.getHasAll() : true));
-        builder.append("Table", tableChooser = new JComboBox(new Vector<SQLTable>(tables)));
+        builder.append("Has All", hasAll = new JCheckBox());
+        hasAll.setSelected(hierarchy.getHasAll() != null ? hierarchy.getHasAll() : true);
         builder.append("All Level Name", allLevelName = new JTextField(hierarchy.getAllLevelName() != null ? hierarchy.getAllLevelName() : "(All)"));
-        tableChooser.setSelectedItem(OLAPUtil.tableForHierarchy(hierarchy)); // XXX this isn't quite right.. it would set the default as the local value
+
+        builder.append("Table", tableChooser = new JComboBox());
+        builder.append("Primary Key", primaryKey = new JComboBox());
+        
+        List<SQLTable> tables = OLAPUtil.getAvailableTables(hierarchy);
+        if (tables.isEmpty()) {
+            tableChooser.addItem("Database has no tables");
+            tableChooser.setEnabled(false);
+            primaryKey.addItem("Table not selected");
+            primaryKey.setEnabled(false);
+        } else {
+            for (SQLTable tab : tables) {
+                tableChooser.addItem(tab);
+            }
+            
+            SQLTable t = OLAPUtil.tableForHierarchy(hierarchy);
+            if (t != null && tables.contains(t)) {
+                tableChooser.setSelectedItem(t);
+            } else {
+                t = (SQLTable) tableChooser.getSelectedItem();
+            }
+            tableChooser.setEnabled(true);
+
+            updateColumns(hierarchy.getPrimaryKey());
+        }
+        
+        tableChooser.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                updateColumns(null);
+            }
+        });
         
         handler = new FormValidationHandler(status);
         Validator validator = new OLAPObjectNameValidator(hierarchy.getParent(), hierarchy, true);
@@ -87,6 +119,34 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
         
         panel = builder.getPanel();
     }
+    
+    /**
+     * Updates the column chooser combo box according to the table selected.
+     * 
+     * @param primaryKeyName Name of the column to set selected.
+     */
+    private void updateColumns(String primaryKeyName) {
+        primaryKey.removeAllItems();
+        SQLTable selectedTable = (SQLTable) tableChooser.getSelectedItem();
+        boolean enableColumns = false;
+        try {
+            if (selectedTable.getColumns().isEmpty()) {
+                primaryKey.addItem("Table has no columns");
+            } else {
+                for (SQLColumn col : selectedTable.getColumns()) {
+                    primaryKey.addItem(col);
+                    if (col.getName().equalsIgnoreCase(primaryKeyName)) {
+                        primaryKey.setSelectedItem(col);
+                    }
+                }
+                enableColumns = true;
+            }
+            primaryKey.setEnabled(enableColumns);
+        } catch (ArchitectException ex) {
+            throw new ArchitectRuntimeException(ex);
+        }
+    }
+    
     public boolean applyChanges() {
         hierarchy.startCompoundEdit("Modify hierarchy properties");
         if (!(name.getText().equals(""))) {
@@ -100,14 +160,20 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
             hierarchy.setCaption(null);
         }
         hierarchy.setHasAll(hasAll.isSelected());
-        if (tableChooser.getSelectedItem() != null) {
-            SQLTable stable = (SQLTable) tableChooser.getSelectedItem();
-            Table table = new Table();
-            table.setName(stable.getName());
-            table.setSchema(OLAPUtil.getQualifier(stable));
-            hierarchy.setRelation(table);
-        }
         hierarchy.setAllLevelName(allLevelName.getText());
+        if (tableChooser.isEnabled()) {
+            SQLTable t = (SQLTable) tableChooser.getSelectedItem();
+            Table table = new Table();
+            table.setName(t.getName());
+            table.setSchema(OLAPUtil.getQualifier(t));
+            hierarchy.setRelation(table);
+            
+            if (primaryKey.isEnabled()) {
+                SQLColumn column = (SQLColumn) primaryKey.getSelectedItem();
+                hierarchy.setPrimaryKey(column.getName());
+            }
+        }
+
         hierarchy.endCompoundEdit();
         return true;
     }
