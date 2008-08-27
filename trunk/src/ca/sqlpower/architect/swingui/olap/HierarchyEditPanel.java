@@ -96,7 +96,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
                 		"specified from the selected table, but selected table contains no primary key");
             }
         } else {
-            throw new IllegalStateException("Selected source table must not be null");
+            throw new NullPointerException("Selected source table must not be null");
         }
         builder.append("Primary Key", primaryKeyName = new JComboBox(new Vector<SQLColumn>(pk)));
         
