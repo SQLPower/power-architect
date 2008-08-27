@@ -64,6 +64,9 @@ public class UsageComponentUI implements PlayPenComponentUI {
             if ("location".equals(evt.getPropertyName()) && evt.getSource() != c) {
                 revalidate();
                 c.repaint();
+            } else if ("bounds".equals(evt.getPropertyName()) && evt.getSource() != c) {
+                revalidate();
+                c.repaint();
             }
         }
         
