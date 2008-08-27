@@ -64,8 +64,8 @@ public class OLAPChildEvent {
      * @param child
      *            The child that was added or removed.
      * @param index
-     *            The index of the child that was added or removed (indices are
-     *            counted separately within each child type).
+     *            The index of the child that was added or removed (this is the
+     *            overall index in the parent, not the index within one child type).
      */
     public OLAPChildEvent(OLAPObject source, Class<? extends OLAPObject> childType, OLAPObject child, int index) {
         this.source = source;
