@@ -21,6 +21,7 @@ package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.Action;
@@ -191,11 +192,12 @@ public class OLAPPlayPenFactory {
 
         public void olapChildRemoved(OLAPChildEvent e) {
             OLAPUtil.unlistenToHierarchy(e.getChild(), this, null);
-            
-            for (PlayPenComponent ppc : pp.getPlayPenComponents()) {
+            Iterator<PlayPenComponent> it = pp.getPlayPenComponents().iterator();
+            while (it.hasNext()) {
+                PlayPenComponent ppc = it.next();
                 if (ppc.getModel() == e.getChild()) {
                     ppc.setSelected(false, SelectionEvent.SINGLE_SELECT);
-                    pp.getContentPane().remove(ppc);
+                    it.remove();
                 }
             }
         }
