@@ -57,17 +57,18 @@ public class OLAPUtil {
     }
 
     /**
-     * Finds the OLAPSession that owns the given OLAPObject, by following
-     * parent pointers successively until an ancestor of type OLAPSession
-     * is encountered. If there is no OLAPSession ancestor, returns null.
+     * Finds the OLAPSession that owns the given OLAPObject, by following parent
+     * pointers successively until an ancestor of type OLAPSession is
+     * encountered. If there is no OLAPSession ancestor, returns null.
      * <p>
      * Note that when we say <i>ancestor</i> in this doc comment, we include
-     * the given <code>oo</code> object as an "ancestor" of itself.  In other
+     * the given <code>oo</code> object as an "ancestor" of itself. In other
      * words, if you pass in an OLAPSession, you will get that same object back.
      * 
-     * @param oo The object to start searching at
-     * @return The nearest ancestor of type OLAPObject, or null if there is
-     * no such ancestor.
+     * @param oo
+     *            The object to start searching at
+     * @return The nearest ancestor of type OLAPObject, or null if there is no
+     *         such ancestor.
      */
     public static OLAPSession getSession(OLAPObject oo) {
         while (oo != null && !(oo instanceof OLAPSession)) {
@@ -78,8 +79,8 @@ public class OLAPUtil {
 
     /**
      * Mondrian uses a single string as a table name qualifier, so this method
-     * helps by finding the parent schema and/or catalog and produces the correct
-     * Mondrian qualifier for the given table.
+     * helps by finding the parent schema and/or catalog and produces the
+     * correct Mondrian qualifier for the given table.
      */
     public static String getQualifier(SQLTable t) {
         SQLSchema schema = t.getSchema();
@@ -94,7 +95,7 @@ public class OLAPUtil {
             return catalog.getName() + "." + schema.getName();
         }
     }
-    
+
     /**
      * Adds the given OLAPChildListener and optional PropertyChangeListener to
      * the given root object and all of its descendants.
@@ -133,9 +134,9 @@ public class OLAPUtil {
      *            OLAPObjects rooted at root. It is not an error if the listener
      *            is not registered with any or all of the objects in the
      *            subtree, so it's safe to call this with the root of the tree
-     *            if you want. If you weren't listening for property change events,
-     *            you can leave this parameter as null. Note that this parameter
-     *            is pronounced "pockle," not "pickle."
+     *            if you want. If you weren't listening for property change
+     *            events, you can leave this parameter as null. Note that this
+     *            parameter is pronounced "pockle," not "pickle."
      */
     public static void unlistenToHierarchy(OLAPObject root, OLAPChildListener ocl, PropertyChangeListener pcl) {
         root.removeChildListener(ocl);
@@ -146,7 +147,7 @@ public class OLAPUtil {
             unlistenToHierarchy(child, ocl, pcl);
         }
     }
-    
+
     /**
      * {@link OLAPObject#getName()} does not always return the correct name so
      * this method helps by finding the proper name for those exceptions and
@@ -158,8 +159,9 @@ public class OLAPUtil {
      * @return The name of the given object, null if the object is null itself.
      */
     public static String nameFor(OLAPObject obj) {
-        if (obj == null) return null;
-        
+        if (obj == null)
+            return null;
+
         if (obj instanceof CubeUsage) {
             return ((CubeUsage) obj).getCubeName();
         } else if (obj instanceof Hierarchy) {
@@ -190,15 +192,17 @@ public class OLAPUtil {
         OLAPSession session = getSession(hier);
         SQLDatabase database = session.getDatabase();
         RelationOrJoin relation = hier.getRelation();
-        
-        // If this hierarchy belongs to a shared dimension, its relation is all we can get.
-        // But if this hierarchy belongs to a private dimension, its cube's fact specifies
+
+        // If this hierarchy belongs to a shared dimension, its relation is all
+        // we can get.
+        // But if this hierarchy belongs to a private dimension, its cube's fact
+        // specifies
         // the default table.
         if (relation == null && hier.getParent().getParent() instanceof Cube) {
             Cube owningCube = (Cube) hier.getParent().getParent();
             relation = owningCube.getFact();
         }
-        
+
         return tableForRelationOrJoin(database, relation);
     }
     
@@ -234,22 +238,7 @@ public class OLAPUtil {
         if (relation == null) {
             return null;
         } else if (relation instanceof Table) {
-            Table table = (Table) relation;
-            String qualifier = table.getSchema();
-            String name = table.getName();
-            if (qualifier == null || qualifier.length() == 0) {
-                return (SQLTable) database.getChildByName(name);
-            } else if (qualifier.contains(".")) {
-                String cat = qualifier.substring(0, qualifier.indexOf('.'));
-                String schema = qualifier.substring(qualifier.indexOf('.') + 1);
-                return database.getTableByName(cat, schema, name);
-            } else if (ArchitectUtils.isCompatibleWithHierarchy(database, qualifier, null, name)) {
-                return database.getTableByName(qualifier, null, name);
-            } else if (ArchitectUtils.isCompatibleWithHierarchy(database, null, qualifier, name)) {
-                return database.getTableByName(null, qualifier, name);
-            } else {
-                return null;
-            }
+            return getSQLTableFromOLAPTable(database, (Table) relation);
         } else if (relation instanceof View) {
             throw new UnsupportedOperationException("Views not implemented yet");
         } else if (relation instanceof InlineTable) {
@@ -257,7 +246,34 @@ public class OLAPUtil {
         } else if (relation instanceof Join) {
             throw new UnsupportedOperationException("Join not implemented yet");
         } else {
-            throw new IllegalStateException("Can't produce SQLTable for unknown Relation type " + relation.getClass().getName());
+            throw new IllegalStateException("Can't produce SQLTable for unknown Relation type " +
+                    relation.getClass().getName());
+        }
+    }
+
+    /**
+     * Search the database and retrieve the matching SQLTable(Relational) object
+     * thats logically equivalent to the given Table(OLAP representation)
+     * 
+     * @param table Table object representing a table in a relational database
+     * @return a SQLTable in SQLDatabase representing the given table
+     * @throws ArchitectException
+     */
+    public static SQLTable getSQLTableFromOLAPTable(SQLDatabase database, Table table) throws ArchitectException {
+        String qualifier = table.getSchema();
+        String name = table.getName();
+        if (qualifier == null || qualifier.length() == 0) {
+            return (SQLTable) database.getChildByName(name);
+        } else if (qualifier.contains(".")) {
+            String cat = qualifier.substring(0, qualifier.indexOf('.'));
+            String schema = qualifier.substring(qualifier.indexOf('.') + 1);
+            return database.getTableByName(cat, schema, name);
+        } else if (ArchitectUtils.isCompatibleWithHierarchy(database, qualifier, null, name)) {
+            return database.getTableByName(qualifier, null, name);
+        } else if (ArchitectUtils.isCompatibleWithHierarchy(database, null, qualifier, name)) {
+            return database.getTableByName(null, qualifier, name);
+        } else {
+            return null;
         }
     }
 
@@ -270,8 +286,8 @@ public class OLAPUtil {
      * @return The list of all accessible tables. If the OLAP session doesn't
      *         have a database chosen, an empty list is returned.
      * @throws ArchitectException
-     *             If there is a problem populating the list of tables (for example,
-     *             the database might not be reachable).
+     *             If there is a problem populating the list of tables (for
+     *             example, the database might not be reachable).
      */
     public static List<SQLTable> getAvailableTables(OLAPObject obj) throws ArchitectException {
         OLAPSession osession = OLAPUtil.getSession(obj);
@@ -284,7 +300,7 @@ public class OLAPUtil {
         }
         return tables;
     }
-    
+
     /**
      * Finds and returns the Cube that the given CubeUsage references.
      * 
@@ -301,8 +317,8 @@ public class OLAPUtil {
             throw new IllegalArgumentException("Can't find OLAPSession ancestor: " + cu);
         }
         return olapSession.findCube(cu.getCubeName());
-    } 
-    
+    }
+
     /**
      * Finds and returns the base Dimension that the given CubeDimension
      * references. It is safe to call this method with a Dimension as parameter,
@@ -319,7 +335,7 @@ public class OLAPUtil {
         if (olapSession == null) {
             throw new IllegalArgumentException("Can't find OLAPSession ancestor: " + cubeDim);
         }
-        
+
         if (cubeDim instanceof Dimension) {
             return (Dimension) cubeDim;
         } else if (cubeDim instanceof DimensionUsage) {
@@ -331,7 +347,7 @@ public class OLAPUtil {
                 return olapSession.findPublicDimension(vCubeDim.getName());
             } else {
                 CubeDimension cd = olapSession.findCubeDimension(vCubeDim.getCubeName(), vCubeDim.getName());
-                
+
                 if (cd == null) {
                     return null;
                 } else if (cd instanceof Dimension) {
@@ -348,7 +364,7 @@ public class OLAPUtil {
             throw new UnsupportedOperationException("CubeDimension of type " + cubeDim.getClass() + " not recognized.");
         }
     }
-    
+
     /**
      * Checks if the name is unique for an OLAPObject, relies on
      * {@link OLAPObject#getName()} for name comparisons, case insensitive.
@@ -367,7 +383,7 @@ public class OLAPUtil {
         if (olapSession == null) {
             throw new IllegalArgumentException("Can't find OLAPSession ancestor: " + parent);
         }
-        
+
         if (type == Cube.class) {
             return olapSession.findCube(name) == null;
         } else if (type == Dimension.class && parent instanceof Schema) {
