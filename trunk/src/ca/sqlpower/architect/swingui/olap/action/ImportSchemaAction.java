@@ -45,6 +45,7 @@ import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.RecentMenu;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
@@ -75,12 +76,15 @@ public class ImportSchemaAction extends AbstractArchitectAction {
      */
     private static final Point INITIAL_POINT = new Point(50, 50);
     
+    private RecentMenu recent;
+    
     public ImportSchemaAction(ArchitectSwingSession session) {
         super(session, "Import Schema...", "Imports an OLAP schema"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        this.recent = session.getRecentMenu();
     }
 
     public void actionPerformed(ActionEvent e) {
-        JFileChooser chooser = new JFileChooser(session.getRecentMenu().getMostRecentFile());
+        JFileChooser chooser = new JFileChooser(recent.getMostRecentFile());
         chooser.addChoosableFileFilter(SPSUtils.XML_FILE_FILTER);
         int returnVal = chooser.showOpenDialog(frame);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -140,7 +144,9 @@ public class ImportSchemaAction extends AbstractArchitectAction {
             } catch (Exception ex) {
                 logger.error("Failed to parse " + f.getName() + ".");
                 ASUtils.showExceptionDialog(session, "Could not read xml schema file.", ex);
-            } 
+            } finally {
+                recent.putRecentFileName(f.getAbsolutePath());
+            }
             
         }
     }
