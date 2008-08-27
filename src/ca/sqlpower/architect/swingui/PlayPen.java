@@ -2741,9 +2741,16 @@ public class PlayPen extends JPanel
                 selectMeasure((Measure) obj, ignoredObjs, extraSelections, tree);
             } else if (obj instanceof VirtualCubeDimension || obj instanceof VirtualCubeMeasure) {
                 selectItemFromVirtualCube(obj, ignoredObjs, extraSelections, tree);
-            } else if (obj instanceof Hierarchy) {
+            } else if (obj instanceof Hierarchy && obj.getParent() instanceof MondrianModel.Dimension
+                    && obj.getParent().getParent() instanceof Schema) {
+                // Only select hierarchies from the public dimensions because the ones inside
+                // a cube do not show hierarchies on the playPen!
                 selectHierarchy((Hierarchy) obj, ignoredObjs, extraSelections, tree);
-            } else if (obj instanceof Level) {
+            } else if (obj instanceof Level && obj.getParent() instanceof Hierarchy 
+                    && obj.getParent().getParent() instanceof MondrianModel.Dimension
+                    && obj.getParent().getParent().getParent() instanceof Schema) {
+                // Only select levels from the public dimensions because the ones inside
+                // a cube do not show levels on the playPen!
                 selectLevel((Level) obj, ignoredObjs, extraSelections, tree);
             }
 
