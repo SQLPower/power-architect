@@ -19,23 +19,50 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableModel;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.olap.OLAPChildEvent;
+import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
+import ca.sqlpower.architect.olap.MondrianModel.Property;
+import ca.sqlpower.swingui.table.EditableJTable;
+import ca.sqlpower.validation.Status;
+import ca.sqlpower.validation.ValidateResult;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
 import ca.sqlpower.validation.swingui.StatusComponent;
 import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
 import ca.sqlpower.validation.swingui.ValidationHandler;
 
+import com.jgoodies.forms.builder.ButtonStackBuilder;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -46,6 +73,8 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
     private JTextField name;
     private JTextField captionField;
     private JComboBox columnChooser;
+    
+    private PropertiesEditPanel propertiesPanel;
 
     /**
      * Validation handler for errors in the dialog
@@ -72,23 +101,30 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
         builder.append("Name", name = new JTextField(level.getName()));
         builder.append("Caption", captionField = new JTextField(level.getCaption()));
         builder.append("Column", columnChooser = new JComboBox());
+        
         SQLTable dimensionTable = OLAPUtil.tableForHierarchy((Hierarchy) level.getParent());
-        if (dimensionTable != null) {
+        if (dimensionTable == null) {
+            columnChooser.addItem("Parent hierarchy has no table");
+            columnChooser.setEnabled(false);
+        } else if (dimensionTable.getColumns().isEmpty()) {
+            columnChooser.addItem("Parent hierarchy table has no columns");
+            columnChooser.setEnabled(false);
+        } else {
             for (SQLColumn col : dimensionTable.getColumns()) {
                 columnChooser.addItem(col);
                 if (col.getName().equalsIgnoreCase(level.getColumn())) {
                     columnChooser.setSelectedItem(col);
                 }
             }
-        } else {
-            columnChooser.addItem("Parent dimension has no table");
-            columnChooser.setEnabled(false);
         }
         
         handler = new FormValidationHandler(status);
         Validator validator = new OLAPObjectNameValidator(level.getParent(), level, false);
         handler.addValidateObject(name, validator);
         
+        builder.appendSeparator("Properties");
+        propertiesPanel = new PropertiesEditPanel(dimensionTable, handler);
+        builder.append(propertiesPanel, 3);
         
         panel = builder.getPanel();
     }
@@ -124,6 +160,246 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
     public ValidationHandler getValidationHandler() {
         return handler;
     }
+    
+    /**
+     * Checks through the table model for duplicate property names.
+     * 
+     */
+    private class PropertiesTableNameValidator implements Validator {
+        public ValidateResult validate(Object contents) {
+            TableModel model = (TableModel) contents;
+            List<String> propNames = new ArrayList<String>();
+            for ( int i = 0; i < model.getRowCount(); i++) {
+                String propName = (String) model.getValueAt(i, 0);
+                if (propNames.contains(propName)) {
+                    return ValidateResult.createValidateResult(Status.FAIL, "Duplicate Property names.");
+                } else {
+                    propNames.add(propName); 
+                }
+            }
+            return ValidateResult.createValidateResult(Status.OK, "");
+        }
+    }
 
+    private class PropertiesEditPanel extends JPanel {
+        
+        private final JTable propertiesTab;
+        
+        /**
+         * Default name for a new Property.
+         */
+        private final String defaultPropName = "New Property";
+        
+        private final Action newPropertyAction = new AbstractAction("New...") { 
+            public void actionPerformed(ActionEvent e) {
+                Property prop = new Property();
+                prop.setName(defaultPropName);
+                level.addProperty(prop);
+            }
+        };
+        
+        private final Action removePropertyAction = new AbstractAction("Remove...") { 
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = propertiesTab.getSelectedRow();
+                if (selectedRow > -1) {
+                    level.removeProperty(selectedRow);
+                    setEnabled(false);
+                }
+            }
+        };
+        
+        /**
+         * Creates a panel for editing a level's Properties with a JTable.
+         * 
+         * @param table
+         *            Should contain the columns that a Property could use, can
+         *            be null.
+         * @param handler
+         *            Used for adding the {@link PropertiesTableNameValidator}
+         *            on the JTable.
+         * @throws ArchitectException
+         *             If retrieving the columns from the table fails.
+         */
+        public PropertiesEditPanel(SQLTable table, ValidationHandler handler) throws ArchitectException {
+            setBorder(new EmptyBorder(10, 10, 10, 10));
+            setLayout(new BorderLayout(10, 10));
+            
+            propertiesTab = new PropertiesTable(table);
+            handler.addValidateObject(propertiesTab, new PropertiesTableNameValidator());
+            
+            JScrollPane sp = new JScrollPane(propertiesTab);
+            sp.setPreferredSize(new Dimension(200, 200));
+            add(sp, BorderLayout.CENTER);
+            
+            ButtonStackBuilder bsb = new ButtonStackBuilder();
+            bsb.addGridded(new JButton(newPropertyAction));
+            bsb.addRelatedGap();
+            bsb.addGridded(new JButton(removePropertyAction));
+            bsb.addRelatedGap();
+            
+            removePropertyAction.setEnabled(false);
+            
+            add(bsb.getPanel(), BorderLayout.EAST);
+        }
+        
+        private class PropertiesTable extends EditableJTable {
+            
+            /**
+             * List of the SQLColumns available for Properties to use.
+             */
+            private final List<SQLColumn> columns;
+            
+            /**
+             * Creates an EditableJTable for modifying Properties of the level.
+             * @param table
+             *            Should contain the columns that a Property could use,
+             *            can be null.
+             * @throws ArchitectException
+             *             If retrieving the columns from the table fails.
+             */
+            public PropertiesTable(SQLTable table) throws ArchitectException {
+                super();
+                this.columns = table == null ? null : table.getColumns();
+                
+                boolean disableColumns = columns == null || columns.isEmpty();
+                setModel(new PropertiesTableModel(disableColumns));
+                setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                addMouseListener(new MouseAdapter() {
+                    public void mouseClicked(MouseEvent evt) {
+                        boolean enableAction = propertiesTab.getSelectedRow() > -1;
+                        removePropertyAction.setEnabled(enableAction);
+                    }
+                });
+            }
+            
+            @Override
+            public TableCellEditor getCellEditor(int row, int column) {
+                if (column == 1) {
+                    // columns could be null, but then it would not be editable, so we're save.
+                    return new DefaultCellEditor(new JComboBox(columns.toArray()));
+                } else {
+                    return super.getCellEditor(row, column);
+                }
+            }
+            
+        }
+        
+        private class PropertiesTableModel extends AbstractTableModel implements OLAPChildListener {
+            
+            /**
+             * Determines whether the column attributes can be modified.
+             */
+            private final boolean disableColumns;
 
+            public PropertiesTableModel(boolean disableColumns) {
+                this.disableColumns = disableColumns;
+                level.addChildListener(this);
+            }
+            
+            public int getRowCount() {
+                return level.getProperties().size();
+            }
+
+            public int getColumnCount() {
+                return 2;
+            }
+
+            @Override
+            public String getColumnName(int columnIndex) {
+                if (columnIndex == 0) {
+                    return "Name";
+                } else if (columnIndex == 1) {
+                    return "Column";
+                } else {
+                    throw new IllegalArgumentException("getColumnName: Unknow column index: " + columnIndex);
+                }
+            }
+
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex == 0 || columnIndex == 1) {
+                    return String.class;
+                } else {
+                    throw new IllegalArgumentException("getColumnClass: Unknow column index: " + columnIndex);
+                }
+            }
+
+            @Override
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                if (columnIndex == 0) {
+                    return true;
+                } else if (columnIndex == 1) {
+                    return !disableColumns;
+                } else {
+                    throw new IllegalArgumentException("isCellEditable: Unknow column index: " + columnIndex);
+                }
+            }
+
+            public Object getValueAt(int rowIndex, int columnIndex) {
+                if (columnIndex == 0) {
+                    return level.getProperties().get(rowIndex).getName();
+                } else if (columnIndex == 1) {
+                    if (disableColumns) {
+                        return "Not Applicable";
+                    } else {
+                        return level.getProperties().get(rowIndex).getColumn();
+                    }
+                } else {
+                    throw new IllegalArgumentException("getValueAt: Unexcepted column index: " + columnIndex);
+                }   
+            }
+            
+            public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+                Property prop = level.getProperties().get(rowIndex);
+                if (columnIndex == 0) {
+                    prop.setName((String) aValue);
+                } else if (columnIndex == 1) {
+                    if (aValue == null) {
+                        prop.setColumn(null);
+                    } else {
+                        String colName = ((SQLColumn) aValue).getName();
+                        // if the Property has not been named, name it similar to its chosen column.
+                        if (defaultPropName.equals(prop.getName())) {
+                            prop.setName(underscoreToCamelCaps(colName));
+                        }
+                        prop.setColumn(colName);
+                    }
+                } else {
+                    throw new IllegalArgumentException("setValueAt: Unexcepted column index:"+columnIndex);
+                }
+                fireTableChanged(new TableModelEvent(this, rowIndex));
+            }
+            
+            /**
+             * Converts underscores in given text to spaces and return in camel caps.
+             * 
+             */
+            private String underscoreToCamelCaps(String text) {
+                StringBuffer result = new StringBuffer(text.length() * 2);
+                char[] chars = text.toLowerCase().toCharArray();
+                for (int i = 0; i < text.length(); i++) {
+                    if ('_' == chars[i]) {
+                        result.append(" ");
+                        i++;
+                        if (i >= chars.length) break;
+                        result.append(Character.toUpperCase(chars[i]));
+                    } else {
+                        result.append(chars[i]);
+                    }
+                }
+                if (chars.length > 0) {
+                    result.setCharAt(0, Character.toUpperCase(chars[0]));
+                }
+                return result.toString();
+            }
+
+            public void olapChildAdded(OLAPChildEvent e) {
+                fireTableDataChanged();
+            }
+
+            public void olapChildRemoved(OLAPChildEvent e) {
+                fireTableDataChanged();
+            }
+        }
+    }
 }
