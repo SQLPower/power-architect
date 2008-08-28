@@ -165,8 +165,11 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
     }
     
     public void set<xsl:call-template name="name-initcap"/>(<xsl:call-template name="attribute-type"/> /* */ newval) {
-        int overallPosition = childPositionOffset(<xsl:call-template name="attribute-type"/>.class);
         <xsl:call-template name="attribute-type"/> /* */ oldval = <xsl:value-of select="@name"/>;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(<xsl:call-template name="attribute-type"/>.class);
         <xsl:value-of select="@name"/> = newval;
         if (<xsl:value-of select="@name"/> == null) {
             fireChildRemoved(<xsl:call-template name="attribute-type"/>.class, overallPosition, oldval);
