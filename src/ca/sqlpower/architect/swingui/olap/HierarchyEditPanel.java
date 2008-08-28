@@ -83,7 +83,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
         builder.append("Caption", captionField = new JTextField(hierarchy.getCaption()));
         builder.append("Has All", hasAll = new JCheckBox());
         hasAll.setSelected(hierarchy.getHasAll() != null ? hierarchy.getHasAll() : true);
-        builder.append("All Level Name", allLevelName = new JTextField(hierarchy.getAllLevelName() != null ? hierarchy.getAllLevelName() : "(All)"));
+        builder.append("All Level Name", allLevelName = new JTextField(hierarchy.getAllLevelName() != null ? hierarchy.getAllLevelName() : "All"));
 
         builder.append("Table", tableChooser = new JComboBox((new Vector<SQLTable>(tables))));
         builder.append("Primary Key", primaryKey = new JComboBox());
@@ -169,7 +169,6 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
                 hierarchy.setPrimaryKey(column.getName());
             }
         }
-
         hierarchy.endCompoundEdit();
         return true;
     }
