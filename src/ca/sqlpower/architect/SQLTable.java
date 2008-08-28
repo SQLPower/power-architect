@@ -185,17 +185,22 @@ public class SQLTable extends SQLObject {
      * 
      * @throws ArchitectException
      */
-	private synchronized void populateColumns() throws ArchitectException {
+    private synchronized void populateColumns() throws ArchitectException {
+        populateColumns(null);
+    }
+    
+	private synchronized void populateColumns(DatabaseMetaData dbmd) throws ArchitectException {
 		if (columnsFolder.isPopulated()) return;
 		if (columnsFolder.children.size() > 0) throw new IllegalStateException("Can't populate table because it already contains columns");
 
-		logger.debug("column folder populate starting");
+		logger.debug("column folder populate starting for table " + getName());
 
 		try {
 			SQLColumn.addColumnsToTable(this,
 										getCatalogName(),
 										getSchemaName(),
-										getName());
+										getName(),
+										dbmd);
 		} catch (SQLException e) {
 			throw new ArchitectException("Failed to populate columns of table "+getName(), e);
 		} finally {
@@ -208,9 +213,9 @@ public class SQLTable extends SQLObject {
 			columnsFolder.fireDbChildrenInserted(changedIndices, columnsFolder.children);
 		}
 
-		logger.debug("column folder populate finished");
+		logger.debug("column folder populate finished for table " + getName());
 
-        populateIndices();
+        populateIndices(dbmd);
 	}
 
     /**
@@ -224,7 +229,11 @@ public class SQLTable extends SQLObject {
      * @throws IllegalStateException if the columns folder is not yet populated, or if the
      * index folder is both non-empty and non-populated
      */
-    private synchronized void populateIndices() throws ArchitectException {
+	private synchronized void populateIndices() throws ArchitectException {
+	    populateIndices(null);
+	}
+	    
+    private synchronized void populateIndices(DatabaseMetaData dbmd) throws ArchitectException {
         if (indicesFolder.isPopulated()) return;
         if (indicesFolder.children.size() > 0) throw new IllegalStateException("Can't populate indices folder because it already contains children!");
         if (!columnsFolder.isPopulated()) throw new IllegalStateException("Columns folder must be populated");
@@ -244,7 +253,8 @@ public class SQLTable extends SQLObject {
             SQLIndex.addIndicesToTable(this,
                                       getCatalogName(),
                                       getSchemaName(),
-                                      getName());
+                                      getName(),
+                                      dbmd);
             
             logger.debug("found "+indicesFolder.children.size()+" indices.");
             for (SQLColumn column : getColumns()) {
@@ -278,7 +288,11 @@ public class SQLTable extends SQLObject {
 	 * side effect of populating the exported key side of the
 	 * relationships for the exporting tables.
 	 */
-	private synchronized void populateRelationships() throws ArchitectException {
+    private synchronized void populateRelationships() throws ArchitectException {
+        populateRelationships(null);
+    }
+    
+    private synchronized void populateRelationships(DatabaseMetaData dbmd) throws ArchitectException {
 		if (!columnsFolder.isPopulated()) throw new IllegalStateException("Table must be populated before relationships are added");
 		if (importedKeysFolder.isPopulated()) return;
 
@@ -294,7 +308,7 @@ public class SQLTable extends SQLObject {
 		 */
 		importedKeysFolder.populated = true;
 		try {
-			SQLRelationship.addImportedRelationshipsToTable(this);
+			SQLRelationship.addImportedRelationshipsToTable(this, dbmd);
 		} finally {
 			int newSize = importedKeysFolder.children.size();
 			if (newSize > oldSize) {
@@ -440,8 +454,12 @@ public class SQLTable extends SQLObject {
      * manner.
 	 */
 	public SQLColumn getColumnByName(String colName) throws ArchitectException {
-		return getColumnByName(colName, true, false);
+		return getColumnByName(colName, true, false, null);
 	}
+	
+	public SQLColumn getColumnByName(String colName, DatabaseMetaData dbmd) throws ArchitectException {
+        return getColumnByName(colName, true, false, dbmd);
+    }
 
 	/**
 	 * Searches for the named column.
@@ -450,9 +468,14 @@ public class SQLTable extends SQLObject {
 	 * list from the database; otherwise it just searches the current
 	 * list.
 	 */
-	public SQLColumn getColumnByName(String colName, boolean populate, boolean caseSensitive)
+	public SQLColumn getColumnByName(String colName, boolean populate, boolean caseSensitive) 
+	    throws ArchitectException {
+	    return getColumnByName(colName, populate, caseSensitive, null);
+	}
+	
+	public SQLColumn getColumnByName(String colName, boolean populate, boolean caseSensitive, DatabaseMetaData dbmd)
         throws ArchitectException {
-		if (populate) populateColumns();
+		if (populate) populateColumns(dbmd);
 		/* if columnsFolder.children.iterator(); gets changed to getColumns().iterator()
 		 * we get infinite recursion between populateColumns, getColumns,
 		 * getColumnsByName and addColumnsToTable
@@ -461,8 +484,10 @@ public class SQLTable extends SQLObject {
 		    logger.debug("Looking for column "+colName+" in "+columnsFolder.children);
 		}
 		Iterator it = columnsFolder.children.iterator();
+		logger.debug("Table " + getName() + " has " + columnsFolder.children.size() + " columns");
 		while (it.hasNext()) {
 			SQLColumn col = (SQLColumn) it.next();
+			logger.debug("Current column name is '" + col.getName() + "'");
             if (caseSensitive) {
                 if (col.getName().equals(colName)) {
                     logger.debug("FOUND");
@@ -891,23 +916,26 @@ public class SQLTable extends SQLObject {
 		}
 
 		public void populate() throws ArchitectException {
+		    populate(null);
+		}
+		
+		public void populate(DatabaseMetaData dbmd) throws ArchitectException {
 			if (populated) return;
 
 			logger.debug("SQLTable.Folder["+getName()+"]: populate starting");
 
 			try {
 				if (type == COLUMNS) {
-					parent.populateColumns();
+					parent.populateColumns(dbmd);
 				} else if (type == IMPORTED_KEYS) {
-					parent.populateColumns();
-					parent.populateRelationships();
+					parent.populateColumns(dbmd);
+					parent.populateRelationships(dbmd);
 				} else if (type == EXPORTED_KEYS) {
 					CachedRowSet crs = null;
 					Connection con = null;
-					DatabaseMetaData dbmd = null;
 					try {
 						con = parent.getParentDatabase().getConnection();
-						dbmd = con.getMetaData();
+						if (dbmd == null) dbmd = con.getMetaData();
 						crs = new CachedRowSet();
 						ResultSet exportedKeysRS = dbmd.getExportedKeys(parent.getCatalogName(), parent.getSchemaName(), parent.getName());
                         crs.populate(exportedKeysRS);
@@ -939,8 +967,8 @@ public class SQLTable extends SQLObject {
                                         ", I failed to find child table " +
                                         "\""+cat+"\".\""+sch+"\".\""+tab+"\"");
                             }
-							fkTable.populateColumns();
-							fkTable.populateRelationships();
+							fkTable.populateColumns(dbmd);
+							fkTable.populateRelationships(dbmd);
 						}
 					} catch (SQLException ex) {
 						throw new ArchitectException("Couldn't locate related tables", ex);
@@ -1026,6 +1054,19 @@ public class SQLTable extends SQLObject {
 			return type;
 		}
 
+		/**
+	     * Returns an unmodifiable view of the child list.  All list
+	     * members will be SQLObject subclasses (SQLTable,
+	     * SQLRelationship, SQLColumn, etc.) which are directly contained
+	     * within this SQLObject.
+	     */
+	    public List getChildren(DatabaseMetaData dbmd) throws ArchitectException {
+	        if (!allowsChildren()) //never return null;
+	            return children;
+	        populate(dbmd);
+	        return Collections.unmodifiableList(children);
+	    }
+		
 		@Override
 		public Class<? extends SQLObject> getChildType() {
 			return SQLColumn.class;
@@ -1198,7 +1239,11 @@ public class SQLTable extends SQLObject {
 	 * @return the value of exportedKeys
 	 */
 	public List<SQLRelationship> getExportedKeys() throws ArchitectException {
-		return this.exportedKeysFolder.getChildren();
+        return getExportedKeys(null);
+    }
+	
+	public List<SQLRelationship> getExportedKeys(DatabaseMetaData dbmd) throws ArchitectException {
+		return this.exportedKeysFolder.getChildren(dbmd);
 	}
 
     /**

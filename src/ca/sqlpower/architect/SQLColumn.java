@@ -274,16 +274,16 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	static void addColumnsToTable(SQLTable addTo,
 										 String catalog,
 										 String schema,
-										 String tableName) 
+										 String tableName,
+										 DatabaseMetaData dbmd) 
 		throws SQLException, DuplicateColumnException, ArchitectException {
 		Connection con = null;
 		ResultSet rs = null;
 		ResultSet typeRs = null;
-		DatabaseMetaData dbmd = null;
 
 		try {
 		    con = addTo.getParentDatabase().getConnection();
-		    dbmd = con.getMetaData();
+		    if (dbmd == null) dbmd = con.getMetaData();
 		    typeRs = con.getMetaData().getTypeInfo();
 		    Map<Double, Double> typeToMaxPrecisionMap = new HashMap<Double, Double>();
             while (typeRs.next()) {
