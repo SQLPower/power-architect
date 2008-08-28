@@ -34,6 +34,7 @@ import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
+import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.CubePane;
@@ -76,7 +77,13 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
                         if (!dimension.getHierarchies().isEmpty() && dimension.getHierarchies().get(0).getName()==null) {
                             Hierarchy hierarchy = dimension.getHierarchies().get(0);
                             hierarchy.startCompoundEdit("Set lowest level hierarchy to conform to cube fact table.");
-                            hierarchy.setRelation(cube.getFact());
+                            Table fact = (Table) cube.getFact();
+                            Table rel = new Table();
+                            rel.setAlias(fact.getAlias());
+                            rel.setFilter(fact.getFilter());
+                            rel.setName(fact.getName());
+                            rel.setSchema(fact.getSchema());
+                            hierarchy.setRelation(rel);
                             hierarchy.setPrimaryKey(du.getForeignKey());
                             hierarchy.endCompoundEdit();
                         }
