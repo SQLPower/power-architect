@@ -33,6 +33,7 @@ import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
+import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.CubePane;
@@ -71,7 +72,16 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
                 final DataEntryPanel mep = new DimensionUsageEditPanel(du);
                 Callable<Boolean> okCall = new Callable<Boolean>() {
                     public Boolean call() throws Exception {
-                        return mep.applyChanges();
+                        boolean changesApplied = mep.applyChanges();
+                        if (!dimension.getHierarchies().isEmpty() && dimension.getHierarchies().get(0).getName()==null) {
+                            Hierarchy hierarchy = dimension.getHierarchies().get(0);
+                            hierarchy.startCompoundEdit("Set lowest level hierarchy to conform to cube fact table.");
+                            hierarchy.setRelation(cube.getFact());
+                            hierarchy.setPrimaryKey(du.getForeignKey());
+                            hierarchy.endCompoundEdit();
+                            return changesApplied;
+                        }
+                        return false;
                     }
                 };
                 Callable<Boolean> cancelCall = new Callable<Boolean>() {

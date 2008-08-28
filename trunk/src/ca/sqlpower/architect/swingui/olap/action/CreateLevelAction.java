@@ -45,7 +45,8 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
         // first, we have to find or make the parent hierarchy 
         Dimension d = pane.getModel();
         if (d.getHierarchies().size() == 0) {
-            d.addHierarchy(new Hierarchy());
+            Hierarchy h = new Hierarchy();
+            d.addHierarchy(h);
         }
         
         Hierarchy newParent;
