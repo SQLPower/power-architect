@@ -106,6 +106,8 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.MondrianModel;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
@@ -2741,6 +2743,8 @@ public class PlayPen extends JPanel
                 selectMeasure((Measure) obj, ignoredObjs, extraSelections, tree);
             } else if (obj instanceof VirtualCubeDimension || obj instanceof VirtualCubeMeasure) {
                 selectItemFromVirtualCube(obj, ignoredObjs, extraSelections, tree);
+            } else if (obj instanceof CubeUsage) {
+                selectCubeUsage((CubeUsage) obj, ignoredObjs, extraSelections, tree);
             } else if (obj instanceof Hierarchy && obj.getParent() instanceof MondrianModel.Dimension
                     && obj.getParent().getParent() instanceof Schema) {
                 // Only select hierarchies from the public dimensions because the ones inside
@@ -2839,6 +2843,44 @@ public class PlayPen extends JPanel
     }
     
     /**
+     * Uses the given CubeUsage to select the matching CubeUsage and
+     * VirtualCubePane on the PlayPen. Also ensures the OLAPTree also selects
+     * the cubeUsage and the virtualCube.
+     * 
+     * @param obj
+     *            The CubeUsage to be selected in the playPen.
+     * @param ignoredObjs
+     *            A list of ingored objects used for debugging.
+     * @param extraSelections
+     *            A list of items that are selected, but not directly from the
+     *            user.
+     * @param tree
+     *            The OLAPTree assoicated with this PlayPen.
+     * @return The VirtualCubePane that was selected or null if none was
+     *         selected.
+     */
+    private VirtualCubePane selectCubeUsage(CubeUsage obj, List<OLAPObject> ignoredObjs, List<OLAPObject> extraSelections,
+            OLAPTree tree) {
+        if (obj.getParent() instanceof CubeUsages) {
+            
+            if (obj.getParent().getParent() instanceof VirtualCube) {
+                VirtualCubePane vcp = selectVirtualCube((VirtualCube) obj.getParent().getParent(), ignoredObjs);
+                if (vcp != null) {
+                    selectParents(obj, vcp.getModel(), tree, extraSelections);
+                    vcp.selectItem(obj);
+                }
+                return vcp;
+            } else { 
+                throw new IllegalStateException("Parent type " + obj.getParent().getParent().getClass() 
+                        + " is not a valid parent for type " + obj.getParent().getClass() + "!");
+            }
+        } else {
+            throw new IllegalStateException("Parent type " + obj.getParent().getClass() 
+                    + " is not a valid parent for type " + obj.getClass() + "!");
+        }
+    }
+
+    /**
      * Uses the given cube to select the matching CubePane on the PlayPen.
      * 
      * @param cube The Cube whose pane is to be selected.
@@ -2906,7 +2948,7 @@ public class PlayPen extends JPanel
             }
             return dp;
         } else {
-            throw new IllegalArgumentException("Parent type " + obj.getParent().getClass() 
+            throw new IllegalStateException("Parent type " + obj.getParent().getClass() 
                     + " is not a valid parent for type " + obj.getClass() + "!");
         }
     }
@@ -2935,7 +2977,7 @@ public class PlayPen extends JPanel
             }
             return cp;
         } else {
-            throw new IllegalArgumentException("Parent type " + measure.getParent().getClass() 
+            throw new IllegalStateException("Parent type " + measure.getParent().getClass() 
                     + " is not a valid parent for type " + measure.getClass() + "!");
         }
     }
@@ -2946,7 +2988,7 @@ public class PlayPen extends JPanel
      * OLAPTree also selects the object and the virtualCube.
      * 
      * @param obj
-     *            The VirtualCubeMeasure or VirtualCubeDimensionto be select in
+     *            The VirtualCubeMeasure or VirtualCubeDimension to be selected in
      *            the playPen.
      * @param ignoredObjs
      *            A list of ingored objects used for debugging.
@@ -2967,7 +3009,7 @@ public class PlayPen extends JPanel
             }
             return vcp;
         } else {
-            throw new IllegalArgumentException("Parent type " + obj.getParent().getClass() 
+            throw new IllegalStateException("Parent type " + obj.getParent().getClass() 
                     + " is not a valid parent for type " + obj.getClass() + "!");
         }
     }
@@ -2999,7 +3041,7 @@ public class PlayPen extends JPanel
             }
             return dp;
         } else {
-            throw new IllegalArgumentException("Parent type " + hierarchy.getParent().getClass() 
+            throw new IllegalStateException("Parent type " + hierarchy.getParent().getClass() 
                     + " is not a valid parent for type " + hierarchy.getClass() + "!");
         }
     }
@@ -3031,7 +3073,7 @@ public class PlayPen extends JPanel
             }
             return dp;
         } else {
-            throw new IllegalArgumentException("Parent type " + level.getParent().getClass() 
+            throw new IllegalStateException("Parent type " + level.getParent().getClass() 
                     + " is not a valid parent for type " + level.getClass() + "!");
         }
     }

@@ -34,6 +34,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
@@ -136,6 +137,10 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
                 objectsWithSelectedItems.add(item.getParent());
             } else if (item instanceof VirtualCubeDimension || item instanceof VirtualCubeMeasure) {
                 objectsWithSelectedItems.add(item.getParent());
+            } else if (item instanceof CubeUsage) {
+                // Parent of CubeUsage is CubeUsages.  Parent of CubeUsages is
+                // VirtualCube and we do not want to delete the VirtualCube
+                objectsWithSelectedItems.add(item.getParent().getParent());
             } else if (item instanceof Hierarchy) {
                 if (item.getParent().getParent() instanceof Schema) {
                     // If the Hierarchy is in a public dimension, then the DimensionPane
