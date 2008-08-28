@@ -28,6 +28,7 @@ import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
+import ca.sqlpower.architect.olap.MondrianModel.Level;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
@@ -38,6 +39,7 @@ import ca.sqlpower.architect.swingui.PopupMenuFactory;
 import ca.sqlpower.architect.swingui.olap.action.EditCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.EditDimensionAction;
 import ca.sqlpower.architect.swingui.olap.action.EditHierarchyAction;
+import ca.sqlpower.architect.swingui.olap.action.EditLevelAction;
 import ca.sqlpower.architect.swingui.olap.action.EditMeasureAction;
 import ca.sqlpower.architect.swingui.olap.action.EditSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.EditVirtualCubeAction;
@@ -100,6 +102,8 @@ public class ContextMenuFactory implements PopupMenuFactory {
             m.add(new EditMeasureAction(session, (Measure) obj, oSession.getOlapPlayPen()));
         } else if (obj instanceof Hierarchy) {
             m.add(new EditHierarchyAction(session, (Hierarchy) obj, oSession.getOlapPlayPen()));
+        } else if (obj instanceof Level) {
+            m.add(new EditLevelAction(session, (Level) obj, oSession.getOlapPlayPen()));
         }
         
         if (obj != null && !(obj instanceof Schema)) {
