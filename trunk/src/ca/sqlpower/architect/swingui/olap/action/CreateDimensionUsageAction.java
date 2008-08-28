@@ -79,9 +79,8 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
                             hierarchy.setRelation(cube.getFact());
                             hierarchy.setPrimaryKey(du.getForeignKey());
                             hierarchy.endCompoundEdit();
-                            return changesApplied;
                         }
-                        return false;
+                        return changesApplied;
                     }
                 };
                 Callable<Boolean> cancelCall = new Callable<Boolean>() {
@@ -108,5 +107,4 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
             JOptionPane.showMessageDialog(playpen, errorMsg, "Duplicate Cube Dimension", JOptionPane.INFORMATION_MESSAGE);
         }
     }
-
 }
