@@ -585,19 +585,18 @@ public class SQLIndex extends SQLObject {
      * SQLObjectEvents to avoid infinite recursion, so you have to
      * generate them yourself at a safe time.
      */
-    static void addIndicesToTable(SQLTable addTo, String catalog, String schema, String tableName) throws SQLException,
+    static void addIndicesToTable(SQLTable addTo, String catalog, String schema, String tableName, DatabaseMetaData dbmd) throws SQLException,
             ArchitectException {
         Connection con = null;
         ResultSet rs = null;
-        DatabaseMetaData dbmd = null;
 
         try {
             con = addTo.getParentDatabase().getConnection();
-            dbmd = con.getMetaData();
+            if (dbmd == null) dbmd = con.getMetaData();
             String pkName = null;
             rs = dbmd.getPrimaryKeys(catalog, schema, tableName);
             while (rs.next()) {
-                SQLColumn col = addTo.getColumnByName(rs.getString(4), false, true);
+                SQLColumn col = addTo.getColumnByName(rs.getString(4), false, true, dbmd);
                 //logger.debug(rs.getString(4));
                 if (col != null) {
                     col.primaryKeySeq = new Integer(rs.getInt(5));
