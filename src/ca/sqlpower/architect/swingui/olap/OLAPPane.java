@@ -170,6 +170,8 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                             } else {
                                 throw new IllegalStateException("Unhandled section type: " + clickedCoor.getSection());
                             }
+                        } else if (clickedCoor.getIndex() == PlayPenCoordinate.ITEM_INDEX_TITLE) {
+                            editObject = model;
                         } else {
                             // panel should've been null if the coordinate was invalid.
                             editObject = clickedCoor.getItem();
