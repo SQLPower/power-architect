@@ -892,8 +892,11 @@ public static class Cube extends OLAPObject {
     }
     
     public void setFact(Relation /* */ newval) {
-        int overallPosition = childPositionOffset(Relation.class);
         Relation /* */ oldval = fact;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(Relation.class);
         fact = newval;
         if (fact == null) {
             fireChildRemoved(Relation.class, overallPosition, oldval);
@@ -1353,8 +1356,11 @@ public static class VirtualCube extends OLAPObject {
     }
     
     public void setCubeUsage(CubeUsages /* */ newval) {
-        int overallPosition = childPositionOffset(CubeUsages.class);
         CubeUsages /* */ oldval = cubeUsage;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(CubeUsages.class);
         cubeUsage = newval;
         if (cubeUsage == null) {
             fireChildRemoved(CubeUsages.class, overallPosition, oldval);
@@ -2751,8 +2757,11 @@ public static class Hierarchy extends OLAPObject {
     }
     
     public void setRelation(RelationOrJoin /* */ newval) {
-        int overallPosition = childPositionOffset(RelationOrJoin.class);
         RelationOrJoin /* */ oldval = relation;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(RelationOrJoin.class);
         relation = newval;
         if (relation == null) {
             fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
@@ -3329,8 +3338,11 @@ public static class Level extends OLAPObject {
     }
     
     public void setKeyExp(KeyExpression /* */ newval) {
-        int overallPosition = childPositionOffset(KeyExpression.class);
         KeyExpression /* */ oldval = keyExp;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(KeyExpression.class);
         keyExp = newval;
         if (keyExp == null) {
             fireChildRemoved(KeyExpression.class, overallPosition, oldval);
@@ -3352,8 +3364,11 @@ public static class Level extends OLAPObject {
     }
     
     public void setNameExp(NameExpression /* */ newval) {
-        int overallPosition = childPositionOffset(NameExpression.class);
         NameExpression /* */ oldval = nameExp;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(NameExpression.class);
         nameExp = newval;
         if (nameExp == null) {
             fireChildRemoved(NameExpression.class, overallPosition, oldval);
@@ -3374,8 +3389,11 @@ public static class Level extends OLAPObject {
     }
     
     public void setOrdinalExp(OrdinalExpression /* */ newval) {
-        int overallPosition = childPositionOffset(OrdinalExpression.class);
         OrdinalExpression /* */ oldval = ordinalExp;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(OrdinalExpression.class);
         ordinalExp = newval;
         if (ordinalExp == null) {
             fireChildRemoved(OrdinalExpression.class, overallPosition, oldval);
@@ -3397,8 +3415,11 @@ public static class Level extends OLAPObject {
     }
     
     public void setParentExp(ParentExpression /* */ newval) {
-        int overallPosition = childPositionOffset(ParentExpression.class);
         ParentExpression /* */ oldval = parentExp;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(ParentExpression.class);
         parentExp = newval;
         if (parentExp == null) {
             fireChildRemoved(ParentExpression.class, overallPosition, oldval);
@@ -3417,8 +3438,11 @@ public static class Level extends OLAPObject {
     }
     
     public void setClosure(Closure /* */ newval) {
-        int overallPosition = childPositionOffset(Closure.class);
         Closure /* */ oldval = closure;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(Closure.class);
         closure = newval;
         if (closure == null) {
             fireChildRemoved(Closure.class, overallPosition, oldval);
@@ -3687,8 +3711,11 @@ public static class Closure extends OLAPObject {
     }
     
     public void setTable(Table /* */ newval) {
-        int overallPosition = childPositionOffset(Table.class);
         Table /* */ oldval = table;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(Table.class);
         table = newval;
         if (table == null) {
             fireChildRemoved(Table.class, overallPosition, oldval);
@@ -4114,8 +4141,11 @@ public static class Measure extends OLAPObject {
     }
     
     public void setMeasureExp(MeasureExpression /* */ newval) {
-        int overallPosition = childPositionOffset(MeasureExpression.class);
         MeasureExpression /* */ oldval = measureExp;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(MeasureExpression.class);
         measureExp = newval;
         if (measureExp == null) {
             fireChildRemoved(MeasureExpression.class, overallPosition, oldval);
@@ -4409,8 +4439,11 @@ public static class CalculatedMember extends OLAPObject {
     }
     
     public void setFormulaElement(Formula /* */ newval) {
-        int overallPosition = childPositionOffset(Formula.class);
         Formula /* */ oldval = formulaElement;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(Formula.class);
         formulaElement = newval;
         if (formulaElement == null) {
             fireChildRemoved(Formula.class, overallPosition, oldval);
@@ -4779,8 +4812,11 @@ public static class NamedSet extends OLAPObject {
     }
     
     public void setFormulaElement(Formula /* */ newval) {
-        int overallPosition = childPositionOffset(Formula.class);
         Formula /* */ oldval = formulaElement;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(Formula.class);
         formulaElement = newval;
         if (formulaElement == null) {
             fireChildRemoved(Formula.class, overallPosition, oldval);
@@ -5493,8 +5529,11 @@ public static class Join extends RelationOrJoin {
     }
     
     public void setLeft(RelationOrJoin /* */ newval) {
-        int overallPosition = childPositionOffset(RelationOrJoin.class);
         RelationOrJoin /* */ oldval = left;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(RelationOrJoin.class);
         left = newval;
         if (left == null) {
             fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
@@ -5513,8 +5552,11 @@ public static class Join extends RelationOrJoin {
     }
     
     public void setRight(RelationOrJoin /* */ newval) {
-        int overallPosition = childPositionOffset(RelationOrJoin.class);
         RelationOrJoin /* */ oldval = right;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(RelationOrJoin.class);
         right = newval;
         if (right == null) {
             fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
@@ -5702,8 +5744,11 @@ public static class Table extends Relation {
     }
     
     public void setFilter(SQL /* */ newval) {
-        int overallPosition = childPositionOffset(SQL.class);
         SQL /* */ oldval = filter;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(SQL.class);
         filter = newval;
         if (filter == null) {
             fireChildRemoved(SQL.class, overallPosition, oldval);
@@ -5973,8 +6018,11 @@ public static class InlineTable extends Relation {
     }
     
     public void setColumnDefs(ColumnDefs /* */ newval) {
-        int overallPosition = childPositionOffset(ColumnDefs.class);
         ColumnDefs /* */ oldval = columnDefs;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(ColumnDefs.class);
         columnDefs = newval;
         if (columnDefs == null) {
             fireChildRemoved(ColumnDefs.class, overallPosition, oldval);
@@ -5993,8 +6041,11 @@ public static class InlineTable extends Relation {
     }
     
     public void setRows(Rows /* */ newval) {
-        int overallPosition = childPositionOffset(Rows.class);
         Rows /* */ oldval = rows;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(Rows.class);
         rows = newval;
         if (rows == null) {
             fireChildRemoved(Rows.class, overallPosition, oldval);
@@ -6726,8 +6777,11 @@ public abstract static class AggTable extends OLAPObject {
     }
     
     public void setFactcount(AggFactCount /* */ newval) {
-        int overallPosition = childPositionOffset(AggFactCount.class);
         AggFactCount /* */ oldval = factcount;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(AggFactCount.class);
         factcount = newval;
         if (factcount == null) {
             fireChildRemoved(AggFactCount.class, overallPosition, oldval);
@@ -8640,8 +8694,11 @@ public static class Role extends OLAPObject {
     }
     
     public void setUnion(Union /* */ newval) {
-        int overallPosition = childPositionOffset(Union.class);
         Union /* */ oldval = union;
+        if (oldval == newval) {
+        	return;
+        }
+        int overallPosition = childPositionOffset(Union.class);
         union = newval;
         if (union == null) {
             fireChildRemoved(Union.class, overallPosition, oldval);
