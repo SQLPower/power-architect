@@ -29,7 +29,6 @@ import javax.swing.SwingUtilities;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.olap.OLAPObject;
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -104,15 +103,7 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
                 if (model instanceof DimensionUsage) {
                     try {
                         DimensionUsage du = (DimensionUsage) model;
-                        Dimension d;
-                        if (pane1.getModel() instanceof Dimension) {
-                            d = (Dimension) pane1.getModel();
-                        } else if (pane2.getModel() instanceof Dimension) {
-                            d = (Dimension) pane2.getModel();
-                        } else {
-                            throw new IllegalStateException("Couldn't find referenced Dimension of: " + du);
-                        }
-                        DataEntryPanel panel = new DimensionUsageEditPanel(du, d);
+                        DataEntryPanel panel = new DimensionUsageEditPanel(du);
                         if (panel != null) {
                             Window owner = SwingUtilities.getWindowAncestor(getPlayPen());
                             JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, owner,

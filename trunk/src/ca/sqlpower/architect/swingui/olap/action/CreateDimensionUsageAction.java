@@ -68,7 +68,7 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
             playpen.getContentPane().add(uc, playpen.getContentPane().getComponentCount());
             
             try {
-                final DataEntryPanel mep = new DimensionUsageEditPanel(du, dimension);
+                final DataEntryPanel mep = new DimensionUsageEditPanel(du);
                 Callable<Boolean> okCall = new Callable<Boolean>() {
                     public Boolean call() throws Exception {
                         return mep.applyChanges();
