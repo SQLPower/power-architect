@@ -20,7 +20,6 @@
 package ca.sqlpower.architect.undo;
 
 import java.beans.PropertyChangeEvent;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import javax.swing.undo.AbstractUndoableEdit;
@@ -38,6 +37,8 @@ import org.apache.log4j.Logger;
  *
  */
 public class PropertyChangeEdit extends AbstractUndoableEdit {
+    
+    @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(PropertyChangeEdit.class);
 
     private final PropertyChangeEvent sourceEvent;
@@ -56,15 +57,10 @@ public class PropertyChangeEdit extends AbstractUndoableEdit {
             Method setter = PropertyUtils.getWriteMethod(PropertyUtils.getPropertyDescriptor(sourceEvent.getSource(), sourceEvent.getPropertyName()));
             setter.invoke(sourceEvent.getSource(), sourceEvent.getOldValue());
 
-        } catch (IllegalAccessException ex) {
-            logger.error("Exception while trying to undo the changes for" + sourceEvent.getPropertyName());
-            throw new CannotUndoException();
-        } catch (NoSuchMethodException ex) {
-            logger.error("Mutator method not found while trying to undo the changes for" + sourceEvent.getPropertyName());
-            throw new CannotUndoException();
-        } catch (InvocationTargetException ex) {
-            logger.error("Exception while trying to undo the changes for" + sourceEvent.getPropertyName());
-            throw new CannotUndoException();
+        } catch (Exception ex) {
+            CannotUndoException wrapper = new CannotUndoException();
+            wrapper.initCause(ex);
+            throw wrapper;
         }
     }
 
@@ -78,15 +74,10 @@ public class PropertyChangeEdit extends AbstractUndoableEdit {
             Method setter = PropertyUtils.getWriteMethod(PropertyUtils.getPropertyDescriptor(sourceEvent.getSource(), sourceEvent.getPropertyName()));
             setter.invoke(sourceEvent.getSource(), sourceEvent.getNewValue());
 
-        } catch (IllegalAccessException ex) {
-            logger.error("Exception while trying to undo the changes for" + sourceEvent.getPropertyName());
-            throw new CannotUndoException();
-        } catch (NoSuchMethodException ex) {
-            logger.error("Mutator method not found while trying to undo the changes for" + sourceEvent.getPropertyName());
-            throw new CannotUndoException();
-        } catch (InvocationTargetException ex) {
-            logger.error("Exception while trying to undo the changes for" + sourceEvent.getPropertyName());
-            throw new CannotUndoException();
+        } catch (Exception ex) {
+            CannotRedoException wrapper = new CannotRedoException();
+            wrapper.initCause(ex);
+            throw wrapper;
         }
     }
 
