@@ -22,6 +22,7 @@ package ca.sqlpower.architect.swingui.olap;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.event.TreeModelEvent;
@@ -35,6 +36,13 @@ import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
+import ca.sqlpower.architect.olap.MondrianModel.CaptionExpression;
+import ca.sqlpower.architect.olap.MondrianModel.ExpressionView;
+import ca.sqlpower.architect.olap.MondrianModel.KeyExpression;
+import ca.sqlpower.architect.olap.MondrianModel.MeasureExpression;
+import ca.sqlpower.architect.olap.MondrianModel.NameExpression;
+import ca.sqlpower.architect.olap.MondrianModel.OrdinalExpression;
+import ca.sqlpower.architect.olap.MondrianModel.ParentExpression;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 
 public class OLAPTreeModel implements TreeModel {
@@ -45,6 +53,19 @@ public class OLAPTreeModel implements TreeModel {
     
     private final List<TreeModelListener> treeModelListeners = new ArrayList<TreeModelListener>();
     
+    /**
+     * A list of classes that are not displayed on the tree.
+     * 
+     * Note: If you do not display a node on the tree you can never see it's
+     * children.
+     * Note: this does not hide classes that extend from other classes on the
+     * list, it only hides the exact class.
+     */
+    private final List<Class<? extends ExpressionView>> hiddenClasses 
+    = Arrays.asList(ExpressionView.class, CaptionExpression.class, 
+            KeyExpression.class, MeasureExpression.class, NameExpression.class,
+            OrdinalExpression.class, ParentExpression.class);
+    
     public OLAPTreeModel(Schema schema) {
         this.schema = schema;
         OLAPUtil.listenToHierarchy(schema, modelEventHandler, modelEventHandler);
@@ -54,18 +75,37 @@ public class OLAPTreeModel implements TreeModel {
         if (logger.isDebugEnabled()) {
             logger.debug(">>> getChild("+parent+", "+index+")");
         }
-        final Object child = ((OLAPObject) parent).getChildren().get(index);
-        if (logger.isDebugEnabled()) {
-            logger.debug("<<< getChild: "+child);
+        final List<? extends OLAPObject> children = ((OLAPObject) parent).getChildren();
+        int i = -1;
+        // Skip over hidden classes.
+        for (OLAPObject oo : children) {
+            // Only count index for classes desired.
+            if (!(hiddenClasses.contains(oo.getClass()))) {
+                i++;
+            }
+            if (i == index) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("<<< getChild: "+oo);
+                }
+                return oo;
+            }
         }
-        return child;
+        return null;
     }
 
     public int getChildCount(Object parent) {
         if (logger.isDebugEnabled()) {
             logger.debug(">>> getChildCount("+parent+")");
         }
-        final int childCount = ((OLAPObject) parent).getChildren().size();
+        int childCount = 0;
+        final List<? extends OLAPObject> children = ((OLAPObject) parent).getChildren();
+        // Skip over hidden classes.
+        for (OLAPObject oo : children) {
+            // Only count for classes desired.
+            if (!(hiddenClasses.contains(oo.getClass()))) {
+                childCount++;
+            }
+        }
         if (logger.isDebugEnabled()) {
             logger.debug("<<< getChildCount: "+childCount);
         }
@@ -76,7 +116,18 @@ public class OLAPTreeModel implements TreeModel {
         if (logger.isDebugEnabled()) {
             logger.debug(">>> getIndexOfChild("+parent+", "+child+")");
         }
-        int index = ((OLAPObject) parent).getChildren().indexOf(child);
+        int index = -1;
+        final List<? extends OLAPObject> children = ((OLAPObject) parent).getChildren();
+        // Skip over hidden classes.
+        for (OLAPObject oo : children) {
+            // Only include children for classes desired.
+            if (!(hiddenClasses.contains(oo.getClass()))) {
+                index++;
+            }
+            if (oo == child) {
+                break;
+            }
+        }
         if (logger.isDebugEnabled()) {
             logger.debug("<<< getIndexOfChild: "+index);
         }
