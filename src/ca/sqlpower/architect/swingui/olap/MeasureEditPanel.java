@@ -120,7 +120,7 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
         boolean enableColumns = false;
         if (cubeTable == null) {
             columnChooser.addItem("Parent Cube has no table");
-        } else if (cubeTable.getColumns().size() == 0) {
+        } else if (cubeTable.getColumns().isEmpty()) {
             columnChooser.addItem("Parent Cube table has no columns");
         } else {
             for (SQLColumn col : cubeTable.getColumns()) {
