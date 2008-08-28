@@ -33,6 +33,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
@@ -141,7 +142,8 @@ public class OLAPTree extends JTree{
             OLAPObject obj = (OLAPObject) tp.getLastPathComponent();
             if (!(obj instanceof Cube || obj instanceof VirtualCube || obj instanceof Measure
                     || obj instanceof CubeDimension || obj instanceof VirtualCubeMeasure
-                    || obj instanceof Level || obj instanceof Hierarchy)) {
+                    || obj instanceof Level || obj instanceof Hierarchy 
+                    || obj instanceof CubeUsage)) {
                 removeSelectionPath(tp);
             }
         }

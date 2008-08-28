@@ -75,7 +75,11 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
     
     @Override
     protected List<OLAPObject> getItems() {
-        return model.getChildren();
+        // Return the children and all the cubeUsages.
+        List<OLAPObject> items = new ArrayList<OLAPObject>();
+        items.addAll(model.getCubeUsage().getCubeUsages());
+        items.addAll(model.getChildren());
+        return items;
     }
 
     public void updateUI() {

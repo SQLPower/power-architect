@@ -892,9 +892,16 @@ public static class Cube extends OLAPObject {
     }
     
     public void setFact(Relation /* */ newval) {
+        int overallPosition = childPositionOffset(Relation.class);
         Relation /* */ oldval = fact;
         fact = newval;
-        pcs.firePropertyChange("fact", oldval, newval);
+        if (fact == null) {
+            fireChildRemoved(Relation.class, overallPosition, oldval);
+        } else {
+            fact.setParent(this);
+            fireChildAdded(Relation.class, overallPosition, fact);
+        }
+        
     }
 
     /**  */
@@ -1175,6 +1182,9 @@ public static class Cube extends OLAPObject {
         if (childClass == NamedSet.class) return offset;
         offset += namedSets.size();
         
+        if (childClass == Relation.class) return offset;
+        offset += 1;
+        
         return offset;
     }
     
@@ -1343,9 +1353,16 @@ public static class VirtualCube extends OLAPObject {
     }
     
     public void setCubeUsage(CubeUsages /* */ newval) {
+        int overallPosition = childPositionOffset(CubeUsages.class);
         CubeUsages /* */ oldval = cubeUsage;
         cubeUsage = newval;
-        pcs.firePropertyChange("cubeUsage", oldval, newval);
+        if (cubeUsage == null) {
+            fireChildRemoved(CubeUsages.class, overallPosition, oldval);
+        } else {
+            cubeUsage.setParent(this);
+            fireChildAdded(CubeUsages.class, overallPosition, cubeUsage);
+        }
+        
     }
 
     /**  */
@@ -1631,6 +1648,9 @@ public static class VirtualCube extends OLAPObject {
         
         if (childClass == NamedSet.class) return offset;
         offset += namedSets.size();
+        
+        if (childClass == CubeUsages.class) return offset;
+        offset += 1;
         
         return offset;
     }
@@ -2731,9 +2751,16 @@ public static class Hierarchy extends OLAPObject {
     }
     
     public void setRelation(RelationOrJoin /* */ newval) {
+        int overallPosition = childPositionOffset(RelationOrJoin.class);
         RelationOrJoin /* */ oldval = relation;
         relation = newval;
-        pcs.firePropertyChange("relation", oldval, newval);
+        if (relation == null) {
+            fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
+        } else {
+            relation.setParent(this);
+            fireChildAdded(RelationOrJoin.class, overallPosition, relation);
+        }
+        
     }
 
     /**  */
@@ -2883,6 +2910,9 @@ public static class Hierarchy extends OLAPObject {
         
         if (childClass == MemberReaderParameter.class) return offset;
         offset += memberReaderParameters.size();
+        
+        if (childClass == RelationOrJoin.class) return offset;
+        offset += 1;
         
         return offset;
     }
@@ -3299,9 +3329,16 @@ public static class Level extends OLAPObject {
     }
     
     public void setKeyExp(KeyExpression /* */ newval) {
+        int overallPosition = childPositionOffset(KeyExpression.class);
         KeyExpression /* */ oldval = keyExp;
         keyExp = newval;
-        pcs.firePropertyChange("keyExp", oldval, newval);
+        if (keyExp == null) {
+            fireChildRemoved(KeyExpression.class, overallPosition, oldval);
+        } else {
+            keyExp.setParent(this);
+            fireChildAdded(KeyExpression.class, overallPosition, keyExp);
+        }
+        
     }
 
     /** 
@@ -3315,9 +3352,16 @@ public static class Level extends OLAPObject {
     }
     
     public void setNameExp(NameExpression /* */ newval) {
+        int overallPosition = childPositionOffset(NameExpression.class);
         NameExpression /* */ oldval = nameExp;
         nameExp = newval;
-        pcs.firePropertyChange("nameExp", oldval, newval);
+        if (nameExp == null) {
+            fireChildRemoved(NameExpression.class, overallPosition, oldval);
+        } else {
+            nameExp.setParent(this);
+            fireChildAdded(NameExpression.class, overallPosition, nameExp);
+        }
+        
     }
 
     /** 
@@ -3330,9 +3374,16 @@ public static class Level extends OLAPObject {
     }
     
     public void setOrdinalExp(OrdinalExpression /* */ newval) {
+        int overallPosition = childPositionOffset(OrdinalExpression.class);
         OrdinalExpression /* */ oldval = ordinalExp;
         ordinalExp = newval;
-        pcs.firePropertyChange("ordinalExp", oldval, newval);
+        if (ordinalExp == null) {
+            fireChildRemoved(OrdinalExpression.class, overallPosition, oldval);
+        } else {
+            ordinalExp.setParent(this);
+            fireChildAdded(OrdinalExpression.class, overallPosition, ordinalExp);
+        }
+        
     }
 
     /** 
@@ -3346,9 +3397,16 @@ public static class Level extends OLAPObject {
     }
     
     public void setParentExp(ParentExpression /* */ newval) {
+        int overallPosition = childPositionOffset(ParentExpression.class);
         ParentExpression /* */ oldval = parentExp;
         parentExp = newval;
-        pcs.firePropertyChange("parentExp", oldval, newval);
+        if (parentExp == null) {
+            fireChildRemoved(ParentExpression.class, overallPosition, oldval);
+        } else {
+            parentExp.setParent(this);
+            fireChildAdded(ParentExpression.class, overallPosition, parentExp);
+        }
+        
     }
 
     /**  */
@@ -3359,9 +3417,16 @@ public static class Level extends OLAPObject {
     }
     
     public void setClosure(Closure /* */ newval) {
+        int overallPosition = childPositionOffset(Closure.class);
         Closure /* */ oldval = closure;
         closure = newval;
-        pcs.firePropertyChange("closure", oldval, newval);
+        if (closure == null) {
+            fireChildRemoved(Closure.class, overallPosition, oldval);
+        } else {
+            closure.setParent(this);
+            fireChildAdded(Closure.class, overallPosition, closure);
+        }
+        
     }
 
     /**  */
@@ -3468,6 +3533,21 @@ public static class Level extends OLAPObject {
         
         if (childClass == Property.class) return offset;
         offset += properties.size();
+        
+        if (childClass == KeyExpression.class) return offset;
+        offset += 1;
+        
+        if (childClass == NameExpression.class) return offset;
+        offset += 1;
+        
+        if (childClass == OrdinalExpression.class) return offset;
+        offset += 1;
+        
+        if (childClass == ParentExpression.class) return offset;
+        offset += 1;
+        
+        if (childClass == Closure.class) return offset;
+        offset += 1;
         
         return offset;
     }
@@ -3607,19 +3687,52 @@ public static class Closure extends OLAPObject {
     }
     
     public void setTable(Table /* */ newval) {
+        int overallPosition = childPositionOffset(Table.class);
         Table /* */ oldval = table;
         table = newval;
-        pcs.firePropertyChange("table", oldval, newval);
+        if (table == null) {
+            fireChildRemoved(Table.class, overallPosition, oldval);
+        } else {
+            table.setParent(this);
+            fireChildAdded(Table.class, overallPosition, table);
+        }
+        
     }
 
     @Override
     public List<OLAPObject> getChildren() {
-        return Collections.emptyList();
+        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
+         * each list and implements optimized get() and iterator() methods instead of just making a new
+         * ArrayList with a copy of the union of all the other lists as we are now. */
+        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        
+        if (table != null) {
+        	children.add(table);
+        }
+        
+        return Collections.unmodifiableList(children);
     }
     
     @Override
     public boolean allowsChildren() {
-        return false;
+        return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == Table.class) return offset;
+        offset += 1;
+        
+        return offset;
     }
     
     @Override
@@ -4001,9 +4114,16 @@ public static class Measure extends OLAPObject {
     }
     
     public void setMeasureExp(MeasureExpression /* */ newval) {
+        int overallPosition = childPositionOffset(MeasureExpression.class);
         MeasureExpression /* */ oldval = measureExp;
         measureExp = newval;
-        pcs.firePropertyChange("measureExp", oldval, newval);
+        if (measureExp == null) {
+            fireChildRemoved(MeasureExpression.class, overallPosition, oldval);
+        } else {
+            measureExp.setParent(this);
+            fireChildAdded(MeasureExpression.class, overallPosition, measureExp);
+        }
+        
     }
 
     /**  */
@@ -4094,6 +4214,9 @@ public static class Measure extends OLAPObject {
         
         if (childClass == CalculatedMemberProperty.class) return offset;
         offset += memberProperties.size();
+        
+        if (childClass == MeasureExpression.class) return offset;
+        offset += 1;
         
         return offset;
     }
@@ -4286,9 +4409,16 @@ public static class CalculatedMember extends OLAPObject {
     }
     
     public void setFormulaElement(Formula /* */ newval) {
+        int overallPosition = childPositionOffset(Formula.class);
         Formula /* */ oldval = formulaElement;
         formulaElement = newval;
-        pcs.firePropertyChange("formulaElement", oldval, newval);
+        if (formulaElement == null) {
+            fireChildRemoved(Formula.class, overallPosition, oldval);
+        } else {
+            formulaElement.setParent(this);
+            fireChildAdded(Formula.class, overallPosition, formulaElement);
+        }
+        
     }
 
     /**  */
@@ -4379,6 +4509,9 @@ public static class CalculatedMember extends OLAPObject {
         
         if (childClass == CalculatedMemberProperty.class) return offset;
         offset += memberProperties.size();
+        
+        if (childClass == Formula.class) return offset;
+        offset += 1;
         
         return offset;
     }
@@ -4646,19 +4779,52 @@ public static class NamedSet extends OLAPObject {
     }
     
     public void setFormulaElement(Formula /* */ newval) {
+        int overallPosition = childPositionOffset(Formula.class);
         Formula /* */ oldval = formulaElement;
         formulaElement = newval;
-        pcs.firePropertyChange("formulaElement", oldval, newval);
+        if (formulaElement == null) {
+            fireChildRemoved(Formula.class, overallPosition, oldval);
+        } else {
+            formulaElement.setParent(this);
+            fireChildAdded(Formula.class, overallPosition, formulaElement);
+        }
+        
     }
 
     @Override
     public List<OLAPObject> getChildren() {
-        return Collections.emptyList();
+        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
+         * each list and implements optimized get() and iterator() methods instead of just making a new
+         * ArrayList with a copy of the union of all the other lists as we are now. */
+        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        
+        if (formulaElement != null) {
+        	children.add(formulaElement);
+        }
+        
+        return Collections.unmodifiableList(children);
     }
     
     @Override
     public boolean allowsChildren() {
-        return false;
+        return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == Formula.class) return offset;
+        offset += 1;
+        
+        return offset;
     }
     
     @Override
@@ -5327,9 +5493,16 @@ public static class Join extends RelationOrJoin {
     }
     
     public void setLeft(RelationOrJoin /* */ newval) {
+        int overallPosition = childPositionOffset(RelationOrJoin.class);
         RelationOrJoin /* */ oldval = left;
         left = newval;
-        pcs.firePropertyChange("left", oldval, newval);
+        if (left == null) {
+            fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
+        } else {
+            left.setParent(this);
+            fireChildAdded(RelationOrJoin.class, overallPosition, left);
+        }
+        
     }
 
     /**  */
@@ -5340,19 +5513,59 @@ public static class Join extends RelationOrJoin {
     }
     
     public void setRight(RelationOrJoin /* */ newval) {
+        int overallPosition = childPositionOffset(RelationOrJoin.class);
         RelationOrJoin /* */ oldval = right;
         right = newval;
-        pcs.firePropertyChange("right", oldval, newval);
+        if (right == null) {
+            fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
+        } else {
+            right.setParent(this);
+            fireChildAdded(RelationOrJoin.class, overallPosition, right);
+        }
+        
     }
 
     @Override
     public List<OLAPObject> getChildren() {
-        return Collections.emptyList();
+        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
+         * each list and implements optimized get() and iterator() methods instead of just making a new
+         * ArrayList with a copy of the union of all the other lists as we are now. */
+        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        
+        if (left != null) {
+        	children.add(left);
+        }
+        
+        if (right != null) {
+        	children.add(right);
+        }
+        
+        return Collections.unmodifiableList(children);
     }
     
     @Override
     public boolean allowsChildren() {
-        return false;
+        return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == RelationOrJoin.class) return offset;
+        offset += 1;
+        
+        if (childClass == RelationOrJoin.class) return offset;
+        offset += 1;
+        
+        return offset;
     }
     
     @Override
@@ -5489,9 +5702,16 @@ public static class Table extends Relation {
     }
     
     public void setFilter(SQL /* */ newval) {
+        int overallPosition = childPositionOffset(SQL.class);
         SQL /* */ oldval = filter;
         filter = newval;
-        pcs.firePropertyChange("filter", oldval, newval);
+        if (filter == null) {
+            fireChildRemoved(SQL.class, overallPosition, oldval);
+        } else {
+            filter.setParent(this);
+            fireChildAdded(SQL.class, overallPosition, filter);
+        }
+        
     }
 
     /**  */
@@ -5642,6 +5862,9 @@ public static class Table extends Relation {
         if (childClass == AggTable.class) return offset;
         offset += aggTables.size();
         
+        if (childClass == SQL.class) return offset;
+        offset += 1;
+        
         return offset;
     }
     
@@ -5750,9 +5973,16 @@ public static class InlineTable extends Relation {
     }
     
     public void setColumnDefs(ColumnDefs /* */ newval) {
+        int overallPosition = childPositionOffset(ColumnDefs.class);
         ColumnDefs /* */ oldval = columnDefs;
         columnDefs = newval;
-        pcs.firePropertyChange("columnDefs", oldval, newval);
+        if (columnDefs == null) {
+            fireChildRemoved(ColumnDefs.class, overallPosition, oldval);
+        } else {
+            columnDefs.setParent(this);
+            fireChildAdded(ColumnDefs.class, overallPosition, columnDefs);
+        }
+        
     }
 
     /**  */
@@ -5763,19 +5993,59 @@ public static class InlineTable extends Relation {
     }
     
     public void setRows(Rows /* */ newval) {
+        int overallPosition = childPositionOffset(Rows.class);
         Rows /* */ oldval = rows;
         rows = newval;
-        pcs.firePropertyChange("rows", oldval, newval);
+        if (rows == null) {
+            fireChildRemoved(Rows.class, overallPosition, oldval);
+        } else {
+            rows.setParent(this);
+            fireChildAdded(Rows.class, overallPosition, rows);
+        }
+        
     }
 
     @Override
     public List<OLAPObject> getChildren() {
-        return Collections.emptyList();
+        /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
+         * each list and implements optimized get() and iterator() methods instead of just making a new
+         * ArrayList with a copy of the union of all the other lists as we are now. */
+        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        
+        if (columnDefs != null) {
+        	children.add(columnDefs);
+        }
+        
+        if (rows != null) {
+        	children.add(rows);
+        }
+        
+        return Collections.unmodifiableList(children);
     }
     
     @Override
     public boolean allowsChildren() {
-        return false;
+        return true;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+        int offset = 0;
+        
+        if (childClass == ColumnDefs.class) return offset;
+        offset += 1;
+        
+        if (childClass == Rows.class) return offset;
+        offset += 1;
+        
+        return offset;
     }
     
     @Override
@@ -6456,9 +6726,16 @@ public abstract static class AggTable extends OLAPObject {
     }
     
     public void setFactcount(AggFactCount /* */ newval) {
+        int overallPosition = childPositionOffset(AggFactCount.class);
         AggFactCount /* */ oldval = factcount;
         factcount = newval;
-        pcs.firePropertyChange("factcount", oldval, newval);
+        if (factcount == null) {
+            fireChildRemoved(AggFactCount.class, overallPosition, oldval);
+        } else {
+            factcount.setParent(this);
+            fireChildAdded(AggFactCount.class, overallPosition, factcount);
+        }
+        
     }
 
     /**  */
@@ -6745,6 +7022,9 @@ public abstract static class AggTable extends OLAPObject {
         
         if (childClass == AggLevel.class) return offset;
         offset += levels.size();
+        
+        if (childClass == AggFactCount.class) return offset;
+        offset += 1;
         
         return offset;
     }
@@ -8360,9 +8640,16 @@ public static class Role extends OLAPObject {
     }
     
     public void setUnion(Union /* */ newval) {
+        int overallPosition = childPositionOffset(Union.class);
         Union /* */ oldval = union;
         union = newval;
-        pcs.firePropertyChange("union", oldval, newval);
+        if (union == null) {
+            fireChildRemoved(Union.class, overallPosition, oldval);
+        } else {
+            union.setParent(this);
+            fireChildAdded(Union.class, overallPosition, union);
+        }
+        
     }
 
     @Override
@@ -8399,6 +8686,9 @@ public static class Role extends OLAPObject {
         
         if (childClass == SchemaGrant.class) return offset;
         offset += schemaGrants.size();
+        
+        if (childClass == Union.class) return offset;
+        offset += 1;
         
         return offset;
     }

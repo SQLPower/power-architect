@@ -138,7 +138,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
 </xsl:template> 
 
 <!-- Private instance variable with getter/setter pair. (i.e. a bound JavaBean property) -->
-<xsl:template match="Attribute|Object">
+<xsl:template match="Attribute">
     /** <xsl:copy-of select="Doc"/> */
     private <xsl:call-template name="attribute-type"/> /* */ <xsl:value-of select="@name"/>;
     
@@ -150,6 +150,31 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         <xsl:call-template name="attribute-type"/> /* */ oldval = <xsl:value-of select="@name"/>;
         <xsl:value-of select="@name"/> = newval;
         pcs.firePropertyChange("<xsl:value-of select="@name"/>", oldval, newval);
+    }
+</xsl:template>
+
+<!-- Private instance variable with getter/setter pair. (i.e. a bound JavaBean property) -->
+<!-- This is different than attribute because objects considered children of the so the -->
+<!-- Parent must be set. -->
+<xsl:template match="Object">
+    /** <xsl:copy-of select="Doc"/> */
+    private <xsl:call-template name="attribute-type"/> /* */ <xsl:value-of select="@name"/>;
+    
+    public <xsl:call-template name="attribute-type"/> /* */ get<xsl:call-template name="name-initcap"/>() {
+        return <xsl:value-of select="@name"/>;
+    }
+    
+    public void set<xsl:call-template name="name-initcap"/>(<xsl:call-template name="attribute-type"/> /* */ newval) {
+        int overallPosition = childPositionOffset(<xsl:call-template name="attribute-type"/>.class);
+        <xsl:call-template name="attribute-type"/> /* */ oldval = <xsl:value-of select="@name"/>;
+        <xsl:value-of select="@name"/> = newval;
+        if (<xsl:value-of select="@name"/> == null) {
+            fireChildRemoved(<xsl:call-template name="attribute-type"/>.class, overallPosition, oldval);
+        } else {
+            <xsl:value-of select="@name"/>.setParent(this);
+            fireChildAdded(<xsl:call-template name="attribute-type"/>.class, overallPosition, <xsl:value-of select="@name"/>);
+        }
+        
     }
 </xsl:template>
 
@@ -235,7 +260,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
 
 <xsl:template name="children-methods">
     <xsl:choose>
-      <xsl:when test="Array">
+      <xsl:when test="Array|Object">
     @Override
     public List&lt;OLAPObject&gt; getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
@@ -271,6 +296,10 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         <xsl:for-each select="Array">
         if (childClass == <xsl:value-of select="@type"/>.class) return offset;
         offset += <xsl:value-of select="@name"/>.size();
+        </xsl:for-each>
+        <xsl:for-each select="Object">
+        if (childClass == <xsl:value-of select="@type"/>.class) return offset;
+        offset += 1;
         </xsl:for-each>
         return offset;
     }
