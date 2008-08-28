@@ -29,7 +29,6 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
-import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -46,22 +45,16 @@ public class DimensionUsageEditPanel implements DataEntryPanel{
 
     private JComboBox foreignKeyChooser;
 
-    private final Dimension dimension;
-
     /**
      * Creates a new property editor for the given dimension usage.
      * 
      * @param dimensionUsage
      *            usage The data model of the dimension usage to edit
-     * @param dimension
-     *            The dimension this dimension usage is referring to
-     *            
      * @throws ArchitectException
      *             if digging up the source table results in a database error
      */
-    public DimensionUsageEditPanel(DimensionUsage dimensionUsage, Dimension dimension) throws ArchitectException {
+    public DimensionUsageEditPanel(DimensionUsage dimensionUsage) throws ArchitectException {
         this.dimensionUsage = dimensionUsage;
-        this.dimension = dimension;
 
         FormLayout layout = new FormLayout("left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
@@ -100,7 +93,6 @@ public class DimensionUsageEditPanel implements DataEntryPanel{
             SQLColumn selectedCol = (SQLColumn) foreignKeyChooser.getSelectedItem();
             String pk = selectedCol.getName();
             dimensionUsage.setForeignKey(pk);
-            dimension.setForeignKey(pk);
         }
         dimensionUsage.endCompoundEdit();
         return true;
