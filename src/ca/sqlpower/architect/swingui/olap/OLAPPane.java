@@ -58,6 +58,7 @@ import ca.sqlpower.architect.swingui.PlayPenCoordinate;
 import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
@@ -160,9 +161,22 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                 try {
                     DataEntryPanel panel = createEditDialog(clickedCoor);
                     if (panel != null) {
+                        OLAPObject editObject;
+                        if (clickedCoor.getIndex() == PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE) {
+                            // hierarchies are the only sections that we have edit dialogs for right now.
+                            if (clickedCoor.getSection() instanceof HierarchySection) {
+                                HierarchySection section = (HierarchySection) clickedCoor.getSection();
+                                editObject = section.getHierarchy();
+                            } else {
+                                throw new IllegalStateException("Unhandled section type: " + clickedCoor.getSection());
+                            }
+                        } else {
+                            // panel should've been null if the coordinate was invalid.
+                            editObject = clickedCoor.getItem();
+                        }
                         Window owner = SwingUtilities.getWindowAncestor(getPlayPen());
                         JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, owner,
-                                "Modify Properties", "OK");
+                                 editObject.getClass().getSimpleName() + " Properties", "OK");
                         dialog.setLocationRelativeTo(owner);
                         dialog.setVisible(true);
                     }
