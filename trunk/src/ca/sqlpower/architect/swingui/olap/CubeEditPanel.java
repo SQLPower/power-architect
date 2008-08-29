@@ -127,7 +127,8 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         builder.append(viewRadioButton, 3); 
         builder.append("Alias", viewAlias = new JTextField());
         builder.append(new JLabel("SELECT Statements"), 3);
-        builder.append(new JScrollPane(selectStatements = new JTextArea(4, 30)), 3);
+        builder.append(new JScrollPane(selectStatements = new JTextArea("Adding View as a source table in a cube" +
+        		" has not yet been implemented", 4, 30)), 3);
         selectStatements.setLineWrap(true);
         
         if (tables.isEmpty()) {
