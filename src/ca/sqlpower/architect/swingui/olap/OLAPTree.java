@@ -48,7 +48,7 @@ public class OLAPTree extends JTree{
 
     private static final Logger logger = Logger.getLogger(OLAPTree.class);
     
-    private final ContextMenuFactory menuFactory;
+    private final OLAPContextMenuFactory menuFactory;
     
     private final JTreeCollapseAllAction collapseAllAction;
     private final JTreeExpandAllAction expandAllAction;
@@ -61,7 +61,7 @@ public class OLAPTree extends JTree{
         addMouseListener(new PopupListener());
         collapseAllAction = new JTreeCollapseAllAction(this, "Collapse All");
         expandAllAction = new JTreeExpandAllAction(this, "Expand All");
-        menuFactory = new ContextMenuFactory(session, oSession);
+        menuFactory = new OLAPContextMenuFactory(session, oSession);
     }
     
  // ----------------- popup menu stuff ----------------
@@ -99,7 +99,7 @@ public class OLAPTree extends JTree{
                     lpc = (OLAPObject) p.getLastPathComponent();
                 }
 
-                JPopupMenu popup = menuFactory.createContextMenu(lpc);
+                JPopupMenu popup = menuFactory.createPopupMenu(lpc);
 
                 if (lpc != null) {
                     popup.addSeparator();

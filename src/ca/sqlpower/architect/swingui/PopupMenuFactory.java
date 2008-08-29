@@ -31,9 +31,15 @@ import javax.swing.JPopupMenu;
 public interface PopupMenuFactory {
 
     /**
-     * Creates a popup menu appropriate to this factory's settings and current state.
+     * Creates a popup menu appropriate to this factory's settings and current
+     * state.
+     * 
+     * @param sourceComponent
+     *            Source Component which the popup menu is based on, it can be
+     *            null, if that is the case, then a popup menu for the playpen
+     *            is created
      * 
      * @return The popup menu that should be displayed now. Will not be null.
      */
-    JPopupMenu createPopupMenu();
+    JPopupMenu createPopupMenu(Object sourceComponent);
 }

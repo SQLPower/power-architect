@@ -2246,7 +2246,7 @@ public class PlayPen extends JPanel
 			} else {
                 session.getArchitectFrame().getCreateIdentifyingRelationshipAction().cancel();
                 session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
-				maybeShowPopup(evt);
+//				maybeShowPopup(evt);
 			}
 //			updateDBTree();
 		}
@@ -2350,7 +2350,8 @@ public class PlayPen extends JPanel
 		    } else {
 		        if (evt.isPopupTrigger() && popupFactory != null) {
 		            PlayPen pp = (PlayPen) evt.getSource();
-		            JPopupMenu popup = popupFactory.createPopupMenu();
+		            //XXX we should let popupfactory to produce playpencomponent popup as well
+		            JPopupMenu popup = popupFactory.createPopupMenu(null);
 		            popup.show(pp, evt.getX(), evt.getY());
 		        }
 		    }

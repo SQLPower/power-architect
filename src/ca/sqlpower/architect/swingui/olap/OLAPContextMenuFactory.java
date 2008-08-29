@@ -19,9 +19,6 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.JPopupMenu;
 
 import ca.sqlpower.architect.olap.OLAPObject;
@@ -33,8 +30,6 @@ import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PopupMenuFactory;
 import ca.sqlpower.architect.swingui.olap.action.EditCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.EditDimensionAction;
@@ -47,12 +42,12 @@ import ca.sqlpower.architect.swingui.olap.action.EditVirtualCubeAction;
 /**
  * Creates context menus for the tree or the playpen. (Or anyone else who wants one).
  */
-public class ContextMenuFactory implements PopupMenuFactory {
+public class OLAPContextMenuFactory implements PopupMenuFactory {
 
     private final ArchitectSwingSession session;
     private final OLAPEditSession oSession;
     
-    public ContextMenuFactory(ArchitectSwingSession session, OLAPEditSession oSession) {
+    public OLAPContextMenuFactory(ArchitectSwingSession session, OLAPEditSession oSession) {
         this.session = session;
         this.oSession = oSession;
     }
@@ -60,15 +55,16 @@ public class ContextMenuFactory implements PopupMenuFactory {
     /**
      * Creates a context menu for the given olap object. This menu should be
      * appropriate for the tree or the PlayPen.
-     * <p>
-     * TODO: support multi-select (pass in a list of selected objects)
      * 
-     * @param obj The items the menu is for. If no items are selected, pass in null.
-     * @return
+     * @param sourceComponent
+     *            The source component which the popup menu for, if the given
+     *            source component is null, he a popup for the playpen is
+     *            created instead
+     * @return The popup menu for the given source
      */
-    public JPopupMenu createContextMenu(OLAPObject obj) {
+    public JPopupMenu createPopupMenu(Object sourceComponent) {
+        OLAPObject obj = (OLAPObject) sourceComponent;
         JPopupMenu m = new JPopupMenu();
-        
         if (obj == null) {
             m.add(oSession.getCreateCubeAction());
             m.add(oSession.getCreateDimensionAction());
@@ -112,24 +108,6 @@ public class ContextMenuFactory implements PopupMenuFactory {
         }
         
         return m;
-    }
-
-    /**
-     * Gathers the selected items from the play pen and returns the appropriate
-     * popup menu.
-     */
-    public JPopupMenu createPopupMenu() {
-        List<OLAPObject> selectedObjects = new ArrayList<OLAPObject>();
-        PlayPen pp = oSession.getOlapPlayPen();
-        for (PlayPenComponent ppc : pp.getSelectedItems()) {
-            if (ppc.getModel() instanceof OLAPObject) {
-                selectedObjects.add((OLAPObject) ppc.getModel());
-            }
-        }
-        if (selectedObjects.isEmpty()) {
-            return createContextMenu(null);
-        } else {
-            return createContextMenu(selectedObjects.get(0));
-        }
+        
     }
 }

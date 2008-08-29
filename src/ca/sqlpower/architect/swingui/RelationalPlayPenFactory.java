@@ -61,14 +61,14 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 /**
- * Factory class that creates a PlayPen instance that's set up for use
- * in relational modeling (tables and relationships).
+ * Factory class that creates a PlayPen instance that's set up for use in
+ * relational modeling (tables and relationships).
  */
 public class RelationalPlayPenFactory {
 
     @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(RelationalPlayPenFactory.class);
-    
+
     public static PlayPen createPlayPen(ArchitectSwingSession session, DBTree dbTree) {
         PlayPen pp = new PlayPen(session);
         pp.setPopupFactory(new RelationalPopupFactory(pp, session));
@@ -78,10 +78,11 @@ public class RelationalPlayPenFactory {
         pp.getContentPane().addPlayPenContentListener(synchronizer);
         return pp;
     }
-    
+
     private static class RelationalPopupFactory implements PopupMenuFactory {
-        
+
         private final PlayPen pp;
+
         private final ArchitectSwingSession session;
 
         RelationalPopupFactory(PlayPen pp, ArchitectSwingSession session) {
@@ -89,41 +90,42 @@ public class RelationalPlayPenFactory {
             this.session = session;
         }
 
-        public JPopupMenu createPopupMenu() {
+        /**
+         * Creates a popup menu for the object. But at the moment, we are only
+         * using this to create popup menu for relational playpen
+         * <p>
+         * Specific component in relational playpen currently creates their own popup menus
+         * <p>
+         * It is expected that <code>sourceComponent</code> is <code>null</code>
+         */
+        public JPopupMenu createPopupMenu(Object sourceComponent) {
             JPopupMenu menu = new JPopupMenu();
 
             JMenuItem mi = new JMenuItem();
             mi.setAction(session.getArchitectFrame().getCreateTableAction());
             menu.add(mi);
-            
+
             mi = new JMenuItem();
-            Icon icon = new ImageIcon(
-                    ClassLoader.getSystemResource("icons/famfamfam/wrench.png")); //$NON-NLS-1$
-            AutoLayoutAction layoutAction =
-                new AutoLayoutAction(
-                        session,
-                        session.getPlayPen(),
-                        Messages.getString("PlayPen.straightenLinesActionName"),  //$NON-NLS-1$
-                        Messages.getString("PlayPen.straightenLinesActionDescription"), //$NON-NLS-1$
-                        icon); 
+            Icon icon = new ImageIcon(ClassLoader.getSystemResource("icons/famfamfam/wrench.png")); //$NON-NLS-1$
+            AutoLayoutAction layoutAction = new AutoLayoutAction(session, session.getPlayPen(), Messages
+                    .getString("PlayPen.straightenLinesActionName"), //$NON-NLS-1$
+                    Messages.getString("PlayPen.straightenLinesActionDescription"), //$NON-NLS-1$
+                    icon);
             layoutAction.setLayout(new LineStraightenerLayout());
             mi.setAction(layoutAction);
             menu.add(mi);
-            
+
             if (pp.isDebugEnabled()) {
                 menu.addSeparator();
                 mi = new JMenuItem("Show Relationships"); //$NON-NLS-1$
                 mi.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent evt) {
-                        JOptionPane.showMessageDialog(pp,
-                                new JScrollPane(
-                                    new JList(
-                                        new java.util.Vector<Relationship>(
-                                            pp.getRelationships()))));
+                        JOptionPane.showMessageDialog(pp, new JScrollPane(new JList(new java.util.Vector<Relationship>(
+                                pp.getRelationships()))));
                     }
                 });
                 menu.add(mi);
-                
+
                 mi = new JMenuItem("Show PlayPen Components"); //$NON-NLS-1$
                 mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
                 mi.addActionListener(new ActionListener() {
@@ -131,47 +133,45 @@ public class RelationalPlayPenFactory {
                         StringBuffer componentList = new StringBuffer();
                         for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
                             PlayPenComponent c = pp.getContentPane().getComponent(i);
-                            componentList.append(c).append("["+c.getModel()+"]\n"); //$NON-NLS-1$ //$NON-NLS-2$
+                            componentList.append(c).append("[" + c.getModel() + "]\n"); //$NON-NLS-1$ //$NON-NLS-2$
                         }
-                        JOptionPane.showMessageDialog(pp,
-                                new JScrollPane(
-                                    new JTextArea(componentList.toString())));
+                        JOptionPane.showMessageDialog(pp, new JScrollPane(new JTextArea(componentList.toString())));
                     }
                 });
                 menu.add(mi);
-                
+
                 mi = new JMenuItem("Show Undo Vector"); //$NON-NLS-1$
                 mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
                 mi.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent evt) {
-                        JOptionPane.showMessageDialog(pp,
-                                new JScrollPane(
-                                    new JTextArea(
-                                        session.getUndoManager().printUndoVector())));
+                        JOptionPane.showMessageDialog(pp, new JScrollPane(new JTextArea(session.getUndoManager()
+                                .printUndoVector())));
                     }
                 });
                 menu.add(mi);
             }
-            
+
             return menu;
         }
-        
+
     }
-    
+
     /**
      * Asks the playpen to set up its own generic keyboard actions (select,
      * edit, cancel, keyboard navigation) and then adds the relational-specific
-     * keyboard actions on top of those.  This is not done in the factory method
+     * keyboard actions on top of those. This is not done in the factory method
      * because there are some circular startup dependencies between PlayPen and
      * ArchitectFrame, so these actions have to be set up later.
      * 
-     * @param pp The playpen to activate the keyboard actions on
-     * @param session The session the playpen belongs to
+     * @param pp
+     *            The playpen to activate the keyboard actions on
+     * @param session
+     *            The session the playpen belongs to
      */
     static void setupKeyboardActions(final PlayPen pp, final ArchitectSwingSession session) {
         pp.setupKeyboardActions();
         final ArchitectFrame af = session.getArchitectFrame();
-        
+
         String KEY_DELETE_SELECTED = "ca.sqlpower.architect.swingui.PlayPen.KEY_DELETE_SELECTED"; //$NON-NLS-1$
 
         InputMap inputMap = pp.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
@@ -179,73 +179,86 @@ public class RelationalPlayPenFactory {
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), KEY_DELETE_SELECTED);
         pp.getActionMap().put(KEY_DELETE_SELECTED, af.getDeleteSelectedAction());
-        if (af.getDeleteSelectedAction() == null) logger.warn("af.deleteSelectedAction is null!"); //$NON-NLS-1$
+        if (af.getDeleteSelectedAction() == null)
+            logger.warn("af.deleteSelectedAction is null!"); //$NON-NLS-1$
 
-        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomToFitAction().getValue(Action.ACCELERATOR_KEY), "ZOOM TO FIT"); //$NON-NLS-1$
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                (KeyStroke) af.getZoomToFitAction().getValue(Action.ACCELERATOR_KEY), "ZOOM TO FIT"); //$NON-NLS-1$
         pp.getActionMap().put("ZOOM TO FIT", af.getZoomToFitAction()); //$NON-NLS-1$
 
-        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomInAction().getValue(Action.ACCELERATOR_KEY), "ZOOM IN"); //$NON-NLS-1$
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                (KeyStroke) af.getZoomInAction().getValue(Action.ACCELERATOR_KEY), "ZOOM IN"); //$NON-NLS-1$
         pp.getActionMap().put("ZOOM IN", af.getZoomInAction()); //$NON-NLS-1$
 
-        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomOutAction().getValue(Action.ACCELERATOR_KEY), "ZOOM OUT"); //$NON-NLS-1$
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                (KeyStroke) af.getZoomOutAction().getValue(Action.ACCELERATOR_KEY), "ZOOM OUT"); //$NON-NLS-1$
         pp.getActionMap().put("ZOOM OUT", af.getZoomOutAction()); //$NON-NLS-1$
 
-        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomResetAction().getValue(Action.ACCELERATOR_KEY), "ZOOM RESET"); //$NON-NLS-1$
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                (KeyStroke) af.getZoomResetAction().getValue(Action.ACCELERATOR_KEY), "ZOOM RESET"); //$NON-NLS-1$
         pp.getActionMap().put("ZOOM RESET", af.getZoomResetAction()); //$NON-NLS-1$
-        
 
-        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateTableAction().getValue(Action.ACCELERATOR_KEY), "NEW TABLE"); //$NON-NLS-1$
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                (KeyStroke) af.getCreateTableAction().getValue(Action.ACCELERATOR_KEY), "NEW TABLE"); //$NON-NLS-1$
         pp.getActionMap().put("NEW TABLE", af.getCreateTableAction()); //$NON-NLS-1$
 
-        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getInsertColumnAction().getValue(Action.ACCELERATOR_KEY), "NEW COLUMN"); //$NON-NLS-1$
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                (KeyStroke) af.getInsertColumnAction().getValue(Action.ACCELERATOR_KEY), "NEW COLUMN"); //$NON-NLS-1$
         pp.getActionMap().put("NEW COLUMN", af.getInsertColumnAction()); //$NON-NLS-1$
 
-        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getInsertIndexAction().getValue(Action.ACCELERATOR_KEY), "NEW INDEX"); //$NON-NLS-1$
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                (KeyStroke) af.getInsertIndexAction().getValue(Action.ACCELERATOR_KEY), "NEW INDEX"); //$NON-NLS-1$
         pp.getActionMap().put("NEW INDEX", af.getInsertIndexAction()); //$NON-NLS-1$
 
-        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY), "NEW IDENTIFYING RELATION"); //$NON-NLS-1$
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                (KeyStroke) af.getCreateIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY),
+                "NEW IDENTIFYING RELATION"); //$NON-NLS-1$
         pp.getActionMap().put("NEW IDENTIFYING RELATION", af.getCreateIdentifyingRelationshipAction()); //$NON-NLS-1$
 
-        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateNonIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY), "NEW NON IDENTIFYING RELATION"); //$NON-NLS-1$
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                (KeyStroke) af.getCreateNonIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY),
+                "NEW NON IDENTIFYING RELATION"); //$NON-NLS-1$
         pp.getActionMap().put("NEW NON IDENTIFYING RELATION", af.getCreateNonIdentifyingRelationshipAction()); //$NON-NLS-1$
 
         final Object KEY_EDIT_SELECTION = "ca.sqlpower.architect.PlayPen.KEY_EDIT_SELECTION"; //$NON-NLS-1$
 
-        pp.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), KEY_EDIT_SELECTION);
+        pp.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+                KEY_EDIT_SELECTION);
         pp.getActionMap().put(KEY_EDIT_SELECTION, new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 ActionEvent ev = new ActionEvent(e.getSource(), e.getID(),
-                                ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN,
-                                e.getWhen(), e.getModifiers());
+                        ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN, e.getWhen(), e.getModifiers());
                 af.getEditSelectedAction().actionPerformed(ev);
             }
         });
-        
+
     }
 
-    static class SelectionSynchronizer 
-    implements SelectionListener,
-            ItemSelectionListener<SQLTable, SQLColumn>,
+    static class SelectionSynchronizer implements SelectionListener, ItemSelectionListener<SQLTable, SQLColumn>,
             TreeSelectionListener, PlayPenContentListener {
 
         private int eventDepth = 0;
+
         private final DBTree tree;
+
         private final PlayPen pp;
-        
+
         public SelectionSynchronizer(DBTree tree, PlayPen pp) {
             this.tree = tree;
             this.pp = pp;
         }
-        
+
         /**
          * Synchronizes the dbtTree selection with the playpen selections
-         * @throws ArchitectException 
+         * 
+         * @throws ArchitectException
          * 
          */
         public void updateDBTree() {
-            if (eventDepth != 1) return;
+            if (eventDepth != 1)
+                return;
             tree.clearSelection();
-            
+
             List<TreePath> selectionPaths = new ArrayList<TreePath>();
             boolean addedPaths = false;
             // Keep track of the last tree path
@@ -258,9 +271,9 @@ public class RelationalPlayPenFactory {
                     addedPaths = true;
                     lastPath = tp;
                 }
-                
+
                 if (comp instanceof TablePane) {
-                    for (SQLColumn col :((TablePane) comp).getSelectedItems()) {
+                    for (SQLColumn col : ((TablePane) comp).getSelectedItems()) {
                         tp = tree.getTreePathForNode(col);
                         if (!selectionPaths.contains(tp)) {
                             selectionPaths.add(tp);
@@ -270,12 +283,12 @@ public class RelationalPlayPenFactory {
                     }
                 }
             }
-            
+
             // Scroll to last tree path.
             if (lastPath != null) {
                 tree.scrollPathToVisible(lastPath);
             }
-            
+
             tree.setSelectionPaths(selectionPaths.toArray(new TreePath[selectionPaths.size()]));
             if (addedPaths) {
                 tree.clearNonPlayPenSelections();
@@ -283,18 +296,22 @@ public class RelationalPlayPenFactory {
         }
 
         /**
-         * Selects the corresponding objects from the give TreePaths on the PlayPen.
+         * Selects the corresponding objects from the give TreePaths on the
+         * PlayPen.
          * 
-         * @param treePaths TreePaths containing the objects to select.
+         * @param treePaths
+         *            TreePaths containing the objects to select.
          */
         private void selectInPlayPen(TreePath[] treePaths) {
-            if (eventDepth != 1) return;
+            if (eventDepth != 1)
+                return;
             if (treePaths == null) {
                 pp.selectNone();
             } else {
                 List<SQLObject> objects = new ArrayList<SQLObject>();
                 for (TreePath tp : treePaths) {
-                    if (tree.isTargetDatabaseNode(tp) || !tree.isTargetDatabaseChild(tp)) continue;
+                    if (tree.isTargetDatabaseNode(tp) || !tree.isTargetDatabaseChild(tp))
+                        continue;
                     SQLObject obj = (SQLObject) tp.getLastPathComponent();
                     // only select playpen represented objects.
                     if ((obj instanceof SQLTable || obj instanceof SQLRelationship || obj instanceof SQLColumn) &&
@@ -364,7 +381,7 @@ public class RelationalPlayPenFactory {
         public void PlayPenComponentRemoved(PlayPenContentEvent e) {
             if (e.getPlayPenComponent() instanceof ContainerPane<?, ?>) {
                 ((ContainerPane<SQLTable, SQLColumn>) e.getPlayPenComponent()).removeItemSelectionListener(this);
-            } 
+            }
         }
     }
 }
