@@ -29,6 +29,7 @@ import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -125,6 +126,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         builder.append(tableChooser, 3);
         builder.append(viewRadioButton, 3); 
         builder.append("Alias", viewAlias = new JTextField());
+        builder.append(new JLabel("SELECT Statements"), 3);
         builder.append(new JScrollPane(selectStatements = new JTextArea(4, 30)), 3);
         selectStatements.setLineWrap(true);
         
