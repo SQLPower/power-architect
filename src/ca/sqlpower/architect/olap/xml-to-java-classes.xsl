@@ -327,7 +327,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
 		
 		} else if (child instanceof RelationOrJoin) {
             if (getLeft() == null) {
-            setLeft((RelationOrJoin) child);
+                setLeft((RelationOrJoin) child);
             } else if (getRight() == null) {
                 setRight((RelationOrJoin) child);
             }
@@ -350,6 +350,47 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         }
 			</xsl:otherwise>    
 		</xsl:choose>    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		<xsl:choose>
+			<xsl:when test="@type='Join'">
+		if (false) {
+		
+		} else if (child instanceof RelationOrJoin) {
+            if (getLeft() == null) {
+                setLeft((RelationOrJoin) child);
+            } else if (getRight() == null) {
+                setRight((RelationOrJoin) child);
+            }
+        } else {
+        	super.addChild(child);
+        }
+			</xsl:when>
+			<xsl:otherwise>
+        if (false) {
+        <xsl:for-each select="Array">
+        } else if (child instanceof <xsl:value-of select="@type"/>) {
+            int offset = childPositionOffset(<xsl:value-of select="@type"/>.class);
+            if ((index - offset) &lt; 0 || (index - offset) &gt; <xsl:value-of select="@name"/>.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + <xsl:value-of select="@name"/>.size());
+            }
+            add<xsl:call-template name="name-initcap-nonplural"/>(index - offset, (<xsl:value-of select="@type"/>) child);
+        </xsl:for-each>
+        <xsl:for-each select="Object">
+        } else if (child instanceof <xsl:value-of select="@type"/>) {
+            set<xsl:call-template name="name-initcap"/>((<xsl:value-of select="@type"/>) child);
+        </xsl:for-each>
+        } else {
+            super.addChild(index, child);
+        }
+			</xsl:otherwise>
+		</xsl:choose>
     }
     
     @Override

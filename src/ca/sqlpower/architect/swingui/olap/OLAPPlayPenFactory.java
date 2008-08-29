@@ -20,8 +20,10 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.event.KeyEvent;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.WeakHashMap;
 
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -175,6 +177,23 @@ public class OLAPPlayPenFactory {
         private final PlayPen pp;
         private final OLAPEditSession session;
 
+        /**
+         * Keeps track of the components for business model object that have
+         * been removed. This way, the components can be restored when the
+         * removal is undone (or the addition is redone).
+         * <p>
+         * The values are held in weak references because they themselves have
+         * strong references to the keys. See the WeakHashMap class-level
+         * documentation for an explanation of why this is important. At first,
+         * it may appear that the PlayPenComponent could be garbage collected
+         * before the OLAPObject, but this is not the case: The playpen
+         * component is on the OLAPObject's listener list, which is a strong
+         * reference from key to value in this map.
+         */
+        private final WeakHashMap<OLAPObject, WeakReference<PlayPenComponent>> removedPPCs =
+            new WeakHashMap<OLAPObject, WeakReference<PlayPenComponent>>();
+
+
         public OLAPModelListener(PlayPen pp, OLAPEditSession oSession) {
             this.pp = pp;
             session = oSession;
@@ -182,7 +201,13 @@ public class OLAPPlayPenFactory {
         
         public void olapChildAdded(OLAPChildEvent e) {
             OLAPUtil.listenToHierarchy(e.getChild(), this, null);
-            
+            WeakReference<PlayPenComponent> revivedPPC = removedPPCs.get(e.getChild());
+            logger.debug("OLAP Child was added. Previously removed component: " + revivedPPC);
+            if (revivedPPC != null) {
+                PlayPenComponent ppc = revivedPPC.get();
+                logger.debug("   following weak ref: " + ppc.getLocation() + " " + ppc);
+                pp.addPlayPenComponent(ppc, ppc.getLocation()); // XXX should remember old index so stacking order is correctly restored
+            }
         }
 
         public void olapChildRemoved(OLAPChildEvent e) {
@@ -193,6 +218,9 @@ public class OLAPPlayPenFactory {
                 if (ppc.getModel() == e.getChild()) {
                     ppc.setSelected(false, SelectionEvent.SINGLE_SELECT);
                     pp.getContentPane().remove(j);
+                    WeakReference<PlayPenComponent> weakComponentRef = new WeakReference<PlayPenComponent>(ppc);
+                    removedPPCs.put(e.getChild(), weakComponentRef);
+                    logger.debug("Put dead component in map: " + e.getChild().getName() + " -> " + weakComponentRef.get());
                 }
             } 
         }

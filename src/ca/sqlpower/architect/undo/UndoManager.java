@@ -41,7 +41,7 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.swingui.PlayPen;
 
-public class UndoManager extends javax.swing.undo.UndoManager {
+public class UndoManager extends javax.swing.undo.UndoManager implements NotifyingUndoManager {
 
     private static final Logger logger = Logger.getLogger(UndoManager.class);
 
@@ -401,10 +401,16 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 
     // Change event support
 
+    /* (non-Javadoc)
+     * @see ca.sqlpower.architect.undo.NotifyingUndoManager#addChangeListener(javax.swing.event.ChangeListener)
+     */
     public void addChangeListener(ChangeListener l) {
         changeListeners.add(l);
     }
-
+    
+    /* (non-Javadoc)
+     * @see ca.sqlpower.architect.undo.NotifyingUndoManager#removeChangeListener(javax.swing.event.ChangeListener)
+     */
     public void removeChangeListener(ChangeListener l) {
         changeListeners.remove(l);
     }

@@ -31,7 +31,7 @@ import javax.swing.event.ChangeListener;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.architect.undo.NotifyingUndoManager;
 
 public class RedoAction extends AbstractArchitectAction {
 
@@ -43,10 +43,10 @@ public class RedoAction extends AbstractArchitectAction {
 		}
 	}
 
-	private final UndoManager manager;
+	private final NotifyingUndoManager manager;
 	private ChangeListener managerListener = new ManagerListener();
 
-	public RedoAction(ArchitectSwingSession session, UndoManager manager) {
+	public RedoAction(ArchitectSwingSession session, NotifyingUndoManager manager) {
         super(session, Messages.getString("RedoAction.name"), Messages.getString("RedoAction.description"), "redo_arrow"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));

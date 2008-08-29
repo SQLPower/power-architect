@@ -35,10 +35,13 @@ import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.undo.OLAPUndoManager;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
+import ca.sqlpower.architect.swingui.action.RedoAction;
+import ca.sqlpower.architect.swingui.action.UndoAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
@@ -77,6 +80,12 @@ public class OLAPEditSession implements OLAPChildListener {
      */
     private final OLAPSession olapSession;
     
+    /**
+     * The undo manager for this OLAP edit session.
+     */
+    private final OLAPUndoManager undoManager;
+    
+
     public static final double ZOOM_STEP = 0.25;
     
     private ZoomAction zoomInAction;
@@ -94,11 +103,11 @@ public class OLAPEditSession implements OLAPChildListener {
     private ExportSchemaAction exportSchemaAction;
     private OLAPDeleteSelectedAction olapDeleteSelectedAction;
     private AutoLayoutAction autoLayoutAction;
-     
+    private UndoAction undoAction;
+    private RedoAction redoAction;
+    
     private final ArchitectSwingSession swingSession;
 
-
-    
     /**
      * Creates a new editor for the given OLAP schema. The schema's OLAPObjects should
      * all belong to the given session's dbtree and playpen. This should only be called by the
@@ -121,6 +130,8 @@ public class OLAPEditSession implements OLAPChildListener {
         tree.setCellRenderer(new OLAPTreeCellRenderer());
         pp = OLAPPlayPenFactory.createPlayPen(swingSession, this);
 
+        undoManager = new OLAPUndoManager(olapSession);
+        
         // Don't create actions here. PlayPen is currently null.
     }
     
@@ -159,11 +170,19 @@ public class OLAPEditSession implements OLAPChildListener {
         autoLayoutAction = new AutoLayoutAction(swingSession, pp, "Automatic Layout", "Automatic Layout", "auto_layout"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         autoLayoutAction.setLayout(new FruchtermanReingoldForceLayout());
 
+        undoAction = new UndoAction(swingSession, undoManager);
+        redoAction = new RedoAction(swingSession, undoManager);
+        
         JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
         toolbar.add(zoomInAction);
         toolbar.add(zoomOutAction);
         toolbar.add(zoomNormalAction);
         toolbar.add(zoomToFitAction);
+        
+        toolbar.addSeparator();
+
+        toolbar.add(undoAction);
+        toolbar.add(redoAction);
         
         toolbar.addSeparator();
 
