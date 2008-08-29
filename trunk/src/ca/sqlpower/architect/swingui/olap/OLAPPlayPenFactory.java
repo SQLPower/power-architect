@@ -45,7 +45,6 @@ import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
-import ca.sqlpower.architect.olap.MondrianModel.Level;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
@@ -298,7 +297,7 @@ public class OLAPPlayPenFactory {
                             lastPath = tp;
                         }
                     }
-                    for (PaneSection<? extends Level> sect :((DimensionPane) comp).getSelectedSections()) {
+                    for (PaneSection<? extends OLAPObject> sect :((DimensionPane) comp).getSelectedSections()) {
                         Hierarchy hierarchy;
                         if (sect instanceof HierarchySection) {
                             hierarchy = ((HierarchySection) sect).getHierarchy();

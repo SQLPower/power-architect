@@ -54,7 +54,7 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
         int newIndex;
         
         // If there are levels selected, we'll add after the last one
-        List<Level> levels = pane.getSelectedItems();
+        List<Level> levels = pane.getSelectedLevels();
         if (!levels.isEmpty()) {
             Level addAfter = levels.get(levels.size() - 1);
             newParent = (Hierarchy) addAfter.getParent();

@@ -2814,7 +2814,7 @@ public class PlayPen extends JPanel
                     }
                     
                     // Get the hierarchies from the sections and add them.
-                    for (PaneSection<? extends Level> hs : dp.getSelectedSections()) {
+                    for (PaneSection<? extends OLAPObject> hs : dp.getSelectedSections()) {
                         if (hs instanceof HierarchySection) {
                             if (!selections.contains(((HierarchySection) hs).getHierarchy()) 
                                     && !extraSelections.contains(((HierarchySection) hs).getHierarchy())) {

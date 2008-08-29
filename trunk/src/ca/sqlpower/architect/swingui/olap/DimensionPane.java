@@ -22,6 +22,8 @@ package ca.sqlpower.architect.swingui.olap;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
@@ -39,8 +41,9 @@ import ca.sqlpower.swingui.DataEntryPanel;
  * hierarchies of the Dimension object, and the items in each section are the
  * levels of the corresponding hierarchy.
  */
-public class DimensionPane extends OLAPPane<Dimension, Level> {
+public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
     
+    private static final Logger logger = Logger.getLogger(DimensionPane.class);
 
     private class HierarchyWatcher implements OLAPChildListener {
 
@@ -106,12 +109,13 @@ public class DimensionPane extends OLAPPane<Dimension, Level> {
     }
     
     @Override
-    protected List<Level> getItems() {
-        List<Level> levels = new ArrayList<Level>();
+    protected List<OLAPObject> getItems() {
+        List<OLAPObject> oos = new ArrayList<OLAPObject>();
         for (Hierarchy h : model.getHierarchies()) {
-            levels.addAll(h.getLevels());
+            oos.add(h);
+            oos.addAll(h.getLevels());
         }
-        return levels;
+        return oos;
     }
 
     // ---------------------- PlayPenComponent Overrides ----------------------
@@ -129,7 +133,7 @@ public class DimensionPane extends OLAPPane<Dimension, Level> {
     }
     
     @Override
-    public DataEntryPanel createEditDialog(PlayPenCoordinate<Dimension, Level> coord) throws ArchitectException {
+    public DataEntryPanel createEditDialog(PlayPenCoordinate<Dimension, OLAPObject> coord) throws ArchitectException {
         DataEntryPanel panel;
         // TODO add getName() method to DataEntryPanel.
         if (coord.getIndex() == PlayPenCoordinate.ITEM_INDEX_TITLE) {
@@ -154,11 +158,13 @@ public class DimensionPane extends OLAPPane<Dimension, Level> {
     }
 
     @Override
-    protected List<Level> filterDroppableItems(List<OLAPObject> items) {
-        List<Level> filtered = new ArrayList<Level>();
+    protected List<OLAPObject> filterDroppableItems(List<OLAPObject> items) {
+        List<OLAPObject> filtered = new ArrayList<OLAPObject>();
         for (OLAPObject item : items) {
             if (item instanceof Level) {
                 filtered.add((Level) item);
+            } else if (item instanceof Hierarchy) {
+                filtered.add((Hierarchy) item);
             }
         }
         return filtered;
@@ -169,7 +175,7 @@ public class DimensionPane extends OLAPPane<Dimension, Level> {
      * Returns null if it was not found.
      */
     public HierarchySection findSection(Hierarchy hierarchy) {
-        for (PaneSection<? extends Level> hs : sections) {
+        for (PaneSection<? extends OLAPObject> hs : sections) {
            if (hs instanceof HierarchySection) {
                if (((HierarchySection) hs).getHierarchy() == hierarchy){
                    return ((HierarchySection) hs);
@@ -177,5 +183,60 @@ public class DimensionPane extends OLAPPane<Dimension, Level> {
            }
         }
         return null;
+    }
+    
+    /**
+     * Returns a list of levels which are selected.
+     */
+    public List<Level> getSelectedLevels() {
+        List<Level> selectedItems = new ArrayList<Level>();
+        for (int i=0; i < getItems().size(); i++) {
+            if (isItemSelected(i) && getItems().get(i) instanceof Level) {
+                selectedItems.add((Level) getItems().get(i));
+            }
+        }
+        return selectedItems;
+    }
+    
+    @Override
+    protected List<OLAPObject> getItemsFromCoordinates(
+            List<PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject>> coords) {
+        List<OLAPObject> items = new ArrayList<OLAPObject>();
+        for (PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject> coord : coords) {
+            if (coord.getIndex() == PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE) {
+                // Only add sections which are HierarchySections because they are
+                // also OLAPObjects.  If it is a Hierarchy, then we do not want to
+                // move its levels as well because they come with the Hierarchy
+                // anyways.
+                items.add(((HierarchySection) coord.getSection()).getHierarchy());
+            } else if (coord.getIndex() >= 0) {
+                if (coord.getItem() == null) {
+                    throw new NullPointerException(
+                            "Found a coordinate with nonnegative " +
+                            "item index but null item: " + coord);
+                }
+                items.add(coord.getItem());
+            }
+        }
+        return items;
+    }
+    
+    @Override
+    protected void transferInvalidIndexItem(OLAPObject item, PaneSection<OLAPObject> insertSection) {
+        item.getParent().removeChild(item);
+        if (item instanceof Level) {
+            if (insertSection == null || sections.isEmpty()) {
+                // If a pane has no sections, then we must add one to put the
+                // item in. If it had no sections, must be a DimensionPane and
+                // therefore has only HierarchySections.
+                Hierarchy hier = new Hierarchy();
+                hier.setHasAll(true);
+                getModel().addChild(hier);
+                insertSection = (PaneSection<OLAPObject>) sections.get(0);
+            }
+            insertSection.addItem(item);
+        } else {
+            getModel().addChild(item);
+        }
     }
 }

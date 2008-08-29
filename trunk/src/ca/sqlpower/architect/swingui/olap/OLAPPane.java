@@ -474,22 +474,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
             List<PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject>> coords =
                 DnDOLAPTransferable.resolve(getPlayPen(), paths);
             logger.debug("Resolved Paths = " + coords);
-            List<OLAPObject> items = new ArrayList<OLAPObject>();
-            for (PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject> coord : coords) {
-                if (coord.getIndex() == PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE) {
-                    for (OLAPObject item : coord.getSection().getItems()) {
-                        items.add(item);
-                    }
-                } else if (coord.getIndex() >= 0) {
-                    if (coord.getItem() == null) {
-                        throw new NullPointerException(
-                                "Found a coordinate with nonnegative " +
-                                "item index but null item: " + coord);
-                    }
-                    items.add(coord.getItem());
-                }
-            }
-            
+            List<OLAPObject> items = getItemsFromCoordinates(coords);
             List<C> acceptedItems = filterDroppableItems(items);
             
             // XXX we don't want to weaken the type here (PaneSection<C> would be better)
@@ -519,22 +504,24 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                      * has to be adjusted to account for the subsequent items
                      * shifting up to take the place of the removed item.
                      */
-                    int removedItemIndex = insertSection.getItems().indexOf(item);
+                    int removedItemIndex = 0;
+                    if (insertSection != null) {
+                       removedItemIndex = insertSection.getItems().indexOf(item);
+                    }
                     logger.debug("Removed item index in target section: " + removedItemIndex);
 
-                    item.getParent().removeChild(item);
-
-                    if (removedItemIndex >= 0 &&
+                    if (insertSection != null && removedItemIndex >= 0 &&
                             insertSection.getItemType().isInstance(item) &&
                             insertIndex > removedItemIndex) {
                         insertIndex--;
                     }
                 }
 
-                if (insertIndex >= 0 && insertSection.getItemType().isInstance(item)) {
+                if (insertSection != null && insertIndex >= 0 && insertSection.getItemType().isInstance(item)) {
+                    item.getParent().removeChild(item);
                     insertSection.addItem(insertIndex++, item);
                 } else {
-                    getModel().addChild(item);
+                    transferInvalidIndexItem(item, insertSection);
                 }
             }
 
@@ -554,6 +541,45 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
             setInsertionPoint(null);
             schema.endCompoundEdit();
         }
+    }
+    
+    /**
+     * Returns a list of OLAPObjects that correspond to the given
+     * PlayPenCoordinates.
+     * 
+     * @param coords
+     *            The list of PlayPenCoordinates to convert.
+     * @return A list of OLAPObjects that correspond to the given
+     *         PlayPenCoordinates.
+     */
+    protected List<OLAPObject> getItemsFromCoordinates(List<PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject>> coords) {
+        List<OLAPObject> items = new ArrayList<OLAPObject>();
+        for (PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject> coord : coords) {
+            if (coord.getIndex() == PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE) {
+                for (OLAPObject item : coord.getSection().getItems()) {
+                    items.add(item);
+                }
+            } else if (coord.getIndex() >= 0) {
+                if (coord.getItem() == null) {
+                    throw new NullPointerException(
+                            "Found a coordinate with nonnegative " +
+                            "item index but null item: " + coord);
+                }
+                items.add(coord.getItem());
+            }
+        }
+        return items;
+    }
+    
+    /**
+     * Handle Drag and Drop transfer for items with invalid index.
+     * 
+     * @param item The item to be transferred.
+     * @param insertSection The section to be inserted into.
+     */
+    protected void transferInvalidIndexItem(OLAPObject item, PaneSection<OLAPObject> insertSection) {
+        item.getParent().removeChild(item);
+        getModel().addChild(item);
     }
 
     /**
