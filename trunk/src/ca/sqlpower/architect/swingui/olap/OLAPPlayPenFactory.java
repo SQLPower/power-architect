@@ -76,7 +76,7 @@ public class OLAPPlayPenFactory {
         OLAPModelListener ppcl = new OLAPModelListener(pp, oSession);
         pp.addPlayPenLifecycleListener(ppcl);
         
-        pp.setPopupFactory(new ContextMenuFactory(session, oSession));
+        pp.setPopupFactory(new OLAPContextMenuFactory(session, oSession));
         OLAPUtil.listenToHierarchy(oSession.getOlapSession().getSchema(), ppcl, null);
         
         SelectionSynchronizer synchronizer = new SelectionSynchronizer(oSession.getOlapTree(), pp);

@@ -373,7 +373,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
     }
     
     public JPopupMenu getPopup() {
-        return getPlayPen().getPopupFactory().createPopupMenu();
+        return getPlayPen().getPopupFactory().createPopupMenu(this.getModel());
     }
     
     @Override
