@@ -25,6 +25,7 @@ import java.awt.Insets;
 import java.awt.LayoutManager;
 
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 public class FormLayout implements LayoutManager {
@@ -126,7 +127,7 @@ public class FormLayout implements LayoutManager {
 			} else {
 				// right-hand column
 				int width = c.getPreferredSize().width;
-				if (c instanceof JTextField || c instanceof JPanel) {
+				if (c instanceof JTextField || c instanceof JPanel || c instanceof JScrollPane) {
 					width = rColWidth; // full width of this column
 				}
 				c.setBounds(lColWidth + ins.left + hgap, y, width, d.height);
