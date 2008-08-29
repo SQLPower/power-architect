@@ -194,10 +194,8 @@ public class OLAPUtil {
         RelationOrJoin relation = hier.getRelation();
 
         // If this hierarchy belongs to a shared dimension, its relation is all
-        // we can get.
-        // But if this hierarchy belongs to a private dimension, its cube's fact
-        // specifies
-        // the default table.
+        // we can get. But if this hierarchy belongs to a private dimension, its cube's fact
+        // specifies the default table.
         if (relation == null && hier.getParent().getParent() instanceof Cube) {
             Cube owningCube = (Cube) hier.getParent().getParent();
             relation = owningCube.getFact();
