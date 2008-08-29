@@ -314,7 +314,12 @@ public class OLAPUtil {
         if (olapSession == null) {
             throw new IllegalArgumentException("Can't find OLAPSession ancestor: " + cu);
         }
-        return olapSession.findCube(cu.getCubeName());
+        for (Cube c : olapSession.getSchema().getCubes()) {
+            if (c.getName().equalsIgnoreCase(cu.getCubeName())) {
+                return c;
+            }
+        }
+        return null;
     }
 
     /**
@@ -338,29 +343,43 @@ public class OLAPUtil {
             return (Dimension) cubeDim;
         } else if (cubeDim instanceof DimensionUsage) {
             String dimName = ((DimensionUsage) cubeDim).getSource();
-            return olapSession.findPublicDimension(dimName);
+            for (Dimension d : olapSession.getSchema().getDimensions()) {
+                if (d.getName().equalsIgnoreCase(dimName)) {
+                    return d;
+                }
+            }
         } else if (cubeDim instanceof VirtualCubeDimension) {
             VirtualCubeDimension vCubeDim = (VirtualCubeDimension) cubeDim;
             if (vCubeDim.getCubeName() == null) {
-                return olapSession.findPublicDimension(vCubeDim.getName());
+                String dimName = vCubeDim.getName();
+                for (Dimension d : olapSession.getSchema().getDimensions()) {
+                    if (d.getName().equalsIgnoreCase(dimName)) {
+                        return d;
+                    }
+                }
             } else {
-                CubeDimension cd = olapSession.findCubeDimension(vCubeDim.getCubeName(), vCubeDim.getName());
-
-                if (cd == null) {
-                    return null;
-                } else if (cd instanceof Dimension) {
-                    return (Dimension) cd;
-                } else if (cd instanceof DimensionUsage) {
-                    DimensionUsage du = (DimensionUsage) cd;
-                    return olapSession.findPublicDimension(du.getSource());
-                } else {
-                    throw new IllegalStateException("Invalid reference by VirtualCubeDimension: " + vCubeDim);
+                for (Cube c : olapSession.getSchema().getCubes()) {
+                    if (c.getName().equalsIgnoreCase(vCubeDim.getCubeName())) {
+                        for (CubeDimension cd : c.getDimensions()) {
+                            if (cd.getName().equalsIgnoreCase(vCubeDim.getName())) {
+                                if (cd instanceof Dimension) {
+                                    return (Dimension) cd;
+                                } else if (cd instanceof DimensionUsage) {
+                                    DimensionUsage du = (DimensionUsage) cd;
+                                    return findReferencedDimension(du);
+                                } else {
+                                    throw new IllegalStateException("Invalid reference by VirtualCubeDimension: " + vCubeDim);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         } else {
             // How do you enter the 4th dimension?!?!? ;)
             throw new UnsupportedOperationException("CubeDimension of type " + cubeDim.getClass() + " not recognized.");
         }
+        return null;
     }
 
     /**
@@ -383,13 +402,29 @@ public class OLAPUtil {
         }
 
         if (type == Cube.class) {
-            return olapSession.findCube(name) == null;
+            for (Cube c : olapSession.getSchema().getCubes()) {
+                if (c.getName().equalsIgnoreCase(name)) {
+                    return false;
+                }
+            }
         } else if (type == Dimension.class && parent instanceof Schema) {
-            return olapSession.findPublicDimension(name) == null;
+            for (Dimension d : ((Schema) parent).getDimensions()) {
+                if (d.getName().equalsIgnoreCase(name)) {
+                    return false;
+                }
+            }
         } else if (type == Dimension.class && parent instanceof Cube) {
-            return olapSession.findCubeDimension(parent.getName(), name) == null;
+            for (CubeDimension cd : ((Cube) parent).getDimensions()) {
+                if (cd.getName().equalsIgnoreCase(name)) {
+                    return false;
+                }
+            }
         } else if (type == VirtualCube.class) {
-            return olapSession.findVirtualCube(name) == null;
+            for (VirtualCube vCube : olapSession.getSchema().getVirtualCubes()) {
+                if (vCube.getName().equalsIgnoreCase(name)) {
+                    return false;
+                }
+            }
         } else if (type == Measure.class) {
             Cube c = (Cube) parent;
             for (Measure m : c.getMeasures()) {
@@ -397,7 +432,6 @@ public class OLAPUtil {
                     return false;
                 }
             }
-            return true;
         } else if (type == Level.class) {
             Hierarchy h = (Hierarchy) parent;
             for (Level l : h.getLevels()) {
@@ -405,7 +439,6 @@ public class OLAPUtil {
                     return false;
                 }
             }
-            return true;
         } else if (type == Hierarchy.class) {
             Dimension d = (Dimension) parent;
             for (Hierarchy h : d.getHierarchies()) {
@@ -418,7 +451,6 @@ public class OLAPUtil {
                     return false;
                 }
             }
-            return true;
         } else if (type == CubeUsage.class) {
             VirtualCube vCube = (VirtualCube) parent;
             for (CubeUsage usage : vCube.getCubeUsage().getCubeUsages()) {
@@ -426,7 +458,6 @@ public class OLAPUtil {
                     return false;
                 }
             }
-            return true;
         } else if (type == DimensionUsage.class) {
             Cube c = (Cube) parent;
             for (CubeDimension cd : c.getDimensions()) {
@@ -434,9 +465,7 @@ public class OLAPUtil {
                     return false;
                 }
             }
-            return true;
-        } else {
-            return true;
         }
+        return true;
     }
 }
