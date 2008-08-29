@@ -152,7 +152,7 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
                 }
             }
             
-            if (valid) {
+            if (valid && fact != null && foreignKey != null) {
                 dimensionTable = OLAPUtil.getSQLTableFromOLAPTable(oSession.getDatabase(), fact);
                 Table tab = new Table();
                 tab.setSchema(fact.getSchema());
