@@ -37,7 +37,9 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
@@ -85,7 +87,7 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
 
     private JCheckBox colNullable;
 
-    private JTextField colRemarks;
+    private JTextArea colRemarks;
 
     private JTextField colDefaultValue;
 
@@ -200,8 +202,11 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
         });
 
         centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.remarks"))); //$NON-NLS-1$
-        centerPanel.add(colRemarks = new JTextField());
-
+        centerPanel.add(new JScrollPane(colRemarks = new JTextArea()));
+        colRemarks.setRows(5);
+        colRemarks.setLineWrap(true);
+        colRemarks.setWrapStyleWord(true);
+        
         centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.defaultValue"))); //$NON-NLS-1$
         centerPanel.add(colDefaultValue = new JTextField());
         colDefaultValue.addActionListener(this);
@@ -456,7 +461,7 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
         return colPrec;
     }
 
-    public JTextField getColRemarks() {
+    public JTextArea getColRemarks() {
         return colRemarks;
     }
 
