@@ -67,7 +67,8 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
                 description = "Add " + friendlyChildName + " to " + selectedItems.get(0).getName();
             } else {
                 setEnabled(false);
-                description = "Add " + friendlyChildName + " to selected " + friendlyParentName;
+                description = "Add " + friendlyChildName + " to selected " + friendlyParentName + 
+                " (" + ((KeyStroke) getValue(ACCELERATOR_KEY)).getKeyChar() + ")";
             }
             putValue(SHORT_DESCRIPTION, description);
         }

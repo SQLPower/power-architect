@@ -43,7 +43,7 @@ public class CreateCubeAction extends AbstractArchitectAction {
     private final Schema schema;
     
     public CreateCubeAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
-        super(session, pp, "New Cube...", "Create a new cube in this schema", OSUtils.CUBE_ADD_ICON);
+        super(session, pp, "New Cube...", "Create a new cube in this schema (c)", OSUtils.CUBE_ADD_ICON);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('c'));
         this.schema = schema;
     }
