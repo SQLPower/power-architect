@@ -602,6 +602,94 @@ public static class Schema extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof Parameter) {
+            int offset = childPositionOffset(Parameter.class);
+            if ((index - offset) < 0 || (index - offset) > parameters.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + parameters.size());
+            }
+            addParameter(index - offset, (Parameter) child);
+        
+        } else if (child instanceof Dimension) {
+            int offset = childPositionOffset(Dimension.class);
+            if ((index - offset) < 0 || (index - offset) > dimensions.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + dimensions.size());
+            }
+            addDimension(index - offset, (Dimension) child);
+        
+        } else if (child instanceof Cube) {
+            int offset = childPositionOffset(Cube.class);
+            if ((index - offset) < 0 || (index - offset) > cubes.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + cubes.size());
+            }
+            addCube(index - offset, (Cube) child);
+        
+        } else if (child instanceof VirtualCube) {
+            int offset = childPositionOffset(VirtualCube.class);
+            if ((index - offset) < 0 || (index - offset) > virtualCubes.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + virtualCubes.size());
+            }
+            addVirtualCube(index - offset, (VirtualCube) child);
+        
+        } else if (child instanceof NamedSet) {
+            int offset = childPositionOffset(NamedSet.class);
+            if ((index - offset) < 0 || (index - offset) > namedSets.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + namedSets.size());
+            }
+            addNamedSet(index - offset, (NamedSet) child);
+        
+        } else if (child instanceof Role) {
+            int offset = childPositionOffset(Role.class);
+            if ((index - offset) < 0 || (index - offset) > roles.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + roles.size());
+            }
+            addRole(index - offset, (Role) child);
+        
+        } else if (child instanceof UserDefinedFunction) {
+            int offset = childPositionOffset(UserDefinedFunction.class);
+            if ((index - offset) < 0 || (index - offset) > userDefinedFunctions.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + userDefinedFunctions.size());
+            }
+            addUserDefinedFunction(index - offset, (UserDefinedFunction) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -740,6 +828,17 @@ public abstract static class CubeDimension extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -1216,6 +1315,64 @@ public static class Cube extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof CubeDimension) {
+            int offset = childPositionOffset(CubeDimension.class);
+            if ((index - offset) < 0 || (index - offset) > dimensions.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + dimensions.size());
+            }
+            addDimension(index - offset, (CubeDimension) child);
+        
+        } else if (child instanceof Measure) {
+            int offset = childPositionOffset(Measure.class);
+            if ((index - offset) < 0 || (index - offset) > measures.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + measures.size());
+            }
+            addMeasure(index - offset, (Measure) child);
+        
+        } else if (child instanceof CalculatedMember) {
+            int offset = childPositionOffset(CalculatedMember.class);
+            if ((index - offset) < 0 || (index - offset) > calculatedMembers.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + calculatedMembers.size());
+            }
+            addCalculatedMember(index - offset, (CalculatedMember) child);
+        
+        } else if (child instanceof NamedSet) {
+            int offset = childPositionOffset(NamedSet.class);
+            if ((index - offset) < 0 || (index - offset) > namedSets.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + namedSets.size());
+            }
+            addNamedSet(index - offset, (NamedSet) child);
+        
+        } else if (child instanceof Relation) {
+            setFact((Relation) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -1686,6 +1843,64 @@ public static class VirtualCube extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof VirtualCubeDimension) {
+            int offset = childPositionOffset(VirtualCubeDimension.class);
+            if ((index - offset) < 0 || (index - offset) > dimensions.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + dimensions.size());
+            }
+            addDimension(index - offset, (VirtualCubeDimension) child);
+        
+        } else if (child instanceof VirtualCubeMeasure) {
+            int offset = childPositionOffset(VirtualCubeMeasure.class);
+            if ((index - offset) < 0 || (index - offset) > measures.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + measures.size());
+            }
+            addMeasure(index - offset, (VirtualCubeMeasure) child);
+        
+        } else if (child instanceof CalculatedMember) {
+            int offset = childPositionOffset(CalculatedMember.class);
+            if ((index - offset) < 0 || (index - offset) > calculatedMembers.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + calculatedMembers.size());
+            }
+            addCalculatedMember(index - offset, (CalculatedMember) child);
+        
+        } else if (child instanceof NamedSet) {
+            int offset = childPositionOffset(NamedSet.class);
+            if ((index - offset) < 0 || (index - offset) > namedSets.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + namedSets.size());
+            }
+            addNamedSet(index - offset, (NamedSet) child);
+        
+        } else if (child instanceof CubeUsages) {
+            setCubeUsage((CubeUsages) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -1838,6 +2053,28 @@ public static class CubeUsages extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof CubeUsage) {
+            int offset = childPositionOffset(CubeUsage.class);
+            if ((index - offset) < 0 || (index - offset) > cubeUsages.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + cubeUsages.size());
+            }
+            addCubeUsage(index - offset, (CubeUsage) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -1932,6 +2169,17 @@ public static class CubeUsage extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -2030,6 +2278,17 @@ public static class VirtualCubeDimension extends CubeDimension {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -2143,6 +2402,17 @@ public static class VirtualCubeMeasure extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -2264,6 +2534,17 @@ public static class DimensionUsage extends CubeDimension {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -2493,6 +2774,28 @@ public static class Dimension extends CubeDimension {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof Hierarchy) {
+            int offset = childPositionOffset(Hierarchy.class);
+            if ((index - offset) < 0 || (index - offset) > hierarchies.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + hierarchies.size());
+            }
+            addHierarchy(index - offset, (Hierarchy) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -2944,6 +3247,42 @@ public static class Hierarchy extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof Level) {
+            int offset = childPositionOffset(Level.class);
+            if ((index - offset) < 0 || (index - offset) > levels.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + levels.size());
+            }
+            addLevel(index - offset, (Level) child);
+        
+        } else if (child instanceof MemberReaderParameter) {
+            int offset = childPositionOffset(MemberReaderParameter.class);
+            if ((index - offset) < 0 || (index - offset) > memberReaderParameters.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + memberReaderParameters.size());
+            }
+            addMemberReaderParameter(index - offset, (MemberReaderParameter) child);
+        
+        } else if (child instanceof RelationOrJoin) {
+            setRelation((RelationOrJoin) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -3604,6 +3943,43 @@ public static class Level extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof Property) {
+            int offset = childPositionOffset(Property.class);
+            if ((index - offset) < 0 || (index - offset) > properties.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + properties.size());
+            }
+            addProperty(index - offset, (Property) child);
+        
+        } else if (child instanceof KeyExpression) {
+            setKeyExp((KeyExpression) child);
+        
+        } else if (child instanceof NameExpression) {
+            setNameExp((NameExpression) child);
+        
+        } else if (child instanceof OrdinalExpression) {
+            setOrdinalExp((OrdinalExpression) child);
+        
+        } else if (child instanceof ParentExpression) {
+            setParentExp((ParentExpression) child);
+        
+        } else if (child instanceof Closure) {
+            setClosure((Closure) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -3775,6 +4151,20 @@ public static class Closure extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof Table) {
+            setTable((Table) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -3929,6 +4319,17 @@ public static class Property extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -4267,6 +4668,31 @@ public static class Measure extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof CalculatedMemberProperty) {
+            int offset = childPositionOffset(CalculatedMemberProperty.class);
+            if ((index - offset) < 0 || (index - offset) > memberProperties.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + memberProperties.size());
+            }
+            addMemberPropertie(index - offset, (CalculatedMemberProperty) child);
+        
+        } else if (child instanceof MeasureExpression) {
+            setMeasureExp((MeasureExpression) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -4565,6 +4991,31 @@ public static class CalculatedMember extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof CalculatedMemberProperty) {
+            int offset = childPositionOffset(CalculatedMemberProperty.class);
+            if ((index - offset) < 0 || (index - offset) > memberProperties.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + memberProperties.size());
+            }
+            addMemberPropertie(index - offset, (CalculatedMemberProperty) child);
+        
+        } else if (child instanceof Formula) {
+            setFormulaElement((Formula) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -4708,6 +5159,17 @@ public static class CalculatedMemberProperty extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -4876,6 +5338,20 @@ public static class NamedSet extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof Formula) {
+            setFormulaElement((Formula) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -4949,6 +5425,17 @@ public static class Formula extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -5037,6 +5524,17 @@ public static class MemberReaderParameter extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -5092,6 +5590,17 @@ public abstract static class RelationOrJoin extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -5152,6 +5661,17 @@ public abstract static class Relation extends RelationOrJoin {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -5310,6 +5830,28 @@ public static class View extends Relation {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof SQL) {
+            int offset = childPositionOffset(SQL.class);
+            if ((index - offset) < 0 || (index - offset) > selects.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + selects.size());
+            }
+            addSelect(index - offset, (SQL) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -5401,6 +5943,17 @@ public static class SQL extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -5617,7 +6170,7 @@ public static class Join extends RelationOrJoin {
 		
 		} else if (child instanceof RelationOrJoin) {
             if (getLeft() == null) {
-            setLeft((RelationOrJoin) child);
+                setLeft((RelationOrJoin) child);
             } else if (getRight() == null) {
                 setRight((RelationOrJoin) child);
             }
@@ -5625,6 +6178,23 @@ public static class Join extends RelationOrJoin {
         	super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+		if (false) {
+		
+		} else if (child instanceof RelationOrJoin) {
+            if (getLeft() == null) {
+                setLeft((RelationOrJoin) child);
+            } else if (getRight() == null) {
+                setRight((RelationOrJoin) child);
+            }
+        } else {
+        	super.addChild(child);
+        }
+			
     }
     
     @Override
@@ -5932,6 +6502,42 @@ public static class Table extends Relation {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof AggExclude) {
+            int offset = childPositionOffset(AggExclude.class);
+            if ((index - offset) < 0 || (index - offset) > aggExcludes.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + aggExcludes.size());
+            }
+            addAggExclude(index - offset, (AggExclude) child);
+        
+        } else if (child instanceof AggTable) {
+            int offset = childPositionOffset(AggTable.class);
+            if ((index - offset) < 0 || (index - offset) > aggTables.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + aggTables.size());
+            }
+            addAggTable(index - offset, (AggTable) child);
+        
+        } else if (child instanceof SQL) {
+            setFilter((SQL) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -6115,6 +6721,23 @@ public static class InlineTable extends Relation {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof ColumnDefs) {
+            setColumnDefs((ColumnDefs) child);
+        
+        } else if (child instanceof Rows) {
+            setRows((Rows) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -6257,6 +6880,28 @@ public static class ColumnDefs extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof ColumnDef) {
+            int offset = childPositionOffset(ColumnDef.class);
+            if ((index - offset) < 0 || (index - offset) > array.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + array.size());
+            }
+            addArray(index - offset, (ColumnDef) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -6353,6 +6998,17 @@ public static class ColumnDef extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -6487,6 +7143,28 @@ public static class Rows extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof Row) {
+            int offset = childPositionOffset(Row.class);
+            if ((index - offset) < 0 || (index - offset) > array.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + array.size());
+            }
+            addArray(index - offset, (Row) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -6628,6 +7306,28 @@ public static class Row extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof Value) {
+            int offset = childPositionOffset(Value.class);
+            if ((index - offset) < 0 || (index - offset) > values.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + values.size());
+            }
+            addValue(index - offset, (Value) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -6722,6 +7422,17 @@ public static class Value extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -7108,6 +7819,64 @@ public abstract static class AggTable extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof AggIgnoreColumn) {
+            int offset = childPositionOffset(AggIgnoreColumn.class);
+            if ((index - offset) < 0 || (index - offset) > ignoreColumns.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + ignoreColumns.size());
+            }
+            addIgnoreColumn(index - offset, (AggIgnoreColumn) child);
+        
+        } else if (child instanceof AggForeignKey) {
+            int offset = childPositionOffset(AggForeignKey.class);
+            if ((index - offset) < 0 || (index - offset) > foreignKeys.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + foreignKeys.size());
+            }
+            addForeignKey(index - offset, (AggForeignKey) child);
+        
+        } else if (child instanceof AggMeasure) {
+            int offset = childPositionOffset(AggMeasure.class);
+            if ((index - offset) < 0 || (index - offset) > measures.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + measures.size());
+            }
+            addMeasure(index - offset, (AggMeasure) child);
+        
+        } else if (child instanceof AggLevel) {
+            int offset = childPositionOffset(AggLevel.class);
+            if ((index - offset) < 0 || (index - offset) > levels.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + levels.size());
+            }
+            addLevel(index - offset, (AggLevel) child);
+        
+        } else if (child instanceof AggFactCount) {
+            setFactcount((AggFactCount) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -7199,6 +7968,17 @@ public static class AggName extends AggTable {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -7357,6 +8137,28 @@ public static class AggPattern extends AggTable {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof AggExclude) {
+            int offset = childPositionOffset(AggExclude.class);
+            if ((index - offset) < 0 || (index - offset) > excludes.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + excludes.size());
+            }
+            addExclude(index - offset, (AggExclude) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -7470,6 +8272,17 @@ public static class AggExclude extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -7545,6 +8358,17 @@ public abstract static class AggColumnName extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -7602,6 +8426,17 @@ public static class AggFactCount extends AggColumnName {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -7658,6 +8493,17 @@ public static class AggIgnoreColumn extends AggColumnName {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -7753,6 +8599,17 @@ public static class AggForeignKey extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -7843,6 +8700,17 @@ public static class AggLevel extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -7935,6 +8803,17 @@ public static class AggMeasure extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -7990,6 +8869,17 @@ public abstract static class Expression extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -8086,6 +8976,17 @@ public static class Column extends Expression {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -8230,6 +9131,28 @@ public abstract static class ExpressionView extends Expression {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof SQL) {
+            int offset = childPositionOffset(SQL.class);
+            if ((index - offset) < 0 || (index - offset) > expressions.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + expressions.size());
+            }
+            addExpression(index - offset, (SQL) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -8290,6 +9213,17 @@ public static class KeyExpression extends ExpressionView {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -8346,6 +9280,17 @@ public static class ParentExpression extends ExpressionView {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -8404,6 +9349,17 @@ public static class OrdinalExpression extends ExpressionView {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -8460,6 +9416,17 @@ public static class NameExpression extends ExpressionView {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -8518,6 +9485,17 @@ public static class CaptionExpression extends ExpressionView {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -8574,6 +9552,17 @@ public static class MeasureExpression extends ExpressionView {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -8766,6 +9755,31 @@ public static class Role extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof SchemaGrant) {
+            int offset = childPositionOffset(SchemaGrant.class);
+            if ((index - offset) < 0 || (index - offset) > schemaGrants.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + schemaGrants.size());
+            }
+            addSchemaGrant(index - offset, (SchemaGrant) child);
+        
+        } else if (child instanceof Union) {
+            setUnion((Union) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -8845,6 +9859,17 @@ public abstract static class Grant extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -8989,6 +10014,28 @@ public static class SchemaGrant extends Grant {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof CubeGrant) {
+            int offset = childPositionOffset(CubeGrant.class);
+            if ((index - offset) < 0 || (index - offset) > cubeGrants.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + cubeGrants.size());
+            }
+            addCubeGrant(index - offset, (CubeGrant) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -9214,6 +10261,39 @@ public static class CubeGrant extends Grant {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof DimensionGrant) {
+            int offset = childPositionOffset(DimensionGrant.class);
+            if ((index - offset) < 0 || (index - offset) > dimensionGrants.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + dimensionGrants.size());
+            }
+            addDimensionGrant(index - offset, (DimensionGrant) child);
+        
+        } else if (child instanceof HierarchyGrant) {
+            int offset = childPositionOffset(HierarchyGrant.class);
+            if ((index - offset) < 0 || (index - offset) > hierarchyGrants.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + hierarchyGrants.size());
+            }
+            addHierarchyGrant(index - offset, (HierarchyGrant) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -9300,6 +10380,17 @@ public static class DimensionGrant extends Grant {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -9523,6 +10614,28 @@ public static class HierarchyGrant extends Grant {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof MemberGrant) {
+            int offset = childPositionOffset(MemberGrant.class);
+            if ((index - offset) < 0 || (index - offset) > memberGrants.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + memberGrants.size());
+            }
+            addMemberGrant(index - offset, (MemberGrant) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -9617,6 +10730,17 @@ public static class MemberGrant extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -9756,6 +10880,28 @@ public static class Union extends OLAPObject {
         }
 			    
     }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else if (child instanceof RoleUsage) {
+            int offset = childPositionOffset(RoleUsage.class);
+            if ((index - offset) < 0 || (index - offset) > roleUsages.size()) {
+                throw new IllegalArgumentException(
+                    "Index out of bounds for this child type. " +
+                    "You gave: " + index +
+                    ". min= " + offset +
+                    "; max=" + roleUsages.size());
+            }
+            addRoleUsage(index - offset, (RoleUsage) child);
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
+    }
     
     @Override
     public boolean removeChild(OLAPObject child) {
@@ -9830,6 +10976,17 @@ public static class RoleUsage extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -9926,6 +11083,17 @@ public static class UserDefinedFunction extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override
@@ -10082,6 +11250,17 @@ public static class Parameter extends OLAPObject {
             super.addChild(child);
         }
 			    
+    }
+
+    @Override
+    public void addChild(int index, OLAPObject child) {
+		
+        if (false) {
+        
+        } else {
+            super.addChild(index, child);
+        }
+			
     }
     
     @Override

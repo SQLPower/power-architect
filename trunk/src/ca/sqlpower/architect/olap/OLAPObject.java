@@ -93,7 +93,33 @@ public abstract class OLAPObject {
     public void addChild(OLAPObject child) {
         throw new IllegalArgumentException(getClass().getName() + " doesn't allow children of type " + child.getClass());
     }
-    
+
+    /**
+     * Adds the given child or sets the appropriate property on this OLAPObject,
+     * allowing the overall target index to be specified.
+     * <p>
+     * This method in the abstract base class always throws
+     * IllegalArgumentException because no children or properties are defined at
+     * this level.
+     * <p>
+     * This method isn't compile-time type safe, so it is recommended not to use
+     * it on "by-hand" usage of this API. This method is used for undo and redo,
+     * which can't be compile-time type safe anyway.
+     * 
+     * @param index
+     *            The overall index (same index as would be in
+     *            {@link #getChildren()}) at which to add the child.
+     * @param child
+     *            The child to add.
+     * @throws IllegalArgumentException
+     *             if this object doesn't support child's type, or if the given
+     *             index is not compatible with the given child's type (children
+     *             are grouped by type, and the order is strictly enforced).
+     */
+    public void addChild(int index, OLAPObject child) {
+        throw new IllegalArgumentException(getClass().getName() + " doesn't allow children of type " + child.getClass());
+    }
+
     /**
      * Removes the given child on this OLAPObject if this type of OLAPObject has
      * the applicable removeXXX() or setXXX(null) method for the given object's type.

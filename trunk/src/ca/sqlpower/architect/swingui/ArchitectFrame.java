@@ -111,7 +111,7 @@ import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPSchemaManagerAction;
-import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.architect.undo.NotifyingUndoManager;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**
@@ -800,7 +800,7 @@ public class ArchitectFrame extends JFrame {
 		return ppBar;
 	}
 
-	public UndoManager getUndoManager() {
+	public NotifyingUndoManager getUndoManager() {
 		return session.getUndoManager();
 	}
 
