@@ -497,7 +497,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
             PaneSection<OLAPObject> insertSection = (PaneSection<OLAPObject>) getInsertionPoint().getSection();
             int insertIndex = getInsertionPoint().getIndex();
 
-            if (insertSection == null) {
+            if (insertSection == null && !sections.isEmpty()) {
                 insertSection = (PaneSection<OLAPObject>) sections.get(0);
                 insertIndex = insertSection.getItems().size();
             }
