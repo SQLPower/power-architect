@@ -31,8 +31,10 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
+import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.NotNullValidator;
 import ca.sqlpower.validation.swingui.StatusComponent;
 import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
 import ca.sqlpower.validation.swingui.ValidationHandler;
@@ -80,9 +82,15 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
             typeBox.setSelectedItem(DimensionType.StandardDimension);
         }
         
+        handler = new FormValidationHandler(status, true);
+        Validator validator = new OLAPObjectNameValidator(dimension.getParent(), dimension, false);
+        handler.addValidateObject(nameField, validator);
+        
         // private dimensions only.
         if (dimension.getParent() instanceof Cube) {
             builder.append("Foreign Key", foreignKeyChooser = new JComboBox());
+            handler.addValidateObject(foreignKeyChooser, new NotNullValidator("Foreign key"));
+
             Cube cube = (Cube) dimension.getParent();
             SQLTable factTable = OLAPUtil.tableForCube(cube);
             if (factTable == null) {
@@ -92,8 +100,8 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
                 foreignKeyChooser.addItem("Parent Cube Fact table has no columns");
                 foreignKeyChooser.setEnabled(false);
             } else {
+                foreignKeyChooser.setModel(new SQLObjectComboBoxModel(factTable.getColumnsFolder()));
                 for (SQLColumn col : factTable.getColumns()) {
-                    foreignKeyChooser.addItem(col);
                     if (col.getName().equals(dimension.getForeignKey())) {
                         foreignKeyChooser.setSelectedItem(col);
                     }
@@ -102,10 +110,6 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
         }
         
         panel = builder.getPanel();
-        
-        handler = new FormValidationHandler(status);
-        Validator validator = new OLAPObjectNameValidator(dimension.getParent(), dimension, false);
-        handler.addValidateObject(nameField, validator);
     }
     public boolean applyChanges() {
         dimension.startCompoundEdit("Started modifying dimension properties");

@@ -59,11 +59,13 @@ import ca.sqlpower.architect.olap.MondrianModel.Level;
 import ca.sqlpower.architect.olap.MondrianModel.Property;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
+import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
 import ca.sqlpower.swingui.table.EditableJTable;
 import ca.sqlpower.validation.Status;
 import ca.sqlpower.validation.ValidateResult;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.NotNullValidator;
 import ca.sqlpower.validation.swingui.StatusComponent;
 import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
 import ca.sqlpower.validation.swingui.ValidationHandler;
@@ -169,17 +171,18 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
             columnChooser.addItem("Parent hierarchy table has no columns");
             columnChooser.setEnabled(false);
         } else {
+            columnChooser.setModel(new SQLObjectComboBoxModel(dimensionTable.getColumnsFolder()));
             for (SQLColumn col : dimensionTable.getColumns()) {
-                columnChooser.addItem(col);
                 if (col.getName().equalsIgnoreCase(level.getColumn())) {
                     columnChooser.setSelectedItem(col);
                 }
             }
         }
         
-        handler = new FormValidationHandler(status);
+        handler = new FormValidationHandler(status, true);
         Validator validator = new OLAPObjectNameValidator(level.getParent(), level, false);
         handler.addValidateObject(name, validator);
+        handler.addValidateObject(columnChooser, new NotNullValidator("Column"));
         
         builder.appendSeparator("Properties");
         propertiesPanel = new PropertiesEditPanel(dimensionTable, handler);
