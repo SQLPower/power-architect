@@ -41,8 +41,10 @@ import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.MeasureExpression;
 import ca.sqlpower.architect.olap.MondrianModel.SQL;
+import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.NotNullValidator;
 import ca.sqlpower.validation.swingui.StatusComponent;
 import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
 import ca.sqlpower.validation.swingui.ValidationHandler;
@@ -78,6 +80,7 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
     public MeasureEditPanel(Measure measure) throws ArchitectException {
         this.measure = measure;
         
+        handler = new FormValidationHandler(status, true);
         FormLayout layout = new FormLayout(
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
@@ -96,6 +99,7 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
             public void actionPerformed(ActionEvent arg0) {
                 columnChooser.setEnabled(columnRadioButton.isSelected());
                 expression.setEnabled(expRadioButton.isSelected());
+                handler.performFormValidation();
             }
         };
         
@@ -123,11 +127,11 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
         } else if (cubeTable.getColumns().isEmpty()) {
             columnChooser.addItem("Parent Cube table has no columns");
         } else {
+            columnChooser.setModel(new SQLObjectComboBoxModel(cubeTable.getColumnsFolder()));
+            columnRadioButton.doClick();
             for (SQLColumn col : cubeTable.getColumns()) {
-                columnChooser.addItem(col);
                 if (col.getName().equalsIgnoreCase(measure.getColumn())) {
                     columnChooser.setSelectedItem(col);
-                    columnRadioButton.doClick();
                 }
             }
             enableColumns = true;
@@ -151,9 +155,9 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
             expRadioButton.doClick();
         }
         
-        handler = new FormValidationHandler(status);
         Validator validator = new OLAPObjectNameValidator(measure.getParent(), measure, false);
         handler.addValidateObject(name, validator);
+        handler.addValidateObject(columnChooser, new NotNullValidator("Value column"));
         
         panel = builder.getPanel();
     }

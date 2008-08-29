@@ -19,9 +19,6 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
-import java.util.List;
-import java.util.Vector;
-
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -33,12 +30,17 @@ import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
+import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.NotNullValidator;
+import ca.sqlpower.validation.swingui.StatusComponent;
+import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
+import ca.sqlpower.validation.swingui.ValidationHandler;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class SchemaEditPanel implements DataEntryPanel {
+public class SchemaEditPanel implements ValidatableDataEntryPanel {
     
     private JPanel editorPanel;
     private Schema schema;
@@ -46,21 +48,33 @@ public class SchemaEditPanel implements DataEntryPanel {
     private final JComboBox databaseBox;
     private final JTextField nameField;
     
+    /**
+     * Validation handler for errors in the dialog
+     */
+    private FormValidationHandler handler;
+    private StatusComponent status = new StatusComponent();
+    
     public SchemaEditPanel(ArchitectSwingSession session, Schema schema) throws ArchitectException {
         this.schema = schema;
-        
-        List<SQLDatabase> databases = session.getRootObject().getChildren();
         
         FormLayout layout = new FormLayout(
                 "left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
-        builder.append("Database", databaseBox = new JComboBox(new Vector<SQLDatabase>(databases)));
+        
+        builder.append(status, 3);
+        builder.append("Database", databaseBox = new JComboBox(new SQLObjectComboBoxModel(session.getRootObject())));
         OLAPSession osession = OLAPUtil.getSession(schema);
-        if (osession != null && osession.getDatabase() != null) {
+        if (osession.getDatabase() != null) {
             databaseBox.setSelectedItem(osession.getDatabase());
+        } else {
+            databaseBox.setSelectedItem(session.getTargetDatabase());
         }
         builder.append("Name", nameField = new JTextField(schema.getName()));
+        
+        handler = new FormValidationHandler(status);
+        handler.addValidateObject(databaseBox, new NotNullValidator("Schema"));
+        
         editorPanel = builder.getPanel();
     }
 
@@ -86,6 +100,10 @@ public class SchemaEditPanel implements DataEntryPanel {
 
     public boolean hasUnsavedChanges() {
         return true;
+    }
+
+    public ValidationHandler getValidationHandler() {
+        return handler;
     }
 
 }

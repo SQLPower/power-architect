@@ -30,7 +30,11 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
+import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.NotNullValidator;
+import ca.sqlpower.validation.swingui.StatusComponent;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
@@ -44,6 +48,12 @@ public class DimensionUsageEditPanel implements DataEntryPanel{
     private JTextField captionField;
 
     private JComboBox foreignKeyChooser;
+    
+    /**
+     * Validation handler for errors in the dialog
+     */
+    private FormValidationHandler handler;
+    private StatusComponent status = new StatusComponent();
 
     /**
      * Creates a new property editor for the given dimension usage.
@@ -59,6 +69,7 @@ public class DimensionUsageEditPanel implements DataEntryPanel{
         FormLayout layout = new FormLayout("left:max(40dlu;pref), 3dlu, 80dlu:grow", "");
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
+        builder.append(status, 3);
         builder.append("Caption", captionField = new JTextField(dimensionUsage.getCaption()));
         builder.append("Foreign Key", foreignKeyChooser = new JComboBox());
 
@@ -71,13 +82,17 @@ public class DimensionUsageEditPanel implements DataEntryPanel{
             foreignKeyChooser.addItem("Parent Cube Fact table has no columns");
             foreignKeyChooser.setEnabled(false);
         } else {
+            foreignKeyChooser.setModel(new SQLObjectComboBoxModel(factTable.getColumnsFolder()));
             for (SQLColumn col : factTable.getColumns()) {
-                foreignKeyChooser.addItem(col);
                 if (col.getName().equals(dimensionUsage.getForeignKey())) {
                     foreignKeyChooser.setSelectedItem(col);
                 }
             }
         }
+        
+        handler = new FormValidationHandler(status, true);
+        handler.addValidateObject(foreignKeyChooser, new NotNullValidator("Foreign key"));
+        
         panel = builder.getPanel();
     }
 

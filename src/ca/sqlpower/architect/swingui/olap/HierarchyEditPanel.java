@@ -37,8 +37,10 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
+import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.NotNullValidator;
 import ca.sqlpower.validation.swingui.StatusComponent;
 import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
 import ca.sqlpower.validation.swingui.ValidationHandler;
@@ -85,7 +87,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
         hasAll.setSelected(hierarchy.getHasAll() != null ? hierarchy.getHasAll() : true);
         builder.append("All Level Name", allLevelName = new JTextField(hierarchy.getAllLevelName() != null ? hierarchy.getAllLevelName() : "All"));
 
-        builder.append("Table", tableChooser = new JComboBox((new Vector<SQLTable>(tables))));
+        builder.append("Table", tableChooser = new JComboBox(new Vector<SQLTable>(tables)));
         builder.append("Primary Key", primaryKey = new JComboBox());
         
         if (tables.isEmpty()) {
@@ -109,9 +111,10 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
             }
         });
         
-        handler = new FormValidationHandler(status);
+        handler = new FormValidationHandler(status, true);
         Validator validator = new OLAPObjectNameValidator(hierarchy.getParent(), hierarchy, true);
         handler.addValidateObject(name, validator);
+        handler.addValidateObject(primaryKey, new NotNullValidator("Primary key"));
         
         panel = builder.getPanel();
     }
@@ -122,15 +125,16 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
      * @param primaryKeyName Name of the column to set selected.
      */
     private void updateColumns(String primaryKeyName) {
-        primaryKey.removeAllItems();
         SQLTable selectedTable = (SQLTable) tableChooser.getSelectedItem();
         boolean enableColumns = false;
         try {
             if (selectedTable.getColumns().isEmpty()) {
                 primaryKey.addItem("Table has no columns");
             } else {
+            	// kind of a hack to trigger the validator.
+                primaryKey.setSelectedItem(null);
+                primaryKey.setModel(new SQLObjectComboBoxModel(selectedTable.getColumnsFolder()));
                 for (SQLColumn col : selectedTable.getColumns()) {
-                    primaryKey.addItem(col);
                     if (col.getName().equalsIgnoreCase(primaryKeyName)) {
                         primaryKey.setSelectedItem(col);
                     }

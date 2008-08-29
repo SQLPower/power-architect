@@ -106,8 +106,12 @@ public class SQLObjectComboBoxModel implements ComboBoxModel {
         }
 
         public void dbChildrenRemoved(SQLObjectEvent e) {
-            for (int i : e.getChangedIndices()) {
-                fireListDataEvent(ListDataEvent.INTERVAL_REMOVED, i, i);
+            for (int i = 0; i < e.getChangedIndices().length; i++) {
+                int changedIndex = e.getChangedIndices()[i];
+                if (selectedItem == e.getChildren()[i]) {
+                    setSelectedItem(null);
+                }
+                fireListDataEvent(ListDataEvent.INTERVAL_REMOVED, changedIndex, changedIndex);
             }
         }
 
