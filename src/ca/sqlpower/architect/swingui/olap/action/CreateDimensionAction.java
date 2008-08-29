@@ -43,7 +43,7 @@ public class CreateDimensionAction extends AbstractArchitectAction {
     private final Schema schema;
 
     public CreateDimensionAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
-        super(session, pp, "New Dimension...", "Create a new shared dimension in this schema", OSUtils.DIMENSION_ADD_ICON);
+        super(session, pp, "New Dimension...", "Create a new shared dimension in this schema (d)", OSUtils.DIMENSION_ADD_ICON);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('d'));
         this.schema = schema;
     }
