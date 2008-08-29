@@ -49,10 +49,16 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
 import ca.sqlpower.architect.olap.MondrianModel.Property;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.swingui.table.EditableJTable;
 import ca.sqlpower.validation.Status;
 import ca.sqlpower.validation.ValidateResult;
@@ -102,7 +108,60 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
         builder.append("Caption", captionField = new JTextField(level.getCaption()));
         builder.append("Column", columnChooser = new JComboBox());
         
-        SQLTable dimensionTable = OLAPUtil.tableForHierarchy((Hierarchy) level.getParent());
+        Hierarchy hierarchy = (Hierarchy) level.getParent();
+        SQLTable dimensionTable = OLAPUtil.tableForHierarchy(hierarchy);
+        
+        // if the hierarchy's table was not set, then we try to find it from elsewhere.
+        // we'll look through the cubes that reference the hierarchy's parent dimension
+        // and if the fact table and foreign keys of those are same through out, we set
+        // those values for the hierarchy.
+        if (dimensionTable == null) {
+            OLAPSession oSession = OLAPUtil.getSession(level);
+            Schema sch = oSession.getSchema();
+            String parentDimName = hierarchy.getParent().getName();
+            
+            boolean valid = true;
+            Table fact = null;
+            String foreignKey = null;
+            for (int i = 0; i < sch.getCubes().size() && valid; i++) {
+                Cube c = sch.getCubes().get(i);
+                if (c.getFact() == null) continue;
+                for (CubeDimension cd : c.getDimensions()) {
+                    if (cd instanceof DimensionUsage) {
+                        DimensionUsage du = (DimensionUsage) cd;
+                        if (du.getSource().equalsIgnoreCase(parentDimName)) {
+                            Table rel = (Table) c.getFact();
+                            String fk = du.getForeignKey();
+
+                            if (fk != null) {
+                                if (fact == null && foreignKey == null) {
+                                    fact = rel;
+                                    foreignKey = fk;
+                                } else {
+                                    if (!fact.getSchema().equalsIgnoreCase(rel.getSchema()) ||
+                                            !fact.getName().equalsIgnoreCase(rel.getName()) ||
+                                            !foreignKey.equalsIgnoreCase(fk)) {
+                                        valid = false;
+                                    }
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (valid) {
+                dimensionTable = OLAPUtil.getSQLTableFromOLAPTable(oSession.getDatabase(), fact);
+                Table tab = new Table();
+                tab.setSchema(fact.getSchema());
+                tab.setName(fact.getName());
+                hierarchy.setRelation(tab);
+                hierarchy.setPrimaryKey(foreignKey);
+            }
+        }
+        
         if (dimensionTable == null) {
             columnChooser.addItem("Parent hierarchy has no table");
             columnChooser.setEnabled(false);
