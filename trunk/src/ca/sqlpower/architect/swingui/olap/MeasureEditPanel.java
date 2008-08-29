@@ -120,7 +120,8 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
         builder.append(new JScrollPane(expression = new JTextArea(4, 30)), 3);
         expression.setLineWrap(true);
         
-        SQLTable cubeTable = OLAPUtil.tableForCube((Cube) measure.getParent());
+        Cube parentCube = (Cube) measure.getParent();
+        SQLTable cubeTable = OLAPUtil.tableForCube(parentCube);
         boolean enableColumns = false;
         if (cubeTable == null) {
             columnChooser.addItem("Parent Cube has no table");
@@ -132,6 +133,7 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
             for (SQLColumn col : cubeTable.getColumns()) {
                 if (col.getName().equalsIgnoreCase(measure.getColumn())) {
                     columnChooser.setSelectedItem(col);
+                    break;
                 }
             }
             enableColumns = true;
@@ -148,6 +150,7 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
                     exp = sql;
                 }
             }
+            expRadioButton.doClick();
         }
         expression.setText(exp == null ? "" : exp.getText());
         
