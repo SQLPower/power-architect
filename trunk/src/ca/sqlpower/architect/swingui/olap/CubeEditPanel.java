@@ -19,13 +19,20 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -52,11 +59,16 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
     private JComboBox defMeasure;
     private JComboBox tableChooser;
     
+    private JTextArea selectStatements;
+    private JTextField viewAlias;
+    
     /**
      * Validation handler for errors in the dialog
      */
     private FormValidationHandler handler;
     private StatusComponent status = new StatusComponent();
+    private JRadioButton tableRadioButton;
+    private JRadioButton viewRadioButton;
     
     /**
      * Creates a new property editor for the given OLAP Cube. 
@@ -74,19 +86,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         builder.setDefaultDialogBorder();
         builder.append(status, 3);
         builder.append("Name", nameField = new JTextField(cube.getName()));
-        builder.append("Table", tableChooser = new JComboBox(new Vector<SQLTable>(tables)));
         builder.append("Caption", captionField = new JTextField(cube.getCaption()));
-        
-        if (tables.isEmpty()) {
-            tableChooser.addItem("Database has no tables");
-            tableChooser.setEnabled(false);
-        } else {
-            SQLTable t = OLAPUtil.tableForCube(cube);
-            if (tables.contains(t)) {
-                tableChooser.setSelectedItem(t);
-            }
-        }
-        
         // default measure is optional so we need to add in a null option
         List<Measure> measures = new ArrayList<Measure>(cube.getMeasures());
         measures.add(0, null);
@@ -98,24 +98,79 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
                 break;
             }
         }
+        
+        builder.appendSeparator("Source Table");
+        tableChooser = new JComboBox(new Vector<SQLTable>(tables));
+
+        Action radioButtonsAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent arg0) {
+                tableChooser.setEnabled(tableRadioButton.isSelected());
+                selectStatements.setEnabled(viewRadioButton.isSelected());
+                viewAlias.setEnabled(viewRadioButton.isSelected());
+            }
+        };
+        
+        tableRadioButton = new JRadioButton();
+        tableRadioButton.setAction(radioButtonsAction);
+        tableRadioButton.setText("Use Existing Table");
+        viewRadioButton = new JRadioButton();
+        viewRadioButton.setAction(radioButtonsAction);
+        viewRadioButton.setText("Use View");
+        
+        ButtonGroup buttonGroup = new ButtonGroup();
+        buttonGroup.add(tableRadioButton);
+        buttonGroup.add(viewRadioButton);
+        
+        builder.append(tableRadioButton, 3); 
+        builder.append(tableChooser, 3);
+        builder.append(viewRadioButton, 3); 
+        builder.append("Alias", viewAlias = new JTextField());
+        builder.append(new JScrollPane(selectStatements = new JTextArea(4, 30)), 3);
+        selectStatements.setLineWrap(true);
+        
+        if (tables.isEmpty()) {
+            tableChooser.addItem("Database has no tables");
+            viewRadioButton.doClick();
+            tableRadioButton.setEnabled(false);
+            tableChooser.setEnabled(false);
+        } else {
+            SQLTable t = OLAPUtil.tableForCube(cube);
+            //if SQLTable t is not found, then either cube.fact is not defined, or cube.fact is a view
+            if (tables.contains(t)) {
+                tableChooser.setSelectedItem(t);
+                tableRadioButton.doClick();
+            } else if (cube.getFact() != null){
+                viewRadioButton.doClick();
+            } else {
+                tableRadioButton.doClick();
+            }
+        }
+        
         panel = builder.getPanel();
         
         handler = new FormValidationHandler(status);
         Validator validator = new OLAPObjectNameValidator(cube.getParent(), cube, false);
         handler.addValidateObject(nameField, validator);
     }
-    
+
     public boolean applyChanges() {
         try {
             cube.startCompoundEdit("Modify cube properties");
-            if (tableChooser.isEnabled()) {
-                SQLTable table = (SQLTable) tableChooser.getSelectedItem();
-                if (table != null) {
-                    Table t = new Table();
-                    t.setName(table.getName());
-                    t.setSchema(OLAPUtil.getQualifier(table));
-                    cube.setFact(t);
+            if (tableRadioButton.isSelected()) {
+                if (tableChooser.isEnabled()) {
+                    SQLTable table = (SQLTable) tableChooser.getSelectedItem();
+                    if (table != null) {
+                        Table t = new Table();
+                        t.setName(table.getName());
+                        t.setSchema(OLAPUtil.getQualifier(table));
+                        cube.setFact(t);
+                    }
                 }
+            } else if (viewRadioButton.isSelected()) {
+                //TODO construct and set up the view
+//                View view = new View();
+//                view.setAlias(viewAlias.getText());
+//                cube.setFact(view);
             }
             cube.setName(nameField.getText());
             if (!(captionField.getText().equals(""))) {
