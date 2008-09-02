@@ -81,6 +81,7 @@ public class CreateDimensionAction extends AbstractArchitectAction {
 
         @Override
         public DataEntryPanel place(Point p) throws ArchitectException {
+            schema.startCompoundEdit("Create a dimension");
             schema.addDimension(dp.getModel());
             playpen.selectNone();
             playpen.addPlayPenComponent(dp, p);
@@ -90,6 +91,14 @@ public class CreateDimensionAction extends AbstractArchitectAction {
                 @Override
                 public void discardChanges() {
                     schema.removeDimension(dp.getModel());
+                    schema.endCompoundEdit();
+                }
+                
+                @Override
+                public boolean applyChanges() {
+                    boolean applied = super.applyChanges();
+                    schema.endCompoundEdit();
+                    return applied;
                 }
             };
             return editPanel;
@@ -97,3 +106,5 @@ public class CreateDimensionAction extends AbstractArchitectAction {
     }
 
 }
+
+

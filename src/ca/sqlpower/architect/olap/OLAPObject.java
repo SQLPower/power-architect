@@ -48,6 +48,11 @@ public abstract class OLAPObject {
      * parent's addChild method(s).
      */
     private OLAPObject parent;
+
+    /**
+     * All compound edit listeners registered on this object.
+     */
+    private final List<CompoundEditListener> compoundEditListeners = new ArrayList<CompoundEditListener>();
     
     protected OLAPObject() {
         pcs = new PropertyChangeSupport(this);
@@ -167,15 +172,40 @@ public abstract class OLAPObject {
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         pcs.removePropertyChangeListener(listener);
     }
-    
-    public void startCompoundEdit(String description) {
+
+    public void addCompoundEditListener(CompoundEditListener listener) {
+        compoundEditListeners.add(listener);
+    }
+
+    public void removeCompoundEditListener(CompoundEditListener listener) {
+        compoundEditListeners.remove(listener);
+    }
+
+    public void startCompoundEdit(String presentationName) {
         compoundEditDepth++;
-        // TODO fire compound edit event
+        logger.debug("Compound edit on " + getClass().getSimpleName() + " starting. Depth=" + compoundEditDepth);
+        if (compoundEditDepth == 1) {
+            logger.debug("Firing compoundEditStarted to " + compoundEditListeners.size() + " listeners...");
+            CompoundEditEvent evt = new CompoundEditEvent(this, presentationName);
+            for (int i = compoundEditListeners.size() - 1; i >= 0; i--) {
+                compoundEditListeners.get(i).compoundEditStarted(evt);
+            }
+        }
     }
     
     public void endCompoundEdit() {
+        logger.debug("Compound edit on " + getClass().getSimpleName() + " ending. Depth=" + compoundEditDepth);
+        if (compoundEditDepth <= 0) {
+            throw new IllegalStateException("Compound edit depth is already " + compoundEditDepth);
+        }
         compoundEditDepth--;
-        // TODO fire compound edit event
+        if (compoundEditDepth == 0) {
+            logger.debug("Firing compoundEditEnded to " + compoundEditListeners.size() + " listeners...");
+            CompoundEditEvent evt = new CompoundEditEvent(this);
+            for (int i = compoundEditListeners.size() - 1; i >= 0; i--) {
+                compoundEditListeners.get(i).compoundEditEnded(evt);
+            }
+        }
     }
     
     protected void fireChildAdded(Class<? extends OLAPObject> childClass, int index, OLAPObject child) {
