@@ -53,7 +53,13 @@ public class CreateMeasureAction extends CreateOLAPChildAction<CubePane, Measure
     @Override
     protected DataEntryPanel createDataEntryPanel(Measure model) {
         try {
-            return new MeasureEditPanel(model);
+            return new MeasureEditPanel(model) {
+                @Override
+                public boolean applyChanges() {
+                    boolean applied = super.applyChanges();
+                    return applied;
+                }
+            };
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         }

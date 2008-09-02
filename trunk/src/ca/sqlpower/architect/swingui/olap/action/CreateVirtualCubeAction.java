@@ -75,7 +75,9 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
 
         @Override
         public DataEntryPanel place(Point p) throws ArchitectException {
+            schema.startCompoundEdit("Create a virtual cube");
             schema.addVirtualCube(vcp.getModel());
+            
             playpen.selectNone();
             playpen.addPlayPenComponent(vcp, p);
             vcp.setSelected(true,SelectionEvent.SINGLE_SELECT);
@@ -84,6 +86,14 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
                 @Override
                 public void discardChanges() {
                     schema.removeVirtualCube(vcp.getModel());
+                    schema.endCompoundEdit();
+                }
+                
+                @Override
+                public boolean applyChanges() {
+                    boolean applied = super.applyChanges();
+                    schema.endCompoundEdit();
+                    return applied;
                 }
             };
             return editPanel;
