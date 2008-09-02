@@ -108,14 +108,88 @@ public class OLAPUtil {
      *            OLAPObjects rooted at root. If you don't want to know about
      *            property changes to the nodes themselves, you can leave this
      *            parameter as null.
+     * @param cel
+     *            The CompoundEditListener to add to the subtree of OLAPObjects
+     *            rooted at root. If you don't want to know about compound edit
+     *            groupings, you can leave this parameter as null.
      */
-    public static void listenToHierarchy(OLAPObject root, OLAPChildListener ocl, PropertyChangeListener pcl) {
+    public static void listenToHierarchy(
+            OLAPObject root,
+            OLAPChildListener ocl,
+            PropertyChangeListener pcl,
+            CompoundEditListener cel) {
         root.addChildListener(ocl);
         if (pcl != null) {
             root.addPropertyChangeListener(pcl);
         }
+        if (cel != null) {
+            root.addCompoundEditListener(cel);
+        }
         for (OLAPObject child : root.getChildren()) {
-            listenToHierarchy(child, ocl, pcl);
+            listenToHierarchy(child, ocl, pcl, cel);
+        }
+    }
+
+    /**
+     * Adds the given OLAPChildListener and optional PropertyChangeListener to
+     * the given root object and all of its descendants.
+     * 
+     * @param ocl
+     *            The OLAPChildListener to add to the subtree of OLAPObjects
+     *            rooted at root.
+     * @param pcl
+     *            The PropertyChangeListener to add to the subtree of
+     *            OLAPObjects rooted at root. If you don't want to know about
+     *            property changes to the nodes themselves, you can leave this
+     *            parameter as null.
+     */
+    public static void listenToHierarchy(
+            OLAPObject root,
+            OLAPChildListener ocl,
+            PropertyChangeListener pcl) {
+        listenToHierarchy(root, ocl, pcl, null);
+    }
+
+    /**
+     * Removes the given OLAPChildListener and optional PropertyChangeListener
+     * from the given root object and all of its descendants.
+     * 
+     * @param ocl
+     *            The OLAPChildListener to remove from the subtree of
+     *            OLAPObjects rooted at root. It is not an error if the listener
+     *            is not registered with any or all of the objects in the
+     *            subtree, so it's safe to call this with the root of the tree
+     *            if you want.
+     * @param pcl
+     *            The PropertyChangeListener to add to the subtree of
+     *            OLAPObjects rooted at root. It is not an error if the listener
+     *            is not registered with any or all of the objects in the
+     *            subtree, so it's safe to call this with the root of the tree
+     *            if you want. If you weren't listening for property change
+     *            events, you can leave this parameter as null. Note that this
+     *            parameter is pronounced "pockle," not "pickle."
+     * @param cel
+     *            The CompoundEditListener to add to the subtree of
+     *            OLAPObjects rooted at root. It is not an error if the listener
+     *            is not registered with any or all of the objects in the
+     *            subtree, so it's safe to call this with the root of the tree
+     *            if you want. If you weren't listening for compound edit
+     *            events, you can leave this parameter as null.
+     */
+    public static void unlistenToHierarchy(
+            OLAPObject root,
+            OLAPChildListener ocl,
+            PropertyChangeListener pcl,
+            CompoundEditListener cel) {
+        root.removeChildListener(ocl);
+        if (pcl != null) {
+            root.removePropertyChangeListener(pcl);
+        }
+        if (cel != null) {
+            root.removeCompoundEditListener(cel);
+        }
+        for (OLAPObject child : root.getChildren()) {
+            unlistenToHierarchy(child, ocl, pcl, cel);
         }
     }
 
@@ -138,14 +212,11 @@ public class OLAPUtil {
      *            events, you can leave this parameter as null. Note that this
      *            parameter is pronounced "pockle," not "pickle."
      */
-    public static void unlistenToHierarchy(OLAPObject root, OLAPChildListener ocl, PropertyChangeListener pcl) {
-        root.removeChildListener(ocl);
-        if (pcl != null) {
-            root.removePropertyChangeListener(pcl);
-        }
-        for (OLAPObject child : root.getChildren()) {
-            unlistenToHierarchy(child, ocl, pcl);
-        }
+    public static void unlistenToHierarchy(
+            OLAPObject root,
+            OLAPChildListener ocl,
+            PropertyChangeListener pcl) {
+        unlistenToHierarchy(root, ocl, pcl, null);
     }
 
     /**

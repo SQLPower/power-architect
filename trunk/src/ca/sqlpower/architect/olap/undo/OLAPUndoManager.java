@@ -28,11 +28,14 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.olap.CompoundEditEvent;
+import ca.sqlpower.architect.olap.CompoundEditListener;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
@@ -51,8 +54,23 @@ public class OLAPUndoManager extends UndoManager implements NotifyingUndoManager
     
     private boolean undoing = false;
     
+    /**
+     * Will be non-null when this undo manager is in the middle of receiving a
+     * series of edits that are supposed to be undone and redone as one step.
+     */
+    private CompoundEdit currentCompoundEdit;
+    
+    /**
+     * The number of times we've started a compound edit minus the number of
+     * times we've finished one. If greater than 0, we are in a compound edit
+     * and {@link #currentCompoundEdit} will be non-null.
+     * <p>
+     * This value will never be less than 0.
+     */
+    private int compoundEditDepth = 0;
+    
     public OLAPUndoManager(OLAPObject root) {
-        OLAPUtil.listenToHierarchy(root, eventHandler, eventHandler);
+        OLAPUtil.listenToHierarchy(root, eventHandler, eventHandler, eventHandler);
         // TODO need to track the playpen components as well
     }
     
@@ -93,20 +111,53 @@ public class OLAPUndoManager extends UndoManager implements NotifyingUndoManager
         }
     }
     
-    private class UndoableEventHandler implements OLAPChildListener, PropertyChangeListener {
+    private class UndoableEventHandler implements OLAPChildListener, PropertyChangeListener, CompoundEditListener {
 
         public void olapChildAdded(OLAPChildEvent e) {
             addEdit(new OLAPChildEdit(e, false));
-            OLAPUtil.listenToHierarchy(e.getChild(), this, this);
+            OLAPUtil.listenToHierarchy(e.getChild(), this, this, this);
         }
 
         public void olapChildRemoved(OLAPChildEvent e) {
             addEdit(new OLAPChildEdit(e, true));
-            OLAPUtil.unlistenToHierarchy(e.getChild(), this, this);
+            OLAPUtil.unlistenToHierarchy(e.getChild(), this, this, this);
         }
 
         public void propertyChange(PropertyChangeEvent e) {
             addEdit(new PropertyChangeEdit(e));
+        }
+
+        public void compoundEditStarted(CompoundEditEvent evt) {
+            compoundEditDepth++;
+            logger.debug("Got start compound event. My depth: " + compoundEditDepth);
+            if (compoundEditDepth == 1) {
+                final String presentationName = evt.getPresentationName();
+                logger.debug("Beginning compound edit \"" + presentationName + "\"");
+                currentCompoundEdit = new CompoundEdit() {
+                    @Override
+                    public String getPresentationName() {
+                        return presentationName;
+                    }
+                };
+                addEdit(currentCompoundEdit);
+            }
+        }
+        
+        public void compoundEditEnded(CompoundEditEvent evt) {
+            logger.debug("Got end compound event. My depth: " + compoundEditDepth);
+            if (currentCompoundEdit == null || compoundEditDepth <= 0) {
+                throw new IllegalStateException(
+                        "Received a compoundEditEnded but was not " +
+                        "in a compound edit state: depth=" + compoundEditDepth +
+                        "; currentEdit=" + currentCompoundEdit);
+            }
+            compoundEditDepth--;
+            if (compoundEditDepth == 0) {
+                logger.debug("Ending compound edit \"" + currentCompoundEdit.getPresentationName() + "\"");
+                currentCompoundEdit.end();
+                currentCompoundEdit = null;
+                fireChangeEvent();
+            }
         }
         
     }
