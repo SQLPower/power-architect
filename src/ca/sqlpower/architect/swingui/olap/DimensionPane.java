@@ -202,7 +202,7 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
     protected List<OLAPObject> getItemsFromCoordinates(
             List<PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject>> coords) {
         List<OLAPObject> items = new ArrayList<OLAPObject>();
-        for (PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject> coord : coords) {
+        for (PlayPenCoordinate coord : coords) { // Type params removed to work around javac bug (it broke the nightly build)
             if (coord.getIndex() == PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE) {
                 // Only add sections which are HierarchySections because they are
                 // also OLAPObjects.  If it is a Hierarchy, then we do not want to
