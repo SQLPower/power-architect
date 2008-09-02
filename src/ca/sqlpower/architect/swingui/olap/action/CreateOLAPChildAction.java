@@ -123,19 +123,24 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
 
     public void actionPerformed(ActionEvent e) {
         List<PlayPenComponent> selectedItems = playpen.getSelectedItems();
-        P pane = paneClass.cast(selectedItems.get(0));
+        final P pane = paneClass.cast(selectedItems.get(0));
+        
+        pane.getModel().startCompoundEdit("Add " + friendlyChildName);
         final C child = addNewChild(pane);
         
         final DataEntryPanel mep = createDataEntryPanel(child);
         
         Callable<Boolean> okCall = new Callable<Boolean>() {
             public Boolean call() throws Exception {
-                return mep.applyChanges();
+                boolean applied = mep.applyChanges();
+                pane.getModel().endCompoundEdit();
+                return applied;
             }
         };
         Callable<Boolean> cancelCall = new Callable<Boolean>() {
             public Boolean call() throws Exception {
                 child.getParent().removeChild(child);
+                pane.getModel().endCompoundEdit();
                 return true;
             }
         };
