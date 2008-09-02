@@ -31,6 +31,7 @@ import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PopupMenuFactory;
+import ca.sqlpower.architect.swingui.olap.action.CreateEnergonCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.EditCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.EditDimensionAction;
 import ca.sqlpower.architect.swingui.olap.action.EditHierarchyAction;
@@ -75,6 +76,7 @@ public class OLAPContextMenuFactory implements PopupMenuFactory {
             m.add(oSession.getCreateCubeAction());
             m.add(oSession.getCreateDimensionAction());
             m.add(oSession.getCreateVirtualCubeAction());
+            m.add(new CreateEnergonCubeAction(session, oSession.getOlapPlayPen()));
             m.addSeparator();
             m.add(new EditSchemaAction(session,(Schema) obj, oSession.getOlapPlayPen()));
             m.addSeparator();
