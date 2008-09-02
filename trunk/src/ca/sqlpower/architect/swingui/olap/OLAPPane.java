@@ -154,7 +154,10 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
         pp.unzoomPoint(p);
         p.translate(-getX(), -getY());
 
-        PlayPenCoordinate<T, C> clickedCoor = pointToPPCoordinate(p);
+        // Type params removed to work around javac bug (it broke the nightly build)
+        // was: PlayPenCoordinate<T, C> clickedCoor = pointToPPCoordinate(p);
+        PlayPenCoordinate clickedCoor = pointToPPCoordinate(p);
+        
         int clickedIndex = clickedCoor.getIndex();
         if (evt.getID() == MouseEvent.MOUSE_CLICKED) {
             if (evt.getClickCount() == 2 && evt.getButton() == MouseEvent.BUTTON1) {
@@ -231,16 +234,16 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                             (InputEvent.SHIFT_DOWN_MASK |
                                     InputEvent.CTRL_DOWN_MASK)) == 0) {
 
-                        if (!isItemSelected(clickedCoor.getItem()) ){
+                        if (!isItemSelected((C) clickedCoor.getItem()) ){
                             deSelectEverythingElse(evt);
                             selectNone();
                         }
                         pp.setMouseMode(MouseModeType.SELECT_ITEM);
                     }
-                    if (isItemSelected(clickedCoor.getItem())) {
+                    if (isItemSelected((C) clickedCoor.getItem())) {
                         componentPreviouslySelected = true;
                     } else {
-                        selectItem(clickedCoor.getItem());
+                        selectItem((C) clickedCoor.getItem());
                     }
 
                     fireSelectionEvent(new SelectionEvent(this, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
