@@ -60,6 +60,7 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
         final Dimension dimension = dp.getModel();
         final Cube cube = cp.getModel();
         if (OLAPUtil.isNameUnique(cp.getModel(), DimensionUsage.class, dimension.getName())) {
+            cube.startCompoundEdit("Create dimension usage");
             final DimensionUsage du = new DimensionUsage();
             du.setName(dimension.getName());
             du.setSource(dimension.getName());
@@ -71,12 +72,15 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
                 final DataEntryPanel mep = new DimensionUsageEditPanel(du);
                 Callable<Boolean> okCall = new Callable<Boolean>() {
                     public Boolean call() throws Exception {
-                        return mep.applyChanges();
+                        boolean applied = mep.applyChanges();
+                        cube.endCompoundEdit();
+                        return applied;
                     }
                 };
                 Callable<Boolean> cancelCall = new Callable<Boolean>() {
                     public Boolean call() throws Exception {
                         du.getParent().removeChild(du);
+                        cube.endCompoundEdit();
                         return true;
                     }
                 };
