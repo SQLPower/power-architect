@@ -31,6 +31,7 @@ import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
+import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
 /**
  * The ArchitectSwingSession interface provides methods that are applicable
@@ -290,4 +291,18 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * @return the associated OLAPEditSession, creates a new one if none found.
      */
     public OLAPEditSession getOLAPEditSession(OLAPSession olapSession);
+
+    /**
+     * Adds the given listener to the list of interested parties who want to be
+     * notified when this session is about to close. Being a lifecycle listener
+     * is an excellent way to make a session shutdown hook for your subsystem.
+     */
+    public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener);
+
+    /**
+     * Removes the given listener from the lifecycle event list. Once removed,
+     * the listener will not receive a sessionClosing notification when this
+     * session closes.
+     */
+    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener);
 }

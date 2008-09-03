@@ -119,7 +119,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private KettleJob kettleJob;
     // END STUFF BROUGHT IN FROM SwingUIProject
 
-    private List<SessionLifecycleListener<ArchitectSwingSession>> lifecycleListener;
+    private final List<SessionLifecycleListener<ArchitectSwingSession>> lifecycleListeners;
 
     private Set<SPSwingWorker> swingWorkers;
 
@@ -202,7 +202,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         playPen.getPlayPenContentPane().addPropertyChangeListener("dashed", undoManager.getEventAdapter()); //$NON-NLS-1$
         playPen.getPlayPenContentPane().addPropertyChangeListener("rounded", undoManager.getEventAdapter()); //$NON-NLS-1$
 
-        lifecycleListener = new ArrayList<SessionLifecycleListener<ArchitectSwingSession>>();
+        lifecycleListeners = new ArrayList<SessionLifecycleListener<ArchitectSwingSession>>();
 
         swingWorkers = new HashSet<SPSwingWorker>();
         
@@ -728,12 +728,16 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     // END STUFF BROUGHT IN FROM SwingUIProject
 
     public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener) {
-        lifecycleListener.add(listener);
+        lifecycleListeners.add(listener);
+    }
+
+    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener) {
+        lifecycleListeners.remove(listener);
     }
 
     public void fireSessionClosing() {
         SessionLifecycleEvent<ArchitectSwingSession> evt = new SessionLifecycleEvent<ArchitectSwingSession>(this);
-        for (SessionLifecycleListener<ArchitectSwingSession> listener: lifecycleListener) {
+        for (SessionLifecycleListener<ArchitectSwingSession> listener: lifecycleListeners) {
             listener.sessionClosing(evt);
         }
     }
