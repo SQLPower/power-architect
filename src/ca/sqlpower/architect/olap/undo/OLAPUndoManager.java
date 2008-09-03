@@ -111,6 +111,38 @@ public class OLAPUndoManager extends UndoManager implements NotifyingUndoManager
         }
     }
     
+    public void startCompoundEdit(final String presentationName) {
+        compoundEditDepth++;
+        logger.debug("Starting compound edit. My depth: " + compoundEditDepth);
+        if (compoundEditDepth == 1) {
+            logger.debug("Beginning compound edit \"" + presentationName + "\"");
+            currentCompoundEdit = new CompoundEdit() {
+                @Override
+                public String getPresentationName() {
+                    return presentationName;
+                }
+            };
+            addEdit(currentCompoundEdit);
+        }
+    }
+
+    public void endCompoundEdit() {
+        logger.debug("Ending compound event. My depth: " + compoundEditDepth);
+        if (currentCompoundEdit == null || compoundEditDepth <= 0) {
+            throw new IllegalStateException(
+                    "Received a compoundEditEnded but was not " +
+                    "in a compound edit state: depth=" + compoundEditDepth +
+                    "; currentEdit=" + currentCompoundEdit);
+        }
+        compoundEditDepth--;
+        if (compoundEditDepth == 0) {
+            logger.debug("Ending compound edit \"" + currentCompoundEdit.getPresentationName() + "\"");
+            currentCompoundEdit.end();
+            currentCompoundEdit = null;
+            fireChangeEvent();
+        }
+    }
+    
     private class UndoableEventHandler implements OLAPChildListener, PropertyChangeListener, CompoundEditListener {
 
         public void olapChildAdded(OLAPChildEvent e) {
@@ -128,36 +160,11 @@ public class OLAPUndoManager extends UndoManager implements NotifyingUndoManager
         }
 
         public void compoundEditStarted(CompoundEditEvent evt) {
-            compoundEditDepth++;
-            logger.debug("Got start compound event. My depth: " + compoundEditDepth);
-            if (compoundEditDepth == 1) {
-                final String presentationName = evt.getPresentationName();
-                logger.debug("Beginning compound edit \"" + presentationName + "\"");
-                currentCompoundEdit = new CompoundEdit() {
-                    @Override
-                    public String getPresentationName() {
-                        return presentationName;
-                    }
-                };
-                addEdit(currentCompoundEdit);
-            }
+            startCompoundEdit(evt.getPresentationName());
         }
-        
+
         public void compoundEditEnded(CompoundEditEvent evt) {
-            logger.debug("Got end compound event. My depth: " + compoundEditDepth);
-            if (currentCompoundEdit == null || compoundEditDepth <= 0) {
-                throw new IllegalStateException(
-                        "Received a compoundEditEnded but was not " +
-                        "in a compound edit state: depth=" + compoundEditDepth +
-                        "; currentEdit=" + currentCompoundEdit);
-            }
-            compoundEditDepth--;
-            if (compoundEditDepth == 0) {
-                logger.debug("Ending compound edit \"" + currentCompoundEdit.getPresentationName() + "\"");
-                currentCompoundEdit.end();
-                currentCompoundEdit = null;
-                fireChangeEvent();
-            }
+            endCompoundEdit();
         }
         
     }
