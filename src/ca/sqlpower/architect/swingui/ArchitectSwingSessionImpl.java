@@ -140,8 +140,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private List<OLAPEditSession> olapEditSessions;
     
     /**
-     * The database connection manager GUI for this session context (because all sessions
-     * share the same set of database connections).
+     * A GUI for adding, removing, or opening the OLAP schema edit sessions
+     * that belong to this architect session.
      */
     private final OLAPSchemaManager olapSchemaManager;
 
