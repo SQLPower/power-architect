@@ -175,6 +175,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     }
     
     public void paint(Graphics2D g2) {
+        g2 = (Graphics2D) g2.create();
         OLAPPane<T, C> op = olapPane;
         Stroke oldStroke = g2.getStroke();
         
