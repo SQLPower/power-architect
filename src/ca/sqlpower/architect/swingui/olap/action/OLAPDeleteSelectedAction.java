@@ -68,7 +68,7 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
     public void actionPerformed(ActionEvent arg0) {
         List<OLAPObject> itemsToDelete = getDeletableItems();
         if (itemsToDelete.size() > 1 ) {
-            int decision = JOptionPane.showConfirmDialog(editSession.getDialog(), "Are you sure you want to delete the following " + itemsToDelete.size() + " items?",
+            int decision = JOptionPane.showConfirmDialog(editSession.getFrame(), "Are you sure you want to delete the following " + itemsToDelete.size() + " items?",
                             "Multiple Delete", JOptionPane.YES_NO_OPTION);
             if (decision != JOptionPane.YES_OPTION ) {
                 return;
