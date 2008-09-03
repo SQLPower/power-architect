@@ -100,7 +100,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
             }
         }
         
-        builder.appendSeparator("Source Table");
+        builder.appendSeparator("Fact Table");
         tableChooser = new JComboBox(new Vector<SQLTable>(tables));
 
         Action radioButtonsAction = new AbstractAction() {
