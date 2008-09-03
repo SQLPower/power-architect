@@ -28,6 +28,7 @@ import java.util.concurrent.Callable;
 
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 
 import org.apache.log4j.Logger;
 
@@ -105,9 +106,9 @@ public class ImportSchemaAction extends AbstractArchitectAction {
                 
                 addGUIComponents(editSession);
                 
-                final JDialog d = editSession.getDialog();
-                d.setLocationRelativeTo(session.getArchitectFrame());
-                d.setVisible(true);
+                final JFrame frame = editSession.getFrame();
+                frame.setLocationRelativeTo(session.getArchitectFrame());
+                frame.setVisible(true);
                 try {
                     final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(session, loadedSchema);
 
@@ -119,7 +120,7 @@ public class ImportSchemaAction extends AbstractArchitectAction {
 
                     Callable<Boolean> cancelCall = new Callable<Boolean>() {
                         public Boolean call() throws Exception {
-                            d.dispose();
+                            frame.dispose();
                             session.getOLAPRootObject().removeOLAPSession(osession);
                             return true;
                         }
@@ -127,12 +128,12 @@ public class ImportSchemaAction extends AbstractArchitectAction {
 
                     JDialog schemaEditDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
                             schemaEditPanel,
-                            d,
+                            frame,
                             "New Schema Properties",
                             "OK",
                             okCall,
                             cancelCall);
-                    schemaEditDialog.setLocationRelativeTo(d);
+                    schemaEditDialog.setLocationRelativeTo(frame);
                     schemaEditDialog.setVisible(true);
                 } catch (Exception ex) {
                     ASUtils.showExceptionDialogNoReport(

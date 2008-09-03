@@ -23,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.util.concurrent.Callable;
 
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
@@ -61,9 +62,9 @@ public class OLAPEditAction extends AbstractArchitectAction {
         
         OLAPEditSession editSession = session.getOLAPEditSession(olapSession);
         
-        final JDialog d = editSession.getDialog();
-        d.setLocationRelativeTo(session.getArchitectFrame());
-        d.setVisible(true);
+        final JFrame frame = editSession.getFrame();
+        frame.setLocationRelativeTo(session.getArchitectFrame());
+        frame.setVisible(true);
         
         if (newSchema) {
             try {
@@ -77,7 +78,7 @@ public class OLAPEditAction extends AbstractArchitectAction {
 
                 Callable<Boolean> cancelCall = new Callable<Boolean>() {
                     public Boolean call() throws Exception {
-                        d.dispose();
+                        frame.dispose();
                         session.getOLAPRootObject().removeOLAPSession(olapSession);
                         return true;
                     }
@@ -85,12 +86,12 @@ public class OLAPEditAction extends AbstractArchitectAction {
 
                 JDialog schemaEditDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
                         schemaEditPanel,
-                        d,
+                        frame,
                         "New Schema Properties",
                         "OK",
                         okCall,
                         cancelCall);
-                schemaEditDialog.setLocationRelativeTo(d);
+                schemaEditDialog.setLocationRelativeTo(frame);
                 schemaEditDialog.setVisible(true);
             } catch (Exception ex) {
                 ASUtils.showExceptionDialogNoReport(

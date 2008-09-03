@@ -24,7 +24,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.AbstractAction;
-import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -57,6 +57,8 @@ import ca.sqlpower.architect.swingui.olap.action.CreateMeasureAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateVirtualCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.ExportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPDeleteSelectedAction;
+import ca.sqlpower.swingui.event.SessionLifecycleEvent;
+import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
 public class OLAPEditSession implements OLAPChildListener {
 
@@ -68,9 +70,9 @@ public class OLAPEditSession implements OLAPChildListener {
     private final PlayPen pp;
     
     /**
-     * The dialog this edit session lives in.
+     * The frame this edit session lives in.
      */
-    private JDialog d;
+    private JFrame frame;
     
     /**
      * The scroll pane of which the PlayPen is in.
@@ -136,9 +138,15 @@ public class OLAPEditSession implements OLAPChildListener {
         undoManager.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 // this can be called before initGUI() has had a chance to create the dialog
-                if (d != null) {
-                    d.setTitle(generateDialogTitle());
+                if (frame != null) {
+                    frame.setTitle(generateDialogTitle());
                 }
+            }
+        });
+        
+        swingSession.addSessionLifecycleListener(new SessionLifecycleListener<ArchitectSwingSession>() {
+            public void sessionClosing(SessionLifecycleEvent<ArchitectSwingSession> e) {
+                close();
             }
         });
         // Don't create actions here. PlayPen is currently null.
@@ -148,11 +156,11 @@ public class OLAPEditSession implements OLAPChildListener {
      * Returns the OLAP Schema Editor dialog. It does not come with location and
      * visibility set.
      */
-    public JDialog getDialog() {
-        if (d == null) {
+    public JFrame getFrame() {
+        if (frame == null) {
             initGUI();
         }
-        return d;
+        return frame;
     }
     
     /**
@@ -222,16 +230,16 @@ public class OLAPEditSession implements OLAPChildListener {
                 BorderLayout.CENTER);
         panel.add(toolbar, BorderLayout.EAST);
         
-        d = new JDialog(swingSession.getArchitectFrame(), generateDialogTitle());
+        frame = new JFrame(generateDialogTitle());
         olapSession.getSchema().addPropertyChangeListener(new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
                 if (evt.getPropertyName().equals("name")) {
-                    d.setTitle(generateDialogTitle());
+                    frame.setTitle(generateDialogTitle());
                 }
             }
         });
-        d.setContentPane(panel);
-        d.pack();
+        frame.setContentPane(panel);
+        frame.pack();
         
         OLAPPlayPenFactory.setupOLAPMouseWheelActions(pp, this);
         OLAPPlayPenFactory.setupOLAPKeyboardActions(pp, this);
@@ -257,6 +265,14 @@ public class OLAPEditSession implements OLAPChildListener {
         return ppScrollPane;
     }
 
+    /**
+     * Cleans up all resources this session was using. This method will be
+     * called automatically when the Architect swing session closes.
+     */
+    public void close() {
+        frame.dispose();
+    }
+    
     /**
      * This method must be called just after this session has been saved with
      * the project. It resets the save state, and might do other stuff that
@@ -345,7 +361,7 @@ public class OLAPEditSession implements OLAPChildListener {
             // remove from architect's list of edit sessions and stop listening
             swingSession.getOLAPEditSessions().remove(this);
             swingSession.getOLAPRootObject().removeChildListener(this);
-            d.dispose();
+            frame.dispose();
         }
     }
 
