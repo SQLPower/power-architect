@@ -49,6 +49,17 @@ public static class <xsl:value-of select="@type"/> extends <xsl:call-template na
     public <xsl:value-of select="@type"/>() {
     }
     
+    /**
+     * Creates a new <xsl:value-of select="@type"/> with all
+     * attributes copied from the given <xsl:value-of select="@type"/>.
+     */
+    public <xsl:value-of select="@type"/>(<xsl:value-of select="@type"/> original) {
+    	super(original);
+    	<xsl:for-each select="Attribute|Object">
+    	this.<xsl:value-of select="@name"/> = original.get<xsl:call-template name="name-initcap"/>();
+    	</xsl:for-each>
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("<xsl:value-of select="@type"/>:");
@@ -99,6 +110,17 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
      * set to their defaults.
      */
     public <xsl:value-of select="@class"/>() {
+    }
+    
+    /**
+     * Creates a new <xsl:value-of select="@class"/> with all
+     * attributes copied from the given <xsl:value-of select="@class"/>.
+     */
+    public <xsl:value-of select="@class"/>(<xsl:value-of select="@class"/> original) {
+    	super(original);
+    	<xsl:for-each select="Attribute|Object">
+    	this.<xsl:value-of select="@name"/> = original.get<xsl:call-template name="name-initcap"/>();
+    	</xsl:for-each>
     }
     
 <xsl:apply-templates/>
