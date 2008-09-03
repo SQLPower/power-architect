@@ -20,6 +20,8 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,9 +47,11 @@ import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
+import ca.sqlpower.architect.olap.undo.OLAPUndoManager;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.PlayPenComponentLocationEdit;
 import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
 import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
 import ca.sqlpower.architect.swingui.event.PlayPenContentEvent;
@@ -57,12 +61,19 @@ import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
+import ca.sqlpower.architect.undo.PropertyChangeEdit;
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 
 public class OLAPPlayPenFactory {
 
     private static final Logger logger = Logger.getLogger(OLAPPlayPenFactory.class);
 
-    public static PlayPen createPlayPen(ArchitectSwingSession session, OLAPEditSession oSession) {
+    public static PlayPen createPlayPen(
+            ArchitectSwingSession session,
+            OLAPEditSession oSession,
+            OLAPUndoManager undoManager) {
+        
         if (session == null) {
             throw new NullPointerException("Null session");
         }
@@ -81,6 +92,14 @@ public class OLAPPlayPenFactory {
         pp.addSelectionListener(synchronizer);
         oSession.getOlapTree().addTreeSelectionListener(synchronizer);
         pp.getContentPane().addPlayPenContentListener(synchronizer);
+        
+        PlayPenUndoAdapter undoAdapter = new PlayPenUndoAdapter(undoManager);
+        for (PlayPenComponent ppc : pp.getPlayPenComponents()) {
+            ppc.addPropertyChangeListener(undoAdapter);
+        }
+        pp.getContentPane().addPlayPenContentListener(undoAdapter);
+        pp.addUndoEventListener(undoAdapter);
+        
         return pp;
     }
 
@@ -263,6 +282,43 @@ public class OLAPPlayPenFactory {
         public void PlayPenLifeEnding(PlayPenLifecycleEvent e) {
             OLAPUtil.unlistenToHierarchy(session.getOlapSession().getSchema(), this, null);
         }
+    }
+    
+    static class PlayPenUndoAdapter implements PlayPenContentListener, PropertyChangeListener, UndoCompoundEventListener {
+
+        private final OLAPUndoManager undoManager;
+
+        PlayPenUndoAdapter(OLAPUndoManager undoManager) {
+            this.undoManager = undoManager;
+        }
+        
+        public void PlayPenComponentAdded(PlayPenContentEvent e) {
+            logger.debug("Adding property change listener to new ppc: " + e.getPlayPenComponent());
+            e.getPlayPenComponent().addPropertyChangeListener(this);
+        }
+
+        public void PlayPenComponentRemoved(PlayPenContentEvent e) {
+            logger.debug("Removing property change listener from deleted ppc: " + e.getPlayPenComponent());
+            e.getPlayPenComponent().removePropertyChangeListener(this);
+        }
+
+        public void propertyChange(PropertyChangeEvent e) {
+            if (e.getPropertyName().equals("location")) {
+                // this edit will be absorbed by our PlayPenComponentLocationEdit
+                PropertyChangeEdit edit = new PropertyChangeEdit(e);
+                undoManager.addEdit(edit);
+            }
+        }
+
+        public void compoundEditStart(UndoCompoundEvent e) {
+            undoManager.addEdit(new PlayPenComponentLocationEdit());
+        }
+        
+        public void compoundEditEnd(UndoCompoundEvent e) {
+            // the location edit will simply stop absorbing
+            // edits because new edits are of the wrong type
+        }
+        
     }
     
     static class SelectionSynchronizer 

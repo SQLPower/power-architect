@@ -85,6 +85,35 @@ public class PropertyChangeEdit extends AbstractUndoableEdit {
     public String getPresentationName() {
         return "property change edit";
     }
+    
+    /**
+     * Returns the name of the property that this edit represents a change to.
+     */
+    public String getPropertyName() {
+        return sourceEvent.getPropertyName();
+    }
+
+    /**
+     * Returns the property's new value. This is the value that this edit will redo to.
+     */
+    public Object getNewValue() {
+        return sourceEvent.getNewValue();
+    }
+
+    /**
+     * Returns the property's old value. This is the value that this edit will undo to.
+     */
+    public Object getOldValue() {
+        return sourceEvent.getOldValue();
+    }
+
+    /**
+     * Returns the object whose property changed.
+     * @return
+     */
+    public Object getSource() {
+        return sourceEvent.getSource();
+    }
 
     @Override
     public String toString() {

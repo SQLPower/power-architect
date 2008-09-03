@@ -128,9 +128,8 @@ public class OLAPEditSession implements OLAPChildListener {
 
         tree = new OLAPTree(swingSession, this, olapSession.getSchema());
         tree.setCellRenderer(new OLAPTreeCellRenderer());
-        pp = OLAPPlayPenFactory.createPlayPen(swingSession, this);
-
         undoManager = new OLAPUndoManager(olapSession);
+        pp = OLAPPlayPenFactory.createPlayPen(swingSession, this, undoManager);
         
         // Don't create actions here. PlayPen is currently null.
     }
