@@ -21,6 +21,7 @@ package ca.sqlpower.architect.olap.undo;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,9 +70,42 @@ public class OLAPUndoManager extends UndoManager implements NotifyingUndoManager
      */
     private int compoundEditDepth = 0;
     
+    private WeakReference<UndoableEdit> rememberedPosition;
+    
     public OLAPUndoManager(OLAPObject root) {
         OLAPUtil.listenToHierarchy(root, eventHandler, eventHandler, eventHandler);
         // TODO need to track the playpen components as well
+    }
+    
+    /**
+     * Marks this undo manager's current position.
+     */
+    public void rememberPosition() {
+        // this might be a weak reference to null, for instance if there are no edits yet
+        // (but that's ok; it will still work)
+        rememberedPosition = new WeakReference<UndoableEdit>(editToBeUndone());
+        fireChangeEvent();
+    }
+    
+    public boolean isAtRememberedPosition() {
+        return rememberedPosition != null && rememberedPosition.get() == editToBeUndone();
+    }
+
+    /**
+     * This override is just a hook for the "remembered position" system. If we
+     * are trimming off the first edit, and our remembered undoable edit was
+     * null (which only happens when the remembered position is before the first
+     * edit), we "unremember" the position because it is now impossible to get
+     * back there. If we didn't do this, if the user undoes back to the
+     * beginning of the undo vector, we would report that we're at the
+     * remembered position, but it would be a lie.
+     */
+    @Override
+    protected void trimEdits(int from, int to) {
+        super.trimEdits(from, to);
+        if (from == 0 && to > 0 && rememberedPosition.get() == null) {
+            rememberedPosition = null;
+        }
     }
     
     @Override
