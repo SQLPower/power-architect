@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
@@ -112,11 +113,43 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
     protected List<OLAPObject> filterDroppableItems(List<OLAPObject> items) {
         List<OLAPObject> filtered = new ArrayList<OLAPObject>();
         for (OLAPObject item : items) {
-            if (item instanceof Measure || item instanceof Dimension) {
+            if (item instanceof Measure || item instanceof Dimension || item instanceof DimensionUsage) {
                 filtered.add(item);
+            } else {
+                logger.debug(" Ignoring dropped item of type " + item.getClass().getName() );
             }
         }
         return filtered;
+    }
+    
+    @Override
+    protected int dndRemoveAndAdd(PaneSection<OLAPObject> insertSection, int insertIndex, OLAPObject item) {
+        OLAPObject newItem = item;
+        if (item instanceof DimensionUsage) {
+            newItem = new DimensionUsage((DimensionUsage) item);
+
+            Dimension refDimension = OLAPUtil.findReferencedDimension((DimensionUsage) item);
+            PlayPenContentPane contentPane = getParent();
+            DimensionPane dimensionPane = null;
+            for (int i = 0; i < contentPane.getComponentCount(); i++) {
+                if (contentPane.getComponent(i).getModel() == refDimension) {
+                    dimensionPane = (DimensionPane) contentPane.getComponent(i);
+                    break;
+                }
+            }
+            UsageComponent uc = new UsageComponent(contentPane, newItem, dimensionPane, this);
+            contentPane.add(uc, contentPane.getComponentCount());
+        }
+        logger.debug(" Dragging and dropping item of type " + item.getClass().getName());
+        if (insertSection != null && insertIndex >= 0 && insertSection.getItemType().isInstance(item)) {
+            item.getParent().removeChild(item);
+            insertSection.addItem(insertIndex++, newItem);
+        } else {
+            item.getParent().removeChild(item);
+            getModel().addChild(newItem);
+        }
+
+        return insertIndex;
     }
 
 }
