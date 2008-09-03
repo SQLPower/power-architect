@@ -479,6 +479,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
             logger.debug("Resolved Paths = " + coords);
             List<OLAPObject> items = getItemsFromCoordinates(coords);
             List<C> acceptedItems = filterDroppableItems(items);
+            logger.debug("Accepted Items = " + acceptedItems);
             
             // XXX we don't want to weaken the type here (PaneSection<C> would be better)
             // but without this, the whole thing collapses
@@ -520,12 +521,8 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                     }
                 }
 
-                if (insertSection != null && insertIndex >= 0 && insertSection.getItemType().isInstance(item)) {
-                    item.getParent().removeChild(item);
-                    insertSection.addItem(insertIndex++, item);
-                } else {
-                    transferInvalidIndexItem(item, insertSection);
-                }
+                insertIndex = dndRemoveAndAdd(insertSection, insertIndex, item);
+                logger.debug("Moved object: " + item);
             }
 
             if (!acceptedItems.isEmpty()) {
@@ -544,6 +541,21 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
             setInsertionPoint(null);
             schema.endCompoundEdit();
         }
+    }
+
+    /**
+     * This will remove the item being dragged and dropped from its parent before
+     * adding it to the new insertSection. Some panes need to do special actions
+     * before or during the remove and add.
+     */
+    protected int dndRemoveAndAdd(PaneSection<OLAPObject> insertSection, int insertIndex, C item) {
+        if (insertSection != null && insertIndex >= 0 && insertSection.getItemType().isInstance(item)) {
+            item.getParent().removeChild(item);
+            insertSection.addItem(insertIndex++, item);
+        } else {
+            transferInvalidIndexItem(item, insertSection);
+        }
+        return insertIndex;
     }
     
     /**
