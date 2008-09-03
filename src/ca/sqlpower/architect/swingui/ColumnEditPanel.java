@@ -236,11 +236,13 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
      * Updates all the UI components to reflect the given column's properties.
      * Also saves a reference to the given column so the changes made in the UI
      * can be written back into the column.
+     * <p>
+     * Normally, this should not be used. Instead, create a new ColumnEditPanel.
      * 
      * @param col
      *            The column to edit
      */
-    public void editColumn(SQLColumn col) throws ArchitectException {
+    void editColumn(SQLColumn col) throws ArchitectException {
         logger.debug("Edit Column '" + col + "' is being called"); //$NON-NLS-1$ //$NON-NLS-2$
         if (col == null) {
             throw new NullPointerException("Edit null column is not allowed"); //$NON-NLS-1$

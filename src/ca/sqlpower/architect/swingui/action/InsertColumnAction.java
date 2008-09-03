@@ -68,7 +68,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         }
         st.addColumn(idx, new SQLColumn());
         EditColumnAction editColumnAction = new EditColumnAction(session);
-        editColumnAction.makeDialog(st, idx);
+        editColumnAction.showDialog(st, idx);
         
     }
 
@@ -80,7 +80,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         EditColumnAction editColumnAction = new EditColumnAction(session);
         
         //The actual column is added to the table when the user presses OK
-        editColumnAction.makeDialog(tp.getModel(), idx,true, tp);
+        editColumnAction.showDialog(tp.getModel(), idx,true, tp);
     }
 
     @Override
