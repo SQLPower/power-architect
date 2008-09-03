@@ -24,6 +24,21 @@ public static class Schema extends OLAPObject {
     public Schema() {
     }
     
+    /**
+     * Creates a new Schema with all
+     * attributes copied from the given Schema.
+     */
+    public Schema(Schema original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.measuresCaption = original.getMeasuresCaption();
+    	
+    	this.defaultRole = original.getDefaultRole();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("Schema:");
@@ -738,6 +753,21 @@ public abstract static class CubeDimension extends OLAPObject {
     public CubeDimension() {
     }
     
+    /**
+     * Creates a new CubeDimension with all
+     * attributes copied from the given CubeDimension.
+     */
+    public CubeDimension(CubeDimension original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.caption = original.getCaption();
+    	
+    	this.foreignKey = original.getForeignKey();
+    	
+    }
+    
 
     /**  */
     private String /* */ name;
@@ -864,6 +894,27 @@ public static class Cube extends OLAPObject {
      * set to their defaults.
      */
     public Cube() {
+    }
+    
+    /**
+     * Creates a new Cube with all
+     * attributes copied from the given Cube.
+     */
+    public Cube(Cube original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.caption = original.getCaption();
+    	
+    	this.defaultMeasure = original.getDefaultMeasure();
+    	
+    	this.cache = original.getCache();
+    	
+    	this.enabled = original.getEnabled();
+    	
+    	this.fact = original.getFact();
+    	
     }
     
 	public String toString() {
@@ -1416,6 +1467,25 @@ public static class VirtualCube extends OLAPObject {
     public VirtualCube() {
     }
     
+    /**
+     * Creates a new VirtualCube with all
+     * attributes copied from the given VirtualCube.
+     */
+    public VirtualCube(VirtualCube original) {
+    	super(original);
+    	
+    	this.enabled = original.getEnabled();
+    	
+    	this.name = original.getName();
+    	
+    	this.defaultMeasure = original.getDefaultMeasure();
+    	
+    	this.caption = original.getCaption();
+    	
+    	this.cubeUsage = original.getCubeUsage();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("VirtualCube:");
@@ -1943,6 +2013,15 @@ public static class CubeUsages extends OLAPObject {
     public CubeUsages() {
     }
     
+    /**
+     * Creates a new CubeUsages with all
+     * attributes copied from the given CubeUsages.
+     */
+    public CubeUsages(CubeUsages original) {
+    	super(original);
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("CubeUsages:");
@@ -2102,6 +2181,19 @@ public static class CubeUsage extends OLAPObject {
     public CubeUsage() {
     }
     
+    /**
+     * Creates a new CubeUsage with all
+     * attributes copied from the given CubeUsage.
+     */
+    public CubeUsage(CubeUsage original) {
+    	super(original);
+    	
+    	this.cubeName = original.getCubeName();
+    	
+    	this.ignoreUnrelatedDimensions = original.getIgnoreUnrelatedDimensions();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("CubeUsage:");
@@ -2205,6 +2297,19 @@ public static class VirtualCubeDimension extends CubeDimension {
      * set to their defaults.
      */
     public VirtualCubeDimension() {
+    }
+    
+    /**
+     * Creates a new VirtualCubeDimension with all
+     * attributes copied from the given VirtualCubeDimension.
+     */
+    public VirtualCubeDimension(VirtualCubeDimension original) {
+    	super(original);
+    	
+    	this.cubeName = original.getCubeName();
+    	
+    	this.name = original.getName();
+    	
     }
     
 	public String toString() {
@@ -2314,6 +2419,21 @@ public static class VirtualCubeMeasure extends OLAPObject {
      * set to their defaults.
      */
     public VirtualCubeMeasure() {
+    }
+    
+    /**
+     * Creates a new VirtualCubeMeasure with all
+     * attributes copied from the given VirtualCubeMeasure.
+     */
+    public VirtualCubeMeasure(VirtualCubeMeasure original) {
+    	super(original);
+    	
+    	this.cubeName = original.getCubeName();
+    	
+    	this.name = original.getName();
+    	
+    	this.visible = original.getVisible();
+    	
     }
     
 	public String toString() {
@@ -2439,6 +2559,21 @@ public static class DimensionUsage extends CubeDimension {
      * set to their defaults.
      */
     public DimensionUsage() {
+    }
+    
+    /**
+     * Creates a new DimensionUsage with all
+     * attributes copied from the given DimensionUsage.
+     */
+    public DimensionUsage(DimensionUsage original) {
+    	super(original);
+    	
+    	this.source = original.getSource();
+    	
+    	this.level = original.getLevel();
+    	
+    	this.usagePrefix = original.getUsagePrefix();
+    	
     }
     
 	public String toString() {
@@ -2575,6 +2710,23 @@ public static class Dimension extends CubeDimension {
      * set to their defaults.
      */
     public Dimension() {
+    }
+    
+    /**
+     * Creates a new Dimension with all
+     * attributes copied from the given Dimension.
+     */
+    public Dimension(Dimension original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.type = original.getType();
+    	
+    	this.caption = original.getCaption();
+    	
+    	this.usagePrefix = original.getUsagePrefix();
+    	
     }
     
 	public String toString() {
@@ -2829,6 +2981,37 @@ public static class Hierarchy extends OLAPObject {
      * set to their defaults.
      */
     public Hierarchy() {
+    }
+    
+    /**
+     * Creates a new Hierarchy with all
+     * attributes copied from the given Hierarchy.
+     */
+    public Hierarchy(Hierarchy original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.hasAll = original.getHasAll();
+    	
+    	this.allMemberName = original.getAllMemberName();
+    	
+    	this.allMemberCaption = original.getAllMemberCaption();
+    	
+    	this.allLevelName = original.getAllLevelName();
+    	
+    	this.primaryKey = original.getPrimaryKey();
+    	
+    	this.primaryKeyTable = original.getPrimaryKeyTable();
+    	
+    	this.defaultMember = original.getDefaultMember();
+    	
+    	this.memberReaderClass = original.getMemberReaderClass();
+    	
+    	this.caption = original.getCaption();
+    	
+    	this.relation = original.getRelation();
+    	
     }
     
 	public String toString() {
@@ -3316,6 +3499,55 @@ public static class Level extends OLAPObject {
      * set to their defaults.
      */
     public Level() {
+    }
+    
+    /**
+     * Creates a new Level with all
+     * attributes copied from the given Level.
+     */
+    public Level(Level original) {
+    	super(original);
+    	
+    	this.approxRowCount = original.getApproxRowCount();
+    	
+    	this.name = original.getName();
+    	
+    	this.table = original.getTable();
+    	
+    	this.column = original.getColumn();
+    	
+    	this.nameColumn = original.getNameColumn();
+    	
+    	this.ordinalColumn = original.getOrdinalColumn();
+    	
+    	this.parentColumn = original.getParentColumn();
+    	
+    	this.nullParentValue = original.getNullParentValue();
+    	
+    	this.type = original.getType();
+    	
+    	this.uniqueMembers = original.getUniqueMembers();
+    	
+    	this.levelType = original.getLevelType();
+    	
+    	this.hideMemberIf = original.getHideMemberIf();
+    	
+    	this.formatter = original.getFormatter();
+    	
+    	this.caption = original.getCaption();
+    	
+    	this.captionColumn = original.getCaptionColumn();
+    	
+    	this.keyExp = original.getKeyExp();
+    	
+    	this.nameExp = original.getNameExp();
+    	
+    	this.ordinalExp = original.getOrdinalExp();
+    	
+    	this.parentExp = original.getParentExp();
+    	
+    	this.closure = original.getClosure();
+    	
     }
     
 	public String toString() {
@@ -4032,6 +4264,21 @@ public static class Closure extends OLAPObject {
     public Closure() {
     }
     
+    /**
+     * Creates a new Closure with all
+     * attributes copied from the given Closure.
+     */
+    public Closure(Closure original) {
+    	super(original);
+    	
+    	this.parentColumn = original.getParentColumn();
+    	
+    	this.childColumn = original.getChildColumn();
+    	
+    	this.table = original.getTable();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("Closure:");
@@ -4195,6 +4442,25 @@ public static class Property extends OLAPObject {
     public Property() {
     }
     
+    /**
+     * Creates a new Property with all
+     * attributes copied from the given Property.
+     */
+    public Property(Property original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.column = original.getColumn();
+    	
+    	this.type = original.getType();
+    	
+    	this.formatter = original.getFormatter();
+    	
+    	this.caption = original.getCaption();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("Property:");
@@ -4353,6 +4619,33 @@ public static class Measure extends OLAPObject {
      * set to their defaults.
      */
     public Measure() {
+    }
+    
+    /**
+     * Creates a new Measure with all
+     * attributes copied from the given Measure.
+     */
+    public Measure(Measure original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.column = original.getColumn();
+    	
+    	this.datatype = original.getDatatype();
+    	
+    	this.formatString = original.getFormatString();
+    	
+    	this.aggregator = original.getAggregator();
+    	
+    	this.formatter = original.getFormatter();
+    	
+    	this.caption = original.getCaption();
+    	
+    	this.visible = original.getVisible();
+    	
+    	this.measureExp = original.getMeasureExp();
+    	
     }
     
 	public String toString() {
@@ -4724,6 +5017,29 @@ public static class CalculatedMember extends OLAPObject {
     public CalculatedMember() {
     }
     
+    /**
+     * Creates a new CalculatedMember with all
+     * attributes copied from the given CalculatedMember.
+     */
+    public CalculatedMember(CalculatedMember original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.formatString = original.getFormatString();
+    	
+    	this.caption = original.getCaption();
+    	
+    	this.formula = original.getFormula();
+    	
+    	this.dimension = original.getDimension();
+    	
+    	this.visible = original.getVisible();
+    	
+    	this.formulaElement = original.getFormulaElement();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("CalculatedMember:");
@@ -5050,6 +5366,23 @@ public static class CalculatedMemberProperty extends OLAPObject {
     public CalculatedMemberProperty() {
     }
     
+    /**
+     * Creates a new CalculatedMemberProperty with all
+     * attributes copied from the given CalculatedMemberProperty.
+     */
+    public CalculatedMemberProperty(CalculatedMemberProperty original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.caption = original.getCaption();
+    	
+    	this.expression = original.getExpression();
+    	
+    	this.value = original.getValue();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("CalculatedMemberProperty:");
@@ -5210,6 +5543,21 @@ public static class NamedSet extends OLAPObject {
      * set to their defaults.
      */
     public NamedSet() {
+    }
+    
+    /**
+     * Creates a new NamedSet with all
+     * attributes copied from the given NamedSet.
+     */
+    public NamedSet(NamedSet original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.formula = original.getFormula();
+    	
+    	this.formulaElement = original.getFormulaElement();
+    	
     }
     
 	public String toString() {
@@ -5380,6 +5728,15 @@ public static class Formula extends OLAPObject {
     public Formula() {
     }
     
+    /**
+     * Creates a new Formula with all
+     * attributes copied from the given Formula.
+     */
+    public Formula(Formula original) {
+    	super(original);
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("Formula:");
@@ -5459,6 +5816,19 @@ public static class MemberReaderParameter extends OLAPObject {
      * set to their defaults.
      */
     public MemberReaderParameter() {
+    }
+    
+    /**
+     * Creates a new MemberReaderParameter with all
+     * attributes copied from the given MemberReaderParameter.
+     */
+    public MemberReaderParameter(MemberReaderParameter original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.value = original.getValue();
+    	
     }
     
 	public String toString() {
@@ -5559,6 +5929,15 @@ public abstract static class RelationOrJoin extends OLAPObject {
     public RelationOrJoin() {
     }
     
+    /**
+     * Creates a new RelationOrJoin with all
+     * attributes copied from the given RelationOrJoin.
+     */
+    public RelationOrJoin(RelationOrJoin original) {
+    	super(original);
+    	
+    }
+    
 
 
 	@Override
@@ -5624,6 +6003,15 @@ public abstract static class Relation extends RelationOrJoin {
      * set to their defaults.
      */
     public Relation() {
+    }
+    
+    /**
+     * Creates a new Relation with all
+     * attributes copied from the given Relation.
+     */
+    public Relation(Relation original) {
+    	super(original);
+    	
     }
     
 
@@ -5697,6 +6085,17 @@ public static class View extends Relation {
      * set to their defaults.
      */
     public View() {
+    }
+    
+    /**
+     * Creates a new View with all
+     * attributes copied from the given View.
+     */
+    public View(View original) {
+    	super(original);
+    	
+    	this.alias = original.getAlias();
+    	
     }
     
 	public String toString() {
@@ -5879,6 +6278,17 @@ public static class SQL extends OLAPObject {
     public SQL() {
     }
     
+    /**
+     * Creates a new SQL with all
+     * attributes copied from the given SQL.
+     */
+    public SQL(SQL original) {
+    	super(original);
+    	
+    	this.dialect = original.getDialect();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("SQL:");
@@ -5977,6 +6387,27 @@ public static class Join extends RelationOrJoin {
      * set to their defaults.
      */
     public Join() {
+    }
+    
+    /**
+     * Creates a new Join with all
+     * attributes copied from the given Join.
+     */
+    public Join(Join original) {
+    	super(original);
+    	
+    	this.leftAlias = original.getLeftAlias();
+    	
+    	this.leftKey = original.getLeftKey();
+    	
+    	this.rightAlias = original.getRightAlias();
+    	
+    	this.rightKey = original.getRightKey();
+    	
+    	this.left = original.getLeft();
+    	
+    	this.right = original.getRight();
+    	
     }
     
 	public String toString() {
@@ -6226,6 +6657,23 @@ public static class Table extends Relation {
      * set to their defaults.
      */
     public Table() {
+    }
+    
+    /**
+     * Creates a new Table with all
+     * attributes copied from the given Table.
+     */
+    public Table(Table original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.schema = original.getSchema();
+    	
+    	this.alias = original.getAlias();
+    	
+    	this.filter = original.getFilter();
+    	
     }
     
 	public String toString() {
@@ -6572,6 +7020,21 @@ public static class InlineTable extends Relation {
     public InlineTable() {
     }
     
+    /**
+     * Creates a new InlineTable with all
+     * attributes copied from the given InlineTable.
+     */
+    public InlineTable(InlineTable original) {
+    	super(original);
+    	
+    	this.alias = original.getAlias();
+    	
+    	this.columnDefs = original.getColumnDefs();
+    	
+    	this.rows = original.getRows();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("InlineTable:");
@@ -6770,6 +7233,15 @@ public static class ColumnDefs extends OLAPObject {
     public ColumnDefs() {
     }
     
+    /**
+     * Creates a new ColumnDefs with all
+     * attributes copied from the given ColumnDefs.
+     */
+    public ColumnDefs(ColumnDefs original) {
+    	super(original);
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("ColumnDefs:");
@@ -6931,6 +7403,19 @@ public static class ColumnDef extends OLAPObject {
     public ColumnDef() {
     }
     
+    /**
+     * Creates a new ColumnDef with all
+     * attributes copied from the given ColumnDef.
+     */
+    public ColumnDef(ColumnDef original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.type = original.getType();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("ColumnDef:");
@@ -7032,6 +7517,15 @@ public static class Rows extends OLAPObject {
      * set to their defaults.
      */
     public Rows() {
+    }
+    
+    /**
+     * Creates a new Rows with all
+     * attributes copied from the given Rows.
+     */
+    public Rows(Rows original) {
+    	super(original);
+    	
     }
     
 	public String toString() {
@@ -7196,6 +7690,15 @@ public static class Row extends OLAPObject {
     public Row() {
     }
     
+    /**
+     * Creates a new Row with all
+     * attributes copied from the given Row.
+     */
+    public Row(Row original) {
+    	super(original);
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("Row:");
@@ -7358,6 +7861,17 @@ public static class Value extends OLAPObject {
     public Value() {
     }
     
+    /**
+     * Creates a new Value with all
+     * attributes copied from the given Value.
+     */
+    public Value(Value original) {
+    	super(original);
+    	
+    	this.column = original.getColumn();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("Value:");
@@ -7460,6 +7974,19 @@ public abstract static class AggTable extends OLAPObject {
      * set to their defaults.
      */
     public AggTable() {
+    }
+    
+    /**
+     * Creates a new AggTable with all
+     * attributes copied from the given AggTable.
+     */
+    public AggTable(AggTable original) {
+    	super(original);
+    	
+    	this.ignorecase = original.getIgnorecase();
+    	
+    	this.factcount = original.getFactcount();
+    	
     }
     
 
@@ -7917,6 +8444,17 @@ public static class AggName extends AggTable {
     public AggName() {
     }
     
+    /**
+     * Creates a new AggName with all
+     * attributes copied from the given AggName.
+     */
+    public AggName(AggName original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("AggName:");
@@ -8002,6 +8540,17 @@ public static class AggPattern extends AggTable {
      * set to their defaults.
      */
     public AggPattern() {
+    }
+    
+    /**
+     * Creates a new AggPattern with all
+     * attributes copied from the given AggPattern.
+     */
+    public AggPattern(AggPattern original) {
+    	super(original);
+    	
+    	this.pattern = original.getPattern();
+    	
     }
     
 	public String toString() {
@@ -8186,6 +8735,21 @@ public static class AggExclude extends OLAPObject {
     public AggExclude() {
     }
     
+    /**
+     * Creates a new AggExclude with all
+     * attributes copied from the given AggExclude.
+     */
+    public AggExclude(AggExclude original) {
+    	super(original);
+    	
+    	this.pattern = original.getPattern();
+    	
+    	this.name = original.getName();
+    	
+    	this.ignorecase = original.getIgnorecase();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("AggExclude:");
@@ -8307,6 +8871,17 @@ public abstract static class AggColumnName extends OLAPObject {
     public AggColumnName() {
     }
     
+    /**
+     * Creates a new AggColumnName with all
+     * attributes copied from the given AggColumnName.
+     */
+    public AggColumnName(AggColumnName original) {
+    	super(original);
+    	
+    	this.column = original.getColumn();
+    	
+    }
+    
 
     /** 
                 The name of the fact count column.
@@ -8393,6 +8968,15 @@ public static class AggFactCount extends AggColumnName {
     public AggFactCount() {
     }
     
+    /**
+     * Creates a new AggFactCount with all
+     * attributes copied from the given AggFactCount.
+     */
+    public AggFactCount(AggFactCount original) {
+    	super(original);
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("AggFactCount:");
@@ -8459,6 +9043,15 @@ public static class AggIgnoreColumn extends AggColumnName {
      * set to their defaults.
      */
     public AggIgnoreColumn() {
+    }
+    
+    /**
+     * Creates a new AggIgnoreColumn with all
+     * attributes copied from the given AggIgnoreColumn.
+     */
+    public AggIgnoreColumn(AggIgnoreColumn original) {
+    	super(original);
+    	
     }
     
 	public String toString() {
@@ -8530,6 +9123,19 @@ public static class AggForeignKey extends OLAPObject {
      * set to their defaults.
      */
     public AggForeignKey() {
+    }
+    
+    /**
+     * Creates a new AggForeignKey with all
+     * attributes copied from the given AggForeignKey.
+     */
+    public AggForeignKey(AggForeignKey original) {
+    	super(original);
+    	
+    	this.factColumn = original.getFactColumn();
+    	
+    	this.aggColumn = original.getAggColumn();
+    	
     }
     
 	public String toString() {
@@ -8634,6 +9240,19 @@ public static class AggLevel extends OLAPObject {
     public AggLevel() {
     }
     
+    /**
+     * Creates a new AggLevel with all
+     * attributes copied from the given AggLevel.
+     */
+    public AggLevel(AggLevel original) {
+    	super(original);
+    	
+    	this.column = original.getColumn();
+    	
+    	this.name = original.getName();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("AggLevel:");
@@ -8734,6 +9353,19 @@ public static class AggMeasure extends OLAPObject {
      * set to their defaults.
      */
     public AggMeasure() {
+    }
+    
+    /**
+     * Creates a new AggMeasure with all
+     * attributes copied from the given AggMeasure.
+     */
+    public AggMeasure(AggMeasure original) {
+    	super(original);
+    	
+    	this.column = original.getColumn();
+    	
+    	this.name = original.getName();
+    	
     }
     
 	public String toString() {
@@ -8838,6 +9470,15 @@ public abstract static class Expression extends OLAPObject {
     public Expression() {
     }
     
+    /**
+     * Creates a new Expression with all
+     * attributes copied from the given Expression.
+     */
+    public Expression(Expression original) {
+    	super(original);
+    	
+    }
+    
 
 
 	@Override
@@ -8903,6 +9544,19 @@ public static class Column extends Expression {
      * set to their defaults.
      */
     public Column() {
+    }
+    
+    /**
+     * Creates a new Column with all
+     * attributes copied from the given Column.
+     */
+    public Column(Column original) {
+    	super(original);
+    	
+    	this.table = original.getTable();
+    	
+    	this.name = original.getName();
+    	
     }
     
 	public String toString() {
@@ -9012,6 +9666,15 @@ public abstract static class ExpressionView extends Expression {
      * set to their defaults.
      */
     public ExpressionView() {
+    }
+    
+    /**
+     * Creates a new ExpressionView with all
+     * attributes copied from the given ExpressionView.
+     */
+    public ExpressionView(ExpressionView original) {
+    	super(original);
+    	
     }
     
 
@@ -9180,6 +9843,15 @@ public static class KeyExpression extends ExpressionView {
     public KeyExpression() {
     }
     
+    /**
+     * Creates a new KeyExpression with all
+     * attributes copied from the given KeyExpression.
+     */
+    public KeyExpression(KeyExpression original) {
+    	super(original);
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("KeyExpression:");
@@ -9246,6 +9918,15 @@ public static class ParentExpression extends ExpressionView {
      * set to their defaults.
      */
     public ParentExpression() {
+    }
+    
+    /**
+     * Creates a new ParentExpression with all
+     * attributes copied from the given ParentExpression.
+     */
+    public ParentExpression(ParentExpression original) {
+    	super(original);
+    	
     }
     
 	public String toString() {
@@ -9316,6 +9997,15 @@ public static class OrdinalExpression extends ExpressionView {
     public OrdinalExpression() {
     }
     
+    /**
+     * Creates a new OrdinalExpression with all
+     * attributes copied from the given OrdinalExpression.
+     */
+    public OrdinalExpression(OrdinalExpression original) {
+    	super(original);
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("OrdinalExpression:");
@@ -9382,6 +10072,15 @@ public static class NameExpression extends ExpressionView {
      * set to their defaults.
      */
     public NameExpression() {
+    }
+    
+    /**
+     * Creates a new NameExpression with all
+     * attributes copied from the given NameExpression.
+     */
+    public NameExpression(NameExpression original) {
+    	super(original);
+    	
     }
     
 	public String toString() {
@@ -9452,6 +10151,15 @@ public static class CaptionExpression extends ExpressionView {
     public CaptionExpression() {
     }
     
+    /**
+     * Creates a new CaptionExpression with all
+     * attributes copied from the given CaptionExpression.
+     */
+    public CaptionExpression(CaptionExpression original) {
+    	super(original);
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("CaptionExpression:");
@@ -9518,6 +10226,15 @@ public static class MeasureExpression extends ExpressionView {
      * set to their defaults.
      */
     public MeasureExpression() {
+    }
+    
+    /**
+     * Creates a new MeasureExpression with all
+     * attributes copied from the given MeasureExpression.
+     */
+    public MeasureExpression(MeasureExpression original) {
+    	super(original);
+    	
     }
     
 	public String toString() {
@@ -9589,6 +10306,19 @@ public static class Role extends OLAPObject {
      * set to their defaults.
      */
     public Role() {
+    }
+    
+    /**
+     * Creates a new Role with all
+     * attributes copied from the given Role.
+     */
+    public Role(Role original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.union = original.getUnion();
+    	
     }
     
 	public String toString() {
@@ -9811,6 +10541,17 @@ public abstract static class Grant extends OLAPObject {
     public Grant() {
     }
     
+    /**
+     * Creates a new Grant with all
+     * attributes copied from the given Grant.
+     */
+    public Grant(Grant original) {
+    	super(original);
+    	
+    	this.access = original.getAccess();
+    	
+    }
+    
 
     /** Values correspond to Access. */
     private String /* */ access;
@@ -9899,6 +10640,15 @@ public static class SchemaGrant extends Grant {
      * set to their defaults.
      */
     public SchemaGrant() {
+    }
+    
+    /**
+     * Creates a new SchemaGrant with all
+     * attributes copied from the given SchemaGrant.
+     */
+    public SchemaGrant(SchemaGrant original) {
+    	super(original);
+    	
     }
     
 	public String toString() {
@@ -10066,6 +10816,17 @@ public static class CubeGrant extends Grant {
      * set to their defaults.
      */
     public CubeGrant() {
+    }
+    
+    /**
+     * Creates a new CubeGrant with all
+     * attributes copied from the given CubeGrant.
+     */
+    public CubeGrant(CubeGrant original) {
+    	super(original);
+    	
+    	this.cube = original.getCube();
+    	
     }
     
 	public String toString() {
@@ -10331,6 +11092,17 @@ public static class DimensionGrant extends Grant {
     public DimensionGrant() {
     }
     
+    /**
+     * Creates a new DimensionGrant with all
+     * attributes copied from the given DimensionGrant.
+     */
+    public DimensionGrant(DimensionGrant original) {
+    	super(original);
+    	
+    	this.dimension = original.getDimension();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("DimensionGrant:");
@@ -10421,6 +11193,23 @@ public static class HierarchyGrant extends Grant {
      * set to their defaults.
      */
     public HierarchyGrant() {
+    }
+    
+    /**
+     * Creates a new HierarchyGrant with all
+     * attributes copied from the given HierarchyGrant.
+     */
+    public HierarchyGrant(HierarchyGrant original) {
+    	super(original);
+    	
+    	this.hierarchy = original.getHierarchy();
+    	
+    	this.topLevel = original.getTopLevel();
+    	
+    	this.bottomLevel = original.getBottomLevel();
+    	
+    	this.rollupPolicy = original.getRollupPolicy();
+    	
     }
     
 	public String toString() {
@@ -10668,6 +11457,19 @@ public static class MemberGrant extends OLAPObject {
     public MemberGrant() {
     }
     
+    /**
+     * Creates a new MemberGrant with all
+     * attributes copied from the given MemberGrant.
+     */
+    public MemberGrant(MemberGrant original) {
+    	super(original);
+    	
+    	this.member = original.getMember();
+    	
+    	this.access = original.getAccess();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("MemberGrant:");
@@ -10768,6 +11570,15 @@ public static class Union extends OLAPObject {
      * set to their defaults.
      */
     public Union() {
+    }
+    
+    /**
+     * Creates a new Union with all
+     * attributes copied from the given Union.
+     */
+    public Union(Union original) {
+    	super(original);
+    	
     }
     
 	public String toString() {
@@ -10931,6 +11742,17 @@ public static class RoleUsage extends OLAPObject {
     public RoleUsage() {
     }
     
+    /**
+     * Creates a new RoleUsage with all
+     * attributes copied from the given RoleUsage.
+     */
+    public RoleUsage(RoleUsage original) {
+    	super(original);
+    	
+    	this.roleName = original.getRoleName();
+    	
+    }
+    
 	public String toString() {
 		StringBuilder retStr = new StringBuilder();
 		retStr.append("RoleUsage:");
@@ -11015,6 +11837,19 @@ public static class UserDefinedFunction extends OLAPObject {
      * set to their defaults.
      */
     public UserDefinedFunction() {
+    }
+    
+    /**
+     * Creates a new UserDefinedFunction with all
+     * attributes copied from the given UserDefinedFunction.
+     */
+    public UserDefinedFunction(UserDefinedFunction original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.className = original.getClassName();
+    	
     }
     
 	public String toString() {
@@ -11121,6 +11956,25 @@ public static class Parameter extends OLAPObject {
      * set to their defaults.
      */
     public Parameter() {
+    }
+    
+    /**
+     * Creates a new Parameter with all
+     * attributes copied from the given Parameter.
+     */
+    public Parameter(Parameter original) {
+    	super(original);
+    	
+    	this.name = original.getName();
+    	
+    	this.description = original.getDescription();
+    	
+    	this.type = original.getType();
+    	
+    	this.modifiable = original.getModifiable();
+    	
+    	this.defaultValue = original.getDefaultValue();
+    	
     }
     
 	public String toString() {

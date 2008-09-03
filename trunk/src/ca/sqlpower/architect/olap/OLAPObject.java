@@ -57,6 +57,11 @@ public abstract class OLAPObject {
     protected OLAPObject() {
         pcs = new PropertyChangeSupport(this);
     }
+    
+    protected OLAPObject(OLAPObject original) {
+        pcs = new PropertyChangeSupport(this);
+        this.parent = original.getParent();
+    }
 
     /**
      * Returns the current OLAPObject that is this object's parent. If this
