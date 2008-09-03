@@ -135,7 +135,10 @@ public class OLAPEditSession implements OLAPChildListener {
         
         undoManager.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                d.setTitle(generateDialogTitle());
+                // this can be called before initGUI() has had a chance to create the dialog
+                if (d != null) {
+                    d.setTitle(generateDialogTitle());
+                }
             }
         });
         // Don't create actions here. PlayPen is currently null.
