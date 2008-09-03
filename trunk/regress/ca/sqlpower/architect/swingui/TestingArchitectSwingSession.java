@@ -45,6 +45,7 @@ import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSwingWorker;
+import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
 /**
  * Minimally functional session implementation that creates but does
@@ -349,6 +350,14 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     
     public OLAPEditSession getOLAPEditSession(OLAPSession olapSession) {
         return null;
+    }
+
+    public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener) {
+        // do-nothing stub
+    }
+    
+    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener) {
+        // do-nothing stub
     }
 
 }

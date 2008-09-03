@@ -183,7 +183,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
     
     public void testRelationshipLinePrefUpdatesRelationships() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
-        ArchitectSwingSessionImpl session = (ArchitectSwingSessionImpl)context.createSession(false);
+        ArchitectSwingSession session = (ArchitectSwingSession)context.createSession(false);
         
         SQLDatabase db = new SQLDatabase();
         SQLTable t1 = new SQLTable(db, true);

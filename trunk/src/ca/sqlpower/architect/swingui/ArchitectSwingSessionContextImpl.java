@@ -227,7 +227,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      */
     private ArchitectSwingSession createSessionImpl(String projectName, boolean showGUI, ArchitectSwingSession openingSession) throws ArchitectException {
         logger.debug("About to create a new session for project \"" + projectName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-        ArchitectSwingSessionImpl session = new ArchitectSwingSessionImpl(this, projectName);
+        ArchitectSwingSession session = new ArchitectSwingSessionImpl(this, projectName);
         getSessions().add(session);
         session.addSessionLifecycleListener(sessionLifecycleListener);
         
