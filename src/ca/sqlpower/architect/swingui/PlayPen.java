@@ -994,13 +994,16 @@ public class PlayPen extends JPanel
 		for (int i = contentPane.getComponentCount() - 1; i >= 0; i--) {
 			PlayPenComponent c = contentPane.getComponent(i);
 			c.getBounds(bounds);
-			if ( g2.hitClip(bounds.x, bounds.y, bounds.width, bounds.height)) {
+			//expanding width and height by 1 as lines have 0 width or height when vertical/horizontal
+			if ( g2.hitClip(bounds.x, bounds.y, bounds.width + 1, bounds.height + 1)) {
 				if (logger.isDebugEnabled()) logger.debug("Painting visible component "+c); //$NON-NLS-1$
 				g2.translate(c.getLocation().x, c.getLocation().y);
 				c.paint(g2);
 				g2.setTransform(zoomedOrigin);
 			} else {
 				if (logger.isDebugEnabled()) logger.debug("paint: SKIPPING "+c); //$NON-NLS-1$
+				logger.debug(" skipped bounds are: x=" + bounds.x + " y=" + bounds.y + " width=" + bounds.width + " height=" + bounds.height);
+				logger.debug(" clipping rectangle: x=" + g2.getClipBounds().x + " y=" + g2.getClipBounds().y + " width=" + g2.getClipBounds().width + " height=" + g2.getClipBounds().height);
 			}
 		}
 

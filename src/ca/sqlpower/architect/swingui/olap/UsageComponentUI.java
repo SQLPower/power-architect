@@ -227,6 +227,10 @@ public class UsageComponentUI implements PlayPenComponentUI {
      * @return The x coordinate of the line at y
      */
     public static int x(Point2D p1, Point2D p2, double y) {
+        if (p2.getX() == p1.getX()) {
+            return (int) p2.getX();
+        }
+        
         double m1 = (p2.getY() - p1.getY()) / (p2.getX() - p1.getX());
         double a = -m1 * p1.getX() + p1.getY();
         
