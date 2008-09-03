@@ -29,6 +29,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
@@ -131,6 +133,11 @@ public class OLAPEditSession implements OLAPChildListener {
         undoManager = new OLAPUndoManager(olapSession);
         pp = OLAPPlayPenFactory.createPlayPen(swingSession, this, undoManager);
         
+        undoManager.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                d.setTitle(generateDialogTitle());
+            }
+        });
         // Don't create actions here. PlayPen is currently null.
     }
     
@@ -225,6 +232,8 @@ public class OLAPEditSession implements OLAPChildListener {
         
         OLAPPlayPenFactory.setupOLAPMouseWheelActions(pp, this);
         OLAPPlayPenFactory.setupOLAPKeyboardActions(pp, this);
+        
+        undoManager.rememberPosition();
     }
     
     /**
@@ -244,12 +253,37 @@ public class OLAPEditSession implements OLAPChildListener {
     public JScrollPane getPPScrollPane() {
         return ppScrollPane;
     }
+
+    /**
+     * This method must be called just after this session has been saved with
+     * the project. It resets the save state, and might do other stuff that
+     * client code shouldn't care about.
+     */
+    public void saveNotify() {
+        undoManager.rememberPosition();
+    }
     
     /**
-     * Returns the schema edit dialog's title that includes the schema's name.
+     * returns true if any aspect of this session has been modified since it was
+     * created or since the last time {@link #saveNotify()} was called, whichever
+     * is more recent.
+     */
+    public boolean isModified() {
+        return !undoManager.isAtRememberedPosition();
+    }
+
+    /**
+     * Returns the schema edit dialog's title that includes the schema's name and
+     * an asterisk if the schema has unsaved changes.
      */
     private String generateDialogTitle() {
-        return olapSession.getSchema().getName() + " - OLAP Schema Editor";
+        StringBuilder title = new StringBuilder();
+        if (!undoManager.isAtRememberedPosition()) {
+            title.append("*");
+        }
+        title.append(olapSession.getSchema().getName());
+        title.append(" - OLAP Schema Editor");
+        return title.toString();
     }
 
     /**

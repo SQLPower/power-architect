@@ -140,6 +140,18 @@ public class SwingUIProject extends CoreProject {
         this.session = session;
     }
 
+    /**
+     * Override that also considers whether each OLAP edit session has modifications.
+     */
+    @Override
+    public boolean isModified() {
+        boolean olapModified = false;
+        for (OLAPEditSession oSession : getSession().getOLAPEditSessions()) {
+            olapModified |= oSession.isModified();
+        }
+        return olapModified || super.isModified();
+    }
+    
     // ------------- READING THE PROJECT FILE ---------------
 
     public void load(InputStream in, DataSourceCollection dataSources) throws IOException, ArchitectException {
@@ -649,7 +661,12 @@ public class SwingUIProject extends CoreProject {
             
             ioo.indent--;
             ioo.println(out, "</architect-project>"); //$NON-NLS-1$
+            
             setModified(false);
+            for (OLAPEditSession oSession : getSession().getOLAPEditSessions()) {
+                oSession.saveNotify();
+            }
+            
         } finally {
             if (out != null) out.close();
         }
