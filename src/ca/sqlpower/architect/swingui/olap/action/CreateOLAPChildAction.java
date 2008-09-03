@@ -125,7 +125,8 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
         List<PlayPenComponent> selectedItems = playpen.getSelectedItems();
         final P pane = paneClass.cast(selectedItems.get(0));
         
-        pane.getModel().startCompoundEdit("Add " + friendlyChildName);
+        // workaround for javac problem (eclipse doesn't need the cast)
+        ((OLAPPane<?,?>) pane).getModel().startCompoundEdit("Add " + friendlyChildName);
         final C child = addNewChild(pane);
         
         final DataEntryPanel mep = createDataEntryPanel(child);
@@ -133,14 +134,14 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
         Callable<Boolean> okCall = new Callable<Boolean>() {
             public Boolean call() throws Exception {
                 boolean applied = mep.applyChanges();
-                pane.getModel().endCompoundEdit();
+                ((OLAPPane<?,?>) pane).getModel().endCompoundEdit();  // another javac workaround
                 return applied;
             }
         };
         Callable<Boolean> cancelCall = new Callable<Boolean>() {
             public Boolean call() throws Exception {
                 child.getParent().removeChild(child);
-                pane.getModel().endCompoundEdit();
+                ((OLAPPane<?,?>) pane).getModel().endCompoundEdit();  // another javac workaround
                 return true;
             }
         };
