@@ -31,6 +31,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -81,6 +82,7 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
     private JTextField name;
     private JTextField captionField;
     private JComboBox columnChooser;
+    private JCheckBox uniqueMembers;
     
     private PropertiesEditPanel propertiesPanel;
 
@@ -110,6 +112,12 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
         builder.append("Caption", captionField = new JTextField(level.getCaption()));
         builder.append("Column", columnChooser = new JComboBox());
         
+        if (level.getUniqueMembers() != null) {
+            builder.append("Unique Member", uniqueMembers = new JCheckBox("", level.getUniqueMembers()));
+        } else {
+            builder.append("Unique Member", uniqueMembers = new JCheckBox(""));
+        }
+ 
         Hierarchy hierarchy = (Hierarchy) level.getParent();
         SQLTable dimensionTable = OLAPUtil.tableForHierarchy(hierarchy);
         
@@ -194,6 +202,7 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
     public boolean applyChanges() {
         level.startCompoundEdit("Modify Level Properties");
         level.setName(name.getText());
+  
         if (columnChooser.isEnabled()) {
             SQLColumn col = (SQLColumn) columnChooser.getSelectedItem();
             level.setColumn(col == null ? null : col.getName());
@@ -202,6 +211,11 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
             level.setCaption(captionField.getText());
         } else {
             level.setCaption(null);
+        }
+        if (uniqueMembers.isSelected()) {
+            level.setUniqueMembers(true);
+        }else{
+            level.setUniqueMembers(false);        
         }
         level.endCompoundEdit();
         return true;
