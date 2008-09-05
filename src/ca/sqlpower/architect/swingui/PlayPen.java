@@ -901,16 +901,17 @@ public class PlayPen extends JPanel
 		normalizing=true;
 		int minX = 0;
 		int minY = 0;
-		for (TablePane tp : getTablePanes()) {
-			minX = Math.min(minX, tp.getX());
-			minY = Math.min(minY, tp.getY());
-		}
+		
+		for (PlayPenComponent ppc : getPlayPenComponents()) {
+		    minX = Math.min(minX, ppc.getX());
+            minY = Math.min(minY, ppc.getY());
+        }		
 
 		//Readjusts the table pane, since minX and min <= 0,
 		//the adjustments of subtracting minX and/or minY makes sense.
-		if ( minX < 0 || minY < 0 ) {
-			for (TablePane tp : getTablePanes()) {
-				tp.setLocation(tp.getX()-minX, tp.getY()-minY);
+		if ( minX < 0 || minY < 0 ) {			
+			for (PlayPenComponent ppc : getPlayPenComponents()) {
+			    ppc.setLocation(ppc.getX()-minX, ppc.getY()-minY);
 			}
 
 			// This function may have expanded the playpen's minimum
