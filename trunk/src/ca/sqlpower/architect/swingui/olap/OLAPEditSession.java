@@ -140,6 +140,7 @@ public class OLAPEditSession implements OLAPChildListener {
                 // this can be called before initGUI() has had a chance to create the dialog
                 if (frame != null) {
                     frame.setTitle(generateDialogTitle());
+                    frame.setIconImage(OSUtils.SCHEMA_ICON.getImage());
                 }
             }
         });
