@@ -75,10 +75,13 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
 
         public String getTitle() {
             // a null hierarchy name means it should use the dimension name
-            if (hierarchy.getName() == null) {
-                hierarchy.setName(hierarchy.getParent().getName());
+            if (hierarchy.getName() != null) {
+                return hierarchy.getName();
+            } else if (hierarchy.getParent() == null) {
+                return "(Unnamed Hierarchy with no parent dimension)";
+            } else {
+                return hierarchy.getParent().getName();
             }
-            return hierarchy.getName();
         }
         
         public Hierarchy getHierarchy() {
