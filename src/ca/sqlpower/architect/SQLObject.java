@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.SQLRelationship.RelationshipManager;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
@@ -342,10 +343,23 @@ public abstract class SQLObject implements java.io.Serializable {
 			 (SQLObject[]) newChildren.toArray(new SQLObject[newChildren.size()]));
 		synchronized(sqlObjectListeners) {
 		    int count = 0;
+		    
+		    // XXX Notifying the RelationshipManager last is a workaround for an elusive bug
+		    //     we are still trying to nail down. This is not intended to be used long term,
+		    //     and is definitely not an example of good practice! See bug 1640 for details.
+		    
             for (SQLObjectListener l : new ArrayList<SQLObjectListener>(sqlObjectListeners)) {
-				count++;
-				l.dbChildrenInserted(e);
-			}
+                if (!(l instanceof RelationshipManager)) {
+                    count++;
+                    l.dbChildrenInserted(e);
+                }
+            }
+            for (SQLObjectListener l : new ArrayList<SQLObjectListener>(sqlObjectListeners)) {
+                if (l instanceof RelationshipManager) {
+                    count++;
+                    l.dbChildrenInserted(e);
+                }
+            }
 			logger.debug(getClass().getName()+": notified "+count+" listeners");
 		}
 	}
@@ -411,10 +425,11 @@ public abstract class SQLObject implements java.io.Serializable {
 		int count = 0;
 		synchronized(sqlObjectListeners) {
 			SQLObjectListener[] listeners = sqlObjectListeners.toArray(new SQLObjectListener[0]);
-			for(int i = listeners.length-1;i>=0;i--) {
-				count++;
-				listeners[i].dbObjectChanged(e);
-			}
+//            for(int i = listeners.length-1;i>=0;i--) {
+			for (int i = 0; i < listeners.length; i++) {
+			    listeners[i].dbObjectChanged(e);
+			    count++;
+            }
 		}
 		if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners.");
 	}
