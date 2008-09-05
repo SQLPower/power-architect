@@ -1183,5 +1183,66 @@ public class TestSQLTable extends SQLTestCase {
             return sb.toString();
         }
     }
-    
+
+    /**
+     * This test was intended to be a regression test for bug 1640.
+     * Unfortunately, it doesn't fail when the problem described in bug 1640 can
+     * be reproduced manually. We've committed this test because it's still
+     * useful in testing an important part of the SQLObjectListener contract.
+     * <p>
+     * A failure in this test would happen when the InsertListener gets
+     * notified of a child insertion at an index that no longer exists in
+     * the parent, or that the new child is no longer at the index the event
+     * says it was inserted at. In either case, this would likely happen
+     * only because another listener (i.e. RelationshipManager) has modified
+     * the child list before the other listener(s) was/were notified.
+     */
+    public void testInsertEventsConsistentWithReality() throws Exception {
+        
+        class InsertListener implements SQLObjectListener {
+
+            public void dbChildrenInserted(SQLObjectEvent e) {
+                
+                for (int i = 0; i < e.getChangedIndices().length; i++) {
+                    int idx = e.getChangedIndices()[i];
+                    SQLObject child = e.getChildren()[i];
+                    try {
+                        assertTrue(idx < table.getColumns().size());
+                        assertSame(table.getColumn(idx), child);
+                    } catch (ArchitectException ex) {
+                        throw new ArchitectRuntimeException(ex);
+                    }
+                }
+            }
+
+            public void dbChildrenRemoved(SQLObjectEvent e) {
+                // TODO Auto-generated method stub
+                
+            }
+
+            public void dbObjectChanged(SQLObjectEvent e) {
+                // TODO Auto-generated method stub
+                
+            }
+
+            public void dbStructureChanged(SQLObjectEvent e) {
+                // TODO Auto-generated method stub
+                
+            }
+            
+        }
+        table.getColumnsFolder().addSQLObjectListener(new InsertListener());
+        SQLRelationship selfref = new SQLRelationship();
+        table.getColumnsFolder().addSQLObjectListener(new InsertListener());
+        selfref.attachRelationship(table, table, true);
+        assertEquals(9, table.getColumns().size());
+        assertEquals(3, selfref.getChildCount());
+
+        table.getColumnsFolder().addSQLObjectListener(new InsertListener());
+        table.changeColumnIndex(2, 0, true);
+        assertEquals(9, table.getColumns().size());
+        assertEquals(3, selfref.getChildCount());
+        
+        System.out.println(table.getSQLObjectListeners());
+    }
 }
