@@ -1095,12 +1095,13 @@ public class TestSQLRelationship extends SQLTestCase {
         assertEquals(Integer.valueOf(2), parentTable.getColumnByName("pkcol_2").getPrimaryKeySeq());
         assertEquals(Integer.valueOf(3), parentTable.getColumnByName("attribute_1").getPrimaryKeySeq());
     }
-    
+
     /**
-     * Description of the scenario: Continue from the results in 
-     * {@link testMoveGeneratedColInSelfRefTable()} Now move "pkcol_1" down to
-     * among the fk columns. All primary keys change to foreign keys. pkcol_2 disappears and there will
-     * be two pkcol_1. At the same time, column "Parent_pkcol_1" disappear from the table completely.
+     * Description of the scenario: Continue from the results in {@link testMoveGeneratedColInSelfRefTable()}.
+     * Now move "pkcol_1" down to among
+     * the fk columns. All primary key columns lose their PK status. pkcol_2
+     * disappears and there will be two pkcol_1. At the same time, column
+     * "Parent_pkcol_1" disappears from the table completely.
      * 
      * @throws Exception
      * @see testMoveGeneratedColInSelfRefTable()
