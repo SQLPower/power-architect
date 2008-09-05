@@ -113,9 +113,9 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
         builder.append("Column", columnChooser = new JComboBox());
         
         if (level.getUniqueMembers() != null) {
-            builder.append("Unique Member", uniqueMembers = new JCheckBox("", level.getUniqueMembers()));
+            builder.append("Unique Members", uniqueMembers = new JCheckBox("", level.getUniqueMembers()));
         } else {
-            builder.append("Unique Member", uniqueMembers = new JCheckBox(""));
+            builder.append("Unique Members", uniqueMembers = new JCheckBox(""));
         }
  
         Hierarchy hierarchy = (Hierarchy) level.getParent();
