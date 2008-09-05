@@ -772,10 +772,9 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                     logger.error("Error processing normalize PrimaryKey", e); //$NON-NLS-1$
                     ASUtils.showExceptionDialogNoReport(getParent().getOwner(),
                             "Error processing normalize PrimaryKey after processing drop operation", e); //$NON-NLS-1$
+                } finally {
+                    pp.endCompoundEdit("End drag and drop"); //$NON-NLS-1$
                 }
-
-                // put the undo event adapter into a regular state
-                pp.endCompoundEdit("End drag and drop"); //$NON-NLS-1$
             }
         }
     }
