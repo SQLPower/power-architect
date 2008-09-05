@@ -890,7 +890,7 @@ public class PlayPen extends JPanel
 	}
 
 	/**
-	 * If some playpen components get dragged into a negative range all tables are then shifted
+	 * If some playPen components get dragged into a negative range all tables are then shifted
 	 * so that the lowest x and y values are 0.  The tables will retain their relative location.
 	 *
 	 * If this function is moved into a layout manager it causes problems with undo because we do
@@ -907,7 +907,7 @@ public class PlayPen extends JPanel
             minY = Math.min(minY, ppc.getY());
         }		
 
-		//Readjusts the table pane, since minX and min <= 0,
+		//Readjusts the playPen's components, since minX and min <= 0,
 		//the adjustments of subtracting minX and/or minY makes sense.
 		if ( minX < 0 || minY < 0 ) {			
 			for (PlayPenComponent ppc : getPlayPenComponents()) {
