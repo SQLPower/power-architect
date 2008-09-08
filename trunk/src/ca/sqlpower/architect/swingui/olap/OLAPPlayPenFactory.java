@@ -151,6 +151,9 @@ public class OLAPPlayPenFactory {
         
         im.put((KeyStroke) oSession.getCreateCubeAction().getValue(Action.ACCELERATOR_KEY), "NEW CUBE"); //$NON-NLS-1$
         am.put("NEW CUBE", oSession.getCreateCubeAction()); //$NON-NLS-1$
+        
+        im.put((KeyStroke) oSession.getCreateVirtualCubeAction().getValue(Action.ACCELERATOR_KEY), "NEW VIRTUAL CUBE"); //$NON-NLS-1$
+        am.put("NEW VIRTUAL CUBE", oSession.getCreateVirtualCubeAction()); //$NON-NLS-1$
 
         im.put((KeyStroke) oSession.getCreateMeasureAction().getValue(Action.ACCELERATOR_KEY), "NEW MEASURE"); //$NON-NLS-1$
         am.put("NEW MEASURE", oSession.getCreateMeasureAction()); //$NON-NLS-1$
