@@ -44,9 +44,11 @@ import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPTree;
+import ca.sqlpower.architect.swingui.olap.UsageComponent;
 
 /**
  * This action deletes OLAPObjects that are selected on the OLAPTree using removeChild methods. 
@@ -109,11 +111,13 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
      */
     private List<OLAPObject> getDeletableItems() {
         TreePath[] selectionPaths = tree.getSelectionPaths();
+        boolean usageLineSelected = false;
         if (selectionPaths == null) return Collections.emptyList();
         List <OLAPObject> deleteItems = new ArrayList<OLAPObject>(selectionPaths.length);
         for (int i = 0; i < selectionPaths.length; i++) {
             if (   selectionPaths[i].getPathCount() > 1 &&
                    selectionPaths[i].getPathComponent(0) == editSession.getOlapSession().getSchema()) {
+                logger.debug("Adding item " + selectionPaths[i].getLastPathComponent() + " to be deleted.");
                 deleteItems.add((OLAPObject) selectionPaths[i].getLastPathComponent());
             } else {
                 logger.debug("Skipping non-deletable object: " +
@@ -133,14 +137,39 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
                 }
             } else if (item instanceof Measure) {
                 objectsWithSelectedItems.add(item.getParent());
+                
             } else if (item instanceof DimensionUsage) {
+                // parent of dimensionUsage is the cube. Therefore we do not wish to remove the cube
+                // Since its been selected as well.
+               for(PlayPenComponent comp : playpen.getSelectedItems()){
+                   if(comp instanceof UsageComponent){
+                       //Do not put cube in objectsWithSelectedItemsList cause it needs to be removed
+                       usageLineSelected = true;
+                       break;
+                   }
+               }
+               if(!usageLineSelected){
+                // if dimension usage is not selected then add the cube to the list so it doesn't get removed
                 objectsWithSelectedItems.add(item.getParent());
+               }
             } else if (item instanceof VirtualCubeDimension || item instanceof VirtualCubeMeasure) {
                 objectsWithSelectedItems.add(item.getParent());
             } else if (item instanceof CubeUsage) {
+                
                 // Parent of CubeUsage is CubeUsages.  Parent of CubeUsages is
                 // VirtualCube and we do not want to delete the VirtualCube
-                objectsWithSelectedItems.add(item.getParent().getParent());
+                for(PlayPenComponent comp : playpen.getSelectedItems()){
+                    if(comp instanceof UsageComponent){
+                        //Do not put v cube in objectsWithSelectedItemsList cause it needs to be removed
+                        usageLineSelected = true;
+                        break;
+                    }
+                }
+                if(!usageLineSelected){
+                 // if cube usage is not selected then add the v cube to the list so it doesn't get removed
+                    objectsWithSelectedItems.add(item.getParent().getParent());
+                }
+                
             } else if (item instanceof Hierarchy) {
                 if (item.getParent().getParent() instanceof Schema) {
                     // If the Hierarchy is in a public dimension, then the DimensionPane
