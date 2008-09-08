@@ -1,0 +1,16 @@
+#summary Our ideas about implementing data domains
+#labels Phase-Requirements
+
+The Architect currently does not support the concept of data domains, but it's a feature we have been planning to add for some time.
+
+Features we'd like to include include:
+
+ * User-defined domains with customized names
+ * Mappings to JDBC types, including precision and scale (for forward engineering)
+   * ability to generate DDL with user-defined types in databases that support it
+ * Ability to define a hierarchy of domain types (such as a Monetary base class which would then have CAD, USD, and so on)
+   * This would be handy when making summary tables for OLAP tools, since general types could have good predefined formatting rules: Discrete Count, Continuous Value, Monetary, Percentage, and so on.
+ * You would see Domain names wherever data types are currently used
+   * Have a project setting to choose between displaying JDBC types and Domains (in edit panels as well as table panes and so on)
+ * User-defined domains would be saved with each project
+   * Should be able to "extract" the domains from a project file so that they can be used in the current project
