@@ -145,6 +145,7 @@ public class ArchitectFrame extends JFrame {
     private RedoAction redoAction;
     
     private AboutAction aboutAction;
+    private Action helpAction;
     private Action newProjectAction;
     private OpenProjectAction openProjectAction;
     private Action saveProjectAction;
@@ -304,15 +305,13 @@ public class ArchitectFrame extends JFrame {
     void init() throws ArchitectException {
         UserSettings sprefs = session.getUserSettings().getSwingSettings();
         int accelMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-        ArchitectSwingSessionContext context = session.getContext();
         
         // Create actions
 
         aboutAction = new AboutAction(session);
+        helpAction = new HelpAction(session);
+        helpAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.userGuideActionDescription")); //$NON-NLS-1$    
         
-        Action helpAction = new HelpAction(session);
-        helpAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.userGuideActionDescription")); //$NON-NLS-1$
-        Action checkForUpdateAction = new CheckForUpdateAction(session);
 
         newProjectAction = new AbstractAction(Messages.getString("ArchitectFrame.newProjectActionName"), //$NON-NLS-1$
                 SPSUtils.createIcon("new_project",Messages.getString("ArchitectFrame.newProjectActionIconDescription"),sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) { //$NON-NLS-1$ //$NON-NLS-2$
@@ -382,10 +381,7 @@ public class ArchitectFrame extends JFrame {
         
         compareDMAction = new CompareDMAction(session,comapareDMDialog);
         dataMoverAction = new DataMoverAction(this, session);
-        Action exportCSVAction = new ExportCSVAction(this, session);
-        Action mappingReportAction = new VisualMappingReportAction(this, session);
 
-        Action kettleETL = new KettleJobAction(session);
         deleteSelectedAction = new DeleteSelectedAction(session);
         createIdentifyingRelationshipAction = new CreateRelationshipAction(session, true, playpen.getCursorManager());
         createNonIdentifyingRelationshipAction = new CreateRelationshipAction(session, false, playpen.getCursorManager());
@@ -411,7 +407,88 @@ public class ArchitectFrame extends JFrame {
         focusToParentAction = new FocusToChildOrParentTableAction(session, Messages.getString("ArchitectFrame.setFocusToParentTableActionName"), Messages.getString("ArchitectFrame.setFocusToParentTableActionDescription"), true); //$NON-NLS-1$ //$NON-NLS-2$
         focusToChildAction = new FocusToChildOrParentTableAction(session, Messages.getString("ArchitectFrame.setFocusToChildTableActionName"), Messages.getString("ArchitectFrame.setFocusToChildTableActionDescription"), false); //$NON-NLS-1$ //$NON-NLS-2$
         
+        
+        menuBar = createNewMenuBar();        
+        setJMenuBar(menuBar);
 
+        projectBar = new JToolBar(JToolBar.HORIZONTAL);
+        ppBar = new JToolBar(JToolBar.VERTICAL);
+
+        projectBar.add(newProjectAction);
+        projectBar.add(openProjectAction);
+        projectBar.add(saveProjectAction);
+        projectBar.addSeparator();
+        projectBar.add(printAction);
+        projectBar.addSeparator();
+        projectBar.add(undoAction);
+        projectBar.add(redoAction);
+        projectBar.addSeparator();
+        projectBar.add(exportDDLAction);
+        projectBar.add(compareDMAction);
+        projectBar.addSeparator();
+        projectBar.add(autoLayoutAction);
+        projectBar.add(profileAction);
+        projectBar.addSeparator();
+        projectBar.add(helpAction);
+        projectBar.setToolTipText(Messages.getString("ArchitectFrame.projectToolbarToolTip")); //$NON-NLS-1$
+        projectBar.setName(Messages.getString("ArchitectFrame.projectToolbarName")); //$NON-NLS-1$
+        
+        projectBar.setFocusable(false);
+        for (Component c : projectBar.getComponents()) {
+            c.setFocusable(false);
+        }
+        
+        JButton tempButton = null; // shared actions need to report where they are coming from
+        ppBar.setToolTipText(Messages.getString("ArchitectFrame.playPenToolbarToolTip")); //$NON-NLS-1$
+        ppBar.setName(Messages.getString("ArchitectFrame.playPenToolbarName")); //$NON-NLS-1$
+        ppBar.add(zoomInAction);
+        ppBar.add(zoomOutAction);
+        ppBar.add(zoomNormalAction);
+        ppBar.add(zoomToFitAction);
+        ppBar.addSeparator();
+        tempButton = ppBar.add(deleteSelectedAction);
+        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        ppBar.addSeparator();
+        tempButton = ppBar.add(createTableAction);
+        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        ppBar.addSeparator();
+        tempButton  = ppBar.add(insertIndexAction);
+        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        ppBar.addSeparator();
+        tempButton = ppBar.add(insertColumnAction);
+        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton = ppBar.add(editSelectedAction);
+        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        ppBar.addSeparator();
+        ppBar.add(createNonIdentifyingRelationshipAction);
+        ppBar.add(createIdentifyingRelationshipAction);
+        tempButton = ppBar.add(editRelationshipAction);
+        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        
+        ppBar.setFocusable(false);
+        for (Component c : ppBar.getComponents()) {
+            c.setFocusable(false);
+        }
+
+        Container projectBarPane = getContentPane();
+        projectBarPane.setLayout(new BorderLayout());
+        projectBarPane.add(projectBar, BorderLayout.NORTH);
+
+        JPanel cp = new JPanel(new BorderLayout());
+        cp.add(ppBar, BorderLayout.EAST);
+        projectBarPane.add(cp, BorderLayout.CENTER);
+
+        cp.add(splitPane, BorderLayout.CENTER);
+        logger.debug("Added splitpane to content pane"); //$NON-NLS-1$
+    }
+    
+    public JMenuBar createNewMenuBar() { 
+        ArchitectSwingSessionContext context = session.getContext();
+        Action checkForUpdateAction = new CheckForUpdateAction(session);
+        Action exportCSVAction = new ExportCSVAction(this, session);
+        Action mappingReportAction = new VisualMappingReportAction(this, session);
+        Action kettleETL = new KettleJobAction(session);
+        
         menuBar = new JMenuBar();
 
         JMenu fileMenu = new JMenu(Messages.getString("ArchitectFrame.fileMenu")); //$NON-NLS-1$
@@ -590,80 +667,10 @@ public class ArchitectFrame extends JFrame {
         helpMenu.addSeparator();
         helpMenu.add(checkForUpdateAction);
         menuBar.add(helpMenu);
-
-        setJMenuBar(menuBar);
-
-        projectBar = new JToolBar(JToolBar.HORIZONTAL);
-        ppBar = new JToolBar(JToolBar.VERTICAL);
-
-        projectBar.add(newProjectAction);
-        projectBar.add(openProjectAction);
-        projectBar.add(saveProjectAction);
-        projectBar.addSeparator();
-        projectBar.add(printAction);
-        projectBar.addSeparator();
-        projectBar.add(undoAction);
-        projectBar.add(redoAction);
-        projectBar.addSeparator();
-        projectBar.add(exportDDLAction);
-        projectBar.add(compareDMAction);
-        projectBar.addSeparator();
-        projectBar.add(autoLayoutAction);
-        projectBar.add(profileAction);
-        projectBar.addSeparator();
-        projectBar.add(helpAction);
-        projectBar.setToolTipText(Messages.getString("ArchitectFrame.projectToolbarToolTip")); //$NON-NLS-1$
-        projectBar.setName(Messages.getString("ArchitectFrame.projectToolbarName")); //$NON-NLS-1$
         
-        projectBar.setFocusable(false);
-        for (Component c : projectBar.getComponents()) {
-            c.setFocusable(false);
-        }
-        
-        JButton tempButton = null; // shared actions need to report where they are coming from
-        ppBar.setToolTipText(Messages.getString("ArchitectFrame.playPenToolbarToolTip")); //$NON-NLS-1$
-        ppBar.setName(Messages.getString("ArchitectFrame.playPenToolbarName")); //$NON-NLS-1$
-        ppBar.add(zoomInAction);
-        ppBar.add(zoomOutAction);
-        ppBar.add(zoomNormalAction);
-        ppBar.add(zoomToFitAction);
-        ppBar.addSeparator();
-        tempButton = ppBar.add(deleteSelectedAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        ppBar.addSeparator();
-        tempButton = ppBar.add(createTableAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        ppBar.addSeparator();
-        tempButton  = ppBar.add(insertIndexAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        ppBar.addSeparator();
-        tempButton = ppBar.add(insertColumnAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        tempButton = ppBar.add(editSelectedAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        ppBar.addSeparator();
-        ppBar.add(createNonIdentifyingRelationshipAction);
-        ppBar.add(createIdentifyingRelationshipAction);
-        tempButton = ppBar.add(editRelationshipAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        
-        ppBar.setFocusable(false);
-        for (Component c : ppBar.getComponents()) {
-            c.setFocusable(false);
-        }
-
-        Container projectBarPane = getContentPane();
-        projectBarPane.setLayout(new BorderLayout());
-        projectBarPane.add(projectBar, BorderLayout.NORTH);
-
-        JPanel cp = new JPanel(new BorderLayout());
-        cp.add(ppBar, BorderLayout.EAST);
-        projectBarPane.add(cp, BorderLayout.CENTER);
-
-        cp.add(splitPane, BorderLayout.CENTER);
-        logger.debug("Added splitpane to content pane"); //$NON-NLS-1$
+        return menuBar;        
     }
-    
+   
     private JMenu buildOLAPEditMenu() {
         JMenu menu = new JMenu("Edit Schema");
         menu.add(new JMenuItem(new OLAPEditAction(session, null)));

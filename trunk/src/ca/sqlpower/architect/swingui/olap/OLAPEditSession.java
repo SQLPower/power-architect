@@ -25,12 +25,15 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
@@ -39,6 +42,7 @@ import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.undo.OLAPUndoManager;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
@@ -89,6 +93,10 @@ public class OLAPEditSession implements OLAPChildListener {
      */
     private final OLAPUndoManager undoManager;
     
+    /**
+     * The menu bar for this OLAP edit session's frame.
+     */
+    private final JMenuBar newMenuBar; 
 
     public static final double ZOOM_STEP = 0.25;
     
@@ -111,6 +119,9 @@ public class OLAPEditSession implements OLAPChildListener {
     private RedoAction redoAction;
     
     private final ArchitectSwingSession swingSession;
+    
+    private static final Logger logger = Logger.getLogger(OLAPPlayPenFactory.class);
+
 
     /**
      * Creates a new editor for the given OLAP schema. The schema's OLAPObjects should
@@ -135,12 +146,13 @@ public class OLAPEditSession implements OLAPChildListener {
         undoManager = new OLAPUndoManager(olapSession);
         pp = OLAPPlayPenFactory.createPlayPen(swingSession, this, undoManager);
         
-        undoManager.addChangeListener(new ChangeListener() {
+        newMenuBar = swingSession.getArchitectFrame().createNewMenuBar();
+        
+        undoManager.addChangeListener(new ChangeListener() {           
             public void stateChanged(ChangeEvent e) {
-                // this can be called before initGUI() has had a chance to create the dialog
+                // this can be called before initGUI() has had a chance to create the frame
                 if (frame != null) {
                     frame.setTitle(generateDialogTitle());
-                    frame.setIconImage(OSUtils.SCHEMA_ICON.getImage());
                 }
             }
         });
@@ -241,6 +253,15 @@ public class OLAPEditSession implements OLAPChildListener {
         });
         frame.setContentPane(panel);
         frame.pack();
+        
+        frame.setIconImage(OSUtils.SCHEMA_ICON.getImage());
+        
+        // show a new top menu bar for a new OLAP Frame if on MacOSX, as it will be 
+        // gone otherwise
+        ArchitectSwingSessionContext context = swingSession.getContext();
+        if (context.isMacOSX()) {                   
+            frame.setJMenuBar(newMenuBar);
+        }
         
         OLAPPlayPenFactory.setupOLAPMouseWheelActions(pp, this);
         OLAPPlayPenFactory.setupOLAPKeyboardActions(pp, this);
