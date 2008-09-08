@@ -27,6 +27,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
+import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.UndoManager;
@@ -291,6 +292,16 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * @return the associated OLAPEditSession, creates a new one if none found.
      */
     public OLAPEditSession getOLAPEditSession(OLAPSession olapSession);
+    
+    /**
+     * Returns the OLAP root object, which contains all the OLAP sessions that are part of this
+     * Architect session.
+     * <p>
+     * Note: We would prefer not to let ArchitectSession reference anything in the OLAP editor,
+     * since we do not want the core Architect API to include OLAP support.  We are currently
+     * trying to come up with a way to put this somewhere else.
+     */
+    public OLAPRootObject getOLAPRootObject();
 
     /**
      * Adds the given listener to the list of interested parties who want to be

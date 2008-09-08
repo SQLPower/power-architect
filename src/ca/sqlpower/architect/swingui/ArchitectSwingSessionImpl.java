@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (c) 2008, SQL Power Group Inc.
  *
  * This file is part of Power*Architect.
@@ -80,6 +80,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * This is the core session that some tasks are delegated to.
      */
     private final ArchitectSession delegateSession;
+    
+    /**
+     * This OLAP object contains the OLAP session.
+     */
+    private OLAPRootObject olapRootObject;
 
     /**
      * The Frame where the main part of the GUI for this session appears.
@@ -158,6 +163,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.isNew = true;
         this.context = context;
         this.delegateSession = new ArchitectSessionImpl(context, name);
+        this.olapRootObject = new OLAPRootObject(delegateSession);
         ((ArchitectSessionImpl)delegateSession).setProfileManager(new ProfileManagerImpl(this));
         ((ArchitectSessionImpl)delegateSession).setUserPrompterFactory(this);
         this.recent = new RecentMenu(this.getClass()) {
@@ -789,7 +795,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
     
     public OLAPRootObject getOLAPRootObject() {
-        return delegateSession.getOLAPRootObject();
+        return olapRootObject;
     }
     
     /**

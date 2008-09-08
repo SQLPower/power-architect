@@ -67,6 +67,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private KettleJob kettleJob;
     private RecentMenu recent;
     private ArchitectSession delegateSession;
+    private OLAPRootObject olapRootObject;
     
     private boolean showPkTag = true;
     private boolean showFkTag = true;
@@ -95,6 +96,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         sourceDatabases = new DBTree(this);
         playpen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
         undoManager = new UndoManager(playpen);
+        olapRootObject = new OLAPRootObject(delegateSession);
         
         compareDMSettings = new CompareDMSettings();
         
@@ -338,7 +340,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public OLAPRootObject getOLAPRootObject() {
-        return delegateSession.getOLAPRootObject();
+        return olapRootObject;
     }
 
     public void showOLAPSchemaManager(Window owner) {

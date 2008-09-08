@@ -57,7 +57,9 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.UnclosableInputStream;
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.olap.MondrianXMLReader;
 import ca.sqlpower.architect.olap.MondrianXMLWriter;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -157,7 +159,47 @@ public class SwingUIProject extends CoreProject {
     public void load(InputStream in, DataSourceCollection dataSources) throws IOException, ArchitectException {
         olapPaneLoadIdMap = new HashMap<String, OLAPPane<?, ?>>();
         
-        super.load(in, dataSources);
+        UnclosableInputStream uin = new UnclosableInputStream(in);
+        olapObjectLoadIdMap = new HashMap<String, OLAPObject>();
+        
+        // sqlObjectLoadIdMap is not ready yet when parsing the olap objects
+        // so this keeps track of the id of the SQLDatabase that OLAPSessions reference.
+        Map<OLAPSession, String> sessionDbMap = new HashMap<OLAPSession, String>();
+        
+        try {
+            if (uin.markSupported()) {
+                uin.mark(Integer.MAX_VALUE);
+            } else {
+                throw new IllegalStateException("Failed to load with an input stream that does not support mark!");
+            }
+
+            // parse the Mondrian business model parts first because the olap id
+            // map is needed in the digester for parsing the olap gui
+            try {
+                MondrianXMLReader.parse(uin, getSession().getOLAPRootObject(), sessionDbMap, olapObjectLoadIdMap);
+            } catch (SAXException e) {
+                logger.error("Error parsing project file's olap schemas!", e);
+                throw new ArchitectException("SAX Exception in project file olap schemas parse!", e);
+            } catch (Exception ex) {
+                logger.error("General Exception in project file olap schemas parse!", ex);
+                throw new ArchitectException("Unexpected Exception", ex);
+            }
+            
+            in.reset();
+            
+            super.load(in, dataSources);
+        }
+        finally {
+            uin.forceClose();
+        }
+        
+        // now that the sqlObjectLoadIdMap is populated, we can set the
+        // OLAPSessions' database.
+        for (Map.Entry<OLAPSession, String> entry : sessionDbMap.entrySet()) {
+            OLAPSession oSession = entry.getKey();
+            SQLDatabase db = (SQLDatabase) sqlObjectLoadIdMap.get(entry.getValue());
+            oSession.setDatabase(db);
+        }
         
         // set the view positions again in the case that the viewport was invalid earlier.
         getSession().getPlayPen().setInitialViewPosition();
