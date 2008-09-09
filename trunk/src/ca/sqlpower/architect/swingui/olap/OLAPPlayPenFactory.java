@@ -161,6 +161,12 @@ public class OLAPPlayPenFactory {
         im.put((KeyStroke) oSession.getCreateDimensionAction().getValue(Action.ACCELERATOR_KEY), "NEW DIMENSION"); //$NON-NLS-1$
         am.put("NEW DIMENSION", oSession.getCreateDimensionAction()); //$NON-NLS-1$
         
+        im.put((KeyStroke) oSession.getCreateDimensionUsageAction().getValue(Action.ACCELERATOR_KEY), "NEW DIMENSION USAGE"); //$NON-NLS-1$
+        am.put("NEW DIMENSION USAGE", oSession.getCreateDimensionUsageAction()); //$NON-NLS-1$
+        
+        im.put((KeyStroke) oSession.getCreateCubeUsageAction().getValue(Action.ACCELERATOR_KEY), "NEW CUBE USAGE"); //$NON-NLS-1$
+        am.put("NEW CUBE USAGE", oSession.getCreateCubeUsageAction()); //$NON-NLS-1$
+        
         im.put((KeyStroke) oSession.getCreateHierarchyAction().getValue(Action.ACCELERATOR_KEY), "NEW HIERARCHY"); //$NON-NLS-1$
         am.put("NEW HIERARCHY", oSession.getCreateHierarchyAction()); //$NON-NLS-1$
 
