@@ -23,6 +23,7 @@ import java.util.concurrent.Callable;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
@@ -53,6 +54,7 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
 
     public CreateDimensionUsageAction(ArchitectSwingSession session, PlayPen pp) {
         super(session, pp, DimensionPane.class, CubePane.class, "Dimension Usage", null);
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('s'));
     }
 
     @Override

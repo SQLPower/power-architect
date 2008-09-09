@@ -406,4 +406,8 @@ public class OLAPEditSession implements OLAPChildListener {
     public CreateDimensionUsageAction getCreateDimensionUsageAction() {
         return createDimensionUsageAction;
     }
+    
+    public CreateCubeUsageAction getCreateCubeUsageAction() {
+        return createCubeUsageAction;
+    }
 }
