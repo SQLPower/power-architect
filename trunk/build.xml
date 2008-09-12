@@ -672,7 +672,7 @@
 				<include name="ca/sqlpower/**" />
 				<exclude name="regress/**"/>
 			</packageset>
-			<bottom><![CDATA[<i>Copyright &#169; 2003-2007 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2008 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
 	</target>
 
@@ -701,7 +701,7 @@
 				<include name="ca/sqlpower/**" />
 				<exclude name="regress/**"/>
 			</packageset>
-			<bottom><![CDATA[<i>Copyright &#169; 2003-2007 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2008 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
 		
 		<apply executable="dot" dest="${dist.dir}/doc" parallel="false">
