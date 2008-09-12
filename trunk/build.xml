@@ -656,7 +656,7 @@
 	</path>
 
 	<target name="javadoc" 
-		description="Generate the Javadoc documentation for the Architect API in the build directory"
+		description="Generate the Javadoc documentation for the Architect API in the dist directory"
 		depends="compile">
 		<mkdir dir="${dist.dir}/doc/api"/>
 		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
@@ -676,6 +676,43 @@
 		</javadoc>
 	</target>
 
+	<target name="javadoc.with.umlgraph" 
+		description="Generate the Javadoc documentation for the Architect API along with UML diagrams generated using UMLGraph"
+		depends="compile">
+		<mkdir dir="${dist.dir}/doc/api"/>
+		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
+		<javadoc sourcepath="${src}" destdir="${dist.dir}/doc/api"
+			packagenames="ca.sqlpower.*"
+			maxmemory="100m"
+			windowtitle="ca.sqlpower.architect.* Power*Architect"
+			Version="true" Author="true" Use="true"
+			Overview="html/overview.html"
+			classpathref="test.classpath"
+			>
+			<doclet name="gr.spinellis.umlgraph.doclet.UmlGraphDoc"
+    		  path="buildlib/UmlGraph.jar">
+    	        <param name="-attributes" />
+    	        <param name="-operations" />
+    	        <param name="-qualify" />
+    	        <param name="-types" />
+    	        <param name="-visibility" />
+    	    </doclet>
+			<packageset dir="${src}" defaultexcludes="yes">
+				<include name="ca/sqlpower/**" />
+				<exclude name="regress/**"/>
+			</packageset>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2007 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+		</javadoc>
+		
+		<apply executable="dot" dest="${dist.dir}/doc" parallel="false">
+			<arg value="-Tpng"/>
+			<arg value="-o"/>
+			<targetfile/>
+			<srcfile/>
+			<fileset dir="${dist.dir}/doc" includes="*.dot"/>
+			<mapper type="glob" from="*.dot" to="*.png"/>
+		</apply>
+	</target>
 
 	<target name="windows_installer" depends="stage">
 		<izpack output="${dist.dir}/Architect-Setup-Windows-${app.version}.jar"
