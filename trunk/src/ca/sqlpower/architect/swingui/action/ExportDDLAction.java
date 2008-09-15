@@ -284,7 +284,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		 */
 		public void doStuff() {
 
-			if (this.isCanceled()) return;
+			if (this.isCancelled()) return;
             
             // First, test if it's possible to connect to the target database
             Connection con = null;
@@ -413,7 +413,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		}
 
 		public void doStuff() {
-			if (isCanceled())
+			if (isCancelled())
 				return;
 			if (conflictFinder.doesUserWantToDropConflicts()) {
 				cr = conflictFinder.getConflictResolver();

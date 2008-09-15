@@ -304,7 +304,7 @@ public class SQLScriptDialog extends JDialog {
 			finished = false;
 			setCancelled(false);
 			hasStarted = true;
-			if (isCanceled() || finished) return;
+			if (isCancelled() || finished) return;
 
 			SQLDatabase target = new SQLDatabase(targetDataSource);
 			statusLabel.setText(Messages.getString("SQLScriptDialog.creatingObjectsInTargetDb") + target.getDataSource() ); //$NON-NLS-1$
@@ -352,7 +352,7 @@ public class SQLScriptDialog extends JDialog {
 				logWriter.info("Database Target: " + target.getDataSource()); //$NON-NLS-1$
 				logWriter.info("Playpen Dump: " + target.getDataSource()); //$NON-NLS-1$
 				Iterator it = statements.iterator();
-				while (it.hasNext() && !finished && !isCanceled()) {
+				while (it.hasNext() && !finished && !isCancelled()) {
 					DDLStatement ddlStmt = (DDLStatement) it.next();
 					try {
 						stmtsTried++;
@@ -388,7 +388,7 @@ public class SQLScriptDialog extends JDialog {
 							throw new RuntimeException(ex2);
 						}
 
-						if (isCanceled()) {
+						if (isCancelled()) {
 							finished = true;
 							// don't return, we might as well display how many statements ended up being processed...
 						}
