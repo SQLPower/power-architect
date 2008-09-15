@@ -502,6 +502,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             } else {
                 for (SPSwingWorker currentWorker : swingWorkers) {
                     currentWorker.kill();
+                    currentWorker.setCancelled(true);
                 }
             }
         }
