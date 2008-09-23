@@ -133,6 +133,8 @@ import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.jdbcwrapper.DatabaseMetaDataDecorator;
+import ca.sqlpower.sql.jdbcwrapper.DatabaseMetaDataDecorator.CacheType;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -1446,7 +1448,14 @@ public class PlayPen extends JPanel
 	}
 
 	protected class AddObjectsTask extends MonitorableWorker {
-		private List<SQLObject> sqlObjects;
+	    
+	    /**
+	     * When there are at least this many tables to add, this task will ask
+	     * our JDBC wrappers to do eager caching of metadata operations.
+	     */
+		private static final int CACHE_THRESHOLD = 5;
+		
+        private List<SQLObject> sqlObjects;
 		private Point preferredLocation;
 		private boolean hasStarted = false;
 		private boolean finished = false;
@@ -1496,26 +1505,32 @@ public class PlayPen extends JPanel
 		/**
 		 * Makes sure all the stuff we want to add is populated.
 		 */
-		public void doStuff () {
+		public void doStuff() {
 			logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName()); //$NON-NLS-1$
 
 			try {
 				hasStarted = true;
-				int pmMax = 0;
-
+				int tableCount = 0;
+				
 				Iterator<SQLObject> soIt = sqlObjects.iterator();
 				// first pass: figure out how much work we need to do...
 				while (soIt.hasNext() && !isCancelled()) {
-					pmMax += ArchitectUtils.countTablesSnapshot(soIt.next());
+					SQLObject so = soIt.next();
+                    tableCount += ArchitectUtils.countTablesSnapshot(so);
 				}
-				jobSize = new Integer(pmMax);
+				jobSize = new Integer(tableCount);
 
+				if (tableCount >= CACHE_THRESHOLD) {
+	                DatabaseMetaDataDecorator.putHint(DatabaseMetaDataDecorator.CACHE_TYPE, CacheType.EAGER_CACHE);
+				}
 				ensurePopulated(sqlObjects);
 			} catch (ArchitectException e) {
 				logger.error("Unexpected exception during populate", e); //$NON-NLS-1$
                 setDoStuffException(e);
 				errorMessage = "Unexpected exception during populate: " + e.getMessage(); //$NON-NLS-1$
-			} 
+			} finally {
+	             DatabaseMetaDataDecorator.putHint(DatabaseMetaDataDecorator.CACHE_TYPE, CacheType.NO_CACHE);
+			}
 			logger.info("AddObjectsTask done"); //$NON-NLS-1$
 		}
 
