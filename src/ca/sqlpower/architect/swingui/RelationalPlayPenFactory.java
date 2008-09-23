@@ -22,6 +22,8 @@ package ca.sqlpower.architect.swingui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,6 +78,7 @@ public class RelationalPlayPenFactory {
         pp.addSelectionListener(synchronizer);
         dbTree.addTreeSelectionListener(synchronizer);
         pp.getContentPane().addPlayPenContentListener(synchronizer);
+        pp.addMouseListener(synchronizer);
         return pp;
     }
 
@@ -235,7 +238,7 @@ public class RelationalPlayPenFactory {
     }
 
     static class SelectionSynchronizer implements SelectionListener, ItemSelectionListener<SQLTable, SQLColumn>,
-            TreeSelectionListener, PlayPenContentListener {
+            TreeSelectionListener, PlayPenContentListener, MouseListener {
 
         private int eventDepth = 0;
 
@@ -255,8 +258,9 @@ public class RelationalPlayPenFactory {
          * 
          */
         public void updateDBTree() {
-            if (eventDepth != 1)
+            if (eventDepth != 1) {
                 return;
+            }
             tree.clearSelection();
 
             List<TreePath> selectionPaths = new ArrayList<TreePath>();
@@ -328,6 +332,9 @@ public class RelationalPlayPenFactory {
         }
 
         public void itemDeselected(SelectionEvent e) {
+            if (pp.isSelectionInProgress()) {
+                return;
+            }
             try {
                 eventDepth++;
                 updateDBTree();
@@ -337,6 +344,9 @@ public class RelationalPlayPenFactory {
         }
 
         public void itemSelected(SelectionEvent e) {
+            if (pp.isSelectionInProgress()) {
+                return;
+            }
             try {
                 eventDepth++;
                 updateDBTree();
@@ -346,6 +356,9 @@ public class RelationalPlayPenFactory {
         }
 
         public void itemsDeselected(ItemSelectionEvent<SQLTable, SQLColumn> e) {
+            if (pp.isSelectionInProgress()) {
+                return;
+            }
             try {
                 eventDepth++;
                 updateDBTree();
@@ -355,6 +368,9 @@ public class RelationalPlayPenFactory {
         }
 
         public void itemsSelected(ItemSelectionEvent<SQLTable, SQLColumn> e) {
+            if (pp.isSelectionInProgress()) {
+                return;
+            }
             try {
                 eventDepth++;
                 updateDBTree();
@@ -381,6 +397,33 @@ public class RelationalPlayPenFactory {
         public void PlayPenComponentRemoved(PlayPenContentEvent e) {
             if (e.getPlayPenComponent() instanceof ContainerPane<?, ?>) {
                 ((ContainerPane<SQLTable, SQLColumn>) e.getPlayPenComponent()).removeItemSelectionListener(this);
+            }
+        }
+
+        public void mouseClicked(MouseEvent e) {
+            // don't care
+        }
+
+        public void mouseEntered(MouseEvent e) {
+            // don't care
+        }
+
+        public void mouseExited(MouseEvent e) {
+            // don't care
+        }
+
+        public void mousePressed(MouseEvent e) {
+            // don't care
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            if (e.getSource() == pp) {
+                eventDepth++;
+                try {
+                    updateDBTree();
+                } finally {
+                    eventDepth--;
+                }
             }
         }
     }

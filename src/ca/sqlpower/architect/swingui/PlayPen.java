@@ -313,7 +313,8 @@ public class PlayPen extends JPanel
      */
 	protected boolean draggingTablePanes = false;
 
-
+	private boolean selectionInProgress = false;
+	
 	/**
 	 * A RenderingHints value of VALUE_ANTIALIAS_ON, VALUE_ANTIALIAS_OFF, or VALUE_ANTIALIAS_DEFAULT.
 	 */
@@ -2277,7 +2278,8 @@ public class PlayPen extends JPanel
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
-			
+            selectionInProgress = true;
+
 			if (c instanceof PlayPenComponent) {
 			    c.handleMouseEvent(evt);
 			} else {
@@ -2292,6 +2294,8 @@ public class PlayPen extends JPanel
 
 		public void mouseReleased(MouseEvent evt) {
 			draggingTablePanes = false;
+            selectionInProgress = false;
+
 			if (rubberBand != null && evt.getButton() == MouseEvent.BUTTON1) {
 			    Rectangle dirtyRegion = rubberBand;
 
@@ -2397,6 +2401,15 @@ public class PlayPen extends JPanel
         return rubberBand;
     }
     
+    /**
+     * Returns true if there is a multi-select operation in progress. This method
+     * is useful for selection listeners such as the selection synchronizer that should
+     * not update their state while a selection is in progress.
+     */
+    public boolean isSelectionInProgress() {
+        return selectionInProgress;
+    }
+
     public boolean isDraggingTablePanes() {
         return draggingTablePanes;
     }
