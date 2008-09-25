@@ -47,6 +47,17 @@
 		
 		<plugins>
 			<plugin>
+			  <artifactId>maven-clean-plugin</artifactId>
+			  <configuration>
+			    <filesets>
+			      <fileset>
+			        <directory>staging</directory>
+			      </fileset>
+			    </filesets>
+			  </configuration>
+			</plugin>
+		
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
@@ -80,6 +91,27 @@
 			</plugin>
 			
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+				  <execution>
+				    <id>copy-dependencies</id>
+				    <phase>package</phase>
+				    <goals>
+				      <goal>copy-dependencies</goal>
+				    </goals>
+				    <configuration>
+				      <outputDirectory>staging/lib</outputDirectory>
+				      <overWriteReleases>false</overWriteReleases>
+				      <overWriteSnapshots>false</overWriteSnapshots>
+				      <overWriteIfNewer>true</overWriteIfNewer>
+				    </configuration>
+				  </execution>
+				</executions>
+		    </plugin>
+			
+			
+			<plugin>
 			  <artifactId>maven-assembly-plugin</artifactId>
 		        <configuration>
 		          <descriptors>
@@ -92,6 +124,8 @@
 			  <groupId>org.apache.maven.plugins</groupId>
 			  <artifactId>maven-jar-plugin</artifactId>
 			  <configuration>
+			    <finalName>architect</finalName>
+			    <outputDirectory>staging</outputDirectory>
 			    <archive>
 			      <manifest>
               		<addClasspath>true</addClasspath>
@@ -104,6 +138,24 @@
 			    </archive>
 			  </configuration>
 			</plugin>
+			
+			<plugin>
+	          <groupId>org.codehaus.izpack</groupId>
+	          <artifactId>izpack-maven-plugin</artifactId>
+	          <executions>
+	            <execution>
+	              <phase>package</phase>
+	              <goals>
+	                <goal>izpack</goal>
+	              </goals>
+	              <configuration>
+	                 <izpackBasedir>installer</izpackBasedir>
+	                 <descriptor>install.xml</descriptor>
+	                 <installerFile>dist/Architect-Setup-Windows-jdbc-${project.version}</installerFile>
+	              </configuration>
+	            </execution>
+	          </executions>
+	        </plugin>			
 		</plugins>
 	</build>
 
