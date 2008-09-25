@@ -12,6 +12,7 @@
     </fileSet>
     <fileSet>
       <directory>doc</directory>
+      <outputDirectory></outputDirectory>
       <includes>
         <include>README.generic</include>
         <include>ReleaseNotes</include>
@@ -19,10 +20,10 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>dist</directory>
+      <directory>staging</directory>
       <outputDirectory></outputDirectory>
       <includes>
-        <include>*.jar</include>
+        <include>architect.jar</include>
       </includes>
     </fileSet>
     <fileSet>
