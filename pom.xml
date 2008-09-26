@@ -150,7 +150,7 @@
 	              </goals>
 	              <configuration>
 	                 <izpackBasedir>installer</izpackBasedir>
-	                 <descriptor>install.xml</descriptor>
+	                 <descriptor>ext-tools-home/izpack/install.xml</descriptor>
 	                 <installerFile>dist/Architect-Setup-Windows-jdbc-${project.version}</installerFile>
 	              </configuration>
 	            </execution>
