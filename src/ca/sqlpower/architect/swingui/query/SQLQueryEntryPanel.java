@@ -44,9 +44,11 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 
@@ -178,9 +180,14 @@ public class SQLQueryEntryPanel extends JPanel {
             try {
                 con = ds.createConnection();
                 stmt = con.createStatement();
+                int rowLimit = ((Integer) rowLimitSpinner.getValue()).intValue();
+                logger.debug("Row limit is " + rowLimit);
+                
+                stmt.setMaxRows(rowLimit);
                 rs = stmt.executeQuery(queryArea.getText());
                 CachedRowSet rowSet = new CachedRowSet();
                 rowSet.populate(rs);
+                logger.debug("Result set row count is " + rowSet.size());
                 
                 for (ExecuteActionListener listener : executeListeners) {
                     listener.sqlQueryExecuted(rowSet);
@@ -227,6 +234,12 @@ public class SQLQueryEntryPanel extends JPanel {
     
     private DropTarget dt;
     
+    
+    /**
+     * A JTextField for the user to enter the row limit of a query.
+     */
+    private final JSpinner rowLimitSpinner;
+    
     /**
      * Listeners that will have it's sqlQueryExecuted method called when a successful
      * query is run. 
@@ -269,6 +282,7 @@ public class SQLQueryEntryPanel extends JPanel {
     
     public SQLQueryEntryPanel(ArchitectSwingSession s) {
         super();
+        rowLimitSpinner = new JSpinner(new SpinnerNumberModel(1000, 0, Integer.MAX_VALUE, 1));
         this.session = s;
         executeListeners = new ArrayList<ExecuteActionListener>();
         queryArea = new JTextArea();
@@ -308,18 +322,20 @@ public class SQLQueryEntryPanel extends JPanel {
                 queryArea.setText("");
             }});
         FormLayout textAreaLayout = new FormLayout(
-                "max(250dlu;pref):grow, 10dlu, pref"
+                "pref:grow, 10dlu, pref, 10dlu, pref, 10dlu, pref"
                 , "pref, pref, fill:max(100dlu;pref):grow");
         DefaultFormBuilder textAreaBuilder = new DefaultFormBuilder(textAreaLayout, this);
         textAreaBuilder.setDefaultDialogBorder();
-        textAreaBuilder.append(toolbar);
+        textAreaBuilder.append(toolbar, 7);
         textAreaBuilder.nextLine();
         textAreaBuilder.append(databases);
         JButton dbcsManagerButton = new JButton(new DatabaseConnectionManagerAction(session));
         dbcsManagerButton.setText("Manage Connections...");
         textAreaBuilder.append(dbcsManagerButton);
+        textAreaBuilder.append("Row Limit");
+        textAreaBuilder.append(rowLimitSpinner);
         textAreaBuilder.nextLine();
-        textAreaBuilder.append(new JScrollPane(queryArea), 3);
+        textAreaBuilder.append(new JScrollPane(queryArea), 7);
        
   
     }
