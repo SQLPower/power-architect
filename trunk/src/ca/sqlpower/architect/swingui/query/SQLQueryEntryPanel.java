@@ -45,7 +45,10 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 
 import org.apache.log4j.Logger;
 
@@ -55,7 +58,10 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.DnDTreePathTransferable;
+import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.sql.CachedRowSet;
+import ca.sqlpower.sql.DatabaseListChangeEvent;
+import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -69,6 +75,10 @@ public class SQLQueryEntryPanel extends JPanel {
     
     private static Logger logger = Logger.getLogger(SQLQueryEntryPanel.class);
     
+    /**
+     * The entry value in the input map that will map a key press to our
+     * "Execute" action.
+     */
     private static final String EXECUTE_QUERY_ACTION = "Execute Query";
     
     /**
@@ -217,20 +227,67 @@ public class SQLQueryEntryPanel extends JPanel {
     
     private DropTarget dt;
     
+    /**
+     * Listeners that will have it's sqlQueryExecuted method called when a successful
+     * query is run. 
+     */
     private List<ExecuteActionListener> executeListeners;
     
+    private final ArchitectSwingSession session;
+    
+    /**
+     * This recreates the database combo box when the list of databases changes.
+     */
+    private DatabaseListChangeListener dbListChangeListener = new DatabaseListChangeListener() {
+
+        public void databaseAdded(DatabaseListChangeEvent e) {
+            recreateComboBox();
+        }
+
+        private void recreateComboBox() {
+            databases.removeAllItems();
+            for (SPDataSource ds : session.getContext().getConnections()) {
+                databases.addItem(ds);
+            }
+        }
+
+        public void databaseRemoved(DatabaseListChangeEvent e) {
+            recreateComboBox();
+        }
+        
+    };
+    
+    /**
+     * Creates a SQLQueryEntryPanel and attaches a drag and drop listener
+     * to a DB Tree.
+     */
     public SQLQueryEntryPanel(ArchitectSwingSession session, DBTree dbTree) {
         this(session);
         
         dt = new DropTarget(queryArea, new QueryDropListener(dbTree));
     }
     
-    public SQLQueryEntryPanel(ArchitectSwingSession session) {
+    public SQLQueryEntryPanel(ArchitectSwingSession s) {
         super();
-        
+        this.session = s;
         executeListeners = new ArrayList<ExecuteActionListener>();
         queryArea = new JTextArea();
-        databases = new JComboBox(session.getContext().getConnections().toArray());
+        databases = new JComboBox(s.getContext().getConnections().toArray());
+        
+        
+        addAncestorListener(new AncestorListener(){
+
+            public void ancestorAdded(AncestorEvent event) {
+                session.getContext().getPlDotIni().addDatabaseListChangeListener(dbListChangeListener);
+            }
+
+            public void ancestorMoved(AncestorEvent event) {
+            }
+
+            public void ancestorRemoved(AncestorEvent event) {
+                session.getContext().getPlDotIni().removeDatabaseListChangeListener(dbListChangeListener);
+                
+            }});
         
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(
                 KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())
@@ -240,21 +297,31 @@ public class SQLQueryEntryPanel extends JPanel {
         buildUI();
     }
     
+    /**
+     * Builds the UI of the {@link SQLQueryEntryPanel}.
+     */
     private void buildUI() {
-        FormLayout textAreaLayout = new FormLayout("max(250dlu;pref):grow, 10dlu, pref", "fill:max(100dlu;pref):grow, pref, pref");
-        DefaultFormBuilder textAreaBuilder = new DefaultFormBuilder(textAreaLayout, this);
-        textAreaBuilder.setDefaultDialogBorder();
-        textAreaBuilder.append(new JScrollPane(queryArea), 3);
-        textAreaBuilder.nextLine();
-        textAreaBuilder.append(databases);
-
-        textAreaBuilder.append(new JButton(executeAction));
-        textAreaBuilder.nextLine();
-        textAreaBuilder.append("");
-        textAreaBuilder.append(new JButton(new AbstractAction("Clear"){
+        JToolBar toolbar = new JToolBar();
+        toolbar.add(executeAction);
+        toolbar.add(new AbstractAction("Clear"){
             public void actionPerformed(ActionEvent arg0) {
                 queryArea.setText("");
-            }}));
+            }});
+        FormLayout textAreaLayout = new FormLayout(
+                "max(250dlu;pref):grow, 10dlu, pref"
+                , "pref, pref, fill:max(100dlu;pref):grow");
+        DefaultFormBuilder textAreaBuilder = new DefaultFormBuilder(textAreaLayout, this);
+        textAreaBuilder.setDefaultDialogBorder();
+        textAreaBuilder.append(toolbar);
+        textAreaBuilder.nextLine();
+        textAreaBuilder.append(databases);
+        JButton dbcsManagerButton = new JButton(new DatabaseConnectionManagerAction(session));
+        dbcsManagerButton.setText("Manage Connections...");
+        textAreaBuilder.append(dbcsManagerButton);
+        textAreaBuilder.nextLine();
+        textAreaBuilder.append(new JScrollPane(queryArea), 3);
+       
+  
     }
     
     public void addExecuteAction(ExecuteActionListener l) {
