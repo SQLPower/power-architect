@@ -100,6 +100,7 @@ import ca.sqlpower.architect.swingui.action.ProfileAction;
 import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
 import ca.sqlpower.architect.swingui.action.RedoAction;
 import ca.sqlpower.architect.swingui.action.ReverseRelationshipAction;
+import ca.sqlpower.architect.swingui.action.SQLQueryAction;
 import ca.sqlpower.architect.swingui.action.SQLRunnerAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
 import ca.sqlpower.architect.swingui.action.SelectAllAction;
@@ -190,6 +191,7 @@ public class ArchitectFrame extends JFrame {
     private Action exportDDLAction;
     private Action compareDMAction;
     private Action dataMoverAction;
+    private Action sqlQueryAction;
     
     /**
      * Closes all sessions and terminates the JVM.
@@ -199,6 +201,7 @@ public class ArchitectFrame extends JFrame {
             session.getContext().closeAll();
         }
     };
+
 
 
     /**
@@ -381,6 +384,7 @@ public class ArchitectFrame extends JFrame {
         
         compareDMAction = new CompareDMAction(session,comapareDMDialog);
         dataMoverAction = new DataMoverAction(this, session);
+        sqlQueryAction = new SQLQueryAction(session);
 
         deleteSelectedAction = new DeleteSelectedAction(session);
         createIdentifyingRelationshipAction = new CreateRelationshipAction(session, true, playpen.getCursorManager());
@@ -608,7 +612,7 @@ public class ArchitectFrame extends JFrame {
         toolsMenu.add(exportDDLAction);
         toolsMenu.add(compareDMAction);
         toolsMenu.add(new SQLRunnerAction(session));
-
+        toolsMenu.add(sqlQueryAction);
         toolsMenu.add(dataMoverAction);
 
         menuBar.add(toolsMenu);
