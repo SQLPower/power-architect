@@ -329,18 +329,15 @@ public class SQLQueryEntryPanel extends JPanel {
     private DatabaseListChangeListener dbListChangeListener = new DatabaseListChangeListener() {
 
         public void databaseAdded(DatabaseListChangeEvent e) {
-            recreateComboBox();
-        }
-
-        private void recreateComboBox() {
-            databases.removeAllItems();
-            for (SPDataSource ds : session.getContext().getConnections()) {
-                databases.addItem(ds);
-            }
+            databases.addItem(e.getDataSource());
         }
 
         public void databaseRemoved(DatabaseListChangeEvent e) {
-            recreateComboBox();
+            if (databases.getSelectedItem().equals(e.getDataSource())) {
+                databases.setSelectedItem(null);
+            }
+            
+            databases.removeItem(e.getDataSource());
         }
         
     };
