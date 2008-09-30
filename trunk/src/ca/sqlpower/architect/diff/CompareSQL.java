@@ -39,7 +39,11 @@ import ca.sqlpower.util.Monitorable;
 
 public class CompareSQL implements Monitorable {
 
-	private static final Logger logger = Logger.getLogger(CompareSQL.class);
+    private static final char LEFT_RIGHT_ARROW = '\u2194';
+    private static final char LEFT_ARROW = '\u2190';
+    private static final char RIGHT_ARROW = '\u2192';
+
+    private static final Logger logger = Logger.getLogger(CompareSQL.class);
 
 	/**
 	 * A comparator that compares SQL Objects by name.
@@ -88,7 +92,7 @@ public class CompareSQL implements Monitorable {
 	/**
 	 * The table we're working on right now (for the progress monitor).
 	 */
-	private String currentTableName;
+	private String progressMessage;
 	
 	/**
 	 * A switch to indicate whether indices with be compared.
@@ -173,7 +177,7 @@ public class CompareSQL implements Monitorable {
 				// bring the source table up to the same level as the target
 				if (comparator.compare(sourceTable, targetTable) < 0) {
 					results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
-					incProgress(1);
+					incProgress(1, sourceTable, targetTable);
 					//results.addAll(generateColumnDiffs(sourceTable, null));
 					if (sourceIter.hasNext()) {
 						sourceTable = (SQLTable) sourceIter.next();
@@ -186,7 +190,7 @@ public class CompareSQL implements Monitorable {
 				// bring the target table up to the same level as the source
 				if (comparator.compare(sourceTable, targetTable) > 0) {
 					results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
-					incProgress(1);
+					incProgress(1, sourceTable, targetTable);
 					// now don't do the columns it's already handled
 					//results.addAll(generateColumnDiffs(null, targetTable));
 					if (targetIter.hasNext()) {
@@ -198,7 +202,7 @@ public class CompareSQL implements Monitorable {
 
 				if (comparator.compare(sourceTable, targetTable) == 0) {
 					results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.SAME));
-					incProgress(1);
+					incProgress(1, sourceTable, targetTable);
 					// now do the columns
 					results.addAll(generateColumnDiffs(sourceTable, targetTable));
 					if (!targetIter.hasNext() && !sourceIter.hasNext())
@@ -225,7 +229,7 @@ public class CompareSQL implements Monitorable {
 			// If any tables in the sourceList still exist, the changes are added
 			while (sourceContinue && !isCancelled()) {
 				results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
-				incProgress(1);
+				incProgress(1, sourceTable, null);
 				//results.addAll(generateColumnDiffs(sourceTable, null));
 				if (sourceIter.hasNext()) {
 					sourceTable = (SQLTable) sourceIter.next();
@@ -238,7 +242,7 @@ public class CompareSQL implements Monitorable {
 			while (targetContinue && !isCancelled()) {
 
 				results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
-				incProgress(1);
+				incProgress(1, null, targetTable);
 				
 				//results.addAll(generateColumnDiffs(null, targetTable));
 				if (targetIter.hasNext()) {
@@ -266,14 +270,14 @@ public class CompareSQL implements Monitorable {
 		Set<SQLRelationship> targetRels = new TreeSet<SQLRelationship>(relComparator);
 		
 		for (SQLTable t : sourceTables) {
-			incProgress(1);
+			incProgress(1, t, null);
 			if (t.getImportedKeys() != null){		
 				sourceRels.addAll(t.getImportedKeys());
 			}
 		}	
 				
 		for (SQLTable t : targetTables) {
-			incProgress(1);
+			incProgress(1, null, t);
 			if (t.getImportedKeys() != null){			
 				targetRels.addAll(t.getImportedKeys());
 			}
@@ -399,14 +403,14 @@ public class CompareSQL implements Monitorable {
 	    Set<SQLIndex> targetInds = new TreeSet<SQLIndex>(indComparator);
 
 	    for (SQLTable t : sourceTables) {
-	        incProgress(1);
+	        incProgress(1, t, null);
 	        if (t.getIndices() != null){       
 	            sourceInds.addAll(t.getIndices());
 	        }
 	    }   
 
 	    for (SQLTable t : targetTables) {
-	        incProgress(1);
+	        incProgress(1, null, t);
 	        if (t.getIndices() != null){           
 	            targetInds.addAll(t.getIndices());
 	        }
@@ -686,7 +690,7 @@ public class CompareSQL implements Monitorable {
 	}
 
 	public synchronized String getMessage() {
-		return currentTableName;
+		return progressMessage;
 	}
 
     public synchronized void setCancelled(boolean cancelled) {
@@ -705,7 +709,24 @@ public class CompareSQL implements Monitorable {
 		this.progress = progress;
 	}
 
-	private synchronized void incProgress(int amount) {
+	/**
+	 * Increments the progress by the given amount and changes the message
+	 * to reflect the current objects being compared.
+	 * 
+	 * @param amount The number of units to increment progress by.
+	 * @param lhs The current left-hand object of comparison. Can be null.
+	 * @param rhs The current right-hand object of comparison. Can be null.
+	 */
+	private synchronized void incProgress(int amount, SQLObject lhs, SQLObject rhs) {
+	    if (lhs != null && rhs != null) {
+	        progressMessage = lhs + " " + LEFT_RIGHT_ARROW + " " + rhs;
+	    } else if (lhs != null) {
+	        progressMessage = LEFT_ARROW + " " + lhs.getName();
+	    } else if (rhs != null) {
+	        progressMessage = RIGHT_ARROW + " " + rhs.getName();
+	    } else {
+	        progressMessage = null;
+	    }
 		this.progress += amount;
 	}
 	
