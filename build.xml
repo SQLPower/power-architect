@@ -91,6 +91,45 @@
 		</not>
 	</condition>
 
+	<!-- 
+		Sets if we want to actually run a build on the SQL Power Library.
+		It may be useful to set it to copy only if we already know that the
+		library has been built. For example, when running the builds on a 
+		continuous integration engine like Hudson, where the library can be
+		built separately.
+	-->
+	<condition property="buildSQLPowerLibrary">
+		<not>
+			<isset property="only.copy.sqlpower.library"/>
+		</not>
+	</condition>
+	
+	<!--
+		Set the format of the findbugs report to html by default
+	-->
+	<condition property="findbugs.report.format" value="html">
+		<not>
+			<isset property="findbugs.report.format"/>
+		</not>
+	</condition>
+	
+	<!--
+		Set the format of the pmd report to html by default
+	-->
+	<condition property="pmd.report.format" value="html">
+		<not>
+			<isset property="pmd.report.format"/>
+		</not>
+	</condition>
+	
+	<!--
+		Set the format of the clover report to html by default
+	-->
+	<condition property="clover.report.format" value="html">
+		<not>
+			<isset property="clover.report.format"/>
+		</not>
+	</condition>
 	
 	<target name="init" depends="checkAntVersion, checkBuildPath"
 		description="Checks build prereqs, creates output dir, and determines product version"
@@ -173,7 +212,7 @@
 		
 		Reports are sent to the reports directory, but you can 
 		choose your own directory by changing the 'outfile' 
-		attribute of the 'current' tag in the clover.html 
+		attribute of the 'current' tag in the clover.report 
 		target.-->
 	<target name="with.clover" description="Activates Clover">
 	    <clover-setup initString="mycoverage.db" source="1.5"
@@ -188,7 +227,7 @@
 	    </clover-setup>
 	</target>
 
-	<target name="clover.test.and.report" depends="with.clover, clover.junit, clover.html"
+	<target name="clover.test.and.report" depends="with.clover, clover.junit, clover.report"
 		description="A simple target to initialize Clover, run the test suite
 		and generate an HTML report">
 	</target>
@@ -207,13 +246,20 @@
 		Also, the ouput directory is specified by the value of
 		the outfile attribute
 		-->
-	<target name="clover.html" depends="init, with.clover"
-		description="Generates HTML coverage report based on previous 
+	<target name="clover.report" depends="init, with.clover"
+		description="Generates coverage report based on previous 
 		Clover-enabled test run (clover.junit)"
 		>
+		
+		<mkdir dir="${reports}/clover"/>
+		
+		<condition property="clover.report.outfile" value="${reports}/clover" else="${reports}/clover/clover.${clover.report.format}">
+			<equals arg1="${clover.report.format}" arg2="html"/>
+		</condition>
+		
 	    <clover-report>
-	        <current outfile="${reports}/clover">
-	            <format type="html"/>
+	        <current outfile="${clover.report.outfile}">
+	            <format type="${clover.report.format}"/>
 		    	<fileset dir="${src}" casesensitive="yes">
 		    	    <include name="**/*.java"/>
 		    	    <exclude name="**/*Test*"/>
@@ -227,10 +273,10 @@
 		>
 		<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask"
 			classpath="${pmd.jar}"/>
-		<property name="pmd-results" value="${reports}/pmd-ant-results.html"/>
+		<property name="pmd-results" value="${reports}/pmd-ant-results.${pmd.report.format}"/>
 		<pmd shortFilenames="true" targetjdk="1.5">
 			<ruleset>basic,imports</ruleset>
-			<formatter type="html" toFile="${pmd-results}"/>
+			<formatter type="${pmd.report.format}" toFile="${pmd-results}"/>
 			<fileset dir="${src}">
 				<include name="**/*.java"/>
 			</fileset>
@@ -259,8 +305,8 @@
 		<taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask"
 			classpath="${findbugs-ant.jar}"/>
 		<findbugs home="${findbugs.home}"
-			output="html"
-			outputFile="${reports}/findbugs-ant-results.html"
+			output="${findbugs.report.format}"
+			outputFile="${reports}/findbugs-ant-results.${findbugs.report.format}"
 			reportLevel="low"
 			jvmargs="-Xmx512m">  <!-- FindBugs can use up a lot of memory, so adjust the JVM memory here-->
 			<class location="${build}" />
@@ -297,12 +343,12 @@
 	</target>
 	
 	<!-- Compiles the application source files -->
-	<target name="compile" depends="init,copyfiles, sqlpower.library">
+	<target name="compile" depends="init,copyfiles, build.sqlpower.library, copy.sqlpower.library">
 		<javac srcdir="${src}" destdir="${build}"
 			classpathref="compile.classpath" 
 			debug="true"/>
 	</target>
-
+	
 	<!-- Compiles the regression test suite -->
 	<target name="compile-tests" depends="compile">
 		<ant dir="${sqlpower.library.home}" target="compile-tests">
@@ -626,6 +672,7 @@
 		<delete><fileset dir="${dist.dir}" includes="lib,Power*Architect.app,architect.jar"/></delete>
 		<delete dir="webstart/lib"/>
 		<delete dir="${staging.dir}"/>
+		<delete><fileset dir="." includes="mycoverage.db*"/></delete>
 	</target>
 
 	<target name="dist-clean" depends="clean">
@@ -1282,23 +1329,29 @@
 		This build target checks for the sqlpower-library project, which is
 		required by the Power*Architect to build. 
 	-->
-	<target name="sqlpower.library">
+	<target name="check.sqlpower.library.dir">
 		<echo message="Checking for sqlpower-library project..."/>
-		<fail message="Can't find sqlpower-library project! Please read the DEVELOPERS file to see how to get and set up the sqlpower-library project">
+		<fail message="Can't find sqlpower-library project! Set the property 'sqlpower.library.home' to point to the sqlpower-library project directory">
 			<condition>
 				<not>
 					<isset property="sqlpower.library.home"/>
 				</not>
 			</condition>
 		</fail>
+	</target>
+	
+	<target name="build.sqlpower.library" depends="check.sqlpower.library.dir" if="buildSQLPowerLibrary">
 		<echo message="Attempting to build sqlpower-library project..."/>
 		<ant dir="${sqlpower.library.home}" target="clean">
 			<property name="build" value="${sqlpower.library.home}/build"/>
 		</ant>
-		<ant dir="${sqlpower.library.home}">
+		<ant dir="${sqlpower.library.home}" target="jar">
 			<property name="build" value="${sqlpower.library.home}/build"/>
 			<property name="dist.dir" value="${sqlpower.library.home}/dist"/>
 		</ant>
+	</target>
+	
+	<target name="copy.sqlpower.library" depends="check.sqlpower.library.dir">
 		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${lib}"/>
 	</target>
 	
