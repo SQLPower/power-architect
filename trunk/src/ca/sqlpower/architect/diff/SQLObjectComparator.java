@@ -18,11 +18,12 @@
  */
 package ca.sqlpower.architect.diff;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 import ca.sqlpower.architect.SQLObject;
 
-public class SQLObjectComparator implements Comparator<SQLObject> {
+public class SQLObjectComparator implements Comparator<SQLObject>, Serializable {
 
 	public int compare(SQLObject t1, SQLObject t2) {
 		// if t1 and t2 refer to the same object, or are both null, then they're equal		

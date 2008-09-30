@@ -38,5 +38,6 @@
 	<classpathentry kind="lib" path="jdbc_drivers/sqlserver_2005.jar"/>
 	<classpathentry kind="lib" path="lib/mondrian.jar"/>
 	<classpathentry kind="lib" path="lib/eigenbase-properties.jar"/>
+	<classpathentry kind="lib" path="lib/annotations.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

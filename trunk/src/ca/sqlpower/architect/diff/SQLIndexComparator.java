@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect.diff;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
@@ -37,7 +38,7 @@ import ca.sqlpower.architect.SQLIndex.Column;
  * to be the same as {@link AscendDescend#UNSPECIFIED}.
  * 
  */
-public class SQLIndexComparator implements Comparator<SQLIndex> {
+public class SQLIndexComparator implements Comparator<SQLIndex>, Serializable {
 
 	private static Logger logger = Logger.getLogger(SQLIndexComparator.class);
 
@@ -150,12 +151,19 @@ public class SQLIndexComparator implements Comparator<SQLIndex> {
 		return 0;
 	}
 
-	/**
-	 * Performs the String.compareTo() but with null checks as well.
-	 * 
-	 * @param source The "left side" for the comparison.
-	 * @param target The "right side" for the comparison.
-	 */
+    /**
+     * Performs the String.compareTo() but with null checks as well. Null
+     * is treated as less than non-null and equal to null.
+     * 
+     * @param source
+     *            The "left side" for the comparison.
+     * @param target
+     *            The "right side" for the comparison.
+     */
+	@edu.umd.cs.findbugs.annotations.SuppressWarnings(
+	        value={"ES_COMPARING_PARAMETER_STRING_WITH_EQ"},
+	        justification="It's just a pre-check for null==null or reference equality by luck. " +
+	        		      "Falls back to String.equals() at the end of the method.") 
 	public int compareString(String source, String target) {
 	    if (source == target) {
             return 0;
