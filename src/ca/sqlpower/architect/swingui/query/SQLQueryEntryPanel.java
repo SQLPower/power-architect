@@ -188,13 +188,17 @@ public class SQLQueryEntryPanel extends JPanel {
         }
         
         public void itemStateChanged(ItemEvent e) {
+            if (e.getStateChange() != ItemEvent.SELECTED) {
+                return;
+            }
             if (!conMap.containsKey(e.getItem())) {
                 SPDataSource ds = (SPDataSource)e.getItem();
                 try {
                     Connection con = ds.createConnection();
                     conMap.put(ds, con);
                 } catch (SQLException e1) {
-                    SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.failedConnectingToDB"), e1);
+                    SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.failedConnectingToDBWithName", ds.getName()), e1);
+                    return;
                 }
             }
             try {
