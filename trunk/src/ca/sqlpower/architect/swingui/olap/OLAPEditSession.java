@@ -25,7 +25,6 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFrame;
-import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -93,11 +92,6 @@ public class OLAPEditSession implements OLAPChildListener {
      */
     private final OLAPUndoManager undoManager;
     
-    /**
-     * The menu bar for this OLAP edit session's frame.
-     */
-    private final JMenuBar newMenuBar; 
-
     public static final double ZOOM_STEP = 0.25;
     
     private ZoomAction zoomInAction;
@@ -145,8 +139,6 @@ public class OLAPEditSession implements OLAPChildListener {
         tree.setCellRenderer(new OLAPTreeCellRenderer());
         undoManager = new OLAPUndoManager(olapSession);
         pp = OLAPPlayPenFactory.createPlayPen(swingSession, this, undoManager);
-        
-        newMenuBar = swingSession.getArchitectFrame().createNewMenuBar();
         
         undoManager.addChangeListener(new ChangeListener() {           
             public void stateChanged(ChangeEvent e) {
@@ -260,7 +252,7 @@ public class OLAPEditSession implements OLAPChildListener {
         // gone otherwise
         ArchitectSwingSessionContext context = swingSession.getContext();
         if (context.isMacOSX()) {                   
-            frame.setJMenuBar(newMenuBar);
+            frame.setJMenuBar(swingSession.getArchitectFrame().createNewMenuBar());
         }
         
         OLAPPlayPenFactory.setupOLAPMouseWheelActions(pp, this);
