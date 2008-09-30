@@ -57,12 +57,16 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * 
 	 * @see containmentPath
 	 */
-	protected GeneralPath path;
+	protected transient GeneralPath path;
 	
 	/**
 	 * This is a closed path for use with contains() and intersects().
+     * <p>
+     * This path is recalculated every time paint() is called, and
+     * it's cached here for the benefit of {@link #contains(Point)}
+     * and {@link #intersectsShape(Shape)}.
 	 */
-	protected GeneralPath containmentPath;
+	protected transient GeneralPath containmentPath;
 
 	protected Color selectedColor = new Color(204, 204, 255);
 	protected Color unselectedColor = Color.black;
@@ -1067,6 +1071,9 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	@Override
 	public boolean intersectsShape(Shape s) {
+	    if (path == null) {
+	        return false;
+	    }
 		Rectangle myBounds = path.getBounds();
 		Rectangle otherBounds = s.getBounds();
 		
@@ -1115,20 +1122,26 @@ public class BasicRelationshipUI extends RelationshipUI
 		return sb.toString();
 	}
 
-	
-
-	/**
-	 * Returns the actual path that this relationship ui draws.  It will get reset from time
-	 * to time as this relationship (or its connected tables) gets moved by the user.
-	 */
+    /**
+     * Returns the actual path that this relationship ui draws. It will get
+     * reset from time to time as this relationship (or its connected tables)
+     * gets moved by the user, and it will not be initialized until
+     * {@link #paint(Graphics2D)} has been called.
+     */
 	@Override
 	public Shape getShape() {
 		return path;
 	}
 
+    /**
+     * Returns the length of this relationship's path.
+     * 
+     * @throws NullPointerException
+     *             if paint() has not yet been called on this relationship UI.
+     */
 	@Override
 	public int getShapeLength() {
-		Rectangle b=  path.getBounds();
-		return b.width+b.height;
+		Rectangle b = path.getBounds();
+		return b.width + b.height;
 	}
 }
