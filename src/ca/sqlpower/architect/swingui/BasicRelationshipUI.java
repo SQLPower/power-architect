@@ -606,7 +606,6 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * time allows.
 	 */
 	public boolean isOrientationLegal() {
-		boolean answer;
 		if (relationship.getPkTable() == relationship.getFkTable()) {
 			return (orientation == (PARENT_FACES_BOTTOM | CHILD_FACES_LEFT));
 		} else {
@@ -653,9 +652,7 @@ public class BasicRelationshipUI extends RelationshipUI
 
 		}
 
-			//answer = (orientation == getFacingEdges(relationship.getPkTable().getBounds(), relationship.getFkTable().getBounds()));
-
-		logger.debug("[31misOrientationLegal() returning false[0m");
+		logger.debug("OrientationLegal() returning false");
 		return false;
 	}
 
@@ -943,7 +940,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	public Dimension getPreferredSize(PlayPenComponent c) {
 		//computeBounds();
 		if (logger.isDebugEnabled()) {
-			logger.debug("[31mComputed size is ["+computedBounds.width+","+computedBounds.height+"][0m");
+			logger.debug("Computed size is ["+computedBounds.width+","+computedBounds.height+"]");
 		}
 		return new Dimension(computedBounds.width, computedBounds.height);
 	}
@@ -951,7 +948,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	public Point getPreferredLocation() {
 		//computeBounds();
 		if (logger.isDebugEnabled()) {
-			logger.debug("[31mComputed locn is ["+computedBounds.x+","+computedBounds.y+"][0m");
+			logger.debug("Computed locn is ["+computedBounds.x+","+computedBounds.y+"]");
 		}
 		return new Point(computedBounds.x, computedBounds.y);
 	}
@@ -1098,9 +1095,7 @@ public class BasicRelationshipUI extends RelationshipUI
 		}
 		
 		List <Point2D.Double> list = getIntersectPoints(s);
-		if ( list.size() > 0 )
-			return true;
-		return false;
+		return (list.size() > 0);
 	}
 
 	private List<Point2D.Double> getIntersectPoints(Shape s) {
