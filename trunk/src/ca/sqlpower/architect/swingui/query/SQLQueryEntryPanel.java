@@ -28,29 +28,38 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
 
@@ -61,6 +70,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.DnDTreePathTransferable;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
+import ca.sqlpower.architect.swingui.query.action.AbstractSQLQueryAction;
 import ca.sqlpower.sql.CachedRowSet;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
@@ -165,36 +175,80 @@ public class SQLQueryEntryPanel extends JPanel {
     }
     
     /**
+     * A listener for item selection on a combo box containing {@link SPDataSource}s.
+     * This will create a new entry in the connection map to store a live connection
+     * for the selected database.
+     */
+    private class DatabaseItemListener implements ItemListener {
+        
+        private JPanel parent;
+        
+        public DatabaseItemListener(JPanel parent) {
+            this.parent = parent;
+        }
+        
+        public void itemStateChanged(ItemEvent e) {
+            if (!conMap.containsKey(e.getItem())) {
+                SPDataSource ds = (SPDataSource)e.getItem();
+                try {
+                    Connection con = ds.createConnection();
+                    conMap.put(ds, con);
+                } catch (SQLException e1) {
+                    SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.failedConnectingToDB"), e1);
+                }
+            }
+            try {
+                autoCommitToggleButton.setSelected(conMap.get(e.getItem()).getAutoCommit());
+            } catch (SQLException ex) {
+                SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.failedConnectingToDB"), ex);
+            }
+        }
+    }
+    
+    /**
      * The action for executing and displaying a user's query.
      */
-    private final AbstractAction executeAction = new AbstractAction("Execute") {
+    private final AbstractAction executeAction = new AbstractAction(Messages.getString("SQLQuery.execute")) {
         public void actionPerformed(ActionEvent e) {
             logger.debug("Starting execute action.");
             SPDataSource ds = (SPDataSource)databases.getSelectedItem();
             if (ds == null) {
                 return;
             }
-            Connection con = null;
+            Connection con = conMap.get(ds);
             Statement stmt = null;
             ResultSet rs = null;
             try {
-                con = ds.createConnection();
                 stmt = con.createStatement();
+                try {
+                    rowLimitSpinner.commitEdit();
+                } catch (ParseException e1) {
+                    // If the spinner can't parse it's current value set it to it's previous
+                    // value to keep it an actual number.
+                    rowLimitSpinner.setValue(rowLimitSpinner.getValue());
+                }
                 int rowLimit = ((Integer) rowLimitSpinner.getValue()).intValue();
                 logger.debug("Row limit is " + rowLimit);
                 
                 stmt.setMaxRows(rowLimit);
-                rs = stmt.executeQuery(queryArea.getText());
-                CachedRowSet rowSet = new CachedRowSet();
-                rowSet.populate(rs);
-                logger.debug("Result set row count is " + rowSet.size());
+                boolean sqlResult = stmt.execute(queryArea.getText());
                 
-                for (ExecuteActionListener listener : executeListeners) {
-                    listener.sqlQueryExecuted(rowSet);
+                if (sqlResult) {
+                    rs = stmt.getResultSet();
+                    CachedRowSet rowSet = new CachedRowSet();
+                    rowSet.populate(rs);
+                    logger.debug("Result set row count is " + rowSet.size());
+                    
+                    for (ExecuteActionListener listener : executeListeners) {
+                        listener.sqlQueryExecuted(rowSet);
+                    }
+                } else {
+                    // TODO: Send the update count to the listeners.
+                    logger.debug("Update count is : " + stmt.getUpdateCount());
                 }
 
             } catch (SQLException ex) {
-                SPSUtils.showExceptionDialogNoReport(getParent(), "Could not query the database", ex);
+                SPSUtils.showExceptionDialogNoReport(getParent(), Messages.getString("SQLQuery.failedConnectingToDB"), ex);
             } finally {
                 if (rs != null) {
                     try {
@@ -210,16 +264,18 @@ public class SQLQueryEntryPanel extends JPanel {
                         ex.printStackTrace();
                     }
                 }
-                if (con != null) {
-                    try {
-                        con.close();
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
-                }
             }
         }
     };
+    
+    /**
+     * A mapping of data sources to live connections. These connections will be left
+     * open until the panel's ancestor is closed. The connections are kept open so 
+     * auto commit can be turned off and users can enter multiple queries before 
+     * committing or rolling back. Additionally, it will allow switching of data
+     * sources while keeping the commit or rollback execution sequence preserved.
+     */
+    private Map<SPDataSource, Connection> conMap;
     
     /**
      * The text area users can enter SQL queries to get data from the database.
@@ -239,6 +295,21 @@ public class SQLQueryEntryPanel extends JPanel {
      * A JTextField for the user to enter the row limit of a query.
      */
     private final JSpinner rowLimitSpinner;
+    
+    /**
+     * Toggles auto commit on an off for the selected connection.
+     */
+    private final JToggleButton autoCommitToggleButton;
+    
+    /**
+     * Commits the changes made on the currently selected connection.
+     */
+    private final JButton commitButton;
+    
+    /**
+     * Rolls back the changes made on the currently selected connection.
+     */
+    private final JButton rollbackButton;
     
     /**
      * Listeners that will have it's sqlQueryExecuted method called when a successful
@@ -269,6 +340,44 @@ public class SQLQueryEntryPanel extends JPanel {
         }
         
     };
+
+    /**
+     * Listens to when the an ancestor is added or removed. This will clean up open
+     * connections and remove handlers when the ancestor is removed.
+     */
+    private AncestorListener closeListener = new AncestorListener(){
+
+        public void ancestorAdded(AncestorEvent event) {
+            session.getContext().getPlDotIni().addDatabaseListChangeListener(dbListChangeListener);
+        }
+
+        public void ancestorMoved(AncestorEvent event) {
+        }
+
+        public void ancestorRemoved(AncestorEvent event) {
+            logger.debug("Removing database list change listener");
+            session.getContext().getPlDotIni().removeDatabaseListChangeListener(dbListChangeListener);
+            
+            for (Map.Entry<SPDataSource, Connection> entry : conMap.entrySet()) {
+                try {
+                    Connection con = entry.getValue();
+                    if (!con.getAutoCommit()) {
+                        int result = JOptionPane.showOptionDialog(session.getArchitectFrame(), Messages.getString("SQLQuery.commitOrRollback", entry.getKey().getName()),
+                                Messages.getString("SQLQuery.commitOrRollbackTitle"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                                new Object[] {Messages.getString("SQLQuery.commit"), Messages.getString("SQLQuery.rollback")}, Messages.getString("SQLQuery.commit"));
+                        if (result == JOptionPane.OK_OPTION) {
+                            con.commit();
+                        } else if (result == JOptionPane.CANCEL_OPTION) {
+                            con.rollback();
+                        }
+                    }
+                    con.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            
+        }};
     
     /**
      * Creates a SQLQueryEntryPanel and attaches a drag and drop listener
@@ -282,26 +391,96 @@ public class SQLQueryEntryPanel extends JPanel {
     
     public SQLQueryEntryPanel(ArchitectSwingSession s) {
         super();
-        rowLimitSpinner = new JSpinner(new SpinnerNumberModel(1000, 0, Integer.MAX_VALUE, 1));
         this.session = s;
-        executeListeners = new ArrayList<ExecuteActionListener>();
-        queryArea = new JTextArea();
-        databases = new JComboBox(s.getContext().getConnections().toArray());
         
+        autoCommitToggleButton = new JToggleButton(new AbstractSQLQueryAction(this, Messages.getString("SQLQuery.autoCommit")) {
         
-        addAncestorListener(new AncestorListener(){
-
-            public void ancestorAdded(AncestorEvent event) {
-                session.getContext().getPlDotIni().addDatabaseListChangeListener(dbListChangeListener);
+            public void actionPerformed(ActionEvent e) {
+                Connection con = conMap.get(databases.getSelectedItem());
+                if (con == null) {
+                    return;
+                }
+                try {
+                    boolean isPressed = autoCommitToggleButton.getModel().isSelected();
+                    if (isPressed) {
+                        int result = JOptionPane.showOptionDialog(parent, Messages.getString("SQLQuery.commitOrRollbackBeforeAutoCommit"),
+                                Messages.getString("SQLQuery.commitOrRollbackTitle"), JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                                new Object[] {Messages.getString("SQLQuery.commit"), Messages.getString("SQLQuery.cancel"), Messages.getString("SQLQuery.rollback")}, Messages.getString("SQLQuery.commit"));
+                        if (result == JOptionPane.OK_OPTION) {
+                            con.commit();
+                        } else if (result == JOptionPane.CANCEL_OPTION) {
+                            con.rollback();
+                        } else {
+                            ((JToggleButton)e.getSource()).setSelected(con.getAutoCommit());
+                            return;
+                        }
+                        
+                    }
+                    con.setAutoCommit(isPressed);
+                    logger.debug("The auto commit button is toggled " + isPressed);
+                } catch (SQLException ex) {
+                    SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.failedAutoCommit"), ex);
+                }
+        
             }
-
-            public void ancestorMoved(AncestorEvent event) {
+        
+        });
+        
+        autoCommitToggleButton.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                if (autoCommitToggleButton.isSelected()) {
+                    commitButton.setEnabled(false);
+                    rollbackButton.setEnabled(false);
+                } else {
+                    commitButton.setEnabled(true);
+                    rollbackButton.setEnabled(true);
+                }
             }
+        });
+        
+        commitButton = new JButton(new AbstractSQLQueryAction(this, Messages.getString("SQLQuery.commit")){
+            public void actionPerformed(ActionEvent e) {
+                Connection con = conMap.get(databases.getSelectedItem());
+                if (con == null) {
+                    return;
+                }
+                try {
+                    if (!con.getAutoCommit()) {
+                        con.commit();
+                    }
+                } catch (SQLException ex) {
+                    SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQlQuery.failedCommit"), ex);
+                }
+            }});
+        
+        rollbackButton = new JButton(new AbstractSQLQueryAction(this, Messages.getString("SQLQuery.rollback")){
 
-            public void ancestorRemoved(AncestorEvent event) {
-                session.getContext().getPlDotIni().removeDatabaseListChangeListener(dbListChangeListener);
+            public void actionPerformed(ActionEvent e) {
+                Connection con = conMap.get(databases.getSelectedItem());
+                if (con == null) {
+                    return;
+                }
+                try {
+                    if (!con.getAutoCommit()) {
+                        con.rollback();
+                    }
+                } catch (SQLException ex) {
+                    SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.failedRollback"), ex);
+                }
                 
             }});
+        
+        rowLimitSpinner = new JSpinner(new SpinnerNumberModel(1000, 0, Integer.MAX_VALUE, 1));
+        executeListeners = new ArrayList<ExecuteActionListener>();
+        queryArea = new JTextArea();
+        
+        conMap = new HashMap<SPDataSource, Connection>();
+        
+        databases = new JComboBox(s.getContext().getConnections().toArray());
+        databases.setSelectedItem(null);
+        databases.addItemListener(new DatabaseItemListener(this));
+        
+        addAncestorListener(closeListener);
         
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(
                 KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())
@@ -317,10 +496,16 @@ public class SQLQueryEntryPanel extends JPanel {
     private void buildUI() {
         JToolBar toolbar = new JToolBar();
         toolbar.add(executeAction);
-        toolbar.add(new AbstractAction("Clear"){
+        toolbar.add(new AbstractSQLQueryAction(this, Messages.getString("SQLQuery.clear")){
             public void actionPerformed(ActionEvent arg0) {
                 queryArea.setText("");
             }});
+        toolbar.addSeparator();
+        toolbar.add(autoCommitToggleButton);
+        toolbar.add(commitButton);
+        toolbar.add(rollbackButton);
+        
+        
         FormLayout textAreaLayout = new FormLayout(
                 "pref:grow, 10dlu, pref, 10dlu, pref, 10dlu, pref"
                 , "pref, pref, fill:max(100dlu;pref):grow");
@@ -330,9 +515,9 @@ public class SQLQueryEntryPanel extends JPanel {
         textAreaBuilder.nextLine();
         textAreaBuilder.append(databases);
         JButton dbcsManagerButton = new JButton(new DatabaseConnectionManagerAction(session));
-        dbcsManagerButton.setText("Manage Connections...");
+        dbcsManagerButton.setText(Messages.getString("SQLQuery.mangeConnections"));
         textAreaBuilder.append(dbcsManagerButton);
-        textAreaBuilder.append("Row Limit");
+        textAreaBuilder.append(Messages.getString("SQLQuery.rowLimit"));
         textAreaBuilder.append(rowLimitSpinner);
         textAreaBuilder.nextLine();
         textAreaBuilder.append(new JScrollPane(queryArea), 7);
