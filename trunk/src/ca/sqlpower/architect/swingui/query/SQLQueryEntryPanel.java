@@ -28,6 +28,7 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -60,6 +62,9 @@ import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.undo.UndoManager;
 
 import org.apache.log4j.Logger;
 
@@ -92,6 +97,19 @@ public class SQLQueryEntryPanel extends JPanel {
      * "Execute" action.
      */
     private static final String EXECUTE_QUERY_ACTION = "Execute Query";
+
+    /**
+     * The entry value in the input map that will map a key press to our
+     * undo action on the sql edit text area.
+     */
+
+    private static final Object UNDO_SQL_EDIT = "Undo SQL Edit";
+
+    /**
+     * The entry value in the input map that will map a key press to our
+     * redo action on the sql edit text area.
+     */
+    private static final Object REDO_SQL_EDIT = "Redo SQL Edit";
     
     /**
      * This QueryDropListener Listens to the SQLObjects being dragged onto the
@@ -333,6 +351,32 @@ public class SQLQueryEntryPanel extends JPanel {
     private final ArchitectSwingSession session;
     
     /**
+     * The undo manager for the text area containing the SQL statement.
+     */
+    private UndoManager undoManager;
+    
+    private Action undoSQLStatementAction = new AbstractAction(Messages.getString("SQLQuery.undo")){
+
+        public void actionPerformed(ActionEvent arg0) {
+            if (undoManager.canUndo()) {
+                undoManager.undo();
+            }
+            
+        }
+    };
+        
+    private Action redoSQLStatementAction = new AbstractAction(Messages.getString("SQLQuery.redo")){
+
+        public void actionPerformed(ActionEvent arg0) {
+            if (undoManager.canRedo()) {
+                undoManager.redo();
+            }
+            
+        }
+    };
+    
+    
+    /**
      * This recreates the database combo box when the list of databases changes.
      */
     private DatabaseListChangeListener dbListChangeListener = new DatabaseListChangeListener() {
@@ -480,9 +524,21 @@ public class SQLQueryEntryPanel extends JPanel {
                 
             }});
         
+        
         rowLimitSpinner = new JSpinner(new SpinnerNumberModel(1000, 0, Integer.MAX_VALUE, 1));
         executeListeners = new ArrayList<ExecuteActionListener>();
         queryArea = new JTextArea();
+        undoManager = new UndoManager();
+        queryArea.getDocument().addUndoableEditListener(new UndoableEditListener() {
+            public void undoableEditHappened(UndoableEditEvent e) {
+                undoManager.addEdit(e.getEdit());
+            }
+        });
+        queryArea.getActionMap().put(UNDO_SQL_EDIT, undoSQLStatementAction);
+        queryArea.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), UNDO_SQL_EDIT);
+        
+        queryArea.getActionMap().put(REDO_SQL_EDIT, redoSQLStatementAction);
+        queryArea.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() + InputEvent.SHIFT_MASK), REDO_SQL_EDIT);
         
         conMap = new HashMap<SPDataSource, Connection>();
         
@@ -514,7 +570,9 @@ public class SQLQueryEntryPanel extends JPanel {
         toolbar.add(autoCommitToggleButton);
         toolbar.add(commitButton);
         toolbar.add(rollbackButton);
-        
+        toolbar.addSeparator();
+        toolbar.add(undoSQLStatementAction);
+        toolbar.add(redoSQLStatementAction);
         
         FormLayout textAreaLayout = new FormLayout(
                 "pref:grow, 10dlu, pref, 10dlu, pref, 10dlu, pref"
