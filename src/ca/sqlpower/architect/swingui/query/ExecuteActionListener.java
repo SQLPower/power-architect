@@ -20,12 +20,13 @@
 package ca.sqlpower.architect.swingui.query;
 
 import java.sql.ResultSet;
+import java.util.List;
 
 /**
  * A listener for executing queries in a {@link SQLQueryEntryPanel}.
  */
 public interface ExecuteActionListener {
     
-    public void sqlQueryExecuted(ResultSet rs);
+    public void sqlQueryExecuted(List<ResultSet> rs, List<Integer> rowsAffected);
 
 }

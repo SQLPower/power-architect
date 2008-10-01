@@ -221,7 +221,6 @@ public class SQLQueryEntryPanel extends JPanel {
             }
             Connection con = conMap.get(ds);
             Statement stmt = null;
-            ResultSet rs = null;
             try {
                 stmt = con.createStatement();
                 try {
@@ -236,31 +235,41 @@ public class SQLQueryEntryPanel extends JPanel {
                 
                 stmt.setMaxRows(rowLimit);
                 boolean sqlResult = stmt.execute(queryArea.getText());
+                boolean hasNext = true;
                 
-                if (sqlResult) {
-                    rs = stmt.getResultSet();
-                    CachedRowSet rowSet = new CachedRowSet();
-                    rowSet.populate(rs);
-                    logger.debug("Result set row count is " + rowSet.size());
-                    
-                    for (ExecuteActionListener listener : executeListeners) {
-                        listener.sqlQueryExecuted(rowSet);
+                List<ResultSet> resultSets = new ArrayList<ResultSet>();
+                List<Integer> rowsAffected = new ArrayList<Integer>();
+                
+                while (hasNext) {
+                    if (sqlResult) {
+                        ResultSet rs = stmt.getResultSet();
+                        CachedRowSet rowSet = new CachedRowSet();
+                        rowSet.populate(rs);
+                        logger.debug("Result set row count is " + rowSet.size());
+                        resultSets.add(rowSet);
+                        rowsAffected.add(new Integer(rowSet.size()));
+                        rs.close();
+                    } else {
+                        rowsAffected.add(new Integer(stmt.getUpdateCount()));
+                        logger.debug("Update count is : " + stmt.getUpdateCount());
                     }
-                } else {
-                    // TODO: Send the update count to the listeners.
-                    logger.debug("Update count is : " + stmt.getUpdateCount());
+                    sqlResult = stmt.getMoreResults();
+                    hasNext = !((sqlResult == false) && (stmt.getUpdateCount() == -1));
+                }
+                
+                for (ExecuteActionListener listener : executeListeners) {
+                    List<ResultSet> newRSList = new ArrayList<ResultSet>();
+                    for (ResultSet rs : resultSets) {
+                        CachedRowSet rowSet = new CachedRowSet();
+                        rowSet.populate(rs);
+                        newRSList.add(rowSet);
+                    }
+                    listener.sqlQueryExecuted(resultSets, rowsAffected);
                 }
 
             } catch (SQLException ex) {
                 SPSUtils.showExceptionDialogNoReport(getParent(), Messages.getString("SQLQuery.failedConnectingToDB"), ex);
             } finally {
-                if (rs != null) {
-                    try {
-                        rs.close();
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
-                }
                 if (stmt != null) {
                     try {
                         stmt.close();
@@ -333,7 +342,7 @@ public class SQLQueryEntryPanel extends JPanel {
         }
 
         public void databaseRemoved(DatabaseListChangeEvent e) {
-            if (databases.getSelectedItem().equals(e.getDataSource())) {
+            if (databases.getSelectedItem() != null && databases.getSelectedItem().equals(e.getDataSource())) {
                 databases.setSelectedItem(null);
             }
             

@@ -21,13 +21,13 @@ package ca.sqlpower.architect.swingui.query;
 
 import java.awt.BorderLayout;
 import java.sql.ResultSet;
+import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTable;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
-import javax.swing.table.TableModel;
 import javax.swing.tree.TreeModel;
 
 import org.apache.log4j.Logger;
@@ -36,7 +36,6 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.swingui.table.ResultSetTableFactory;
-import ca.sqlpower.swingui.table.ResultSetTableModel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
@@ -48,27 +47,19 @@ public class QueryDialog extends JPanel {
     
     private static Logger logger = Logger.getLogger(QueryDialog.class);
     
-    /**
-     * The table showing the result set. This can only be created when we get
-     * an actual ResultSet to avoid NPEs.
-     */
-    private JTable resultSetTable;
-
-    /**
-     * The scroll pane that contains the JTable displaying the results of the
-     * SQL query.
-     */
-    private JScrollPane tableScrollPane;
-
-    /**
-     * The text area attached to the table that users can type into for filtering
-     * the table.
-     */
-    private JTextArea tableFilterTextArea;
-    
     private final DBTree dbTree;
     
     private SQLQueryEntryPanel queryEntryPanel;
+    
+    private JTabbedPane tabPane;
+    
+    /**
+     * Any results returned by SQL statement execution that does not return a table
+     * will be placed here. 
+     */
+    private JTextArea logTextArea;
+    
+    private JTabbedPane tableTabPane;
     
     /**
      * Creates and displays the window for executing SQL queries.
@@ -86,15 +77,25 @@ public class QueryDialog extends JPanel {
         queryEntryPanel = new SQLQueryEntryPanel(session, dbTree);
         queryEntryPanel.addExecuteAction(new ExecuteActionListener() {
 
-            public void sqlQueryExecuted(ResultSet rs) {
-                TableModel newModel = new ResultSetTableModel(rs);
-                if (resultSetTable == null) {
-                    resultSetTable = ResultSetTableFactory.createResultSetJTableWithSearch(rs, tableFilterTextArea.getDocument());
-                    tableScrollPane.getViewport().add(resultSetTable);
+            public void sqlQueryExecuted(List<ResultSet> resultSets, List<Integer> rowsAffected) {
+                tableTabPane.removeAll();
+                for (ResultSet rs : resultSets) {
+                    tableTabPane.add(Messages.getString("SQLQuery.result"), createResultSetTablePanel(rs));
                 }
-                resultSetTable.setModel(newModel);
-                resultSetTable.createDefaultColumnsFromModel();
-            }});
+                
+                logTextArea.setText("");
+                for (Integer i : rowsAffected) {
+                    logTextArea.append(Messages.getString("SQLQuery.rowsAffected", i.toString()));
+                    logTextArea.append("\n\n");
+                }
+            } 
+        
+        });
+        
+        tabPane = new JTabbedPane();
+        tableTabPane = new JTabbedPane();
+        logTextArea = new JTextArea();
+        
         buildUI(session);
     }
 
@@ -103,19 +104,10 @@ public class QueryDialog extends JPanel {
         JSplitPane queryPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         queryPane.add(queryEntryPanel, JSplitPane.TOP);
         
-        tableFilterTextArea = new JTextArea();
-        FormLayout tableAreaLayout = new FormLayout("pref, 10dlu, pref:grow", "pref, 10dlu, fill:max(100dlu;pref):grow");
-        DefaultFormBuilder tableAreaBuilder = new DefaultFormBuilder(tableAreaLayout);
-        tableAreaBuilder.setDefaultDialogBorder();
-        tableAreaBuilder.append("Filter");
-        tableAreaBuilder.append(tableFilterTextArea);
-        tableAreaBuilder.nextLine();
-        tableAreaBuilder.nextLine();
-        resultSetTable = null;
-        tableScrollPane = new JScrollPane();
-        tableAreaBuilder.append(tableScrollPane, 3);
+        tabPane.add(Messages.getString("SQLQuery.log"), new JScrollPane(logTextArea));
         
-        queryPane.add(tableAreaBuilder.getPanel(), JSplitPane.BOTTOM);
+        tabPane.add(Messages.getString("SQLQuery.result"), tableTabPane);
+        queryPane.add(tabPane, JSplitPane.BOTTOM);
         JSplitPane treePane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
         treePane.add(new JScrollPane(dbTree), JSplitPane.LEFT);
@@ -123,6 +115,24 @@ public class QueryDialog extends JPanel {
         
         setLayout(new BorderLayout());
         add(treePane, BorderLayout.CENTER);
+    }
+
+    /**
+     * Creates a new JPanel that displays a table of the result set.
+     */
+    private JPanel createResultSetTablePanel(ResultSet rs) {
+        JTextArea tableFilterTextArea = new JTextArea();
+        FormLayout tableAreaLayout = new FormLayout("pref, 10dlu, pref:grow", "pref, 10dlu, fill:min(pref;100dlu):grow");
+        DefaultFormBuilder tableAreaBuilder = new DefaultFormBuilder(tableAreaLayout);
+        tableAreaBuilder.setDefaultDialogBorder();
+        tableAreaBuilder.append(Messages.getString("SQLQuery.filter"));
+        tableAreaBuilder.append(new JScrollPane(tableFilterTextArea));
+        tableAreaBuilder.nextLine();
+        tableAreaBuilder.nextLine();
+        JScrollPane tableScrollPane = new JScrollPane(ResultSetTableFactory.createResultSetJTableWithSearch(rs, tableFilterTextArea.getDocument()));
+        tableAreaBuilder.append(tableScrollPane, 3);
+        
+        return tableAreaBuilder.getPanel();
     }
 
 }
