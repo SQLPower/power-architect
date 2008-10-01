@@ -488,6 +488,7 @@ public class DBTree extends JTree implements DragSourceListener {
                 newMenu.add(setAsDB);
                 
                 newMenu.add(new JMenuItem(removeDBCSAction));
+                newMenu.addSeparator();
             } else if (p.getLastPathComponent() instanceof SQLSchema){
                 //a new action is needed to maintain the schema variable
                 CompareToCurrentAction compareToCurrentAction = new CompareToCurrentAction();
@@ -497,6 +498,7 @@ public class DBTree extends JTree implements DragSourceListener {
                 
                 JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
                 newMenu.add(profile);
+                newMenu.addSeparator();
             } else if (p.getLastPathComponent() instanceof SQLCatalog) {
                 SQLCatalog catalog = (SQLCatalog)p.getLastPathComponent();
                 try {
@@ -515,14 +517,15 @@ public class DBTree extends JTree implements DragSourceListener {
                 
                 JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
                 newMenu.add(profile);
+                newMenu.addSeparator();
             } else if (p.getLastPathComponent() instanceof SQLTable) {
                 JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
                 newMenu.add(profile);
                 JMenuItem selectAllChildTables = new JMenuItem(this.selectAllChildTablesAction);
                 newMenu.add(selectAllChildTables);
+                newMenu.addSeparator();
             }
-            
-			newMenu.addSeparator();
+			
             JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
             newMenu.add(popupProperties);
 		}
