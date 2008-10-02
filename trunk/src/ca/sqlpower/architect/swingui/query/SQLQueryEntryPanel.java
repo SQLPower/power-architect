@@ -81,6 +81,8 @@ import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.SPSwingWorker;
+import ca.sqlpower.swingui.SwingWorkerRegistry;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
@@ -213,34 +215,68 @@ public class SQLQueryEntryPanel extends JPanel {
                 SPDataSource ds = (SPDataSource)e.getItem();
                 try {
                     Connection con = ds.createConnection();
-                    conMap.put(ds, con);
+                    conMap.put(ds, new ConnectionAndStatementBean(con));
                 } catch (SQLException e1) {
                     SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.failedConnectingToDBWithName", ds.getName()), e1);
                     return;
                 }
             }
             try {
-                autoCommitToggleButton.setSelected(conMap.get(e.getItem()).getAutoCommit());
+                autoCommitToggleButton.setSelected(conMap.get(e.getItem()).getConnection().getAutoCommit());
             } catch (SQLException ex) {
                 SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.failedConnectingToDB"), ex);
             }
+            stopButton.setEnabled(conMap.get(e.getItem()).getCurrentStmt() != null);
+            executeButton.setEnabled(conMap.get(e.getItem()).getCurrentStmt() == null);
         }
     }
     
     /**
-     * The action for executing and displaying a user's query.
+     * This will execute the sql statement in the sql text area.
      */
-    private final AbstractAction executeAction = new AbstractAction(Messages.getString("SQLQuery.execute")) {
-        public void actionPerformed(ActionEvent e) {
+    private class ExecuteSQLWorker extends SPSwingWorker {
+        
+        List<CachedRowSet> resultSets = new ArrayList<CachedRowSet>();
+        List<Integer> rowsAffected = new ArrayList<Integer>();
+
+        public ExecuteSQLWorker(SwingWorkerRegistry registry) {
+            super(registry);
+        }
+
+        @Override
+        public void cleanup() throws Exception {
+            Throwable e = getDoStuffException();
+            if (e != null) {
+                if (e instanceof SQLException) {
+                    SPSUtils.showExceptionDialogNoReport(getParent(), Messages.getString("SQLQuery.failedConnectingToDB"), e);
+                } else {
+                    throw new RuntimeException(e);
+                }
+            }
+            
+            for (ExecuteActionListener listener : executeListeners) {
+                List<ResultSet> newRSList = new ArrayList<ResultSet>();
+                for (CachedRowSet rs : resultSets) {
+                    newRSList.add(rs.createShared());
+                }
+                listener.sqlQueryExecuted(newRSList, rowsAffected);
+            }
+        }
+
+        @Override
+        public void doStuff() throws Exception {
             logger.debug("Starting execute action.");
             SPDataSource ds = (SPDataSource)databases.getSelectedItem();
             if (ds == null) {
                 return;
             }
-            Connection con = conMap.get(ds);
+            Connection con = conMap.get(ds).getConnection();
             Statement stmt = null;
             try {
+                executeButton.setEnabled(false);
+                stopButton.setEnabled(true);
                 stmt = con.createStatement();
+                conMap.get(ds).setCurrentStmt(stmt);
                 try {
                     rowLimitSpinner.commitEdit();
                 } catch (ParseException e1) {
@@ -252,16 +288,17 @@ public class SQLQueryEntryPanel extends JPanel {
                 logger.debug("Row limit is " + rowLimit);
                 
                 stmt.setMaxRows(rowLimit);
-                boolean sqlResult = stmt.execute(queryArea.getText());
+                String sql = queryArea.getText();
+                logger.debug("Executing statement " + sql);
+                boolean sqlResult = stmt.execute(sql);
+                logger.debug("Finished execution");
                 boolean hasNext = true;
-                
-                List<ResultSet> resultSets = new ArrayList<ResultSet>();
-                List<Integer> rowsAffected = new ArrayList<Integer>();
                 
                 while (hasNext) {
                     if (sqlResult) {
                         ResultSet rs = stmt.getResultSet();
                         CachedRowSet rowSet = new CachedRowSet();
+                        logger.debug("Populating cached row set");
                         rowSet.populate(rs);
                         logger.debug("Result set row count is " + rowSet.size());
                         resultSets.add(rowSet);
@@ -274,19 +311,7 @@ public class SQLQueryEntryPanel extends JPanel {
                     sqlResult = stmt.getMoreResults();
                     hasNext = !((sqlResult == false) && (stmt.getUpdateCount() == -1));
                 }
-                
-                for (ExecuteActionListener listener : executeListeners) {
-                    List<ResultSet> newRSList = new ArrayList<ResultSet>();
-                    for (ResultSet rs : resultSets) {
-                        CachedRowSet rowSet = new CachedRowSet();
-                        rowSet.populate(rs);
-                        newRSList.add(rowSet);
-                    }
-                    listener.sqlQueryExecuted(resultSets, rowsAffected);
-                }
-
-            } catch (SQLException ex) {
-                SPSUtils.showExceptionDialogNoReport(getParent(), Messages.getString("SQLQuery.failedConnectingToDB"), ex);
+                logger.debug("Finished Execute method");
             } finally {
                 if (stmt != null) {
                     try {
@@ -294,8 +319,38 @@ public class SQLQueryEntryPanel extends JPanel {
                     } catch (SQLException ex) {
                         ex.printStackTrace();
                     }
+                    conMap.get(ds).setCurrentStmt(null);
                 }
+                executeButton.setEnabled(true);
+                stopButton.setEnabled(false);
             }
+        }
+        
+    }
+    
+    
+    /**
+     * The worker that the execute action runs on to query the database and create the
+     * result sets.
+     */
+    private ExecuteSQLWorker sqlExecuteWorker;
+    
+    /**
+     * The action for executing and displaying a user's query.
+     */
+    private final AbstractAction executeAction = new AbstractSQLQueryAction(this, Messages.getString("SQLQuery.execute")) {
+
+        public void actionPerformed(ActionEvent e) {
+            ConnectionAndStatementBean conBean = conMap.get(databases.getSelectedItem());
+            try {
+                if (!conBean.getConnection().getAutoCommit()) {
+                    conBean.setConnectionUncommitted(true);
+                }
+            } catch (SQLException e1) {
+                SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.failedRetrievingConnection", ((SPDataSource)databases.getSelectedItem()).getName()), e1);
+            }
+            sqlExecuteWorker = new ExecuteSQLWorker(session);
+            new Thread(sqlExecuteWorker).start();
         }
     };
     
@@ -306,7 +361,7 @@ public class SQLQueryEntryPanel extends JPanel {
      * committing or rolling back. Additionally, it will allow switching of data
      * sources while keeping the commit or rollback execution sequence preserved.
      */
-    private Map<SPDataSource, Connection> conMap;
+    private Map<SPDataSource, ConnectionAndStatementBean> conMap;
     
     /**
      * The text area users can enter SQL queries to get data from the database.
@@ -412,10 +467,10 @@ public class SQLQueryEntryPanel extends JPanel {
             logger.debug("Removing database list change listener");
             session.getContext().getPlDotIni().removeDatabaseListChangeListener(dbListChangeListener);
             
-            for (Map.Entry<SPDataSource, Connection> entry : conMap.entrySet()) {
+            for (Map.Entry<SPDataSource, ConnectionAndStatementBean> entry : conMap.entrySet()) {
                 try {
-                    Connection con = entry.getValue();
-                    if (!con.getAutoCommit()) {
+                    Connection con = entry.getValue().getConnection();
+                    if (!con.getAutoCommit() && entry.getValue().isConnectionUncommitted()) {
                         int result = JOptionPane.showOptionDialog(session.getArchitectFrame(), Messages.getString("SQLQuery.commitOrRollback", entry.getKey().getName()),
                                 Messages.getString("SQLQuery.commitOrRollbackTitle"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
                                 new Object[] {Messages.getString("SQLQuery.commit"), Messages.getString("SQLQuery.rollback")}, Messages.getString("SQLQuery.commit"));
@@ -432,6 +487,17 @@ public class SQLQueryEntryPanel extends JPanel {
             }
             
         }};
+
+    /**
+     * This button will execute the sql statements in the text area.
+     */
+    private JButton executeButton;
+
+    /**
+     * This button will stop the execution of the currently executing statement
+     * on the selected data source's connection that this panel holds.
+     */
+    private JButton stopButton;
     
     /**
      * Creates a SQLQueryEntryPanel and attaches a drag and drop listener
@@ -450,20 +516,20 @@ public class SQLQueryEntryPanel extends JPanel {
         autoCommitToggleButton = new JToggleButton(new AbstractSQLQueryAction(this, Messages.getString("SQLQuery.autoCommit")) {
         
             public void actionPerformed(ActionEvent e) {
-                Connection con = conMap.get(databases.getSelectedItem());
+                Connection con = conMap.get(databases.getSelectedItem()).getConnection();
                 if (con == null) {
                     return;
                 }
                 try {
                     boolean isPressed = autoCommitToggleButton.getModel().isSelected();
-                    if (isPressed) {
+                    if (isPressed && conMap.get(databases.getSelectedItem()).isConnectionUncommitted()) {
                         int result = JOptionPane.showOptionDialog(parent, Messages.getString("SQLQuery.commitOrRollbackBeforeAutoCommit"),
                                 Messages.getString("SQLQuery.commitOrRollbackTitle"), JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
                                 new Object[] {Messages.getString("SQLQuery.commit"), Messages.getString("SQLQuery.cancel"), Messages.getString("SQLQuery.rollback")}, Messages.getString("SQLQuery.commit"));
                         if (result == JOptionPane.OK_OPTION) {
-                            con.commit();
+                            commitCurrentDB();
                         } else if (result == JOptionPane.CANCEL_OPTION) {
-                            con.rollback();
+                            rollbackCurrentDB();
                         } else {
                             ((JToggleButton)e.getSource()).setSelected(con.getAutoCommit());
                             return;
@@ -492,36 +558,14 @@ public class SQLQueryEntryPanel extends JPanel {
             }
         });
         
-        commitButton = new JButton(new AbstractSQLQueryAction(this, Messages.getString("SQLQuery.commit")){
+        commitButton = new JButton(new AbstractSQLQueryAction(this, Messages.getString("SQLQuery.commit")) {
             public void actionPerformed(ActionEvent e) {
-                Connection con = conMap.get(databases.getSelectedItem());
-                if (con == null) {
-                    return;
-                }
-                try {
-                    if (!con.getAutoCommit()) {
-                        con.commit();
-                    }
-                } catch (SQLException ex) {
-                    SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQlQuery.failedCommit"), ex);
-                }
+                commitCurrentDB();
             }});
         
         rollbackButton = new JButton(new AbstractSQLQueryAction(this, Messages.getString("SQLQuery.rollback")){
-
             public void actionPerformed(ActionEvent e) {
-                Connection con = conMap.get(databases.getSelectedItem());
-                if (con == null) {
-                    return;
-                }
-                try {
-                    if (!con.getAutoCommit()) {
-                        con.rollback();
-                    }
-                } catch (SQLException ex) {
-                    SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.failedRollback"), ex);
-                }
-                
+                rollbackCurrentDB();
             }});
         
         
@@ -540,7 +584,7 @@ public class SQLQueryEntryPanel extends JPanel {
         queryArea.getActionMap().put(REDO_SQL_EDIT, redoSQLStatementAction);
         queryArea.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() + InputEvent.SHIFT_MASK), REDO_SQL_EDIT);
         
-        conMap = new HashMap<SPDataSource, Connection>();
+        conMap = new HashMap<SPDataSource, ConnectionAndStatementBean>();
         
         databases = new JComboBox(s.getContext().getConnections().toArray());
         databases.setSelectedItem(null);
@@ -561,7 +605,28 @@ public class SQLQueryEntryPanel extends JPanel {
      */
     private void buildUI() {
         JToolBar toolbar = new JToolBar();
-        toolbar.add(executeAction);
+        executeButton = new JButton(executeAction);
+        toolbar.add(executeButton);
+        stopButton = new JButton(new AbstractSQLQueryAction(this, Messages.getString("SQLQuery.stop")) {
+            public void actionPerformed(ActionEvent arg0) {
+                ConnectionAndStatementBean conBean = conMap.get(databases.getSelectedItem());
+                if (conBean != null) {
+                    Statement stmt = conBean.getCurrentStmt();
+                    if (stmt != null) {
+                        try {
+                            logger.debug("stmt is being cancelled...supposely");
+                            stmt.cancel();
+                            if (sqlExecuteWorker != null) {
+                                sqlExecuteWorker.kill();
+                            }
+                        } catch (SQLException e) {
+                            SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.stopException", ((SPDataSource)databases.getSelectedItem()).getName()), e);
+                        }
+                    }
+                }
+            }
+        });
+        toolbar.add(stopButton);
         toolbar.add(new AbstractSQLQueryAction(this, Messages.getString("SQLQuery.clear")){
             public void actionPerformed(ActionEvent arg0) {
                 queryArea.setText("");
@@ -599,6 +664,46 @@ public class SQLQueryEntryPanel extends JPanel {
     
     public void removeExecuteAction(ExecuteActionListener l) {
         executeListeners.remove(l);
+    }
+    
+    /**
+     * If the connection to the database currently selected in the combo box is not in 
+     * auto commit mode then any changes will be committed.
+     */
+    private void commitCurrentDB() {
+        ConnectionAndStatementBean conBean = conMap.get(databases.getSelectedItem());
+        Connection con = conBean.getConnection();
+        if (con == null) {
+            return;
+        }
+        try {
+            if (!con.getAutoCommit()) {
+                con.commit();
+                conBean.setConnectionUncommitted(false);
+            }
+        } catch (SQLException ex) {
+            SPSUtils.showExceptionDialogNoReport(this, Messages.getString("SQlQuery.failedCommit"), ex);
+        }
+    }
+    
+    /**
+     * If the connection to the database currently selected in the combo box is not in 
+     * auto commit mode then any changes will be rolled back.
+     */
+    private void rollbackCurrentDB() {
+        ConnectionAndStatementBean conBean = conMap.get(databases.getSelectedItem());
+        Connection con = conBean.getConnection();
+        if (con == null) {
+            return;
+        }
+        try {
+            if (!con.getAutoCommit()) {
+                con.rollback();
+                conBean.setConnectionUncommitted(false);
+            }
+        } catch (SQLException ex) {
+            SPSUtils.showExceptionDialogNoReport(this, Messages.getString("SQLQuery.failedRollback"), ex);
+        }
     }
 
 }
