@@ -35,12 +35,12 @@ public class SQLQueryAction extends AbstractArchitectAction  {
     private final ArchitectSwingSession session;
     
     public SQLQueryAction(ArchitectSwingSession session) {
-        super(session, "SQL Query...", "A tool for executing SQL queries.");
+        super(session, Messages.getString("SQLQueryAction.name"), Messages.getString("SQLQueryAction.description"), "query");
         this.session = session;
     }
     
     public void actionPerformed(ActionEvent e) {
-        JDialog sqlQueryDialog = new JDialog(session.getArchitectFrame(), "SQL Query");
+        JDialog sqlQueryDialog = new JDialog(session.getArchitectFrame(), Messages.getString("SQLQueryAction.dialogTitle"));
         JPanel sqlQueryPanel = new QueryDialog(session);
         sqlQueryDialog.setContentPane(sqlQueryPanel);
         sqlQueryDialog.pack();
