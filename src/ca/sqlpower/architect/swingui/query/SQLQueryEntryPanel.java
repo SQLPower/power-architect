@@ -343,8 +343,10 @@ public class SQLQueryEntryPanel extends JPanel {
         public void actionPerformed(ActionEvent e) {
             ConnectionAndStatementBean conBean = conMap.get(databases.getSelectedItem());
             try {
-                if (!conBean.getConnection().getAutoCommit()) {
-                    conBean.setConnectionUncommitted(true);
+                if(conBean!= null) {
+                    if (!conBean.getConnection().getAutoCommit()) {
+                        conBean.setConnectionUncommitted(true);
+                    }
                 }
             } catch (SQLException e1) {
                 SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.failedRetrievingConnection", ((SPDataSource)databases.getSelectedItem()).getName()), e1);
@@ -534,6 +536,7 @@ public class SQLQueryEntryPanel extends JPanel {
                             ((JToggleButton)e.getSource()).setSelected(con.getAutoCommit());
                             return;
                         }
+                         
                         
                     }
                     con.setAutoCommit(isPressed);
