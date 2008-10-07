@@ -25,11 +25,13 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 
-import ca.sqlpower.architect.swingui.AboutPanel;
+import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.swingui.AboutPanel;
 import ca.sqlpower.swingui.CommonCloseAction;
 import ca.sqlpower.swingui.JDefaultButton;
 import ca.sqlpower.swingui.SPSUtils;
@@ -48,7 +50,10 @@ public class AboutAction extends AbstractArchitectAction {
 									  Messages.getString("AboutAction.dialogTitle")); //$NON-NLS-1$
 		JPanel cp = new JPanel(new BorderLayout(12,12));
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-		final AboutPanel aboutPanel = new AboutPanel();
+		
+        ImageIcon imageIcon = SPSUtils.createIcon("architect128", "Architect Logo");
+		
+		final AboutPanel aboutPanel = new AboutPanel(imageIcon, "Power*Architect", "ca/sqlpower/architect/architect.version.properties", ArchitectVersion.APP_VERSION.toString());
 		cp.add(aboutPanel, BorderLayout.CENTER);
 			
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
