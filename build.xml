@@ -343,7 +343,7 @@
 	</target>
 	
 	<!-- Compiles the application source files -->
-	<target name="compile" depends="init,copyfiles, build.sqlpower.library, copy.sqlpower.library">
+	<target name="compile" depends="init, copyfiles, build.sqlpower.library, copy.sqlpower.library">
 		<javac srcdir="${src}" destdir="${build}"
 			classpathref="compile.classpath" 
 			debug="true"/>
@@ -361,7 +361,7 @@
 	</target>
 
     <!-- copies non-source files that need to be in the architect.jar. -->
-	<target name="copyfiles" depends="init">
+	<target name="copyfiles" depends="init, architect.version.properties">
 		<mkdir dir="${build}/icons"/>
         <copy todir="${build}/icons">
 			<fileset dir="src/icons">
@@ -381,6 +381,8 @@
 			</fileset>
 		</copy>
 		
+		<copy file="${dist.dir}/architect.version.properties" todir="${build}/ca/sqlpower/architect"/>
+			
 		<!-- copies the template log4j config file into the build dir -->
 		<copy tofile="${build}/log4j.properties"
 			file="src/log4j.properties.example"/>
