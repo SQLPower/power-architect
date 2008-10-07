@@ -346,22 +346,24 @@ public class SQLScriptDialog extends JDialog {
 						logger.info("executing: " + ddlStmt.getSQLText()); //$NON-NLS-1$
 						stmt.executeUpdate(ddlStmt.getSQLText());
 						stmtsCompleted++;
-					} catch (SQLException ex) {
-						final Exception fex = ex;
-						final String fsql = ddlStmt.getSQLText();
+					} catch (final SQLException ex) {
+						final String fsql = ddlStmt.getSQLText() == null ? null : ddlStmt.getSQLText().trim();
 						logger.info("sql statement failed: " + ex.getMessage()); //$NON-NLS-1$
 						try {
 							SwingUtilities.invokeAndWait(new Runnable() {
 								public void run() {
-									JTextArea jta = new JTextArea(fsql,25,40);
+									JTextArea jta = new JTextArea(fsql);
+									jta.setOpaque(false);
 									jta.setEditable(false);
-									JScrollPane jsp = new JScrollPane(jta);
-									JLabel errorLabel = new JLabel("<html>" + Messages.getString("SQLScriptDialog.sqlStatementFailed", fex.getMessage() + "<p>") + "</html>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-									JPanel jp = new JPanel(new BorderLayout());
-									jp.add(jsp,BorderLayout.CENTER);
-									jp.add(errorLabel,BorderLayout.SOUTH);
-									int decision = JOptionPane.showConfirmDialog
-									(SQLScriptDialog.this, jp, Messages.getString("SQLScriptDialog.sqlFailure"), JOptionPane.YES_NO_OPTION); //$NON-NLS-1$
+									JPanel jp = new JPanel(new BorderLayout(0, 10));
+									jp.add(new JLabel(Messages.getString("SQLScriptDialog.sqlStatementFailed", ex.getMessage())), BorderLayout.NORTH);
+									jp.add(jta, BorderLayout.CENTER);
+									jp.add(new JLabel(Messages.getString("SQLScriptDialog.continuePrompt")), BorderLayout.SOUTH);
+									int decision = JOptionPane.showConfirmDialog(
+									        SQLScriptDialog.this,
+									        jp,
+									        Messages.getString("SQLScriptDialog.sqlFailure"), //$NON-NLS-1$
+									        JOptionPane.YES_NO_OPTION);
 									if (decision == JOptionPane.NO_OPTION) {
 										logger.info("Export cancelled by user."); //$NON-NLS-1$
 										cancelJob();
