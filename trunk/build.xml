@@ -26,6 +26,8 @@
 	     get added to the architect.jar file. -->
 	<property name="build" value="build"/>
 	
+	<property name="dist.base" value="dist"/>
+	
 	<!-- The target build directory for compiled test classes.
 		 The contents of this directory will get excluded form the architect.jar. -->
 	<property name="build.tests" value="${build}/tests"/>
@@ -179,7 +181,7 @@
 		</condition>
 
 		<echo message="Building Architect version: ${app.version}"/>
-		<property name="dist.dir" value="dist/architect-${app.version}"/>
+		<property name="dist.dir" value="${dist.base}/architect-${app.version}"/>
 		<mkdir dir="${dist.dir}"/>
 		<!-- The directory where junit HTML reports are generated.
 			 Other report files could eventually be placed here too. -->
@@ -678,7 +680,7 @@
 	</target>
 
 	<target name="dist-clean" depends="clean">
-		<delete dir="${dist.dir}" />
+		<delete dir="${dist.base}" />
 	</target>
 
 	<path id="compile.classpath">
