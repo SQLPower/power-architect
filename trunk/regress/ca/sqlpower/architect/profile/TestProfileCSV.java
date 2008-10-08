@@ -57,13 +57,14 @@ public class TestProfileCSV extends TestProfileBase {
         BufferedReader rdr = new BufferedReader(new StringReader(x));
         String line;
         assertNotNull(line = rdr.readLine());   // Header line
-        assertTrue(line.startsWith("DATABASE,CATALOG,SCHEMA"));
+        assertTrue("Actual string didn't match expected. Actual=\""+line+"\"",
+                line.startsWith("\"DATABASE\",\"CATALOG\",\"SCHEMA\""));
         
         for (int i = 0; i < 2; i++) {
             rdr.readLine();
         }
         assertNotNull(line = rdr.readLine());   // third results line, column t1_c4
-        assertTrue("Incorrect line: " + line, line.endsWith("\"32,345.7\","));
+        assertTrue("Incorrect line: " + line, line.endsWith("\"32,345.7\",\"\""));
     }
 
 }
