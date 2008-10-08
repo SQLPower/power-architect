@@ -143,7 +143,7 @@
 			        classpath="${build}"/>
 		<genVersion/>
 		<tstamp>
-			<format property="date" pattern="yyyyMMdd"/>
+			<format property="date" pattern="yyyyMMddHHmmss"/>
 		</tstamp>
 		<!-- If the nightly build property is set, then version number uses the date as the suffix 
 			 Would be REALLY nice if Ant conditions support setting multiple properties, but doesn't as of 1.7.0 -->
@@ -1354,7 +1354,7 @@
 	</target>
 	
 	<target name="copy.sqlpower.library" depends="check.sqlpower.library.dir">
-		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${lib}"/>
+		<copy file="${sqlpower.library.home}/build/sqlpower_library.jar" todir="${lib}"/>
 	</target>
 	
 	<target name="architect.version.properties" depends="init">
