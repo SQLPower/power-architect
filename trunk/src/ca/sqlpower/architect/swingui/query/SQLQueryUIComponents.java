@@ -395,13 +395,8 @@ public class SQLQueryUIComponents {
 
     private JTabbedPane tableTabPane;
     private JTextArea logTextArea;
-    
-    /**
-     * Listeners that will have it's sqlQueryExecuted method called when a successful
-     * query is run. 
-     */
-    private List<ExecuteActionListener> executeListeners;
-    
+
+
     private final ArchitectSwingSession session;
     
     /**
@@ -606,7 +601,6 @@ public class SQLQueryUIComponents {
         
         
         rowLimitSpinner = new JSpinner(new SpinnerNumberModel(1000, 0, Integer.MAX_VALUE, 1));
-        executeListeners = new ArrayList<ExecuteActionListener>();
         queryArea = new JTextArea();
         undoManager = new UndoManager();
         queryArea.getDocument().addUndoableEditListener(new UndoableEditListener() {
@@ -714,13 +708,6 @@ public class SQLQueryUIComponents {
   
     }
     
-    public void addExecuteAction(ExecuteActionListener l) {
-        executeListeners.add(l);
-    }
-    
-    public void removeExecuteAction(ExecuteActionListener l) {
-        executeListeners.remove(l);
-    }
     
     /**
      * If the connection to the database currently selected in the combo box is not in 
