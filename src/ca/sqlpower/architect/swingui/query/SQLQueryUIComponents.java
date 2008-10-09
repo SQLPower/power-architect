@@ -20,6 +20,7 @@
 package ca.sqlpower.architect.swingui.query;
 
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DropTarget;
@@ -60,6 +61,7 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 import javax.swing.event.ChangeEvent;
@@ -73,18 +75,18 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.DnDTreePathTransferable;
-import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.query.action.AbstractSQLQueryAction;
 import ca.sqlpower.sql.CachedRowSet;
+import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
+import ca.sqlpower.swingui.db.DatabaseConnectionManager;
 import ca.sqlpower.swingui.table.ResultSetTableFactory;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -395,9 +397,9 @@ public class SQLQueryUIComponents {
 
     private JTabbedPane tableTabPane;
     private JTextArea logTextArea;
-
-
-    private final ArchitectSwingSession session;
+    
+    private SwingWorkerRegistry swRegistry;
+    private final DataSourceCollection dsCollection;
     
     /**
      * The undo manager for the text area containing the SQL statement.
@@ -451,7 +453,7 @@ public class SQLQueryUIComponents {
     private AncestorListener closeListener = new AncestorListener(){
 
         public void ancestorAdded(AncestorEvent event) {
-            session.getContext().getPlDotIni().addDatabaseListChangeListener(dbListChangeListener);
+            dsCollection.addDatabaseListChangeListener(dbListChangeListener);
         }
 
         public void ancestorMoved(AncestorEvent event) {
@@ -459,13 +461,13 @@ public class SQLQueryUIComponents {
 
         public void ancestorRemoved(AncestorEvent event) {
             logger.debug("Removing database list change listener");
-            session.getContext().getPlDotIni().removeDatabaseListChangeListener(dbListChangeListener);
+            dsCollection.removeDatabaseListChangeListener(dbListChangeListener);
             
             for (Map.Entry<SPDataSource, ConnectionAndStatementBean> entry : conMap.entrySet()) {
                 try {
                     Connection con = entry.getValue().getConnection();
                     if (!con.getAutoCommit() && entry.getValue().isConnectionUncommitted()) {
-                        int result = JOptionPane.showOptionDialog(session.getArchitectFrame(), Messages.getString("SQLQuery.commitOrRollback", entry.getKey().getName()),
+                        int result = JOptionPane.showOptionDialog(queryPanel.getParent(), Messages.getString("SQLQuery.commitOrRollback", entry.getKey().getName()),
                                 Messages.getString("SQLQuery.commitOrRollbackTitle"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
                                 new Object[] {Messages.getString("SQLQuery.commit"), Messages.getString("SQLQuery.rollback")}, Messages.getString("SQLQuery.commit"));
                         if (result == JOptionPane.OK_OPTION) {
@@ -513,17 +515,24 @@ public class SQLQueryUIComponents {
      */
     private JPanel queryPanel;
     
-    public SQLQueryUIComponents(ArchitectSwingSession session, DBTree dbTree, JPanel panel) {
-        this(session, panel);
+    /**
+     * Creates a DataBaseConnectionManager so we can edit delete and add connections on the button 
+     */
+    DatabaseConnectionManager dbConnectionManager;
+    
+    public SQLQueryUIComponents(SwingWorkerRegistry s, DataSourceCollection ds, DBTree dbTree, JPanel panel) {
+        this(s, ds, panel);
         dt = new DropTarget(queryArea, new QueryDropListener(dbTree));
     }
     
-    public SQLQueryUIComponents(ArchitectSwingSession s, JPanel panel) {
+    public SQLQueryUIComponents(SwingWorkerRegistry s, DataSourceCollection ds, JPanel panel) {
         super();
         queryPanel = panel;
-        this.session = s;
+        this.swRegistry = s;
+        this.dsCollection = ds;
         tableTabPane = new JTabbedPane();
         logTextArea = new JTextArea();
+        dbConnectionManager = new DatabaseConnectionManager(ds);
         
         executeAction = new AbstractSQLQueryAction(queryPanel, Messages.getString("SQLQuery.execute")) {
 
@@ -538,7 +547,7 @@ public class SQLQueryUIComponents {
                 } catch (SQLException e1) {
                     SPSUtils.showExceptionDialogNoReport(parent, Messages.getString("SQLQuery.failedRetrievingConnection", ((SPDataSource)databaseComboBox.getSelectedItem()).getName()), e1);
                 }
-                sqlExecuteWorker = new ExecuteSQLWorker(session);
+                sqlExecuteWorker = new ExecuteSQLWorker(swRegistry);
                 new Thread(sqlExecuteWorker).start();
             }
         };
@@ -616,7 +625,7 @@ public class SQLQueryUIComponents {
         
         conMap = new HashMap<SPDataSource, ConnectionAndStatementBean>();
         
-        databaseComboBox = new JComboBox(s.getContext().getConnections().toArray());
+        databaseComboBox = new JComboBox(dsCollection.getConnections().toArray());
         databaseComboBox.setSelectedItem(null);
         databaseComboBox.addItemListener(new DatabaseItemListener(queryPanel));
         
@@ -652,8 +661,16 @@ public class SQLQueryUIComponents {
             public void actionPerformed(ActionEvent arg0) {
                 queryArea.setText("");
             }});
+         
+         dbcsManagerButton = new JButton(new AbstractAction() {
         
-         dbcsManagerButton = new JButton(new DatabaseConnectionManagerAction(session));
+            public void actionPerformed(ActionEvent e) {
+                Window w = SwingUtilities.getWindowAncestor(dbcsManagerButton);
+                dbConnectionManager.showDialog(w);
+        
+            }
+        
+        });
          dbcsManagerButton.setText(Messages.getString("SQLQuery.mangeConnections"));
          
          undoButton= new JButton (undoSQLStatementAction);
@@ -664,10 +681,10 @@ public class SQLQueryUIComponents {
     /**
      * Builds the UI of the {@link SQLQueryUIComponents}.
      */
-    public static JComponent createQueryPanel(ArchitectSwingSession session, DBTree dbTree) {
+    public static JComponent createQueryPanel(SwingWorkerRegistry swRegistry,DataSourceCollection ds, DBTree dbTree) {
         
         JPanel defaultQueryPanel = new JPanel();
-        SQLQueryUIComponents queryParts = new SQLQueryUIComponents(session, dbTree, defaultQueryPanel);
+        SQLQueryUIComponents queryParts = new SQLQueryUIComponents(swRegistry, ds, dbTree, defaultQueryPanel);
         JToolBar toolbar = new JToolBar();
         toolbar.add(queryParts.getExecuteButton());
         toolbar.add(queryParts.getStopButton());
