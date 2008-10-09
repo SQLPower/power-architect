@@ -58,7 +58,7 @@ public class QueryDialog extends JPanel {
         TreeModel model = session.getSourceDatabases().getModel();
         dbTree.setModel(model);
         
-        queryPanel = SQLQueryUIComponents.createQueryPanel(session, dbTree);
+        queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getContext().getPlDotIni(), dbTree);
         
         buildUI(session);
     }
