@@ -77,7 +77,6 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.DnDTreePathTransferable;
-import ca.sqlpower.architect.swingui.query.action.AbstractSQLQueryAction;
 import ca.sqlpower.sql.CachedRowSet;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
@@ -87,6 +86,7 @@ import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
 import ca.sqlpower.swingui.db.DatabaseConnectionManager;
+import ca.sqlpower.swingui.query.AbstractSQLQueryAction;
 import ca.sqlpower.swingui.table.ResultSetTableFactory;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
