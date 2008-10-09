@@ -114,7 +114,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			}
 			
 			final ColumnEditPanel columnEditPanel = new ColumnEditPanel(column, session);
-			panel.add(columnEditPanel, BorderLayout.CENTER);
+			panel.add(columnEditPanel.getPanel(), BorderLayout.CENTER);
 			
 			JDialog editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
 					columnEditPanel,
@@ -145,7 +145,6 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 							return Boolean.TRUE;
 						}
 					});
-			columnEditPanel.setEditDialog(editDialog);
 			panel.setOpaque(true);
 			editDialog.pack();
 			editDialog.setLocationRelativeTo(frame);
