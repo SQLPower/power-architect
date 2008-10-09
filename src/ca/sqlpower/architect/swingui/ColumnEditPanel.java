@@ -20,6 +20,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -33,7 +34,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -42,6 +42,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -59,43 +60,45 @@ import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLType;
 import ca.sqlpower.swingui.DataEntryPanel;
 
-public class ColumnEditPanel extends JPanel implements SQLObjectListener, ActionListener, DataEntryPanel {
+/**
+ * A DataEntryPanel implementation that is capable of modifying the properties
+ * of one or more columns. The user interface is slightly different in multi-column
+ * edit mode.
+ */
+public class ColumnEditPanel implements SQLObjectListener, ActionListener, DataEntryPanel {
 
     private static final Logger logger = Logger.getLogger(ColumnEditPanel.class);
 
     /**
      * The column we're editing.
      */
-    private SQLColumn column;
+    private final SQLColumn column;
+    
+    private final JPanel panel;
 
-    /**
-     * The frame of the column edit dialog.
-     */
-    private JDialog editDialog;
+    private final JLabel sourceDB;
 
-    private JLabel sourceDB;
+    private final JLabel sourceTableCol;
 
-    private JLabel sourceTableCol;
+    private final JTextField colName;
 
-    private JTextField colName;
+    private final JComboBox colType;
 
-    private JComboBox colType;
+    private final JSpinner colScale;
 
-    private JSpinner colScale;
+    private final JSpinner colPrec;
 
-    private JSpinner colPrec;
+    private final JCheckBox colNullable;
 
-    private JCheckBox colNullable;
+    private final JTextArea colRemarks;
 
-    private JTextArea colRemarks;
+    private final JTextField colDefaultValue;
 
-    private JTextField colDefaultValue;
+    private final JCheckBox colInPK;
 
-    private JCheckBox colInPK;
+    private final JCheckBox colAutoInc;
 
-    private JCheckBox colAutoInc;
-
-    private JTextField colAutoIncSequenceName;
+    private final JTextField colAutoIncSequenceName;
 
     /**
      * The prefix string that comes before the current column name in the
@@ -113,17 +116,23 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
      */
     private String seqNameSuffix;
 
-    private ArchitectSession session;
+    private final ArchitectSession session;
 
     public ColumnEditPanel(SQLColumn col, ArchitectSwingSession session) throws ArchitectException {
-        super(new BorderLayout(12, 12));
         logger.debug("ColumnEditPanel called"); //$NON-NLS-1$
-        this.session = session;
-        buildUI();
-        editColumn(col);
-    }
 
-    private void buildUI() {
+        if (session == null) {
+            throw new NullPointerException("Null session is not allowed"); //$NON-NLS-1$
+        }
+        this.session = session;
+        
+        if (col == null) {
+            throw new NullPointerException("Edit null column is not allowed"); //$NON-NLS-1$
+        }
+        this.column = col;
+        
+        panel = new JPanel();
+        
         JPanel centerBox = new JPanel();
         centerBox.setLayout(new BoxLayout(centerBox, BoxLayout.Y_AXIS));
         centerBox.add(Box.createVerticalGlue());
@@ -216,7 +225,10 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
         centerPanel.setMaximumSize(maxSize);
         centerBox.add(centerPanel);
         centerBox.add(Box.createVerticalGlue());
-        add(centerBox, BorderLayout.CENTER);
+        panel.add(centerBox, BorderLayout.CENTER);
+        
+        editColumn(col);
+
     }
 
     private JSpinner createScaleEditor() {
@@ -234,20 +246,15 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
 
     /**
      * Updates all the UI components to reflect the given column's properties.
-     * Also saves a reference to the given column so the changes made in the UI
-     * can be written back into the column.
      * <p>
-     * Normally, this should not be used. Instead, create a new ColumnEditPanel.
+     * This is just a constructor subroutine which is only called one time per
+     * instance. Once a ColumnEditPanel is constructed, it is forever tied to
+     * the column or columns it was constructed with.
      * 
      * @param col
      *            The column to edit
      */
-    void editColumn(SQLColumn col) throws ArchitectException {
-        logger.debug("Edit Column '" + col + "' is being called"); //$NON-NLS-1$ //$NON-NLS-2$
-        if (col == null) {
-            throw new NullPointerException("Edit null column is not allowed"); //$NON-NLS-1$
-        }
-        column = col;
+    private void editColumn(SQLColumn col) throws ArchitectException {
         if (col.getSourceColumn() == null) {
             sourceDB.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
             sourceTableCol.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
@@ -416,7 +423,7 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
         }
         List<String> errors = updateModel();
         if (!errors.isEmpty()) {
-            JOptionPane.showMessageDialog(this, errors.toString());
+            JOptionPane.showMessageDialog(panel, errors.toString());
             return false;
         } else {
             return true;
@@ -434,51 +441,62 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
         }
     }
 
+    /* docs inherit from interface */
     public JPanel getPanel() {
-        return this;
+        return panel;
     }
 
-    // THESE GETTERS ARE TO BE USED FOR TESTING ONLY
+    /** Only for testing. Normal client code should not need to call this. */
     public JCheckBox getColAutoInc() {
         return colAutoInc;
     }
 
+    /** Only for testing. Normal client code should not need to call this. */
     public JTextField getColDefaultValue() {
         return colDefaultValue;
     }
 
+    /** Only for testing. Normal client code should not need to call this. */
     public JCheckBox getColInPK() {
         return colInPK;
     }
 
+    /** Only for testing. Normal client code should not need to call this. */
     public JTextField getColName() {
         return colName;
     }
 
+    /** Only for testing. Normal client code should not need to call this. */
     public JCheckBox getColNullable() {
         return colNullable;
     }
 
+    /** Only for testing. Normal client code should not need to call this. */
     public JSpinner getColPrec() {
         return colPrec;
     }
 
+    /** Only for testing. Normal client code should not need to call this. */
     public JTextArea getColRemarks() {
         return colRemarks;
     }
 
+    /** Only for testing. Normal client code should not need to call this. */
     public JSpinner getColScale() {
         return colScale;
     }
 
+    /** Only for testing. Normal client code should not need to call this. */
     public JComboBox getColType() {
         return colType;
     }
 
+    /** Only for testing. Normal client code should not need to call this. */
     public JLabel getSourceDB() {
         return sourceDB;
     }
 
+    /** Only for testing. Normal client code should not need to call this. */
     public JLabel getSourceTableCol() {
         return sourceTableCol;
     }
@@ -503,8 +521,9 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
         if (removedChildren.contains(column) || removedChildren.contains(column.getParentTable())) {
             try {
                 ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-                if (editDialog != null) {
-                    editDialog.dispose();
+                Window parentWindow = SwingUtilities.getWindowAncestor(panel);
+                if (parentWindow != null) {
+                    parentWindow.dispose();
                 }
             } catch (ArchitectException ex) {
                 throw new ArchitectRuntimeException(ex);
@@ -518,16 +537,6 @@ public class ColumnEditPanel extends JPanel implements SQLObjectListener, Action
 
     public void dbStructureChanged(SQLObjectEvent e) {
 
-    }
-
-    /**
-     * For others to pass in a reference of the jframe which column edit panel
-     * resides in.
-     * 
-     * @param editDialog
-     */
-    public void setEditDialog(JDialog editDialog) {
-        this.editDialog = editDialog;
     }
 
 }
