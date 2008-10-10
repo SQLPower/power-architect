@@ -119,7 +119,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			JDialog editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
 					columnEditPanel,
 					frame,
-					 Messages.getString("EditColumnAction.columnPropertiesDialogTitle", st.getName()), //$NON-NLS-1$
+					 Messages.getString("EditColumnAction.columnPropertiesDialogTitle", column.getName()), //$NON-NLS-1$
 					 Messages.getString("EditColumnAction.okOption"), //$NON-NLS-1$
 					 new Callable<Boolean>(){
 						public Boolean call() {
