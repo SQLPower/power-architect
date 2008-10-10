@@ -32,6 +32,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.swingui.query.SQLQueryUIComponents;
 
 /**
  * This is like DBVisualizer, only not. It'll be different, I promise, trust me....

@@ -38,6 +38,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.DnDTreePathTransferable;
+import ca.sqlpower.swingui.query.SQLQueryUIComponents;
 
 /**
  * This QueryDropListener Listens to the SQLObjects being dragged onto the
