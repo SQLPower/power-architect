@@ -50,15 +50,19 @@ public class QueryDialog extends JPanel {
      */
     public QueryDialog(ArchitectSwingSession session) {
 
-        try {
-            dbTree = new DBTree(session);
-        } catch (ArchitectException e) {
-            throw new RuntimeException(e);
-        }
-        TreeModel model = session.getSourceDatabases().getModel();
-        dbTree.setModel(model);
+ /* 
+  *  TODO the createQueryPanel does not accept a DBTree anymore, this will be fixed later.
+  */
+       try {
+           dbTree = new DBTree(session);
+       } catch (ArchitectException e) {
+           throw new RuntimeException(e);
+       }
+       
+       TreeModel model = session.getSourceDatabases().getModel();
+       dbTree.setModel(model);
         
-        queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getContext().getPlDotIni(), dbTree);
+        queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getContext().getPlDotIni());
         
         buildUI(session);
     }
@@ -73,5 +77,5 @@ public class QueryDialog extends JPanel {
         setLayout(new BorderLayout());
         add(treePane, BorderLayout.CENTER);
     }
-
+    
 }

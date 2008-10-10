@@ -21,19 +21,11 @@ package ca.sqlpower.architect.swingui.query;
 
 import java.awt.Toolkit;
 import java.awt.Window;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetDragEvent;
-import java.awt.dnd.DropTargetDropEvent;
-import java.awt.dnd.DropTargetEvent;
-import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -41,7 +33,6 @@ import java.sql.Statement;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -72,11 +63,6 @@ import javax.swing.undo.UndoManager;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.architect.swingui.DnDTreePathTransferable;
 import ca.sqlpower.sql.CachedRowSet;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
@@ -118,86 +104,6 @@ public class SQLQueryUIComponents {
      */
     private static final Object REDO_SQL_EDIT = "Redo SQL Edit";
     
-    /**
-     * This QueryDropListener Listens to the SQLObjects being dragged onto the
-     * QueryTextArea from a DBTree. When an object is dragged onto the text area
-     * the object's name will be entered at the caret position.
-     */
-    private class QueryDropListener implements DropTargetListener {
-        
-        private DBTree dbTree;
-        
-        public QueryDropListener(DBTree dbtree) {
-            this.dbTree = dbtree;
-        }
-
-        public void dragEnter(DropTargetDragEvent dtde) {
-            logger.debug("we are in dragEnter");
-            
-        }
-
-        public void dragExit(DropTargetEvent dte) {
-            logger.debug("we are in dragExit");
-            
-        }
-
-        public void dragOver(DropTargetDragEvent dtde) {
-            logger.debug("we are in dragOver");
-            
-        }
-        
-        public void drop(DropTargetDropEvent dtde) {
-            DataFlavor[] flavours = dtde.getTransferable().getTransferDataFlavors();
-            DataFlavor bestFlavour = null;
-            for (int i = 0; i < flavours.length; i++) {
-                if (flavours[i] != null) {
-                    bestFlavour = flavours[i];
-                    break;
-                }
-            }
-            try {
-                ArrayList paths = (ArrayList) dtde.getTransferable().getTransferData(bestFlavour);
-                Iterator it = paths.iterator();
-                while(it.hasNext()) {
-                    Object oo = DnDTreePathTransferable.getNodeForDnDPath((SQLObject) dbTree.getModel().getRoot(), (int[])it.next());
-                    if (oo instanceof SQLTable) {
-                        SQLTable table = ((SQLTable) oo);
-                        StringBuffer buffer = new StringBuffer();
-                        if (!table.getCatalogName().equals("")) {
-                            buffer.append(table.getCatalogName());
-                            buffer.append(".");
-                        }
-                        if(!table.getSchemaName().equals("")) {
-                            buffer.append(table.getSchemaName());
-                            buffer.append(".");
-                        }
-                        buffer.append(table.getPhysicalName());
-                        queryArea.insert(buffer.toString(), queryArea.getCaretPosition());
-                    } else if (oo instanceof SQLObject) {
-                        queryArea.insert(((SQLObject) oo).getPhysicalName(), queryArea.getCaretPosition());
-                    } else {
-                        logger.error("Unknown object dropped in PlayPen: "+oo);
-                    }
-                }
-                dtde.dropComplete(true);
-            } catch (UnsupportedFlavorException e) {
-                logger.error(e);
-                dtde.rejectDrop();
-            } catch (IOException e) {
-                logger.error(e);
-                dtde.rejectDrop();
-            } catch (ArchitectException e) {
-                logger.error(e);
-                dtde.rejectDrop();
-            }
-        }
-
-        public void dropActionChanged(DropTargetDragEvent dtde) {
-            logger.debug("we are in dropActionChange");
-            
-        }
-        
-    }
     
     /**
      * A listener for item selection on a combo box containing {@link SPDataSource}s.
@@ -368,11 +274,8 @@ public class SQLQueryUIComponents {
      */
     private final JComboBox databaseComboBox;
     
-    private DropTarget dt;
-    
-    
     /**
-     * A JTextField for the user to enter the row limit of a query.
+     * A JSpinner for the user to enter the row limit of a query.
      */
     private final JSpinner rowLimitSpinner;
     
@@ -519,12 +422,7 @@ public class SQLQueryUIComponents {
      * Creates a DataBaseConnectionManager so we can edit delete and add connections on the button 
      */
     DatabaseConnectionManager dbConnectionManager;
-    
-    public SQLQueryUIComponents(SwingWorkerRegistry s, DataSourceCollection ds, DBTree dbTree, JPanel panel) {
-        this(s, ds, panel);
-        dt = new DropTarget(queryArea, new QueryDropListener(dbTree));
-    }
-    
+ 
     public SQLQueryUIComponents(SwingWorkerRegistry s, DataSourceCollection ds, JPanel panel) {
         super();
         queryPanel = panel;
@@ -681,10 +579,10 @@ public class SQLQueryUIComponents {
     /**
      * Builds the UI of the {@link SQLQueryUIComponents}.
      */
-    public static JComponent createQueryPanel(SwingWorkerRegistry swRegistry,DataSourceCollection ds, DBTree dbTree) {
+    public static JComponent createQueryPanel(SwingWorkerRegistry swRegistry,DataSourceCollection ds) {
         
         JPanel defaultQueryPanel = new JPanel();
-        SQLQueryUIComponents queryParts = new SQLQueryUIComponents(swRegistry, ds, dbTree, defaultQueryPanel);
+        SQLQueryUIComponents queryParts = new SQLQueryUIComponents(swRegistry, ds, defaultQueryPanel);
         JToolBar toolbar = new JToolBar();
         toolbar.add(queryParts.getExecuteButton());
         toolbar.add(queryParts.getStopButton());
