@@ -277,7 +277,7 @@
 			classpath="${pmd.jar}"/>
 		<property name="pmd-results" value="${reports}/pmd-ant-results.${pmd.report.format}"/>
 		<pmd shortFilenames="true" targetjdk="1.5">
-			<ruleset>basic,imports</ruleset>
+			<ruleset>basic,codesize,design,strings,imports</ruleset>
 			<formatter type="${pmd.report.format}" toFile="${pmd-results}"/>
 			<fileset dir="${src}">
 				<include name="**/*.java"/>
