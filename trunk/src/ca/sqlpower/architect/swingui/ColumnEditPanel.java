@@ -18,8 +18,8 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.Component;
+import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -28,12 +28,13 @@ import java.awt.event.FocusEvent;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -43,6 +44,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -58,7 +60,12 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLType;
+import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.swingui.DataEntryPanel;
+
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 
 /**
  * A DataEntryPanel implementation that is capable of modifying the properties
@@ -69,6 +76,8 @@ public class ColumnEditPanel implements SQLObjectListener, ActionListener, DataE
 
     private static final Logger logger = Logger.getLogger(ColumnEditPanel.class);
 
+    private static final Font TITLE_FONT = UIManager.getFont("Label.font").deriveFont(Font.BOLD, 10f);
+
     /**
      * The column we're editing.
      */
@@ -76,9 +85,17 @@ public class ColumnEditPanel implements SQLObjectListener, ActionListener, DataE
     
     private final JPanel panel;
 
-    private final JLabel sourceDB;
-
-    private final JLabel sourceTableCol;
+    /**
+     * Mapping of data entry components to the checkboxes that say whether
+     * or not the value should be applied.
+     */
+    private final Map<JComponent, JCheckBox> componentEnabledMap = new HashMap<JComponent, JCheckBox>();
+    
+    /**
+     * Label that shows where the column was reverse engineered from, or
+     * where its data comes from when building an ETL mapping.
+     */
+    private final JLabel sourceLabel;
 
     private final JTextField colName;
 
@@ -131,49 +148,75 @@ public class ColumnEditPanel implements SQLObjectListener, ActionListener, DataE
         }
         this.column = col;
         
-        panel = new JPanel();
+        FormLayout layout = new FormLayout(
+                "pref:grow, 4dlu, pref:grow",
+                "");
+        layout.setColumnGroups(new int[][] { { 1, 3 } } );
+        panel = new JPanel(layout);
+        CellConstraints cc = new CellConstraints();
         
-        JPanel centerBox = new JPanel();
-        centerBox.setLayout(new BoxLayout(centerBox, BoxLayout.Y_AXIS));
-        centerBox.add(Box.createVerticalGlue());
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new FormLayout(5, 5));
+        int row = 1;
+        layout.appendRow(new RowSpec("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.source")), cc.xyw(1, row++, 3)); //$NON-NLS-1$
+        layout.appendRow(new RowSpec("p"));
+        panel.add(sourceLabel = new JLabel(), cc.xyw(1, row++, 3));
 
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.sourceDb"))); //$NON-NLS-1$
-        centerPanel.add(sourceDB = new JLabel());
+        layout.appendRow(new RowSpec("4dlu"));
+        row++;
+        
+        layout.appendRow(new RowSpec("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.name")), cc.xyw(1, row++, 3)); //$NON-NLS-1$
+        layout.appendRow(new RowSpec("p"));
+        panel.add(colName = new JTextField(), cc.xyw(1, row++, 3));
 
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.sourceDbColumn"))); //$NON-NLS-1$
-        centerPanel.add(sourceTableCol = new JLabel());
+        layout.appendRow(new RowSpec("4dlu"));
+        row++;
 
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.name"))); //$NON-NLS-1$
-        centerPanel.add(colName = new JTextField());
-
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.type"))); //$NON-NLS-1$
-        centerPanel.add(colType = createColTypeEditor());
+        layout.appendRow(new RowSpec("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.type")), cc.xyw(1, row++, 3)); //$NON-NLS-1$
+        layout.appendRow(new RowSpec("p"));
+        panel.add(colType = createColTypeEditor(), cc.xyw(1, row++, 3));
         colType.addActionListener(this);
 
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.precision"))); //$NON-NLS-1$
-        centerPanel.add(colPrec = createPrecisionEditor());
+        layout.appendRow(new RowSpec("4dlu"));
+        row++;
 
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.scale"))); //$NON-NLS-1$
-        centerPanel.add(colScale = createScaleEditor());
+        layout.appendRow(new RowSpec("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.precision")), cc.xy(1, row)); //$NON-NLS-1$
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.scale")), cc.xy(3, row++)); //$NON-NLS-1$
 
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.inPrimaryKey"))); //$NON-NLS-1$
-        centerPanel.add(colInPK = new JCheckBox());
+        layout.appendRow(new RowSpec("p"));
+        panel.add(colPrec = createPrecisionEditor(), cc.xy(1, row));
+        panel.add(colScale = createScaleEditor(), cc.xy(3, row++));
+
+        layout.appendRow(new RowSpec("4dlu"));
+        row++;
+
+        layout.appendRow(new RowSpec("p"));
+        panel.add(colInPK = new JCheckBox(Messages.getString("ColumnEditPanel.inPrimaryKey")), cc.xyw(1, row++, 3)); //$NON-NLS-1$
         colInPK.addActionListener(this);
 
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.allowsNulls"))); //$NON-NLS-1$
-        centerPanel.add(colNullable = new JCheckBox());
+        layout.appendRow(new RowSpec("2dlu"));
+        row++;
+
+        layout.appendRow(new RowSpec("p"));
+        panel.add(colNullable = new JCheckBox(Messages.getString("ColumnEditPanel.allowsNulls")), cc.xyw(1, row++, 3)); //$NON-NLS-1$
         colNullable.addActionListener(this);
 
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.autoIncrement"))); //$NON-NLS-1$
-        centerPanel.add(colAutoInc = new JCheckBox());
+        layout.appendRow(new RowSpec("2dlu"));
+        row++;
+
+        layout.appendRow(new RowSpec("p"));
+        panel.add(colAutoInc = new JCheckBox(Messages.getString("ColumnEditPanel.autoIncrement")), cc.xyw(1, row++, 3)); //$NON-NLS-1$
         colAutoInc.addActionListener(this);
 
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.sequenceName"))); //$NON-NLS-1$
-        centerPanel.add(colAutoIncSequenceName = new JTextField());
-        centerPanel.add(new JLabel("")); //$NON-NLS-1$
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.noteOnSequences"))); //$NON-NLS-1$
+        layout.appendRow(new RowSpec("4dlu"));
+        row++;
+
+        layout.appendRow(new RowSpec("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.sequenceName")), cc.xyw(1, row++, 3)); //$NON-NLS-1$
+        layout.appendRow(new RowSpec("p"));
+        panel.add(colAutoIncSequenceName = new JTextField(), cc.xyw(1, row++, 3));
 
         // Listener to update the sequence name when the column name changes
         colName.getDocument().addDocumentListener(new DocumentListener() {
@@ -210,25 +253,33 @@ public class ColumnEditPanel implements SQLObjectListener, ActionListener, DataE
             }
         });
 
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.remarks"))); //$NON-NLS-1$
-        centerPanel.add(new JScrollPane(colRemarks = new JTextArea()));
+        layout.appendRow(new RowSpec("4dlu"));
+        row++;
+
+        layout.appendRow(new RowSpec("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.remarks")), cc.xyw(1, row++, 3)); //$NON-NLS-1$
+        layout.appendRow(new RowSpec("fill:pref:grow"));
+        panel.add(new JScrollPane(colRemarks = new JTextArea()), cc.xyw(1, row++, 3)); // TODO grow vertically
         colRemarks.setRows(5);
         colRemarks.setLineWrap(true);
         colRemarks.setWrapStyleWord(true);
-        
-        centerPanel.add(new JLabel(Messages.getString("ColumnEditPanel.defaultValue"))); //$NON-NLS-1$
-        centerPanel.add(colDefaultValue = new JTextField());
+
+        layout.appendRow(new RowSpec("4dlu"));
+        row++;
+
+        layout.appendRow(new RowSpec("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.defaultValue")), cc.xyw(1, row++, 3)); //$NON-NLS-1$
+        layout.appendRow(new RowSpec("p"));
+        panel.add(colDefaultValue = new JTextField(), cc.xyw(1, row++, 3));
         colDefaultValue.addActionListener(this);
 
-        Dimension maxSize = centerPanel.getLayout().preferredLayoutSize(centerPanel);
-        maxSize.width = Integer.MAX_VALUE;
-        centerPanel.setMaximumSize(maxSize);
-        centerBox.add(centerPanel);
-        centerBox.add(Box.createVerticalGlue());
-        panel.add(centerBox, BorderLayout.CENTER);
-        
         editColumn(col);
+    }
 
+    private Component makeTitle(String string) {
+        JLabel label = new JLabel(string);
+        label.setFont(TITLE_FONT);
+        return label;
     }
 
     private JSpinner createScaleEditor() {
@@ -255,20 +306,14 @@ public class ColumnEditPanel implements SQLObjectListener, ActionListener, DataE
      *            The column to edit
      */
     private void editColumn(SQLColumn col) throws ArchitectException {
-        if (col.getSourceColumn() == null) {
-            sourceDB.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
-            sourceTableCol.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
+        SQLColumn sourceColumn = col.getSourceColumn();
+        if (sourceColumn == null) {
+            sourceLabel.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
         } else {
-            StringBuffer sourceDBSchema = new StringBuffer();
-            SQLObject so = col.getSourceColumn().getParentTable().getParent();
-            while (so != null) {
-                sourceDBSchema.insert(0, so.getName());
-                sourceDBSchema.insert(0, "."); //$NON-NLS-1$
-                so = so.getParent();
-            }
-            sourceDB.setText(sourceDBSchema.toString().substring(1));
-            sourceTableCol.setText(col.getSourceColumn().getParentTable().getName() +
-                    "." + col.getSourceColumn().getName()); //$NON-NLS-1$
+            
+            sourceLabel.setText(
+                    DDLUtils.toQualifiedName(
+                            sourceColumn.getParentTable()) + "." + sourceColumn.getName());
         }
         colName.setText(col.getName());
         colType.setSelectedItem(SQLType.getType(col.getType()));
@@ -492,13 +537,8 @@ public class ColumnEditPanel implements SQLObjectListener, ActionListener, DataE
     }
 
     /** Only for testing. Normal client code should not need to call this. */
-    public JLabel getSourceDB() {
-        return sourceDB;
-    }
-
-    /** Only for testing. Normal client code should not need to call this. */
-    public JLabel getSourceTableCol() {
-        return sourceTableCol;
+    public JLabel getSourceLabel() {
+        return sourceLabel;
     }
 
     public boolean hasUnsavedChanges() {

@@ -88,8 +88,7 @@ public class TestColumnEditPanel extends TestCase {
 		assertEquals(col3.isAutoIncrement(), panel.getColAutoInc().getModel().isSelected());
 		assertEquals(col3.isPrimaryKey(), panel.getColInPK().getModel().isSelected());
 		assertEquals(col3.getNullable() == DatabaseMetaData.columnNullable, panel.getColNullable().getModel().isSelected());
-		assertEquals("None Specified",panel.getSourceDB().getText());
-		assertEquals("None Specified",panel.getSourceTableCol().getText());
+		assertEquals("None Specified",panel.getSourceLabel().getText());
 
         panel = new ColumnEditPanel(col2, session);
 
@@ -100,8 +99,7 @@ public class TestColumnEditPanel extends TestCase {
         assertEquals(col2.isAutoIncrement(), panel.getColAutoInc().getModel().isSelected());
         assertEquals(col2.isPrimaryKey(), panel.getColInPK().getModel().isSelected());
         assertEquals(col2.getNullable() == DatabaseMetaData.columnNullable, panel.getColNullable().getModel().isSelected());
-        assertEquals("None Specified",panel.getSourceDB().getText());
-        assertEquals("None Specified",panel.getSourceTableCol().getText());
+        assertEquals("None Specified",panel.getSourceLabel().getText());
 	}
 
 	public void testApplyChanges() {
