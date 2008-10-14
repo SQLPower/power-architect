@@ -875,7 +875,15 @@
 						<res id="Installer.image" src="../src/icons/architect.png"/>
 						<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
 						<res id="LicencePanel.licence" src="../LICENSE" />
+						<res src="RegistrySpec.xml" id="RegistrySpec.xml"/>
 					</resources>
+					<listeners>
+						<listener installer="SummaryLoggerInstallerListener"/>
+				       	<listener installer="RegistryInstallerListener"
+								  uninstaller="RegistryUninstallerListener">
+				          <os family="windows"/>
+				       </listener>
+					</listeners>
 					<panels>
 						<panel classname="HelloPanel"/>
 						<panel classname="LicencePanel"/>
@@ -908,13 +916,6 @@
 							<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 								<include name="*.ico"/>
 							</fileset>
-							<parsable targetfile="${INSTALL_PATH}/architect_file_association.reg"/>
-							<executable targetfile="regedit.exe" stage="postinstall" keep="true">
-							   <args>
-							     <arg value="\/s"/>
-							     <arg value="$INSTALL_PATH/architect_file_association.reg"/>
-						      </args>
-						   </executable>
 							<executable targetfile="regedit.exe" stage="uninstall" keep="true">
 							   <args>
 							     <arg value="\/s"/>
@@ -924,6 +925,9 @@
 						</pack>
 					</packs>
 					<native type="izpack" name="ShellLink.dll"/>
+					<native type="3rdparty" name="COIOSHelper.dll" stage="both">
+				        <os family="windows"/>
+				    </native>
 				</installation>
 				]]>
 			</config>
