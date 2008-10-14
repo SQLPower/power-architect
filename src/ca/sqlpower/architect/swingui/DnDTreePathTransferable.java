@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.tree.TreePath;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -38,31 +40,46 @@ public class DnDTreePathTransferable implements Transferable, java.io.Serializab
 
     public static final DataFlavor TREEPATH_ARRAYLIST_FLAVOR = new DataFlavor
 		(ArrayList.class, "List of selected tree paths");
-
+    
+    public static final DataFlavor TREE_OBJECT_NAMES = new DataFlavor(String[].class, "List of selected object names"); 
 	
 	protected ArrayList<int[]> data;
-
+	
+	protected String[] objectNames;
+	
     private final String userVisibleName;
 	
-	public DnDTreePathTransferable(ArrayList<int[]> data, String userVisibleName) {
+	public DnDTreePathTransferable(ArrayList<int[]> data, String userVisibleName) {  
 		this.data = data;
         this.userVisibleName = userVisibleName;
 	}
 	
+	public DnDTreePathTransferable(ArrayList<int[]> data, String userVisibleName, TreePath[] selectedObjects) {  
+	    this(data,userVisibleName);
+	    objectNames = getObjectNames(selectedObjects);
+	}
+	    
+	
 	public DataFlavor[] getTransferDataFlavors() {
-		return new DataFlavor[] { TREEPATH_ARRAYLIST_FLAVOR };
+		return new DataFlavor[] { TREEPATH_ARRAYLIST_FLAVOR, TREE_OBJECT_NAMES };
 	}
 	
 	public boolean isDataFlavorSupported(DataFlavor flavor) {
-		return (flavor.equals(TREEPATH_ARRAYLIST_FLAVOR));
+		return (flavor.equals(TREEPATH_ARRAYLIST_FLAVOR) || flavor.equals(TREE_OBJECT_NAMES));
 	}
 	
 	public Object getTransferData(DataFlavor flavor)
 		throws UnsupportedFlavorException, IOException {
-		if (flavor != TREEPATH_ARRAYLIST_FLAVOR) {
-			throw new IllegalArgumentException("Unsupported flavor "+flavor);
+	    
+		if (flavor == TREEPATH_ARRAYLIST_FLAVOR) {
+		    return data;	
 		}
-		return data;
+		else if(flavor == TREE_OBJECT_NAMES){
+		    return objectNames;
+		}
+		else{
+		    throw new IllegalArgumentException("Unsupported flavor "+flavor);
+		}
 	}
 	
 	/**
@@ -100,6 +117,7 @@ public class DnDTreePathTransferable implements Transferable, java.io.Serializab
 	        }
 	        
 	        logger.debug("Created path: " + Arrays.toString(retval));
+	        
 
 	        return retval;
 	    } catch (ArchitectException e) {
@@ -115,6 +133,18 @@ public class DnDTreePathTransferable implements Transferable, java.io.Serializab
 	    }
 	    return current;
 	}
+	
+	/**
+	 * Takes the tree paths to store the names of the SQLObjects into an ArrayList which will be used as a flavor.
+	 */
+	 private String[] getObjectNames(TreePath[] treePaths){
+	     String[] nodeNames = new String[treePaths.length];
+	     for(int i = 0; i < treePaths.length; i++){
+	         nodeNames[i]= ((SQLObject)treePaths[i].getLastPathComponent()).getName();
+	     }
+	     return nodeNames;
+	 }
+
 
 	@Override
 	public String toString() {

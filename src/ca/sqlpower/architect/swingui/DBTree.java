@@ -922,7 +922,6 @@ public class DBTree extends JTree implements DragSourceListener {
 			
 			DBTree t = (DBTree) dge.getComponent();
   			TreePath[] p = t.getSelectionPaths();
-
 			if (p ==  null || p.length == 0) {
 				// nothing to export
 				return;
@@ -947,7 +946,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				dge.getDragSource().startDrag
 					(dge,
 					 null, //DragSource.DefaultCopyNoDrop,
-					 new DnDTreePathTransferable(paths, userVisibleName.toString()),
+					 new DnDTreePathTransferable(paths, userVisibleName.toString(), t.getSelectionPaths()),
 					 t);
 			}
  		}
