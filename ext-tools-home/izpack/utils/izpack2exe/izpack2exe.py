@@ -4,7 +4,7 @@
 # IzPack - Copyright 2007, 2008 Julien Ponge, All Rights Reserved.
 #
 # http://izpack.org/
-# http://developer.berlios.de/projects/izpack/
+# http://izpack.codehaus.org/
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ def parse_options():
                       default="setup.exe",
                       help="The executable file")
     parser.add_option("--with-7z", action="store", dest="p7z",
-                      default="./7za",
+                      default="7za",
                       help="Path to the 7-Zip executable")
     parser.add_option("--with-upx", action="store", dest="upx",
                       default="upx",
