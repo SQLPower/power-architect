@@ -943,6 +943,7 @@
 	    <arg value="--file=../../../../${dist.dir}/Architect-Setup-Windows-${app.version}.jar"/>
 	    <arg value="--no-upx"/>
 	  	<arg value="--output=../../../../${dist.dir}/Architect-Setup-Windows-${app.version}.exe"/>
+	  	<arg value="--with-7z=./7za"/>
 	  </exec>
 	</target>
 	
@@ -972,6 +973,7 @@
 	    <arg value="--file=../../../../${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"/>
 	    <arg value="--no-upx"/>
 	  	<arg value="--output=../../../../${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.exe"/>
+	  	<arg value="--with-7z=./7za"/>
 	  </exec>
 	</target>
 	
