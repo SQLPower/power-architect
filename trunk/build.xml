@@ -859,6 +859,7 @@
 						<appversion>@{app.version}</appversion>
 						<url>http://www.sqlpower.ca/</url>
 						<javaversion>1.5</javaversion>
+						<pack200/>
 					</info>
 					<guiprefs height="600" resizable="yes" width="800">
 						<laf name="metouia">
