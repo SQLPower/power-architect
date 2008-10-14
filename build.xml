@@ -859,7 +859,8 @@
 						<appversion>@{app.version}</appversion>
 						<url>http://www.sqlpower.ca/</url>
 						<javaversion>1.5</javaversion>
-						<pack200/>
+						<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
+						<!-- <pack200/> -->
 					</info>
 					<guiprefs height="600" resizable="yes" width="800">
 						<laf name="metouia">
