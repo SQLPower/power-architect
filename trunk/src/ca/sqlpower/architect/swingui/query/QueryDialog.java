@@ -32,7 +32,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.swingui.query.SQLQueryFactory;
+import ca.sqlpower.swingui.query.SQLQueryUIComponents;
 
 /**
  * This is like DBVisualizer, only not. It'll be different, I promise, trust me....
@@ -63,7 +63,7 @@ public class QueryDialog extends JPanel {
        TreeModel model = session.getSourceDatabases().getModel();
        dbTree.setModel(model);
         
-        queryPanel = SQLQueryFactory.createDefaultQueryPanel(session, session.getContext().getPlDotIni());
+        queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getContext().getPlDotIni());
         
         buildUI(session);
     }
