@@ -533,7 +533,7 @@ public class ArchitectFrame extends JFrame {
         menuBar.add(connectionsMenu);
         connectionsMenu.removeAll();
         
-        final JMenu dbcsMenu = dbTree.setupDBCSMenu();
+        final JMenu dbcsMenu = session.createDataSourcesMenu();
         final JMenuItem propertiesMenu = new JMenuItem(dbTree.dbcsPropertiesAction);
         final JMenuItem removeDBCSMenu = new JMenuItem(dbTree.removeDBCSAction);
         
@@ -557,7 +557,7 @@ public class ArchitectFrame extends JFrame {
             public void menuSelected(MenuEvent e) {
                 // updates for new connections
                 connectionsMenu.remove(dbcs);
-                dbcs = dbTree.setupDBCSMenu();
+                dbcs = session.createDataSourcesMenu();
                 connectionsMenu.add(dbcs, 0);
                 
                 // enable/disable dbcs related menu items

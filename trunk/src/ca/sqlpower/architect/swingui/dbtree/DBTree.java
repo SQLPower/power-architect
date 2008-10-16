@@ -72,11 +72,12 @@ import ca.sqlpower.architect.swingui.DnDTreePathTransferable;
 import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.MultiDragTreeUI;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
-import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.architect.swingui.action.NewDataSourceAction;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
 import ca.sqlpower.swingui.SPDataSourcePanel;
+import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 
 public class DBTree extends JTree implements DragSourceListener {
@@ -86,7 +87,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected JPopupMenu popup;
 	protected JMenu dbcsMenu;
 	protected SPDataSourcePanel spDataSourcePanel;
-	protected NewDBCSAction newDBCSAction;
+	protected NewDataSourceAction newDBCSAction;
 	
 	// XXX temporarily public while we sever dbtree from rest of architect 
 	public DBCSPropertiesAction dbcsPropertiesAction;
@@ -103,16 +104,8 @@ public class DBTree extends JTree implements DragSourceListener {
     /**
      * The architect session, so we can access common objects
      */
-    private final ArchitectSwingSession session;
+    final ArchitectSwingSession session;
 
-	/**
-	 * This is set to true when the SPDataSourcePanel is editting a new
-	 * connection spec.  The dialog's "ok" and "cancel" button
-	 * handlers need to do different things for new and existing
-	 * specs.
-	 */
-	protected boolean panelHoldsNewDBCS;
-	
 	/**
      * The ActionMap key for the action that deletes the selected
      * object in this DBTree.
@@ -134,7 +127,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
 
         setConnAsTargetDB = new SetConnAsTargetDB(null);
-		newDBCSAction = new NewDBCSAction();
+		newDBCSAction = new NewDataSourceAction(session);
 		dbcsPropertiesAction = new DBCSPropertiesAction();	
 		removeDBCSAction = new RemoveDBCSAction();
 		showInPlayPenAction = new ShowInPlayPenAction();
@@ -311,7 +304,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected JPopupMenu refreshMenu(TreePath p) {
 		logger.debug("refreshMenu is being called."); //$NON-NLS-1$
 		JPopupMenu newMenu = new JPopupMenu();
-		newMenu.add(setupDBCSMenu());
+		newMenu.add(session.createDataSourcesMenu());
 		
 		newMenu.add(new DatabaseConnectionManagerAction(session));
 
@@ -490,7 +483,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			            newMenu.add(popupCompareToCurrent);
 			        }
 			    } catch (ArchitectException e) {
-			        ASUtils.showExceptionDialog(session, Messages.getString("DBTree.errorCommunicatingWithDb"), e); //$NON-NLS-1$
+			        SPSUtils.showExceptionDialogNoReport(this, Messages.getString("DBTree.errorCommunicatingWithDb"), e); //$NON-NLS-1$
 			    }
 			    
 			    JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
@@ -524,7 +517,7 @@ public class DBTree extends JTree implements DragSourceListener {
                         newMenu.add(popupCompareToCurrent);
                     }
                 } catch (ArchitectException e) {
-                    ASUtils.showExceptionDialog(session, Messages.getString("DBTree.errorCommunicatingWithDb"), e); //$NON-NLS-1$
+                    SPSUtils.showExceptionDialogNoReport(this, Messages.getString("DBTree.errorCommunicatingWithDb"), e); //$NON-NLS-1$
                 }
                 
                 JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
@@ -548,7 +541,7 @@ public class DBTree extends JTree implements DragSourceListener {
             final SQLExceptionNode node = (SQLExceptionNode) p.getLastPathComponent();
             newMenu.add(new JMenuItem(new AbstractAction(Messages.getString("DBTree.showExceptionDetails")) { //$NON-NLS-1$
                 public void actionPerformed(ActionEvent e) {
-                    ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+                    SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
                             Messages.getString("DBTree.exceptionNodeReport"), node.getException()); //$NON-NLS-1$
                 }
             }));
@@ -568,10 +561,10 @@ public class DBTree extends JTree implements DragSourceListener {
 									parent.addChild(new SQLExceptionNode(ex, Messages.getString("DBTree.exceptionDuringRetry"))); //$NON-NLS-1$
 								} catch (ArchitectException e1) {
 									logger.error("Couldn't add SQLExceptionNode to menu:", e1); //$NON-NLS-1$
-									ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+									SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
 									        Messages.getString("DBTree.failedToAddSQLExceptionNode"), e1); //$NON-NLS-1$
 								}
-                                ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+                                SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
                                         Messages.getString("DBTree.exceptionDuringRetry"), ex); //$NON-NLS-1$
                             }
                         }
@@ -632,32 +625,12 @@ public class DBTree extends JTree implements DragSourceListener {
 	}
 
 	/**
-	 * When invoked, this action adds the DBCS that was given in the
-	 * constructor to the DBTree's model.  There is normally one
-	 * AddDBCSAction associated with each item in the "Set Connection"
-	 * menu.
-	 */
-	protected class AddDBCSAction extends AbstractAction {
-		protected SPDataSource dbcs;
-
-		public AddDBCSAction(SPDataSource dbcs) {
-			super(dbcs.getName());
-			this.dbcs = dbcs;
-		}
-
-		public void actionPerformed(ActionEvent e) {
-			addSourceConnection(dbcs);
-		}
-
-	}
-
-    /**
      * Adds the given data source to the db tree as a source database
      * connection.
      * 
      * @param dbcs The data source to be added to the db tree.
      */
-	private void addSourceConnection(SPDataSource dbcs) {
+	public void addSourceConnection(SPDataSource dbcs) {
 	    SQLObject root = (SQLObject) getModel().getRoot();
 	    try {
 	        // check to see if we've already seen this one
@@ -676,7 +649,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	        }
 	    } catch (ArchitectException ex) {
 	        logger.warn("Couldn't add new database to tree", ex); //$NON-NLS-1$
-	        ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+	        SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
 	                Messages.getString("DBTree.couldNotAddNewConnection"), ex); //$NON-NLS-1$
 	    }
 	}
@@ -693,36 +666,6 @@ public class DBTree extends JTree implements DragSourceListener {
             session.getPlayPen().setDatabaseConnection(dbcs);
         }
     }
-
-	/**
-	 * When invoked, this action creates a new DBCS, sets the
-	 * panelHoldsNewDBCS flag, and pops up the propDialog to edit the
-	 * new DBCS.
-     * <p>
-     * If the database connection is created it will be added to the
-     * db tree as well as the PL.ini.
-	 */
-	protected class NewDBCSAction extends AbstractAction {
-
-		public NewDBCSAction() {
-			super(Messages.getString("DBTree.newDbcsActionName")); //$NON-NLS-1$
-		}
-
-		public void actionPerformed(ActionEvent e) {
-            final DataSourceCollection plDotIni = session.getContext().getPlDotIni();
-            final SPDataSource dataSource = new SPDataSource(plDotIni);
-            Runnable onAccept = new Runnable() {
-                public void run() {
-                    addSourceConnection(dataSource);
-                    plDotIni.addDataSource(dataSource);
-                }
-            };
-            dataSource.setDisplayName(Messages.getString("DBTree.newConnectionName")); //$NON-NLS-1$
-            ASUtils.showDbcsDialog(session.getArchitectFrame(), dataSource, onAccept);
-            
-			panelHoldsNewDBCS = true;
-		}
-	}
 
 	/**
 	 * A Swing Worker that descends a tree of SQLObjects, stopping when a
@@ -1054,22 +997,5 @@ public class DBTree extends JTree implements DragSourceListener {
                 throw new ArchitectRuntimeException(ex);
             }
         }
-    }
-    
-    /**
-     * Returns a new updated connections menu.
-     */
-    public JMenu setupDBCSMenu() {
-        dbcsMenu = new JMenu(Messages.getString("DBTree.addSourceConnectionMenuName")); //$NON-NLS-1$
-        dbcsMenu.add(new JMenuItem(new NewDBCSAction()));
-        dbcsMenu.addSeparator();
-
-        // populate
-        for (SPDataSource dbcs : session.getContext().getConnections()) {
-            dbcsMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
-        }
-        ASUtils.breakLongMenu(session.getArchitectFrame(), dbcsMenu);
-        
-        return dbcsMenu;
     }
 }
