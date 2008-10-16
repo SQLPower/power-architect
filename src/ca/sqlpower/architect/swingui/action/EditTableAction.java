@@ -33,9 +33,9 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.dbtree.DBTree;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class EditTableAction extends AbstractArchitectAction {

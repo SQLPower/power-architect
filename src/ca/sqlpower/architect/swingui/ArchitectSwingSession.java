@@ -29,6 +29,7 @@ import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.swingui.dbtree.DBTree;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SwingWorkerRegistry;

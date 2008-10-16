@@ -36,8 +36,8 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.DnDTreePathTransferable;
+import ca.sqlpower.architect.swingui.dbtree.DBTree;
 import ca.sqlpower.swingui.query.SQLQueryUIComponents;
 
 /**

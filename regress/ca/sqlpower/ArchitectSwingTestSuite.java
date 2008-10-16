@@ -26,7 +26,6 @@ import ca.sqlpower.architect.swingui.TestArchitectFrame;
 import ca.sqlpower.architect.swingui.TestAutoLayoutAction;
 import ca.sqlpower.architect.swingui.TestBasicRelationshipUI;
 import ca.sqlpower.architect.swingui.TestColumnEditPanel;
-import ca.sqlpower.architect.swingui.TestDBTree;
 import ca.sqlpower.architect.swingui.TestPlayPen;
 import ca.sqlpower.architect.swingui.TestRelationship;
 import ca.sqlpower.architect.swingui.TestSwingUIProject;
@@ -35,6 +34,7 @@ import ca.sqlpower.architect.swingui.TestTablePane;
 import ca.sqlpower.architect.swingui.action.TestCreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.TestDeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.TestEditColumnAction;
+import ca.sqlpower.architect.swingui.dbtree.TestDBTree;
 import ca.sqlpower.architect.undo.TestSQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.TestUndoManager;
 

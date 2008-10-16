@@ -21,7 +21,9 @@ package ca.sqlpower.architect;
 import java.net.URL;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -643,5 +645,57 @@ public class ArchitectUtils {
         } else {
             return type;
         }
+    }
+
+    /**
+     * Finds the nearest common ancestor of all SQLObjects passed in. For
+     * example, if a bunch of columns from the same table are passed in, this
+     * method will return that table's columns folder. If a bunch of columns
+     * from different tables in the same schema are passed in, this method
+     * returns the database, catalog, or schema the tables belong to.
+     * 
+     * @param items The items to find the common ancestor of
+     * @return
+     */
+    public static SQLObject findCommonAncestor(Collection<? extends SQLObject> items) {
+        
+        // first build up the full ancestory of one randomly chosen item
+        List<SQLObject> commonAncestors = ancestorList(items.iterator().next());
+        logger.debug("Initial ancestor list: " + commonAncestors);
+        
+        // now prune the ancestor list to the largest common prefix with each item
+        for (SQLObject item : items) {
+            List<SQLObject> itemAncestors = ancestorList(item);
+            logger.debug("       Comparing with: " + itemAncestors);
+            
+            Iterator<SQLObject> cit = commonAncestors.iterator();
+            Iterator<SQLObject> iit = itemAncestors.iterator();
+            while (cit.hasNext() && iit.hasNext()) {
+                if (cit.next() != iit.next()) {
+                    cit.remove();
+                    break;
+                }
+            }
+            
+            // remove all remaining items in the common list because they're not in common with this item
+            while (cit.hasNext()) {
+                cit.next();
+                cit.remove();
+            }
+            logger.debug("     After this prune: " + commonAncestors);
+        }
+        
+        SQLObject commonAncestor = commonAncestors.get(commonAncestors.size() - 1);
+        logger.debug("Returning: " + commonAncestor);
+        return commonAncestor;
+    }
+    
+    private static List<SQLObject> ancestorList(SQLObject so) {
+        List<SQLObject> ancestors = new LinkedList<SQLObject>();
+        while (so != null) {
+            ancestors.add(0, so);
+            so = so.getParent();
+        }
+        return ancestors;
     }
 }
