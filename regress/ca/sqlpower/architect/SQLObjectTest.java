@@ -247,5 +247,17 @@ public class SQLObjectTest extends SQLTestCase {
         assertEquals("Event fired", 1, l.getPreRemoveCount());
         assertEquals("Child not removed", 1, target.getChildren().size());
     }
+    
+    public void testClientPropertySetAndGet() {
+        target.putClientProperty(this.getClass(), "testProperty", "test me");
+        assertEquals("test me", target.getClientProperty(this.getClass(), "testProperty"));
+    }
+    
+    public void testClientPropertyFiresEvent() {
+        CountingSQLObjectListener listener = new CountingSQLObjectListener();
+        target.addSQLObjectListener(listener);
+        target.putClientProperty(this.getClass(), "testProperty", "test me");
+        assertEquals(1, listener.getChangedCount());
+    }
 
 }

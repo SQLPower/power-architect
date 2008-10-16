@@ -104,7 +104,9 @@ public class ProfileManagerImpl implements ProfileManager {
     private final List<ProfileChangeListener> profileChangeListeners = new ArrayList<ProfileChangeListener>();
 
     /**
-     * All profile results in this profile manager.
+     * All profile results in this profile manager. IMPORTANT: Do not modify this list
+     * directly. Always use {@link #addResults(List)},
+     * {@link #removeResults(List)}, and {@link #clear()}.
      */
     private final List<TableProfileResult> results = new ArrayList<TableProfileResult>();
     
@@ -177,11 +179,25 @@ public class ProfileManagerImpl implements ProfileManager {
         }
     }
     
+    /**
+     * This is the method that everything which wants to add a profile result
+     * must call in order to add the result. It takes care of setting SQLObject
+     * client properties, firing events, and actually adding the profile to the
+     * set of profile results in this profile manager.
+     */
+    private void addResults(List<TableProfileResult> newResults) {
+        results.addAll(newResults);
+        fireProfilesAdded(newResults);
+        for (TableProfileResult newResult : newResults) {
+            SQLTable table = newResult.getProfiledObject();
+            table.putClientProperty(ProfileManager.class, PROFILE_COUNT_PROPERTY, getResults(table).size());
+        }
+    }
+    
     /* docs inherited from interface */
     public TableProfileResult createProfile(SQLTable table) throws ArchitectException {
         TableProfileResult tpr = new TableProfileResult(table, getDefaultProfileSettings());
-        results.add(tpr);
-        fireProfileAdded(tpr);
+        addResults(Collections.singletonList(tpr));
         
         try {
             profileExecutor.submit(new ProfileResultCallable(tpr)).get();
@@ -203,8 +219,7 @@ public class ProfileManagerImpl implements ProfileManager {
             profiles.add(new TableProfileResult(t, getDefaultProfileSettings()));
         }
         
-        results.addAll(profiles);
-        fireProfilesAdded(profiles);
+        addResults(profiles);
         
         List<Future<TableProfileResult>> results = new ArrayList<Future<TableProfileResult>>();
         for (TableProfileResult tpr : profiles) {
@@ -223,6 +238,10 @@ public class ProfileManagerImpl implements ProfileManager {
         List<TableProfileResult> oldResults = new ArrayList<TableProfileResult>(results);
         results.clear();
         fireProfilesRemoved(oldResults);
+        for (TableProfileResult oldResult : oldResults) {
+            SQLTable table = oldResult.getProfiledObject();
+            table.putClientProperty(ProfileManager.class, PROFILE_COUNT_PROPERTY, 0);
+        }
     }
 
     /* docs inherited from interface */
@@ -246,8 +265,10 @@ public class ProfileManagerImpl implements ProfileManager {
     public boolean removeProfile(TableProfileResult victim) {
         boolean removed = results.remove(victim);
         if (removed) {
-            fireProfileRemoved(victim);
+            fireProfilesRemoved(Collections.singletonList(victim));
         }
+        SQLTable table = victim.getProfiledObject();
+        table.putClientProperty(ProfileManager.class, PROFILE_COUNT_PROPERTY, getResults(table).size());
         return removed;
     }
 
@@ -292,8 +313,7 @@ public class ProfileManagerImpl implements ProfileManager {
     public void loadResult(ProfileResult pr) {
         if (pr instanceof TableProfileResult) {
             TableProfileResult tpr = (TableProfileResult) pr;
-            results.add(tpr);
-            fireProfileAdded(tpr);
+            addResults(Collections.singletonList(tpr));
         }
         // the column results will get added to the table result by
         // the project's profile result factory class
@@ -316,17 +336,6 @@ public class ProfileManagerImpl implements ProfileManager {
     }
 
     /**
-     * Creates and fires a "profilesAdded" event for the given profile result.
-     */
-    private void fireProfileAdded(TableProfileResult tpr) {
-        if (tpr == null) throw new NullPointerException("Can't fire event for adding null profile");
-        ProfileChangeEvent e = new ProfileChangeEvent(this, tpr);
-        for (int i = profileChangeListeners.size() - 1; i >= 0; i--) {
-            profileChangeListeners.get(i).profilesAdded(e);
-        }
-    }
-
-    /**
      * Creates and fires a "profilesAdded" event for the given profile results.
      */
     private void fireProfilesAdded(List<TableProfileResult> results) {
@@ -334,17 +343,6 @@ public class ProfileManagerImpl implements ProfileManager {
         ProfileChangeEvent e = new ProfileChangeEvent(this, results);
         for (int i = profileChangeListeners.size() - 1; i >= 0; i--) {
             profileChangeListeners.get(i).profilesAdded(e);
-        }
-    }
-
-    /**
-     * Creates and fires a "profilesRemoved" event for the given profile result.
-     */
-    private void fireProfileRemoved(TableProfileResult victim) {
-        if (victim == null) throw new NullPointerException("Can't fire event for removing null profile");
-        ProfileChangeEvent e = new ProfileChangeEvent(this, victim);
-        for (int i = profileChangeListeners.size() - 1; i >= 0; i--) {
-            profileChangeListeners.get(i).profilesRemoved(e);
         }
     }
 

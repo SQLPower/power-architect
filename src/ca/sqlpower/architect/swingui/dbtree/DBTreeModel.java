@@ -42,9 +42,6 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLObjectRoot;
 import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.profile.ProfileResult;
-import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
-import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.swingui.ASUtils;
 
 public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serializable {
@@ -77,40 +74,6 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		this.root = root;
 		this.treeModelListeners = new LinkedList();
 		ArchitectUtils.listenToHierarchy(this, root);
-		
-		if (session != null) {
-		    session.getProfileManager().addProfileChangeListener(new ProfileChangeListener(){
-
-		        public void profileListChanged(ProfileChangeEvent event) {
-		            //This will not change the status of the profiles so ignore it
-		        }
-
-		        /**
-		         *  Note this will usually not be run from the event thread
-		         */
-
-		        public void profilesAdded(ProfileChangeEvent e) {
-		            for (ProfileResult pr : e.getProfileResults()) {
-		                if (logger.isDebugEnabled()) logger.debug("Removing profile "+pr); //$NON-NLS-1$
-		                SQLObjectEvent soe = new SQLObjectEvent(pr.getProfiledObject(),"profile"); //$NON-NLS-1$
-		                processSQLObjectChanged(soe);
-		            }
-		        }
-
-		        public void profilesRemoved(ProfileChangeEvent e) {
-		            for (ProfileResult pr : e.getProfileResults()) {
-		                if (logger.isDebugEnabled()) logger.debug("Removing profile "+pr); //$NON-NLS-1$
-
-		                // FIXME here's a crazy idea: if you want something to be a bound property of
-		                //       SQLTable, why not make it one?
-		                SQLObjectEvent soe = new SQLObjectEvent(pr.getProfiledObject(),"profile"); //$NON-NLS-1$
-
-		                processSQLObjectChanged(soe);
-		            }
-		        }
-
-		    });
-		}
 	}
 
 	public Object getRoot() {

@@ -41,17 +41,6 @@ public class ProfileChangeEvent extends EventObject {
     final List<ProfileResult> profileResultList;
     
     /**
-     * Creates a profile change event for the given single profile object.
-     * 
-     * @param source The profile manager that gained or lost a profile.
-     * @param pr The profile gained or lost.
-     */
-    public ProfileChangeEvent(ProfileManager source, ProfileResult pr) {
-        super(source);
-        this.profileResultList = Collections.singletonList(pr);
-    }
-    
-    /**
      * Creates a profile change event for the given list of profile objects.
      * The given list is copied, so it is safe to modify the list you pass
      * in after creating this event.
