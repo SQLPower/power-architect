@@ -68,11 +68,8 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
             if (selectedCols.size() == 0) {
                 //look for the relation ship action commands
                 session.getArchitectFrame().getEditTableAction().actionPerformed(e);
-            } else if (selectedCols.size() == 1) {
+            } else if (selectedCols.size() >= 1) {
                 session.getArchitectFrame().getEditColumnAction().actionPerformed(e);
-            } else {
-                JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.selectOnlyOneItem")); //$NON-NLS-1$
-                return;
             }
         } else if (selection.get(0) instanceof Relationship) {
             session.getArchitectFrame().getEditRelationshipAction().actionPerformed(e);
