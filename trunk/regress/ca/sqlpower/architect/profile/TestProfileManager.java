@@ -130,4 +130,23 @@ public class TestProfileManager extends TestProfileBase {
         t1Results = pm.getResults(t1);
         assertEquals(0, t1Results.size());
     }
+    
+    public void testProfilingSetsClientProperty() throws Exception {
+        //Setup already created a profile.
+        assertEquals(1, t1.getClientProperty(ProfileManager.class, ProfileManager.PROFILE_COUNT_PROPERTY));
+    }
+    
+    public void testRemovingProfileSetsClientProperty() throws Exception {
+        List<TableProfileResult> profiles = pm.getResults(t1);
+        for (TableProfileResult tpr : profiles) {
+            pm.removeProfile(tpr);
+        }
+        assertEquals(0, t1.getClientProperty(ProfileManager.class, ProfileManager.PROFILE_COUNT_PROPERTY));
+    }
+    
+    public void testProfilingTableContainerSetsClientProperty() throws Exception {
+        //Setup already created a profile.
+        assertEquals(1, t1.getClientProperty(ProfileManager.class, ProfileManager.PROFILE_COUNT_PROPERTY));
+    }
+    
 }

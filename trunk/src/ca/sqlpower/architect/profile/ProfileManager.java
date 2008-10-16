@@ -35,6 +35,12 @@ import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 public interface ProfileManager {
 
     /**
+     * A client property defined on an object to count how many profiles
+     * of the SQLObject this profile manager currently holds.
+     */
+    public String PROFILE_COUNT_PROPERTY = "profileCount";
+
+    /**
      * Returns an unmodifiable snapshot of the list of all TableProfileResults that this
      * ProfileManager keeps track of. You may get multiple ProfileResults
      * for one table since you are allowed to have multiple profiles of a
