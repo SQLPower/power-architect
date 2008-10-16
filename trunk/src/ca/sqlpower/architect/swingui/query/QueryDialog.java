@@ -20,6 +20,7 @@
 package ca.sqlpower.architect.swingui.query;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -64,19 +65,22 @@ public class QueryDialog extends JPanel {
        dbTree.setModel(model);
         
         queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getContext().getPlDotIni());
+        queryPanel.setMinimumSize(new Dimension(100,100));
         
         buildUI(session);
     }
 
     private void buildUI(ArchitectSwingSession session) {
         
-        JSplitPane treePane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        JSplitPane querySplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
-        treePane.add(new JScrollPane(dbTree), JSplitPane.LEFT);
-        treePane.add(queryPanel, JSplitPane.RIGHT);        
-        
+        querySplitPane.add(new JScrollPane(dbTree), JSplitPane.LEFT);
+        querySplitPane.add(queryPanel, JSplitPane.RIGHT);
+        querySplitPane.setDividerLocation(130);
+       
         setLayout(new BorderLayout());
-        add(treePane, BorderLayout.CENTER);
+        add(querySplitPane, BorderLayout.CENTER);
+
     }
     
 }
