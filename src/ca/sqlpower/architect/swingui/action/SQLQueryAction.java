@@ -43,7 +43,7 @@ public class SQLQueryAction extends AbstractArchitectAction  {
         JDialog sqlQueryDialog = new JDialog(session.getArchitectFrame(), Messages.getString("SQLQueryAction.dialogTitle"));
         JPanel sqlQueryPanel = new QueryDialog(session);
         sqlQueryDialog.setContentPane(sqlQueryPanel);
-        sqlQueryDialog.pack();
+        sqlQueryDialog.setSize(900,450);
         sqlQueryDialog.setVisible(true);
         
         
