@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JDialog;
+import javax.swing.JMenu;
 
 import ca.sqlpower.architect.AlwaysOKUserPrompter;
 import ca.sqlpower.architect.ArchitectException;
@@ -361,6 +362,10 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     
     public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener) {
         // do-nothing stub
+    }
+
+    public JMenu createDataSourcesMenu() {
+        return new JMenu();
     }
 
 }

@@ -39,8 +39,6 @@ import java.util.concurrent.Callable;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
@@ -348,60 +346,6 @@ public class ASUtils {
 
 	static double det(double a, double b, double c, double d) {
 		return a * d - b * c;
-	}
-
-	/**
-	 * Update a potentially-long JMenu with the nth-last items replaced by sub-menus.
-	 * If the menu seems to fit the current frame, it is unchanged.
-	 * @param frame The parent Frame or JFrame, used to compute insets and to listen for resizes
-	 * 	(neither of these is implemented at present).
-	 * @param input The JMenu.
-	 */
-	public static void breakLongMenu(final Window frame, final JMenu input) {
-
-		if ( input.getItemCount() <= 0 )
-			return;
-
-		final int windowHeight = frame.getSize().height;
-		final int totalRows = input.getItemCount();
-		final int preferredHeight = input.getItem(0).getPreferredSize().height;
-		final int FUDGE = 3; // XXX find a better way to compute this...
-
-		int rowsPerSubMenu = (windowHeight/ preferredHeight) - FUDGE;
-		if ( rowsPerSubMenu < 3 )
-			rowsPerSubMenu = 3;
-		if (totalRows <= rowsPerSubMenu) {
-			return;
-		}
-
-		JMenu parentMenu = input;
-		JMenu subMenu = new JMenu(Messages.getString("ASUtils.moreSubmenu")); //$NON-NLS-1$
-		parentMenu.add(subMenu);
-
-		while (input.getItemCount() > rowsPerSubMenu + 1) {
-			final JMenuItem item = input.getItem(rowsPerSubMenu);
-			subMenu.add(item);	// Note that this removes it from the original menu!
-
-			if (subMenu.getItemCount() >= rowsPerSubMenu &&
-				input.getItemCount() > rowsPerSubMenu + 1 ) {
-				parentMenu = subMenu;
-				subMenu = new JMenu(Messages.getString("ASUtils.moreSubmenu")); //$NON-NLS-1$
-				parentMenu.add(subMenu);
-			}
-		}
-
-
-		/** TODO: Resizing the main window does not change the height of the menu.
-		 * This is left as an exercise for the reader:
-		 * frame.addComponentListener(new ComponentAdapter() {
-		 * @Override
-		 * public void componentResized(ComponentEvent e) {
-		 * JMenu oldMenu = fileMenu;
-		 * // Loop over oldMenu, if JMenu, replace with its elements, recursively...!
-		 * ASUtils.breakLongMenu(fileMenu);
-		 * }
-		 * });
-		 */
 	}
 
     /**
