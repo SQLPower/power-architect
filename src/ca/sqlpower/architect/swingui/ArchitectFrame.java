@@ -77,6 +77,7 @@ import ca.sqlpower.architect.swingui.action.CompareDMAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.CreateTableAction;
 import ca.sqlpower.architect.swingui.action.DataMoverAction;
+import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditColumnAction;
@@ -99,6 +100,7 @@ import ca.sqlpower.architect.swingui.action.PrintAction;
 import ca.sqlpower.architect.swingui.action.ProfileAction;
 import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
 import ca.sqlpower.architect.swingui.action.RedoAction;
+import ca.sqlpower.architect.swingui.action.RemoveSourceDBAction;
 import ca.sqlpower.architect.swingui.action.ReverseRelationshipAction;
 import ca.sqlpower.architect.swingui.action.SQLQueryAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
@@ -534,8 +536,8 @@ public class ArchitectFrame extends JFrame {
         connectionsMenu.removeAll();
         
         final JMenu dbcsMenu = session.createDataSourcesMenu();
-        final JMenuItem propertiesMenu = new JMenuItem(dbTree.dbcsPropertiesAction);
-        final JMenuItem removeDBCSMenu = new JMenuItem(dbTree.removeDBCSAction);
+        final JMenuItem propertiesMenu = new JMenuItem(new DataSourcePropertiesAction(session));
+        final JMenuItem removeDBCSMenu = new JMenuItem(new RemoveSourceDBAction(dbTree));
         
         connectionsMenu.add(dbcsMenu);
         connectionsMenu.add(propertiesMenu);

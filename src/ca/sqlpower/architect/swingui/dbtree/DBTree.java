@@ -64,15 +64,16 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DnDTreePathTransferable;
 import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.MultiDragTreeUI;
+import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.action.NewDataSourceAction;
+import ca.sqlpower.architect.swingui.action.RemoveSourceDBAction;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
@@ -88,13 +89,8 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected JMenu dbcsMenu;
 	protected SPDataSourcePanel spDataSourcePanel;
 	protected NewDataSourceAction newDBCSAction;
-	
-	// XXX temporarily public while we sever dbtree from rest of architect 
-	public DBCSPropertiesAction dbcsPropertiesAction;
-
-	// XXX temporarily public while we sever dbtree from rest of architect 
-	public RemoveDBCSAction removeDBCSAction;
-	
+	private DataSourcePropertiesAction dbcsPropertiesAction;
+	private RemoveSourceDBAction removeDBCSAction;
 	protected ShowInPlayPenAction showInPlayPenAction;
 	protected Action collapseAllAction;
     protected Action expandAllAction;
@@ -128,8 +124,8 @@ public class DBTree extends JTree implements DragSourceListener {
 
         setConnAsTargetDB = new SetConnAsTargetDB(null);
 		newDBCSAction = new NewDataSourceAction(session);
-		dbcsPropertiesAction = new DBCSPropertiesAction();	
-		removeDBCSAction = new RemoveDBCSAction();
+		dbcsPropertiesAction = new DataSourcePropertiesAction(session);	
+		removeDBCSAction = new RemoveSourceDBAction(this);
 		showInPlayPenAction = new ShowInPlayPenAction();
 		collapseAllAction = new JTreeCollapseAllAction(this, Messages.getString("DBTree.collapseAllActionName"));
 		expandAllAction = new JTreeExpandAllAction(this, Messages.getString("DBTree.expandAllActionName"));
@@ -749,78 +745,6 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 	}
 
-	/**
-	 * The RemoveDBCSAction removes the currently-selected database connection from the project.
-	 */
-	protected class RemoveDBCSAction extends AbstractAction {
-
-		public RemoveDBCSAction() {
-			super(Messages.getString("DBTree.removeDbcsActionName")); //$NON-NLS-1$
-		}
-
-		public void actionPerformed(ActionEvent arg0) {
-			TreePath tp = getSelectionPath();
-			if (tp == null) {
-				JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.noItemsSelected"), Messages.getString("DBTree.noItemsSelectedDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
-				return;
-			}
-			if (! (tp.getLastPathComponent() instanceof SQLDatabase) ) {
-				JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.selectionNotADb"), Messages.getString("DBTree.selectionNotADbDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
-				return;
-			}
-			if (isTargetDatabaseNode(tp)) {
-				JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.cannotRemoveTargetDb"), Messages.getString("DBTree.cannotRemoveTargetDbDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
-				return;
-			}
-
-            // Historical note: we used to check here if there were any objects in the
-            // play pen that depend on any children of this database before agreeing
-            // to remove it. Now this is handled by a listener in the PlayPen itself.
-            
-			SQLDatabase selection = (SQLDatabase) tp.getLastPathComponent();
-			SQLObject root = (SQLObject) getModel().getRoot();
-			if (root.removeChild(selection)) {
-			    selection.disconnect();
-			} else {
-			    logger.error("root.removeChild(selection) returned false!"); //$NON-NLS-1$
-			    JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.deleteConnectionFailed"), Messages.getString("DBTree.deleteConnectionFailedDialogTitle"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-		}
-	}
-
-	/**
-	 * The DBCSPropertiesAction responds to the "Properties" item in
-	 * the popup menu.  It determines which item in the tree is
-	 * currently selected, then shows its properties
-	 * window.
-	 */
-	protected class DBCSPropertiesAction extends AbstractAction {
-		public DBCSPropertiesAction() {
-			super(Messages.getString("DBTree.dbcsPropertiesActionName")); //$NON-NLS-1$
-		}
-
-		public void actionPerformed(ActionEvent e) {
-			TreePath p = getSelectionPath();
-			if (p == null) {
-				return;
-			}
-			Object [] pathArray = p.getPath();
-			int ii = 0;
-			SQLDatabase sd = null;
-			while (ii < pathArray.length && sd == null) {
-				if (pathArray[ii] instanceof SQLDatabase) {
-					sd = (SQLDatabase) pathArray[ii];
-				}
-				ii++;
-			}
-			if (sd != null) {
-                ASUtils.showDbcsDialog(session.getArchitectFrame(), sd.getDataSource(), null);
-                logger.debug("Setting existing DBCS on panel"); //$NON-NLS-1$
-			}
-		}
-	}
-	
-	
 	//the action for clicking on "Compare to current"
 	protected class CompareToCurrentAction extends AbstractAction {
 	    public static final String SCHEMA = "SCHEMA"; //$NON-NLS-1$
