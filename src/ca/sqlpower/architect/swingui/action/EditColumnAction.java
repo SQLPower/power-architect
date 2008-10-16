@@ -18,15 +18,13 @@
  */
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
@@ -47,11 +45,8 @@ import ca.sqlpower.swingui.DataEntryPanelBuilder;
 public class EditColumnAction extends AbstractArchitectAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(EditColumnAction.class);
 
-	private final ArchitectSwingSession session;
-
 	public EditColumnAction(ArchitectSwingSession session) {
         super(session, Messages.getString("EditColumnAction.name"), Messages.getString("EditColumnAction.description"), "edit_column"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        this.session = session;
 		setEnabled(false);
         
         playpen.addSelectionListener(this);
@@ -59,49 +54,56 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-	    List<PlayPenComponent> selection = playpen.getSelectedItems();
-	    logger.debug("selections length is: " + selection.size());			 //$NON-NLS-1$
-	    if (selection.size() < 1) {
-	        JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.noColumnSelected")); //$NON-NLS-1$
-	    } else if (selection.size() > 1) {
-	        JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.multipleItemsSelected")); //$NON-NLS-1$
-	    } else if (selection.get(0) instanceof TablePane) {
-	        TablePane tp = (TablePane) selection.get(0);
-	        try {
-	            List<SQLColumn> selectedCols = tp.getSelectedItems();
-	            if (selectedCols.size() != 1) {
-	                JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.pleaseSelectOnlyOneColumn")); //$NON-NLS-1$
-	                return;
-	            }
-	            int idx = tp.getSelectedItemIndex();
-	            if (idx < 0) { // header must have been selected
-	                throw new IllegalStateException("There was one selected column but the selected item index was negative");
-	            } else {				
-	                showDialog(tp.getModel(),idx);
-	            }
-	        } catch (ArchitectException e) {
-	            JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.errorFindingSelectedColumn")); //$NON-NLS-1$
+	    List<SQLColumn> selectedCols = new ArrayList<SQLColumn>();
+	    for (PlayPenComponent ppc : playpen.getSelectedItems()) {
+	        if (ppc instanceof TablePane) {
+	            TablePane tp = (TablePane) ppc;
+	            selectedCols.addAll(tp.getSelectedItems());
 	        }
-	    } else {
-	        // One thing was selected, but it wasn't a tablepane
-	        JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.pleaseSelectColumn")); //$NON-NLS-1$
 	    }
+	        
+	    if (selectedCols.isEmpty()) {
+	        JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.noColumnSelected")); //$NON-NLS-1$
+	        return;
+	    }
+	    
+	    try {
+	        ColumnEditPanel cep = new ColumnEditPanel(selectedCols, session);
+	        String dialogTitle;
+	        if (selectedCols.size() == 1) {
+	            SQLColumn column = selectedCols.get(0);
+	            dialogTitle = Messages.getString(
+	                    "EditColumnAction.columnPropertiesDialogTitle", column.getName());
+	        } else {
+	            dialogTitle = Messages.getString("EditColumnAction.multiEditDialogTitle");
+	        }
+	        JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
+	                cep, frame, dialogTitle, Messages.getString("EditColumnAction.okOption"));
+	        d.setLocationRelativeTo(frame);
+	        d.setVisible(true);
+	        
+        } catch (ArchitectException ex) {
+            ASUtils.showExceptionDialog(session, "Failed to create column property editor", ex);
+        }
+
 	}
 	
+	// FIXME only used by InsertColumnAction
     protected void showDialog(final SQLTable st, final int colIdx) throws ArchitectException {
         showDialog(st, colIdx, false, null);
     }
 
 	
-	protected void showDialog(final SQLTable st, final int colIdx, final boolean addToTable,
-	        final TablePane tp) throws ArchitectException {
+    // FIXME only used by InsertColumnAction
+	protected void showDialog(
+	        final SQLTable st,
+	        final int colIdx,
+	        final boolean addToTable,
+	        final TablePane tp)
+	throws ArchitectException {
 				    
 		    logger.debug("Creating new column editor panel"); //$NON-NLS-1$
 		    
-			JPanel panel = new JPanel();
-			panel.setLayout(new BorderLayout(12,12));
-			panel.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-
             final SQLColumn column;
 			if (!addToTable) {
                 column = st.getColumn(colIdx);
@@ -114,7 +116,6 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			}
 			
 			final ColumnEditPanel columnEditPanel = new ColumnEditPanel(column, session);
-			panel.add(columnEditPanel.getPanel(), BorderLayout.CENTER);
 			
 			JDialog editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
 					columnEditPanel,
@@ -123,7 +124,6 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 					 Messages.getString("EditColumnAction.okOption"), //$NON-NLS-1$
 					 new Callable<Boolean>(){
 						public Boolean call() {
-						    EditColumnAction.this.putValue(SHORT_DESCRIPTION, Messages.getString("EditColumnAction.specificColumnShortDescription", columnEditPanel.getColName().getText())); //$NON-NLS-1$
 						    if (addToTable) {
 						        tp.getModel().startCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 							    try {
@@ -145,12 +145,15 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 							return Boolean.TRUE;
 						}
 					});
-			panel.setOpaque(true);
 			editDialog.pack();
 			editDialog.setLocationRelativeTo(frame);
 			editDialog.setVisible(true);
 	}
 
+	/**
+	 * Sets up the action's enabledness based on whether or not any columns
+	 * are selected.
+	 */
 	private void setupAction(List<PlayPenComponent> selectedItems) {
 		if (selectedItems.size() == 0) {
 			setEnabled(false);
@@ -189,7 +192,5 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 	public void itemDeselected(SelectionEvent e) {
 		setupAction(playpen.getSelectedItems());
 	}
-	
-	
 
 }
