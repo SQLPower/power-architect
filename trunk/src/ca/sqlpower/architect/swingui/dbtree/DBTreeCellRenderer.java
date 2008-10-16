@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.dbtree;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -36,6 +36,8 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.Column;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
+import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**

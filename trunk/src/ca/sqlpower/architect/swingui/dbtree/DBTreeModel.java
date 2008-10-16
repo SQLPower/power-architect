@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.dbtree;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +45,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
+import ca.sqlpower.architect.swingui.ASUtils;
 
 public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serializable {
 

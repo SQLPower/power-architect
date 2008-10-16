@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.dbtree;
 
 import java.sql.Types;
 import java.util.ArrayList;
@@ -37,6 +37,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 
 public class TestDBTreeModel extends TestCase {
 

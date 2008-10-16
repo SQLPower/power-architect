@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.architect.swingui.dbtree.DBTree;
 import ca.sqlpower.util.ExceptionReport;
 
 /**

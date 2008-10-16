@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.dbtree;
 
 import java.awt.Cursor;
 import java.awt.dnd.DnDConstants;
@@ -64,6 +64,13 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.DnDTreePathTransferable;
+import ca.sqlpower.architect.swingui.Messages;
+import ca.sqlpower.architect.swingui.MultiDragTreeUI;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
@@ -80,8 +87,13 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected JMenu dbcsMenu;
 	protected SPDataSourcePanel spDataSourcePanel;
 	protected NewDBCSAction newDBCSAction;
-	protected DBCSPropertiesAction dbcsPropertiesAction;
-	protected RemoveDBCSAction removeDBCSAction;
+	
+	// XXX temporarily public while we sever dbtree from rest of architect 
+	public DBCSPropertiesAction dbcsPropertiesAction;
+
+	// XXX temporarily public while we sever dbtree from rest of architect 
+	public RemoveDBCSAction removeDBCSAction;
+	
 	protected ShowInPlayPenAction showInPlayPenAction;
 	protected Action collapseAllAction;
     protected Action expandAllAction;
@@ -592,7 +604,7 @@ public class DBTree extends JTree implements DragSourceListener {
      * same as the one held by the PlayPen.  If it is, we are looking at the
      * Target Database.
      */
-	protected boolean isTargetDatabaseNode(TreePath tp) {
+	public boolean isTargetDatabaseNode(TreePath tp) {
 		if (tp == null) {
 			return false;
 		} else {
@@ -608,7 +620,7 @@ public class DBTree extends JTree implements DragSourceListener {
      * database: it will return true if <code>tp</code> ends at the target
      * database node itself.
      */
-	protected boolean isTargetDatabaseChild(TreePath tp) {
+	public boolean isTargetDatabaseChild(TreePath tp) {
 		if (tp == null) {
 			return false;
 		}
