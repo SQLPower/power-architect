@@ -66,7 +66,6 @@ import ca.sqlpower.architect.swingui.action.AddDataSourceAction;
 import ca.sqlpower.architect.swingui.action.NewDataSourceAction;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
-import ca.sqlpower.architect.swingui.dbtree.DBTree;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
 import ca.sqlpower.architect.undo.UndoManager;

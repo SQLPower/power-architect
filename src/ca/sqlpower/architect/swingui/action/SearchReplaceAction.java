@@ -23,8 +23,8 @@ import java.awt.event.ActionEvent;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.SearchReplace;
-import ca.sqlpower.architect.swingui.dbtree.DBTree;
 
 public class SearchReplaceAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(SearchReplaceAction.class);

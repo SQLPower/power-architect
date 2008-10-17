@@ -4,7 +4,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
-import ca.sqlpower.architect.swingui.dbtree.DBTree;
+import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.sql.SPDataSource;
 
 /**

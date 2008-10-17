@@ -10,8 +10,8 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.Messages;
-import ca.sqlpower.architect.swingui.dbtree.DBTree;
 
 /**
  * An action that removes the currently-selected source database connection from
