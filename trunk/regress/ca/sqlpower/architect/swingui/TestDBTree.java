@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
-package ca.sqlpower.architect.swingui.dbtree;
+package ca.sqlpower.architect.swingui;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -29,8 +29,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
-import ca.sqlpower.architect.swingui.dbtree.DBTree;
+import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 

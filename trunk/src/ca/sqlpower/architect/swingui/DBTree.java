@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
-package ca.sqlpower.architect.swingui.dbtree;
+package ca.sqlpower.architect.swingui;
 
 import java.awt.Cursor;
 import java.awt.dnd.DnDConstants;
@@ -64,16 +64,12 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.DnDTreePathTransferable;
-import ca.sqlpower.architect.swingui.Messages;
-import ca.sqlpower.architect.swingui.MultiDragTreeUI;
 import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.action.NewDataSourceAction;
 import ca.sqlpower.architect.swingui.action.RemoveSourceDBAction;
+import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
+import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
@@ -82,7 +78,7 @@ import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 
 public class DBTree extends JTree implements DragSourceListener {
-	static Logger logger = Logger.getLogger(DBTree.class);
+	private static Logger logger = Logger.getLogger(DBTree.class);
 	
 	protected DragSource ds;
 	protected JPopupMenu popup;
@@ -100,7 +96,7 @@ public class DBTree extends JTree implements DragSourceListener {
     /**
      * The architect session, so we can access common objects
      */
-    final ArchitectSwingSession session;
+    private final ArchitectSwingSession session;
 
 	/**
      * The ActionMap key for the action that deletes the selected

@@ -170,8 +170,6 @@ public class ASUtils {
      * 
      * @param parentWindow
      *            The window that owns the dialog
-     * @param session
-     *            the current session
      * @param dataSource
      *            the data source to edit (null not allowed)
      * @param onAccept

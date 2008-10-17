@@ -65,7 +65,6 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
-import ca.sqlpower.architect.swingui.dbtree.DBTree;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.SPSUtils;
 

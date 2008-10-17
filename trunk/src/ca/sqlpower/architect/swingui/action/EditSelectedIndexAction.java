@@ -44,7 +44,7 @@ import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.dbtree.DBTree;
+import ca.sqlpower.architect.swingui.DBTree;
 
 /**
  * An action that, when invoked, examines the selection in the DBTree and pops up

@@ -40,7 +40,7 @@ import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.dbtree.DBTree;
+import ca.sqlpower.architect.swingui.DBTree;
 
 
 public class ProfileAction extends AbstractArchitectAction {
