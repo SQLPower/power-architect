@@ -51,6 +51,7 @@ import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.profile.event.ProfileResultEvent;
 import ca.sqlpower.architect.profile.event.ProfileResultListener;
+import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.swingui.ProgressWatcher;
@@ -78,8 +79,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
     }
 
     /** The icon for all the rows (shared) */
-    private static ImageIcon tableIcon =
-        SPSUtils.createIcon("Table", "Table Result", ArchitectSwingSessionContext.ICON_SIZE);
+    private static ImageIcon tableIcon = DBTreeCellRenderer.tableIcon;
     
     /** The Stop Sign icon for all the rows (shared) */
     private static ImageIcon stopIcon =
