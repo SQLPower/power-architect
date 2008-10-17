@@ -79,7 +79,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
     }
 
     /** The icon for all the rows (shared) */
-    private static ImageIcon tableIcon = DBTreeCellRenderer.tableIcon;
+    private static ImageIcon tableIcon = DBTreeCellRenderer.TABLE_ICON;
     
     /** The Stop Sign icon for all the rows (shared) */
     private static ImageIcon stopIcon =

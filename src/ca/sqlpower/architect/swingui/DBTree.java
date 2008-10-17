@@ -126,7 +126,9 @@ public class DBTree extends JTree implements DragSourceListener {
 		collapseAllAction = new JTreeCollapseAllAction(this, Messages.getString("DBTree.collapseAllActionName"));
 		expandAllAction = new JTreeExpandAllAction(this, Messages.getString("DBTree.expandAllActionName"));
 		addMouseListener(new PopupListener());
-        setCellRenderer(new DBTreeCellRenderer(session));
+        DBTreeCellRenderer tcr = new DBTreeCellRenderer();
+        tcr.addIconFilter(new ProfiledTableIconFilter());
+        setCellRenderer(tcr);
         selectAllChildTablesAction = new SelectAllChildTablesAction();
 	}
 
