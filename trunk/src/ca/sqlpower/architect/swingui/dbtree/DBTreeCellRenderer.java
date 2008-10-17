@@ -51,20 +51,22 @@ import ca.sqlpower.swingui.SPSUtils;
  * @version $Id$
  */
 public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
-	public static final ImageIcon dbIcon = SPSUtils.createIcon("Database", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    
     public static final ImageIcon dbProfiledIcon = SPSUtils.createIcon("Database_profiled", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final ImageIcon targetIcon = SPSUtils.createIcon("Database_target", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final ImageIcon cataIcon = SPSUtils.createIcon("Catalog", "SQL Catalog", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final ImageIcon schemaIcon = SPSUtils.createIcon("Schema", "SQL Schema", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final ImageIcon tableIcon = SPSUtils.createIcon("Table", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon tableProfiledIcon = SPSUtils.createIcon("Table_profiled", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final ImageIcon exportedKeyIcon = SPSUtils.createIcon("ExportedKey", "Exported key", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
-    public static final ImageIcon importedKeyIcon = SPSUtils.createIcon("ImportedKey", "Imported key", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final ImageIcon ownerIcon = SPSUtils.createIcon("Owner", "Owner", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
-    public static final ImageIcon indexIcon = SPSUtils.createIcon("Index", "Index", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
-    public static final ImageIcon pkIndexIcon = SPSUtils.createIcon("Index_key", "Primary Key Index", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
-    public static final ImageIcon uniqueIndexIcon = SPSUtils.createIcon("Index_unique", "Unique Index", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
-    public static final ImageIcon columnIcon = SPSUtils.createIcon("Column", "Column", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+
+    public static final ImageIcon dbIcon = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Database16.png"));
+	public static final ImageIcon targetIcon = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Database_target16.png"));
+	public static final ImageIcon cataIcon = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Catalog16.png"));
+	public static final ImageIcon schemaIcon = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Schema16.png"));
+	public static final ImageIcon tableIcon = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Table16.png"));
+	public static final ImageIcon exportedKeyIcon = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/ExportedKey16.png"));
+    public static final ImageIcon importedKeyIcon = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/ImportedKey16.png"));
+	public static final ImageIcon ownerIcon = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Owner16.png"));
+    public static final ImageIcon indexIcon = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index16.png"));
+    public static final ImageIcon pkIndexIcon = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_key16.png"));
+    public static final ImageIcon uniqueIndexIcon = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_unique16.png"));
+    public static final ImageIcon columnIcon = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Column16.png"));
     private final ArchitectSession session;
    
     
