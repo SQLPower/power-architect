@@ -364,22 +364,14 @@
 
     <!-- copies non-source files that need to be in the architect.jar. -->
 	<target name="copyfiles" depends="init, architect.version.properties">
-		<mkdir dir="${build}/icons"/>
-        <copy todir="${build}/icons">
-			<fileset dir="src/icons">
-				<include name="*.gif"/>
-				<include name="*.png"/>
-			</fileset>
-		</copy>
-        <copy todir="${build}/icons/famfamfam">
-			<fileset dir="src/icons/famfamfam">
-				<include name="*.gif"/>
-				<include name="*.png"/>
-			</fileset>
-		</copy>
-		<copy todir="${build}/ca">
-			<fileset dir="src/ca">
-				<include name="**/*.properties"/>
+        <copy todir="${build}">
+			<fileset dir="src/">
+				<include name="**"/>
+				<exclude name="**/*.java"/>
+				<exclude name="**/*.html"/>
+				<exclude name="**/*.class"/>
+				<exclude name="**/*.example"/>
+				<exclude name="**/Makefile"/>
 			</fileset>
 		</copy>
 		
