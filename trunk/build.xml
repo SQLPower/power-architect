@@ -382,7 +382,7 @@
 			file="src/log4j.properties.example"/>
     </target>
 
-	<!-- This target is used to make a architect library jar to embed
+	<!-- This target is used to make an architect library jar to embed
 	in other applications -->
 	<target name="library.jar" depends="compile">
 		<jar jarfile="${build}/architect_lib.jar" basedir="${build}"
@@ -393,7 +393,16 @@
 						ca/sqlpower/architect/profile/**/*.class">
 		</jar>
 	</target>
-	
+
+	<!-- This target is used to make a dbtree library jar to embed
+	in other applications (the dbtree library depends on the architect library) -->
+	<target name="dbtree_library.jar" depends="library.jar">
+		<!-- TODO a manifest with author, version, and license info in it -->
+		<jar jarfile="${build}/architect_dbtree_lib.jar" basedir="${build}"
+			includes="ca/sqlpower/architect/swingui/dbtree/**">
+		</jar>
+	</target>
+
 	<!-- DOCUMENTATION
 		There are THREE main documentation targets, all built from the
 		docbook XML file docs/PowerArchitectUsersGuide:
