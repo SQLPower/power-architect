@@ -114,7 +114,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	public DBTree(ArchitectSwingSession session) throws ArchitectException {
         this.session = session;
-        setModel(new DBTreeModel(session));
+        setModel(new DBTreeModel(session.getRootObject()));
 		setUI(new MultiDragTreeUI());
 		setRootVisible(false);
 		setShowsRootHandles(true);
