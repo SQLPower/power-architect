@@ -23,7 +23,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 
 import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.tree.TreeModel;
@@ -38,7 +39,7 @@ import ca.sqlpower.swingui.query.SQLQueryUIComponents;
 /**
  * This is like DBVisualizer, only not. It'll be different, I promise, trust me....
  */
-public class QueryDialog extends JPanel {
+public class QueryDialog extends JDialog {
     
     private static Logger logger = Logger.getLogger(QueryDialog.class);
     
@@ -50,11 +51,10 @@ public class QueryDialog extends JPanel {
     /**
      * Creates and displays the window for executing SQL queries.
      */
-    public QueryDialog(ArchitectSwingSession session) {
-
- /* 
-  *  TODO the createQueryPanel does not accept a DBTree anymore, this will be fixed later.
-  */
+    public QueryDialog(ArchitectSwingSession session, JFrame sessionframe, String title) {
+       super(sessionframe, title);
+       setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+       setSize(900,450);
        try {
            dbTree = new DBTree(session);
        } catch (ArchitectException e) {
@@ -64,7 +64,7 @@ public class QueryDialog extends JPanel {
        TreeModel model = session.getSourceDatabases().getModel();
        dbTree.setModel(model);
         
-        queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getContext().getPlDotIni());
+        queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getContext().getPlDotIni(),this);
         queryPanel.setMinimumSize(new Dimension(100,100));
         
         buildUI(session);

@@ -22,7 +22,6 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.event.ActionEvent;
 
 import javax.swing.JDialog;
-import javax.swing.JPanel;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.query.QueryDialog;
@@ -40,10 +39,7 @@ public class SQLQueryAction extends AbstractArchitectAction  {
     }
     
     public void actionPerformed(ActionEvent e) {
-        JDialog sqlQueryDialog = new JDialog(session.getArchitectFrame(), Messages.getString("SQLQueryAction.dialogTitle"));
-        JPanel sqlQueryPanel = new QueryDialog(session);
-        sqlQueryDialog.setContentPane(sqlQueryPanel);
-        sqlQueryDialog.setSize(900,450);
+        JDialog sqlQueryDialog = new QueryDialog(session, session.getArchitectFrame(), Messages.getString("SQLQueryAction.dialogTitle"));
         sqlQueryDialog.setVisible(true);
         
         
