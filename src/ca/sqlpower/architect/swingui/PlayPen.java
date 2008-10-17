@@ -482,8 +482,6 @@ public class PlayPen extends JPanel
 		newdb.setPlayPenDatabase(true);
 
 		SPDataSource dbcs = new SPDataSource(session.getContext().getPlDotIni());
-        dbcs.setName(Messages.getString("PlayPen.notConfiguredDbcsName")); //$NON-NLS-1$
-        dbcs.setDisplayName(Messages.getString("PlayPen.notConfiguredDbcsName")); //$NON-NLS-1$
         newdb.setDataSource(dbcs);
 
 		try {

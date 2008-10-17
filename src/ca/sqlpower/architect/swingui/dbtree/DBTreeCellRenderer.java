@@ -38,7 +38,6 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.architect.swingui.Messages;
 
 /**
  * The DBTreeCellRenderer renders nodes of a JTree which are of
@@ -83,7 +82,6 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 			SQLDatabase db = (SQLDatabase) value;
 			if (db.isPlayPenDatabase()) {
 				setIcon(TARGET_DB_ICON);
-                setText(Messages.getString("DBTreeCellRenderer.playpenNodeText")); //$NON-NLS-1$
 			} else {
 				setIcon(DB_ICON);
 			}
