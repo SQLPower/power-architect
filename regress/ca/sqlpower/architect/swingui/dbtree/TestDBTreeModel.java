@@ -100,7 +100,8 @@ public class TestDBTreeModel extends TestCase {
     private DBTreeModel tm;
 
     protected void setUp() throws Exception {
-        tm = new DBTreeModel(new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "TestSession"));
+        ArchitectSessionImpl session = new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "TestSession");
+        tm = new DBTreeModel(session.getRootObject());
         tm.setTestMode(true);
 	}
 	

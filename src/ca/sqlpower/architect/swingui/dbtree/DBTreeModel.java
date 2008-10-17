@@ -34,7 +34,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLObject;
@@ -42,7 +41,7 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLObjectRoot;
 import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.swingui.SPSUtils;
 
 public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serializable {
 
@@ -57,10 +56,6 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
     
 	protected SQLObject root;
 
-	public DBTreeModel(ArchitectSession session) throws ArchitectException {
-	    this(session,session.getRootObject());
-	}
-	
 	/**
 	 * Creates a tree model with all of the SQLDatabase objects in the
 	 * given session's root object in its root list of databases.
@@ -70,7 +65,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	 * root object associated with the given session, but it normally
 	 * will be.
 	 */
-	public DBTreeModel(ArchitectSession session, SQLObjectRoot root) throws ArchitectException {
+	public DBTreeModel(SQLObjectRoot root) throws ArchitectException {
 		this.root = root;
 		this.treeModelListeners = new LinkedList();
 		ArchitectUtils.listenToHierarchy(this, root);
@@ -298,7 +293,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			parent.addChild(excNode);
 		} catch (ArchitectException e) {
 			logger.error("Couldn't add SQLExceptionNode \""+excNode.getName()+"\" to tree model:", e); //$NON-NLS-1$ //$NON-NLS-2$
-			ASUtils.showExceptionDialogNoReport("Failed to add SQLExceptionNode to tree model.", e); //$NON-NLS-1$
+			SPSUtils.showExceptionDialogNoReport("Failed to add SQLExceptionNode to tree model.", e); //$NON-NLS-1$
 		}
 		return excNode;
 	}
