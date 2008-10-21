@@ -29,11 +29,11 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
-import ca.sqlpower.architect.swingui.DnDTreePathTransferable;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
+import ca.sqlpower.architect.swingui.dbtree.DnDTreePathTransferable;
 
 public class DnDOLAPTransferable implements Transferable, java.io.Serializable {
     

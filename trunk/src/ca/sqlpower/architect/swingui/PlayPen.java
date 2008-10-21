@@ -117,6 +117,7 @@ import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.action.CancelAction;
+import ca.sqlpower.architect.swingui.dbtree.DnDTreePathTransferable;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
