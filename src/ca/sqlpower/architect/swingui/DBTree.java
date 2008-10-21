@@ -70,6 +70,7 @@ import ca.sqlpower.architect.swingui.action.NewDataSourceAction;
 import ca.sqlpower.architect.swingui.action.RemoveSourceDBAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
+import ca.sqlpower.architect.swingui.dbtree.DnDTreePathTransferable;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
