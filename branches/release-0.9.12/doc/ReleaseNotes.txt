@@ -4,11 +4,34 @@ Power*Architect Release Notes
 0.9.12
 
  New Features:
-  * Added support for FK "on delete" and "on update" actions in all supported
-    database platforms
-
+  * Added support for ON DELETE and ON UPDATE actions in all supported
+    database platforms, both forward and reverse engineering
+  * Introduced specific support for SQL Server 2000 vs. SQL Server 2005 for forward
+    engineering, because they support different ON DELETE and ON UPDATE actions
+  * Added a new Russian translation 
+  * The Korean translation is now more complete
+  * Added a navigation window to help when working with large playpens
+    (Window->Playpen Navigator)
+  * Table colours, line, and corner style changes can now be applied to multiple
+    tables at once
+  * Added support for modeling OLAP schemas: Cubes, Measures, Dimensions, Hierarchies,
+    and Levels. OLAP schemas can be exported in Mondrian's XML schema definition
+    format.
+  * The remarks field in the column properties dialog has been enlarged to make
+    model documentation easier.
+  
  Bug Fixes:
   * It is now possible to delete indexes from the DB Tree view
+  * When dragging a table left or up past the edge of a model, this operation
+    can now be undone in one step (formerly, it was one undo step per table in
+    the playpen)
+  * It is now possible to undo and redo table colour, line, and corner style changes
+  * When forward engineering, the reported "statements attempted" vs "statements
+    successfully executed" was reported in reverse. This has been fixed.
+  * Improved formatting and indentation for generated DDL scripts (all platforms)
+  * Improved DDL Warning/QuickFix interface
+  * Fixed several problems related to dragging columns in and out of a self-referencing
+    table's primary key.
 
 
 0.9.11
