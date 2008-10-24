@@ -48,8 +48,6 @@ import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataEvent;
@@ -216,12 +214,6 @@ public class CompareDMPanel extends JPanel {
 		/** The group for the source/target type (playpen, file, or database) */
 		private ButtonGroup buttonGroup = new ButtonGroup();
 
-		/**
-		 * The label for the playpen radio button. We save a reference to it because
-		 * it needs to be updated when the project's filename changes.
-		 */
-		private final JLabel playPenName = new JLabel();
-		
 		private JRadioButton playPenRadio;
 
 		private JRadioButton physicalRadio;
@@ -661,16 +653,6 @@ public class CompareDMPanel extends JPanel {
 		}
 
 		/**
-		 * Updates the playpen name label to reflect the session's current name,
-		 * which changes when the user saves their project under a different filename.
-		 */
-		void updatePlayPenNameLabel() {
-		    String newPlaypenName = Messages.getString("CompareDMPanel.currentProject", session.getName());
-            playPenName.setText(newPlaypenName);  //$NON-NLS-1$
-            logger.debug("Updated playpen name to " + newPlaypenName);  //$NON-NLS-1$
-		}
-		
-		/**
 		 * Creates the GUI components associated with this object, and appends
 		 * them to the given builder.
 		 */
@@ -775,11 +757,9 @@ public class CompareDMPanel extends JPanel {
 				physicalRadio.doClick();
 			}
 
-			updatePlayPenNameLabel();
-			
 			// now give all our shiny new components to the builder
 			builder.append(playPenRadio);
-			builder.append(playPenName, 7);
+			builder.append(Messages.getString("CompareDMPanel.currentProject", session.getName())); //$NON-NLS-1$ //$NON-NLS-2$
 			builder.nextLine();
 
 			builder.append(""); // takes up blank space //$NON-NLS-1$
@@ -969,7 +949,6 @@ public class CompareDMPanel extends JPanel {
         this.parentDialog = ownerDialog;
 		buildUI(target.new SchemaPopulator(session),target.new CatalogPopulator(session),
 		        source.new SchemaPopulator(session),source.new CatalogPopulator(session));
-		addAncestorListener(playpenNameRefreshHandler);
 	}
 	
 	
@@ -1101,21 +1080,7 @@ public class CompareDMPanel extends JPanel {
 		}
 	}
 
-	/**
-	 * Updates the playpen name in the source and target sections whenever this
-	 * panel is shown.
-	 */
-	private AncestorListener playpenNameRefreshHandler = new AncestorListener() {
 
-        public void ancestorAdded(AncestorEvent event) {
-            source.updatePlayPenNameLabel();
-            target.updatePlayPenNameLabel();
-        }
-
-        public void ancestorMoved(AncestorEvent event) { /* don't care */ }
-        public void ancestorRemoved(AncestorEvent event) { /* don't care */ }
-	};
-	
 	/**
 	 * Handles disabling and enabling the "DDL Type" dropdown box and 
      * the no-change suppression checkbox.
@@ -1228,9 +1193,7 @@ public class CompareDMPanel extends JPanel {
 			};
 
 			new Thread(compareWorker).start();
-			ProgressWatcher pw = new ProgressWatcher(progressBar, sourceComp, statusLabel);
-			pw.setHideLabelWhenFinished(true);
-			pw.start();
+			ProgressWatcher.watchProgress(progressBar,sourceComp);
 		}
 		
 		private void reenableGUIComponents() {

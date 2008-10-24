@@ -22,10 +22,10 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.text.Format;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import au.com.bytecode.opencsv.CSVWriter;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
@@ -34,6 +34,8 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.swingui.table.DateTableCellRenderer;
 import ca.sqlpower.swingui.table.DecimalTableCellRenderer;
 import ca.sqlpower.swingui.table.PercentTableCellRenderer;
+
+import com.darwinsys.csv.CSVExport;
 
 public class ProfileCSVFormat implements ProfileFormat {
 
@@ -46,13 +48,8 @@ public class ProfileCSVFormat implements ProfileFormat {
 
         // Print a header
         ProfileColumn[] columns = ProfileColumn.values();
-        String[] columnNames = new String[columns.length];
-        for (int i = 0; i < columns.length; i++) {
-            columnNames[i] = columns[i].toString();
-        }
-        CSVWriter csvWriter = new CSVWriter(out);
-        csvWriter.writeNext(columnNames);
-        
+        out.println(CSVExport.toString(Arrays.asList(columns)));
+
         Format dateFormat = new DateTableCellRenderer().getFormat();
         Format decFormat =  new DecimalTableCellRenderer().getFormat();
         Format pctFormat =  new PercentTableCellRenderer().getFormat();
@@ -65,7 +62,7 @@ public class ProfileCSVFormat implements ProfileFormat {
             SQLColumn c = (SQLColumn) result.getProfiledObject();
             SQLTable t = c.getParentTable();
             TableProfileResult tpr = ((ColumnProfileResult)result).getParentResult();
-            List<String> commonData = new ArrayList<String>();
+            List<Object> commonData = new ArrayList<Object>();
 
             for ( ProfileColumn pc : columns ) {
                 switch(pc) {
@@ -89,13 +86,13 @@ public class ProfileCSVFormat implements ProfileFormat {
                     commonData.add(dateFormat.format(date));
                     break;
                 case RECORD_COUNT:
-                    commonData.add(Integer.toString(tpr.getRowCount()));
+                    commonData.add(tpr.getRowCount());
                     break;
                 case DATA_TYPE:
-                    commonData.add(Integer.toString(c.getType()));
+                    commonData.add(c.getType());
                     break;
                 case NULL_COUNT:
-                    commonData.add(Integer.toString(((ColumnProfileResult) result).getNullCount()));
+                    commonData.add(((ColumnProfileResult) result).getNullCount());
                     break;
                 case PERCENT_NULL:
                     if ( tpr.getRowCount() == 0 )
@@ -105,7 +102,7 @@ public class ProfileCSVFormat implements ProfileFormat {
                             ((ColumnProfileResult) result).getNullCount() / (double)tpr.getRowCount()));
                     break;
                 case UNIQUE_COUNT:
-                    commonData.add(Integer.toString(((ColumnProfileResult) result).getDistinctValueCount()));
+                    commonData.add(((ColumnProfileResult) result).getDistinctValueCount());
                     break;
                 case PERCENT_UNIQUE:
                     if ( tpr.getRowCount() == 0 )
@@ -115,29 +112,19 @@ public class ProfileCSVFormat implements ProfileFormat {
                             ((ColumnProfileResult) result).getDistinctValueCount() / (double)tpr.getRowCount()));
                     break;
                 case MIN_LENGTH:
-                    commonData.add(Integer.toString(((ColumnProfileResult) result).getMinLength()));
+                    commonData.add(((ColumnProfileResult) result).getMinLength());
                     break;
                 case MAX_LENGTH:
-                    commonData.add(Integer.toString(((ColumnProfileResult) result).getMaxLength()));
+                    commonData.add(((ColumnProfileResult) result).getMaxLength());
                     break;
                 case AVERAGE_LENGTH:
                     commonData.add(decFormat.format(((ColumnProfileResult) result).getAvgLength()));
                     break;
                 case MIN_VALUE:
-                    Object minValue = ((ColumnProfileResult) result).getMinValue();
-                    if (minValue == null) {
-                        commonData.add("");
-                    } else {
-                        commonData.add(minValue.toString());
-                    }
+                    commonData.add(((ColumnProfileResult) result).getMinValue());
                     break;
                 case MAX_VALUE:
-                    Object maxValue = ((ColumnProfileResult) result).getMaxValue();
-                    if (maxValue == null) {
-                        commonData.add("");
-                    } else {
-                        commonData.add(maxValue.toString());
-                    }
+                    commonData.add(((ColumnProfileResult) result).getMaxValue());
                     break;
                 case AVERAGE_VALUE:
 
@@ -160,9 +147,8 @@ public class ProfileCSVFormat implements ProfileFormat {
 
                 }
             }
-            csvWriter.writeNext(commonData.toArray(new String[commonData.size()]));
+            out.println(CSVExport.toString(commonData));
         }
-        csvWriter.close();
         out.close();
     }
 

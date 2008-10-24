@@ -77,7 +77,6 @@ import ca.sqlpower.architect.swingui.action.CompareDMAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.CreateTableAction;
 import ca.sqlpower.architect.swingui.action.DataMoverAction;
-import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditColumnAction;
@@ -100,9 +99,8 @@ import ca.sqlpower.architect.swingui.action.PrintAction;
 import ca.sqlpower.architect.swingui.action.ProfileAction;
 import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
 import ca.sqlpower.architect.swingui.action.RedoAction;
-import ca.sqlpower.architect.swingui.action.RemoveSourceDBAction;
 import ca.sqlpower.architect.swingui.action.ReverseRelationshipAction;
-import ca.sqlpower.architect.swingui.action.SQLQueryAction;
+import ca.sqlpower.architect.swingui.action.SQLRunnerAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
 import ca.sqlpower.architect.swingui.action.SelectAllAction;
 import ca.sqlpower.architect.swingui.action.UndoAction;
@@ -147,7 +145,6 @@ public class ArchitectFrame extends JFrame {
     private RedoAction redoAction;
     
     private AboutAction aboutAction;
-    private Action helpAction;
     private Action newProjectAction;
     private OpenProjectAction openProjectAction;
     private Action saveProjectAction;
@@ -192,7 +189,6 @@ public class ArchitectFrame extends JFrame {
     private Action exportDDLAction;
     private Action compareDMAction;
     private Action dataMoverAction;
-    private Action sqlQueryAction;
     
     /**
      * Closes all sessions and terminates the JVM.
@@ -202,7 +198,6 @@ public class ArchitectFrame extends JFrame {
             session.getContext().closeAll();
         }
     };
-
 
 
     /**
@@ -309,13 +304,15 @@ public class ArchitectFrame extends JFrame {
     void init() throws ArchitectException {
         UserSettings sprefs = session.getUserSettings().getSwingSettings();
         int accelMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+        ArchitectSwingSessionContext context = session.getContext();
         
         // Create actions
 
         aboutAction = new AboutAction(session);
-        helpAction = new HelpAction(session);
-        helpAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.userGuideActionDescription")); //$NON-NLS-1$    
         
+        Action helpAction = new HelpAction(session);
+        helpAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.userGuideActionDescription")); //$NON-NLS-1$
+        Action checkForUpdateAction = new CheckForUpdateAction(session);
 
         newProjectAction = new AbstractAction(Messages.getString("ArchitectFrame.newProjectActionName"), //$NON-NLS-1$
                 SPSUtils.createIcon("new_project",Messages.getString("ArchitectFrame.newProjectActionIconDescription"),sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) { //$NON-NLS-1$ //$NON-NLS-2$
@@ -385,8 +382,10 @@ public class ArchitectFrame extends JFrame {
         
         compareDMAction = new CompareDMAction(session,comapareDMDialog);
         dataMoverAction = new DataMoverAction(this, session);
-        sqlQueryAction = new SQLQueryAction(session);
+        Action exportCSVAction = new ExportCSVAction(this, session);
+        Action mappingReportAction = new VisualMappingReportAction(this, session);
 
+        Action kettleETL = new KettleJobAction(session);
         deleteSelectedAction = new DeleteSelectedAction(session);
         createIdentifyingRelationshipAction = new CreateRelationshipAction(session, true, playpen.getCursorManager());
         createNonIdentifyingRelationshipAction = new CreateRelationshipAction(session, false, playpen.getCursorManager());
@@ -412,8 +411,186 @@ public class ArchitectFrame extends JFrame {
         focusToParentAction = new FocusToChildOrParentTableAction(session, Messages.getString("ArchitectFrame.setFocusToParentTableActionName"), Messages.getString("ArchitectFrame.setFocusToParentTableActionDescription"), true); //$NON-NLS-1$ //$NON-NLS-2$
         focusToChildAction = new FocusToChildOrParentTableAction(session, Messages.getString("ArchitectFrame.setFocusToChildTableActionName"), Messages.getString("ArchitectFrame.setFocusToChildTableActionDescription"), false); //$NON-NLS-1$ //$NON-NLS-2$
         
+
+        menuBar = new JMenuBar();
+
+        JMenu fileMenu = new JMenu(Messages.getString("ArchitectFrame.fileMenu")); //$NON-NLS-1$
+        fileMenu.setMnemonic('f');
+        fileMenu.add(newProjectAction);
+        fileMenu.add(openProjectAction);
+        fileMenu.add(session.getRecentMenu());
+        fileMenu.add(closeProjectAction);
+        fileMenu.addSeparator();
+        fileMenu.add(saveProjectAction);
+        fileMenu.add(saveProjectAsAction);
+        fileMenu.add(printAction);
+        fileMenu.add(exportPlaypenToPDFAction);
+        fileMenu.addSeparator();
+        if (!context.isMacOSX()) {
+            fileMenu.add(prefAction);
+        }
+        fileMenu.add(projectSettingsAction);
+        if (!context.isMacOSX()) {
+            fileMenu.addSeparator();
+            fileMenu.add(exitAction);
+        }
+        menuBar.add(fileMenu);
+
+        JMenu editMenu = new JMenu(Messages.getString("ArchitectFrame.editMenu")); //$NON-NLS-1$
+        editMenu.setMnemonic('e');
+        editMenu.add(undoAction);
+        editMenu.add(redoAction);
+        editMenu.addSeparator();
+        editMenu.add(selectAllAction);
+        editMenu.addSeparator();
+        editMenu.add(searchReplaceAction);
+        menuBar.add(editMenu);
+
+        // the connections menu is set up when a new project is created (because it depends on the current DBTree)
+        connectionsMenu = new JMenu(Messages.getString("ArchitectFrame.connectionsMenu")); //$NON-NLS-1$
+        connectionsMenu.setMnemonic('c');
+        menuBar.add(connectionsMenu);
+        connectionsMenu.removeAll();
         
-        menuBar = createNewMenuBar();        
+        final JMenu dbcsMenu = dbTree.setupDBCSMenu();
+        final JMenuItem propertiesMenu = new JMenuItem(dbTree.dbcsPropertiesAction);
+        final JMenuItem removeDBCSMenu = new JMenuItem(dbTree.removeDBCSAction);
+        
+        connectionsMenu.add(dbcsMenu);
+        connectionsMenu.add(propertiesMenu);
+        connectionsMenu.add(removeDBCSMenu);
+        connectionsMenu.addSeparator();
+        connectionsMenu.add(new DatabaseConnectionManagerAction(session));
+
+        connectionsMenu.addMenuListener(new MenuListener(){
+            
+            private JMenu dbcs = dbcsMenu;
+            
+            public void menuCanceled(MenuEvent e) {
+                // do nothing here
+            }
+            public void menuDeselected(MenuEvent e) {
+                // do nothing here
+            }
+            
+            public void menuSelected(MenuEvent e) {
+                // updates for new connections
+                connectionsMenu.remove(dbcs);
+                dbcs = dbTree.setupDBCSMenu();
+                connectionsMenu.add(dbcs, 0);
+                
+                // enable/disable dbcs related menu items
+                TreePath tp = dbTree.getSelectionPath();
+                if (tp != null) {
+                    boolean dbcsSelected = !dbTree.isTargetDatabaseNode(tp) && !dbTree.isTargetDatabaseChild(tp);
+                    propertiesMenu.setEnabled(dbcsSelected);
+                    removeDBCSMenu.setEnabled(dbcsSelected && tp.getLastPathComponent() instanceof SQLDatabase);
+                } else {
+                    propertiesMenu.setEnabled(false);
+                    removeDBCSMenu.setEnabled(false);
+                }
+            }
+        });
+        
+        JMenu etlMenu = new JMenu(Messages.getString("ArchitectFrame.etlMenu")); //$NON-NLS-1$
+        etlMenu.setMnemonic('l');
+        etlMenu.add(exportCSVAction);
+        etlMenu.add(mappingReportAction);
+        etlMenu.add(kettleETL);
+        menuBar.add(etlMenu);
+
+        final JMenu olapMenu = new JMenu(Messages.getString("ArchitectFrame.olapMenu")); //$NON-NLS-1$
+        olapMenu.setMnemonic('o');
+        final JMenu olapEditMenu = buildOLAPEditMenu();
+        olapMenu.add(olapEditMenu);
+        olapMenu.add(new ImportSchemaAction(session));
+        olapMenu.addSeparator();
+        olapMenu.add(new OLAPSchemaManagerAction(session));
+        olapMenu.addMenuListener(new MenuListener(){
+            
+            private JMenu editMenu = olapEditMenu;
+            
+            public void menuCanceled(MenuEvent e) {
+                // do nothing here
+            }
+            public void menuDeselected(MenuEvent e) {
+                // do nothing here
+            }
+            
+            public void menuSelected(MenuEvent e) {
+                // updates for new OLAP schemas
+                olapMenu.remove(editMenu);
+                editMenu = buildOLAPEditMenu();
+                olapMenu.add(editMenu, 0);
+            }
+        });
+        menuBar.add(olapMenu);
+
+        JMenu toolsMenu = new JMenu(Messages.getString("ArchitectFrame.toolsMenu")); //$NON-NLS-1$
+        toolsMenu.setMnemonic('t');
+        toolsMenu.add(exportDDLAction);
+        toolsMenu.add(compareDMAction);
+        toolsMenu.add(new SQLRunnerAction(session));
+
+        toolsMenu.add(dataMoverAction);
+
+        menuBar.add(toolsMenu);
+
+        JMenu profileMenu = new JMenu(Messages.getString("ArchitectFrame.profileMenu")); //$NON-NLS-1$
+        profileMenu.setMnemonic('p');
+        profileMenu.add(profileAction);
+
+        menuBar.add(profileMenu);
+
+        JMenu windowMenu = new JMenu(Messages.getString("ArchitectFrame.windowMenu")); //$NON-NLS-1$
+        final JCheckBoxMenuItem navigatorMenuItem = new JCheckBoxMenuItem(Messages.getString("ArchitectFrame.navigatorMenu")); //$NON-NLS-1$
+        navigatorMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (navigatorMenuItem.isSelected()) {
+                    Point location = getLocation();
+                    location.translate(splitPane.getWidth() - 25, 75);
+
+                    navigatorDialog = new Navigator(session, location);
+
+                    navigatorDialog.addWindowListener(new WindowAdapter(){
+                        public void windowClosing(WindowEvent e) {
+                            navigatorMenuItem.setSelected(false);
+                            navigatorDialog.dispose();
+                        }
+                    });
+
+                    // Refreshes the overview navigator when viewport changes
+                    if (playpenScrollPane != null) {
+                        playpenScrollPane.getVerticalScrollBar().addAdjustmentListener(navigatorDialog);
+                        playpenScrollPane.getHorizontalScrollBar().addAdjustmentListener(navigatorDialog);
+                    }
+                } else {
+                    navigatorDialog.dispose();
+                }
+            }
+        });
+        windowMenu.add(navigatorMenuItem);
+        windowMenu.add(new DatabaseConnectionManagerAction(session));
+        windowMenu.add(new AbstractAction(Messages.getString("ArchitectFrame.profileManager")) { //$NON-NLS-1$
+            public void actionPerformed(ActionEvent e) {
+                session.getProfileDialog().setVisible(true);
+            }
+        });
+        
+        menuBar.add(windowMenu);
+
+        JMenu helpMenu = new JMenu(Messages.getString("ArchitectFrame.helpMenu")); //$NON-NLS-1$
+        helpMenu.setMnemonic('h');
+        if (!context.isMacOSX()) {
+            helpMenu.add(aboutAction);
+            helpMenu.addSeparator();
+        }
+        helpMenu.add(helpAction);
+        helpMenu.add(SPSUtils.forumAction);
+        helpMenu.addSeparator();
+        helpMenu.add(checkForUpdateAction);
+        menuBar.add(helpMenu);
+
         setJMenuBar(menuBar);
 
         projectBar = new JToolBar(JToolBar.HORIZONTAL);
@@ -487,194 +664,6 @@ public class ArchitectFrame extends JFrame {
         logger.debug("Added splitpane to content pane"); //$NON-NLS-1$
     }
     
-    public JMenuBar createNewMenuBar() { 
-        ArchitectSwingSessionContext context = session.getContext();
-        Action checkForUpdateAction = new CheckForUpdateAction(session);
-        Action exportCSVAction = new ExportCSVAction(this, session);
-        Action mappingReportAction = new VisualMappingReportAction(this, session);
-        Action kettleETL = new KettleJobAction(session);
-        
-        menuBar = new JMenuBar();
-
-        JMenu fileMenu = new JMenu(Messages.getString("ArchitectFrame.fileMenu")); //$NON-NLS-1$
-        fileMenu.setMnemonic('f');
-        fileMenu.add(newProjectAction);
-        fileMenu.add(openProjectAction);
-        fileMenu.add(session.getRecentMenu());
-        fileMenu.add(closeProjectAction);
-        fileMenu.addSeparator();
-        fileMenu.add(saveProjectAction);
-        fileMenu.add(saveProjectAsAction);
-        fileMenu.add(printAction);
-        fileMenu.add(exportPlaypenToPDFAction);
-        fileMenu.addSeparator();
-        if (!context.isMacOSX()) {
-            fileMenu.add(prefAction);
-        }
-        fileMenu.add(projectSettingsAction);
-        if (!context.isMacOSX()) {
-            fileMenu.addSeparator();
-            fileMenu.add(exitAction);
-        }
-        menuBar.add(fileMenu);
-
-        JMenu editMenu = new JMenu(Messages.getString("ArchitectFrame.editMenu")); //$NON-NLS-1$
-        editMenu.setMnemonic('e');
-        editMenu.add(undoAction);
-        editMenu.add(redoAction);
-        editMenu.addSeparator();
-        editMenu.add(selectAllAction);
-        editMenu.addSeparator();
-        editMenu.add(searchReplaceAction);
-        menuBar.add(editMenu);
-
-        // the connections menu is set up when a new project is created (because it depends on the current DBTree)
-        connectionsMenu = new JMenu(Messages.getString("ArchitectFrame.connectionsMenu")); //$NON-NLS-1$
-        connectionsMenu.setMnemonic('c');
-        menuBar.add(connectionsMenu);
-        connectionsMenu.removeAll();
-        
-        final JMenu dbcsMenu = session.createDataSourcesMenu();
-        final JMenuItem propertiesMenu = new JMenuItem(new DataSourcePropertiesAction(session));
-        final JMenuItem removeDBCSMenu = new JMenuItem(new RemoveSourceDBAction(dbTree));
-        
-        connectionsMenu.add(dbcsMenu);
-        connectionsMenu.add(propertiesMenu);
-        connectionsMenu.add(removeDBCSMenu);
-        connectionsMenu.addSeparator();
-        connectionsMenu.add(new DatabaseConnectionManagerAction(session));
-
-        connectionsMenu.addMenuListener(new MenuListener(){
-            
-            private JMenu dbcs = dbcsMenu;
-            
-            public void menuCanceled(MenuEvent e) {
-                // do nothing here
-            }
-            public void menuDeselected(MenuEvent e) {
-                // do nothing here
-            }
-            
-            public void menuSelected(MenuEvent e) {
-                // updates for new connections
-                connectionsMenu.remove(dbcs);
-                dbcs = session.createDataSourcesMenu();
-                connectionsMenu.add(dbcs, 0);
-                
-                // enable/disable dbcs related menu items
-                TreePath tp = dbTree.getSelectionPath();
-                if (tp != null) {
-                    boolean dbcsSelected = !dbTree.isTargetDatabaseNode(tp) && !dbTree.isTargetDatabaseChild(tp);
-                    propertiesMenu.setEnabled(dbcsSelected);
-                    removeDBCSMenu.setEnabled(dbcsSelected && tp.getLastPathComponent() instanceof SQLDatabase);
-                } else {
-                    propertiesMenu.setEnabled(false);
-                    removeDBCSMenu.setEnabled(false);
-                }
-            }
-        });
-        
-        JMenu etlMenu = new JMenu(Messages.getString("ArchitectFrame.etlMenu")); //$NON-NLS-1$
-        etlMenu.setMnemonic('l');
-        etlMenu.add(exportCSVAction);
-        etlMenu.add(mappingReportAction);
-        etlMenu.add(kettleETL);
-        menuBar.add(etlMenu);
-
-        final JMenu olapMenu = new JMenu(Messages.getString("ArchitectFrame.olapMenu")); //$NON-NLS-1$
-        olapMenu.setMnemonic('o');
-        final JMenu olapEditMenu = buildOLAPEditMenu();
-        olapMenu.add(olapEditMenu);
-        olapMenu.add(new ImportSchemaAction(session));
-        olapMenu.addSeparator();
-        olapMenu.add(new OLAPSchemaManagerAction(session));
-        olapMenu.addMenuListener(new MenuListener(){
-            
-            private JMenu editMenu = olapEditMenu;
-            
-            public void menuCanceled(MenuEvent e) {
-                // do nothing here
-            }
-            public void menuDeselected(MenuEvent e) {
-                // do nothing here
-            }
-            
-            public void menuSelected(MenuEvent e) {
-                // updates for new OLAP schemas
-                olapMenu.remove(editMenu);
-                editMenu = buildOLAPEditMenu();
-                olapMenu.add(editMenu, 0);
-            }
-        });
-        menuBar.add(olapMenu);
-
-        JMenu toolsMenu = new JMenu(Messages.getString("ArchitectFrame.toolsMenu")); //$NON-NLS-1$
-        toolsMenu.setMnemonic('t');
-        toolsMenu.add(exportDDLAction);
-        toolsMenu.add(compareDMAction);
-        toolsMenu.add(sqlQueryAction);
-        toolsMenu.add(dataMoverAction);
-
-        menuBar.add(toolsMenu);
-
-        JMenu profileMenu = new JMenu(Messages.getString("ArchitectFrame.profileMenu")); //$NON-NLS-1$
-        profileMenu.setMnemonic('p');
-        profileMenu.add(profileAction);
-
-        menuBar.add(profileMenu);
-
-        JMenu windowMenu = new JMenu(Messages.getString("ArchitectFrame.windowMenu")); //$NON-NLS-1$
-        final JCheckBoxMenuItem navigatorMenuItem = new JCheckBoxMenuItem(Messages.getString("ArchitectFrame.navigatorMenu")); //$NON-NLS-1$
-        navigatorMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if (navigatorMenuItem.isSelected()) {
-                    Point location = getLocation();
-                    location.translate(splitPane.getWidth() - 25, 75);
-
-                    navigatorDialog = new Navigator(session, location);
-
-                    navigatorDialog.addWindowListener(new WindowAdapter(){
-                        public void windowClosing(WindowEvent e) {
-                            navigatorMenuItem.setSelected(false);
-                            navigatorDialog.dispose();
-                        }
-                    });
-
-                    // Refreshes the overview navigator when viewport changes
-                    if (playpenScrollPane != null) {
-                        playpenScrollPane.getVerticalScrollBar().addAdjustmentListener(navigatorDialog);
-                        playpenScrollPane.getHorizontalScrollBar().addAdjustmentListener(navigatorDialog);
-                    }
-                } else {
-                    navigatorDialog.dispose();
-                }
-            }
-        });
-        windowMenu.add(navigatorMenuItem);
-        windowMenu.add(new DatabaseConnectionManagerAction(session));
-        windowMenu.add(new AbstractAction(Messages.getString("ArchitectFrame.profileManager")) { //$NON-NLS-1$
-            public void actionPerformed(ActionEvent e) {
-                session.getProfileDialog().setVisible(true);
-            }
-        });
-        
-        menuBar.add(windowMenu);
-
-        JMenu helpMenu = new JMenu(Messages.getString("ArchitectFrame.helpMenu")); //$NON-NLS-1$
-        helpMenu.setMnemonic('h');
-        if (!context.isMacOSX()) {
-            helpMenu.add(aboutAction);
-            helpMenu.addSeparator();
-        }
-        helpMenu.add(helpAction);
-        helpMenu.add(SPSUtils.forumAction);
-        helpMenu.addSeparator();
-        helpMenu.add(checkForUpdateAction);
-        menuBar.add(helpMenu);
-        
-        return menuBar;        
-    }
-   
     private JMenu buildOLAPEditMenu() {
         JMenu menu = new JMenu("Edit Schema");
         menu.add(new JMenuItem(new OLAPEditAction(session, null)));

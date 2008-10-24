@@ -325,12 +325,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 
 	@Override
 	public String getName() {
-		if (isPlayPenDatabase()) {
-			return "PlayPen Database";
-		} else if (dataSource != null) {
-		    return dataSource.getDisplayName();
+		if (dataSource != null) {
+			return dataSource.getDisplayName();
 		} else {
-		    return "Disconnected";
+			return "PlayPen Database";
 		}
 	}
 	/**

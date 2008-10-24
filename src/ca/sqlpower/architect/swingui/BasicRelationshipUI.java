@@ -57,16 +57,12 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * 
 	 * @see containmentPath
 	 */
-	protected transient GeneralPath path;
+	protected GeneralPath path;
 	
 	/**
 	 * This is a closed path for use with contains() and intersects().
-     * <p>
-     * This path is recalculated every time paint() is called, and
-     * it's cached here for the benefit of {@link #contains(Point)}
-     * and {@link #intersectsShape(Shape)}.
 	 */
-	protected transient GeneralPath containmentPath;
+	protected GeneralPath containmentPath;
 
 	protected Color selectedColor = new Color(204, 204, 255);
 	protected Color unselectedColor = Color.black;
@@ -606,6 +602,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * time allows.
 	 */
 	public boolean isOrientationLegal() {
+		boolean answer;
 		if (relationship.getPkTable() == relationship.getFkTable()) {
 			return (orientation == (PARENT_FACES_BOTTOM | CHILD_FACES_LEFT));
 		} else {
@@ -652,7 +649,9 @@ public class BasicRelationshipUI extends RelationshipUI
 
 		}
 
-		logger.debug("OrientationLegal() returning false");
+			//answer = (orientation == getFacingEdges(relationship.getPkTable().getBounds(), relationship.getFkTable().getBounds()));
+
+		logger.debug("[31misOrientationLegal() returning false[0m");
 		return false;
 	}
 
@@ -940,7 +939,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	public Dimension getPreferredSize(PlayPenComponent c) {
 		//computeBounds();
 		if (logger.isDebugEnabled()) {
-			logger.debug("Computed size is ["+computedBounds.width+","+computedBounds.height+"]");
+			logger.debug("[31mComputed size is ["+computedBounds.width+","+computedBounds.height+"][0m");
 		}
 		return new Dimension(computedBounds.width, computedBounds.height);
 	}
@@ -948,7 +947,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	public Point getPreferredLocation() {
 		//computeBounds();
 		if (logger.isDebugEnabled()) {
-			logger.debug("Computed locn is ["+computedBounds.x+","+computedBounds.y+"]");
+			logger.debug("[31mComputed locn is ["+computedBounds.x+","+computedBounds.y+"][0m");
 		}
 		return new Point(computedBounds.x, computedBounds.y);
 	}
@@ -1068,9 +1067,6 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	@Override
 	public boolean intersectsShape(Shape s) {
-	    if (path == null) {
-	        return false;
-	    }
 		Rectangle myBounds = path.getBounds();
 		Rectangle otherBounds = s.getBounds();
 		
@@ -1095,7 +1091,9 @@ public class BasicRelationshipUI extends RelationshipUI
 		}
 		
 		List <Point2D.Double> list = getIntersectPoints(s);
-		return (list.size() > 0);
+		if ( list.size() > 0 )
+			return true;
+		return false;
 	}
 
 	private List<Point2D.Double> getIntersectPoints(Shape s) {
@@ -1117,26 +1115,20 @@ public class BasicRelationshipUI extends RelationshipUI
 		return sb.toString();
 	}
 
-    /**
-     * Returns the actual path that this relationship ui draws. It will get
-     * reset from time to time as this relationship (or its connected tables)
-     * gets moved by the user, and it will not be initialized until
-     * {@link #paint(Graphics2D)} has been called.
-     */
+	
+
+	/**
+	 * Returns the actual path that this relationship ui draws.  It will get reset from time
+	 * to time as this relationship (or its connected tables) gets moved by the user.
+	 */
 	@Override
 	public Shape getShape() {
 		return path;
 	}
 
-    /**
-     * Returns the length of this relationship's path.
-     * 
-     * @throws NullPointerException
-     *             if paint() has not yet been called on this relationship UI.
-     */
 	@Override
 	public int getShapeLength() {
-		Rectangle b = path.getBounds();
-		return b.width + b.height;
+		Rectangle b=  path.getBounds();
+		return b.width+b.height;
 	}
 }

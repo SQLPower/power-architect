@@ -746,7 +746,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	                createPhysicalPrimaryKeyName(t);
 	                print(",\n");
 	                print("                CONSTRAINT ");
-	                print(t.getPhysicalPrimaryKeyName());
+	                print(t.getPrimaryKeyName());
 	                print(" PRIMARY KEY (");
 	                firstCol = false;
 	            } else {
