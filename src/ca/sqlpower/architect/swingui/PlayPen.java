@@ -117,7 +117,6 @@ import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.action.CancelAction;
-import ca.sqlpower.architect.swingui.dbtree.DnDTreePathTransferable;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -134,8 +133,6 @@ import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sql.jdbcwrapper.DatabaseMetaDataDecorator;
-import ca.sqlpower.sql.jdbcwrapper.DatabaseMetaDataDecorator.CacheType;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -314,8 +311,7 @@ public class PlayPen extends JPanel
      */
 	protected boolean draggingTablePanes = false;
 
-	private boolean selectionInProgress = false;
-	
+
 	/**
 	 * A RenderingHints value of VALUE_ANTIALIAS_ON, VALUE_ANTIALIAS_OFF, or VALUE_ANTIALIAS_DEFAULT.
 	 */
@@ -483,6 +479,8 @@ public class PlayPen extends JPanel
 		newdb.setPlayPenDatabase(true);
 
 		SPDataSource dbcs = new SPDataSource(session.getContext().getPlDotIni());
+        dbcs.setName(Messages.getString("PlayPen.notConfiguredDbcsName")); //$NON-NLS-1$
+        dbcs.setDisplayName(Messages.getString("PlayPen.notConfiguredDbcsName")); //$NON-NLS-1$
         newdb.setDataSource(dbcs);
 
 		try {
@@ -493,7 +491,7 @@ public class PlayPen extends JPanel
 		tableNames = new HashSet<String>();
 	}
 
-    public void setDatabaseConnection(SPDataSource dbcs){
+    protected void setDatabaseConnection(SPDataSource dbcs){
         SPDataSource tSpec = session.getTargetDatabase().getDataSource();
         tSpec.setDisplayName(dbcs.getDisplayName());
         tSpec.getParentType().setJdbcDriver(dbcs.getDriverClass());
@@ -1448,14 +1446,7 @@ public class PlayPen extends JPanel
 	}
 
 	protected class AddObjectsTask extends MonitorableWorker {
-	    
-	    /**
-	     * When there are at least this many tables to add, this task will ask
-	     * our JDBC wrappers to do eager caching of metadata operations.
-	     */
-		private static final int CACHE_THRESHOLD = 5;
-		
-        private List<SQLObject> sqlObjects;
+		private List<SQLObject> sqlObjects;
 		private Point preferredLocation;
 		private boolean hasStarted = false;
 		private boolean finished = false;
@@ -1498,39 +1489,33 @@ public class PlayPen extends JPanel
 		 * ProgressMonitor's.
 		 */
 		@Override
-		public synchronized boolean isCancelled() {
-			return super.isCancelled() || pm.isCanceled();
+		public synchronized boolean isCanceled() {
+			return super.isCanceled() || pm.isCanceled();
 		}
 
 		/**
 		 * Makes sure all the stuff we want to add is populated.
 		 */
-		public void doStuff() {
+		public void doStuff () {
 			logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName()); //$NON-NLS-1$
 
 			try {
 				hasStarted = true;
-				int tableCount = 0;
-				
+				int pmMax = 0;
+
 				Iterator<SQLObject> soIt = sqlObjects.iterator();
 				// first pass: figure out how much work we need to do...
-				while (soIt.hasNext() && !isCancelled()) {
-					SQLObject so = soIt.next();
-                    tableCount += ArchitectUtils.countTablesSnapshot(so);
+				while (soIt.hasNext() && !isCanceled()) {
+					pmMax += ArchitectUtils.countTablesSnapshot(soIt.next());
 				}
-				jobSize = new Integer(tableCount);
+				jobSize = new Integer(pmMax);
 
-				if (tableCount >= CACHE_THRESHOLD) {
-	                DatabaseMetaDataDecorator.putHint(DatabaseMetaDataDecorator.CACHE_TYPE, CacheType.EAGER_CACHE);
-				}
 				ensurePopulated(sqlObjects);
 			} catch (ArchitectException e) {
 				logger.error("Unexpected exception during populate", e); //$NON-NLS-1$
                 setDoStuffException(e);
 				errorMessage = "Unexpected exception during populate: " + e.getMessage(); //$NON-NLS-1$
-			} finally {
-	             DatabaseMetaDataDecorator.putHint(DatabaseMetaDataDecorator.CACHE_TYPE, CacheType.NO_CACHE);
-			}
+			} 
 			logger.info("AddObjectsTask done"); //$NON-NLS-1$
 		}
 
@@ -1544,7 +1529,7 @@ public class PlayPen extends JPanel
 		 */
 		private void ensurePopulated(List<SQLObject> soList) {
 			for (SQLObject so : soList) {
-				if (isCancelled()) break;
+				if (isCanceled()) break;
 				try {
 					if (so instanceof SQLTable) progress++;
 					ensurePopulated(so.getChildren());
@@ -1578,7 +1563,7 @@ public class PlayPen extends JPanel
 				// reset iterator
 				Iterator<SQLObject> soIt = sqlObjects.iterator();
 
-				while (soIt.hasNext() && !isCancelled()) {
+				while (soIt.hasNext() && !isCanceled()) {
 					SQLObject someData = soIt.next();
 					someData.fireDbStructureChanged();
 					if (someData instanceof SQLTable) {
@@ -1589,7 +1574,7 @@ public class PlayPen extends JPanel
 					} else if (someData instanceof SQLSchema) {
 						SQLSchema sourceSchema = (SQLSchema) someData;
 						Iterator it = sourceSchema.getChildren().iterator();
-						while (it.hasNext() && !isCancelled()) {
+						while (it.hasNext() && !isCanceled()) {
                             Object nextTable = it.next();
                             if (nextTable instanceof SQLExceptionNode) continue;
 							SQLTable sourceTable = (SQLTable) nextTable;
@@ -1602,10 +1587,10 @@ public class PlayPen extends JPanel
 						SQLCatalog sourceCatalog = (SQLCatalog) someData;
 						Iterator cit = sourceCatalog.getChildren().iterator();
 						if (sourceCatalog.isSchemaContainer()) {
-							while (cit.hasNext() && !isCancelled()) {
+							while (cit.hasNext() && !isCanceled()) {
 								SQLSchema sourceSchema = (SQLSchema) cit.next();
 								Iterator it = sourceSchema.getChildren().iterator();
-								while (it.hasNext() && !isCancelled()) {
+								while (it.hasNext() && !isCanceled()) {
 									Object nextTable = it.next();
                                     if (nextTable instanceof SQLExceptionNode) continue;
                                     SQLTable sourceTable = (SQLTable) nextTable;
@@ -1616,7 +1601,7 @@ public class PlayPen extends JPanel
 								}
 							}
 						} else {
-							while (cit.hasNext() && !isCancelled()) {
+							while (cit.hasNext() && !isCanceled()) {
                                 Object nextTable = cit.next();
                                 if (nextTable instanceof SQLExceptionNode) continue;
 								SQLTable sourceTable = (SQLTable) nextTable;
@@ -2277,8 +2262,7 @@ public class PlayPen extends JPanel
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
-            selectionInProgress = true;
-
+			
 			if (c instanceof PlayPenComponent) {
 			    c.handleMouseEvent(evt);
 			} else {
@@ -2293,8 +2277,6 @@ public class PlayPen extends JPanel
 
 		public void mouseReleased(MouseEvent evt) {
 			draggingTablePanes = false;
-            selectionInProgress = false;
-
 			if (rubberBand != null && evt.getButton() == MouseEvent.BUTTON1) {
 			    Rectangle dirtyRegion = rubberBand;
 
@@ -2400,15 +2382,6 @@ public class PlayPen extends JPanel
         return rubberBand;
     }
     
-    /**
-     * Returns true if there is a multi-select operation in progress. This method
-     * is useful for selection listeners such as the selection synchronizer that should
-     * not update their state while a selection is in progress.
-     */
-    public boolean isSelectionInProgress() {
-        return selectionInProgress;
-    }
-
     public boolean isDraggingTablePanes() {
         return draggingTablePanes;
     }

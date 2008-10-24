@@ -22,7 +22,6 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicTreeUI;
 
 import org.apache.log4j.Logger;
@@ -66,18 +65,5 @@ public class MultiDragTreeUI extends BasicTreeUI {
      */
 	protected MouseListener createMouseListener() {
 		return new MouseHandler();
-	}
-	
-	/**
-	 * Provides command-click multiselection for Mac; passes through to
-	 * BasicTreeUI on other platforms.
-	 */
-	@Override
-	protected boolean isToggleSelectionEvent(MouseEvent event) {
-	    if (System.getProperty("mrj.version") != null) {
-	        return SwingUtilities.isLeftMouseButton(event) && event.isMetaDown();
-	    } else {
-	        return super.isToggleSelectionEvent(event);
-	    }
 	}
 }

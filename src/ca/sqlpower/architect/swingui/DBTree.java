@@ -64,30 +64,24 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
-import ca.sqlpower.architect.swingui.action.NewDataSourceAction;
-import ca.sqlpower.architect.swingui.action.RemoveSourceDBAction;
-import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
-import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
-import ca.sqlpower.architect.swingui.dbtree.DnDTreePathTransferable;
+import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
 import ca.sqlpower.swingui.SPDataSourcePanel;
-import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 
 public class DBTree extends JTree implements DragSourceListener {
-	private static Logger logger = Logger.getLogger(DBTree.class);
+	static Logger logger = Logger.getLogger(DBTree.class);
 	
 	protected DragSource ds;
 	protected JPopupMenu popup;
 	protected JMenu dbcsMenu;
 	protected SPDataSourcePanel spDataSourcePanel;
-	protected NewDataSourceAction newDBCSAction;
-	private DataSourcePropertiesAction dbcsPropertiesAction;
-	private RemoveSourceDBAction removeDBCSAction;
+	protected NewDBCSAction newDBCSAction;
+	protected DBCSPropertiesAction dbcsPropertiesAction;
+	protected RemoveDBCSAction removeDBCSAction;
 	protected ShowInPlayPenAction showInPlayPenAction;
 	protected Action collapseAllAction;
     protected Action expandAllAction;
@@ -100,6 +94,14 @@ public class DBTree extends JTree implements DragSourceListener {
     private final ArchitectSwingSession session;
 
 	/**
+	 * This is set to true when the SPDataSourcePanel is editting a new
+	 * connection spec.  The dialog's "ok" and "cancel" button
+	 * handlers need to do different things for new and existing
+	 * specs.
+	 */
+	protected boolean panelHoldsNewDBCS;
+	
+	/**
      * The ActionMap key for the action that deletes the selected
      * object in this DBTree.
      */
@@ -111,7 +113,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	public DBTree(ArchitectSwingSession session) throws ArchitectException {
         this.session = session;
-        setModel(new DBTreeModel(session.getRootObject()));
+        setModel(new DBTreeModel(session));
 		setUI(new MultiDragTreeUI());
 		setRootVisible(false);
 		setShowsRootHandles(true);
@@ -120,16 +122,14 @@ public class DBTree extends JTree implements DragSourceListener {
 			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
 
         setConnAsTargetDB = new SetConnAsTargetDB(null);
-		newDBCSAction = new NewDataSourceAction(session);
-		dbcsPropertiesAction = new DataSourcePropertiesAction(session);	
-		removeDBCSAction = new RemoveSourceDBAction(this);
+		newDBCSAction = new NewDBCSAction();
+		dbcsPropertiesAction = new DBCSPropertiesAction();	
+		removeDBCSAction = new RemoveDBCSAction();
 		showInPlayPenAction = new ShowInPlayPenAction();
 		collapseAllAction = new JTreeCollapseAllAction(this, Messages.getString("DBTree.collapseAllActionName"));
 		expandAllAction = new JTreeExpandAllAction(this, Messages.getString("DBTree.expandAllActionName"));
 		addMouseListener(new PopupListener());
-        DBTreeCellRenderer tcr = new DBTreeCellRenderer();
-        tcr.addIconFilter(new ProfiledTableIconFilter());
-        setCellRenderer(tcr);
+        setCellRenderer(new DBTreeCellRenderer(session));
         selectAllChildTablesAction = new SelectAllChildTablesAction();
 	}
 
@@ -299,7 +299,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected JPopupMenu refreshMenu(TreePath p) {
 		logger.debug("refreshMenu is being called."); //$NON-NLS-1$
 		JPopupMenu newMenu = new JPopupMenu();
-		newMenu.add(session.createDataSourcesMenu());
+		newMenu.add(setupDBCSMenu());
 		
 		newMenu.add(new DatabaseConnectionManagerAction(session));
 
@@ -478,7 +478,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			            newMenu.add(popupCompareToCurrent);
 			        }
 			    } catch (ArchitectException e) {
-			        SPSUtils.showExceptionDialogNoReport(this, Messages.getString("DBTree.errorCommunicatingWithDb"), e); //$NON-NLS-1$
+			        ASUtils.showExceptionDialog(session, Messages.getString("DBTree.errorCommunicatingWithDb"), e); //$NON-NLS-1$
 			    }
 			    
 			    JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
@@ -488,7 +488,6 @@ public class DBTree extends JTree implements DragSourceListener {
                 newMenu.add(setAsDB);
                 
                 newMenu.add(new JMenuItem(removeDBCSAction));
-                newMenu.addSeparator();
             } else if (p.getLastPathComponent() instanceof SQLSchema){
                 //a new action is needed to maintain the schema variable
                 CompareToCurrentAction compareToCurrentAction = new CompareToCurrentAction();
@@ -498,7 +497,6 @@ public class DBTree extends JTree implements DragSourceListener {
                 
                 JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
                 newMenu.add(profile);
-                newMenu.addSeparator();
             } else if (p.getLastPathComponent() instanceof SQLCatalog) {
                 SQLCatalog catalog = (SQLCatalog)p.getLastPathComponent();
                 try {
@@ -512,20 +510,19 @@ public class DBTree extends JTree implements DragSourceListener {
                         newMenu.add(popupCompareToCurrent);
                     }
                 } catch (ArchitectException e) {
-                    SPSUtils.showExceptionDialogNoReport(this, Messages.getString("DBTree.errorCommunicatingWithDb"), e); //$NON-NLS-1$
+                    ASUtils.showExceptionDialog(session, Messages.getString("DBTree.errorCommunicatingWithDb"), e); //$NON-NLS-1$
                 }
                 
                 JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
                 newMenu.add(profile);
-                newMenu.addSeparator();
             } else if (p.getLastPathComponent() instanceof SQLTable) {
                 JMenuItem profile = new JMenuItem(session.getArchitectFrame().getProfileAction());
                 newMenu.add(profile);
                 JMenuItem selectAllChildTables = new JMenuItem(this.selectAllChildTablesAction);
                 newMenu.add(selectAllChildTables);
-                newMenu.addSeparator();
             }
-			
+            
+			newMenu.addSeparator();
             JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
             newMenu.add(popupProperties);
 		}
@@ -536,7 +533,7 @@ public class DBTree extends JTree implements DragSourceListener {
             final SQLExceptionNode node = (SQLExceptionNode) p.getLastPathComponent();
             newMenu.add(new JMenuItem(new AbstractAction(Messages.getString("DBTree.showExceptionDetails")) { //$NON-NLS-1$
                 public void actionPerformed(ActionEvent e) {
-                    SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+                    ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
                             Messages.getString("DBTree.exceptionNodeReport"), node.getException()); //$NON-NLS-1$
                 }
             }));
@@ -556,10 +553,10 @@ public class DBTree extends JTree implements DragSourceListener {
 									parent.addChild(new SQLExceptionNode(ex, Messages.getString("DBTree.exceptionDuringRetry"))); //$NON-NLS-1$
 								} catch (ArchitectException e1) {
 									logger.error("Couldn't add SQLExceptionNode to menu:", e1); //$NON-NLS-1$
-									SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+									ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
 									        Messages.getString("DBTree.failedToAddSQLExceptionNode"), e1); //$NON-NLS-1$
 								}
-                                SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+                                ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
                                         Messages.getString("DBTree.exceptionDuringRetry"), ex); //$NON-NLS-1$
                             }
                         }
@@ -592,7 +589,7 @@ public class DBTree extends JTree implements DragSourceListener {
      * same as the one held by the PlayPen.  If it is, we are looking at the
      * Target Database.
      */
-	public boolean isTargetDatabaseNode(TreePath tp) {
+	protected boolean isTargetDatabaseNode(TreePath tp) {
 		if (tp == null) {
 			return false;
 		} else {
@@ -608,7 +605,7 @@ public class DBTree extends JTree implements DragSourceListener {
      * database: it will return true if <code>tp</code> ends at the target
      * database node itself.
      */
-	public boolean isTargetDatabaseChild(TreePath tp) {
+	protected boolean isTargetDatabaseChild(TreePath tp) {
 		if (tp == null) {
 			return false;
 		}
@@ -620,12 +617,32 @@ public class DBTree extends JTree implements DragSourceListener {
 	}
 
 	/**
+	 * When invoked, this action adds the DBCS that was given in the
+	 * constructor to the DBTree's model.  There is normally one
+	 * AddDBCSAction associated with each item in the "Set Connection"
+	 * menu.
+	 */
+	protected class AddDBCSAction extends AbstractAction {
+		protected SPDataSource dbcs;
+
+		public AddDBCSAction(SPDataSource dbcs) {
+			super(dbcs.getName());
+			this.dbcs = dbcs;
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			addSourceConnection(dbcs);
+		}
+
+	}
+
+    /**
      * Adds the given data source to the db tree as a source database
      * connection.
      * 
      * @param dbcs The data source to be added to the db tree.
      */
-	public void addSourceConnection(SPDataSource dbcs) {
+	private void addSourceConnection(SPDataSource dbcs) {
 	    SQLObject root = (SQLObject) getModel().getRoot();
 	    try {
 	        // check to see if we've already seen this one
@@ -644,7 +661,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	        }
 	    } catch (ArchitectException ex) {
 	        logger.warn("Couldn't add new database to tree", ex); //$NON-NLS-1$
-	        SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+	        ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
 	                Messages.getString("DBTree.couldNotAddNewConnection"), ex); //$NON-NLS-1$
 	    }
 	}
@@ -661,6 +678,36 @@ public class DBTree extends JTree implements DragSourceListener {
             session.getPlayPen().setDatabaseConnection(dbcs);
         }
     }
+
+	/**
+	 * When invoked, this action creates a new DBCS, sets the
+	 * panelHoldsNewDBCS flag, and pops up the propDialog to edit the
+	 * new DBCS.
+     * <p>
+     * If the database connection is created it will be added to the
+     * db tree as well as the PL.ini.
+	 */
+	protected class NewDBCSAction extends AbstractAction {
+
+		public NewDBCSAction() {
+			super(Messages.getString("DBTree.newDbcsActionName")); //$NON-NLS-1$
+		}
+
+		public void actionPerformed(ActionEvent e) {
+            final DataSourceCollection plDotIni = session.getContext().getPlDotIni();
+            final SPDataSource dataSource = new SPDataSource(plDotIni);
+            Runnable onAccept = new Runnable() {
+                public void run() {
+                    addSourceConnection(dataSource);
+                    plDotIni.addDataSource(dataSource);
+                }
+            };
+            dataSource.setDisplayName(Messages.getString("DBTree.newConnectionName")); //$NON-NLS-1$
+            ASUtils.showDbcsDialog(session.getArchitectFrame(), dataSource, onAccept);
+            
+			panelHoldsNewDBCS = true;
+		}
+	}
 
 	/**
 	 * A Swing Worker that descends a tree of SQLObjects, stopping when a
@@ -744,6 +791,78 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 	}
 
+	/**
+	 * The RemoveDBCSAction removes the currently-selected database connection from the project.
+	 */
+	protected class RemoveDBCSAction extends AbstractAction {
+
+		public RemoveDBCSAction() {
+			super(Messages.getString("DBTree.removeDbcsActionName")); //$NON-NLS-1$
+		}
+
+		public void actionPerformed(ActionEvent arg0) {
+			TreePath tp = getSelectionPath();
+			if (tp == null) {
+				JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.noItemsSelected"), Messages.getString("DBTree.noItemsSelectedDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
+				return;
+			}
+			if (! (tp.getLastPathComponent() instanceof SQLDatabase) ) {
+				JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.selectionNotADb"), Messages.getString("DBTree.selectionNotADbDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
+				return;
+			}
+			if (isTargetDatabaseNode(tp)) {
+				JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.cannotRemoveTargetDb"), Messages.getString("DBTree.cannotRemoveTargetDbDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
+				return;
+			}
+
+            // Historical note: we used to check here if there were any objects in the
+            // play pen that depend on any children of this database before agreeing
+            // to remove it. Now this is handled by a listener in the PlayPen itself.
+            
+			SQLDatabase selection = (SQLDatabase) tp.getLastPathComponent();
+			SQLObject root = (SQLObject) getModel().getRoot();
+			if (root.removeChild(selection)) {
+			    selection.disconnect();
+			} else {
+			    logger.error("root.removeChild(selection) returned false!"); //$NON-NLS-1$
+			    JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.deleteConnectionFailed"), Messages.getString("DBTree.deleteConnectionFailedDialogTitle"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+		}
+	}
+
+	/**
+	 * The DBCSPropertiesAction responds to the "Properties" item in
+	 * the popup menu.  It determines which item in the tree is
+	 * currently selected, then shows its properties
+	 * window.
+	 */
+	protected class DBCSPropertiesAction extends AbstractAction {
+		public DBCSPropertiesAction() {
+			super(Messages.getString("DBTree.dbcsPropertiesActionName")); //$NON-NLS-1$
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			TreePath p = getSelectionPath();
+			if (p == null) {
+				return;
+			}
+			Object [] pathArray = p.getPath();
+			int ii = 0;
+			SQLDatabase sd = null;
+			while (ii < pathArray.length && sd == null) {
+				if (pathArray[ii] instanceof SQLDatabase) {
+					sd = (SQLDatabase) pathArray[ii];
+				}
+				ii++;
+			}
+			if (sd != null) {
+                ASUtils.showDbcsDialog(session.getArchitectFrame(), sd.getDataSource(), null);
+                logger.debug("Setting existing DBCS on panel"); //$NON-NLS-1$
+			}
+		}
+	}
+	
+	
 	//the action for clicking on "Compare to current"
 	protected class CompareToCurrentAction extends AbstractAction {
 	    public static final String SCHEMA = "SCHEMA"; //$NON-NLS-1$
@@ -800,6 +919,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			
 			DBTree t = (DBTree) dge.getComponent();
   			TreePath[] p = t.getSelectionPaths();
+
 			if (p ==  null || p.length == 0) {
 				// nothing to export
 				return;
@@ -824,7 +944,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				dge.getDragSource().startDrag
 					(dge,
 					 null, //DragSource.DefaultCopyNoDrop,
-					 new DnDTreePathTransferable(paths, userVisibleName.toString(), t.getSelectionPaths()),
+					 new DnDTreePathTransferable(paths, userVisibleName.toString()),
 					 t);
 			}
  		}
@@ -920,5 +1040,22 @@ public class DBTree extends JTree implements DragSourceListener {
                 throw new ArchitectRuntimeException(ex);
             }
         }
+    }
+    
+    /**
+     * Returns a new updated connections menu.
+     */
+    public JMenu setupDBCSMenu() {
+        dbcsMenu = new JMenu(Messages.getString("DBTree.addSourceConnectionMenuName")); //$NON-NLS-1$
+        dbcsMenu.add(new JMenuItem(new NewDBCSAction()));
+        dbcsMenu.addSeparator();
+
+        // populate
+        for (SPDataSource dbcs : session.getContext().getConnections()) {
+            dbcsMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
+        }
+        ASUtils.breakLongMenu(session.getArchitectFrame(), dbcsMenu);
+        
+        return dbcsMenu;
     }
 }

@@ -74,12 +74,12 @@ public class TestColumnEditPanel extends TestCase {
 		super.tearDown();
 	}
 
-	public void testSetComponentsToColumnValues() throws ArchitectException {
+	public void testEditColumn() throws ArchitectException {
 	    assertEquals(2, table.getColumnIndex(col3));
 	    assertEquals("The column we plan to edit should not be in PK",
                 null, col3.getPrimaryKeySeq());
 
-	    panel = new ColumnEditPanel(col3, session);
+        panel.editColumn(col3);
         
 		assertEquals("Wrong column name",col3.getName(),panel.getColName().getText());
 		assertEquals("Wrong Precision",col3.getPrecision(),((Integer) (panel.getColPrec().getValue())).intValue());
@@ -88,9 +88,10 @@ public class TestColumnEditPanel extends TestCase {
 		assertEquals(col3.isAutoIncrement(), panel.getColAutoInc().getModel().isSelected());
 		assertEquals(col3.isPrimaryKey(), panel.getColInPK().getModel().isSelected());
 		assertEquals(col3.getNullable() == DatabaseMetaData.columnNullable, panel.getColNullable().getModel().isSelected());
-		assertEquals("None Specified",panel.getSourceLabel().getText());
+		assertEquals("None Specified",panel.getSourceDB().getText());
+		assertEquals("None Specified",panel.getSourceTableCol().getText());
 
-        panel = new ColumnEditPanel(col2, session);
+        panel.editColumn(col2);
 
         assertEquals("Wrong column name",col2.getName(),panel.getColName().getText());
         assertEquals("Wrong Precision",col2.getPrecision(),((Integer) (panel.getColPrec().getValue())).intValue());
@@ -99,7 +100,8 @@ public class TestColumnEditPanel extends TestCase {
         assertEquals(col2.isAutoIncrement(), panel.getColAutoInc().getModel().isSelected());
         assertEquals(col2.isPrimaryKey(), panel.getColInPK().getModel().isSelected());
         assertEquals(col2.getNullable() == DatabaseMetaData.columnNullable, panel.getColNullable().getModel().isSelected());
-        assertEquals("None Specified",panel.getSourceLabel().getText());
+        assertEquals("None Specified",panel.getSourceDB().getText());
+        assertEquals("None Specified",panel.getSourceTableCol().getText());
 	}
 
 	public void testApplyChanges() {

@@ -51,8 +51,6 @@ import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
-import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
-import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.sql.DataMover;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
@@ -102,15 +100,15 @@ public class DataMoverPanel {
         
         setupDBTrees();
         
-        sourceTree = new JTree(new DBTreeModel(treeRoot));
+        sourceTree = new JTree(new DBTreeModel(session, treeRoot));
         sourceTree.setRootVisible(false);
         sourceTree.setShowsRootHandles(true);
-        sourceTree.setCellRenderer(new DBTreeCellRenderer());
+        sourceTree.setCellRenderer(new DBTreeCellRenderer(session));
         
-        destTree = new JTree(new DBTreeModel(treeRoot));
+        destTree = new JTree(new DBTreeModel(session, treeRoot));
         destTree.setRootVisible(false);
         destTree.setShowsRootHandles(true);
-        destTree.setCellRenderer(new DBTreeCellRenderer());
+        destTree.setCellRenderer(new DBTreeCellRenderer(session));
         
         PanelBuilder pb = new PanelBuilder(
                 new FormLayout(

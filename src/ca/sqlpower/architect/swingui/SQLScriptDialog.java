@@ -57,9 +57,11 @@ import javax.swing.text.StyleConstants;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.LogWriter;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
+import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
@@ -302,7 +304,7 @@ public class SQLScriptDialog extends JDialog {
 			finished = false;
 			setCancelled(false);
 			hasStarted = true;
-			if (isCancelled() || finished) return;
+			if (isCanceled() || finished) return;
 
 			SQLDatabase target = new SQLDatabase(targetDataSource);
 			statusLabel.setText(Messages.getString("SQLScriptDialog.creatingObjectsInTargetDb") + target.getDataSource() ); //$NON-NLS-1$
@@ -334,38 +336,48 @@ public class SQLScriptDialog extends JDialog {
 				throw new RuntimeException(Messages.getString("SQLScriptDialog.couldNotGenerateDDL", ex.getMessage())); //$NON-NLS-1$
 			}
 
+			LogWriter logWriter = null;
+
 			try {
-				logger.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis())); //$NON-NLS-1$
-				logger.info("Database Target: " + target.getDataSource()); //$NON-NLS-1$
-				logger.info("Playpen Dump: " + target.getDataSource()); //$NON-NLS-1$
+				logWriter = new LogWriter(session.getUserSettings().getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,"")); //$NON-NLS-1$
+			} catch (ArchitectException ex) {
+				finished = true;
+				final Exception fex = ex;
+				throw new RuntimeException(Messages.getString("SQLScriptDialog.problemWithDDLLog") //$NON-NLS-1$
+					+ fex.getMessage());
+			}
+
+			try {
+				logWriter.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis())); //$NON-NLS-1$
+				logWriter.info("Database Target: " + target.getDataSource()); //$NON-NLS-1$
+				logWriter.info("Playpen Dump: " + target.getDataSource()); //$NON-NLS-1$
 				Iterator it = statements.iterator();
-				while (it.hasNext() && !finished && !isCancelled()) {
+				while (it.hasNext() && !finished && !isCanceled()) {
 					DDLStatement ddlStmt = (DDLStatement) it.next();
 					try {
 						stmtsTried++;
-						logger.info("executing: " + ddlStmt.getSQLText()); //$NON-NLS-1$
+						logWriter.info("executing: " + ddlStmt.getSQLText()); //$NON-NLS-1$
 						stmt.executeUpdate(ddlStmt.getSQLText());
 						stmtsCompleted++;
-					} catch (final SQLException ex) {
-						final String fsql = ddlStmt.getSQLText() == null ? null : ddlStmt.getSQLText().trim();
-						logger.info("sql statement failed: " + ex.getMessage()); //$NON-NLS-1$
+					} catch (SQLException ex) {
+						final Exception fex = ex;
+						final String fsql = ddlStmt.getSQLText();
+						final LogWriter fLogWriter = logWriter;
+						logWriter.info("sql statement failed: " + ex.getMessage()); //$NON-NLS-1$
 						try {
 							SwingUtilities.invokeAndWait(new Runnable() {
 								public void run() {
-									JTextArea jta = new JTextArea(fsql);
-									jta.setOpaque(false);
+									JTextArea jta = new JTextArea(fsql,25,40);
 									jta.setEditable(false);
-									JPanel jp = new JPanel(new BorderLayout(0, 10));
-									jp.add(new JLabel(Messages.getString("SQLScriptDialog.sqlStatementFailed", ex.getMessage())), BorderLayout.NORTH);
-									jp.add(jta, BorderLayout.CENTER);
-									jp.add(new JLabel(Messages.getString("SQLScriptDialog.continuePrompt")), BorderLayout.SOUTH);
-									int decision = JOptionPane.showConfirmDialog(
-									        SQLScriptDialog.this,
-									        jp,
-									        Messages.getString("SQLScriptDialog.sqlFailure"), //$NON-NLS-1$
-									        JOptionPane.YES_NO_OPTION);
+									JScrollPane jsp = new JScrollPane(jta);
+									JLabel errorLabel = new JLabel("<html>" + Messages.getString("SQLScriptDialog.sqlStatementFailed", fex.getMessage() + "<p>") + "</html>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+									JPanel jp = new JPanel(new BorderLayout());
+									jp.add(jsp,BorderLayout.CENTER);
+									jp.add(errorLabel,BorderLayout.SOUTH);
+									int decision = JOptionPane.showConfirmDialog
+									(SQLScriptDialog.this, jp, Messages.getString("SQLScriptDialog.sqlFailure"), JOptionPane.YES_NO_OPTION); //$NON-NLS-1$
 									if (decision == JOptionPane.NO_OPTION) {
-										logger.info("Export cancelled by user."); //$NON-NLS-1$
+										fLogWriter.info("Export cancelled by user."); //$NON-NLS-1$
 										cancelJob();
 									}
 								}
@@ -376,7 +388,7 @@ public class SQLScriptDialog extends JDialog {
 							throw new RuntimeException(ex2);
 						}
 
-						if (isCancelled()) {
+						if (isCanceled()) {
 							finished = true;
 							// don't return, we might as well display how many statements ended up being processed...
 						}
@@ -384,7 +396,7 @@ public class SQLScriptDialog extends JDialog {
 				}
 
 			} catch (Exception exc){
-				logger.info("Caught Unexpected Exception " + exc); //$NON-NLS-1$
+				logWriter.info("Caught Unexpected Exception " + exc); //$NON-NLS-1$
 				ASUtils.showExceptionDialog(
 						session,
 						Messages.getString("SQLScriptDialog.couldNotFinishSQL"), //$NON-NLS-1$
@@ -393,9 +405,11 @@ public class SQLScriptDialog extends JDialog {
 				final String resultsMessage =
 					(stmtsCompleted == 0 ? Messages.getString("SQLScriptDialog.didNotExecute", String.valueOf(stmtsTried)) : //$NON-NLS-1$
 						Messages.getString("SQLScriptDialog.successfullyExecuted", String.valueOf(stmtsCompleted), String.valueOf(stmtsTried))); //$NON-NLS-1$
-				logger.info(resultsMessage);
+				logWriter.info(resultsMessage);
 				JOptionPane.showMessageDialog(SQLScriptDialog.this, resultsMessage);
 				// flush and close the LogWriter
+				logWriter.flush();
+				logWriter.close();
 				try {
 					if (stmt != null) stmt.close();
 				} catch (SQLException ex) {

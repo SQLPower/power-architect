@@ -20,7 +20,6 @@
 package ca.sqlpower.architect.swingui.olap.action;
 
 import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
@@ -44,7 +43,6 @@ public class CreateCubeUsageAction extends CreateUsageAction<CubePane, VirtualCu
 
     public CreateCubeUsageAction(ArchitectSwingSession session, PlayPen pp) {
         super(session, pp, CubePane.class, VirtualCubePane.class, "Cube Usage", OSUtils.CUBE_USAGE_ADD_ICON);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('x'));
     }
 
     @Override

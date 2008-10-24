@@ -4,7 +4,7 @@
 # IzPack - Copyright 2007, 2008 Julien Ponge, All Rights Reserved.
 #
 # http://izpack.org/
-# http://izpack.codehaus.org/
+# http://developer.berlios.de/projects/izpack/
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

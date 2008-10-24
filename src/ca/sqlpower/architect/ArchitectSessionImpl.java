@@ -24,6 +24,7 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 
 /**
@@ -42,6 +43,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
     private SQLDatabase db;
     private String name;
     private SQLObjectRoot rootObject;
+    private OLAPRootObject olapRootObject;
     
     /**
      * The factory that creates user prompters for this session. Defaults to a
@@ -65,6 +67,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	    this.context = context;
 	    this.name = name;
 	    this.rootObject = new SQLObjectRoot();
+	    this.olapRootObject = new OLAPRootObject(this); // XXX wrong reference direction--core shouldn't depend on OLAP
         this.profileManager = new ProfileManagerImpl(this);
         this.project = new CoreProject(this);
         this.db = new SQLDatabase();
@@ -158,6 +161,9 @@ public class ArchitectSessionImpl implements ArchitectSession {
         }
         userPrompterFactory = upFactory; 
     }
-
+    
+    public OLAPRootObject getOLAPRootObject() {
+        return olapRootObject;
+    }
 }
 
