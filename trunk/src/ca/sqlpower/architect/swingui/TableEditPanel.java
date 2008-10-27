@@ -40,6 +40,7 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.swingui.ColorCellRenderer;
+import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class TableEditPanel extends JPanel implements SQLObjectListener, DataEntryPanel {
@@ -77,13 +78,13 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		
 		add(new JLabel(Messages.getString("TableEditPanel.tableColourLabel"))); //$NON-NLS-1$
 		ColorCellRenderer renderer = new ColorCellRenderer(40, 20);
-		bgColor = new JComboBox(ca.sqlpower.swingui.ColourScheme.BACKGROUND_COLOURS);
+		bgColor = new JComboBox(ColourScheme.BACKGROUND_COLOURS);
         bgColor.setRenderer(renderer);
         bgColor.addItem(new Color(240, 240, 240));
 		add(bgColor);
 		
 		add(new JLabel(Messages.getString("TableEditPanel.textColourLabel"))); //$NON-NLS-1$
-		fgColor = new JComboBox(ca.sqlpower.swingui.ColourScheme.FOREGROUND_COLOURS);
+		fgColor = new JComboBox(ColourScheme.FOREGROUND_COLOURS);
         fgColor.setRenderer(renderer);
         fgColor.addItem(Color.BLACK);
         add(fgColor);
