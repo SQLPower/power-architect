@@ -972,7 +972,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         JMenu tableAppearance = new JMenu(Messages.getString("TablePane.tableAppearances")); //$NON-NLS-1$
         JMenu backgroundColours = new JMenu(Messages.getString("TableEditPanel.tableColourLabel")); //$NON-NLS-1$
         JMenu foregroundColours = new JMenu(Messages.getString("TableEditPanel.textColourLabel")); //$NON-NLS-1$
-        for (final Color colour : ColorScheme.BACKGROUND_COLOURS) {
+        for (final Color colour : ca.sqlpower.swingui.ColourScheme.BACKGROUND_COLOURS) {
             Icon icon = new ColorIcon(60, 25, colour);
             mi = new JMenuItem(icon);
             mi.addActionListener(new ActionListener() {
@@ -986,7 +986,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             });
             backgroundColours.add(mi);
         }
-        for (final Color colour : ColorScheme.FOREGROUND_COLOURS) {
+        for (final Color colour : ca.sqlpower.swingui.ColourScheme.FOREGROUND_COLOURS) {
             Icon icon = new ColorIcon(60, 25, colour);
             mi = new JMenuItem(icon);
             mi.addActionListener(new ActionListener() {
