@@ -39,5 +39,6 @@
 	<classpathentry kind="lib" path="lib/eigenbase-properties.jar"/>
 	<classpathentry kind="lib" path="lib/annotations.jar"/>
 	<classpathentry kind="lib" path="lib/opencsv-1.8.jar"/>
+	<classpathentry kind="lib" path="lib/rsyntaxtextarea.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
