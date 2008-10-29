@@ -1468,4 +1468,8 @@ public class SQLTable extends SQLObject {
         List<SQLIndex> indices = getIndicesFolder().getChildren();
         return Collections.unmodifiableList(indices);
     }
+    
+    public String toQualifiedName() {
+        return ArchitectUtils.toQualifiedName(this, SQLDatabase.class);
+    }
 }
