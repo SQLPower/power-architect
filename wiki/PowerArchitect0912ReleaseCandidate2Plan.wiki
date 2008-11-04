@@ -1,0 +1,43 @@
+#summary A list of possible items to fix for Power*Architect Release Candidate 2
+
+==Notable Commits since RC 1==
+
+    * r2706 - 'V' shortcut for creating Virtual Cubes
+    * r2707 - Virtual Cube button tooltip
+    * r2708 - Fixed problem with multiple deletion of cubes, virtual cubes, and usage components
+    * r2709 - Fix for Bug 1629. Moved OLAP root object from core to swing session. (WONTFIX? - MatchMaker doesn't depend on this particular branch so it shouldn't be necessary)
+    * r2710 - Fixed Bug with menu bar not appearing in OS X when creating OLAP session
+    * r2711 - Added keyboard shortcuts for Cube Usages, Dimension Usages
+    * r2717 - Used hint for metadata caching when reverse engineering several objects
+    * r2718 - Fixed annoying 'select as you drag' behaviour
+    * r2731 - Fixed NPE when loading projects with OLAP sessions
+    * r2740 - Fixed a UI glitch where right clicking on an exception would have two menu separators in a row.
+    * r2753 - Fix for Bug 1659 - Current project name is reflected in compare DM panel if project got renamed
+    * r2754 - Layout fix: project name now spans all available columns in Compare DM so not cut off unnecessarily
+    * r2556 - Fixed error messages not showing up in SQL Script executor
+    * r2557 - Fixed Bug 1658: spaces in table names not converting to underscores
+    * r2764 - Cleanup of the ColumnEditPanel to prepare for using JGoodies FormLayout
+    * r2769 - Fixed Column dialog title to show column name, instead of table name
+    * r2771 - Changed column edit panel UI to use JGoodies FormLayout
+    * r2776 - Fixed Windows file association bug
+    * r2781-2791 - Refactoring of the DBTree into its own package. This looks like a potentially destabilizing change, so I would say WONTFIX
+    * r2792 - Modified toggle selection key for DBTree so command key is used on Mac, and Ctrl otherwise. Not sure if this is dependent on 2781-2791 or not.
+
+
+
+==Notable Not-yet-fixed Bug Reports (in BugZilla and Forums since RC 1)==
+
+    * Bug 1640 - Multiple IOOBE's fired when dragging column to index 0 in self-referencing table
+    * Bug 1643 - Undo deletion of cubes does not recreate dimension usage
+    * Bug 1646 - Clustered Indexes not forward engineered properly (particularly PostgreSQL)
+    * Bug 1661 - Compare DM doesn't explain why Start button is disabled
+    * Bug 1662 - Indexes remain on tables even after columns removed
+    * Bug 1678 - The only CRITICAL bug in the list since RC 1. Forward Engineering doesn't execute in Oracle. (See http://trillian.sqlpower.ca/bugzilla/show_bug.cgi?id=1678)
+    * Bug 1681 - Opening a new session from another session after adding a datasource to the older session results in Architect trying to close the older session.
+    * Bug 1692 - Screenshot runs off the page on user guide on page 34
+
+
+==Documentation==
+
+    * I'm fairly certain that the OLAP feature has not been documented at all yet in the User Guide.
+
