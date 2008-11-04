@@ -50,3 +50,4 @@
     * 616 - Updated commons collections to support the Oracle Database metadata caching enhancements.
     * 623 - Fixed bug that resulted in ProgressWatcher not updating the label
     * 636 - Removed check for missing username in attempt to get SQL Server integrated security logins working
+    * 696 - Split up DBMD wrappers for SQL Server 2000 and 2005 because optimal way of listing schemas is different between the two platforms. See http://www.sqlpower.ca/forum/posts/list/0/1788.page for details.
