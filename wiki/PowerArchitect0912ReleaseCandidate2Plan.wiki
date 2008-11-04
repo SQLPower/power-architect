@@ -41,3 +41,12 @@
 
     * I'm fairly certain that the OLAP feature has not been documented at all yet in the User Guide.
 
+
+== Notable Commits to SQL Power Library since RC 1 that may affect Architect ==
+    * 603 - Fixed import and export key caching to cache keys across schemas since relationships can span across schemas. Not sure if the Architect needs this though
+    * 611 - Implemented a shared static metadata cache instead of a per-instance cache
+    * 612 - Further improvements to performance and memory usage in the cache
+    * 614 - Fixed bug where table column were not auto-fitted because a mouse listener was not added to the header. (TableModelColumnAutofit.java). The ProfileResultsViewer uses this so it may affect Power*Architect
+    * 616 - Updated commons collections to support the Oracle Database metadata caching enhancements.
+    * 623 - Fixed bug that resulted in ProgressWatcher not updating the label
+    * 636 - Removed check for missing username in attempt to get SQL Server integrated security logins working
