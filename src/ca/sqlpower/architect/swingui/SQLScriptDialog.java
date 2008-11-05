@@ -72,6 +72,12 @@ import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+/**
+ * A collection of components that present a series of SQL statements (a
+ * "script") to the user, and allows the user to execute the script against a
+ * pre-arranged target database, copy it to the system clipboard, or save it to
+ * a file.
+ */
 public class SQLScriptDialog extends JDialog {
 
 	private static final Logger logger = Logger.getLogger(SQLScriptDialog.class);
@@ -95,6 +101,38 @@ public class SQLScriptDialog extends JDialog {
 
 	private MonitorableWorker executeTask;
 
+    /**
+     * Creates and packs a new SQL script dialog, but does not display it. Call
+     * setVisible(true) to show the dialog, which will appear over or near the
+     * given owner.
+     * 
+     * @param owner
+     *            The dialog that owns this dialog. Can be null only if this
+     *            dialog is not modal.
+     * @param title
+     *            The text to show in the dialog's title bar.
+     * @param header
+     *            The text to show inside the dialog body above the SQL
+     *            statements.
+     * @param modal
+     *            Incidates if the generated dialog should be application-modal.
+     *            If this is true, the owner parameter must not be null.
+     * @param gen
+     *            The DDL generator that supplies the SQL script. The script
+     *            will be obtained by a call to
+     *            {@link DDLGenerator#getDdlStatements()}.
+     *            XXX: this should be a List of DDLStatement instead
+     * @param targetDataSource
+     *            The database to execute the statements in. This can be null,
+     *            in which case the execute button will not function. Save and
+     *            copy will still work.
+     * @param closeParent
+     *            If true, this dialog's owner will be closed when this dialog
+     *            closes. XXX: this is probably not the best place for this feature
+     * @param session
+     *            The session that provides the SPSwingWorkerRegistry.
+     *            XXX: this should be specified as a SwingWorkerRegistry
+     */
 	public SQLScriptDialog(Dialog owner, String title, String header, boolean modal,
 			DDLGenerator gen, SPDataSource targetDataSource,
 			boolean closeParent, ArchitectSwingSession session )
@@ -148,8 +186,6 @@ public class SQLScriptDialog extends JDialog {
 
 		Action copy = new CopyAction(sqlDoc);
 		Action execute = null;
-		
-		logger.debug(targetDataSource.get(SPDataSource.PL_UID)); //$NON-NLS-1$
 		
 		execute = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
@@ -338,9 +374,9 @@ public class SQLScriptDialog extends JDialog {
 				logger.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis())); //$NON-NLS-1$
 				logger.info("Database Target: " + target.getDataSource()); //$NON-NLS-1$
 				logger.info("Playpen Dump: " + target.getDataSource()); //$NON-NLS-1$
-				Iterator it = statements.iterator();
+				Iterator<DDLStatement> it = statements.iterator();
 				while (it.hasNext() && !finished && !isCancelled()) {
-					DDLStatement ddlStmt = (DDLStatement) it.next();
+					DDLStatement ddlStmt = it.next();
 					try {
 						stmtsTried++;
 						logger.info("executing: " + ddlStmt.getSQLText()); //$NON-NLS-1$
