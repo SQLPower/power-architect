@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1219,5 +1220,40 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLObjectRoot rootObject = session.getRootObject();
         SQLDatabase ppdb = (SQLDatabase) rootObject.getChild(0);
         assertTrue(ppdb.isPlayPenDatabase());
+    }
+    
+    /**
+     * Regression test for bug 1662: after loading a project, all the indexes
+     * have to be listening to the columns folder of the table they belong to.
+     */
+    public void testIndexListensToColumnsAfterLoad() throws Exception {
+        testLoad();
+        SQLDatabase ppdb = session.getTargetDatabase(); 
+        SQLTable t = ppdb.getTableByName("mm_project");
+        
+        // have to do the same check for every index, because (for example)
+        // the PK index didn't exhibit this problem
+        for (SQLIndex idx : new ArrayList<SQLIndex>(t.getIndices())) {
+
+            assertTrue(
+                    "didn't expect this index to have no columns!",
+                    idx.getChildCount() > 0);
+            
+            List<SQLIndex.Column> indexCols = idx.getChildren();
+            List<SQLColumn> colsToRemove = new ArrayList<SQLColumn>();
+            for (SQLIndex.Column indexCol : indexCols) {
+                colsToRemove.add(indexCol.getColumn());
+            }
+
+            for (SQLColumn col : colsToRemove) {
+                t.removeColumn(col);
+            }
+
+            // prove the listener was hooked up
+            assertTrue(
+                    "Index " + idx + " wasn't listening to columns folder!",
+                    idx.getChildCount() == 0);
+            assertFalse(t.getIndices().contains(idx));
+        }
     }
 }
