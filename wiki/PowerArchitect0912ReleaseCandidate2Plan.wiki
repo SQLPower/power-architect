@@ -16,6 +16,7 @@
     * Bug 1661 - Compare DM doesn't explain why Start button is disabled
     * Bug 1662 - Indexes remain on tables even after columns removed
     * Bug 1692 - Screenshot runs off the page on user guide on page 34
+    * Bug 1698 - abstract SQL Server DDL generator should not appear in GUI
 
 
 ==Documentation==
