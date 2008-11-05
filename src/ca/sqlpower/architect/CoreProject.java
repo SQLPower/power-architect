@@ -329,7 +329,7 @@ public class CoreProject {
         SQLFolderFactory folderFactory = new SQLFolderFactory();
         d.addFactoryCreate("*/folder", folderFactory);
         d.addSetProperties("*/folder");
-        d.addSetNext("*/folder", "addChild");
+        // the factory adds the folder to the table upon creation
 
         SQLColumnFactory columnFactory = new SQLColumnFactory();
         d.addFactoryCreate("*/column", columnFactory);
@@ -518,6 +518,14 @@ public class CoreProject {
     }
 
     /**
+     * The table most recently loaded from the project file.  The SQLFolderFactory
+     * has to know which table it's creating a folder for, because it has to add
+     * the folder upon creation instead of waiting for the digester to do it at the
+     * end of the enclosing table element.
+     */
+    private SQLTable currentTable;
+
+    /**
      * Creates a SQLTable instance and adds it to the objectIdMap.
      */
     private class SQLTableFactory extends AbstractObjectCreationFactory {
@@ -543,6 +551,7 @@ public class CoreProject {
                 }
             }
 
+            currentTable = tab;
             return tab;
         }
     }
@@ -569,7 +578,17 @@ public class CoreProject {
                             +typeStr+"\"");
                 }
             }
-            return new SQLTable.Folder(type, true);
+            
+            // have to add folders right away because some stuff (for example, the SQLIndex constructor)
+            // requires that the folder's parent table is already linked up. It's done here because
+            // the Digester is incapable of doing this up front (see javadoc for CallMethodRule)
+            Folder f = new SQLTable.Folder(type, true);
+            try {
+                currentTable.addChild(f);
+            } catch (ArchitectException ex) {
+                throw new ArchitectRuntimeException(ex);
+            }
+            return f;
         }
     }
 
