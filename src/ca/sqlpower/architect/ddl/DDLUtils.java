@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect.ddl;
 
+import java.lang.reflect.Modifier;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -148,13 +149,15 @@ public class DDLUtils {
      * Finds all DDL Generators configured in the given data source collection.
      */
     public static Vector<Class<? extends DDLGenerator>> getDDLTypes(DataSourceCollection dsc) {
-        Vector<Class<? extends DDLGenerator>> dbTypeList = new Vector();
+        Vector<Class<? extends DDLGenerator>> dbTypeList = new Vector<Class<? extends DDLGenerator>>();
         for (SPDataSourceType dst : dsc.getDataSourceTypes()) {
             if (dst.getDDLGeneratorClass() != null) {
                 try {
                     Class<?> loadedClass = Class.forName(dst.getDDLGeneratorClass());
                     Class<? extends DDLGenerator> ddlgClass = loadedClass.asSubclass(DDLGenerator.class);
-                    if (!dbTypeList.contains(ddlgClass)) dbTypeList.add(ddlgClass);
+                    if ( (!dbTypeList.contains(ddlgClass)) && (!Modifier.isAbstract(ddlgClass.getModifiers())) ) {
+                        dbTypeList.add(ddlgClass);
+                    }
                 } catch (Exception e) {
                     logger.warn(
                             "Couldn't initialize DDL Generator class " + dst.getDDLGeneratorClass() +
