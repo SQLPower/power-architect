@@ -10,12 +10,12 @@
     * r2757 - Fixed Bug 1658: spaces in table names not converting to underscores
     * r2776 - Fixed Windows file association bug
     * r2813 - Fixed Bug 1661: can't produce upgrade script when older schema isn't in a physical database _and_ bug 1334: Compare DM doesn't explain why Start button is disabled
-    * r2815 - Fixes Bug 1662: Indexes remain on tables even after columns removed
+    * r2815 - Fixed Bug 1662: Indexes remain on tables even after columns removed
+    * r2818 - Fixed Bug 1692: Screenshot runs off the page on user guide on page 34
 
 
 ==Notable Not-yet-fixed Bug Reports (in BugZilla and Forums since RC 1)==
 
-    * Bug 1692 - Screenshot runs off the page on user guide on page 34
     * Bug 1698 - abstract SQL Server DDL generator should not appear in GUI
 
 
