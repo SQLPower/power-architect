@@ -12,11 +12,11 @@
     * r2813 - Fixed Bug 1661: can't produce upgrade script when older schema isn't in a physical database _and_ bug 1334: Compare DM doesn't explain why Start button is disabled
     * r2815 - Fixed Bug 1662: Indexes remain on tables even after columns removed
     * r2818 - Fixed Bug 1692: Screenshot runs off the page on user guide on page 34
-
+    * r2820 - Fixed Bug 1698: Abstract SQL Server DDL generator should not appear in GUI
 
 ==Notable Not-yet-fixed Bug Reports (in BugZilla and Forums since RC 1)==
 
-    * Bug 1698 - abstract SQL Server DDL generator should not appear in GUI
+    * None left!
 
 
 ==Documentation==
@@ -30,4 +30,4 @@
 
 
 ==Notable Not-marked-as-fixed Bugs in SQL Power Library since RC 1==
-    * Bug 1693 - Need SQL Server driver to strips parentheses from default value
+    * Bug 1693 - Need SQL Server jdbc wrapper to strip parentheses from default value
