@@ -34,8 +34,12 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
 
-
-public class SQLServerDDLGenerator extends GenericDDLGenerator {
+/**
+ * The base class for version-specific SQL Server DDL generators. This class is
+ * marked abstract because it is not appropriate to use it directly on any
+ * version of SQL Server.
+ */
+public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 	public SQLServerDDLGenerator() throws SQLException {
 		super();
 	}
@@ -43,10 +47,10 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	public static final String GENERATOR_VERSION = "$Revision$";
 	private static final Logger logger = Logger.getLogger(SQLServerDDLGenerator.class);
 
-	private static HashSet reservedWords;
+	private static HashSet<String> reservedWords;
 
 	static {
-		reservedWords = new HashSet();
+		reservedWords = new HashSet<String>();
 		reservedWords.add("ADD");
 		reservedWords.add("ALL");
 		reservedWords.add("ALTER");
