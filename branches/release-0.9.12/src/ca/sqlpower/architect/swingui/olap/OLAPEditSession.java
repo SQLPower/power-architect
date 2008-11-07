@@ -89,7 +89,6 @@ public class OLAPEditSession implements OLAPChildListener {
      */
     private final OLAPUndoManager undoManager;
     
-
     public static final double ZOOM_STEP = 0.25;
     
     private ZoomAction zoomInAction;
@@ -241,6 +240,8 @@ public class OLAPEditSession implements OLAPChildListener {
         });
         frame.setContentPane(panel);
         frame.pack();
+        
+        frame.setIconImage(OSUtils.SCHEMA_ICON.getImage());
         
         OLAPPlayPenFactory.setupOLAPMouseWheelActions(pp, this);
         OLAPPlayPenFactory.setupOLAPKeyboardActions(pp, this);
