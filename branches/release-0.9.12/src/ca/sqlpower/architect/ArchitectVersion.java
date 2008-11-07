@@ -64,7 +64,7 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
      * Full releases do not have a suffix.  In that case, the suffix is the empty
      * string (not null).
      */
-    public static final String APP_VERSION_SUFFIX = "rc1";
+    public static final String APP_VERSION_SUFFIX = "rc2";
     
     /**
      * The full version number, formatted as Major.Minor.Tiny[-Suffix].  Note the square
