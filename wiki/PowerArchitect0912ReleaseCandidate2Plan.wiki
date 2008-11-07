@@ -1,8 +1,6 @@
-#summary A list of possible items to fix for Power*Architect Release Candidate 2
+#summary A list of fixed and pending items for Power*Architect 0.9.12 Release Candidate 2
 
 ==Changes from RC1 to RC2 (backported from trunk)==
-
-==Changes we plan to port from trunk to 0.9.12 branch for RC2==
 
     * r2718 - Fixed annoying 'select as you drag' behaviour
     * r2731 - Fixed NPE when loading projects with OLAP sessions
@@ -15,6 +13,10 @@
     * r2815 - Fixed Bug 1662: Indexes remain on tables even after columns removed
     * r2818 - Fixed Bug 1692: Screenshot runs off the page on user guide on page 34
     * r2820 - Fixed Bug 1698: Abstract SQL Server DDL generator should not appear in GUI
+
+==Changes we plan to port from trunk to 0.9.12 branch for RC2==
+
+    * None left!
 
 ==Notable Not-yet-fixed Bug Reports (in Bugzilla and Forums since RC 1)==
 
@@ -35,6 +37,7 @@
 
 ==Changes we plan to incoroprate into RC2==
 
+    * None left!
 
 ==Notable Not-marked-as-fixed Bugs in SQL Power Library since RC 1==
 
