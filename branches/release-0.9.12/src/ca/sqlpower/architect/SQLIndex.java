@@ -454,17 +454,31 @@ public class SQLIndex extends SQLObject {
     }
 
     /**
-     * Updates this index's parent reference.
-     *
-     *  @param parent must be a SQLTable.Folder instance.
+     * Updates this index's parent reference, and attaches a listener to the
+     * columns folder of the new parent's parent table.
+     * 
+     * @param parent
+     *            The new parent. Must be null or a SQLTable.Folder instance. If
+     *            it's a folder, it must already have a parent table.
+     * @throws IllegalStateException
+     *             if the given parent is non-null and does not itself have a
+     *             parent table.
      */
     @Override
     protected void setParent(SQLObject parent) {
-        this.parent = (Folder<SQLIndex>) parent;
-        if (this.parent != null && this.parent.getParent() != null) {
-            this.parent.getParent().getColumnsFolder().addSQLObjectListener(removeColumnListener);
+        
+        if (this.parent != null) {
+            getParentTable().getColumnsFolder().removeSQLObjectListener(removeColumnListener);
         }
-
+        
+        this.parent = (Folder<SQLIndex>) parent;
+        
+        if (this.parent != null) {
+            if (getParentTable() == null) {
+                throw new IllegalStateException("Index folder is unparented!");
+            }
+            getParentTable().getColumnsFolder().addSQLObjectListener(removeColumnListener);
+        }
     }
 
     /**
