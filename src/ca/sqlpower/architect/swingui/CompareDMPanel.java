@@ -78,6 +78,9 @@ import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
+import ca.sqlpower.validation.Status;
+import ca.sqlpower.validation.ValidateResult;
+import ca.sqlpower.validation.swingui.StatusComponent;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -171,6 +174,16 @@ public class CompareDMPanel extends JPanel {
 
 	private JLabel statusLabel;
 
+	/**
+	 * The status component that explains why the start compare action is disabled.
+	 * <p>
+	 * <b>Very important note</b> that you should heed carefully: CompareDMPanel
+	 * uses the SQL Power validation API in a non-standard way because it has been
+	 * retrofit over an old ad-hoc approach to validation. Do not emulate this approach
+	 * to validation in new code!
+	 */
+	private StatusComponent statusComponent = new StatusComponent();
+	
 	private StartCompareAction startCompareAction;
 	
 	private SwapSourceTargetAction swapSourceTargetAction;
@@ -859,17 +872,29 @@ public class CompareDMPanel extends JPanel {
 		 * XXX: this is really similar to the getObjectToCompare() method,
 		 * except that it doesn't try to load the file (so it runs quicker)
 		 */
-		private boolean isThisPartStartable() {
+		private ValidateResult getStartabilityStatus() {
+		    ValidateResult result;
+		    String sourceOrTarget = isSource() ? "Older" : "Newer";
 			if (playPenRadio.isSelected()) {
-				return true;
+				result = null;
 			} else if (physicalRadio.isSelected()) {
-				return databaseDropdown.getSelectedItem() != null;
+				if (databaseDropdown.getSelectedItem() == null) {
+				    result = ValidateResult.createValidateResult(Status.FAIL, sourceOrTarget + " physical database selection incomplete");
+				} else {
+				    result = null;
+				}
 			} else if (loadRadio.isSelected()) {
-				return new File(loadFilePath.getText()).canRead();
+			    if (new File(loadFilePath.getText()).canRead()) {
+			        result = null;
+			    } else {
+			        result = ValidateResult.createValidateResult(Status.FAIL, sourceOrTarget + " project file not readable");
+			    }
 			} else {
 				throw new IllegalStateException(
 						Messages.getString("CompareDMPanel.noRadioButtonsSelected")); //$NON-NLS-1$
 			}
+			
+			return result;
 		}
 
 		/**
@@ -943,13 +968,24 @@ public class CompareDMPanel extends JPanel {
 	 * Returns true iff the comparison process can start given the current state
 	 * of the GUI form.
 	 */
-	public boolean isStartable() {
+	private boolean isStartable() {
 		logger.debug("isStartable is checking..."); //$NON-NLS-1$
-		boolean startable = true;
-		if (sqlButton.isSelected()) {
-		    startable = source.physicalRadio.isSelected() && sqlTypeDropdown.getSelectedItem() != null;
+		ValidateResult result = null;
+		if (sqlButton.isSelected() && sqlTypeDropdown.getSelectedItem() == null) {
+		    result = ValidateResult.createValidateResult(Status.FAIL, "Please choose an SQL dialect");
 		}
-	    return source.isThisPartStartable() && target.isThisPartStartable() && startable;
+		
+		if (result == null) {
+		    result = source.getStartabilityStatus();
+		}
+		
+		if (result == null) {
+		    result = target.getStartabilityStatus();
+		}
+
+		statusComponent.setResult(result);
+		
+	    return result == null;
 	}
 
 	public Action getStartCompareAction() {
@@ -969,6 +1005,7 @@ public class CompareDMPanel extends JPanel {
         this.parentDialog = ownerDialog;
 		buildUI(target.new SchemaPopulator(session),target.new CatalogPopulator(session),
 		        source.new SchemaPopulator(session),source.new CatalogPopulator(session));
+		startCompareAction.setEnabled(isStartable());
 		addAncestorListener(playpenNameRefreshHandler);
 	}
 	
@@ -986,6 +1023,11 @@ public class CompareDMPanel extends JPanel {
 		sqlTypeDropdown.setName("sqlTypeDropDown"); //$NON-NLS-1$
 		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown);
         sqlTypeDropdown.setEnabled(false);
+        sqlTypeDropdown.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                startCompareAction.setEnabled(isStartable());
+            }
+        });
 		sqlButton = new JRadioButton();
 		sqlButton.setName(OUTPUT_SQL);
 		sqlButton.setActionCommand(OUTPUT_SQL);
@@ -1027,6 +1069,9 @@ public class CompareDMPanel extends JPanel {
 
 		CellConstraints cc = new CellConstraints();
 
+		builder.append(statusComponent, 11);
+		builder.nextLine();
+		
 		builder.appendSeparator(Messages.getString("CompareDMPanel.olderSeparator")); //$NON-NLS-1$
 		builder.nextLine();
 		builder.append(""); // takes up blank space //$NON-NLS-1$
