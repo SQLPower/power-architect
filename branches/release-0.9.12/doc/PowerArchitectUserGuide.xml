@@ -5143,8 +5143,8 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/database_conn_window.png" format="PNG"
-									width="4in" />
+									fileref="doc/images/database_conn_window_setup.png"
+									format="PNG" width="4in" />
 							</imageobject>
 						</mediaobject>
 
@@ -5305,14 +5305,6 @@
 												</listitem>
 
 											</itemizedlist>
-
-											<mediaobject>
-												<imageobject>
-													<imagedata
-														fileref="doc/images/database_conn_window_setup.png"
-														format="PNG" width="4in" />
-												</imageobject>
-											</mediaobject>
 
 										</entry>
 
