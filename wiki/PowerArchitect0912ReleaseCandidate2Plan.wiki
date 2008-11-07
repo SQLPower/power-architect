@@ -1,6 +1,8 @@
 #summary A list of possible items to fix for Power*Architect Release Candidate 2
 
-==Commits we will port from trunk to RC 1 branch==
+==Changes from RC1 to RC2 (backported from trunk)==
+
+==Changes we plan to port from trunk to 0.9.12 branch for RC2==
 
     * r2718 - Fixed annoying 'select as you drag' behaviour
     * r2731 - Fixed NPE when loading projects with OLAP sessions
@@ -14,19 +16,26 @@
     * r2818 - Fixed Bug 1692: Screenshot runs off the page on user guide on page 34
     * r2820 - Fixed Bug 1698: Abstract SQL Server DDL generator should not appear in GUI
 
-==Notable Not-yet-fixed Bug Reports (in BugZilla and Forums since RC 1)==
+==Notable Not-yet-fixed Bug Reports (in Bugzilla and Forums since RC 1)==
 
     * None left!
 
 
 ==Documentation==
 
-    * I'm fairly certain that the OLAP feature has not been documented at all yet in the User Guide.
+    * The OLAP feature has not been documented at all yet in the User Guide.
 
+=SQLPower Library=
 
-== Notable Commits to SQL Power Library since RC 1 that may affect Architect ==
+==Changes from RC1 to RC2 (backported from trunk)==
+
     * 636 - Removed check for missing username in attempt to get SQL Server integrated security logins working
     * 696 - Split up DBMD wrappers for SQL Server 2000 and 2005 because optimal way of listing schemas is different between the two platforms. See http://www.sqlpower.ca/forum/posts/list/0/1788.page for details.
     * 709 - Fixed bug 1693: Need SQL Server jdbc wrapper to strip parentheses from default value
 
+==Changes we plan to incoroprate into RC2==
+
+
 ==Notable Not-marked-as-fixed Bugs in SQL Power Library since RC 1==
+
+    * None left!
