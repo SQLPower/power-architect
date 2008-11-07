@@ -779,7 +779,7 @@ public class CompareDMPanel extends JPanel {
 			
 			// now give all our shiny new components to the builder
 			builder.append(playPenRadio);
-			builder.append(playPenName);
+			builder.append(playPenName, 7);
 			builder.nextLine();
 
 			builder.append(""); // takes up blank space //$NON-NLS-1$
