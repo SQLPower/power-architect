@@ -20,7 +20,6 @@
 package ca.sqlpower.architect;
 
 import java.beans.PropertyDescriptor;
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,10 +27,7 @@ import java.util.Set;
 
 import org.apache.commons.beanutils.PropertyUtils;
 
-import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
-import ca.sqlpower.architect.etl.kettle.RootRepositoryDirectoryChooser;
-import ca.sqlpower.sql.PlDotIni;
-import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.testutil.NewValueMaker;
 
 /**
  * Container class for utility methods useful to testing.
@@ -61,47 +57,13 @@ public class TestUtils {
     		if (PropertyUtils.isWriteable(target, props[i].getName()) &&
     				props[i].getWriteMethod() != null &&
     				!propertiesToIgnore.contains(props[i].getName())) {
-    			
-    			// XXX: factor this (and the same thing in SQLTestCase) 
-    			//      out into a changeValue() method in some util class.
-    			
-    			Object newVal;  // don't init here so compiler can warn if the following code doesn't always give it a value
-    			if (props[i].getPropertyType() == Integer.TYPE) {
-    				newVal = ((Integer)oldVal)+1;
-    			} else if (props[i].getPropertyType() == Integer.class) {
-    				if (oldVal == null) {
-    					newVal = new Integer(1);
-    				} else {
-    					newVal = new Integer((Integer)oldVal+1);
-    				}
-    			} else if (props[i].getPropertyType() == String.class) {
-    				// make sure it's unique
-    				newVal ="new " + oldVal;
-    			} else if (props[i].getPropertyType() == Boolean.TYPE){
-    				newVal = new Boolean(! ((Boolean) oldVal).booleanValue());
-    			} else if (props[i].getPropertyType() == SQLColumn.class) {
-    				newVal = new SQLColumn();
-    				((SQLColumn) newVal).setName("testing!");
-                } else if (props[i].getPropertyType() == SQLIndex.class) {
-                    newVal = new SQLIndex();
-                    ((SQLIndex) newVal).setName("a new index");
-                } else if (props[i].getPropertyType() == File.class) {
-                    newVal = new File("temp" + System.currentTimeMillis());
-                } else if (props[i].getPropertyType() == UserPrompter.class) {
-                    newVal = new AlwaysOKUserPrompter();
-                } else if (props[i].getPropertyType() == KettleRepositoryDirectoryChooser.class) {
-                    newVal = new RootRepositoryDirectoryChooser();
-                } else if (props[i].getPropertyType() == SPDataSource.class) {
-                    newVal = new SPDataSource(new PlDotIni());
-                    ((SPDataSource)newVal).setName("Testing data source");
-    			} else {
-    				throw new RuntimeException("This test case lacks a value for "+
-    						props[i].getName()+
-    						" (type "+props[i].getPropertyType().getName()+")");
-    			}
-    
-                System.out.println("Changing property \""+props[i].getName()+"\" to \""+newVal+"\"");
-    			PropertyUtils.setProperty(target, props[i].getName(), newVal);
+    		
+    		    NewValueMaker valueMaker = new ArchitectValueMaker();
+    		    Object newVal = valueMaker.makeNewValue(props[i].getPropertyType(), oldVal, props[i].getName());
+
+    		    System.out.println("Changing property \""+props[i].getName()+"\" to \""+newVal+"\"");
+                PropertyUtils.setProperty(target, props[i].getName(), newVal);
+
     		}
     	}
     	
