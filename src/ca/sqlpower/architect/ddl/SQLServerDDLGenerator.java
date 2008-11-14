@@ -29,9 +29,11 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
 
 /**
@@ -450,6 +452,17 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         } else {
             return r.getDeferrability() == Deferrability.NOT_DEFERRABLE;
         }
+    }
+    
+    @Override
+    public void dropPrimaryKey(SQLTable t) {
+        try {
+            print("ALTER TABLE " + toQualifiedName(t.getName())
+                + " DROP " + t.getPrimaryKeyName());
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
+        endStatement(DDLStatement.StatementType.DROP, t);
     }
     
     @Override
