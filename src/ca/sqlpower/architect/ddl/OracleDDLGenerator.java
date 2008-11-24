@@ -37,6 +37,12 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 
+/**
+ * The base class for version-specific Oracle DDL generators. This class exists
+ * in addition to the two version-specific ones in order to provide a generic
+ * Oracle DDL generator for older PL.ini files that don't specify the newer DDL
+ * generators
+ */
 public class OracleDDLGenerator extends GenericDDLGenerator {
 
 	public OracleDDLGenerator() throws SQLException {
@@ -47,10 +53,10 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 
 	private static final Logger logger = Logger.getLogger(OracleDDLGenerator.class);
 
-	private static HashSet reservedWords;
+	private static HashSet<String> reservedWords;
 
 	static {
-		reservedWords = new HashSet();
+		reservedWords = new HashSet<String>();
 		reservedWords.add("ACCESS");
 		reservedWords.add("ADD");
 		reservedWords.add("ALL");
