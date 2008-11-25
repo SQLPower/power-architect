@@ -211,7 +211,7 @@ public class SQLScriptDialog extends JDialog {
 		};
 		CloseAction close = new CloseAction();
 		close.setWhatToClose(this);
-
+		SPSUtils.makeJDialogCancellable(this, close);
 
 		ButtonBarBuilder barBuilder = new ButtonBarBuilder();
 		JButton copyButton = new JButton(copy);

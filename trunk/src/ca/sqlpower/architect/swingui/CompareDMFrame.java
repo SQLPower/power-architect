@@ -126,6 +126,7 @@ public class CompareDMFrame extends JDialog {
 		};
 		CloseAction close = new CloseAction();
 		close.setDialog(this);
+		SPSUtils.makeJDialogCancellable(this, close);
 		
 		ButtonBarBuilder sourcebbBuilder = new ButtonBarBuilder();
 		JButton copySource = new JButton(sourceCopy);
