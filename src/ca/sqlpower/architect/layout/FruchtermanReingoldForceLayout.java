@@ -185,7 +185,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 					break;
 				}
 				if(uDisp.equals(vDisp)) {
-					vDisp.translate((int)Math.random()+1,(int)Math.random()+1 );
+                    vDisp.translate((int) (Math.random() + 0.5), (int) (Math.random() + 0.5));
 				}
 				
 				vDisp.translate(
