@@ -236,6 +236,7 @@ public class SQLScriptDialog extends JDialog {
 		JButton closeButton = new JButton(close);
 		closeButton.setText(Messages.getString("SQLScriptDialog.closeOption")); //$NON-NLS-1$
 		barBuilder.addGridded(closeButton);
+		getRootPane().setDefaultButton(executeButton);
 
 		PanelBuilder pb;
 

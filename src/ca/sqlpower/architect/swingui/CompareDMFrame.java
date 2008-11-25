@@ -142,7 +142,8 @@ public class CompareDMFrame extends JDialog {
 		sourceSaveButton.setText(Messages.getString("CompareDMFrame.save")); //$NON-NLS-1$
 		sourcebbBuilder.addGridded(sourceSaveButton);
 		sourcebbBuilder.addRelatedGap();
-		sourcebbBuilder.addGlue();		
+		sourcebbBuilder.addGlue();
+		
 		ButtonBarBuilder closeBar = new ButtonBarBuilder(); 
 		JButton closeButton = new JButton(close);
 		closeButton.setText(Messages.getString("CompareDMFrame.close")); //$NON-NLS-1$
@@ -188,6 +189,7 @@ public class CompareDMFrame extends JDialog {
 		targetbbBuilder.addGridded(targetSave);
 		targetbbBuilder.addRelatedGap();
 		targetbbBuilder.addGlue();
+		getRootPane().setDefaultButton(targetSave);
 
 		
 		pb.add(titleLabel, cc.xyw(2, 1, 3,"c,c")); //$NON-NLS-1$
