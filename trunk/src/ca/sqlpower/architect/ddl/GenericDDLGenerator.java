@@ -44,6 +44,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSequence;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLType;
 import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
@@ -693,9 +694,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    (c.getSourceDataTypeName(), c.getType(), c.getPrecision(),
 		            null, null, c.getNullable(), false, false);
 		    oldType.determineScaleAndPrecision();
-		    warnings.add(
-                    new TypeMapDDLWarning(c, "Unknown Target Type", oldType, td));
-		}
+		    warnings.add(new TypeMapDDLWarning(c, String.format(
+                    "Type '%s' of column '%s' in table '%s' is unknown in the target platform", 
+                    SQLType.getTypeName(c.getType()), 
+                    c.getName(), 
+                    c.getParentTable().getName()), oldType, td));
+        }
         return td;
     }
 
