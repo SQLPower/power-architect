@@ -27,16 +27,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.prefs.Preferences;
 
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.swingui.SPSUtils;
 
 public class ArchitectSessionContextImpl implements ArchitectSessionContext {
     
@@ -81,8 +76,9 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
         ArchitectUtils.configureLog4j();
 
         setPlDotIniPath(prefs.get(ArchitectSession.PREFS_PL_INI_PATH, null));
+        logger.debug("pl.ini path is " + getPlDotIniPath());
 
-        checkForValidPlDotIni();
+        setPlDotIniPath(ArchitectUtils.checkForValidPlDotIni(getPlDotIniPath(), "Architect"));
     }
     
     /**
@@ -98,63 +94,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
 
         setPlDotIniPath(PlDotIniPath);
 
-        checkForValidPlDotIni();
-    }
-    
-    /**
-     * This will check if the path of the PlDotIni file is valid. If it is not,
-     * it will display a message asking the user to either browse for the file
-     * or create a new file.
-     */
-    private void checkForValidPlDotIni() throws ArchitectException {
-        while (!isPlDotIniPathValid()) {
-            String message;
-            String[] options = new String[] {"Browse", "Create"};
-            if (getPlDotIniPath() == null) {
-                message = "location is not set";
-            } else if (new File(getPlDotIniPath()).isFile()) {
-                message = "file \n\n\""+getPlDotIniPath()+"\"\n\n could not be read";
-            } else {
-                message = "file \n\n\""+getPlDotIniPath()+"\"\n\n does not exist";
-            }
-            int choice = JOptionPane.showOptionDialog(null,   // blocking wait
-                    "The Architect keeps its list of database connections" +
-                    "\nin a file called PL.INI.  Your PL.INI "+message+"." +
-                    "\n\nYou can browse for an existing PL.INI file on your system" +
-                    "\nor allow the Architect to create a new one in your home directory." +
-                    "\n\nHint: If you are a Power*Loader Suite user, you should browse for" +
-                    "\nan existing PL.INI in your Power*Loader installation directory.",
-                    "Missing PL.INI", 0, JOptionPane.INFORMATION_MESSAGE, null, options, null);
-            File newPlIniFile;
-            if (choice == JOptionPane.CLOSED_OPTION) {
-                throw new ArchitectException("Can't start without a pl.ini file");
-            } else if (choice == 0) {
-                
-                // Don't use recent files menu for default dir here.. we're looking for PL.INI
-                JFileChooser fc = new JFileChooser();
-                
-                fc.setFileFilter(SPSUtils.INI_FILE_FILTER);
-                fc.setDialogTitle("Locate your PL.INI file");
-                int fcChoice = fc.showOpenDialog(null);       // blocking wait
-                if (fcChoice == JFileChooser.APPROVE_OPTION) {
-                    newPlIniFile = fc.getSelectedFile();
-                } else {
-                    newPlIniFile = null;
-                }
-            } else if (choice == 1) {
-                newPlIniFile = new File(System.getProperty("user.home"), "pl.ini");
-            } else
-                throw new ArchitectException("Unexpected return from JOptionPane.showOptionDialog to get pl.ini");
-
-            if (newPlIniFile != null) try {
-                newPlIniFile.createNewFile();
-                setPlDotIniPath(newPlIniFile.getPath());
-            } catch (IOException e1) {
-                logger.error("Caught IO exception while creating empty PL.INI at \""
-                        +newPlIniFile.getPath()+"\"", e1);
-                ASUtils.showExceptionDialogNoReport("Failed to create file \""+newPlIniFile.getPath()+"\".", e1);
-            }
-        }
+        setPlDotIniPath(ArchitectUtils.checkForValidPlDotIni(PlDotIniPath, "Architect"));
     }
     
     public ArchitectSession createSession() throws ArchitectException {
@@ -196,17 +136,6 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
         return sessions;
     }
 
-    private boolean isPlDotIniPathValid() {
-        logger.debug("Checking pl.ini path: "+getPlDotIniPath());
-        String path = getPlDotIniPath();
-        if (path == null) {
-            return false;
-        } else {
-            File f = new File(path);
-            return (f.canRead() && f.isFile());
-        }
-    }
-    
     /**
      * Tries to read the plDotIni if it hasn't been done already.  If it can't be read,
      * returns null and leaves the plDotIni property as null as well. See {@link #plDotIni}.

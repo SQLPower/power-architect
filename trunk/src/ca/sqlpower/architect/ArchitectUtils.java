@@ -18,6 +18,8 @@
  */
 package ca.sqlpower.architect;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.sql.Types;
 import java.util.ArrayList;
@@ -26,9 +28,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.ExceptionReport;
 
 /**
@@ -697,5 +704,81 @@ public class ArchitectUtils {
             so = so.getParent();
         }
         return ancestors;
+    }
+
+    /**
+     * This will check if the path of the PlDotIni file is valid. If it is not,
+     * it will display a message asking the user to either browse for the file
+     * or create a new file.
+     * 
+     * @param plDotIniPath
+     *            The path defined to be the location of the pl.ini file.
+     * @return The valid pl.ini path. This may be different from the one given
+     *         if the user changed it.
+     */
+    public static String checkForValidPlDotIni(String plDotIniPath, String projectName) throws ArchitectException {
+        while (!isPlDotIniPathValid(plDotIniPath)) {
+            String message;
+            String[] options = new String[] {"Browse", "Create"};
+            if (plDotIniPath == null) {
+                message = "location is not set";
+            } else if (new File(plDotIniPath).isFile()) {
+                message = "file \n\n\""+plDotIniPath+"\"\n\n could not be read";
+            } else {
+                message = "file \n\n\""+plDotIniPath+"\"\n\n does not exist";
+            }
+            int choice = JOptionPane.showOptionDialog(null,   // blocking wait
+                    "The " + projectName + " keeps its list of database connections" +
+                    "\nin a file called PL.INI.  Your PL.INI "+message+"." +
+                    "\n\nYou can browse for an existing PL.INI file on your system" +
+                    "\nor allow the " + projectName + " to create a new one in your home directory." +
+                    "\n\nHint: If you are a Power*Loader Suite user, you should browse for" +
+                    "\nan existing PL.INI in your Power*Loader installation directory.",
+                    "Missing PL.INI", 0, JOptionPane.INFORMATION_MESSAGE, null, options, null);
+            File newPlIniFile;
+            if (choice == JOptionPane.CLOSED_OPTION) {
+                throw new ArchitectException("Can't start without a pl.ini file");
+            } else if (choice == 0) {
+                
+                // Don't use recent files menu for default dir here.. we're looking for PL.INI
+                JFileChooser fc = new JFileChooser();
+                
+                fc.setFileFilter(SPSUtils.INI_FILE_FILTER);
+                fc.setDialogTitle("Locate your PL.INI file");
+                int fcChoice = fc.showOpenDialog(null);       // blocking wait
+                if (fcChoice == JFileChooser.APPROVE_OPTION) {
+                    newPlIniFile = fc.getSelectedFile();
+                } else {
+                    newPlIniFile = null;
+                }
+            } else if (choice == 1) {
+                newPlIniFile = new File(System.getProperty("user.home"), "pl.ini");
+            } else
+                throw new ArchitectException("Unexpected return from JOptionPane.showOptionDialog to get pl.ini");
+
+            if (newPlIniFile != null) try {
+                newPlIniFile.createNewFile();
+                return newPlIniFile.getPath();
+            } catch (IOException e1) {
+                logger.error("Caught IO exception while creating empty PL.INI at \""
+                        +newPlIniFile.getPath()+"\"", e1);
+                ASUtils.showExceptionDialogNoReport("Failed to create file \""+newPlIniFile.getPath()+"\".", e1);
+            }
+        }
+        return plDotIniPath;
+    }
+    
+    /**
+     * This is a helper method for checkForValidPlDotIni().
+     */
+    private static boolean isPlDotIniPathValid(String plDotIniPath) {
+        logger.debug("Checking pl.ini path: "+plDotIniPath);
+        String path = plDotIniPath;
+        if (path == null) {
+            return false;
+        } else {
+            File f = new File(path);
+            return (f.canRead() && f.isFile());
+        }
     }
 }
