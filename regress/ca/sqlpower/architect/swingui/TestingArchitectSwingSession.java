@@ -101,14 +101,15 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         
         compareDMSettings = new CompareDMSettings();
         
-        frame = new ArchitectFrame(this, null);
-        frame.init();
-        
         try {
             ddlGenerator = new GenericDDLGenerator();
         } catch (SQLException e) {
             throw new ArchitectException("SQL Error in ddlGenerator",e);
         }
+
+        frame = new ArchitectFrame(this, null);
+        frame.init();
+        
         kettleJob = new KettleJob(this);
         
     }

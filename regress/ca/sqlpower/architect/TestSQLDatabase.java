@@ -125,6 +125,7 @@ public class TestSQLDatabase extends SQLTestCase {
 	 */
 	public void testGetName() {
 		SQLDatabase db1 = new SQLDatabase();
+		db1.setPlayPenDatabase(true);
 		assertEquals("PlayPen Database", db1.getName());
 		assertEquals("PlayPen Database", db1.getShortDisplayName());
 		assertEquals(db1.getName(), db1.getPhysicalName());
