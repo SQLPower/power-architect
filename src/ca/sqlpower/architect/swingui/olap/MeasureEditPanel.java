@@ -32,7 +32,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import mondrian.rolap.RolapAggregator;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
@@ -88,7 +87,9 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
         builder.append(status, 3);
         builder.append("Name", name = new JTextField(measure.getName()));
         builder.append("Caption", captionField = new JTextField(measure.getCaption()));
-        builder.append("Aggregator", aggregator = new JComboBox(RolapAggregator.enumeration.getNames()));
+        
+        String[] rolapAggregates = new String[] {"sum", "count", "min", "max", "avg", "distinct-count"} ;
+        builder.append("Aggregator", aggregator = new JComboBox(rolapAggregates));
         if (measure.getAggregator() != null) {
             aggregator.setSelectedItem(measure.getAggregator());
         }
