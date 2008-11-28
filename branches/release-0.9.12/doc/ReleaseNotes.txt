@@ -72,8 +72,9 @@ Power*Architect Release Notes
   * Fixed error caused by missing a library dependency when creating a New 
     Measure in the OLAP Schema editor.
   * Fixed a bug in the Table Copy feature where Auto Commit was set to true
-    while copying table data. This caused it to fail in MySQL, and also 
-    meant that the transaction did not rollback in the event of a failure.
+    while copying table data. This caused it to show an error message when
+    copying to a table in MySQL, and also meant that the entire transaction 
+    did not rollback in the event of a failure.
 
 
 0.9.11
