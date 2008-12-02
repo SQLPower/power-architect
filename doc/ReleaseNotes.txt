@@ -1,5 +1,11 @@
 Power*Architect Release Notes
 
+0.9.13
+  * Added a new SQL Query Tool to replace the older SQL Runner
+  * Repositioning OLAP components in the OLAP editor is undoable
+  * Added more keyboard shortcuts to the OLAP editor
+  * Improved reverse engineering performance on Oracle 
+
 
 0.9.12
 
