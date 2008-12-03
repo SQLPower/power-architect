@@ -450,8 +450,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			if (p.getLastPathComponent() instanceof SQLTable ||
 			        p.getLastPathComponent() instanceof SQLColumn ||
 			        p.getLastPathComponent() instanceof SQLRelationship ||
-                    (p.getLastPathComponent() instanceof SQLIndex && 
-                           !((SQLIndex) p.getLastPathComponent()).isPrimaryKeyIndex())) {
+                    p.getLastPathComponent() instanceof SQLIndex) {
 			    mi.setEnabled(true);
 			} else {
 				mi.setEnabled(false);
