@@ -72,7 +72,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
      * This class is used to hold the specific start and end to a LENGTH
      * SQL command based on the database in use.
      */
-    private class StringLengthSQLFunction {
+    public class StringLengthSQLFunction {
         
         /**
          * The part of the LENGTH SQL command that comes before the argument
@@ -102,7 +102,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
      * This class is used to hold the specific start and end to a AVERAGE
      * SQL command based on the database in use.
      */
-    private class AverageSQLFunction {
+    public class AverageSQLFunction {
         
         /**
          * The part of the AVERAGE SQL command that comes before the argument
@@ -139,7 +139,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
      * for those platforms (i.e. Oracle) will be different, but should have the
      * same meaning.
      */
-    private class CaseWhenNullSQLFunction {
+    public class CaseWhenNullSQLFunction {
         
         /**
          * The part of the CASE statement for evaluating a null expression in SQL that
@@ -581,14 +581,8 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
             String dataTypeToParse = dsType.getProperty(ProfileFunctionDescriptor.class.getName() + "_" + dataTypeCount);
             if (dataTypeToParse == null) break;
             
-            String[] dataTypeParts = dataTypeToParse.split(",");
-            int dataTypeValue = Integer.parseInt(dataTypeParts[2].trim());
-            
-            profileFunctionMap.put(dataTypeParts[0].trim(), new ProfileFunctionDescriptor(dataTypeParts[1].trim(), 
-                    dataTypeValue, dataTypeParts[3].trim().startsWith("t"), dataTypeParts[4].trim().startsWith("t"),
-                    dataTypeParts[5].trim().startsWith("t"), dataTypeParts[6].trim().startsWith("t"),
-                    dataTypeParts[7].trim().startsWith("t"), dataTypeParts[8].trim().startsWith("t"),
-                    dataTypeParts[9].trim().startsWith("t"), dataTypeParts[10].trim().startsWith("t")));
+            ProfileFunctionDescriptor pfd = ProfileFunctionDescriptor.parseDescriptorString(dataTypeToParse);
+            profileFunctionMap.put(pfd.getArchitectSpecificName(), pfd);
         }
         
         logger.debug("The property to retrieve is " + propName(StringLengthSQLFunction.class));
@@ -700,7 +694,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
      * @param forClass
      * @return
      */
-    private String propName(Class<?> forClass) {
+    public static String propName(Class<?> forClass) {
         if (forClass == AverageSQLFunction.class) {
             return "ca.sqlpower.architect.profile.ColumnProfileResult$AverageSQLFunction";
         } else if (forClass == CaseWhenNullSQLFunction.class) {

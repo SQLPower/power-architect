@@ -19,7 +19,42 @@
 package ca.sqlpower.architect.profile;
 
 public class ProfileFunctionDescriptor {
+    
+    /**
+     * This will create a ProfileFunctionDescriptor from a string. The string should
+     * be a comma separated string of the values needed for a ProfileFunctionDescriptor.
+     */
+    public static ProfileFunctionDescriptor parseDescriptorString(String descString) {
+        String[] dataTypeParts = descString.split(",");
+        int dataTypeValue = Integer.parseInt(dataTypeParts[2].trim());
+        
+        ProfileFunctionDescriptor pfd = new ProfileFunctionDescriptor(dataTypeParts[1].trim(), 
+                dataTypeValue, dataTypeParts[3].trim().startsWith("t"), dataTypeParts[4].trim().startsWith("t"),
+                dataTypeParts[5].trim().startsWith("t"), dataTypeParts[6].trim().startsWith("t"),
+                dataTypeParts[7].trim().startsWith("t"), dataTypeParts[8].trim().startsWith("t"),
+                dataTypeParts[9].trim().startsWith("t"), dataTypeParts[10].trim().startsWith("t"));
+        
+        pfd.setArchitectSpecificName(dataTypeParts[0].trim());
+        
+        return pfd;
+    }
+    
+    /**
+     * This generates a comma separated string of the values of a {@link ProfileFunctionDescriptor}.
+     * This string can be used to store a {@link ProfileFunctionDescriptor} in a file to be loaded
+     * back later.
+     */
+    public static String createDescriptorString(ProfileFunctionDescriptor pfd) {
+        return pfd.getArchitectSpecificName() + "," + pfd.getDataTypeName() + "," + pfd.getDataTypeCode() + "," + Boolean.toString(pfd.isCountDist()) +
+                "," + Boolean.toString(pfd.isMaxValue()) + "," + Boolean.toString(pfd.isMinValue()) + "," + Boolean.toString(pfd.isAvgValue()) +
+                "," + Boolean.toString(pfd.isMaxLength()) + "," + Boolean.toString(pfd.isMinLength()) + "," + Boolean.toString(pfd.isAvgLength()) +
+                "," + Boolean.toString(pfd.isSumDecode());
+    }
 
+    /**
+     * This is the architect specific name the data type is being mapped to.
+     */
+    private String architectSpecificName;
     private String dataTypeName;
     private int dataTypeCode;
     private boolean countDist;
@@ -152,6 +187,14 @@ public class ProfileFunctionDescriptor {
 
     public void setSumDecode(boolean sumDecode) {
         this.sumDecode = sumDecode;
+    }
+
+    public void setArchitectSpecificName(String architectSpecificName) {
+        this.architectSpecificName = architectSpecificName;
+    }
+
+    public String getArchitectSpecificName() {
+        return architectSpecificName;
     }
 
 
