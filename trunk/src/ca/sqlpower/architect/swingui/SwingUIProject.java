@@ -979,6 +979,12 @@ public class SwingUIProject extends CoreProject {
                 TablePane tp = (TablePane) ppc;
                 Point p = tp.getLocation();
                 
+                if (sqlObjectSaveIdMap.get(tp.getModel()) == null) {
+                    logger.error("Play pen tried to save a table pane at " + tp.getX() + ", " + tp.getY() + " with the model " + tp.getModel() + " and reference id " + sqlObjectSaveIdMap.get(tp.getModel()) + "." +
+                    		"\nSaving a table pane with a null reference will cause an NPE on loading.");
+                    throw new NullPointerException("Play pen table is saving a null reference.");
+                }
+                
                 Color bgColor = tp.getBackgroundColor();
                 String bgColorString = String.format("0x%02x%02x%02x", bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue()); //$NON-NLS-1$
                 Color fgColor = tp.getForegroundColor();
