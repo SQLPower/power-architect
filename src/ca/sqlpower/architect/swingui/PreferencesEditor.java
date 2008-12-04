@@ -87,6 +87,10 @@ public class PreferencesEditor {
             
             dsTypeEditor.addTab(Messages.getString("PreferencesEditor.kettleSection"), kettleOptsPanel); //$NON-NLS-1$
             
+            final ArchitectPropertiesDataSourceTypeOptionPanel architectPropPanel = new ArchitectPropertiesDataSourceTypeOptionPanel();
+            
+            dsTypeEditor.addTab(Messages.getString("PreferencesEditor.propertiesSection"), architectPropPanel);
+            
             tp.add(Messages.getString("PreferencesEditor.jdbcDriversSection"), dsTypeEditor.getPanel()); //$NON-NLS-1$
     
         
