@@ -135,7 +135,6 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                 try {
                     if (o instanceof SQLIndex) {
                         SQLIndex index = (SQLIndex) o;
-                        SQLTable table = index.getParentTable();
                         o.getParent().removeChild(o);
                         List<SQLColumn> cols = new ArrayList<SQLColumn>();
                         for (Column col : index.getChildren()) {
@@ -143,7 +142,6 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                         }
                         for (SQLColumn col : cols) {
                             col.setPrimaryKeySeq(null);
-                            table.addColumn(col);
                         }
                     } else {
                         o.getParent().removeChild(o);
