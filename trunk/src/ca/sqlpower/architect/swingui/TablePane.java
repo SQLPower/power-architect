@@ -541,6 +541,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 					} finally {
                         getModel().setMagicEnabled(true);
 					}
+					getModel().getColumnsFolder().fireDbStructureChanged();
 				} else {
 					// importing column from a source database
 					getModel().inherit(insertionPoint, col, newColumnsInPk);
