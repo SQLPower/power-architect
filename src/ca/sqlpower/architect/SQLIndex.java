@@ -201,6 +201,10 @@ public class SQLIndex extends SQLObject {
             }
         }
 
+        /**
+         * NOTE: This column can be null if the column it represents is an expression
+         * and not a basic column.
+         */
         public SQLColumn getColumn() {
             return column;
         }
@@ -490,7 +494,7 @@ public class SQLIndex extends SQLObject {
             try {
                 for (int i = 0; i < e.getChildren().length; i++) {
                     for (int j = this.getChildCount() - 1; j >= 0; j--) {
-                        if (getChild(j).getColumn().equals(e.getChildren()[i])) {
+                        if (getChild(j).getColumn() != null && getChild(j).getColumn().equals(e.getChildren()[i])) {
                             removeChild(j);
                         }
                     }
@@ -760,8 +764,16 @@ public class SQLIndex extends SQLObject {
         return getName();
     }
 
+    /**
+     * Adds a column to the index. If col1 is null a NPE will be thrown.
+     */
     public void addIndexColumn(SQLColumn col1, AscendDescend aOrD) throws ArchitectException {
         Column col = new Column(col1, aOrD);
+        addChild(col);
+    }
+    
+    public void addIndexColumn(String colName, AscendDescend aOrD) throws ArchitectException {
+        Column col = new Column(colName, aOrD);
         addChild(col);
     }
 

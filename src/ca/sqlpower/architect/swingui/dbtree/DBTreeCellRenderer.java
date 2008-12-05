@@ -29,6 +29,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import org.apache.log4j.Logger;
+
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -50,6 +52,8 @@ import ca.sqlpower.architect.SQLIndex.Column;
  * @version $Id$
  */
 public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
+    
+    private static final Logger logger = Logger.getLogger(DBTreeCellRenderer.class);
     
     public static final ImageIcon DB_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Database16.png"));
 	public static final ImageIcon TARGET_DB_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Database_target16.png"));
@@ -131,7 +135,11 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
             tagColumn((SQLColumn)value);
             setIcon(COLUMN_ICON);
         } else if (value instanceof Column) {
-            tagColumn(((Column)value).getColumn());
+            Column col = (Column) value;
+            logger.debug("Column has properties " + col);
+            if (col.getColumn() != null) {
+                tagColumn((col).getColumn());
+            }
             setIcon(COLUMN_ICON);
         } else {
 			setIcon(null);

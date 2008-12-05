@@ -141,7 +141,9 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                             cols.add(col.getColumn());                            
                         }
                         for (SQLColumn col : cols) {
-                            col.setPrimaryKeySeq(null);
+                            if (col != null) {
+                                col.setPrimaryKeySeq(null);
+                            }
                         }
                     } else {
                         o.getParent().removeChild(o);
