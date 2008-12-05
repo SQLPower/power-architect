@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.CountingSQLObjectListener;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
@@ -313,6 +314,30 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
         assertEquals(Collections.singletonList(t.getColumn(2)), tp.getSelectedItems());
         t.removeChild(2);
         assertEquals(Collections.singletonList(t.getColumn(2)), tp.getSelectedItems());
+    }
+    
+    /**
+     * This is regression testing for bug 1628. Previously dragging a column from one table to
+     * another would not fire a change event on the columns folder the child column was added to.
+     * This broke the relationships as they update based on inserts and removes on the column
+     * folder. 
+     */
+    public void testDropColumnBetweenTablesFiresFolderEvent() throws Exception {
+        CountingSQLObjectListener listener = new CountingSQLObjectListener();
+        tp.getModel().getColumnsFolder().addSQLObjectListener(listener);
+        
+        SQLTable table = new SQLTable(tp.getModel().getParentDatabase(), true);
+        SQLColumn col = new SQLColumn();
+        col.setName("Test Col");
+        table.addColumn(col);
+        
+        System.out.println(tp.getModel().getParentDatabase() + ", "+ table.getParentDatabase());
+        tp.insertObjects(Collections.singletonList(col), TablePane.COLUMN_INDEX_END_OF_PK);
+        
+        assertEquals(tp.getModel(), col.getParentTable());
+        assertTrue(col.isPrimaryKey());
+        assertEquals(1, listener.getStructureChangedCount());
+        
     }
 
     @Override
