@@ -303,7 +303,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
      */
     @Override
     public String makeDropForeignKeySQL(String fkTable, String fkName) {
-        return "ALTER TABLE "
+        return "\nALTER TABLE "
             + toQualifiedName(fkTable)
             + " DROP CONSTRAINT "
             + fkName;
@@ -318,7 +318,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
     public void modifyColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();
 		SQLTable t = c.getParentTable();
-		print("\n ALTER TABLE ");
+		print("\nALTER TABLE ");
 		print(toQualifiedName(t.getPhysicalName()));
 		print(" MODIFY ");
 		print(columnDefinition(c,colNameMap));
@@ -332,7 +332,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
     @Override
     public void addColumn(SQLColumn c) {
         Map colNameMap = new HashMap();
-        print("\n ALTER TABLE ");
+        print("\nALTER TABLE ");
         print(toQualifiedName(c.getParentTable()));
         print(" ADD ");
         print(columnDefinition(c,colNameMap));
@@ -385,7 +385,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         for (SQLColumn c : t.getColumns()) {
             if (c.isAutoIncrement()) {
                 SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
-                print("CREATE SEQUENCE ");
+                print("\nCREATE SEQUENCE ");
                 print(createSeqPhysicalName(topLevelNames, seq, c));
                 endStatement(StatementType.CREATE, seq);
             }
