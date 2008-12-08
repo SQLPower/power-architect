@@ -387,7 +387,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 
     @Override
     public void addColumn(SQLColumn c) {
-        print("\n ALTER TABLE ");
+        print("\nALTER TABLE ");
         print(toQualifiedName(c.getParentTable()));
         print(" ADD ");
         print(columnDefinition(c,new HashMap()));
@@ -457,7 +457,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
     @Override
     public void dropPrimaryKey(SQLTable t) {
         try {
-            print("ALTER TABLE " + toQualifiedName(t.getName())
+            print("\nALTER TABLE " + toQualifiedName(t.getName())
                 + " DROP " + t.getPrimaryKeyName());
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
@@ -467,7 +467,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
     
     @Override
     public String makeDropForeignKeySQL(String fkTable, String fkName) {
-        return "ALTER TABLE "
+        return "\nALTER TABLE "
         +toQualifiedName(fkTable)
         +" DROP CONSTRAINT "
         +fkName;

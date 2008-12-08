@@ -388,7 +388,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 
     public void dropRelationship(SQLRelationship r) {
 
-        print("\n ALTER TABLE ");
+        print("\nALTER TABLE ");
 
         print(toQualifiedName(r.getFkTable()));
         print(" DROP FOREIGN KEY ");
@@ -527,7 +527,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     public void modifyColumn(SQLColumn c) {
         Map colNameMap = new HashMap();
         SQLTable t = c.getParentTable();
-        print("\n ALTER TABLE ");
+        print("\nALTER TABLE ");
         print(toQualifiedName(t));
         print(" MODIFY COLUMN ");
         print(columnDefinition(c, colNameMap));

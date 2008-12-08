@@ -264,7 +264,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
      */
     @Override
     public String makeDropForeignKeySQL(String fkTable, String fkName) {
-        return "\n ALTER TABLE ONLY "
+        return "\nALTER TABLE ONLY "
             + toQualifiedName(fkTable)
             + " DROP CONSTRAINT "
             + fkName;
@@ -274,7 +274,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
     public void modifyColumn(SQLColumn c) {
         Map colNameMap = new HashMap();
         SQLTable t = c.getParentTable();
-        print("\n ALTER TABLE ONLY ");
+        print("\nALTER TABLE ONLY ");
         print( toQualifiedName(t) );
         print(" ALTER COLUMN ");
 
@@ -378,7 +378,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         for (SQLColumn c : t.getColumns()) {
             if (c.isAutoIncrement()) {
                 SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
-                print("CREATE SEQUENCE ");
+                print("\nCREATE SEQUENCE ");
                 print(toQualifiedName(createSeqPhysicalName(topLevelNames, seq, c)));
                 endStatement(StatementType.CREATE, seq);
             }
@@ -390,7 +390,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         for (SQLColumn c : t.getColumns()) {
             if (c.isAutoIncrement()) {
                 SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
-                print("ALTER SEQUENCE " + toQualifiedName(seq.getName()) + " OWNED BY " + toQualifiedName(t) + "." + c.getPhysicalName());
+                print("\nALTER SEQUENCE " + toQualifiedName(seq.getName()) + " OWNED BY " + toQualifiedName(t) + "." + c.getPhysicalName());
                 endStatement(StatementType.CREATE, seq);
             }
         }
