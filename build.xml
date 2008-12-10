@@ -920,18 +920,9 @@
 							<fileset dir="../staging/" targetdir="$INSTALL_PATH">
 								<include name="LICENSE"/>
 							</fileset>
-							<fileset dir="." targetdir="$INSTALL_PATH">
-								<include name="*.reg"/>
-							</fileset>
 							<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 								<include name="*.ico"/>
 							</fileset>
-							<executable targetfile="regedit.exe" stage="uninstall" keep="true">
-							   <args>
-							     <arg value="\/s"/>
-							     <arg value="$INSTALL_PATH/uninstall.reg"/>
-						      </args>
-						   </executable>
 						</pack>
 					</packs>
 					<native type="izpack" name="ShellLink.dll"/>
