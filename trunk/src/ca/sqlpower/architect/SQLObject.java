@@ -98,6 +98,13 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * When this counter is > 0, the fireXXX methods will ignore secondary changes.
 	 */
 	protected int magicDisableCount = 0;
+	
+	/**
+	 * This is the throwable that tells if the children of this component can be reached
+	 * or not. If this is null then the children can be reached. If it is not null
+	 * then there was an exception the last time the children were attempted to be accessed.
+	 */
+	private Throwable childrenInaccessibleReason = null;
 	 
 	public synchronized void setMagicEnabled(boolean enable) {
 		if (magicDisableCount < 0) {
@@ -181,6 +188,24 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * during addChild and removeChild requests.
 	 */
 	protected abstract void setParent(SQLObject parent);
+	
+	/**
+     * Causes this SQLObject to load its children through populateImpl (if any exist).
+     * This will do nothing if the object is already populated.
+     */
+	public void populate() throws ArchitectException {
+	    if (populated) return;
+	    childrenInaccessibleReason = null;
+	    try {
+	        populateImpl();
+	    } catch (ArchitectException e) {
+	        childrenInaccessibleReason = e;
+	        throw e;
+	    } catch (RuntimeException e) {
+	        childrenInaccessibleReason = e;
+	        throw e;
+	    }
+	}
 
 	/**
 	 * Causes this SQLObject to load its children (if any exist).
@@ -188,7 +213,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * not you need to do anything and return right away whenever
 	 * possible.
 	 */
-	protected abstract void populate() throws ArchitectException;
+	protected abstract void populateImpl() throws ArchitectException;
 
 	
 
@@ -263,22 +288,10 @@ public abstract class SQLObject implements java.io.Serializable {
 				! (children.get(0).getClass().isAssignableFrom(newChild.getClass())
 					|| newChild.getClass().isAssignableFrom(children.get(0).getClass()))) {
             
-            ArchitectException ex;
-            if (newChild instanceof SQLExceptionNode) {
-
-                // long term, we want to dispose of SQLExceptionNode altogether. This is a temporary workaround.
-                SQLExceptionNode sen = (SQLExceptionNode) newChild;
-                ex = new ArchitectException(
-                        "Can't add exception node here because there are already other children. " +
-                        "See exception cause for the original exception.",
-                        sen.getException());
-            } else {
-                ex = new ArchitectException(
-                        "You Can't mix SQL Object Types! You gave: " +
-                        newChild.getClass().getName() +
-                        "; I need " + children.get(0).getClass());
-            }
-			throw ex;
+            throw new ArchitectException(
+                    "You Can't mix SQL Object Types! You gave: " +
+                    newChild.getClass().getName() +
+                    "; I need " + children.get(0).getClass());
 		}
 		children.add(index, newChild);
 		newChild.setParent(this);
@@ -734,5 +747,20 @@ public abstract class SQLObject implements java.io.Serializable {
      */
     public Set<String> getClientPropertyNames() {
         return clientProperties.keySet();
+    }
+    
+    public Throwable getChildrenInaccessibleReason() {
+        return childrenInaccessibleReason;
+    }
+    
+    /**
+     * This setter will take in either a Throwable to set the inaccessible reason
+     * to, for things like copy methods, or a string of the exception message, for
+     * things like loading the exception.
+     */
+    public void setChildrenInaccessibleReason(Throwable message) {
+        Throwable oldVal = this.childrenInaccessibleReason;
+        this.childrenInaccessibleReason = message;
+        fireDbObjectChanged("childrenInaccessibleReason", oldVal, childrenInaccessibleReason);
     }
 }

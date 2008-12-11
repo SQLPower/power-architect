@@ -155,6 +155,7 @@ public class SQLTable extends SQLObject {
 		SQLTable t = new SQLTable(parent, true);
 		t.setName(source.getName());
 		t.remarks = source.remarks;
+		t.setChildrenInaccessibleReason(source.getChildrenInaccessibleReason());
 
 		t.setPhysicalName(source.getPhysicalName());
 		t.physicalPrimaryKeyName = source.getPhysicalPrimaryKeyName();
@@ -842,7 +843,7 @@ public class SQLTable extends SQLObject {
      * step.  The various populate operations (columns, keys, indices) are triggered
      * by visiting the individual folders.
 	 */
-	public void populate() throws ArchitectException {
+	public void populateImpl() throws ArchitectException {
 		// SQLTable: populate is a no-op
 	}
 
@@ -915,7 +916,7 @@ public class SQLTable extends SQLObject {
 			parent = (SQLTable) newParentTable;
 		}
 
-		public void populate() throws ArchitectException {
+		public void populateImpl() throws ArchitectException {
 		    populate(null);
 		}
 		

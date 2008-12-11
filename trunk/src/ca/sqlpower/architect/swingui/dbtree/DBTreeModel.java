@@ -35,13 +35,11 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLObjectRoot;
 import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.swingui.SPSUtils;
 
 public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serializable {
 
@@ -78,23 +76,23 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 	public Object getChild(Object parent, int index) {
 		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChild("+parent+","+index+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		SQLObject sqlParent = (SQLObject) parent;
 		try {
-			if (logger.isDebugEnabled()) logger.debug("returning "+((SQLObject) parent).getChild(index)); //$NON-NLS-1$
-			return ((SQLObject) parent).getChild(index);
+            if (logger.isDebugEnabled()) logger.debug("returning "+sqlParent.getChild(index)); //$NON-NLS-1$
+			return sqlParent.getChild(index);
 		} catch (Exception e) {
-			SQLExceptionNode fakeChild = putExceptionNodeUnder((SQLObject) parent, e);
-			return fakeChild;
+		    throw new RuntimeException(e);
 		}
 	}
 
 	public int getChildCount(Object parent) {
 		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChildCount("+parent+")"); //$NON-NLS-1$ //$NON-NLS-2$
+		SQLObject sqlParent = (SQLObject) parent;
 		try {
-			if (logger.isDebugEnabled()) logger.debug("returning "+((SQLObject) parent).getChildCount()); //$NON-NLS-1$
-			return ((SQLObject) parent).getChildCount();
+            if (logger.isDebugEnabled()) logger.debug("returning "+sqlParent.getChildCount()); //$NON-NLS-1$
+			return sqlParent.getChildCount();
 		} catch (Exception e) {
-			putExceptionNodeUnder((SQLObject) parent, e);
-			return 1; // XXX: could be incorrect if exception was not a populate problem!
+		    throw new RuntimeException(e);
 		}
 	}
 
@@ -254,49 +252,6 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	    return nodePaths;
 	}
 
-	/**
-	 * Creates a SQLExceptionNode with the given Throwable and places
-	 * it under parent.
-	 *
-	 * @return the node that has been added to parent.
-	 */
-	protected SQLExceptionNode putExceptionNodeUnder(final SQLObject parent, Throwable ex) {
-		// dig for root cause and message
-		logger.info("Adding exception node under "+parent, ex); //$NON-NLS-1$
-		String message = ex.getMessage();
-		Throwable cause = ex;
-		while (cause.getCause() != null) {
-			cause = cause.getCause();
-			if (cause.getMessage() != null && cause.getMessage().length() > 0) {
-				message = cause.getMessage();
-			}
-		}
-		
-		if (message == null || message.length() == 0) {
-			message = "Check application log for details"; //$NON-NLS-1$
-		}
-		
-		final SQLExceptionNode excNode = new SQLExceptionNode(ex, message);
-		excNode.setParent((SQLObject) parent);
-
-		/* This is likely to fail, but it should convince the parent that it is populated */
-		try {
-			parent.getChildCount();
-		} catch (ArchitectException e) {
-			logger.error("Couldn't populate parent node of exception"); //$NON-NLS-1$
-		}
-
-		try {
-			for(int i=0; i< parent.getChildCount(); i++){
-				parent.removeChild(0);
-			}
-			parent.addChild(excNode);
-		} catch (ArchitectException e) {
-			logger.error("Couldn't add SQLExceptionNode \""+excNode.getName()+"\" to tree model:", e); //$NON-NLS-1$ //$NON-NLS-2$
-			SPSUtils.showExceptionDialogNoReport("Failed to add SQLExceptionNode to tree model.", e); //$NON-NLS-1$
-		}
-		return excNode;
-	}
 
 	// --------------------- SQLObject listener support -----------------------
 	public void dbChildrenInserted(SQLObjectEvent e) {

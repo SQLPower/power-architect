@@ -33,6 +33,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -58,7 +59,6 @@ import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
@@ -109,7 +109,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	// ----------- CONSTRUCTORS ------------
 
-	public DBTree(ArchitectSwingSession session) throws ArchitectException {
+	public DBTree(final ArchitectSwingSession session) throws ArchitectException {
         this.session = session;
         setModel(new DBTreeModel(session.getRootObject()));
 		setUI(new MultiDragTreeUI());
@@ -131,6 +131,29 @@ public class DBTree extends JTree implements DragSourceListener {
         tcr.addIconFilter(new ProfiledTableIconFilter());
         setCellRenderer(tcr);
         selectAllChildTablesAction = new SelectAllChildTablesAction();
+        addMouseListener(new MouseListener() {
+            public void mouseReleased(MouseEvent e) {
+                if (getPathForLocation(e.getX(), e.getY()) != null) {
+                    Object node = getPathForLocation(e.getX(), e.getY()).getLastPathComponent();
+                    if (e.getClickCount() == 2 && node instanceof SQLObject && ((SQLObject) node).getChildrenInaccessibleReason() != null) {
+                        SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+                                Messages.getString("DBTree.exceptionNodeReport"), ((SQLObject) node).getChildrenInaccessibleReason()); //$NON-NLS-1$
+                    }
+                }
+            }
+            public void mousePressed(MouseEvent e) {
+                //no-op
+            }
+            public void mouseExited(MouseEvent e) {
+                //no-op
+            }
+            public void mouseEntered(MouseEvent e) {
+                //no-op
+            }
+            public void mouseClicked(MouseEvent e) {
+                //no-op
+            }
+        });
 	}
 
 	// ----------- INSTANCE METHODS ------------
@@ -468,7 +491,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			        //tree only has one child
 			        if (!tempDB.isCatalogContainer() && !tempDB.isSchemaContainer() && 
 			                (!(tempDB.getChildCount() == 1) || 
-			                        !tempDB.getChild(0).getClass().equals(SQLExceptionNode.class)))
+			                        tempDB.getChildrenInaccessibleReason() == null))
 			        {
 			            //a new action is needed to maintain the database variable
 			            CompareToCurrentAction compareToCurrentAction = new CompareToCurrentAction();
@@ -530,42 +553,29 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 
 		// Show exception details (SQLException node can appear anywhere in the hierarchy)
-		if (p != null && p.getLastPathComponent() instanceof SQLExceptionNode) {
+		if (p != null && p.getLastPathComponent() instanceof SQLObject && ((SQLObject) p.getLastPathComponent()).getChildrenInaccessibleReason() != null) {
 			newMenu.addSeparator();
-            final SQLExceptionNode node = (SQLExceptionNode) p.getLastPathComponent();
+            final SQLObject node = (SQLObject) p.getLastPathComponent();
             newMenu.add(new JMenuItem(new AbstractAction(Messages.getString("DBTree.showExceptionDetails")) { //$NON-NLS-1$
                 public void actionPerformed(ActionEvent e) {
                     SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
-                            Messages.getString("DBTree.exceptionNodeReport"), node.getException()); //$NON-NLS-1$
+                            Messages.getString("DBTree.exceptionNodeReport"), node.getChildrenInaccessibleReason()); //$NON-NLS-1$
                 }
             }));
 
             // If the sole child is an exception node, we offer the user a way to re-try the operation
-            try {
-                final SQLObject parent = node.getParent();
-                if (parent.getChildCount() == 1) {
-                    newMenu.add(new JMenuItem(new AbstractAction(Messages.getString("DBTree.retryActionName")) { //$NON-NLS-1$
-                        public void actionPerformed(ActionEvent e) {
-                            parent.removeChild(0);
-                            parent.setPopulated(false);
-                            try {
-                                parent.getChildren(); // forces populate
-                            } catch (ArchitectException ex) {
-                                try {
-									parent.addChild(new SQLExceptionNode(ex, Messages.getString("DBTree.exceptionDuringRetry"))); //$NON-NLS-1$
-								} catch (ArchitectException e1) {
-									logger.error("Couldn't add SQLExceptionNode to menu:", e1); //$NON-NLS-1$
-									SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
-									        Messages.getString("DBTree.failedToAddSQLExceptionNode"), e1); //$NON-NLS-1$
-								}
-                                SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
-                                        Messages.getString("DBTree.exceptionDuringRetry"), ex); //$NON-NLS-1$
-                            }
+            if (node.getChildrenInaccessibleReason() != null) {
+                newMenu.add(new JMenuItem(new AbstractAction(Messages.getString("DBTree.retryActionName")) { //$NON-NLS-1$
+                    public void actionPerformed(ActionEvent e) {
+                        node.setPopulated(false);
+                        try {
+                            node.getChildren(); // forces populate
+                        } catch (ArchitectException ex) {
+                            SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+                                    Messages.getString("DBTree.exceptionDuringRetry"), ex); //$NON-NLS-1$
                         }
-                    }));
-                }
-            } catch (ArchitectException ex) {
-                logger.error("Couldn't count siblings of SQLExceptionNode", ex); //$NON-NLS-1$
+                    }
+                }));
             }
 		}
 
@@ -732,13 +742,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		@Override
 		public void cleanup() throws Exception {
 		    if (getDoStuffException() != null) {
-		        // FIXME: SQLObject should have an "exception" property that's not a child,
-		        //        and client code shouldn't have to clean up populate exceptions
-		        //        like this
-		        mostRecentlyVisited.addChild(
-		                new SQLExceptionNode(
-		                        getDoStuffException(),
-		                        Messages.getString("DBTree.errorDuringDbProbe"))); //$NON-NLS-1$
+		        throw new RuntimeException(getDoStuffException());
 		    }
 		}
 	}

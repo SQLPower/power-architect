@@ -47,7 +47,7 @@ public class SQLObjectTest extends SQLTestCase {
 			this.parent = parent;
 		}
 		@Override
-		protected void populate() throws ArchitectException {
+		protected void populateImpl() throws ArchitectException {
 			// System.err.println("Abstract test stub populate() invoked");
 		}
 		@Override
@@ -199,7 +199,7 @@ public class SQLObjectTest extends SQLTestCase {
     }
 	
 	public void testNoMixChildTypes() throws ArchitectException {
-		target.addChild(new SQLExceptionNode(null, "everything is ok. don't panic."));
+		target.addChild(new SQLColumn());
 		try {
 			target.addChild(new SQLObjectImpl());
 			fail("Target didn't throw exception for mixing child types!");
@@ -258,6 +258,26 @@ public class SQLObjectTest extends SQLTestCase {
         target.addSQLObjectListener(listener);
         target.putClientProperty(this.getClass(), "testProperty", "test me");
         assertEquals(1, listener.getChangedCount());
+    }
+    
+    public void testChildrenInaccessibleReasonSetOnPopulateError() throws Exception {
+        final RuntimeException e = new RuntimeException();
+        SQLObject o = new SQLObjectImpl() {
+            @Override
+            protected void populateImpl() throws ArchitectException {
+                throw e;
+            }
+        };
+        
+        try {
+            o.populate();
+            fail();
+        } catch (Exception ex) {
+            //should get here
+        }
+        
+        assertEquals(e, o.getChildrenInaccessibleReason());
+            
     }
 
 }
