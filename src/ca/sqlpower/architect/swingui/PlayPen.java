@@ -96,7 +96,6 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
@@ -1591,7 +1590,6 @@ public class PlayPen extends JPanel
 						Iterator it = sourceSchema.getChildren().iterator();
 						while (it.hasNext() && !isCancelled()) {
                             Object nextTable = it.next();
-                            if (nextTable instanceof SQLExceptionNode) continue;
 							SQLTable sourceTable = (SQLTable) nextTable;
 							message = ArchitectUtils.truncateString(sourceTable.getName());
 							TablePane tp = importTableCopy(sourceTable, preferredLocation);
@@ -1607,7 +1605,6 @@ public class PlayPen extends JPanel
 								Iterator it = sourceSchema.getChildren().iterator();
 								while (it.hasNext() && !isCancelled()) {
 									Object nextTable = it.next();
-                                    if (nextTable instanceof SQLExceptionNode) continue;
                                     SQLTable sourceTable = (SQLTable) nextTable;
 									message = ArchitectUtils.truncateString(sourceTable.getName());
 									TablePane tp = importTableCopy(sourceTable, preferredLocation);
@@ -1618,7 +1615,6 @@ public class PlayPen extends JPanel
 						} else {
 							while (cit.hasNext() && !isCancelled()) {
                                 Object nextTable = cit.next();
-                                if (nextTable instanceof SQLExceptionNode) continue;
 								SQLTable sourceTable = (SQLTable) nextTable;
 								message = ArchitectUtils.truncateString(sourceTable.getName());
 								TablePane tp = importTableCopy(sourceTable, preferredLocation);

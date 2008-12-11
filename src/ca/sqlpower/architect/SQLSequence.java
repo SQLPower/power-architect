@@ -88,7 +88,7 @@ public class SQLSequence extends SQLObject {
      * Does nothing because this type of object is not reverse-engineered.
      */
     @Override
-    protected void populate() throws ArchitectException {
+    protected void populateImpl() throws ArchitectException {
         // no op
     }
     

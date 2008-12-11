@@ -51,7 +51,6 @@ import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
@@ -1171,6 +1170,10 @@ public class SwingUIProject extends CoreProject {
         // properties of all SQLObject types
         propNames.put("physicalName", o.getPhysicalName()); //$NON-NLS-1$
         propNames.put("name", o.getName()); // note: there was no name attrib for SQLDatabase, SQLRelationship.ColumnMapping, and SQLExceptionNode //$NON-NLS-1$
+        
+        if (o.getChildrenInaccessibleReason() != null) {
+            propNames.put("sql-exception", o.getChildrenInaccessibleReason().getMessage()); //$NON-NLS-1$
+        }
 
         if (o instanceof SQLDatabase) {
             id = "DB"+sqlObjectSaveIdMap.size(); //$NON-NLS-1$
@@ -1233,10 +1236,6 @@ public class SwingUIProject extends CoreProject {
             type = "column-mapping"; //$NON-NLS-1$
             propNames.put("pk-column-ref", sqlObjectSaveIdMap.get(((SQLRelationship.ColumnMapping) o).getPkColumn())); //$NON-NLS-1$
             propNames.put("fk-column-ref", sqlObjectSaveIdMap.get(((SQLRelationship.ColumnMapping) o).getFkColumn())); //$NON-NLS-1$
-        } else if (o instanceof SQLExceptionNode) {
-            id = "EXC"+sqlObjectSaveIdMap.size(); //$NON-NLS-1$
-            type = "sql-exception"; //$NON-NLS-1$
-            propNames.put("message", ((SQLExceptionNode) o).getMessage()); //$NON-NLS-1$
         } else if (o instanceof SQLIndex) {
             id = "IDX"+sqlObjectSaveIdMap.size(); //$NON-NLS-1$
             type = "index"; //$NON-NLS-1$
@@ -1265,7 +1264,7 @@ public class SwingUIProject extends CoreProject {
             throw new UnsupportedOperationException("Whoops, the SQLObject type " //$NON-NLS-1$
                     +o.getClass().getName()+" is not supported!"); //$NON-NLS-1$
         }
-
+        
         sqlObjectSaveIdMap.put(o, id);
 
         boolean skipChildren = false;
@@ -1273,11 +1272,7 @@ public class SwingUIProject extends CoreProject {
         //ioo.print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");  // use this for debugging duplicate object problems
         ioo.print(out, "<"+type+" id="+quote(id)+" "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
-        if (o.allowsChildren() && o.isPopulated() && o.getChildCount() == 1 && o.getChild(0) instanceof SQLExceptionNode) {
-            // if the only child is an exception node, just save the parent as non-populated
-            ioo.niprint(out, "populated=\"false\" "); //$NON-NLS-1$
-            skipChildren = true;
-        } else if ( (!getSession().isSavingEntireSource()) && (!o.isPopulated()) ) {
+        if ( (!getSession().isSavingEntireSource()) && (!o.isPopulated()) ) {
             ioo.niprint(out, "populated=\"false\" "); //$NON-NLS-1$
         } else {
             ioo.niprint(out, "populated=\"true\" "); //$NON-NLS-1$

@@ -38,6 +38,8 @@ public class ArchitectValueMaker extends GenericNewValueMaker {
             newVal = new AlwaysOKUserPrompter();
         } else if (valueType == KettleRepositoryDirectoryChooser.class) {
             newVal = new RootRepositoryDirectoryChooser();
+        } else if (valueType.isAssignableFrom(Throwable.class)) {
+            newVal = new ArchitectException("Test Exception");
         } else {
             newVal = super.makeNewValue(valueType, oldVal, propName);
         }

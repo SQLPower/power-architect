@@ -67,6 +67,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
     public static final ImageIcon PK_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_key16.png"));
     public static final ImageIcon UNIQUE_INDEX_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_unique16.png"));
     public static final ImageIcon COLUMN_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Column16.png"));
+    public static final ImageIcon ERROR_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/stop16.png"));
    
     private final List<IconFilter> iconFilterChain = new ArrayList<IconFilter>();
     
@@ -82,7 +83,13 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 												  int row,
 												  boolean hasFocus) {
 		setText(value.toString());
-		if (value instanceof SQLDatabase) {
+	    setToolTipText(getText());
+	    
+        if (value instanceof SQLObject && ((SQLObject) value).getChildrenInaccessibleReason() != null) {
+            logger.debug("Children are not accessible from the node " + ((SQLObject) value).getName());
+            setIcon(ERROR_ICON);
+            setToolTipText("Inaccessible: " + ((SQLObject) value).getChildrenInaccessibleReason());
+        } else if (value instanceof SQLDatabase) {
 			SQLDatabase db = (SQLDatabase) value;
 			if (db.isPlayPenDatabase()) {
 				setIcon(TARGET_DB_ICON);
@@ -155,7 +162,6 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 		        setForeground(Color.lightGray);
 		    }
 		}
-	    setToolTipText(getText());
 	    
 	    if (value instanceof SQLObject || value == null) {
 	        for (IconFilter filter : getIconFilterChain()) {

@@ -87,7 +87,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		return connectionPool != null;
 	}
 
-	public synchronized void populate() throws ArchitectException {
+	public synchronized void populateImpl() throws ArchitectException {
+	    logger.debug("SQLDatabase: is populated " + populated);
 		if (populated) return;
 		int oldSize = children.size();
 		
@@ -545,8 +546,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			            getConnectionPool().getNumActive() + 1);
 				return (Connection) getConnectionPool().borrowObject();
 			} catch (Exception e) {
-				throw new ArchitectException(
-						"Couldn't connect to database: "+e.getMessage(), e);
+			    ArchitectException ex = new ArchitectException(
+			            "Couldn't connect to database: "+e.getMessage(), e);
+			    setChildrenInaccessibleReason(ex);
+			    throw ex;
 			}
 		}
 	}

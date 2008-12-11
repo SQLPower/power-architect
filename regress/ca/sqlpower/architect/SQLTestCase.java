@@ -177,6 +177,8 @@ public abstract class SQLTestCase extends ArchitectTestCase {
                 } else {
                     newVal = SQLRelationship.UpdateDeleteRule.CASCADE;
                 }
+            } else if (property.getPropertyType() == Throwable.class) {
+                newVal = new Throwable();
             } else {
 				throw new RuntimeException("This test case lacks a value for "+
 						property.getName()+
@@ -296,7 +298,8 @@ public abstract class SQLTestCase extends ArchitectTestCase {
                 } else {
                     newVal = SQLRelationship.Deferrability.INITIALLY_DEFERRED;
                 }
-
+            } else if (property.getPropertyType() == Throwable.class) {
+                newVal = new Throwable();
             } else {
 				throw new RuntimeException("This test case lacks a value for "+
 						property.getName()+

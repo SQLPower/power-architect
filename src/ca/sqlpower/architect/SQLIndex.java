@@ -185,7 +185,7 @@ public class SQLIndex extends SQLObject {
         }
 
         @Override
-        protected void populate() throws ArchitectException {
+        protected void populateImpl() throws ArchitectException {
             // nothing to do
         }
 
@@ -448,7 +448,7 @@ public class SQLIndex extends SQLObject {
      * Indices are populated when first created, so populate is a no-op.
      */
     @Override
-    protected void populate() throws ArchitectException {
+    protected void populateImpl() throws ArchitectException {
         // nothing to do
     }
 
@@ -800,6 +800,7 @@ public class SQLIndex extends SQLObject {
         index.setPrimaryKeyIndex(source.isPrimaryKeyIndex());
         index.setPhysicalName(source.getPhysicalName());
         index.setClustered(source.isClustered());
+        index.setChildrenInaccessibleReason(source.getChildrenInaccessibleReason());
 
         for (Column column : source.getChildren()) {
             Column newColumn;

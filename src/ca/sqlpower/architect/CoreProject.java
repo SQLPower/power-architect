@@ -68,6 +68,17 @@ public class CoreProject {
         ConvertUtils.register(new UpdateDeleteRuleConverter(), UpdateDeleteRule.class);
     }
     
+    /**
+     * This will load the attributes in all SQLObjects that are not loaded by basic
+     * setters through the digester.
+     */
+    private static void LoadSQLObjectAttributes(SQLObject obj, Attributes attr) {
+        String message = attr.getValue("sql-exception");
+        if (message != null) {
+            obj.setChildrenInaccessibleReason(new ArchitectException(message));
+        }
+    }
+    
 //  ---------------- persistent properties -------------------
 
     protected File file;
@@ -369,7 +380,7 @@ public class CoreProject {
         SQLExceptionFactory exceptionFactory = new SQLExceptionFactory();
         d.addFactoryCreate("*/sql-exception", exceptionFactory);
         d.addSetProperties("*/sql-exception");
-        d.addSetNext("*/sql-exception", "addChild");
+        d.addSetNext("*/sql-exception", "setChildrenInaccessibleReason");
 
         TargetDBFactory targetDBFactory = new TargetDBFactory();
         // target database hierarchy
@@ -491,6 +502,8 @@ public class CoreProject {
             if (populated != null && populated.equals("false")) {
                 db.setPopulated(false);
             }
+            
+            LoadSQLObjectAttributes(db, attributes);
 
             return db;
         }
@@ -512,6 +525,8 @@ public class CoreProject {
             } else {
                 logger.warn("No ID found in database element while loading project!");
             }
+            
+            LoadSQLObjectAttributes(schema, attributes);
 
             return schema;
         }
@@ -552,6 +567,9 @@ public class CoreProject {
             }
 
             currentTable = tab;
+            
+            LoadSQLObjectAttributes(tab, attributes);
+            
             return tab;
         }
     }
@@ -588,6 +606,9 @@ public class CoreProject {
             } catch (ArchitectException ex) {
                 throw new ArchitectRuntimeException(ex);
             }
+            
+            LoadSQLObjectAttributes(f, attributes);
+            
             return f;
         }
     }
@@ -612,6 +633,8 @@ public class CoreProject {
             if (sourceId != null) {
                 col.setSourceColumn((SQLColumn) sqlObjectLoadIdMap.get(sourceId));
             }
+            
+            LoadSQLObjectAttributes(col, attributes);
 
             return col;
         }
@@ -619,22 +642,12 @@ public class CoreProject {
 
     /**
      * Creates a SQLException instance and adds it to the
-     * objectIdMap.
+     * objectIdMap. This ExceptionFactory is still used for loading older
+     * files.
      */
     private class SQLExceptionFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
-            SQLExceptionNode exc = new SQLExceptionNode(null, null);
-
-            String id = attributes.getValue("id");
-            if (id != null) {
-                sqlObjectLoadIdMap.put(id, exc);
-            } else {
-                logger.warn("No ID found in exception element while loading project!");
-            }
-
-            exc.setMessage(attributes.getValue("message"));
-
-            return exc;
+            return new Exception(attributes.getValue("message"));
         }
     }
 
@@ -670,6 +683,8 @@ public class CoreProject {
                 JOptionPane.showMessageDialog(null, "Missing pktable or fktable references for relationship id \""+id+"\"");
             }
 
+            LoadSQLObjectAttributes(rel, attributes);
+            
             return rel;
         }
     }
@@ -730,6 +745,9 @@ public class CoreProject {
             index.setType(attributes.getValue("index-type"));
     
             currentIndex = index;
+            
+            LoadSQLObjectAttributes(index, attributes);
+            
             return index;
         }
     }
@@ -761,6 +779,8 @@ public class CoreProject {
             if (attributes.getValue("ascendingOrDescending") != null) {
                 col.setAscendingOrDescending(SQLIndex.AscendDescend.valueOf(attributes.getValue("ascendingOrDescending")));
             }
+            
+            LoadSQLObjectAttributes(col, attributes);
 
             return col;
         }

@@ -410,9 +410,11 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(db, propertiesToIgnore);
+		System.out.println("Properties set " + oldDescription);
 		
 		
 		File tmp = File.createTempFile("test", ".architect");
+		System.out.println("File located at " + tmp.getAbsolutePath() + " and is delete on exit? " + deleteOnExit);
 		if (deleteOnExit) {
 			tmp.deleteOnExit();
 		}
@@ -427,6 +429,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
 		db = (SQLDatabase) session2.getSourceDatabases().getDatabaseList().get(1);
+		
+		System.out.println("DB has child exception " + db.getChildrenInaccessibleReason());
 		
 		Map<String, Object> newDescription =
 			TestUtils.getAllInterestingProperties(db, propertiesToIgnore);
@@ -527,6 +531,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("secondaryChangeMode");
         propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("childrenInaccessibleReason");
 
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
@@ -581,6 +586,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("columnsFolder");
 		propertiesToIgnore.add("secondaryChangeMode");
         propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("childrenInaccessibleReason");
 
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
@@ -632,6 +638,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("secondaryChangeMode");
         propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("childrenInaccessibleReason");
 
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
