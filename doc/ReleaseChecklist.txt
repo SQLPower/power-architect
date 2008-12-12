@@ -31,8 +31,9 @@ Good luck with the release!
  unavailable elsewhere.
 *Test the three flavours of binaries (Generic tarball, OS X disk image, Windows
  installer) for the following:
- *Rename your PL.INI file so you get the "new user experience"
- *File size is close to the expected size (it was ~14MB in 0.9.8)
+ *Rename your PL.INI file so you get the "new user experience" 
+  (Or better yet, create a fresh user account to test from)
+ *File size is close to the expected size (it was ~18.5 MB in 0.9.12)
  *Archive expands properly or installer works as expected
  *Try connecting to all databases that the Architect is preconfigured for (MySQL,
   PostgreSQL, SQL Server)
