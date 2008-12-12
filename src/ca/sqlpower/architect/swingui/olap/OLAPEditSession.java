@@ -32,8 +32,6 @@ import javax.swing.JToolBar;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.apache.log4j.Logger;
-
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
@@ -41,7 +39,6 @@ import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.undo.OLAPUndoManager;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
@@ -113,9 +110,6 @@ public class OLAPEditSession implements OLAPChildListener {
     private RedoAction redoAction;
     
     private final ArchitectSwingSession swingSession;
-    
-    private static final Logger logger = Logger.getLogger(OLAPPlayPenFactory.class);
-
 
     /**
      * Creates a new editor for the given OLAP schema. The schema's OLAPObjects should
@@ -140,11 +134,12 @@ public class OLAPEditSession implements OLAPChildListener {
         undoManager = new OLAPUndoManager(olapSession);
         pp = OLAPPlayPenFactory.createPlayPen(swingSession, this, undoManager);
         
-        undoManager.addChangeListener(new ChangeListener() {           
+        undoManager.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                // this can be called before initGUI() has had a chance to create the frame
+                // this can be called before initGUI() has had a chance to create the dialog
                 if (frame != null) {
                     frame.setTitle(generateDialogTitle());
+                    frame.setIconImage(OSUtils.SCHEMA_ICON.getImage());
                 }
             }
         });
@@ -247,13 +242,6 @@ public class OLAPEditSession implements OLAPChildListener {
         frame.pack();
         
         frame.setIconImage(OSUtils.SCHEMA_ICON.getImage());
-        
-        // show a new top menu bar for a new OLAP Frame if on MacOSX, as it will be 
-        // gone otherwise
-        ArchitectSwingSessionContext context = swingSession.getContext();
-        if (context.isMacOSX()) {                   
-            frame.setJMenuBar(swingSession.getArchitectFrame().createNewMenuBar());
-        }
         
         OLAPPlayPenFactory.setupOLAPMouseWheelActions(pp, this);
         OLAPPlayPenFactory.setupOLAPKeyboardActions(pp, this);
@@ -397,9 +385,5 @@ public class OLAPEditSession implements OLAPChildListener {
 
     public CreateDimensionUsageAction getCreateDimensionUsageAction() {
         return createDimensionUsageAction;
-    }
-    
-    public CreateCubeUsageAction getCreateCubeUsageAction() {
-        return createCubeUsageAction;
     }
 }

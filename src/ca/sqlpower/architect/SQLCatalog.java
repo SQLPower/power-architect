@@ -122,7 +122,7 @@ public class SQLCatalog extends SQLObject {
 		return true;
 	}
 
-	public void populateImpl() throws ArchitectException {
+	public void populate() throws ArchitectException {
 		if (populated) return;
 
 		logger.debug("SQLCatalog: populate starting");

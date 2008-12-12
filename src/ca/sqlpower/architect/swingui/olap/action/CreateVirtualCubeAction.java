@@ -22,8 +22,6 @@ package ca.sqlpower.architect.swingui.olap.action;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 
-import javax.swing.KeyStroke;
-
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
@@ -43,8 +41,7 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
     private final Schema schema;
 
     public CreateVirtualCubeAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
-        super(session, pp, "New Virtual Cube...", "Create a new Virtual Cube in this schema (v)", OSUtils.VIRTUAL_CUBE_ADD_ICON);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('v'));
+        super(session, pp, "New Virtual Cube...", "Create a new Virtual Cube in this schema", OSUtils.VIRTUAL_CUBE_ADD_ICON);
         this.schema = schema;
     }
 

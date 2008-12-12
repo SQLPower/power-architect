@@ -155,7 +155,6 @@ public class SQLTable extends SQLObject {
 		SQLTable t = new SQLTable(parent, true);
 		t.setName(source.getName());
 		t.remarks = source.remarks;
-		t.setChildrenInaccessibleReason(source.getChildrenInaccessibleReason());
 
 		t.setPhysicalName(source.getPhysicalName());
 		t.physicalPrimaryKeyName = source.getPhysicalPrimaryKeyName();
@@ -843,7 +842,7 @@ public class SQLTable extends SQLObject {
      * step.  The various populate operations (columns, keys, indices) are triggered
      * by visiting the individual folders.
 	 */
-	public void populateImpl() throws ArchitectException {
+	public void populate() throws ArchitectException {
 		// SQLTable: populate is a no-op
 	}
 
@@ -916,7 +915,7 @@ public class SQLTable extends SQLObject {
 			parent = (SQLTable) newParentTable;
 		}
 
-		public void populateImpl() throws ArchitectException {
+		public void populate() throws ArchitectException {
 		    populate(null);
 		}
 		
@@ -1468,9 +1467,5 @@ public class SQLTable extends SQLObject {
     public List<SQLIndex> getIndices() throws ArchitectException {
         List<SQLIndex> indices = getIndicesFolder().getChildren();
         return Collections.unmodifiableList(indices);
-    }
-    
-    public String toQualifiedName() {
-        return ArchitectUtils.toQualifiedName(this, SQLDatabase.class);
     }
 }

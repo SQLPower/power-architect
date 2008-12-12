@@ -286,7 +286,6 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
         setUpdateRule(relationshipToCopy.getUpdateRule());
         setDeleteRule(relationshipToCopy.getDeleteRule());
         setDeferrability(relationshipToCopy.getDeferrability());
-        setChildrenInaccessibleReason(relationshipToCopy.getChildrenInaccessibleReason());
 	}
 	
 	/**
@@ -646,11 +645,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * <p>XXX: should be removed when SQLObject API gets generics
 	 */
 	public List<ColumnMapping> getMappings() {
-	    try {
-	        populate(); // doesn't do anything yet, but better safe than sorry
-	    } catch (ArchitectException e) {
-	        throw new RuntimeException(e);
-	    }
+		populate(); // doesn't do anything yet, but better safe than sorry
 		return Collections.unmodifiableList(children);
 	}
 
@@ -1035,7 +1030,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	/**
 	 * This class is not a lazy-loading class.  This call does nothing.
 	 */
-	public void populateImpl() {
+	public void populate() {
 		// nothing to do.
 	}
 
@@ -1287,7 +1282,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		/**
 		 * This class is not a lazy-loading class.  This call does nothing.
 		 */
-		public void populateImpl() throws ArchitectException {
+		public void populate() throws ArchitectException {
 			return;
 		}
 

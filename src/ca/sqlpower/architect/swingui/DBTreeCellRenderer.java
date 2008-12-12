@@ -17,20 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect.swingui.dbtree;
+package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
-import org.apache.log4j.Logger;
-
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -40,6 +36,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.Column;
+import ca.sqlpower.swingui.SPSUtils;
 
 /**
  * The DBTreeCellRenderer renders nodes of a JTree which are of
@@ -52,28 +49,28 @@ import ca.sqlpower.architect.SQLIndex.Column;
  * @version $Id$
  */
 public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
-    
-    private static final Logger logger = Logger.getLogger(DBTreeCellRenderer.class);
-    
-    public static final ImageIcon DB_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Database16.png"));
-	public static final ImageIcon TARGET_DB_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Database_target16.png"));
-	public static final ImageIcon CATALOG_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Catalog16.png"));
-	public static final ImageIcon SCHEMA_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Schema16.png"));
-	public static final ImageIcon TABLE_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Table16.png"));
-	public static final ImageIcon EXPORTED_KEY_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/ExportedKey16.png"));
-    public static final ImageIcon IMPORTED_KEY_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/ImportedKey16.png"));
-	public static final ImageIcon OWNER_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Owner16.png"));
-    public static final ImageIcon INDEX_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index16.png"));
-    public static final ImageIcon PK_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_key16.png"));
-    public static final ImageIcon UNIQUE_INDEX_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_unique16.png"));
-    public static final ImageIcon COLUMN_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Column16.png"));
-    public static final ImageIcon ERROR_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/stop16.png"));
+	public static final ImageIcon dbIcon = SPSUtils.createIcon("Database", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon dbProfiledIcon = SPSUtils.createIcon("Database_profiled", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final ImageIcon targetIcon = SPSUtils.createIcon("Database_target", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final ImageIcon cataIcon = SPSUtils.createIcon("Catalog", "SQL Catalog", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final ImageIcon schemaIcon = SPSUtils.createIcon("Schema", "SQL Schema", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final ImageIcon tableIcon = SPSUtils.createIcon("Table", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon tableProfiledIcon = SPSUtils.createIcon("Table_profiled", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final ImageIcon exportedKeyIcon = SPSUtils.createIcon("ExportedKey", "Exported key", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon importedKeyIcon = SPSUtils.createIcon("ImportedKey", "Imported key", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final ImageIcon ownerIcon = SPSUtils.createIcon("Owner", "Owner", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon indexIcon = SPSUtils.createIcon("Index", "Index", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon pkIndexIcon = SPSUtils.createIcon("Index_key", "Primary Key Index", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon uniqueIndexIcon = SPSUtils.createIcon("Index_unique", "Unique Index", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon columnIcon = SPSUtils.createIcon("Column", "Column", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
+    private final ArchitectSession session;
    
-    private final List<IconFilter> iconFilterChain = new ArrayList<IconFilter>();
     
-	public DBTreeCellRenderer() {
+	public DBTreeCellRenderer(ArchitectSession session) {
         super();
+        this.session = session;
     }
+
 
     public Component getTreeCellRendererComponent(JTree tree,
 												  Object value,
@@ -83,39 +80,38 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 												  int row,
 												  boolean hasFocus) {
 		setText(value.toString());
-	    setToolTipText(getText());
-	    
-        if (value instanceof SQLObject && ((SQLObject) value).getChildrenInaccessibleReason() != null) {
-            logger.debug("Children are not accessible from the node " + ((SQLObject) value).getName());
-            setIcon(ERROR_ICON);
-            setToolTipText("Inaccessible: " + ((SQLObject) value).getChildrenInaccessibleReason());
-        } else if (value instanceof SQLDatabase) {
+		if (value instanceof SQLDatabase) {
 			SQLDatabase db = (SQLDatabase) value;
 			if (db.isPlayPenDatabase()) {
-				setIcon(TARGET_DB_ICON);
+				setIcon(targetIcon);
+                setText(Messages.getString("DBTreeCellRenderer.playpenNodeText")); //$NON-NLS-1$
 			} else {
-				setIcon(DB_ICON);
+				setIcon(dbIcon);
 			}
 		} else if (value instanceof SQLCatalog) {
 			if (((SQLCatalog) value).getNativeTerm().equals("owner")) { //$NON-NLS-1$
-				setIcon(OWNER_ICON);
+				setIcon(ownerIcon);
 			} else if (((SQLCatalog) value).getNativeTerm().equals("database")) { //$NON-NLS-1$
-				setIcon(DB_ICON);
+				setIcon(dbIcon);
 			} else if (((SQLCatalog) value).getNativeTerm().equals("schema")) { //$NON-NLS-1$
-				setIcon(SCHEMA_ICON);
+				setIcon(schemaIcon);
 			} else {
-				setIcon(CATALOG_ICON);
+				setIcon(cataIcon);
 			}
 		} else if (value instanceof SQLSchema) {
 			if (((SQLSchema) value).getNativeTerm().equals("owner")) { //$NON-NLS-1$
-				setIcon(OWNER_ICON);
+				setIcon(ownerIcon);
 			} else {
-				setIcon(SCHEMA_ICON);
+				setIcon(schemaIcon);
 			}
 		} else if (value instanceof SQLTable) {
-		    setIcon(TABLE_ICON);
-			
-		    SQLTable table = (SQLTable) value;
+            
+			SQLTable table = (SQLTable) value;
+            if (session.getProfileManager().getResults(table).size() > 0) {
+                setIcon(tableProfiledIcon);
+            } else {
+                setIcon(tableIcon);
+            }
             if ((table).getObjectType() != null) {
 			    setText((table).getName()+" ("+(table).getObjectType()+")"); //$NON-NLS-1$ //$NON-NLS-2$
 			} else {
@@ -125,29 +121,25 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
             //XXX ARRRRRRGGGGGHHHHHHH!!!! No way of knowing which end of a relationship we're
             // looking at because the relationship has two parents.  Maybe able to do it with the row number.
             if (true) {
-                setIcon(EXPORTED_KEY_ICON);
+                setIcon(exportedKeyIcon);
             } else {
-                setIcon(IMPORTED_KEY_ICON);
+                setIcon(importedKeyIcon);
             }
 		} else if (value instanceof SQLIndex) {
             SQLIndex i = (SQLIndex) value;
             if (i.isPrimaryKeyIndex()) {
-                setIcon(PK_ICON);
+                setIcon(pkIndexIcon);
             } else if (i.isUnique()) {
-                setIcon(UNIQUE_INDEX_ICON);
+                setIcon(uniqueIndexIcon);
             } else {
-                setIcon(INDEX_ICON);
+                setIcon(indexIcon);
             }
         } else if (value instanceof SQLColumn) {
             tagColumn((SQLColumn)value);
-            setIcon(COLUMN_ICON);
+            setIcon(columnIcon);
         } else if (value instanceof Column) {
-            Column col = (Column) value;
-            logger.debug("Column has properties " + col);
-            if (col.getColumn() != null) {
-                tagColumn((col).getColumn());
-            }
-            setIcon(COLUMN_ICON);
+            tagColumn(((Column)value).getColumn());
+            setIcon(columnIcon);
         } else {
 			setIcon(null);
 		}
@@ -162,13 +154,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 		        setForeground(Color.lightGray);
 		    }
 		}
-	    
-	    if (value instanceof SQLObject || value == null) {
-	        for (IconFilter filter : getIconFilterChain()) {
-	            setIcon(filter.filterIcon(getIcon(), (SQLObject) value));
-	        }
-	    }
-	    
+	    setToolTipText(getText());
 		return this;
 	}
     
@@ -202,41 +188,5 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
             fullTag.append(" ]"); //$NON-NLS-1$
             setText(getText() + fullTag.toString());
         }
-    }
-
-    /**
-     * Adds the given icon filter to the end of the filter chain. The filter
-     * will be invoked after all currently existing filters on this renderer.
-     * 
-     * @param filter
-     *            The filter to add. Must not be null.
-     */
-    public void addIconFilter(IconFilter filter) {
-        if (filter == null) {
-            throw new NullPointerException("Null icon filters not allowed");
-        }
-        iconFilterChain.add(filter);
-    }
-
-    /**
-     * Removed the given icon filter chain from this renderer's filter chain. If
-     * the given filter is not in the list, calling this method has no effect.
-     * 
-     * @param filter
-     *            The filter to remove
-     * @return True if the filter was in the list (so it has been removed);
-     *         false if the filter was not in the list (so the list remains
-     *         unchanged).
-     */
-    public boolean removeIconFilter(IconFilter filter) {
-        return iconFilterChain.remove(filter);
-    }
-    
-    /**
-     * Returns a read-only view of this renderer's filter chain. The filters
-     * are invoked in the order that they exist in this list.
-     */
-    public List<IconFilter> getIconFilterChain() {
-        return Collections.unmodifiableList(iconFilterChain);
     }
 }

@@ -155,11 +155,6 @@ public class ProfileGraphPanel {
         this.displayArea = displayArea;
     }
 
-    /**
-     * Switches the graph to show the value distribution for the given column.
-     * 
-     * @param cr The profile result to display. Must not be null.
-     */
     public void displayProfile(ColumnProfileResult cr) {
         TableProfileResult tr = (TableProfileResult) cr.getParentResult();
         
@@ -178,37 +173,47 @@ public class ProfileGraphPanel {
         }
         setTitle(sb.toString());
         nullableLabel.setText(Boolean.toString(c.isDefinitelyNullable()));
+        if (cr == null) {
+            ProfilePanel.logger.error("displayProfile called but unable to get ColumnProfileResult for column: "+c);
 
-        chartPanel.setChart(createTopNChart(cr));
-        nullCountLabel.setText(Integer.toString(cr.getNullCount()));
-        int nullsInRecords = cr.getNullCount();
-        double ratio = rowCount > 0 ? nullsInRecords * 100D / rowCount : 0;
-        nullPercentLabel.setText(format(ratio));
-        uniqueCountLabel.setText(Integer.toString(cr.getDistinctValueCount()));
-        double uniqueRatio = rowCount > 0 ? cr.getDistinctValueCount() * 100D / rowCount : 0;
-        uniquePercentLabel.setText(format(uniqueRatio));
-        minLengthLabel.setText(Integer.toString(cr.getMinLength()));
-        maxLengthLabel.setText(Integer.toString(cr.getMaxLength()));
-
-        minValue.setText(cr.getMinValue() == null ? "" : cr.getMinValue().toString());
-        maxValue.setText(cr.getMaxValue() == null ? "" : cr.getMaxValue().toString());
-        Object o = cr.getAvgValue();
-        if (o == null) {
-            avgValue.setText("");
-        } else if (o instanceof BigDecimal) {
-            double d = ((BigDecimal)o).doubleValue();
-            avgValue.setText(format(d));
+            // XXX the following code should instead replace chartPanel with a JLabel that contains the error message
+            //     (and also not create a dummy profile result)
+//            cr = new ColumnProfileResult(c, null, null);
+//            cr.setCreateStartTime(0);
+//            chartPanel.setChart(ChartFactory.createPieChart("", new DefaultPieDataset(), false, false, false));
+            chartPanel.setChart(null);  // if this works, great!
         } else {
-            ProfilePanel.logger.debug("Got avgValue of type: " + o.getClass().getName());
-            avgValue.setText(cr.getAvgValue().toString());
+            chartPanel.setChart(createTopNChart(cr));
+            nullCountLabel.setText(Integer.toString(cr.getNullCount()));
+            int nullsInRecords = cr.getNullCount();
+            double ratio = rowCount > 0 ? nullsInRecords * 100D / rowCount : 0;
+            nullPercentLabel.setText(format(ratio));
+            uniqueCountLabel.setText(Integer.toString(cr.getDistinctValueCount()));
+            double uniqueRatio = rowCount > 0 ? cr.getDistinctValueCount() * 100D / rowCount : 0;
+            uniquePercentLabel.setText(format(uniqueRatio));
+            minLengthLabel.setText(Integer.toString(cr.getMinLength()));
+            maxLengthLabel.setText(Integer.toString(cr.getMaxLength()));
+
+            minValue.setText(cr.getMinValue() == null ? "" : cr.getMinValue().toString());
+            maxValue.setText(cr.getMaxValue() == null ? "" : cr.getMaxValue().toString());
+            Object o = cr.getAvgValue();
+            if (o == null) {
+                avgValue.setText("");
+            } else if (o instanceof BigDecimal) {
+                double d = ((BigDecimal)o).doubleValue();
+                avgValue.setText(format(d));
+            } else {
+                ProfilePanel.logger.debug("Got avgValue of type: " + o.getClass().getName());
+                avgValue.setText(cr.getAvgValue().toString());
+            }
+
+
+            FreqValueCountTableModel freqValueCountTableModel = new FreqValueCountTableModel(cr);
+            TableModelSortDecorator sortModel = new TableModelSortDecorator(freqValueCountTableModel);
+            freqValueTable.setModel(sortModel);
+            sortModel.setTableHeader(freqValueTable.getTableHeader());
+            freqValueTable.initColumnSizes();
         }
-
-
-        FreqValueCountTableModel freqValueCountTableModel = new FreqValueCountTableModel(cr);
-        TableModelSortDecorator sortModel = new TableModelSortDecorator(freqValueCountTableModel);
-        freqValueTable.setModel(sortModel);
-        sortModel.setTableHeader(freqValueTable.getTableHeader());
-        freqValueTable.initColumnSizes();
     }
 
     private JFreeChart createTopNChart(ColumnProfileResult cr){

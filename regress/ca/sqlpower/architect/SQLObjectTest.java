@@ -47,7 +47,7 @@ public class SQLObjectTest extends SQLTestCase {
 			this.parent = parent;
 		}
 		@Override
-		protected void populateImpl() throws ArchitectException {
+		protected void populate() throws ArchitectException {
 			// System.err.println("Abstract test stub populate() invoked");
 		}
 		@Override
@@ -199,7 +199,7 @@ public class SQLObjectTest extends SQLTestCase {
     }
 	
 	public void testNoMixChildTypes() throws ArchitectException {
-		target.addChild(new SQLColumn());
+		target.addChild(new SQLExceptionNode(null, "everything is ok. don't panic."));
 		try {
 			target.addChild(new SQLObjectImpl());
 			fail("Target didn't throw exception for mixing child types!");
@@ -246,38 +246,6 @@ public class SQLObjectTest extends SQLTestCase {
         
         assertEquals("Event fired", 1, l.getPreRemoveCount());
         assertEquals("Child not removed", 1, target.getChildren().size());
-    }
-    
-    public void testClientPropertySetAndGet() {
-        target.putClientProperty(this.getClass(), "testProperty", "test me");
-        assertEquals("test me", target.getClientProperty(this.getClass(), "testProperty"));
-    }
-    
-    public void testClientPropertyFiresEvent() {
-        CountingSQLObjectListener listener = new CountingSQLObjectListener();
-        target.addSQLObjectListener(listener);
-        target.putClientProperty(this.getClass(), "testProperty", "test me");
-        assertEquals(1, listener.getChangedCount());
-    }
-    
-    public void testChildrenInaccessibleReasonSetOnPopulateError() throws Exception {
-        final RuntimeException e = new RuntimeException();
-        SQLObject o = new SQLObjectImpl() {
-            @Override
-            protected void populateImpl() throws ArchitectException {
-                throw e;
-            }
-        };
-        
-        try {
-            o.populate();
-            fail();
-        } catch (Exception ex) {
-            //should get here
-        }
-        
-        assertEquals(e, o.getChildrenInaccessibleReason());
-            
     }
 
 }

@@ -37,12 +37,6 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 
-/**
- * The base class for version-specific Oracle DDL generators. This class exists
- * in addition to the two version-specific ones in order to provide a generic
- * Oracle DDL generator for older PL.ini files that don't specify the newer DDL
- * generators
- */
 public class OracleDDLGenerator extends GenericDDLGenerator {
 
 	public OracleDDLGenerator() throws SQLException {
@@ -53,10 +47,10 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 
 	private static final Logger logger = Logger.getLogger(OracleDDLGenerator.class);
 
-	private static HashSet<String> reservedWords;
+	private static HashSet reservedWords;
 
 	static {
-		reservedWords = new HashSet<String>();
+		reservedWords = new HashSet();
 		reservedWords.add("ACCESS");
 		reservedWords.add("ADD");
 		reservedWords.add("ALL");
@@ -303,7 +297,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
      */
     @Override
     public String makeDropForeignKeySQL(String fkTable, String fkName) {
-        return "\nALTER TABLE "
+        return "ALTER TABLE "
             + toQualifiedName(fkTable)
             + " DROP CONSTRAINT "
             + fkName;
@@ -318,7 +312,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
     public void modifyColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();
 		SQLTable t = c.getParentTable();
-		print("\nALTER TABLE ");
+		print("\n ALTER TABLE ");
 		print(toQualifiedName(t.getPhysicalName()));
 		print(" MODIFY ");
 		print(columnDefinition(c,colNameMap));
@@ -332,7 +326,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
     @Override
     public void addColumn(SQLColumn c) {
         Map colNameMap = new HashMap();
-        print("\nALTER TABLE ");
+        print("\n ALTER TABLE ");
         print(toQualifiedName(c.getParentTable()));
         print(" ADD ");
         print(columnDefinition(c,colNameMap));
@@ -385,7 +379,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         for (SQLColumn c : t.getColumns()) {
             if (c.isAutoIncrement()) {
                 SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
-                print("\nCREATE SEQUENCE ");
+                print("CREATE SEQUENCE ");
                 print(createSeqPhysicalName(topLevelNames, seq, c));
                 endStatement(StatementType.CREATE, seq);
             }

@@ -1273,9 +1273,7 @@ public class CompareDMPanel extends JPanel {
 			};
 
 			new Thread(compareWorker).start();
-			ProgressWatcher pw = new ProgressWatcher(progressBar, sourceComp, statusLabel);
-			pw.setHideLabelWhenFinished(true);
-			pw.start();
+			ProgressWatcher.watchProgress(progressBar,sourceComp);
 		}
 		
 		private void reenableGUIComponents() {

@@ -32,7 +32,7 @@ public class SQLObjectRoot extends SQLObject {
 		return true;
 	}
 	
-	public void populateImpl() throws ArchitectException {
+	public void populate() throws ArchitectException {
 		return;
 	}
 	

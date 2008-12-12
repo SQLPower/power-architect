@@ -55,9 +55,4 @@ public class SQLServer2000DDLGenerator extends SQLServerDDLGenerator {
         return (action == UpdateDeleteRule.CASCADE)
             || (action == UpdateDeleteRule.NO_ACTION);
     }
-    
-    @Override
-    public String getStatementTerminator() {
-        return ";";
-    }
 }

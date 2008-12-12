@@ -20,11 +20,8 @@ package ca.sqlpower.architect;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -33,44 +30,6 @@ import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
-/**
- * SQLObject is the main base class of the Architect API. All objects that can
- * be reverse-engineered from or forward-engineered to an SQL database are
- * represented as SQLObject subclasses. The main features inherited from
- * SQLObject are:
- * 
- * <h2>Tree structure</h2>
- * 
- * SQLObjects are arranged in a tree structure: each object has a parent, which
- * is also a SQLObject, and it has a list of children which point back to it.
- * All children of any given SQLObject must be of the exact same type. This is
- * enforced in several places, so you should find out quickly if you break this
- * rule.
- * 
- * <h2>Transparent lazy reverse engineering</h2>
- * 
- * SQLObjects have two primary states: populated and unpopulated. The state
- * transitions from unpopulated to populated when the child list is filled in by
- * reverse engineering the information from a physical SQL database. The state
- * never transitions from populated to unpopulated.
- * <p>
- * When creating a SQLObject, you can decide whether you want it to start in the
- * populated state or not. When starting in the populated state, the lazy
- * reverse engineering feature will not be active, and the SQLObject can (must)
- * be completely configured via its API.
- * 
- * <h2>Event System</h2>
- * 
- * Most changes to the state of a SQLObject cause an event to be fired. This is
- * useful when building GUI components and undo/redo systems around SQLObjects.
- * See {@link SQLObjectEvent} and {@link SQLObjectListener} for details.
- * 
- * <h2>Client Properties</h2>
- * 
- * Every SQLObject maintains a map of key/value pairs. This map is segregated
- * into namespaces to ensure multiple clients who don't know about each other do
- * not end up suffering naming collisions.
- */
 public abstract class SQLObject implements java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(SQLObject.class);
@@ -79,14 +38,6 @@ public abstract class SQLObject implements java.io.Serializable {
 
 	private String physicalName;
 	private String name;
-	
-	/**
-	 * The map that hold the client properties of this object. Don't modify the
-	 * contents of this map directly; use the {@link #putClientProperty(Class, String, Object)}
-	 * and {@link #getClientProperty(Class, String)} methods which take care of
-	 * firing events and other such bookkeeping.
-	 */
-	private final Map<String, Object> clientProperties = new HashMap<String, Object>();
 	
 	/**
 	 * The children of this SQLObject (if not applicable, set to
@@ -98,13 +49,6 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * When this counter is > 0, the fireXXX methods will ignore secondary changes.
 	 */
 	protected int magicDisableCount = 0;
-	
-	/**
-	 * This is the throwable that tells if the children of this component can be reached
-	 * or not. If this is null then the children can be reached. If it is not null
-	 * then there was an exception the last time the children were attempted to be accessed.
-	 */
-	private Throwable childrenInaccessibleReason = null;
 	 
 	public synchronized void setMagicEnabled(boolean enable) {
 		if (magicDisableCount < 0) {
@@ -188,24 +132,6 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * during addChild and removeChild requests.
 	 */
 	protected abstract void setParent(SQLObject parent);
-	
-	/**
-     * Causes this SQLObject to load its children through populateImpl (if any exist).
-     * This will do nothing if the object is already populated.
-     */
-	public void populate() throws ArchitectException {
-	    if (populated) return;
-	    childrenInaccessibleReason = null;
-	    try {
-	        populateImpl();
-	    } catch (ArchitectException e) {
-	        childrenInaccessibleReason = e;
-	        throw e;
-	    } catch (RuntimeException e) {
-	        childrenInaccessibleReason = e;
-	        throw e;
-	    }
-	}
 
 	/**
 	 * Causes this SQLObject to load its children (if any exist).
@@ -213,7 +139,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * not you need to do anything and return right away whenever
 	 * possible.
 	 */
-	protected abstract void populateImpl() throws ArchitectException;
+	protected abstract void populate() throws ArchitectException;
 
 	
 
@@ -288,10 +214,22 @@ public abstract class SQLObject implements java.io.Serializable {
 				! (children.get(0).getClass().isAssignableFrom(newChild.getClass())
 					|| newChild.getClass().isAssignableFrom(children.get(0).getClass()))) {
             
-            throw new ArchitectException(
-                    "You Can't mix SQL Object Types! You gave: " +
-                    newChild.getClass().getName() +
-                    "; I need " + children.get(0).getClass());
+            ArchitectException ex;
+            if (newChild instanceof SQLExceptionNode) {
+
+                // long term, we want to dispose of SQLExceptionNode altogether. This is a temporary workaround.
+                SQLExceptionNode sen = (SQLExceptionNode) newChild;
+                ex = new ArchitectException(
+                        "Can't add exception node here because there are already other children. " +
+                        "See exception cause for the original exception.",
+                        sen.getException());
+            } else {
+                ex = new ArchitectException(
+                        "You Can't mix SQL Object Types! You gave: " +
+                        newChild.getClass().getName() +
+                        "; I need " + children.get(0).getClass());
+            }
+			throw ex;
 		}
 		children.add(index, newChild);
 		newChild.setParent(this);
@@ -702,65 +640,5 @@ public abstract class SQLObject implements java.io.Serializable {
             i++;
         }
         return -1;
-    }
-    
-    /**
-     * Sets the current value of the named client property in the given
-     * namespace. If the new value is different from the existing value,
-     * a SQLObjectChangedEvent will be fired with the property name
-     * of <code>namespace.getName() + "." + propName</code>.
-     * 
-     * @param namespace
-     *            The namespace to look in. This is usually the class of the
-     *            code calling in, but there is no restriction from getting and
-     *            setting client properties maintained by other classes.
-     * @param propName
-     *            The name of the property to set.
-     */
-    public void putClientProperty(Class<?> namespace, String propName, Object property) {
-        String key = namespace + "." + propName;
-        Object oldValue = clientProperties.get(key);
-        clientProperties.put(key, property);
-        fireDbObjectChanged("clientProperty." + key, oldValue, property);
-    }
-
-    /**
-     * Returns the current value of the named client property in the given
-     * namespace.
-     * 
-     * @param namespace
-     *            The namespace to look in. This is usually the class of the
-     *            code calling in, but there is no restriction from getting and
-     *            setting client properties maintained by other classes.
-     * @param propName
-     *            The name of the property to get.
-     * @return The property's current value, or null if the property is not set
-     *         on this SQL Object.
-     */
-    public Object getClientProperty(Class<?> namespace, String propName) {
-        return clientProperties.get(namespace + "." + propName);
-    }
-    
-    /**
-     * Rerturns the property names of all client properties currently set
-     * on this SQLObject.
-     */
-    public Set<String> getClientPropertyNames() {
-        return clientProperties.keySet();
-    }
-    
-    public Throwable getChildrenInaccessibleReason() {
-        return childrenInaccessibleReason;
-    }
-    
-    /**
-     * This setter will take in either a Throwable to set the inaccessible reason
-     * to, for things like copy methods, or a string of the exception message, for
-     * things like loading the exception.
-     */
-    public void setChildrenInaccessibleReason(Throwable message) {
-        Throwable oldVal = this.childrenInaccessibleReason;
-        this.childrenInaccessibleReason = message;
-        fireDbObjectChanged("childrenInaccessibleReason", oldVal, childrenInaccessibleReason);
     }
 }

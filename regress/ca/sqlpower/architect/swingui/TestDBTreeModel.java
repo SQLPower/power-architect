@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
-package ca.sqlpower.architect.swingui.dbtree;
+package ca.sqlpower.architect.swingui;
 
 import java.sql.Types;
 import java.util.ArrayList;
@@ -37,7 +37,6 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 
 public class TestDBTreeModel extends TestCase {
 
@@ -100,8 +99,7 @@ public class TestDBTreeModel extends TestCase {
     private DBTreeModel tm;
 
     protected void setUp() throws Exception {
-        ArchitectSessionImpl session = new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "TestSession");
-        tm = new DBTreeModel(session.getRootObject());
+        tm = new DBTreeModel(new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "TestSession"));
         tm.setTestMode(true);
 	}
 	

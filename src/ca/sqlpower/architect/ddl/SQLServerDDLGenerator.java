@@ -29,11 +29,9 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
 
 /**
@@ -387,7 +385,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 
     @Override
     public void addColumn(SQLColumn c) {
-        print("\nALTER TABLE ");
+        print("\n ALTER TABLE ");
         print(toQualifiedName(c.getParentTable()));
         print(" ADD ");
         print(columnDefinition(c,new HashMap()));
@@ -455,19 +453,8 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
     }
     
     @Override
-    public void dropPrimaryKey(SQLTable t) {
-        try {
-            print("\nALTER TABLE " + toQualifiedName(t.getName())
-                + " DROP " + t.getPrimaryKeyName());
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
-        }
-        endStatement(DDLStatement.StatementType.DROP, t);
-    }
-    
-    @Override
     public String makeDropForeignKeySQL(String fkTable, String fkName) {
-        return "\nALTER TABLE "
+        return "ALTER TABLE "
         +toQualifiedName(fkTable)
         +" DROP CONSTRAINT "
         +fkName;

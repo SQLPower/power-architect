@@ -60,12 +60,15 @@ public class ExportDDLAction extends AbstractArchitectAction {
 
 	private static final String GENDDL_WARNINGS_EXPLANATION =
         Messages.getString("ExportDDLAction.errorsInstructions"); //$NON-NLS-1$
-	
+
+	public ExportDDLAction(ArchitectSwingSession session) {
+		super(session, Messages.getString("ExportDDLAction.name"), Messages.getString("ExportDDLAction.description"), "fwdSQL"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	}
+
 	private JDialog d;
 
-	public ExportDDLAction(final ArchitectSwingSession session) {
-		super(session, Messages.getString("ExportDDLAction.name"), Messages.getString("ExportDDLAction.description"), "fwdSQL"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	
+    public void actionPerformed(ActionEvent e) {
+
         final DDLExportPanel ddlPanel = new DDLExportPanel(session);
 
         Callable<Boolean> okCall, cancelCall;
@@ -165,7 +168,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                     }
                                     break;
                                 }
-                            } // end of main while loop
+                            }
                         }
                         
                         SQLDatabase ppdb = new SQLDatabase(ddlPanel.getTargetDB());
@@ -196,6 +199,8 @@ public class ExportDDLAction extends AbstractArchitectAction {
             }
         };
 
+
+
         cancelCall = new Callable<Boolean>() {
             public Boolean call() {
                 ddlPanel.discardChanges();
@@ -209,10 +214,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                 okCall, cancelCall);
 
         d.pack();
-        d.setLocationRelativeTo(frame);		
-	}
-
-    public void actionPerformed(ActionEvent e) {
+        d.setLocationRelativeTo(frame);
         d.setVisible(true);
     }
 
@@ -282,7 +284,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		 */
 		public void doStuff() {
 
-			if (this.isCancelled()) return;
+			if (this.isCanceled()) return;
             
             // First, test if it's possible to connect to the target database
             Connection con = null;
@@ -411,7 +413,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		}
 
 		public void doStuff() {
-			if (isCancelled())
+			if (isCanceled())
 				return;
 			if (conflictFinder.doesUserWantToDropConflicts()) {
 				cr = conflictFinder.getConflictResolver();

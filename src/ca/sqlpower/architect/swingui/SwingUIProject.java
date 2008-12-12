@@ -51,14 +51,13 @@ import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.UnclosableInputStream;
 import ca.sqlpower.architect.ddl.DDLGenerator;
-import ca.sqlpower.architect.olap.MondrianXMLReader;
 import ca.sqlpower.architect.olap.MondrianXMLWriter;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -158,47 +157,7 @@ public class SwingUIProject extends CoreProject {
     public void load(InputStream in, DataSourceCollection dataSources) throws IOException, ArchitectException {
         olapPaneLoadIdMap = new HashMap<String, OLAPPane<?, ?>>();
         
-        UnclosableInputStream uin = new UnclosableInputStream(in);
-        olapObjectLoadIdMap = new HashMap<String, OLAPObject>();
-        
-        // sqlObjectLoadIdMap is not ready yet when parsing the olap objects
-        // so this keeps track of the id of the SQLDatabase that OLAPSessions reference.
-        Map<OLAPSession, String> sessionDbMap = new HashMap<OLAPSession, String>();
-        
-        try {
-            if (uin.markSupported()) {
-                uin.mark(Integer.MAX_VALUE);
-            } else {
-                throw new IllegalStateException("Failed to load with an input stream that does not support mark!");
-            }
-
-            // parse the Mondrian business model parts first because the olap id
-            // map is needed in the digester for parsing the olap gui
-            try {
-                MondrianXMLReader.parse(uin, getSession().getOLAPRootObject(), sessionDbMap, olapObjectLoadIdMap);
-            } catch (SAXException e) {
-                logger.error("Error parsing project file's olap schemas!", e);
-                throw new ArchitectException("SAX Exception in project file olap schemas parse!", e);
-            } catch (Exception ex) {
-                logger.error("General Exception in project file olap schemas parse!", ex);
-                throw new ArchitectException("Unexpected Exception", ex);
-            }
-            
-            in.reset();
-            
-            super.load(in, dataSources);
-        }
-        finally {
-            uin.forceClose();
-        }
-        
-        // now that the sqlObjectLoadIdMap is populated, we can set the
-        // OLAPSessions' database.
-        for (Map.Entry<OLAPSession, String> entry : sessionDbMap.entrySet()) {
-            OLAPSession oSession = entry.getKey();
-            SQLDatabase db = (SQLDatabase) sqlObjectLoadIdMap.get(entry.getValue());
-            oSession.setDatabase(db);
-        }
+        super.load(in, dataSources);
         
         // set the view positions again in the case that the viewport was invalid earlier.
         getSession().getPlayPen().setInitialViewPosition();
@@ -1170,10 +1129,6 @@ public class SwingUIProject extends CoreProject {
         // properties of all SQLObject types
         propNames.put("physicalName", o.getPhysicalName()); //$NON-NLS-1$
         propNames.put("name", o.getName()); // note: there was no name attrib for SQLDatabase, SQLRelationship.ColumnMapping, and SQLExceptionNode //$NON-NLS-1$
-        
-        if (o.getChildrenInaccessibleReason() != null) {
-            propNames.put("sql-exception", o.getChildrenInaccessibleReason().getMessage()); //$NON-NLS-1$
-        }
 
         if (o instanceof SQLDatabase) {
             id = "DB"+sqlObjectSaveIdMap.size(); //$NON-NLS-1$
@@ -1236,6 +1191,10 @@ public class SwingUIProject extends CoreProject {
             type = "column-mapping"; //$NON-NLS-1$
             propNames.put("pk-column-ref", sqlObjectSaveIdMap.get(((SQLRelationship.ColumnMapping) o).getPkColumn())); //$NON-NLS-1$
             propNames.put("fk-column-ref", sqlObjectSaveIdMap.get(((SQLRelationship.ColumnMapping) o).getFkColumn())); //$NON-NLS-1$
+        } else if (o instanceof SQLExceptionNode) {
+            id = "EXC"+sqlObjectSaveIdMap.size(); //$NON-NLS-1$
+            type = "sql-exception"; //$NON-NLS-1$
+            propNames.put("message", ((SQLExceptionNode) o).getMessage()); //$NON-NLS-1$
         } else if (o instanceof SQLIndex) {
             id = "IDX"+sqlObjectSaveIdMap.size(); //$NON-NLS-1$
             type = "index"; //$NON-NLS-1$
@@ -1264,7 +1223,7 @@ public class SwingUIProject extends CoreProject {
             throw new UnsupportedOperationException("Whoops, the SQLObject type " //$NON-NLS-1$
                     +o.getClass().getName()+" is not supported!"); //$NON-NLS-1$
         }
-        
+
         sqlObjectSaveIdMap.put(o, id);
 
         boolean skipChildren = false;
@@ -1272,7 +1231,11 @@ public class SwingUIProject extends CoreProject {
         //ioo.print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");  // use this for debugging duplicate object problems
         ioo.print(out, "<"+type+" id="+quote(id)+" "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
-        if ( (!getSession().isSavingEntireSource()) && (!o.isPopulated()) ) {
+        if (o.allowsChildren() && o.isPopulated() && o.getChildCount() == 1 && o.getChild(0) instanceof SQLExceptionNode) {
+            // if the only child is an exception node, just save the parent as non-populated
+            ioo.niprint(out, "populated=\"false\" "); //$NON-NLS-1$
+            skipChildren = true;
+        } else if ( (!getSession().isSavingEntireSource()) && (!o.isPopulated()) ) {
             ioo.niprint(out, "populated=\"false\" "); //$NON-NLS-1$
         } else {
             ioo.niprint(out, "populated=\"true\" "); //$NON-NLS-1$

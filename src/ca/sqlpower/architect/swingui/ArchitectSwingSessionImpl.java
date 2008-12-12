@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2008, SQL Power Group Inc.
  *
  * This file is part of Power*Architect.
@@ -33,8 +33,6 @@ import java.util.Set;
 import javax.swing.Action;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
@@ -62,14 +60,11 @@ import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.action.AboutAction;
-import ca.sqlpower.architect.swingui.action.AddDataSourceAction;
-import ca.sqlpower.architect.swingui.action.NewDataSourceAction;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
 import ca.sqlpower.architect.undo.UndoManager;
-import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
@@ -85,11 +80,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * This is the core session that some tasks are delegated to.
      */
     private final ArchitectSession delegateSession;
-    
-    /**
-     * This OLAP object contains the OLAP session.
-     */
-    private OLAPRootObject olapRootObject;
 
     /**
      * The Frame where the main part of the GUI for this session appears.
@@ -168,7 +158,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.isNew = true;
         this.context = context;
         this.delegateSession = new ArchitectSessionImpl(context, name);
-        this.olapRootObject = new OLAPRootObject(delegateSession);
         ((ArchitectSessionImpl)delegateSession).setProfileManager(new ProfileManagerImpl(this));
         ((ArchitectSessionImpl)delegateSession).setUserPrompterFactory(this);
         this.recent = new RecentMenu(this.getClass()) {
@@ -507,7 +496,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             } else {
                 for (SPSwingWorker currentWorker : swingWorkers) {
                     currentWorker.kill();
-                    currentWorker.setCancelled(true);
                 }
             }
         }
@@ -801,7 +789,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
     
     public OLAPRootObject getOLAPRootObject() {
-        return olapRootObject;
+        return delegateSession.getOLAPRootObject();
     }
     
     /**
@@ -904,20 +892,5 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             }
         }
         return new OLAPEditSession(this, olapSession);
-    }
-    
-    // docs inherit from interface
-    public JMenu createDataSourcesMenu() {
-        JMenu dbcsMenu = new JMenu(Messages.getString("DBTree.addSourceConnectionMenuName")); //$NON-NLS-1$
-        dbcsMenu.add(new JMenuItem(new NewDataSourceAction(this)));
-        dbcsMenu.addSeparator();
-
-        // populate
-        for (SPDataSource dbcs : getContext().getConnections()) {
-            dbcsMenu.add(new JMenuItem(new AddDataSourceAction(sourceDatabases, dbcs)));
-        }
-        SPSUtils.breakLongMenu(getArchitectFrame(), dbcsMenu);
-        
-        return dbcsMenu;
     }
 }

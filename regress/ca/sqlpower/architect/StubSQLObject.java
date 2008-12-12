@@ -47,7 +47,7 @@ public class StubSQLObject extends SQLObject {
     }
 
     @Override
-    protected void populateImpl() throws ArchitectException {
+    protected void populate() throws ArchitectException {
         populateCount++;
     }
 

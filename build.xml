@@ -26,8 +26,6 @@
 	     get added to the architect.jar file. -->
 	<property name="build" value="build"/>
 	
-	<property name="dist.base" value="dist"/>
-	
 	<!-- The target build directory for compiled test classes.
 		 The contents of this directory will get excluded form the architect.jar. -->
 	<property name="build.tests" value="${build}/tests"/>
@@ -93,45 +91,6 @@
 		</not>
 	</condition>
 
-	<!-- 
-		Sets if we want to actually run a build on the SQL Power Library.
-		It may be useful to set it to copy only if we already know that the
-		library has been built. For example, when running the builds on a 
-		continuous integration engine like Hudson, where the library can be
-		built separately.
-	-->
-	<condition property="buildSQLPowerLibrary">
-		<not>
-			<isset property="only.copy.sqlpower.library"/>
-		</not>
-	</condition>
-	
-	<!--
-		Set the format of the findbugs report to html by default
-	-->
-	<condition property="findbugs.report.format" value="html">
-		<not>
-			<isset property="findbugs.report.format"/>
-		</not>
-	</condition>
-	
-	<!--
-		Set the format of the pmd report to html by default
-	-->
-	<condition property="pmd.report.format" value="html">
-		<not>
-			<isset property="pmd.report.format"/>
-		</not>
-	</condition>
-	
-	<!--
-		Set the format of the clover report to html by default
-	-->
-	<condition property="clover.report.format" value="html">
-		<not>
-			<isset property="clover.report.format"/>
-		</not>
-	</condition>
 	
 	<target name="init" depends="checkAntVersion, checkBuildPath"
 		description="Checks build prereqs, creates output dir, and determines product version"
@@ -145,7 +104,7 @@
 			        classpath="${build}"/>
 		<genVersion/>
 		<tstamp>
-			<format property="date" pattern="yyyyMMddHHmmss"/>
+			<format property="date" pattern="yyyyMMdd"/>
 		</tstamp>
 		<!-- If the nightly build property is set, then version number uses the date as the suffix 
 			 Would be REALLY nice if Ant conditions support setting multiple properties, but doesn't as of 1.7.0 -->
@@ -181,7 +140,7 @@
 		</condition>
 
 		<echo message="Building Architect version: ${app.version}"/>
-		<property name="dist.dir" value="${dist.base}/architect-${app.version}"/>
+		<property name="dist.dir" value="dist/architect-${app.version}"/>
 		<mkdir dir="${dist.dir}"/>
 		<!-- The directory where junit HTML reports are generated.
 			 Other report files could eventually be placed here too. -->
@@ -214,7 +173,7 @@
 		
 		Reports are sent to the reports directory, but you can 
 		choose your own directory by changing the 'outfile' 
-		attribute of the 'current' tag in the clover.report 
+		attribute of the 'current' tag in the clover.html 
 		target.-->
 	<target name="with.clover" description="Activates Clover">
 	    <clover-setup initString="mycoverage.db" source="1.5"
@@ -229,7 +188,7 @@
 	    </clover-setup>
 	</target>
 
-	<target name="clover.test.and.report" depends="with.clover, clover.junit, clover.report"
+	<target name="clover.test.and.report" depends="with.clover, clover.junit, clover.html"
 		description="A simple target to initialize Clover, run the test suite
 		and generate an HTML report">
 	</target>
@@ -248,20 +207,13 @@
 		Also, the ouput directory is specified by the value of
 		the outfile attribute
 		-->
-	<target name="clover.report" depends="init, with.clover"
-		description="Generates coverage report based on previous 
+	<target name="clover.html" depends="init, with.clover"
+		description="Generates HTML coverage report based on previous 
 		Clover-enabled test run (clover.junit)"
 		>
-		
-		<mkdir dir="${reports}/clover"/>
-		
-		<condition property="clover.report.outfile" value="${reports}/clover" else="${reports}/clover/clover.${clover.report.format}">
-			<equals arg1="${clover.report.format}" arg2="html"/>
-		</condition>
-		
 	    <clover-report>
-	        <current outfile="${clover.report.outfile}">
-	            <format type="${clover.report.format}"/>
+	        <current outfile="${reports}/clover">
+	            <format type="html"/>
 		    	<fileset dir="${src}" casesensitive="yes">
 		    	    <include name="**/*.java"/>
 		    	    <exclude name="**/*Test*"/>
@@ -275,10 +227,10 @@
 		>
 		<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask"
 			classpath="${pmd.jar}"/>
-		<property name="pmd-results" value="${reports}/pmd-ant-results.${pmd.report.format}"/>
+		<property name="pmd-results" value="${reports}/pmd-ant-results.html"/>
 		<pmd shortFilenames="true" targetjdk="1.5">
-			<ruleset>basic,codesize,design,strings,imports</ruleset>
-			<formatter type="${pmd.report.format}" toFile="${pmd-results}"/>
+			<ruleset>basic,imports</ruleset>
+			<formatter type="html" toFile="${pmd-results}"/>
 			<fileset dir="${src}">
 				<include name="**/*.java"/>
 			</fileset>
@@ -307,8 +259,8 @@
 		<taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask"
 			classpath="${findbugs-ant.jar}"/>
 		<findbugs home="${findbugs.home}"
-			output="${findbugs.report.format}"
-			outputFile="${reports}/findbugs-ant-results.${findbugs.report.format}"
+			output="html"
+			outputFile="${reports}/findbugs-ant-results.html"
 			reportLevel="low"
 			jvmargs="-Xmx512m">  <!-- FindBugs can use up a lot of memory, so adjust the JVM memory here-->
 			<class location="${build}" />
@@ -345,12 +297,12 @@
 	</target>
 	
 	<!-- Compiles the application source files -->
-	<target name="compile" depends="init, copyfiles, build.sqlpower.library, copy.sqlpower.library">
+	<target name="compile" depends="init,copyfiles, sqlpower.library">
 		<javac srcdir="${src}" destdir="${build}"
 			classpathref="compile.classpath" 
 			debug="true"/>
 	</target>
-	
+
 	<!-- Compiles the regression test suite -->
 	<target name="compile-tests" depends="compile">
 		<ant dir="${sqlpower.library.home}" target="compile-tests">
@@ -363,8 +315,8 @@
 	</target>
 
     <!-- copies non-source files that need to be in the architect.jar. -->
-	<target name="copyfiles" depends="init, architect.version.properties">
-        <copy todir="${build}">
+	<target name="copyfiles" depends="init">
+		<copy todir="${build}">
 			<fileset dir="src/">
 				<include name="**"/>
 				<exclude name="**/*.java"/>
@@ -375,14 +327,12 @@
 			</fileset>
 		</copy>
 		
-		<copy file="${dist.dir}/architect.version.properties" todir="${build}/ca/sqlpower/architect"/>
-			
 		<!-- copies the template log4j config file into the build dir -->
 		<copy tofile="${build}/log4j.properties"
 			file="src/log4j.properties.example"/>
     </target>
 
-	<!-- This target is used to make an architect library jar to embed
+	<!-- This target is used to make a architect library jar to embed
 	in other applications -->
 	<target name="library.jar" depends="compile">
 		<jar jarfile="${build}/architect_lib.jar" basedir="${build}"
@@ -393,25 +343,7 @@
 						ca/sqlpower/architect/profile/**/*.class">
 		</jar>
 	</target>
-
-	<!-- This target is used to make a dbtree library jar to embed
-	in other applications (the dbtree library depends on the architect library) -->
-	<target name="dbtree_library.jar" depends="library.jar">
-		<!-- TODO a manifest with author, version, and license info in it -->
-		<jar jarfile="${build}/architect_dbtree_lib.jar" basedir="${build}"
-			includes="ca/sqlpower/architect/swingui/dbtree/**">
-		</jar>
-	</target>
 	
-   <!-- This target is used to make a testing utility library jar to embed
-    in other applications (the testing utility library depends on the architect library) -->
-    <target name="test_util_library.jar" depends="library.jar">
-        <!-- TODO a manifest with author, version, and license info in it -->
-        <jar jarfile="${build}/architect_test_util_lib.jar" basedir="${build}"
-            includes="ca/sqlpower/architect/util/**">
-        </jar>
-    </target>
-
 	<!-- DOCUMENTATION
 		There are THREE main documentation targets, all built from the
 		docbook XML file docs/PowerArchitectUsersGuide:
@@ -651,7 +583,7 @@
 
     	<jar destfile="${staging.dir}/architect.jar" update="no"
     				basedir="${build}" 
-    				includes="ca/** icons/** log4j.properties default_database_types.ini"
+    				includes="ca/** icons/** sounds/** log4j.properties default_database_types.ini"
     				manifest="${build}/manifest">
     	</jar>
 		<copy todir="${staging.dir}/jdbc">
@@ -686,11 +618,10 @@
 		<delete><fileset dir="${dist.dir}" includes="lib,Power*Architect.app,architect.jar"/></delete>
 		<delete dir="webstart/lib"/>
 		<delete dir="${staging.dir}"/>
-		<delete><fileset dir="." includes="mycoverage.db*"/></delete>
 	</target>
 
 	<target name="dist-clean" depends="clean">
-		<delete dir="${dist.base}" />
+		<delete dir="${dist.dir}" />
 	</target>
 
 	<path id="compile.classpath">
@@ -717,7 +648,7 @@
 	</path>
 
 	<target name="javadoc" 
-		description="Generate the Javadoc documentation for the Architect API in the dist directory"
+		description="Generate the Javadoc documentation for the Architect API in the build directory"
 		depends="compile">
 		<mkdir dir="${dist.dir}/doc/api"/>
 		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
@@ -733,47 +664,10 @@
 				<include name="ca/sqlpower/**" />
 				<exclude name="regress/**"/>
 			</packageset>
-			<bottom><![CDATA[<i>Copyright &#169; 2003-2008 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2007 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
 	</target>
 
-	<target name="javadoc.with.umlgraph" 
-		description="Generate the Javadoc documentation for the Architect API along with UML diagrams generated using UMLGraph"
-		depends="compile">
-		<mkdir dir="${dist.dir}/doc/api"/>
-		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
-		<javadoc sourcepath="${src}" destdir="${dist.dir}/doc/api"
-			packagenames="ca.sqlpower.*"
-			maxmemory="100m"
-			windowtitle="ca.sqlpower.architect.* Power*Architect"
-			Version="true" Author="true" Use="true"
-			Overview="html/overview.html"
-			classpathref="test.classpath"
-			>
-			<doclet name="gr.spinellis.umlgraph.doclet.UmlGraphDoc"
-    		  path="buildlib/UmlGraph.jar">
-    	        <param name="-attributes" />
-    	        <param name="-operations" />
-    	        <param name="-qualify" />
-    	        <param name="-types" />
-    	        <param name="-visibility" />
-    	    </doclet>
-			<packageset dir="${src}" defaultexcludes="yes">
-				<include name="ca/sqlpower/**" />
-				<exclude name="regress/**"/>
-			</packageset>
-			<bottom><![CDATA[<i>Copyright &#169; 2003-2008 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
-		</javadoc>
-		
-		<apply executable="dot" dest="${dist.dir}/doc" parallel="false">
-			<arg value="-Tpng"/>
-			<arg value="-o"/>
-			<targetfile/>
-			<srcfile/>
-			<fileset dir="${dist.dir}/doc" includes="*.dot"/>
-			<mapper type="glob" from="*.dot" to="*.png"/>
-		</apply>
-	</target>
 
 	<target name="windows_installer" depends="stage">
 		<izpack output="${dist.dir}/Architect-Setup-Windows-${app.version}.jar"
@@ -827,25 +721,9 @@
 						<fileset dir=".." targetdir="$INSTALL_PATH">
 							<include name="../staging/LICENSE"/>
 						</fileset>
-						<fileset dir="." targetdir="$INSTALL_PATH">
-							<include name="*.reg"/>
-						</fileset>
 						<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 							<include name="*.ico"/>
 						</fileset>
-						<parsable targetfile="${INSTALL_PATH}/architect_file_association.reg"/>
-						<executable targetfile="regedit.exe" stage="postinstall" keep="true">
-						   <args>
-						     <arg value="\/s"/>
-						     <arg value="$INSTALL_PATH/architect_file_association.reg"/>
-					      </args>
-					   </executable>
-						<executable targetfile="regedit.exe" stage="uninstall" keep="true">
-						   <args>
-						     <arg value="\/s"/>
-						     <arg value="$INSTALL_PATH/uninstall.reg"/>
-					      </args>
-					   </executable>
 					</pack>
 				</packs>
 				<native type="izpack" name="ShellLink.dll"/>
@@ -869,8 +747,6 @@
 						<appversion>@{app.version}</appversion>
 						<url>http://www.sqlpower.ca/</url>
 						<javaversion>1.5</javaversion>
-						<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
-						<!-- <pack200/> -->
 					</info>
 					<guiprefs height="600" resizable="yes" width="800">
 						<laf name="metouia">
@@ -920,9 +796,18 @@
 							<fileset dir="../staging/" targetdir="$INSTALL_PATH">
 								<include name="LICENSE"/>
 							</fileset>
+							<fileset dir="." targetdir="$INSTALL_PATH">
+								<include name="*.reg"/>
+							</fileset>
 							<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 								<include name="*.ico"/>
 							</fileset>
+							<executable targetfile="regedit.exe" stage="uninstall" keep="true">
+							   <args>
+							     <arg value="\/s"/>
+							     <arg value="$INSTALL_PATH/uninstall.reg"/>
+						      </args>
+						   </executable>
 						</pack>
 					</packs>
 					<native type="izpack" name="ShellLink.dll"/>
@@ -949,7 +834,6 @@
 	    <arg value="--file=../../../../${dist.dir}/Architect-Setup-Windows-${app.version}.jar"/>
 	    <arg value="--no-upx"/>
 	  	<arg value="--output=../../../../${dist.dir}/Architect-Setup-Windows-${app.version}.exe"/>
-	  	<arg value="--with-7z=./7za"/>
 	  </exec>
 	</target>
 	
@@ -979,7 +863,6 @@
 	    <arg value="--file=../../../../${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"/>
 	    <arg value="--no-upx"/>
 	  	<arg value="--output=../../../../${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.exe"/>
-	  	<arg value="--with-7z=./7za"/>
 	  </exec>
 	</target>
 	
@@ -1240,7 +1123,7 @@
 	<target name="jdbc_dist" depends="windows_jdbc_exe_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
 	<target name="no_jdbc_dist" depends="windows_exe_installer,generic_install,osx_tgz,osx_dmg" />
 
-	<target name="dist" depends="pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,source_only_tgz, architect.version.properties"
+	<target name="dist" depends="pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,no_jdbc_dist,source_only_tgz, architect.version.properties"
 	        description="Builds Architect Distribution for all supported platforms to dist/architect-version/*">
 		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
 		<mkdir dir="${dist.dir}/doc"/>
@@ -1342,30 +1225,24 @@
 		This build target checks for the sqlpower-library project, which is
 		required by the Power*Architect to build. 
 	-->
-	<target name="check.sqlpower.library.dir">
+	<target name="sqlpower.library">
 		<echo message="Checking for sqlpower-library project..."/>
-		<fail message="Can't find sqlpower-library project! Set the property 'sqlpower.library.home' to point to the sqlpower-library project directory">
+		<fail message="Can't find sqlpower-library project! Please read the DEVELOPERS file to see how to get and set up the sqlpower-library project">
 			<condition>
 				<not>
 					<isset property="sqlpower.library.home"/>
 				</not>
 			</condition>
 		</fail>
-	</target>
-	
-	<target name="build.sqlpower.library" depends="check.sqlpower.library.dir" if="buildSQLPowerLibrary">
 		<echo message="Attempting to build sqlpower-library project..."/>
 		<ant dir="${sqlpower.library.home}" target="clean">
 			<property name="build" value="${sqlpower.library.home}/build"/>
 		</ant>
-		<ant dir="${sqlpower.library.home}" target="jar">
+		<ant dir="${sqlpower.library.home}">
 			<property name="build" value="${sqlpower.library.home}/build"/>
 			<property name="dist.dir" value="${sqlpower.library.home}/dist"/>
 		</ant>
-	</target>
-	
-	<target name="copy.sqlpower.library" depends="check.sqlpower.library.dir">
-		<copy file="${sqlpower.library.home}/build/sqlpower_library.jar" todir="${lib}"/>
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${lib}"/>
 	</target>
 	
 	<target name="architect.version.properties" depends="init">

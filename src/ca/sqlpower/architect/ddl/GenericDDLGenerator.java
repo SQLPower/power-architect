@@ -291,7 +291,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	public void dropRelationship(SQLRelationship r) {
 
-		print("\nALTER TABLE ");
+		print("\n ALTER TABLE ");
 
 		print( toQualifiedName(r.getFkTable()) );
 		print(" DROP CONSTRAINT ");
@@ -446,10 +446,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    } else {
 		        errorMsg.append("*/");
 		    }
-		    sql.insert(0, "\n/*\n" + errorMsg.toString());
+		    sql.insert(0, "/*\n" + errorMsg.toString());
 		}
 		
-        print(sql.toString());
+        print("\n" + sql.toString());
         
 		endStatement(DDLStatement.StatementType.CREATE, r);
 
@@ -567,7 +567,7 @@ public class GenericDDLGenerator implements DDLGenerator {
     
 	public void addColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();
-		print("\nALTER TABLE ");
+		print("\n ALTER TABLE ");
 		print(toQualifiedName(c.getParentTable()));
 		print(" ADD COLUMN ");
 		print(columnDefinition(c,colNameMap));
@@ -577,7 +577,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	public void dropColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();
-		print("\nALTER TABLE ");
+		print("\n ALTER TABLE ");
 		print(toQualifiedName(c.getParentTable()));
 		print(" DROP COLUMN ");
 		print(createPhysicalName(colNameMap,c));
@@ -588,7 +588,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public void modifyColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();
 		SQLTable t = c.getParentTable();
-		print("\nALTER TABLE ");
+		print("\n ALTER TABLE ");
 		print(toQualifiedName(t));
 		print(" ALTER COLUMN ");
 		print(columnDefinition(c,colNameMap));
@@ -1195,7 +1195,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * Generates a standard <code>DROP TABLE $tablename</code> command.  Should work on most platforms.
      */
     public String makeDropTableSQL(String table) {
-        return "\nDROP TABLE "+toQualifiedName(table);
+        return "DROP TABLE "+toQualifiedName(table);
     }
 
     /**
@@ -1203,7 +1203,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * The statement looks like <code>ALTER TABLE $fktable DROP FOREIGN KEY $fkname</code>.
      */
     public String makeDropForeignKeySQL(String fkTable, String fkName) {
-        return "\nALTER TABLE "
+        return "ALTER TABLE "
             +toQualifiedName(fkTable)
             +" DROP FOREIGN KEY "
             +fkName;
@@ -1216,7 +1216,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public void dropPrimaryKey(SQLTable t) {
 
 		try {
-            print("\nALTER TABLE " + toQualifiedName(t.getName())
+            print("ALTER TABLE " + toQualifiedName(t.getName())
             	+ " DROP PRIMARY KEY " + t.getPrimaryKeyName());
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
@@ -1228,7 +1228,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		Map colNameMap = new HashMap();
 		StringBuffer sqlStatement = new StringBuffer();
 		boolean first = true;
-		sqlStatement.append("\nALTER TABLE "+ toQualifiedName(t.getName())
+		sqlStatement.append("ALTER TABLE "+ toQualifiedName(t.getName())
 				+ " ADD PRIMARY KEY (");
 		for (SQLColumn c : t.getColumns()) {
 			if (c.isPrimaryKey()) {

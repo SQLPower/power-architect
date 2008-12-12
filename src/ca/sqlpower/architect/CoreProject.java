@@ -47,7 +47,9 @@ import ca.sqlpower.architect.SQLRelationship.Deferrability;
 import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.olap.MondrianXMLReader;
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -66,17 +68,6 @@ public class CoreProject {
     static {
         ConvertUtils.register(new DeferrabilityConverter(), Deferrability.class);
         ConvertUtils.register(new UpdateDeleteRuleConverter(), UpdateDeleteRule.class);
-    }
-    
-    /**
-     * This will load the attributes in all SQLObjects that are not loaded by basic
-     * setters through the digester.
-     */
-    private static void LoadSQLObjectAttributes(SQLObject obj, Attributes attr) {
-        String message = attr.getValue("sql-exception");
-        if (message != null) {
-            obj.setChildrenInaccessibleReason(new ArchitectException(message));
-        }
     }
     
 //  ---------------- persistent properties -------------------
@@ -174,6 +165,32 @@ public class CoreProject {
         try {
             dbcsLoadIdMap = new HashMap<String, SPDataSource>();
             sqlObjectLoadIdMap = new HashMap<String, SQLObject>();
+            olapObjectLoadIdMap = new HashMap<String, OLAPObject>();
+            
+            // sqlObjectLoadIdMap is not ready yet when parsing the olap objects
+            // so this keeps track of the id of the SQLDatabase that OLAPSessions reference.
+            Map<OLAPSession, String> sessionDbMap = new HashMap<OLAPSession, String>();
+
+            if (uin.markSupported()) {
+                uin.mark(Integer.MAX_VALUE);
+            } else {
+                throw new IllegalStateException("Failed to load with an input stream that does not support mark!");
+            }
+            
+            // parse the Mondrian business model parts first because the olap id
+            // map is needed in the digester for parsing the olap gui
+            try {
+                MondrianXMLReader.parse(uin, session.getOLAPRootObject(), sessionDbMap, olapObjectLoadIdMap);
+            } catch (SAXException e) {
+                logger.error("Error parsing project file's olap schemas!", e);
+                throw new ArchitectException("SAX Exception in project file olap schemas parse!", e);
+            } catch (Exception ex) {
+                logger.error("General Exception in project file olap schemas parse!", ex);
+                throw new ArchitectException("Unexpected Exception", ex);
+            }
+
+            // returning to the beginning of the inputStream
+            uin.reset();
             
             Digester digester = null;
 
@@ -278,6 +295,14 @@ public class CoreProject {
 
             }
             
+            // now that the sqlObjectLoadIdMap is populated, we can set the
+            // OLAPSessions' database.
+            for (Map.Entry<OLAPSession, String> entry : sessionDbMap.entrySet()) {
+                OLAPSession oSession = entry.getKey();
+                SQLDatabase db = (SQLDatabase) sqlObjectLoadIdMap.get(entry.getValue());
+                oSession.setDatabase(db);
+            }
+            
             setModified(false);
         } finally {
             uin.forceClose();
@@ -380,7 +405,7 @@ public class CoreProject {
         SQLExceptionFactory exceptionFactory = new SQLExceptionFactory();
         d.addFactoryCreate("*/sql-exception", exceptionFactory);
         d.addSetProperties("*/sql-exception");
-        d.addSetNext("*/sql-exception", "setChildrenInaccessibleReason");
+        d.addSetNext("*/sql-exception", "addChild");
 
         TargetDBFactory targetDBFactory = new TargetDBFactory();
         // target database hierarchy
@@ -502,8 +527,6 @@ public class CoreProject {
             if (populated != null && populated.equals("false")) {
                 db.setPopulated(false);
             }
-            
-            LoadSQLObjectAttributes(db, attributes);
 
             return db;
         }
@@ -525,8 +548,6 @@ public class CoreProject {
             } else {
                 logger.warn("No ID found in database element while loading project!");
             }
-            
-            LoadSQLObjectAttributes(schema, attributes);
 
             return schema;
         }
@@ -567,9 +588,6 @@ public class CoreProject {
             }
 
             currentTable = tab;
-            
-            LoadSQLObjectAttributes(tab, attributes);
-            
             return tab;
         }
     }
@@ -606,9 +624,6 @@ public class CoreProject {
             } catch (ArchitectException ex) {
                 throw new ArchitectRuntimeException(ex);
             }
-            
-            LoadSQLObjectAttributes(f, attributes);
-            
             return f;
         }
     }
@@ -633,8 +648,6 @@ public class CoreProject {
             if (sourceId != null) {
                 col.setSourceColumn((SQLColumn) sqlObjectLoadIdMap.get(sourceId));
             }
-            
-            LoadSQLObjectAttributes(col, attributes);
 
             return col;
         }
@@ -642,12 +655,22 @@ public class CoreProject {
 
     /**
      * Creates a SQLException instance and adds it to the
-     * objectIdMap. This ExceptionFactory is still used for loading older
-     * files.
+     * objectIdMap.
      */
     private class SQLExceptionFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
-            return new Exception(attributes.getValue("message"));
+            SQLExceptionNode exc = new SQLExceptionNode(null, null);
+
+            String id = attributes.getValue("id");
+            if (id != null) {
+                sqlObjectLoadIdMap.put(id, exc);
+            } else {
+                logger.warn("No ID found in exception element while loading project!");
+            }
+
+            exc.setMessage(attributes.getValue("message"));
+
+            return exc;
         }
     }
 
@@ -683,8 +706,6 @@ public class CoreProject {
                 JOptionPane.showMessageDialog(null, "Missing pktable or fktable references for relationship id \""+id+"\"");
             }
 
-            LoadSQLObjectAttributes(rel, attributes);
-            
             return rel;
         }
     }
@@ -745,9 +766,6 @@ public class CoreProject {
             index.setType(attributes.getValue("index-type"));
     
             currentIndex = index;
-            
-            LoadSQLObjectAttributes(index, attributes);
-            
             return index;
         }
     }
@@ -779,8 +797,6 @@ public class CoreProject {
             if (attributes.getValue("ascendingOrDescending") != null) {
                 col.setAscendingOrDescending(SQLIndex.AscendDescend.valueOf(attributes.getValue("ascendingOrDescending")));
             }
-            
-            LoadSQLObjectAttributes(col, attributes);
 
             return col;
         }

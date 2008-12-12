@@ -87,8 +87,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		return connectionPool != null;
 	}
 
-	public synchronized void populateImpl() throws ArchitectException {
-	    logger.debug("SQLDatabase: is populated " + populated);
+	public synchronized void populate() throws ArchitectException {
 		if (populated) return;
 		int oldSize = children.size();
 		
@@ -326,12 +325,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 
 	@Override
 	public String getName() {
-		if (isPlayPenDatabase()) {
-			return "PlayPen Database";
-		} else if (dataSource != null) {
-		    return dataSource.getDisplayName();
+		if (dataSource != null) {
+			return dataSource.getDisplayName();
 		} else {
-		    return "Disconnected";
+			return "PlayPen Database";
 		}
 	}
 	/**
@@ -546,10 +543,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			            getConnectionPool().getNumActive() + 1);
 				return (Connection) getConnectionPool().borrowObject();
 			} catch (Exception e) {
-			    ArchitectException ex = new ArchitectException(
-			            "Couldn't connect to database: "+e.getMessage(), e);
-			    setChildrenInaccessibleReason(ex);
-			    throw ex;
+				throw new ArchitectException(
+						"Couldn't connect to database: "+e.getMessage(), e);
 			}
 		}
 	}

@@ -42,7 +42,6 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
@@ -133,21 +132,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
             
             for (SQLObject o : deleteItems) {
                 try {
-                    if (o instanceof SQLIndex) {
-                        SQLIndex index = (SQLIndex) o;
-                        o.getParent().removeChild(o);
-                        List<SQLColumn> cols = new ArrayList<SQLColumn>();
-                        for (Column col : index.getChildren()) {
-                            cols.add(col.getColumn());                            
-                        }
-                        for (SQLColumn col : cols) {
-                            if (col != null) {
-                                col.setPrimaryKeySeq(null);
-                            }
-                        }
-                    } else {
-                        o.getParent().removeChild(o);
-                    }
+                    o.getParent().removeChild(o);
                 } catch (LockedColumnException ex) {
                     int decision = JOptionPane.showConfirmDialog(playpen,
                             Messages.getString("DeleteSelectedAction.couldNotDeleteColumnContinueConfirmation", o.getName(), ex.getLockingRelationship().toString()), //$NON-NLS-1$
@@ -156,9 +141,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                     if (decision == JOptionPane.NO_OPTION) {
                         return;
                     }
-                } catch (ArchitectException e) {
-                    throw new RuntimeException(e);
-                } 
+                }
             }
             
         } finally {

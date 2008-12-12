@@ -1,15 +1,9 @@
 Power*Architect Release Notes
 
-0.9.13
-  * Added a new SQL Query Tool to replace the older SQL Runner
-  * Repositioning OLAP components in the OLAP editor is undoable
-  * Added more keyboard shortcuts to the OLAP editor
-  * Improved reverse engineering performance on Oracle 
-
 
 0.9.12
 
- New Features:
+ New Features from 0.9.11 to 0.9.12-rc1:
   * Added support for ON DELETE and ON UPDATE actions in all supported
     database platforms, both forward and reverse engineering
   * Introduced specific support for SQL Server 2000 vs. SQL Server 2005 for forward
@@ -26,7 +20,7 @@ Power*Architect Release Notes
   * The remarks field in the column properties dialog has been enlarged to make
     model documentation easier.
   
- Bug Fixes:
+ Bug Fixes from 0.9.11 to 0.9.12-rc1:
   * It is now possible to delete indexes from the DB Tree view
   * When dragging a table left or up past the edge of a model, this operation
     can now be undone in one step (formerly, it was one undo step per table in
@@ -38,6 +32,49 @@ Power*Architect Release Notes
   * Improved DDL Warning/QuickFix interface
   * Fixed several problems related to dragging columns in and out of a self-referencing
     table's primary key.
+
+ Changes from 0.9.12-rc1 to 0.9.12-rc2
+
+  General:
+  * Reverted 'select as you drag' behaviour because it is intrusive when
+    working with large projects
+  * Fixed NullPointerException when loading certain projects with OLAP
+    schemas
+  * When all columns of an index are removed from a table, the index is
+    removed too (this issue only affected tables read from a save file,
+    not newly created tables)
+
+  Database Comparison:
+  * Current project name is now reflected when project gets renamed
+  * Project name now spans all available columns so it's not cut off
+    unnecessarily
+  * You can now produce an upgrade script even when the older schema
+    isn't in a physical database
+  * There is now an explanation for why the Start button is disabled
+
+  Forward Engineering:
+  * Error messages from the database show up in SQL Script executor once
+    again
+  * Spaces in primary key names are now properly converted to underscores
+  * The non-version-specific SQL Server DDL generator no longer appears
+    in the GUI 
+  
+  Installation:
+  * Windows file association is properly established by the installer
+    once again
+  
+  User Guide:
+  * Superfluous DB connection panel screenshot removed from page 34 of
+    user guide
+
+
+ Changes from 0.9.12-rc2 to 0.9.12-rc3
+  * Fixed error caused by missing a library dependency when creating a New 
+    Measure in the OLAP Schema editor.
+  * Fixed a bug in the Table Copy feature where Auto Commit was set to true
+    while copying table data. This caused it to show an error message when
+    copying to a table in MySQL, and also meant that the entire transaction 
+    did not rollback in the event of a failure.
 
 
 0.9.11

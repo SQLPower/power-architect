@@ -45,8 +45,6 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
-import org.apache.log4j.Logger;
-
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLColumn;
@@ -66,13 +64,8 @@ import ca.sqlpower.swingui.table.EditableJTable;
  * index. This table will be used by the IndexEditPanel class.
  */
 public class IndexColumnTable {
-    
-    private static final Logger logger = Logger.getLogger(IndexColumnTable.class);
 
-    /**
-     * This is package private for testing purposes.
-     */
-    class IndexColumnTableModel extends AbstractTableModel implements CleanupTableModel, SQLObjectListener {
+    private class IndexColumnTableModel extends AbstractTableModel implements CleanupTableModel, SQLObjectListener {
 
         /**
          * This List contains all of the Row objects in the table. Refer to the
@@ -206,11 +199,7 @@ public class IndexColumnTable {
         private void populateModel() {
             try {
                 for (Column indexCol : index.getChildren()) {
-                    if (indexCol.getColumn() != null) { 
-                        rowList.add(new Row(true, indexCol.getColumn(), indexCol.getAscendingOrDescending()));
-                    } else {
-                        rowList.add(new Row(true, indexCol, indexCol.getAscendingOrDescending()));
-                    }
+                    rowList.add(new Row(true, indexCol.getColumn(), indexCol.getAscendingOrDescending()));
                 }
                 for (Object so : columnsFolder.getChildren()) {
                     SQLColumn col = (SQLColumn) so;
@@ -299,26 +288,16 @@ public class IndexColumnTable {
 
         public Object getValueAt(int row, int col) {
             if (col == 0) return Boolean.valueOf(rowList.get(row).isEnabled());
-            else if (col == 1 && rowList.get(row).getSQLColumn() != null) return rowList.get(row).getSQLColumn();
-            else if (col == 1) return rowList.get(row).getColumn();
+            else if (col == 1) return rowList.get(row).getSQLColumn();
             else if (col == 2) return rowList.get(row).getOrder();
             else throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns.")); //$NON-NLS-1$
         }
 
         public void setValueAt(Object value, int row, int col) {
-            if (col == 0) {
-                rowList.get(row).setEnabled(((Boolean) value).booleanValue());
-            } else if (col == 1) {
-                if (value instanceof SQLColumn) {
-                    rowList.get(row).setSQLColumn((SQLColumn) value);
-                } else {
-                    rowList.get(row).setColumn((Column) value);
-                }
-            } else if (col == 2) {
-                rowList.get(row).setOrder((AscendDescend) value);
-            } else {
-                throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns.")); //$NON-NLS-1$
-            }
+            if (col == 0) rowList.get(row).setEnabled(((Boolean) value).booleanValue());
+            else if (col == 1) rowList.get(row).setSQLColumn((SQLColumn) value);
+            else if (col == 2) rowList.get(row).setOrder((AscendDescend) value);
+            else throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns.")); //$NON-NLS-1$
             fireTableCellUpdated(row, col);
         }
 
@@ -380,38 +359,21 @@ public class IndexColumnTable {
         /**
          * This is the SQLCOlumn in the row
          */
-        private SQLColumn sqlColumn;
+        private SQLColumn column;
 
         /**
          * This is the order of the SQLColumn
          */
         private AscendDescend order;
-        
-        /**
-         * This is a Column in the row for Columns that have no
-         * SQLColumn. Columns have no SQLColumn when an index
-         * is created from a function or possibly other ways.
-         */
-        private Column column;
 
         public Row(boolean enabled, SQLColumn column, AscendDescend order) {
-            this.enabled = enabled;
-            this.sqlColumn = column;
-            this.order = order;
-        }
-        
-        public Row(boolean enabled, Column column, AscendDescend order) {
             this.enabled = enabled;
             this.column = column;
             this.order = order;
         }
         
         public String toString() {
-            if (sqlColumn != null) {
-                return new String ("Enabled: " +enabled + " Col:  " + sqlColumn.getName()); //$NON-NLS-1$ //$NON-NLS-2$
-            } else {
-                return new String ("Enabled: " +enabled + " Col:  " + column.getName()); //$NON-NLS-1$ //$NON-NLS-2$
-            }
+            return new String ("Enabled: " +enabled + " Col:  " + column.getName()); //$NON-NLS-1$ //$NON-NLS-2$
         }
 
         public void setEnabled(boolean enabled) {
@@ -419,7 +381,7 @@ public class IndexColumnTable {
         }
 
         public void setSQLColumn(SQLColumn column) {
-            this.sqlColumn = column;
+            this.column = column;
         }
 
         public void setOrder(AscendDescend order) {
@@ -431,28 +393,20 @@ public class IndexColumnTable {
         }
 
         public SQLColumn getSQLColumn() {
-            return this.sqlColumn;
+            return this.column;
         }
 
         public AscendDescend getOrder() {
             return this.order;
         }
 
-        public void setColumn(Column column) {
-            this.column = column;
-        }
-
-        public Column getColumn() {
-            return column;
-        }
-
     }
 
-    public static final String IN_INDEX = Messages.getString("IndexColumnTable.indexTableColumnName"); //$NON-NLS-1$
+    public static String IN_INDEX = Messages.getString("IndexColumnTable.indexTableColumnName"); //$NON-NLS-1$
 
-    public static final String COL_NAME = Messages.getString("IndexColumnTable.columnTableColumnName"); //$NON-NLS-1$
+    public static String COL_NAME = Messages.getString("IndexColumnTable.columnTableColumnName"); //$NON-NLS-1$
 
-    public static final String ORDER = Messages.getString("IndexColumnTable.ascendingDescendingTableColumnName"); //$NON-NLS-1$
+    public static String ORDER = Messages.getString("IndexColumnTable.ascendingDescendingTableColumnName"); //$NON-NLS-1$
 
     /**
      * This is the table that will display the columns
@@ -501,12 +455,7 @@ public class IndexColumnTable {
             }
             for(Row r : model.getRowList()) {
                 if (r.isEnabled()){
-                    if (r.getSQLColumn() != null) {
-                        index.addIndexColumn(r.getSQLColumn(), r.getOrder());
-                    } else {
-                        logger.debug("Adding index column with no SQLColumn. Column name is " + r.getColumn().getName());
-                        index.addIndexColumn(r.getColumn().getName(), r.getOrder());
-                    }
+                    index.addIndexColumn(r.getSQLColumn(), r.getOrder());
                 }
             }
 

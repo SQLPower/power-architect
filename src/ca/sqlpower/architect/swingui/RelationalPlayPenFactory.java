@@ -300,7 +300,7 @@ public class RelationalPlayPenFactory {
         }
 
         /**
-         * Selects the corresponding objects from the given TreePaths on the
+         * Selects the corresponding objects from the give TreePaths on the
          * PlayPen.
          * 
          * @param treePaths

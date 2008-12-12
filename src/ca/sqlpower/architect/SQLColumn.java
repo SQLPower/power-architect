@@ -404,7 +404,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 
 	// ------------------------- SQLObject support -------------------------
 
-	public void populateImpl() throws ArchitectException {
+	public void populate() throws ArchitectException {
 		// SQLColumn: populate is a no-op
 	}
 

@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JDialog;
-import javax.swing.JMenu;
 
 import ca.sqlpower.architect.AlwaysOKUserPrompter;
 import ca.sqlpower.architect.ArchitectException;
@@ -68,7 +67,6 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private KettleJob kettleJob;
     private RecentMenu recent;
     private ArchitectSession delegateSession;
-    private OLAPRootObject olapRootObject;
     
     private boolean showPkTag = true;
     private boolean showFkTag = true;
@@ -97,19 +95,17 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         sourceDatabases = new DBTree(this);
         playpen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
         undoManager = new UndoManager(playpen);
-        olapRootObject = new OLAPRootObject(delegateSession);
         
         compareDMSettings = new CompareDMSettings();
+        
+        frame = new ArchitectFrame(this, null);
+        frame.init();
         
         try {
             ddlGenerator = new GenericDDLGenerator();
         } catch (SQLException e) {
             throw new ArchitectException("SQL Error in ddlGenerator",e);
         }
-
-        frame = new ArchitectFrame(this, null);
-        frame.init();
-        
         kettleJob = new KettleJob(this);
         
     }
@@ -342,7 +338,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public OLAPRootObject getOLAPRootObject() {
-        return olapRootObject;
+        return delegateSession.getOLAPRootObject();
     }
 
     public void showOLAPSchemaManager(Window owner) {
@@ -362,10 +358,6 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     
     public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener) {
         // do-nothing stub
-    }
-
-    public JMenu createDataSourcesMenu() {
-        return new JMenu();
     }
 
 }

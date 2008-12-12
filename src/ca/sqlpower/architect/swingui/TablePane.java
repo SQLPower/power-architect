@@ -65,9 +65,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
-import ca.sqlpower.architect.swingui.dbtree.DnDTreePathTransferable;
 import ca.sqlpower.swingui.ColorIcon;
-import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.SPSUtils;
 
 public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
@@ -541,7 +539,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 					} finally {
                         getModel().setMagicEnabled(true);
 					}
-					getModel().getColumnsFolder().fireDbStructureChanged();
 				} else {
 					// importing column from a source database
 					getModel().inherit(insertionPoint, col, newColumnsInPk);
@@ -974,7 +971,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         JMenu tableAppearance = new JMenu(Messages.getString("TablePane.tableAppearances")); //$NON-NLS-1$
         JMenu backgroundColours = new JMenu(Messages.getString("TableEditPanel.tableColourLabel")); //$NON-NLS-1$
         JMenu foregroundColours = new JMenu(Messages.getString("TableEditPanel.textColourLabel")); //$NON-NLS-1$
-        for (final Color colour : ColourScheme.BACKGROUND_COLOURS) {
+        for (final Color colour : ColorScheme.BACKGROUND_COLOURS) {
             Icon icon = new ColorIcon(60, 25, colour);
             mi = new JMenuItem(icon);
             mi.addActionListener(new ActionListener() {
@@ -988,7 +985,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             });
             backgroundColours.add(mi);
         }
-        for (final Color colour : ColourScheme.FOREGROUND_COLOURS) {
+        for (final Color colour : ColorScheme.FOREGROUND_COLOURS) {
             Icon icon = new ColorIcon(60, 25, colour);
             mi = new JMenuItem(icon);
             mi.addActionListener(new ActionListener() {
