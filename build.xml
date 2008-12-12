@@ -721,25 +721,9 @@
 						<fileset dir=".." targetdir="$INSTALL_PATH">
 							<include name="../staging/LICENSE"/>
 						</fileset>
-						<fileset dir="." targetdir="$INSTALL_PATH">
-							<include name="*.reg"/>
-						</fileset>
 						<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 							<include name="*.ico"/>
 						</fileset>
-						<parsable targetfile="${INSTALL_PATH}/architect_file_association.reg"/>
-						<executable targetfile="regedit.exe" stage="postinstall" keep="true">
-						   <args>
-						     <arg value="\/s"/>
-						     <arg value="$INSTALL_PATH/architect_file_association.reg"/>
-					      </args>
-					   </executable>
-						<executable targetfile="regedit.exe" stage="uninstall" keep="true">
-						   <args>
-						     <arg value="\/s"/>
-						     <arg value="$INSTALL_PATH/uninstall.reg"/>
-					      </args>
-					   </executable>
 					</pack>
 				</packs>
 				<native type="izpack" name="ShellLink.dll"/>
