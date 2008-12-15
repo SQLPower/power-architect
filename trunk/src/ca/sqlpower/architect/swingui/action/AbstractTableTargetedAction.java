@@ -25,7 +25,9 @@ import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -73,12 +75,17 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
                 }
             } else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
                 TreePath [] selections = dbt.getSelectionPaths();
-                if (selections == null || selections.length != 1) {
-                    JOptionPane.showMessageDialog(dbt, Messages.getString("AbstractTableTargetedAction.instructions")); //$NON-NLS-1$
-                } else {
-                    TreePath tp = selections[0];
+                // This statement ensures that there is only one item selected
+                // except for the special case of SQLColumns, in which its
+                // parent gets selected. Then, we need to use the column.
+                if (selections != null && (selections.length == 1 || 
+                                          (selections.length == 2 && selections[0].getLastPathComponent() instanceof SQLTable
+                                                  && selections[1].getLastPathComponent() instanceof SQLColumn))) {
+                    TreePath tp = selections[selections.length - 1];
                     SQLObject so = (SQLObject) tp.getLastPathComponent();
                     processSQLObject(so);
+                } else {
+                    JOptionPane.showMessageDialog(dbt, Messages.getString("AbstractTableTargetedAction.instructions")); //$NON-NLS-1$
                 }
             } else {
                 JOptionPane.showMessageDialog(

@@ -65,7 +65,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         	}
         }
         if (st == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("The SQLObject must be a instance of SQLTable or SQLColumn");
         } else {
             st.addColumn(idx, new SQLColumn());
         }
