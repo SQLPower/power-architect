@@ -719,8 +719,10 @@ public class ProfilePDFFormat implements ProfileFormat {
         }
         else {
             errorColumnProfiling = true;
-            if ( result != null && result.getException() != null )
+            if ( result != null && result.getException() != null ) {
                 columnException = result.getException();
+                logger.debug("Exception " + columnException + " on column " + col.getName());
+            }
         }
 
         DecimalFormat pctFormat = new DecimalFormat("0%");
@@ -737,6 +739,7 @@ public class ProfilePDFFormat implements ProfileFormat {
         aldf.setMaximumFractionDigits(1);
         aldf.setMinimumFractionDigits(0);
 
+        boolean errorSpanRemaining = false;
         for (int colNo = 0; colNo < totalColumn; colNo++) {
 
             String contents;
@@ -746,8 +749,10 @@ public class ProfilePDFFormat implements ProfileFormat {
                 String fqTableName = ArchitectUtils.toQualifiedName(col.getParentTable(), SQLDatabase.class);
                 if ( tProfile == null || tProfile.getException() != null) {
                     contents = fqTableName + "\nProfiling Error:\n";
-                    if ( tProfile != null && tProfile.getException() != null )
+                    if ( tProfile != null && tProfile.getException() != null ) {
                         contents += tProfile.getException();
+                        errorSpanRemaining = true;
+                    }
                 }
                 else {
                     contents = fqTableName;
@@ -770,8 +775,10 @@ public class ProfilePDFFormat implements ProfileFormat {
                     }
                     else {
                         contents = "Column Profiling Error:\n";
-                        if ( columnException != null )
+                        if ( columnException != null ) {
                             contents += columnException;
+                            errorSpanRemaining = true;
+                        }
                     }
                     alignment = Element.ALIGN_LEFT;
                 }
@@ -939,7 +946,7 @@ public class ProfilePDFFormat implements ProfileFormat {
             // update column width to reflect the widest cell
             for (String contentLine : contents.split("\n")) {
                 String newLine;
-                if (truncateLength >= 0 && !(tProfile == null || tProfile.getException() != null)) {
+                if (truncateLength >= 0 && !errorSpanRemaining) {
                     if (bf.getWidthPoint(contentLine, fsize) < truncateLength) {
                         newLine = contentLine + "\n";
                     } else {
@@ -958,9 +965,11 @@ public class ProfilePDFFormat implements ProfileFormat {
                     newLine = contentLine + "\n";
                 }
                 truncContents.append(newLine);
-                widths[colNo] = Math.max(widths[colNo],
-                                      bf.getWidthPoint(newLine, fsize));
-                logger.debug("width is now " + widths[colNo] + " for column " + colNo);
+                if (!errorSpanRemaining) {
+                    widths[colNo] = Math.max(widths[colNo],
+                            bf.getWidthPoint(newLine, fsize));
+                    logger.debug("width is now " + widths[colNo] + " for column " + colNo);
+                }
             }
 
 
@@ -981,7 +990,13 @@ public class ProfilePDFFormat implements ProfileFormat {
             }
 //            cell.setBorder(Rectangle.NO_BORDER);
             cell.setHorizontalAlignment(alignment);
+            if (errorSpanRemaining) {
+                cell.setColspan(totalColumn - colNo);
+            }
             table.addCell(cell);
+            if (errorSpanRemaining) {
+                break;
+            }
         }
     }
 
