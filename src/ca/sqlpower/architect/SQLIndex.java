@@ -53,7 +53,7 @@ public class SQLIndex extends SQLObject {
      * This is the property name in the PL.ini file that will indicate what Index types
      * are supported for any specific database.
      */
-    public static String INDEX_TYPE_DESCRIPTOR = SQLIndex.class.getName() + ".IndexType";
+    public static final String INDEX_TYPE_DESCRIPTOR = SQLIndex.class.getName() + ".IndexType";
 
     /**
      * This is the index type
@@ -64,7 +64,7 @@ public class SQLIndex extends SQLObject {
      * This is the name of the column that will be augmented by the custom 
      * JDBC wrappers to represent index type;
      */
-    public static String RS_INDEX_TYPE_COL = "SPG_INDEX_TYPE";
+    public static final String RS_INDEX_TYPE_COL = "SPG_INDEX_TYPE";
 
     /**
      * A simple placeholder for a column.  We're not using real SQLColumn instances here so that the
