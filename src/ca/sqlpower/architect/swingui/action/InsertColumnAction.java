@@ -63,10 +63,12 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         		logger.debug("did not find column, inserting at start of table."); //$NON-NLS-1$
         		idx = 0;
         	}
-        } else {
-        	idx = 0;
         }
-        st.addColumn(idx, new SQLColumn());
+        if (st == null) {
+            throw new NullPointerException();
+        } else {
+            st.addColumn(idx, new SQLColumn());
+        }
         EditColumnAction editColumnAction = new EditColumnAction(session);
         editColumnAction.showDialog(st, idx);
         
