@@ -70,6 +70,14 @@ public class ProfilePDFFormat implements ProfileFormat {
     private static final int PIXELS_PER_BORDER = 6;
 
     private static final Logger logger = Logger.getLogger(ProfilePDFFormat.class);
+
+    /**
+     * The number of elements we will show in the stack trace before it is truncated.
+     * The stack trace is truncated as long stack traces will make the table small at
+     * the bottom of the page and require a lot more pages than normal to print.
+     */
+    private static final int STACK_TRACE_LENGTH = 4;
+    
     private int totalColumn;
 
 
@@ -392,9 +400,18 @@ public class ProfilePDFFormat implements ProfileFormat {
         heading.append("Connection: ").append(sqlTable.getParentDatabase().getName()).append("\n");
         heading.append("Table: ").append(ArchitectUtils.toQualifiedName(sqlTable, SQLDatabase.class));
         if ( result.getException() != null ) {
-            heading.append(" Profiling Error");
-            if ( result.getException() != null )
+            heading.append("\nProfiling Error");
+            if ( result.getException() != null ) {
                 heading.append(":\n").append(result.getException());
+                StackTraceElement[] stackTrace = result.getException().getStackTrace();
+                for (int i = 0; i < STACK_TRACE_LENGTH && i < stackTrace.length; i++) {
+                    StackTraceElement element = stackTrace[i];
+                    heading.append("\n   ").append(element.getFileName()).append(".").append(element.getClassName()).append(".").append(element.getMethodName()).append("(").append(element.getLineNumber()).append(")");
+                }
+                if (stackTrace.length > STACK_TRACE_LENGTH) {
+                    heading.append("\n   ... ").append(stackTrace.length).append(" more");
+                }
+            }
         }
         else {
             PdfPCell infoCell;
@@ -922,7 +939,7 @@ public class ProfilePDFFormat implements ProfileFormat {
             // update column width to reflect the widest cell
             for (String contentLine : contents.split("\n")) {
                 String newLine;
-                if (truncateLength >= 0) {
+                if (truncateLength >= 0 && !(tProfile == null || tProfile.getException() != null)) {
                     if (bf.getWidthPoint(contentLine, fsize) < truncateLength) {
                         newLine = contentLine + "\n";
                     } else {
