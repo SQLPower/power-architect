@@ -68,6 +68,7 @@ import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.action.NewDataSourceAction;
 import ca.sqlpower.architect.swingui.action.RemoveSourceDBAction;
+import ca.sqlpower.architect.swingui.action.ShowTableContentsAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.architect.swingui.dbtree.DnDTreePathTransferable;
@@ -545,6 +546,7 @@ public class DBTree extends JTree implements DragSourceListener {
                 newMenu.add(profile);
                 JMenuItem selectAllChildTables = new JMenuItem(this.selectAllChildTablesAction);
                 newMenu.add(selectAllChildTables);
+                newMenu.add(new JMenuItem(new ShowTableContentsAction(session, (SQLTable) p.getLastPathComponent())));
                 newMenu.addSeparator();
             }
 			

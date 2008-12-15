@@ -34,6 +34,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.query.SQLQueryUIComponents;
 
 /**
@@ -52,9 +53,19 @@ public class QueryDialog extends JDialog {
      * Creates and displays the window for executing SQL queries.
      */
     public QueryDialog(ArchitectSwingSession session, JFrame sessionframe, String title) {
+        this(session, sessionframe, title, null, null);
+    }
+        
+    /**
+     * Creates and displays a window for executing SQL queries. Allows
+     * specifying an initial data source and SQL script for the query 
+     * window. If a null value is passed in for the ds or initialSQL 
+     * then no initial querying will be done.
+     */
+    public QueryDialog(ArchitectSwingSession session, JFrame sessionframe, String title, SPDataSource ds, String initialSQL) {
        super(sessionframe, title);
        setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-       setSize(900,450);
+       setSize(900,650);
        try {
            dbTree = new DBTree(session);
        } catch (ArchitectException e) {
@@ -64,7 +75,7 @@ public class QueryDialog extends JDialog {
        TreeModel model = session.getSourceDatabases().getModel();
        dbTree.setModel(model);
         
-        queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getContext().getPlDotIni(),this);
+        queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getContext().getPlDotIni(), this, ds, initialSQL);
         queryPanel.setMinimumSize(new Dimension(100,100));
         
         buildUI(session);
