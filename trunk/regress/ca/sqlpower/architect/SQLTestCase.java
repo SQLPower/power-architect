@@ -31,7 +31,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import ca.sqlpower.ArchitectTestCase;
-import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
@@ -245,7 +245,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 			// should be handled in the Datasource
 			propertiesToIgnoreForUndo.add("name");
 		}
-		UndoManager undoManager= new UndoManager(so);
+		ArchitectUndoManager undoManager= new ArchitectUndoManager(so);
 		List<PropertyDescriptor> settableProperties;
 		settableProperties = Arrays.asList(PropertyUtils.getPropertyDescriptors(so.getClass()));
 		if(so instanceof SQLDatabase)

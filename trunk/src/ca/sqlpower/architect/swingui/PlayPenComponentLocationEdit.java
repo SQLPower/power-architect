@@ -29,12 +29,12 @@ import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoableEdit;
 
 import ca.sqlpower.architect.undo.PropertyChangeEdit;
-import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.architect.undo.ArchitectUndoManager;
 
 /**
  * An undoable edit that absorbs PropertyChangeEdits from PlayPenComponents. The
  * way it is used is to add it to the undo manager using
- * {@link UndoManager#addEdit(UndoableEdit)} before any components start moving.
+ * {@link ArchitectUndoManager#addEdit(UndoableEdit)} before any components start moving.
  * Then as each successive {@link PropertyChangeEdit} is added to the undo
  * manager, this edit will absorb it if it represents a change in location of a
  * PlayPenComponent. As soon as any other type of edit is added to the undo

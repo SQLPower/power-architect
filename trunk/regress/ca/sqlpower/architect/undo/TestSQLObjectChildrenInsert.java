@@ -50,7 +50,7 @@ public class TestSQLObjectChildrenInsert extends TestCase {
 		
 		// setup a playpen like database
 		SQLDatabase db = new SQLDatabase();
-		UndoManager undoManager = new UndoManager(db);
+		ArchitectUndoManager undoManager = new ArchitectUndoManager(db);
 		db.setPlayPenDatabase(true);
 		SQLTable table1 = new SQLTable(db,"table1","remark1","TABLE",true);
 		SQLTable table2 = new SQLTable(db,"table2","remark2","TABLE",true);

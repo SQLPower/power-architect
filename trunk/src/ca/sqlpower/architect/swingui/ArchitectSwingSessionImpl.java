@@ -68,7 +68,7 @@ import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
-import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -118,7 +118,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     private CompareDMSettings compareDMSettings;
 
-    private UndoManager undoManager;
+    private ArchitectUndoManager undoManager;
 
     private boolean savingEntireSource;
 
@@ -205,7 +205,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
         projectModificationWatcher = new ProjectModificationWatcher(playPen);
 
-        undoManager = new UndoManager(playPen);
+        undoManager = new ArchitectUndoManager(playPen);
         playPen.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter()); //$NON-NLS-1$
         playPen.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter()); //$NON-NLS-1$
         playPen.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", undoManager.getEventAdapter()); //$NON-NLS-1$
@@ -696,7 +696,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.compareDMSettings = compareDMSettings;
     }
 
-    public UndoManager getUndoManager() {
+    public ArchitectUndoManager getUndoManager() {
         return undoManager;
     }
 

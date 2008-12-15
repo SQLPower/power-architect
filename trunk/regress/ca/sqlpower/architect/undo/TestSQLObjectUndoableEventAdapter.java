@@ -66,7 +66,7 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 		SQLTable table = new SQLTable(session.getTargetDatabase(),true);
 		TablePane tp = new TablePane(table,pp.getContentPane());
 		pp.addTablePane(tp, new Point());
-		UndoManager undoManager = new UndoManager(pp);
+		ArchitectUndoManager undoManager = new ArchitectUndoManager(pp);
 		pp.getPlayPenContentPane().addPropertyChangeListener(undoManager.getEventAdapter());
 		Point location;
 		Point newLocation;
@@ -101,7 +101,7 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 		pp.addTablePane(tp2,new Point());
 		Point newLocation2;
 		location2 = tp2.getLocation();
-		UndoManager undoManager = new UndoManager(pp);
+		ArchitectUndoManager undoManager = new ArchitectUndoManager(pp);
         pp.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
 		assertTrue("Moved to the right location", location2.equals(tp2.getLocation() ));
 		assertTrue("Moved to the right location", location.equals(tp.getLocation() ));
@@ -128,7 +128,7 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
     
     public void testCompoundEditEvent() throws ArchitectException{
         PlayPen pp = new PlayPen(session);
-        UndoManager manager = new UndoManager(pp);
+        ArchitectUndoManager manager = new ArchitectUndoManager(pp);
         pp.getPlayPenContentPane().addPropertyChangeListener("location", manager.getEventAdapter());
         pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", manager.getEventAdapter());
         pp.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", manager.getEventAdapter());
@@ -137,7 +137,7 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
         pp.getPlayPenContentPane().addPropertyChangeListener("rounded", manager.getEventAdapter());
         StateChangeTestListner listner = new StateChangeTestListner();
         manager.addChangeListener(listner);
-        UndoManager.SQLObjectUndoableEventAdapter adapter = manager.getEventAdapter();
+        ArchitectUndoManager.SQLObjectUndoableEventAdapter adapter = manager.getEventAdapter();
         assertTrue(adapter.canUndoOrRedo());
         
         adapter.compoundEditStart(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START, "Test"));

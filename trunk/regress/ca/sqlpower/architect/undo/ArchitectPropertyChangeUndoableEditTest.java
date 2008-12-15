@@ -30,14 +30,14 @@ import ca.sqlpower.architect.swingui.PlayPenContentPane;
 
 public class ArchitectPropertyChangeUndoableEditTest extends TestCase {
     
-	private UndoManager undoManager;
+	private ArchitectUndoManager undoManager;
 	
 	private TestSQLObject testObject;
 	
 	protected void setUp() throws Exception {
 		super.setUp();
 		testObject = new TestSQLObject();
-		undoManager = new UndoManager(testObject);
+		undoManager = new ArchitectUndoManager(testObject);
 		
 	}
 
