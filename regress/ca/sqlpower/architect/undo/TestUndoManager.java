@@ -45,7 +45,7 @@ import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
-import ca.sqlpower.architect.undo.UndoManager.SQLObjectUndoableEventAdapter;
+import ca.sqlpower.architect.undo.ArchitectUndoManager.SQLObjectUndoableEventAdapter;
 
 public class TestUndoManager extends TestCase {
 
@@ -73,7 +73,7 @@ public class TestUndoManager extends TestCase {
 
     }
 
-	UndoManager undoManager;
+	ArchitectUndoManager undoManager;
 	PlayPen pp;
 	SQLTable fkTable;
 	SQLTable pkTable;
@@ -94,7 +94,7 @@ public class TestUndoManager extends TestCase {
 		pkTable.setName("parent");
 		tp2 = new TablePane(pkTable,pp.getContentPane());
 		pp.addTablePane(tp2,new Point(1,1));
-		undoManager = new UndoManager(pp);
+		undoManager = new ArchitectUndoManager(pp);
 		pp.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
 		pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter());
 		pkTable.addColumn(new SQLColumn());
@@ -115,7 +115,7 @@ public class TestUndoManager extends TestCase {
 	{
 		// TODO: add a change listener to the undo manager and make sure it fires events when it changes
 		
-		undoManager = new UndoManager(pp);
+		undoManager = new ArchitectUndoManager(pp);
 		pp.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter());
 		pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter());
 		UndoableEdit stubEdit = new AbstractUndoableEdit() {

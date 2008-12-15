@@ -41,9 +41,9 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.swingui.PlayPen;
 
-public class UndoManager extends javax.swing.undo.UndoManager implements NotifyingUndoManager {
+public class ArchitectUndoManager extends javax.swing.undo.UndoManager implements NotifyingUndoManager {
 
-    private static final Logger logger = Logger.getLogger(UndoManager.class);
+    private static final Logger logger = Logger.getLogger(ArchitectUndoManager.class);
 
     /**
      * Converts received SQLObjectEvents into UndoableEdits, PropertyChangeEvents
@@ -129,7 +129,7 @@ public class UndoManager extends javax.swing.undo.UndoManager implements Notifyi
          * fires a state changed event when a new compound edit is created
          */
         private void compoundGroupStart(String toolTip) {
-            if (UndoManager.this.isUndoOrRedoing())
+            if (ArchitectUndoManager.this.isUndoOrRedoing())
                 return;
             compoundEditStackCount++;
             if (compoundEditStackCount == 1) {
@@ -150,7 +150,7 @@ public class UndoManager extends javax.swing.undo.UndoManager implements Notifyi
          *             if there wasn't already a compound edit in progress.
          */
         private void compoundGroupEnd() {
-            if (UndoManager.this.isUndoOrRedoing())
+            if (ArchitectUndoManager.this.isUndoOrRedoing())
                 return;
             if (compoundEditStackCount <= 0) {
                 throw new IllegalStateException("No compound edit in progress");
@@ -170,14 +170,14 @@ public class UndoManager extends javax.swing.undo.UndoManager implements Notifyi
 
             // if we are not in a compound edit
             if (compoundEditStackCount == 0) {
-                UndoManager.this.addEdit(undoEdit);
+                ArchitectUndoManager.this.addEdit(undoEdit);
             } else {
                 ce.addEdit(undoEdit);
             }
         }
 
         public void dbChildrenInserted(SQLObjectEvent e) {
-            if (UndoManager.this.isUndoOrRedoing())
+            if (ArchitectUndoManager.this.isUndoOrRedoing())
                 return;
 
             SQLObjectInsertChildren undoEvent = new SQLObjectInsertChildren();
@@ -194,7 +194,7 @@ public class UndoManager extends javax.swing.undo.UndoManager implements Notifyi
         }
 
         public void dbChildrenRemoved(SQLObjectEvent e) {
-            if (UndoManager.this.isUndoOrRedoing())
+            if (ArchitectUndoManager.this.isUndoOrRedoing())
                 return;
 
             SQLObjectRemoveChildren undoEvent = new SQLObjectRemoveChildren();
@@ -203,7 +203,7 @@ public class UndoManager extends javax.swing.undo.UndoManager implements Notifyi
         }
 
         public void dbObjectChanged(SQLObjectEvent e) {
-            if (UndoManager.this.isUndoOrRedoing())
+            if (ArchitectUndoManager.this.isUndoOrRedoing())
                 return;
             if (e.getSource() instanceof SQLDatabase && e.getPropertyName().equals("shortDisplayName")) {
                 // this is not undoable at this time.
@@ -217,7 +217,7 @@ public class UndoManager extends javax.swing.undo.UndoManager implements Notifyi
             logger.error("Unexpected structure change event");
 
             // too many changes clear undo
-            UndoManager.this.discardAllEdits();
+            ArchitectUndoManager.this.discardAllEdits();
         }
 
         /**
@@ -225,7 +225,7 @@ public class UndoManager extends javax.swing.undo.UndoManager implements Notifyi
          * to the undo manager.
          */
         public void propertyChange(PropertyChangeEvent evt) {
-            if (UndoManager.this.isUndoOrRedoing()) {
+            if (ArchitectUndoManager.this.isUndoOrRedoing()) {
                 return;
             }
             PropertyChangeEdit edit = new PropertyChangeEdit(evt);
@@ -244,7 +244,7 @@ public class UndoManager extends javax.swing.undo.UndoManager implements Notifyi
                 if (ce.canUndo()) {
                     if (logger.isDebugEnabled())
                         logger.debug("Adding compound edit " + ce + " to undo manager");
-                    UndoManager.this.addEdit(ce);
+                    ArchitectUndoManager.this.addEdit(ce);
                 } else {
                     if (logger.isDebugEnabled())
                         logger.debug("Compound edit " + ce + " is not undoable so we are not adding it");
@@ -288,11 +288,11 @@ public class UndoManager extends javax.swing.undo.UndoManager implements Notifyi
      *             If the manager fails to listen to all objects in the play
      *             pen's database hierarchy.
      */
-    public UndoManager(PlayPen playPen) throws ArchitectException {
+    public ArchitectUndoManager(PlayPen playPen) throws ArchitectException {
         init(playPen, playPen.getSession().getTargetDatabase());
     }
 
-    public UndoManager(SQLObject sqlObjectRoot) throws ArchitectException {
+    public ArchitectUndoManager(SQLObject sqlObjectRoot) throws ArchitectException {
         init(null, sqlObjectRoot);
     }
 

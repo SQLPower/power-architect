@@ -44,7 +44,7 @@ import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
-import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
@@ -59,7 +59,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private SwingUIProject project;
     private ArchitectFrame frame;
     private PlayPen playpen;
-    private UndoManager undoManager;
+    private ArchitectUndoManager undoManager;
     private DBTree sourceDatabases;
     private SQLObjectRoot rootObject;
     private ProfileManager profileManager;
@@ -96,7 +96,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         rootObject.addChild(getTargetDatabase());
         sourceDatabases = new DBTree(this);
         playpen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
-        undoManager = new UndoManager(playpen);
+        undoManager = new ArchitectUndoManager(playpen);
         olapRootObject = new OLAPRootObject(delegateSession);
         
         compareDMSettings = new CompareDMSettings();
@@ -177,7 +177,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         return sourceDatabases;
     }
 
-    public UndoManager getUndoManager() {
+    public ArchitectUndoManager getUndoManager() {
         return undoManager;
     }
 

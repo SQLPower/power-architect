@@ -31,7 +31,7 @@ import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
-import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
@@ -83,7 +83,7 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     /**
      * Gets the UndoManager keeping track of changes in this session
      */
-    public UndoManager getUndoManager();
+    public ArchitectUndoManager getUndoManager();
     
     public CompareDMSettings getCompareDMSettings();
       
