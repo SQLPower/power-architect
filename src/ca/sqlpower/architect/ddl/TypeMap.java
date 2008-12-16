@@ -69,8 +69,8 @@ public class TypeMap {
    	ArrayList EMPTY_LIST = new ArrayList(); 
    	Pattern SPACE_STRIPPER = Pattern.compile("[\\s]+");
    	
-   	// singleton instance
-   	protected static TypeMap mainInstance = new TypeMap();
+   	// singleton instance. Since this class contains a getter method for this variable, this can be private.
+   	private static final TypeMap mainInstance = new TypeMap();
 
 	public static void main(String[] args) {
 		TypeMap tm = TypeMap.getInstance();	
