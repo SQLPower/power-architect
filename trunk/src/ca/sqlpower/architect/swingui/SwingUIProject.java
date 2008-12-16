@@ -79,6 +79,7 @@ import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.util.ExceptionReport;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.xml.XMLHelper;
 
@@ -707,7 +708,15 @@ public class SwingUIProject extends CoreProject {
             for (OLAPEditSession oSession : getSession().getOLAPEditSessions()) {
                 oSession.saveNotify();
             }
-            
+        } catch (IOException e) {
+            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_VERSION.toString(), "Architect").toXML());
+            throw e;
+        } catch (ArchitectException e) {
+            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_VERSION.toString(), "Architect").toXML());
+            throw e;
+        } catch (RuntimeException e) {
+            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_VERSION.toString(), "Architect").toXML());
+            throw e;
         } finally {
             if (out != null) out.close();
         }

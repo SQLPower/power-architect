@@ -1263,4 +1263,25 @@ public class TestSwingUIProject extends ArchitectTestCase {
             assertFalse(t.getIndices().contains(idx));
         }
     }
+    
+    public void testSaveStoresExceptionInOutput() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
+
+        SQLDatabase db = new SQLDatabase();
+        dbtreeRoot.addChild(db);
+        
+        StubSQLObject sso = new StubSQLObject();
+        db.addChild(sso);
+        
+        try {
+            project.save(out, ENCODING);
+            fail("No exception when trying to save unknown type of SQLObject");
+        } catch (UnsupportedOperationException ex) {
+            // expected result
+        }
+        
+        assertTrue(out.toString().contains("UnsupportedOperationException"));
+        System.out.println(out.toString());
+    }
 }
