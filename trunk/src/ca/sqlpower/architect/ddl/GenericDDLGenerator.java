@@ -340,6 +340,11 @@ public class GenericDDLGenerator implements DDLGenerator {
 		colNameMap.clear();
 		firstColumn = true;
 
+		if (r.getMappings().isEmpty()) {
+		    warnings.add(new RelationshipMapsNoColumnsDDLWarning(r.getPkTable(), r.getFkTable()));
+		    errorMsg.append("Warning: Relationship has no columns to map:\n");
+		}
+		
 		for (ColumnMapping cm : r.getMappings()) {
 			SQLColumn c = cm.getPkColumn();
 			SQLColumn fkCol = cm.getFkColumn();
