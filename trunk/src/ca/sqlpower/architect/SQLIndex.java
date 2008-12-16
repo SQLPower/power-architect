@@ -58,7 +58,7 @@ public class SQLIndex extends SQLObject {
     /**
      * This is the index type
      */
-    public String type;
+    private String type;
 
     /**
      * This is the name of the column that will be augmented by the custom 
