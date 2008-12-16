@@ -65,7 +65,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
-import ca.sqlpower.architect.swingui.dbtree.DnDTreePathTransferable;
+import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.SPSUtils;
@@ -703,16 +703,12 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 DBTree dbtree = pp.getSession().getSourceDatabases();  // XXX: bad
                 int insertionPoint = pointToItemIndex(loc);
 
-                ArrayList<int[]> paths = (ArrayList<int[]>) t.getTransferData(importFlavor);
-                logger.debug("Importing items from tree: "+paths); //$NON-NLS-1$
-
                 // put the undo event adapter into a drag and drop state
                 pp.startCompoundEdit("Drag and Drop"); //$NON-NLS-1$
 
-                ArrayList<SQLObject> droppedItems = new ArrayList<SQLObject>();
-                for (int[] path : paths) {
-                    droppedItems.add(DnDTreePathTransferable.getNodeForDnDPath((SQLObject) dbtree.getModel().getRoot(), path));
-                }
+                List<SQLObject> droppedItems = Arrays.asList((SQLObject[]) t.getTransferData(importFlavor));
+                
+                logger.debug("Importing items: " + droppedItems); //$NON-NLS-1$
 
                 boolean success = false;
 
@@ -812,7 +808,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType)); //$NON-NLS-1$
 
 
-            if (flavors[i].equals(DnDTreePathTransferable.TREEPATH_ARRAYLIST_FLAVOR)) {
+            if (flavors[i].equals(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR)) {
                 logger.debug("YES"); //$NON-NLS-1$
                 return flavors[i];
             }
@@ -1118,26 +1114,10 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
     }
 
     public Transferable createTransferableForSelection() {
-        ArrayList<int[]> paths = new ArrayList<int[]>();
-        StringBuilder userVisibleName = new StringBuilder();
-        for (SQLColumn column: getSelectedItems()) {
-
-            int[] path = DnDTreePathTransferable.getDnDPathToNode(column, getPlayPen().getSession().getRootObject());
-            if (logger.isDebugEnabled()) {
-                logger.debug("Path to dragged node: "+Arrays.toString(path)); //$NON-NLS-1$
-            }
-            // export list of DnD-type tree paths
-            paths.add(path);
-
-            if (userVisibleName.length() != 0) {
-                userVisibleName.append("\n");
-            }
-            userVisibleName.append(column.getName());
-        }
-        if (paths.isEmpty()) {
+        if (getSelectedItems().isEmpty()) {
             return null;
         } else {
-            return new DnDTreePathTransferable(paths, userVisibleName.toString());
+            return new SQLObjectSelection(new ArrayList<SQLObject>(getSelectedItems()));
         }
     }
 }

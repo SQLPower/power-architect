@@ -71,7 +71,7 @@ import ca.sqlpower.architect.swingui.action.RemoveSourceDBAction;
 import ca.sqlpower.architect.swingui.action.ShowTableContentsAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
-import ca.sqlpower.architect.swingui.dbtree.DnDTreePathTransferable;
+import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
@@ -811,12 +811,21 @@ public class DBTree extends JTree implements DragSourceListener {
 			} else {
 				// export list of DnD-type tree paths
 			    StringBuilder userVisibleName = new StringBuilder();
-				ArrayList<int[]> paths = new ArrayList<int[]>(p.length);
+			    List<SQLObject> transferObjects = new ArrayList<SQLObject>();
 				for (int i = 0; i < p.length; i++) {
 					// ignore any playpen tables
 				    SQLObject so = (SQLObject) p[i].getLastPathComponent();
-                    if (DnDTreePathTransferable.getDnDPathToNode(so, (SQLObject) t.getModel().getRoot())[0] != 0) {
-                        paths.add(DnDTreePathTransferable.getDnDPathToNode(so, (SQLObject) t.getModel().getRoot()));
+				    boolean transferObject = true;
+				    SQLObject parent = so.getParent();
+				    while(parent != null) {
+				        if (parent instanceof SQLDatabase && ((SQLDatabase) parent).isPlayPenDatabase()) {
+				            transferObject = false;
+				            break;
+				        }
+				        parent = parent.getParent();
+				    }
+                    if (transferObject) {
+                        transferObjects.add(so);
                         if (userVisibleName.length() != 0) {
                             userVisibleName.append("\n");
                         }
@@ -829,7 +838,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				dge.getDragSource().startDrag
 					(dge,
 					 null, //DragSource.DefaultCopyNoDrop,
-					 new DnDTreePathTransferable(paths, userVisibleName.toString(), t.getSelectionPaths()),
+					 new SQLObjectSelection(transferObjects),
 					 t);
 			}
  		}
@@ -926,4 +935,5 @@ public class DBTree extends JTree implements DragSourceListener {
             }
         }
     }
+
 }
