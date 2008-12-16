@@ -116,7 +116,7 @@ import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.action.CancelAction;
-import ca.sqlpower.architect.swingui.dbtree.DnDTreePathTransferable;
+import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -2062,15 +2062,12 @@ public class PlayPen extends JPanel
 
 					dtde.acceptDrop(DnDConstants.ACTION_COPY);
 					Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));
-					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
+					Object[] paths = (Object[]) t.getTransferData(importFlavor);
 					// turn into a Collection of SQLObjects to make this more generic
-					Iterator it = paths.iterator();
-					DBTree dbtree = session.getSourceDatabases();
-					List sqlObjects = new ArrayList();
-					while(it.hasNext()) {
-						Object oo = DnDTreePathTransferable.getNodeForDnDPath((SQLObject) dbtree.getModel().getRoot(), (int[])it.next());
+					List<SQLObject> sqlObjects = new ArrayList<SQLObject>();
+					for (Object oo : paths) {
 						if (oo instanceof SQLObject) {
-							sqlObjects.add(oo);
+							sqlObjects.add((SQLObject) oo);
 						} else {
 							logger.error("Unknown object dropped in PlayPen: "+oo); //$NON-NLS-1$
 						}
@@ -2130,7 +2127,7 @@ public class PlayPen extends JPanel
 				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType)); //$NON-NLS-1$
 
 
- 				if (flavors[i].equals(DnDTreePathTransferable.TREEPATH_ARRAYLIST_FLAVOR)) {
+ 				if (flavors[i].equals(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR)) {
 					logger.debug("YES"); //$NON-NLS-1$
 					best = flavors[i];
 				} else {
