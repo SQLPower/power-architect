@@ -212,15 +212,20 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 	 */
 	public void validateLayout() {
 		// widths are in points (1/72 inch units)
+	    
+	    pp.setZoom(1.0);
 		Dimension ppSize = pp.getPreferredSize();
+		
 		double ppWidth = ppSize.width;
 		double ppHeight = ppSize.height;
 
 		double paperWidth = pageFormat.getImageableWidth();
 		double paperHeight = pageFormat.getImageableHeight();
 		
+		logger.debug("Validating layout: zoom is " + zoom + ", play pen width " + ppWidth + ", paper width " + paperWidth);
 		pagesAcross = (int) Math.ceil(zoom * ppWidth / paperWidth);
 		pagesDown = (int) Math.ceil(zoom * ppHeight / paperHeight);
+		logger.debug("Validating layout: pages across " + pagesAcross + ", pages down " + pagesDown);
 		pageCountLabel.setText(Messages.getString("PrintPanel.pageCountLabel", String.valueOf(getNumberOfPages()))); //$NON-NLS-1$
 	}
 
@@ -391,13 +396,17 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 
 			pp.setZoom(zoom);
 			pp.paintComponent(g);
+			pp.setZoom(1.0);
 			
 	        int scaledWidth = (int) (getWidth()/zoom);
 	        int scaledHeight = (int) (getHeight()/zoom);
 			// and draw the lines where the page boundaries fall
 			double iW = pageFormat.getImageableWidth();
 			double iH = pageFormat.getImageableHeight();
+			
+			logger.debug("Painting print preview: play pen zoom " + zoom + ", print panel zoom " + PrintPanel.this.zoom + ", page width " + iW);
 
+			g2.scale(zoom, zoom);
 			g2.scale(1/PrintPanel.this.zoom, 1/PrintPanel.this.zoom);
 			g2.setColor(pp.getForeground());
 			for (int i = 0; i <= pagesAcross; i++) {
