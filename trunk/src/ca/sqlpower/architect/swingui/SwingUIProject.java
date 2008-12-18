@@ -213,6 +213,10 @@ public class SwingUIProject extends CoreProject {
 
     protected Digester setupDigester() throws ParserConfigurationException, SAXException {
         Digester d = super.setupDigester();
+        
+        PrintSettingsFactory printSettingsFactory = new PrintSettingsFactory();
+        d.addFactoryCreate("*/print-settings", printSettingsFactory);
+        d.addSetProperties("*/print-settings");
 
         // the play pen
         RelationalPlayPenFactory ppFactory = new RelationalPlayPenFactory();
@@ -586,6 +590,14 @@ public class SwingUIProject extends CoreProject {
         }
     }
     
+    private class PrintSettingsFactory extends AbstractObjectCreationFactory {
+        @Override
+        public Object createObject(Attributes arg0) throws Exception {
+            return getSession().getPrintSettings();
+        }
+        
+    }
+    
     // ------------- WRITING THE PROJECT FILE ---------------
 
     /**
@@ -689,6 +701,7 @@ public class SwingUIProject extends CoreProject {
             ioo.println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectVersion.APP_VERSION+"\">"); //$NON-NLS-1$ //$NON-NLS-2$
             ioo.indent++;
             ioo.println(out, "<project-name>"+SQLPowerUtils.escapeXML(getSession().getName())+"</project-name>"); //$NON-NLS-1$ //$NON-NLS-2$
+            savePrintSettings(out, getSession().getPrintSettings());
             saveDataSources(out);
             saveSourceDatabases(out);
             saveTargetDatabase(out);
@@ -1313,6 +1326,28 @@ public class SwingUIProject extends CoreProject {
         } else {
             ioo.niprintln(out, "/>"); //$NON-NLS-1$
         }
+    }
+    
+    private void savePrintSettings(PrintWriter out, PrintSettings settings) {
+        StringBuilder tagText = new StringBuilder();
+        tagText.append("<print-settings ");
+        
+        if (settings.getPrinterName() != null) {
+            tagText.append("printerName=\"" + settings.getPrinterName() + "\" ");
+        }
+        tagText.append("numCopies=\"" + settings.getNumCopies() + "\" ");
+        tagText.append("zoom=\"" + settings.getZoom() + "\" ");
+        tagText.append("pageNumbersPrinted=\"" + Boolean.toString(settings.isPageNumbersPrinted()) + "\" ");
+        tagText.append("orientation=\"" + settings.getOrientation() + "\" ");
+        tagText.append("paperWidth=\"" + settings.getPaperWidth() + "\" ");
+        tagText.append("paperHeight=\"" + settings.getPaperHeight() + "\" ");
+        tagText.append("leftBorder=\"" + settings.getLeftBorder() + "\" ");
+        tagText.append("rightBorder=\"" + settings.getRightBorder() + "\" ");
+        tagText.append("topBorder=\"" + settings.getTopBorder() + "\" ");
+        tagText.append("bottomBorder=\"" + settings.getBottomBorder() + "\" ");
+        
+        tagText.append("/>"); //$NON-NLS-1$
+        ioo.println(out, tagText.toString());
     }
 
     private String quote(String str) {

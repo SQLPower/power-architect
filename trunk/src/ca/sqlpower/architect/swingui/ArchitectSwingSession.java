@@ -325,4 +325,6 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * and added to this session's DB Tree as a source database.
      */
     public JMenu createDataSourcesMenu();
+    
+    public PrintSettings getPrintSettings();
 }

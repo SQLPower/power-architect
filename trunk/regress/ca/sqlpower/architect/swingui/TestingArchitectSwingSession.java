@@ -69,6 +69,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private RecentMenu recent;
     private ArchitectSession delegateSession;
     private OLAPRootObject olapRootObject;
+    private PrintSettings printSettings;
     
     private boolean showPkTag = true;
     private boolean showFkTag = true;
@@ -112,6 +113,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         
         kettleJob = new KettleJob(this);
         
+        printSettings = new PrintSettings();
     }
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context, SwingUIProject project) throws ArchitectException {
@@ -366,6 +368,10 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     public JMenu createDataSourcesMenu() {
         return new JMenu();
+    }
+
+    public PrintSettings getPrintSettings() {
+        return printSettings;
     }
 
 }
