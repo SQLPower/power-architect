@@ -156,6 +156,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private final OLAPSchemaManager olapSchemaManager;
 
     /**
+     * This will store the properties of the print panel.
+     */
+    private final PrintSettings printSettings;
+
+    /**
      * Creates a new swing session, including a new visible architect frame, with
      * the given parent context and the given name.
      * 
@@ -218,6 +223,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         swingWorkers = new HashSet<SPSwingWorker>();
         
         olapEditSessions = new ArrayList<OLAPEditSession>();
+        
+        printSettings = new PrintSettings();
     }
 
     public void initGUI() throws ArchitectException {
@@ -920,4 +927,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         
         return dbcsMenu;
     }
+    
+    public PrintSettings getPrintSettings() {
+        return printSettings;
+    }
+
 }

@@ -84,11 +84,11 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 	private PageFormat pageFormat;
 	private JLabel pageFormatLabel;
 	private JButton pageFormatButton;
-	private JLabel zoomLabel;
-	private JSlider zoomSlider;
+	private final JLabel zoomLabel;
+	private final JSlider zoomSlider;
 	private JLabel pageCountLabel;
-	private JCheckBox printPageNumbersBox;
-	private JSpinner numOfCopies;
+	private final JCheckBox printPageNumbersBox;
+	private final JSpinner numOfCopies;
 	
 	private PrintPreviewPanel previewPanel;
 	
@@ -98,6 +98,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 	private double zoom;
     
     private final ArchitectSwingSession session;
+
 
 	public PrintPanel(ArchitectSwingSession session) {
 		super();
@@ -109,26 +110,35 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
         // don't need this playpen to be interactive or respond to SQLObject changes
         pp.destroy();
 
-		add(new PrintPreviewPanel());
+        previewPanel = new PrintPreviewPanel();
+		add(previewPanel);
 		
 		job = PrinterJob.getPrinterJob();
 		jobAttributes = new HashPrintRequestAttributeSet();
 		
 		pageFormat = new PageFormat();
-		pageFormat.setPaper(new Paper());
-		pageFormat.getPaper().setImageableArea(50, 50, pageFormat.getWidth()-(50*2), pageFormat.getHeight()-(50*2));
+		Paper paper = new Paper();
+		PrintSettings printSettings = session.getPrintSettings();
+        paper.setSize(printSettings.getPaperWidth(), printSettings.getPaperHeight());
+		paper.setImageableArea(printSettings.getLeftBorder(), printSettings.getRightBorder(), 
+		        paper.getWidth() - printSettings.getLeftBorder() - printSettings.getRightBorder(), 
+		        paper.getHeight() - printSettings.getTopBorder() - printSettings.getBottomBorder());
+		pageFormat.setPaper(paper);
+		pageFormat.setOrientation(printSettings.getOrientation());
+		logger.debug("Page format has paper size " + pageFormat.getPaper().getWidth() + "x" + pageFormat.getPaper().getHeight());
+		logger.debug("Page size saved as " + printSettings.getPaperWidth() + "x" + printSettings.getPaperHeight());
 
 		JPanel formPanel = new JPanel(new FormLayout());
 		formPanel.add(new JLabel(Messages.getString("PrintPanel.printerLabel"))); //$NON-NLS-1$
 		formPanel.add(printerBox = new JComboBox(PrinterJob.lookupPrintServices()));
-		printerBox.setSelectedItem(getPreferredPrinter(session));				
+		printerBox.setSelectedItem(getPreferredPrinter(session));
 
 		formPanel.add(new JLabel(Messages.getString("PrintPanel.pageFormateLabel"))); //$NON-NLS-1$
 		String pf = paperToPrintable(pageFormat);
 		formPanel.add(pageFormatLabel = new JLabel(pf.toString()));
 		
 		formPanel.add(new JLabel(Messages.getString("PrintPanel.numCopiesLabel"))); //$NON-NLS-1$
-		numOfCopies = new JSpinner(new SpinnerNumberModel(1, 1, null, 1));
+        numOfCopies = new JSpinner(new SpinnerNumberModel(printSettings.getNumCopies(), 1, null, 1));
 		formPanel.add(numOfCopies);
 		
 		formPanel.add(new JLabel(Messages.getString("PrintPanel.changePageFormatLabel"))); //$NON-NLS-1$
@@ -138,14 +148,15 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 					setPageFormat(job.pageDialog(pageFormat));
 				}
 		});
-		formPanel.add(zoomLabel = new JLabel(Messages.getString("PrintPanel.scalingLabel"))); //$NON-NLS-1$
-		formPanel.add(zoomSlider = new JSlider(JSlider.HORIZONTAL, 1, 300, 100));
+		zoomLabel = new JLabel(Messages.getString("PrintPanel.scalingLabel"));
+		setZoom(printSettings.getZoom());
+		formPanel.add(zoomLabel); //$NON-NLS-1$
+		formPanel.add(zoomSlider = new JSlider(JSlider.HORIZONTAL, 1, 300, (int)(zoom * 100)));
 		
 		formPanel.add(new JLabel("")); //$NON-NLS-1$
 		formPanel.add(printPageNumbersBox = new JCheckBox(Messages.getString("PrintPanel.printPageNumbersOption"))); //$NON-NLS-1$
-		printPageNumbersBox.setSelected(true);
+		printPageNumbersBox.setSelected(printSettings.isPageNumbersPrinted());
 		
-		setZoom(1.0);
 		zoomSlider.addChangeListener(this);
 		pageCountLabel = new JLabel(Messages.getString("PrintPanel.pageCountLabel", String.valueOf(getNumberOfPages()))); //$NON-NLS-1$
 		formPanel.add(pageCountLabel);
@@ -177,9 +188,20 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 	 * Called to determine what this user last printed from.
 	 */
 	PrintService getPreferredPrinter(ArchitectSwingSession session) {
+	    String lastUsedPrinter = session.getPrintSettings().getPrinterName();
+	    if (lastUsedPrinter != null) {
+	        Iterator<PrintService> it = Arrays.asList( PrinterJob.lookupPrintServices() ).iterator();
+	        while (it.hasNext()) {
+	            PrintService ps = (PrintService) it.next();
+	            if (ps.getName().equals(lastUsedPrinter)) {
+	                return ps;
+	            }
+	        }
+	    }
+	    
 		String defaultPrinterName = session.getUserSettings().getPrintUserSettings().getDefaultPrinterName();
 		PrintService psRetVal = null;
-		Iterator it = Arrays.asList( PrinterJob.lookupPrintServices() ).iterator();
+		Iterator<PrintService> it = Arrays.asList( PrinterJob.lookupPrintServices() ).iterator();
 		while (it.hasNext() && psRetVal == null) {
 			PrintService ps = (PrintService) it.next();
 			if (ps.getName().equals(defaultPrinterName)) {
@@ -301,6 +323,20 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 
 	// --- architect panel ----
 	public boolean applyChanges() {
+	    PrintSettings printSettings = session.getPrintSettings();
+        printSettings.setZoom(zoom);
+	    printSettings.setNumCopies((Integer) numOfCopies.getValue());
+	    printSettings.setPageNumbersPrinted(printPageNumbersBox.isSelected());
+	    printSettings.setPrinterName(((PrintService) printerBox.getSelectedItem()).getName());
+	    printSettings.setOrientation(pageFormat.getOrientation());
+	    Paper paper = pageFormat.getPaper();
+        printSettings.setPaperWidth(paper.getWidth());
+	    printSettings.setPaperHeight(paper.getHeight());
+	    printSettings.setLeftBorder(paper.getImageableX());
+	    printSettings.setRightBorder(paper.getWidth() - paper.getImageableWidth() - paper.getImageableX());
+	    printSettings.setTopBorder(paper.getImageableY());
+	    printSettings.setBottomBorder(paper.getHeight() - paper.getImageableHeight() - paper.getImageableY());
+	    
 		try {
 		    // set current printer as default
 			if (printerBox.getItemCount() > 0 && printerBox.getSelectedItem() instanceof PrintService) {
@@ -460,6 +496,5 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
         // TODO return whether this panel has been changed
         return true;
     }
-
 
 }
