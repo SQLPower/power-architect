@@ -209,7 +209,21 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             playPen.setRenderingAntialiased(sprefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
         }
         projectModificationWatcher = new ProjectModificationWatcher(playPen);
-
+        
+        getRootObject().addSQLObjectListener(new SQLObjectListener() {
+            public void dbStructureChanged(SQLObjectEvent e) {
+                isNew = false;
+            }
+            public void dbObjectChanged(SQLObjectEvent e) {
+                isNew = false;        
+            }
+            public void dbChildrenRemoved(SQLObjectEvent e) {
+                isNew = false;
+            }
+            public void dbChildrenInserted(SQLObjectEvent e) {
+                isNew = false;
+            }
+        });
         undoManager = new ArchitectUndoManager(playPen);
         playPen.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter()); //$NON-NLS-1$
         playPen.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter()); //$NON-NLS-1$

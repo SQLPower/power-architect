@@ -31,6 +31,7 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SPDataSource;
 
 public class ArchitectSwingSessionImplTest extends TestCase {
 
@@ -225,4 +226,13 @@ public class ArchitectSwingSessionImplTest extends TestCase {
             assertEquals(newValueForStraightLines, r.isStraightLine());
         }
     }
+    
+    public void testDBTreeChangeUpdatesIsNew() throws Exception {
+        ArchitectSwingSessionContext context = new StubContext();
+        ArchitectSwingSession session = context.createSession(false);
+        session.getSourceDatabases().addSourceConnection(new SPDataSource(context.getPlDotIni()));
+        assertEquals(2, session.getSourceDatabases().getDatabaseList().size());
+        assertFalse(session.isNew());
+    }
+    
 }
