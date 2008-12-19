@@ -555,9 +555,7 @@ public class SwingUIProject extends CoreProject {
         public Object createObject(Attributes attributes) {
             OLAPSession oSession =
                 (OLAPSession) olapObjectLoadIdMap.get(attributes.getValue("osession-ref")); //$NON-NLS-1$
-            OLAPEditSession editSession = new OLAPEditSession(getSession(), oSession);
-            getSession().getOLAPEditSessions().add(editSession);
-            return editSession;
+            return getSession().getOLAPEditSession(oSession);
         }
     }
     

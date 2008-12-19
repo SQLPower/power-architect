@@ -62,6 +62,8 @@ import ca.sqlpower.architect.TestUtils;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
 import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
+import ca.sqlpower.architect.olap.MondrianModel;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -1283,5 +1285,32 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         assertTrue(out.toString().contains("UnsupportedOperationException"));
         System.out.println(out.toString());
+    }
+    
+    /**
+     * Regression testing for a bug on the forum 2147. When a project with olap
+     * sessions is saved and loaded the loaded session will have twice the number
+     * of olap sessions.
+     */
+    public void testSaveAndLoadDoesNotCreateOLAPSessions() throws Exception {
+        
+        ArchitectSwingSession session = new ArchitectSwingSessionImpl(context, "Test session");
+        
+        OLAPSession osession = new OLAPSession(new MondrianModel.Schema());
+        osession.setDatabase(session.getTargetDatabase());
+        session.getOLAPRootObject().addChild(osession);
+        session.getOLAPEditSession(osession);
+        assertEquals(1, session.getOLAPEditSessions().size());
+        
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        session.getProject().save(byteArrayOutputStream, ENCODING);
+
+        System.out.println(byteArrayOutputStream.toString());
+
+        ArchitectSwingSession session2 = new ArchitectSwingSessionImpl(context, "Load session");
+        SwingUIProject project2 = new SwingUIProject(session2);
+        project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
+        
+        assertEquals(1, session2.getOLAPEditSessions().size());
     }
 }
