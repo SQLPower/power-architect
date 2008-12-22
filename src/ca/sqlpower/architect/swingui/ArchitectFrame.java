@@ -234,7 +234,7 @@ public class ArchitectFrame extends JFrame {
         dbTree = session.getSourceDatabases();
 
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setLeftComponent(new JScrollPane(dbTree));
+        splitPane.setLeftComponent(new JScrollPane(SPSUtils.getBrandedTreePanel(dbTree)));
         playpenScrollPane = new JScrollPane(playpen);
         
         splitPane.setRightComponent(playpenScrollPane);
