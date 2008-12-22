@@ -304,7 +304,7 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
         
         indexTableModel = new DefaultTableModel();
         indexTableModel.addColumn("Index Type");
-        JTable indexTypeJTable = new JTable(indexTableModel);
+        final JTable indexTypeJTable = new JTable(indexTableModel);
         indexTypeJTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         
         for (String property : dsType.getPropertyNames()) {
@@ -368,7 +368,7 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
         }));
         addRemoveIndexBar.add(new JButton(new AbstractAction("", new AddRemoveIcon(AddRemoveIcon.Type.REMOVE)) {
             public void actionPerformed(ActionEvent e) {
-                int [] selectedRows = profileFunctionTable.getSelectedRows();
+                int [] selectedRows = indexTypeJTable.getSelectedRows();
                 for (int i = selectedRows.length - 1; i >= 0; i--) {
                     indexTableModel.removeRow(selectedRows[i]);
                 }
