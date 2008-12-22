@@ -422,7 +422,7 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
     }
 
     public void discardChanges() {
-        //No action.
+        editDsType(currentDSType);
     }
 
     public JComponent getPanel() {
