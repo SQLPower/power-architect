@@ -72,7 +72,7 @@ public class KettleDataSourceTypeOptionPanel implements DataSourceTypeEditorTabP
     }
 
     public void discardChanges() {
-        // no action needed
+        editDsType(dsType);
     }
 
     public JComponent getPanel() {
