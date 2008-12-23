@@ -102,10 +102,20 @@ public class ArchitectUndoManager extends javax.swing.undo.UndoManager implement
 
         private int compoundEditStackCount;
 
+        /**
+         * Tracks if the listener should add itself to new children on the object it is listening to.
+         */
+        private boolean addListenerToChildren = true;
+
         public SQLObjectUndoableEventAdapter() {
 
             ce = null;
             compoundEditStackCount = 0;
+        }
+        
+        public SQLObjectUndoableEventAdapter(boolean addListenerToChildren) {
+            this();
+            this.addListenerToChildren = addListenerToChildren;
         }
 
         /**
@@ -184,11 +194,13 @@ public class ArchitectUndoManager extends javax.swing.undo.UndoManager implement
             undoEvent.createEditFromEvent(e);
             addEdit(undoEvent);
 
-            try {
-                ArchitectUtils.listenToHierarchy(this, e.getChildren());
-                ArchitectUtils.addUndoListenerToHierarchy(this, e.getChildren());
-            } catch (ArchitectException ex) {
-                logger.error("SQLObjectUndoableEventAdapter cannot attach to new children", ex);
+            if (addListenerToChildren) {
+                try {
+                    ArchitectUtils.listenToHierarchy(this, e.getChildren());
+                    ArchitectUtils.addUndoListenerToHierarchy(this, e.getChildren());
+                } catch (ArchitectException ex) {
+                    logger.error("SQLObjectUndoableEventAdapter cannot attach to new children", ex);
+                }
             }
 
         }
@@ -290,6 +302,7 @@ public class ArchitectUndoManager extends javax.swing.undo.UndoManager implement
      */
     public ArchitectUndoManager(PlayPen playPen) throws ArchitectException {
         init(playPen, playPen.getSession().getTargetDatabase());
+        playPen.getSession().getRootObject().addSQLObjectListener(new SQLObjectUndoableEventAdapter(false));
     }
 
     public ArchitectUndoManager(SQLObject sqlObjectRoot) throws ArchitectException {
