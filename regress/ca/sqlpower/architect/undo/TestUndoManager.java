@@ -35,6 +35,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectRoot;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.StubSQLObject;
@@ -44,8 +45,8 @@ import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.architect.undo.ArchitectUndoManager.SQLObjectUndoableEventAdapter;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class TestUndoManager extends TestCase {
 
@@ -369,4 +370,28 @@ public class TestUndoManager extends TestCase {
 	    assertEquals(newPkCon, rel.getPkConnectionPoint());
 	    assertEquals(newFkCon, rel.getFkConnectionPoint());
     }
+	
+	/**
+	 * Regression test for bug 1618. Adding a data source should be able to be undone.
+	 */
+	public void testUndoAffectsSourceDBs() throws Exception {
+	    SQLObjectRoot rootObject = pp.getSession().getRootObject();
+        assertEquals(1, rootObject.getChildCount());
+        SQLDatabase targetDB = (SQLDatabase)rootObject.getChild(0);
+	    SQLDatabase db = new SQLDatabase();
+        rootObject.addChild(db);
+	    assertEquals(2, rootObject.getChildCount());
+	    
+	    assertTrue(undoManager.canUndo());
+	    undoManager.undo();
+	    assertEquals(1, rootObject.getChildCount());
+	    assertEquals(targetDB, rootObject.getChild(0));
+	    
+	    assertTrue(undoManager.canRedo());
+	    undoManager.redo();
+	    assertEquals(2, rootObject.getChildCount());
+	    assertEquals(targetDB, rootObject.getChild(0));
+	    assertEquals(db, rootObject.getChild(1));
+	    
+	}
 }
