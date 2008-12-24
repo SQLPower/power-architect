@@ -1,11 +1,24 @@
 Power*Architect Release Notes
 
 0.9.13
-  * Added a new SQL Query Tool to replace the older SQL Runner
-  * Repositioning OLAP components in the OLAP editor is undoable
-  * Added more keyboard shortcuts to the OLAP editor
-  * Improved reverse engineering performance on Oracle 
+  
+  New Features:
+	  * Added a new SQL Query Tool to replace the older SQL Runner
+	  * Added more keyboard shortcuts to the OLAP editor
+	  * Added an a new 'Advanced Properties' tab for Database Types in the JDBC drivers panel
+	  that allows for tweaking of database type behaviour without having to directly edit the pl.ini
 
+  Bug Fixes:
+      * Improved reverse engineering performance on Oracle 
+	  * Repositioning OLAP components in the OLAP editor is undo-able
+	  * Fixed drop primary key syntax in Compare DM for SQL Server 2005
+	  * Fixed an error when reverse engineering an index on a function
+	  * Dragging and dropping objects from one tree in one window to the
+	  playpen of another separate window is now possible
+	  * Fixed print preview behaviour
+	  * Fixed an issue where loading an OLAP session resulted in a new OLAP
+	  session being added to the project.
+  
 
 0.9.12
 
