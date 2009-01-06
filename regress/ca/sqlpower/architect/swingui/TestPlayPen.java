@@ -400,6 +400,35 @@ public class TestPlayPen extends TestCase {
 	            }
 	        }
 	}
+	
+	/**
+	 * Test for bug in 0.9.13. If a column is dropped from one session
+	 * to another the source will remain from the session it was dragged
+	 * from. This can lead to problems with saving and loading.
+	 */
+	public void testDnDAcrossSessionsRemovesSource() throws Exception {
+	    SQLTable table = new SQLTable(ppdb, true);
+	    SQLColumn column = new SQLColumn(table, "Test column", Types.VARCHAR, 10, 0);
+	    table.addColumn(column);
+	    
+	    final SQLTable sourceTable = new SQLTable(ppdb, true);
+	    SQLColumn sourceColumn = new SQLColumn(sourceTable, "Source column", Types.VARCHAR, 10, 0);
+	    sourceTable.addColumn(sourceColumn);
+	    
+	    column.setSourceColumn(sourceColumn);
+	    
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        final ArchitectSwingSession session = context.createSession(false);
+	    final PlayPen newPP = new PlayPen(session);
+	    
+	    newPP.importTableCopy(table, new Point(0, 0));
+
+	    assertEquals(1, newPP.getTables().size());
+	    assertEquals(1, newPP.getTables().get(0).getColumns().size());
+	    assertFalse(session.getSourceDatabases().getDatabaseList().contains(sourceTable.getParentDatabase()));
+	    assertNull(newPP.getTables().get(0).getColumn(0).getSourceColumn());
+	    
+	}
 
     /**
      * Returns a new value that is not equal to oldVal. The

@@ -1270,6 +1270,13 @@ public class PlayPen extends JPanel
 	 */
 	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws ArchitectException {
 		SQLTable newTable = SQLTable.getDerivedInstance(source, session.getTargetDatabase()); // adds newTable to db
+		for (int i = 0; i < newTable.getColumns().size(); i++) {
+		    SQLColumn col = newTable.getColumn(i);
+		    if (col.getSourceColumn() != null
+		            && !session.getSourceDatabases().getDatabaseList().contains(col.getSourceColumn().getParentTable().getParentDatabase())) {
+		        col.setSourceColumn(null);
+		    }
+		}
 		String key = source.getName().toLowerCase();
 		boolean isAlreadyOnPlaypen = false;
 		int newSuffix = 0;
