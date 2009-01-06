@@ -23,6 +23,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
@@ -34,6 +35,8 @@ import junit.framework.TestSuite;
 
 import org.apache.commons.beanutils.BeanUtils;
 
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
@@ -448,7 +451,7 @@ public class TestSQLColumn extends SQLTestCase {
 		assertEquals(cowCol, tmpCol.getSourceColumn());
 		
 		tmpCol = SQLColumn.getDerivedInstance(new SQLColumn(), table3pk);
-		assertNotNull(tmpCol.getSourceColumn());
+		assertNull(tmpCol.getSourceColumn());
 	}
 
 	/*
@@ -917,5 +920,47 @@ public class TestSQLColumn extends SQLTestCase {
         
         assertTrue(pkcol.isAutoIncrement());
         assertFalse(normalcol.isAutoIncrement());
+    }
+    
+    /**
+     * Test for bug in 0.9.13. If a column is dropped from one session
+     * to another the source will remain from the session it was dragged
+     * from. This can lead to problems with saving and loading.
+     */
+    public void testDnDAcrossSessionsRemovesSource() throws Exception {
+        TestingArchitectSwingSessionContext sourceContext = new TestingArchitectSwingSessionContext();
+        final ArchitectSwingSession sourceSession = sourceContext.createSession(false);
+        
+        final SQLTable sourceTable = new SQLTable(sourceSession.getTargetDatabase(), true);
+        SQLColumn sourceColumn = new SQLColumn(sourceTable, "Source column", Types.VARCHAR, 10, 0);
+        sourceTable.addColumn(sourceColumn);
+        
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        final ArchitectSwingSession session = context.createSession(false);
+
+        SQLTable table = new SQLTable(session.getTargetDatabase(), true);
+        SQLColumn column = SQLColumn.getDerivedInstance(sourceColumn, table);
+
+        assertNull(column.getSourceColumn());
+    }
+    
+    /**
+     * Test for bug in 0.9.13. If a column is dropped from one database
+     * in a session to the play pen database the column should keep its lineage.
+     */
+    public void testDnDWithinSessionKeepsSource() throws Exception {
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        final ArchitectSwingSession session = context.createSession(false);
+        SQLDatabase db = new SQLDatabase();
+        session.setSourceDatabaseList(Collections.singletonList(db));
+        
+        final SQLTable sourceTable = new SQLTable(db, true);
+        SQLColumn sourceColumn = new SQLColumn(sourceTable, "Source column", Types.VARCHAR, 10, 0);
+        sourceTable.addColumn(sourceColumn);
+
+        SQLTable table = new SQLTable(session.getTargetDatabase(), true);
+        SQLColumn column = SQLColumn.getDerivedInstance(sourceColumn, table);
+
+        assertNull(column.getSourceColumn());
     }
 }
