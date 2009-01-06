@@ -226,7 +226,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 * you get back will have a parent pointer of addTo.columnsFolder,
 	 * but will not be attached as a child (you will normally do that
 	 * right after calling this).  It will refer to source as its
-	 * sourceColumn property, and otherwise be identical to source.
+	 * sourceColumn property if the source is in the same session, 
+	 * and otherwise be identical to source.
 	 * 
      * getDerivedInstance is used for reverse engineering.  
      * Will not preserve listeners.
@@ -236,8 +237,12 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		logger.debug("derived instance SQLColumn constructor invocation.");
 		SQLColumn c = new SQLColumn();
 		copyProperties(c, source);
-		c.sourceColumn = source;
 		c.parent = addTo.getColumnsFolder();
+		if (source != null && ArchitectUtils.isInSameSession(c, source)) {
+		    c.sourceColumn = source;
+		} else {
+		    c.sourceColumn = null;
+		}
 		logger.debug("getDerivedInstance set ref count to 1");
 		c.referenceCount = 1;
 		return c;

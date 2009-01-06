@@ -781,4 +781,23 @@ public class ArchitectUtils {
             return (f.canRead() && f.isFile());
         }
     }
+    
+    /**
+     * This will check if the two objects given are contained in the same
+     * session by finding their top ancestors and comparing them. o1 and o2
+     * cannot be null.
+     */
+    public static boolean isInSameSession(SQLObject o1, SQLObject o2) {
+        SQLObject o1Parent = o1;
+        while (o1Parent.getParent() != null) {
+            o1Parent = o1Parent.getParent();
+        }
+        SQLObject o2Parent = o2;
+        while (o2Parent.getParent() != null) {
+            o2Parent = o2Parent.getParent();
+        }
+        
+        logger.debug("Parent of " + o1 + " is " + o1Parent + ", parent of " + o2 + " is " + o2Parent);
+        return o1Parent == o2Parent;
+    }
 }
