@@ -29,9 +29,9 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.IndexEditPanel;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
@@ -41,7 +41,7 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
     
     public InsertIndexAction(ArchitectSwingSession session) {
         super(session, Messages.getString("InsertIndexAction.name"), Messages.getString("InsertIndexAction.description"), "new_index"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        putValue(ACTION_COMMAND_KEY, PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I, 0));
         setEnabled(false);
     }

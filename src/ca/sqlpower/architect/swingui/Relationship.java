@@ -141,11 +141,11 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
         JMenu setFocusToRelatedTables = new JMenu(Messages.getString("Relationship.setFocusMenu")); //$NON-NLS-1$
         mi = new JMenuItem();
         mi.setAction(af.getFocusToParentAction()); 
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         setFocusToRelatedTables.add(mi);
         mi = new JMenuItem();
         mi.setAction(af.getFocusToChildAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         setFocusToRelatedTables.add(mi);
         popup.add(setFocusToRelatedTables);
         
@@ -153,7 +153,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
         popup.add(mi);
         
         mi = new JMenuItem(af.getEditRelationshipAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         popup.add(mi);
         
         if (logger.isDebugEnabled()) {
@@ -174,7 +174,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
         
         popup.addSeparator();
         mi = new JMenuItem(af.getDeleteSelectedAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         popup.add(mi);
 	}
 
@@ -525,7 +525,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
                 session.getArchitectFrame().getEditRelationshipAction().actionPerformed
                 (new ActionEvent(evt.getSource(),
                         ActionEvent.ACTION_PERFORMED,
-                        ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+                        PlayPen.ACTION_COMMAND_SRC_PLAYPEN));
             } else if (evt.getClickCount() == 1 && evt.getButton() == MouseEvent.BUTTON1){
                 if (isSelected() && componentPreviouslySelected) {
                     setSelected(false, SelectionEvent.SINGLE_SELECT);

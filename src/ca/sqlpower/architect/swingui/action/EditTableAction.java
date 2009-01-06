@@ -31,9 +31,9 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
@@ -52,7 +52,7 @@ public class EditTableAction extends AbstractArchitectAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
+		if (evt.getActionCommand().equals(PlayPen.ACTION_COMMAND_SRC_PLAYPEN)) {
 			List selection = playpen.getSelectedItems();
 			if (selection.size() < 1) {
 				JOptionPane.showMessageDialog(playpen, Messages.getString("EditTableAction.noTablesSelected")); //$NON-NLS-1$
@@ -65,7 +65,7 @@ public class EditTableAction extends AbstractArchitectAction {
 				JOptionPane.showMessageDialog(playpen, Messages.getString("EditTableAction.cannotRecognizeItem")); //$NON-NLS-1$
 			}
 
-		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
+		} else if (evt.getActionCommand().equals(DBTree.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
 			logger.debug("selections length is: " + selections.length); //$NON-NLS-1$
 			if (selections.length == 1 || selections.length == 2) {

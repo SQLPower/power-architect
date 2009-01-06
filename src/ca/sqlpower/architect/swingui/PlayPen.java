@@ -151,7 +151,9 @@ public class PlayPen extends JPanel
 		public void cancel();
 
 	}
-
+ // actionCommand identifier for actions shared by Playpen
+    public static final String ACTION_COMMAND_SRC_PLAYPEN = "PlayPen";
+    
 	private static Logger logger = Logger.getLogger(PlayPen.class);
 
 	public enum MouseModeType {IDLE,

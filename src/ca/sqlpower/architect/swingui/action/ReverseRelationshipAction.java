@@ -43,8 +43,8 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.Relationship;
 
@@ -56,7 +56,7 @@ public class ReverseRelationshipAction extends AbstractArchitectAction {
     public ReverseRelationshipAction(ArchitectSwingSession session) {
         super(session, Messages.getString("ReverseRelationshipAction.name"), //$NON-NLS-1$
                 Messages.getString("ReverseRelationshipAction.description"), "reverse"); //$NON-NLS-1$ //$NON-NLS-2$
-        putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        putValue(ACTION_COMMAND_KEY, PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
     }
 
     /**

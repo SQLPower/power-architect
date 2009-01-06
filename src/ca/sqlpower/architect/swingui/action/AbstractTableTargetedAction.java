@@ -29,9 +29,9 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -61,7 +61,7 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
     
     public void actionPerformed(ActionEvent evt) {
         try {
-            if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
+            if (evt.getActionCommand().equals(PlayPen.ACTION_COMMAND_SRC_PLAYPEN)) {
                 List selection = playpen.getSelectedItems();
                 if (selection.size() < 1) {
                     JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.selectTable")); //$NON-NLS-1$
@@ -73,7 +73,7 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
                 } else {
                     JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.selectedItemNotRecognized")); //$NON-NLS-1$
                 }
-            } else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
+            } else if (evt.getActionCommand().equals(DBTree.ACTION_COMMAND_SRC_DBTREE)) {
                 TreePath [] selections = dbt.getSelectionPaths();
                 // This statement ensures that there is only one item selected
                 // except for the special case of SQLColumns, in which its

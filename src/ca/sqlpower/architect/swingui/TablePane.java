@@ -923,7 +923,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         
         mi = new JMenuItem();
         mi.setAction(af.getInsertIndexAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
         try {
             if (model != null && model.getIndicesFolder().getChildCount() > 0) {
@@ -931,7 +931,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 menu.setIcon(SPSUtils.createIcon("edit_index", Messages.getString("TablePane.editIndexTooltip"), ArchitectSwingSessionContext.ICON_SIZE)); //$NON-NLS-1$ //$NON-NLS-2$
                 for (SQLIndex index : model.getIndices()) {
                     JMenuItem menuItem = new JMenuItem(new EditSpecificIndexAction(getPlayPen().getSession(), index));
-                    menuItem.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+                    menuItem.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
                     menu.add(menuItem);
                 }
                 tablePanePopup.add(menu);
@@ -944,12 +944,12 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
         mi = new JMenuItem();
         mi.setAction(af.getInsertColumnAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         mi = new JMenuItem();
         mi.setAction(af.getEditColumnAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         tablePanePopup.addSeparator();
@@ -957,13 +957,13 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         JMenu align = new JMenu(Messages.getString("TablePane.alignTablesMenu")); //$NON-NLS-1$
         mi = new JMenuItem();
         mi.setAction(af.getAlignTableHorizontalAction()); 
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         align.add(mi);
         
         
         mi = new JMenuItem();
         mi.setAction(af.getAlignTableVerticalAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         align.add(mi);
         tablePanePopup.add(align);
 
@@ -1028,25 +1028,25 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         
         mi = new JMenuItem();
         mi.setAction(af.getEditTableAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         tablePanePopup.addSeparator();
 
         mi = new JMenuItem();
         mi.setAction(getPlayPen().bringToFrontAction);
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         mi = new JMenuItem();
         mi.setAction(getPlayPen().sendToBackAction);
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         if (logger.isDebugEnabled()) {
             tablePanePopup.addSeparator();
             mi = new JMenuItem("Show listeners"); //$NON-NLS-1$
-            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+            mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
             mi.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent evt) {
                         List<PlayPenComponent> selection = getPlayPen().getSelectedItems();
@@ -1061,7 +1061,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             tablePanePopup.add(mi);
 
             mi = new JMenuItem("Show Selection List"); //$NON-NLS-1$
-            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+            mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
             mi.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent evt) {
                         List<PlayPenComponent> selection = getPlayPen().getSelectedItems();
@@ -1079,7 +1079,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         tablePanePopup.addSeparator();
         mi = new JMenuItem();
         mi.setAction(af.getDeleteSelectedAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
         
         return tablePanePopup;
@@ -1102,10 +1102,10 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                         ArchitectFrame af = pp.getSession().getArchitectFrame();
                         if (selectedColIndex == ITEM_INDEX_TITLE) {
                             af.getEditTableAction().actionPerformed
-                            (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+                            (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, PlayPen.ACTION_COMMAND_SRC_PLAYPEN));
                         } else if (selectedColIndex >= 0) {
                             af.getEditColumnAction().actionPerformed
-                            (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+                            (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, PlayPen.ACTION_COMMAND_SRC_PLAYPEN));
                         }
                     }
                 }
