@@ -82,6 +82,9 @@ import ca.sqlpower.swingui.SPSwingWorker;
 public class DBTree extends JTree implements DragSourceListener {
 	private static Logger logger = Logger.getLogger(DBTree.class);
 	
+	// actionCommand identifier for actions shared by DBTree
+	public static final String ACTION_COMMAND_SRC_DBTREE = "DBTree";
+	
 	protected DragSource ds;
 	protected JPopupMenu popup;
 	protected JMenu dbcsMenu;
@@ -345,7 +348,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			
             mi = new JMenuItem();
             mi.setAction(af.getInsertIndexAction());
-            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+            mi.setActionCommand(ACTION_COMMAND_SRC_DBTREE);
             newMenu.add(mi);
             if (p.getLastPathComponent() instanceof SQLTable) {
                 mi.setEnabled(true);
@@ -355,7 +358,7 @@ public class DBTree extends JTree implements DragSourceListener {
             
             mi = new JMenuItem();
             mi.setAction(af.getEditIndexAction());
-            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+            mi.setActionCommand(ACTION_COMMAND_SRC_DBTREE);
             newMenu.add(mi);
             if (p.getLastPathComponent() instanceof SQLIndex) {
                 mi.setEnabled(true);
@@ -369,7 +372,7 @@ public class DBTree extends JTree implements DragSourceListener {
             
             mi = new JMenuItem();
             mi.setAction(af.getInsertColumnAction());
-            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+            mi.setActionCommand(ACTION_COMMAND_SRC_DBTREE);
             newMenu.add(mi);
             if (p.getLastPathComponent() instanceof SQLTable || p.getLastPathComponent() instanceof SQLColumn) {
                 mi.setEnabled(true);
@@ -379,7 +382,7 @@ public class DBTree extends JTree implements DragSourceListener {
             
 			mi = new JMenuItem();
 			mi.setAction(af.getEditColumnAction());
-			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+			mi.setActionCommand(ACTION_COMMAND_SRC_DBTREE);
 			newMenu.add(mi);
 			if (p.getLastPathComponent() instanceof SQLColumn) {
 				mi.setEnabled(true);
@@ -415,7 +418,7 @@ public class DBTree extends JTree implements DragSourceListener {
             
             mi = new JMenuItem();
             mi.setAction(af.getEditRelationshipAction());
-            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+            mi.setActionCommand(ACTION_COMMAND_SRC_DBTREE);
             newMenu.add(mi);
             if (p.getLastPathComponent() instanceof SQLRelationship) {
                 mi.setEnabled(true);
@@ -443,7 +446,7 @@ public class DBTree extends JTree implements DragSourceListener {
             
             mi = new JMenuItem();
             mi.setAction(af.getEditTableAction());
-            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+            mi.setActionCommand(ACTION_COMMAND_SRC_DBTREE);
             newMenu.add(mi);
             if (p.getLastPathComponent() instanceof SQLTable) {
                 mi.setEnabled(true);
@@ -469,7 +472,7 @@ public class DBTree extends JTree implements DragSourceListener {
             
 			mi = new JMenuItem();
 			mi.setAction(af.getDeleteSelectedAction());
-			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+			mi.setActionCommand(ACTION_COMMAND_SRC_DBTREE);
 			newMenu.add(mi);
 			if (p.getLastPathComponent() instanceof SQLTable ||
 			        p.getLastPathComponent() instanceof SQLColumn ||

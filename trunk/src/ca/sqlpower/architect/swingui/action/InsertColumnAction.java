@@ -28,8 +28,8 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
 
 public class InsertColumnAction extends AbstractTableTargetedAction {
@@ -37,7 +37,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
 	
 	public InsertColumnAction(ArchitectSwingSession session) {
         super(session, Messages.getString("InsertColumnAction.name"), Messages.getString("InsertColumnAction.description"), "new_column"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+		putValue(ACTION_COMMAND_KEY, PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
 		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_C,0));
 		setEnabled(false);
 	}

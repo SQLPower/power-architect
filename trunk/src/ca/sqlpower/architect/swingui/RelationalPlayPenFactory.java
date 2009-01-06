@@ -130,7 +130,7 @@ public class RelationalPlayPenFactory {
                 menu.add(mi);
 
                 mi = new JMenuItem("Show PlayPen Components"); //$NON-NLS-1$
-                mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+                mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
                 mi.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent evt) {
                         StringBuffer componentList = new StringBuffer();
@@ -144,7 +144,7 @@ public class RelationalPlayPenFactory {
                 menu.add(mi);
 
                 mi = new JMenuItem("Show Undo Vector"); //$NON-NLS-1$
-                mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+                mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
                 mi.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent evt) {
                         JOptionPane.showMessageDialog(pp, new JScrollPane(new JTextArea(session.getUndoManager()
@@ -230,7 +230,7 @@ public class RelationalPlayPenFactory {
         pp.getActionMap().put(KEY_EDIT_SELECTION, new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 ActionEvent ev = new ActionEvent(e.getSource(), e.getID(),
-                        ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN, e.getWhen(), e.getModifiers());
+                        PlayPen.ACTION_COMMAND_SRC_PLAYPEN, e.getWhen(), e.getModifiers());
                 af.getEditSelectedAction().actionPerformed(ev);
             }
         });

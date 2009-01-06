@@ -43,9 +43,9 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.PlayPen;
 
 public class DeleteSelectedAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(DeleteSelectedAction.class);
@@ -60,7 +60,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
     public DeleteSelectedAction(ArchitectSwingSession session) throws ArchitectException {
         super(session, Messages.getString("DeleteSelectedAction.name"), Messages.getString("DeleteSelectedAction.description"), "delete"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
-        putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        putValue(ACTION_COMMAND_KEY, PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
 
         dbt = frame.getDbTree();
         dbt.addTreeSelectionListener(treeSelectionHandler);

@@ -452,23 +452,23 @@ public class ArchitectFrame extends JFrame {
         ppBar.add(zoomToFitAction);
         ppBar.addSeparator();
         tempButton = ppBar.add(deleteSelectedAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         ppBar.addSeparator();
         tempButton = ppBar.add(createTableAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         ppBar.addSeparator();
         tempButton  = ppBar.add(insertIndexAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         ppBar.addSeparator();
         tempButton = ppBar.add(insertColumnAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tempButton = ppBar.add(editSelectedAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         ppBar.addSeparator();
         ppBar.add(createNonIdentifyingRelationshipAction);
         ppBar.add(createIdentifyingRelationshipAction);
         tempButton = ppBar.add(editRelationshipAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         
         ppBar.setFocusable(false);
         for (Component c : ppBar.getComponents()) {
