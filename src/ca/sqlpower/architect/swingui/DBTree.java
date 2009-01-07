@@ -891,7 +891,7 @@ public class DBTree extends JTree implements DragSourceListener {
     public TreePath getTreePathForNode(SQLObject obj) {
         List<SQLObject> path = new ArrayList<SQLObject>();
         
-        while (obj != null) {
+        while (obj != null && obj != session.getRootObject()) {
             path.add(0, obj);
             obj = obj.getParent();
         }

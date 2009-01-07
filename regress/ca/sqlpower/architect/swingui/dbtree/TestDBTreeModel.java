@@ -30,6 +30,7 @@ import javax.swing.tree.TreePath;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.SQLColumn;
@@ -37,10 +38,11 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 
 public class TestDBTreeModel extends TestCase {
 
+    private ArchitectSession session;
+    
     private static class LoggingSwingTreeModelListener implements TreeModelListener {
 
         private int changeCount;
@@ -100,7 +102,7 @@ public class TestDBTreeModel extends TestCase {
     private DBTreeModel tm;
 
     protected void setUp() throws Exception {
-        ArchitectSessionImpl session = new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "TestSession");
+        session = new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "TestSession");
         tm = new DBTreeModel(session.getRootObject());
         tm.setTestMode(true);
 	}
@@ -143,5 +145,13 @@ public class TestDBTreeModel extends TestCase {
 
         assertTrue(actualPaths.contains(expectFkPath));
         assertTrue(actualPaths.contains(expectPkPath));
+    }
+    
+    public void testDBTreeRootParentNull() throws Exception {
+        assertNull(((SQLObject)tm.getRoot()).getParent());
+    }
+    
+    public void testDBTreeRootMatchesSessionRoot() throws Exception {
+        assertEquals(session.getRootObject(), tm.getRoot());
     }
 }
