@@ -83,7 +83,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
             return;
         }
         
-        List<SQLObject> deleteItems = getDeletableItems();
+        List<SQLObject> deleteItems = retrieveDeletableItems();
 
         int tCount = 0;
         int rCount = 0;
@@ -170,8 +170,9 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
     /**
      * Extracts the list of items we should try to delete from the DBTree's
      * selection list.
+     * Package private for testing.
      */
-    private List<SQLObject> getDeletableItems() {
+    List<SQLObject> retrieveDeletableItems() {
         TreePath[] selectionPaths = dbt.getSelectionPaths();
         if (selectionPaths == null) return Collections.emptyList();
         List <SQLObject> deleteItems = new ArrayList<SQLObject>(selectionPaths.length);
@@ -229,7 +230,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
      */
     private void setupAction() {
         String description;
-        List<SQLObject> deletableItems = getDeletableItems();
+        List<SQLObject> deletableItems = retrieveDeletableItems();
         if (deletableItems.size() == 0) {
             setEnabled(false);
             description = Messages.getString("DeleteSelectedAction.deleteSelected"); //$NON-NLS-1$

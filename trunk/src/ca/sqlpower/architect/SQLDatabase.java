@@ -66,6 +66,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * Indicates the maximum number of connections held active ever.
 	 */
 	private int maxActiveConnections = 0;
+	
+	private SQLObject parent;
 
 	/**
 	 * Constructor for instances that connect to a real database by JDBC.
@@ -317,11 +319,11 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * @return <code>null</code>
 	 */
 	public SQLObject getParent() {
-		return null;
+		return parent;
 	}
 
 	protected void setParent(SQLObject newParent) {
-		// no parent
+	    parent = newParent;
 	}
 
 	@Override

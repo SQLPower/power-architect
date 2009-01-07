@@ -953,6 +953,8 @@ public class TestSQLColumn extends SQLTestCase {
         final ArchitectSwingSession session = context.createSession(false);
         SQLDatabase db = new SQLDatabase();
         session.setSourceDatabaseList(Collections.singletonList(db));
+        session.getRootObject().addChild(session.getTargetDatabase());
+        assertEquals(session.getRootObject(), session.getTargetDatabase().getParent());
         
         final SQLTable sourceTable = new SQLTable(db, true);
         SQLColumn sourceColumn = new SQLColumn(sourceTable, "Source column", Types.VARCHAR, 10, 0);
@@ -960,7 +962,20 @@ public class TestSQLColumn extends SQLTestCase {
 
         SQLTable table = new SQLTable(session.getTargetDatabase(), true);
         SQLColumn column = SQLColumn.getDerivedInstance(sourceColumn, table);
+        
+        SQLObject o1Parent = column;
+        while (o1Parent.getParent() != null) {
+            o1Parent = o1Parent.getParent();
+            System.out.println("Columns ancestor is " + o1Parent);
+        }
+        SQLObject o2Parent = sourceColumn;
+        while (o2Parent.getParent() != null) {
+            o2Parent = o2Parent.getParent();
+            System.out.println("Source Column ancestor is " + o2Parent);
+        }
+        
+        assertTrue(ArchitectUtils.isInSameSession(column, sourceColumn));
 
-        assertNull(column.getSourceColumn());
+        assertNotNull(column.getSourceColumn());
     }
 }
