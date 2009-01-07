@@ -105,6 +105,12 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * then there was an exception the last time the children were attempted to be accessed.
 	 */
 	private Throwable childrenInaccessibleReason = null;
+	
+	/**
+	 * The parent of this SQLObject. This may be null if it is
+	 * a root object.
+	 */
+	private SQLObject parent;
 	 
 	public synchronized void setMagicEnabled(boolean enable) {
 		if (magicDisableCount < 0) {
@@ -179,15 +185,19 @@ public abstract class SQLObject implements java.io.Serializable {
 
 	/**
 	 * Returns the parent of this SQLObject or <code>null</code> if it
-	 * is a root object such as SQLDatabase.
+	 * is a root object.
 	 */
-	public abstract SQLObject getParent();
+	public SQLObject getParent() {
+	   return parent; 
+	}
 
 	/**
 	 * Parents call this on their children to update parent pointers
 	 * during addChild and removeChild requests.
 	 */
-	protected abstract void setParent(SQLObject parent);
+	protected void setParent(SQLObject parent) {
+	    this.parent = parent;
+	}
 	
 	/**
      * Causes this SQLObject to load its children through populateImpl (if any exist).

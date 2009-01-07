@@ -45,8 +45,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	protected SQLColumn sourceColumn;
 
-	protected SQLObject parent;
-
 	/**
 	 * Must be a type defined in java.sql.Types.  Move to enum in 1.5
 	 * (we hope!).
@@ -188,7 +186,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 			logger.debug("NEW COLUMN "+colName+"@"+hashCode()+" (null parent)");
 		}
         if (parentTable != null) {
-            this.parent = parentTable.getColumnsFolder();
+            setParent(parentTable.getColumnsFolder());
         }
 		this.setName(colName);
 		this.type = dataType;
@@ -237,7 +235,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		logger.debug("derived instance SQLColumn constructor invocation.");
 		SQLColumn c = new SQLColumn();
 		copyProperties(c, source);
-		c.parent = addTo.getColumnsFolder();
+		c.setParent(addTo.getColumnsFolder());
 		if (source != null && ArchitectUtils.isInSameSession(c, source)) {
 		    c.sourceColumn = source;
 		} else {
@@ -438,10 +436,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		return false;
 	}
 
-	public SQLObject getParent()  {
-		return this.parent;
-	}	
-
 	// ------------------------- accessors and mutators --------------------------
 
 	public SQLColumn getSourceColumn() {
@@ -631,8 +625,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 * Returns the parent SQLTable object, which is actually a grandparent.
 	 */
 	public SQLTable getParentTable() {
-		if (parent == null) return null;
-		else return (SQLTable) parent.getParent();
+		if (getParent() == null) return null;
+		else return (SQLTable) getParent().getParent();
 	}
 
 	/**
@@ -641,8 +635,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 * @param argParent Value to assign to this.parent
 	 */
 	protected void setParent(SQLObject argParent) {
-		SQLObject oldParent = this.parent;
-		this.parent = argParent;
+		SQLObject oldParent = getParent();
+		super.setParent(argParent);
 		fireDbObjectChanged("parent",oldParent,argParent);
 	}
 
@@ -751,7 +745,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
             this.primaryKeySeq = argPrimaryKeySeq;
             fireDbObjectChanged("primaryKeySeq",oldPrimaryKeySeq,argPrimaryKeySeq);
 
-            SQLObject p = parent;
+            SQLObject p = getParent();
             if (p != null) {
                 try {
                     p.setMagicEnabled(false);

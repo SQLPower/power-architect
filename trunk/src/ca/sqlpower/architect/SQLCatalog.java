@@ -34,8 +34,6 @@ import org.apache.log4j.Logger;
  */
 public class SQLCatalog extends SQLObject {
 	private static Logger logger = Logger.getLogger(SQLCatalog.class);
-	protected SQLObject parent;
-	
 
 	/**
 	 * The term used for catalogs in the native database system.  In
@@ -52,7 +50,7 @@ public class SQLCatalog extends SQLObject {
 	}
     
     public SQLCatalog(SQLDatabase parent, String name, boolean startPopulated) {
-        this.parent = parent;
+        setParent(parent);
         setName(name);
         this.children = new LinkedList();
         this.nativeTerm = "catalog";
@@ -104,15 +102,6 @@ public class SQLCatalog extends SQLObject {
 	}
 
 	// ---------------------- SQLObject support ------------------------
-
-	public SQLObject getParent() {
-		return parent;
-	}
-
-	protected void setParent(SQLObject newParent) {
-		parent = newParent;
-	}
-
 	
 	public String getShortDisplayName() {
 		return getName();
@@ -128,13 +117,13 @@ public class SQLCatalog extends SQLObject {
 		logger.debug("SQLCatalog: populate starting");
 	
 		int oldSize = children.size();
-		synchronized (parent) {
+		synchronized (getParent()) {
 			String oldCatalog = null;
 			Connection con = null;
 			ResultSet rs = null;
 			try {
 			
-				con = ((SQLDatabase) parent).getConnection();
+				con = ((SQLDatabase) getParent()).getConnection();
 				DatabaseMetaData dbmd = con.getMetaData();	
 				oldCatalog = con.getCatalog();
                 
@@ -202,7 +191,7 @@ public class SQLCatalog extends SQLObject {
 	// ----------------- accessors and mutators -------------------
 
 	public SQLDatabase getParentDatabase() {
-		return (SQLDatabase) parent;
+		return (SQLDatabase) getParent();
 	}
 
 
