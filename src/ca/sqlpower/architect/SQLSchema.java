@@ -34,7 +34,6 @@ import org.apache.log4j.Logger;
  */
 public class SQLSchema extends SQLObject {
 	private static final Logger logger = Logger.getLogger(SQLSchema.class);
-	protected SQLObject parent;
 	protected String nativeTerm;
 
 	public SQLSchema(boolean populated) {
@@ -45,7 +44,7 @@ public class SQLSchema extends SQLObject {
 		if (parent != null && !(parent instanceof SQLCatalog || parent instanceof SQLDatabase)) {
 			throw new IllegalArgumentException("Parent to SQLSchema must be SQLCatalog or SQLDatabase");
 		}
-		this.parent = parent;
+		setParent(parent);
 		setName(name);
 		this.children = new LinkedList();
 		this.nativeTerm = "schema";
@@ -70,19 +69,10 @@ public class SQLSchema extends SQLObject {
 	}
 
 	public boolean isParentTypeDatabase() {
-		return (parent instanceof SQLDatabase);
+		return (getParent() instanceof SQLDatabase);
 	}
 
 	// ---------------------- SQLObject support ------------------------
-
-	public SQLObject getParent() {
-		return parent;
-	}
-
-	protected void setParent(SQLObject newParent) {
-		parent = newParent;
-	}
-
 	
 	public String getShortDisplayName() {
 		return  getName();
@@ -106,7 +96,7 @@ public class SQLSchema extends SQLObject {
 
 		int oldSize = children.size();
 		
-		SQLObject tmp = parent;
+		SQLObject tmp = getParent();
 		while (tmp != null && (! (tmp instanceof SQLDatabase))) {
 			tmp = tmp.getParent();
 		}
@@ -120,10 +110,10 @@ public class SQLSchema extends SQLObject {
 				con = parentDatabase.getConnection();
 				DatabaseMetaData dbmd = con.getMetaData();
 				
-				if ( parent instanceof SQLDatabase ) {
+				if ( getParent() instanceof SQLDatabase ) {
                     SQLTable.addTablesToTableContainer(this, dbmd, null, getName());
-				} else if ( parent instanceof SQLCatalog ) {
-                    SQLTable.addTablesToTableContainer(this, dbmd, parent.getName(), getName());
+				} else if ( getParent() instanceof SQLCatalog ) {
+                    SQLTable.addTablesToTableContainer(this, dbmd, getParent().getName(), getName());
 				}
 			}
 		} catch (SQLException e) {

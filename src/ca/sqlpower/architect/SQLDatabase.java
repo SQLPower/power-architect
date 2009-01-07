@@ -67,8 +67,6 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 */
 	private int maxActiveConnections = 0;
 	
-	private SQLObject parent;
-
 	/**
 	 * Constructor for instances that connect to a real database by JDBC.
 	 */
@@ -312,19 +310,6 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	}
 
 	// ---------------------- SQLObject support ------------------------
-
-	/**
-	 * SQLDatabase objects don't have parents.
-	 *
-	 * @return <code>null</code>
-	 */
-	public SQLObject getParent() {
-		return parent;
-	}
-
-	protected void setParent(SQLObject newParent) {
-	    parent = newParent;
-	}
 
 	@Override
 	public String getName() {

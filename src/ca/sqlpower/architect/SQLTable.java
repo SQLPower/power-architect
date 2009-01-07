@@ -40,7 +40,6 @@ public class SQLTable extends SQLObject {
 
 	private static Logger logger = Logger.getLogger(SQLTable.class);
 
-	protected SQLObject parent;
 	protected String remarks="";
 	private String objectType;
 	protected String physicalPrimaryKeyName;
@@ -81,7 +80,7 @@ public class SQLTable extends SQLObject {
      * Sets up the values for the new Table
      */
     private void setup(SQLObject parent, String name, String remarks, String objectType) {
-        this.parent = parent;
+        super.setParent(parent);
 		super.setName(name);  // this.setName will try to be far to fancy at this point, and break stuff
 		this.remarks = remarks;
 		this.objectType = objectType;
@@ -807,17 +806,13 @@ public class SQLTable extends SQLObject {
 
 	// ---------------------- SQLObject support ------------------------
 
-	public SQLObject getParent() {
-		return parent;
-	}
-
 	//TODO XXX Sql object should be doing this when we add generics
 	protected void setParent(SQLObject newParent) {
-		logger.debug("Setting "+getName()+"'s parent to "+ newParent);
-		if (parent == newParent) return;
-		SQLObject oldVal = parent;
-		parent = newParent;
-		fireDbObjectChanged("parent",oldVal,parent);
+		logger.debug("Setting " + getName() + "'s parent to "+ newParent);
+		if (getParent() == newParent) return;
+		SQLObject oldVal = getParent();
+		super.setParent(newParent);
+		fireDbObjectChanged("parent", oldVal, getParent());
 	}
 
 
@@ -1084,7 +1079,7 @@ public class SQLTable extends SQLObject {
 	 * @return the value of parentDatabase
 	 */
 	public SQLDatabase getParentDatabase()  {
-		SQLObject o = this.parent;
+		SQLObject o = getParent();
 		while (o != null && ! (o instanceof SQLDatabase)) {
 			o = o.getParent();
 		}
@@ -1105,7 +1100,7 @@ public class SQLTable extends SQLObject {
 	}
 
 	public SQLCatalog getCatalog()  {
-		SQLObject o = this.parent;
+		SQLObject o = getParent();
 		while (o != null && ! (o instanceof SQLCatalog)) {
 			o = o.getParent();
 		}
@@ -1126,7 +1121,7 @@ public class SQLTable extends SQLObject {
 	}
 
 	public SQLSchema getSchema()  {
-		SQLObject o = this.parent;
+		SQLObject o = getParent();
 		while (o != null && ! (o instanceof SQLSchema)) {
 			o = o.getParent();
 		}
