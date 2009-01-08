@@ -77,15 +77,6 @@ public class CountingSQLObjectListener implements SQLObjectListener {
 		changedCount++;
 	}
 	
-	/**
-	 * Increments the structureChangedCount.
-	 */
-	public void dbStructureChanged(SQLObjectEvent e) {
-		lastEvent=e;
-		structureChangedCount++;
-	}
-	
-	
 	// =========== Getters ============
 	
 	/**

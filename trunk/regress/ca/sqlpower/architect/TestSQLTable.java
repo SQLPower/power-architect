@@ -869,15 +869,6 @@ public class TestSQLTable extends SQLTestCase {
             // FIXME have to unlisten to old objects and listen to new ones
         }
 
-        /**
-         * Listener method.  Throws UnsupportedOperationException when called, because we are trying
-         * to wean the object model from StructureChangeEvents, because they are not undoable.
-         * Failing early will help to weed these events out of the object model.
-         */
-        public void dbStructureChanged(SQLObjectEvent e) {
-            throw new UnsupportedOperationException("Structure changes are not undoable");
-        }
-
         public void compoundEditStart(UndoCompoundEvent e) {
             // whatever
         }
@@ -1225,11 +1216,6 @@ public class TestSQLTable extends SQLTestCase {
                 
             }
 
-            public void dbStructureChanged(SQLObjectEvent e) {
-                // TODO Auto-generated method stub
-                
-            }
-            
         }
         table.getColumnsFolder().addSQLObjectListener(new InsertListener());
         SQLRelationship selfref = new SQLRelationship();

@@ -1581,7 +1581,6 @@ public class PlayPen extends JPanel
 
 				while (soIt.hasNext() && !isCancelled()) {
 					SQLObject someData = soIt.next();
-					someData.fireDbStructureChanged();
 					if (someData instanceof SQLTable) {
 						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation);
 						message = ArchitectUtils.truncateString(((SQLTable)someData).getName());
@@ -1774,22 +1773,6 @@ public class PlayPen extends JPanel
 	public void dbObjectChanged(SQLObjectEvent e) {
 		firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
 		revalidate();
-	}
-
-	/**
-	 * Listens for property changes in the model (significant
-	 * structure change).  If this change affects the appearance of
-	 * this widget, we will notify all change listeners (the UI
-	 * delegate) with a ChangeEvent.
-	 *
-	 * <p>NOTE: This is not currently implemented.
-	 */
-	public void dbStructureChanged(SQLObjectEvent e) {
-		logger.debug("Playpen has recieved a db structure change this is unsupported at the moment"); //$NON-NLS-1$
-		//throw new UnsupportedOperationException
-		//	("FIXME: we have to make sure we're listening to the right objects now!");
-		//firePropertyChange("model.children", null, null);
-		//revalidate();
 	}
 
 	// --------------- SELECTION METHODS ----------------

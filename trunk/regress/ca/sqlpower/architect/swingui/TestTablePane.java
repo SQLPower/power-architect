@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.CountingSQLObjectListener;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
@@ -323,21 +322,28 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
      * folder. 
      */
     public void testDropColumnBetweenTablesFiresFolderEvent() throws Exception {
-        CountingSQLObjectListener listener = new CountingSQLObjectListener();
-        tp.getModel().getColumnsFolder().addSQLObjectListener(listener);
         
-        SQLTable table = new SQLTable(tp.getModel().getParentDatabase(), true);
+        SQLRelationship rel = new SQLRelationship();
+        rel.setIdentifying(true);
+        SQLTable fkTable = new SQLTable(tp.getModel().getParentDatabase(), true);
+        rel.attachRelationship(t, fkTable, true);
+
         SQLColumn col = new SQLColumn();
         col.setName("Test Col");
-        table.addColumn(col);
+        fkTable.addColumn(col);
         
-        System.out.println(tp.getModel().getParentDatabase() + ", "+ table.getParentDatabase());
+        assertEquals(3, t.getPkSize());
+        assertEquals(3, fkTable.getPkSize());
+        
+        System.out.println(tp.getModel().getParentDatabase() + ", "+ fkTable.getParentDatabase());
         tp.insertObjects(Collections.singletonList(col), TablePane.COLUMN_INDEX_END_OF_PK);
         
         assertEquals(tp.getModel(), col.getParentTable());
         assertTrue(col.isPrimaryKey());
-        assertEquals(1, listener.getStructureChangedCount());
-        
+        assertEquals(4, fkTable.getColumns().size());
+        assertEquals(4, rel.getMappings().size());
+        assertNotNull(rel.getMappingByPkCol(col));
+        assertNotNull(rel.getMappingByFkCol(fkTable.getColumn(0)));
     }
 
     @Override

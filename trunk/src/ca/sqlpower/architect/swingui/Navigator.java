@@ -244,9 +244,6 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
         navigationPanel.repaint();
     }
 
-    public void dbStructureChanged(SQLObjectEvent e) {
-    }
-    
     /**
      * Refreshes the navigator upon scrolling
      */

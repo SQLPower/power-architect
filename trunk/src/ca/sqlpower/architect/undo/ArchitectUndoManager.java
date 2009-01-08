@@ -225,13 +225,6 @@ public class ArchitectUndoManager extends javax.swing.undo.UndoManager implement
             }
         }
 
-        public void dbStructureChanged(SQLObjectEvent e) {
-            logger.error("Unexpected structure change event");
-
-            // too many changes clear undo
-            ArchitectUndoManager.this.discardAllEdits();
-        }
-
         /**
          * Packs property change event into PropertyChangeEdit and then adds
          * to the undo manager.

@@ -119,10 +119,5 @@ public class SQLObjectComboBoxModel implements ComboBoxModel {
             // doesn't matter
         }
 
-        public void dbStructureChanged(SQLObjectEvent e) {
-            // I don't think these happen
-            fireListDataEvent(ListDataEvent.CONTENTS_CHANGED, 0, 0);
-        }
-        
     };
 }

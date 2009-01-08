@@ -66,10 +66,6 @@ public class SQLObjectTest extends SQLTestCase {
 			fireDbObjectChanged(string,oldValue,newValue);
 		}
 		
-		// manually call fireDbStructureChanged, so it can be tested.
-		public void fakeStructureChanged() {
-			fireDbStructureChanged();
-		}
 		@Override
 		public Class<? extends SQLObject> getChildType() {
 			return SQLObject.class;
@@ -169,11 +165,9 @@ public class SQLObjectTest extends SQLTestCase {
     public void testFireStructureChangeEvent() throws Exception {
         CountingSQLObjectListener l = new CountingSQLObjectListener();
         target.addSQLObjectListener(l);
-		((SQLObjectImpl)target).fakeStructureChanged();
         assertEquals(0, l.getInsertedCount());
         assertEquals(0, l.getRemovedCount());
         assertEquals(0, l.getChangedCount());
-        assertEquals(1, l.getStructureChangedCount());
     }
     
     public void testAddRemoveListener() {
@@ -185,18 +179,6 @@ public class SQLObjectTest extends SQLTestCase {
         target.removeSQLObjectListener(l);
 		assertEquals(0, target.getSQLObjectListeners().size());
 	}
-    
-    public void testRemovedListenerUnlistens() {
-        CountingSQLObjectListener l = new CountingSQLObjectListener();
-        target.addSQLObjectListener(l);
-        
-        ((SQLObjectImpl)target).fakeStructureChanged();
-        assertEquals(1, l.getStructureChangedCount());
-        
-        target.removeSQLObjectListener(l);
-        ((SQLObjectImpl)target).fakeStructureChanged();
-        assertEquals(1, l.getStructureChangedCount());
-    }
 	
 	public void testNoMixChildTypes() throws ArchitectException {
 		target.addChild(new SQLColumn());

@@ -704,7 +704,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	public Integer getPrimaryKeySeq()  {
 		return this.primaryKeySeq;
 	}
-
+	
     /**
      * Sets the value of primaryKeySeq, and moves the column to the appropriate location in the
      * parent table's column folder.  However, if magic is disabled on this column, this method
@@ -715,6 +715,22 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
      * with default values.
      */
 	public void setPrimaryKeySeq(Integer argPrimaryKeySeq) {
+	    setPrimaryKeySeq(argPrimaryKeySeq, true);
+	}
+
+    /**
+     * Sets the value of primaryKeySeq, and moves the column to the appropriate location in the
+     * parent table's column folder.  However, if magic is disabled on this column, this method
+     * simply sets the PrimaryKeySeq property to the given value, fires the change event, and
+     * returns without trying to re-order the columns. 
+     * 
+     * If there is no primary key on this column's table it will create a new key
+     * with default values.
+     * 
+     * @param normalizeKey pass in false if the key should not be normalized when setting this
+     *      key's primary sequence.
+     */
+	public void setPrimaryKeySeq(Integer argPrimaryKeySeq, boolean normalizeKey) {
 	    // do nothing if there's no change
 	    if ( (primaryKeySeq == null && argPrimaryKeySeq == null) ||
 	         (primaryKeySeq != null && primaryKeySeq.equals(argPrimaryKeySeq)) ) {
@@ -766,7 +782,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
                 } finally {
                     p.setMagicEnabled(true);
                 }
-	            getParentTable().normalizePrimaryKey();
+                if (normalizeKey) {
+                    getParentTable().normalizePrimaryKey();
+                }
             }
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);

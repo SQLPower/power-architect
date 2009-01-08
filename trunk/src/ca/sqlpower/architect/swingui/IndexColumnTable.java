@@ -157,8 +157,6 @@ public class IndexColumnTable {
             public void dbObjectChanged(SQLObjectEvent e) {
             }
 
-            public void dbStructureChanged(SQLObjectEvent e) {
-            }
         }
         
         /**
@@ -359,10 +357,6 @@ public class IndexColumnTable {
 
         public void dbObjectChanged(SQLObjectEvent e) {
             fireTableDataChanged();
-        }
-
-        public void dbStructureChanged(SQLObjectEvent e) {
-            throw new UnsupportedOperationException("Bad idea.. nothing can cope with dbstructurechanged events."); //$NON-NLS-1$
         }
 
     }

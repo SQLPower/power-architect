@@ -881,33 +881,6 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			}
 		}
 
-		public void dbStructureChanged(SQLObjectEvent e) {
-			if (!(e.getSQLSource().isMagicEnabled())){
-				logger.debug("Magic disabled ignoring sqlobjectEvent "+e);
-				return;
-			}
-			logger.debug("Received a dbStructure changed event");
-			// wow!  let's re-scan the whole table
-			// FIXME: This should also check if this relationship is still part of pktable and fktable, and copy properties from pkcol to fkcol in the mappings
-			try {
-				startCompoundEdit("Structure Change");
-				Iterator it = pkTable.getColumns().iterator();
-				while (it.hasNext()) {
-					SQLColumn col = (SQLColumn) it.next();
-					if (col.getPrimaryKeySeq() != null) {
-						ensureInMapping(col);
-					} else {
-						ensureNotInMapping(col);
-					}
-				}
-			} catch (ArchitectException ex) {
-				logger.warn("Coulnd't re-scan table as a result of dbStructureChanged", ex);
-			} finally {
-				endCompoundEdit("End structure changed handler");
-			}
-
-		}
-
         // XXX this code serves essentially the same purpose as the loop in realizeMapping().
         //     We should refactor that method to use this one as a subroutine, and at that
         //     time, ensure the special cases in both places are preserved.

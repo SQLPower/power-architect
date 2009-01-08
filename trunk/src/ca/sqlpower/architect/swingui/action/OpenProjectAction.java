@@ -37,7 +37,6 @@ import javax.swing.ProgressMonitorInputStream;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
@@ -195,7 +194,6 @@ public class OpenProjectAction extends AbstractArchitectAction {
             } else {
                 recent.putRecentFileName(file.getAbsolutePath());
                 session.initGUI(openingSession);
-                ((SQLObject) session.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
             }
 
             try {
