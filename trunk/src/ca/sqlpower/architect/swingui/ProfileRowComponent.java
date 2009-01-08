@@ -26,13 +26,16 @@ import java.awt.Insets;
 import java.awt.LayoutManager2;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BorderFactory;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -40,6 +43,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
 import org.apache.log4j.Logger;
 
@@ -299,21 +304,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
             Object obj = evt.getSource();
             if (evt.getButton() == MouseEvent.BUTTON1) {
                 if (evt.getClickCount() == 2) {
-                    if (getResult().getException() != null) {
-                        ASUtils.showExceptionDialogNoReport(
-                                ProfileRowComponent.this,
-                                "Profiling failed for table " + getResult().getProfiledObject(),
-                                getResult().getException());
-                    } else if (getResult().getProgressMonitor().isFinished() && 
-                                    !getResult().getProgressMonitor().isCancelled() &&
-                                    !(obj instanceof JButton)) {
-                        ProfileResultsViewer profileResultsViewer = 
-                            new ProfileResultsViewer((ProfileManagerImpl) pm);
-                        profileResultsViewer.clearScanList();
-                        profileResultsViewer.addTableProfileResultToScan(result);
-                        profileResultsViewer.addTableProfileResult(result);
-                        profileResultsViewer.getDialog().setVisible(true);
-                    }
+                    showProfile(obj);
                 } else if ((evt.getModifiers() & InputEvent.CTRL_MASK) != 0){
                     setSelected(!selected, SelectionEvent.CTRL_MULTISELECT);
                 } else if ((evt.getModifiers() & InputEvent.SHIFT_MASK) != 0){
@@ -322,6 +313,28 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                     setSelected(true, SelectionEvent.SINGLE_SELECT);
                 }
             }
+        }
+    }
+    
+    /**
+     * This will show the profile for a specific table (the source) or
+     * an exception if the profile failed.
+     */
+    private void showProfile(Object source) {
+        if (getResult().getException() != null) {
+            ASUtils.showExceptionDialogNoReport(
+                    ProfileRowComponent.this,
+                    "Profiling failed for table " + getResult().getProfiledObject(),
+                    getResult().getException());
+        } else if (getResult().getProgressMonitor().isFinished() && 
+                        !getResult().getProgressMonitor().isCancelled() &&
+                        !(source instanceof JButton)) {
+            ProfileResultsViewer profileResultsViewer = 
+                new ProfileResultsViewer((ProfileManagerImpl) pm);
+            profileResultsViewer.clearScanList();
+            profileResultsViewer.addTableProfileResultToScan(result);
+            profileResultsViewer.addTableProfileResult(result);
+            profileResultsViewer.getDialog().setVisible(true);
         }
     }
     
@@ -387,10 +400,23 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         super(new RowComponentLayout(5, 5));
         this.result = result;
         this.pm = pm;
-        setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        setBorder(new EmptyBorder(4, 4, 4, 4));
         setBackground(Color.WHITE);
 
         add(new JLabel(tableIcon), ComponentType.ICON);
+        
+        addFocusListener(new FocusListener() {
+        
+            public void focusLost(FocusEvent e) {
+                setBorder(new EmptyBorder(4, 4, 4, 4));
+                logger.debug("Focus lost on " + result.getProfiledObject().getName() + " bounds are " + getBounds());
+            }
+        
+            public void focusGained(FocusEvent e) {
+                setBorder(new LineBorder(Color.BLACK));
+                logger.debug("Focus gained on " + result.getProfiledObject().getName() + " bounds are " + getBounds());
+            }
+        });
         
         this.reProfileButton = new JButton(refreshIcon);
         reProfileButton.addActionListener(new ActionListener() {
@@ -411,15 +437,16 @@ public class ProfileRowComponent extends JPanel implements Selectable {
             }
         });
         
-        this.deleteButton = new JButton(deleteIcon);
-        deleteButton.addActionListener(new ActionListener() {
+        Action deleteAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 logger.debug("ProfileRowComponent: DELETE object: " + result);
                 pm.removeProfile(result);
             }
-        });
+        };
+        deleteButton = new JButton(deleteAction);
+        deleteButton.setIcon(deleteIcon);
         add(deleteButton, ComponentType.DELETE);
-
+        
         SQLTable table = result.getProfiledObject();
         
         StringBuilder tableName = new StringBuilder();
@@ -462,6 +489,11 @@ public class ProfileRowComponent extends JPanel implements Selectable {
     private final JProgressBar progressBar = new JProgressBar();
     
     public void setSelected(boolean v,int selectionType) {
+        logger.debug("Is this profile row component focusable? " + isFocusable());
+        logger.debug("Does this panel have focus? " + isFocusOwner());
+        if (v) {
+            requestFocusInWindow();
+        }
         selected = v;
         setBackground(selected ? UIManager.getColor("List.selectionBackground"): UIManager.getColor("List.background"));
         fireSelectionEvent(new SelectionEvent(ProfileRowComponent.this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT,selectionType));
@@ -504,5 +536,10 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         for (int i = profileListeners.size() - 1; i >= 0; i--) {
             profileListeners.get(i).profileListChanged(e);
         }
+    }
+    
+    @Override
+    public String toString() {
+        return result.getProfiledObject().getName() + " with status " + statusLabel.getText();
     }
 }
