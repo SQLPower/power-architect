@@ -99,13 +99,6 @@ public class SQLIndex extends SQLObject {
                 }
             }
 
-            /**
-             * Refires structure change events from the target SQLColumn.
-             */
-            public void dbStructureChanged(SQLObjectEvent e) {
-                Column.this.fireDbStructureChanged();
-            }
-
             @Override
             public String toString() {
                 StringBuffer buf = new StringBuffer();

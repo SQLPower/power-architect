@@ -98,7 +98,4 @@ public class CountingUndoCompoundEventListener implements
 		liveEdits++;
 	}
 
-	public void dbStructureChanged(SQLObjectEvent e) {
-		liveEdits++;
-	}
 }

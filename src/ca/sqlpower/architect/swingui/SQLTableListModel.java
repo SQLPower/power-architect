@@ -146,12 +146,4 @@ public class SQLTableListModel implements ListModel, SQLObjectListener {
 		}
 	}
 
-	public void dbStructureChanged(SQLObjectEvent e) {
-		int[] changedIndices = e.getChangedIndices();
-		for (int i = 0; i < changedIndices.length; i++) {
-			// XXX: should group contiguous regions into one event!
-			fireContentsChanged(changedIndices[i], changedIndices[i]);
-		}
-	}
-
 }

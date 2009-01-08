@@ -384,21 +384,6 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		}
     }
 
-	public void dbStructureChanged(SQLObjectEvent e) {
-		logger.debug("dbStructureChanged. source="+e.getSource()); //$NON-NLS-1$
-		try {			
-			ArchitectUtils.listenToHierarchy(this, e.getSQLSource());
-		} catch (ArchitectException ex) {
-			logger.error("Couldn't listen to hierarchy rooted at "+e.getSQLSource(), ex); //$NON-NLS-1$
-		}
-        if ((!SwingUtilities.isEventDispatchThread()) && (!testMode)) {
-            logger.debug("Not refiring because this is not the EDT."); //$NON-NLS-1$
-            return;
-        }
-		TreeModelEvent tme = new TreeModelEvent(this, getPathsToNode(e.getSQLSource()).get(0));
-		fireTreeStructureChanged(tme);
-	}
-    
     /**
      * Sets the {@link #testMode} flag.
      */

@@ -24,14 +24,12 @@ public class TestingSQLObjectListener implements SQLObjectListener {
     private int insertedCount;
     private int removedCount;
     private int changedCount;
-    private int structureChangedCount;
     private String lastEventName;
 
     public TestingSQLObjectListener() {
         insertedCount = 0;
         removedCount = 0;
         changedCount = 0;
-        structureChangedCount = 0;
         lastEventName = null;
     }
     public void dbChildrenInserted(SQLObjectEvent e) {
@@ -47,10 +45,6 @@ public class TestingSQLObjectListener implements SQLObjectListener {
         lastEventName = e.getPropertyName();
     }
 
-    public void dbStructureChanged(SQLObjectEvent e) {
-        structureChangedCount++;
-    }
-
     public int getInsertedCount() {
         return insertedCount;
     }
@@ -60,9 +54,6 @@ public class TestingSQLObjectListener implements SQLObjectListener {
     }
     public int getChangedCount() {
         return changedCount;
-    }
-    public int getStructureChangedCount() {
-        return structureChangedCount;
     }
     public String getLastEventName() {
         return lastEventName;

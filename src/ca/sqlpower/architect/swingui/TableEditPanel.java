@@ -250,10 +250,6 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 
     }
 
-    public void dbStructureChanged(SQLObjectEvent e) {
-
-    }
-
     public void setEditDialog(JDialog editDialog) {
         this.editDialog = editDialog;
     }

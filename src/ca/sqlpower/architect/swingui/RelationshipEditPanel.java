@@ -383,10 +383,6 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         
     }
 
-    public void dbStructureChanged(SQLObjectEvent e) {
-        
-    }
-    
     public void setEditDialog(JDialog editDialog) {
         this.editDialog = editDialog;
     }

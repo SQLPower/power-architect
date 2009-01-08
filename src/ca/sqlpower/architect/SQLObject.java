@@ -506,32 +506,6 @@ public abstract class SQLObject implements java.io.Serializable {
 		if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners.");
 	}
 
-	/**
-	 * Notifies listeners that a major change has occurred at or under this node.
-	 *
-	 * <p>Note: This method is public because the PlayPen's Objects-Adder cleanup method
-	 * needs to generate these notifications.  That kind of code should be in this package instead.
-	 */
-	public void fireDbStructureChanged() {
-		if (logger.isDebugEnabled()) {
-			logger.debug(getClass().getName()+" "+toString()+": " +
-					"firing dbStructureChanged event");
-		}
-		SQLObjectEvent e = new SQLObjectEvent(
-				this,
-				null);
-
-		int count = 0;
-		synchronized(sqlObjectListeners) {
-			SQLObjectListener[] listeners = sqlObjectListeners.toArray(new SQLObjectListener[0]);
-			for(int i = listeners.length-1;i>=0;i--) {
-				count++;
-				listeners[i].dbStructureChanged(e);
-			}
-		}
-		if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners.");
-	}
-
     // ------------------- sql object Pre-event support -------------------
     private final transient List<SQLObjectPreEventListener> sqlObjectPreEventListeners = 
         new ArrayList<SQLObjectPreEventListener>();

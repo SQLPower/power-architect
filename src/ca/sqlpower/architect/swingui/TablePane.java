@@ -329,29 +329,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             //repaint();
         }
 
-        /**
-         * Listens for property changes in the model (significant
-         * structure change).  If this change affects the appearance of
-         * this widget, we will notify all change listeners (the UI
-         * delegate) with a ChangeEvent.
-         */
-        public void dbStructureChanged(SQLObjectEvent e) {
-            logger.debug("TablePane got db structure change event. source="+e.getSource()); //$NON-NLS-1$
-            if (e.getSource() == model.getColumnsFolder()) {
-                selectNone();
-                columnHighlight = new HashMap<SQLColumn,List<Color>>();
-                try {
-                    for (SQLColumn child :((List<SQLColumn>) model.getColumnsFolder().getChildren())) {
-                        columnHighlight.put(child,new ArrayList<Color>());
-                    }
-                } catch (ArchitectException e1) {
-                    throw new ArchitectRuntimeException(e1);
-                }
-                updateHiddenColumns();
-                firePropertyChange("model.children", null, null); //$NON-NLS-1$
-                //revalidate();
-            }
-        }
     }
 
 	// ----------------------- accessors and mutators --------------------------
@@ -526,22 +503,17 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 								+"' to table '"+getModel().getName() //$NON-NLS-1$
 								+"' at position "+ipWatcher.getInsertionPoint()); //$NON-NLS-1$
 					}
-					try {
-                        // You need to disable the magic (really the normalization) otherwise it goes around
-                        // the property change events and causes undo to fail when dragging into the primary
-                        // key of a table
-					    getModel().setMagicEnabled(false);
-					    getModel().addColumn(ipWatcher.getInsertionPoint(), col);
+					getModel().addColumn(ipWatcher.getInsertionPoint(), col);
+					// You need to disable the normalization otherwise it goes around
+					// the property change events and causes undo to fail when dragging
+					// into the primary key of a table
+					logger.debug("Column listeners are " + col.getSQLObjectListeners());
 
-					    if (newColumnsInPk) {
-					        col.setPrimaryKeySeq(new Integer(ipWatcher.getInsertionPoint()));
-					    } else {
-					        col.setPrimaryKeySeq(null);
-					    }
-					} finally {
-                        getModel().setMagicEnabled(true);
+					if (newColumnsInPk) {
+					    col.setPrimaryKeySeq(new Integer(ipWatcher.getInsertionPoint()), false);
+					} else {
+					    col.setPrimaryKeySeq(null, false);
 					}
-					getModel().getColumnsFolder().fireDbStructureChanged();
 				} else {
 					// importing column from a source database
 					getModel().inherit(insertionPoint, col, newColumnsInPk);

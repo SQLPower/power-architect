@@ -736,9 +736,6 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
 
         }
 
-        public void dbStructureChanged(SQLObjectEvent e) {
-
-        }
     };
  
     /**

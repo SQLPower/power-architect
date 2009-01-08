@@ -211,9 +211,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         projectModificationWatcher = new ProjectModificationWatcher(playPen);
         
         getRootObject().addSQLObjectListener(new SQLObjectListener() {
-            public void dbStructureChanged(SQLObjectEvent e) {
-                isNew = false;
-            }
             public void dbObjectChanged(SQLObjectEvent e) {
                 isNew = false;        
             }
@@ -651,16 +648,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         /** Marks project dirty. */
         public void dbObjectChanged(SQLObjectEvent e) {
             getProject().setModified(true);
-            isNew = false;
-        }
-
-        /** Marks project dirty and listens to new hierarchy. */
-        public void dbStructureChanged(SQLObjectEvent e) {
-            try {
-                ArchitectUtils.listenToHierarchy(this, e.getSQLSource());
-            } catch (ArchitectException e1) {
-                logger.error("dbStructureChanged listener: Failed to listen to new project hierarchy", e1); //$NON-NLS-1$
-            }
             isNew = false;
         }
 

@@ -89,13 +89,6 @@ public class InsertionPointWatcher<T extends SQLObject> {
             // don't care
         }
 
-        public void dbStructureChanged(SQLObjectEvent e) {
-            logger.error(
-                    "Received structure change event, which is" +
-                    "not supported. Setting target index to 0");
-            insertionPoint = 0;
-        }
-        
     }
 
     /**

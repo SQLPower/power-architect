@@ -447,10 +447,6 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 		}
 	}
 
-	public void dbStructureChanged(SQLObjectEvent e) {
-        // not sure if this ever happens!
-	}
-
     /**
      * Determines if the given rectangle is visibly touching this component.
      * 
