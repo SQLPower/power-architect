@@ -36,6 +36,7 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -43,8 +44,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.UIManager;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 
 import org.apache.log4j.Logger;
 
@@ -400,7 +399,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         super(new RowComponentLayout(5, 5));
         this.result = result;
         this.pm = pm;
-        setBorder(new EmptyBorder(4, 4, 4, 4));
+        setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
         setBackground(Color.WHITE);
 
         add(new JLabel(tableIcon), ComponentType.ICON);
@@ -408,12 +407,12 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         addFocusListener(new FocusListener() {
         
             public void focusLost(FocusEvent e) {
-                setBorder(new EmptyBorder(4, 4, 4, 4));
+                setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
                 logger.debug("Focus lost on " + result.getProfiledObject().getName() + " bounds are " + getBounds());
             }
         
             public void focusGained(FocusEvent e) {
-                setBorder(new LineBorder(Color.BLACK));
+                setBorder(BorderFactory.createLineBorder(Color.BLACK));
                 logger.debug("Focus gained on " + result.getProfiledObject().getName() + " bounds are " + getBounds());
             }
         });
