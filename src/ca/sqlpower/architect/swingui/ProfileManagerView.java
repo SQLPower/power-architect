@@ -27,8 +27,6 @@ import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
@@ -148,10 +146,10 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
          * This scroll pane contains the ResultListPanel to be displayed. This
          * can be null if the ResultListPanel is not in a JScrollPane.
          */
-        private final JScrollPane parentPanel;
+        private final JScrollPane parentScrollPane;
         
         public ResultListPanel(JScrollPane parent) {
-            this.parentPanel = parent;
+            this.parentScrollPane = parent;
             getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), SELECT_ABOVE_ACTION);
             getActionMap().put(SELECT_ABOVE_ACTION, new AbstractAction() {
                 public void actionPerformed(ActionEvent e) {
@@ -168,9 +166,9 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
                     if (showingRows.indexOf(focusedRow) != 0) {
                         ProfileRowComponent abovePRC = showingRows.get(showingRows.indexOf(focusedRow) - 1);
                         abovePRC.setSelected(true, SelectionEvent.SINGLE_SELECT);
-                        if (parentPanel != null) {
-                            Rectangle viewRect = parentPanel.getViewport().getViewRect();
-                            parentPanel.getViewport().scrollRectToVisible(new Rectangle((int) (abovePRC.getX() - viewRect.getX()),
+                        if (parentScrollPane != null) {
+                            Rectangle viewRect = parentScrollPane.getViewport().getViewRect();
+                            parentScrollPane.getViewport().scrollRectToVisible(new Rectangle((int) (abovePRC.getX() - viewRect.getX()),
                                                                                         (int) (abovePRC.getY() - viewRect.getY()),
                                                                                         (int) (abovePRC.getWidth()),
                                                                                         (int) (abovePRC.getHeight())));
@@ -194,9 +192,9 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
                     if (showingRows.indexOf(focusedRow) != showingRows.size() - 1) {
                         ProfileRowComponent belowPRC = showingRows.get(showingRows.indexOf(focusedRow) + 1);
                         belowPRC.setSelected(true, SelectionEvent.SINGLE_SELECT);
-                        if (parentPanel != null) {
-                            Rectangle viewRect = parentPanel.getViewport().getViewRect();
-                            parentPanel.getViewport().scrollRectToVisible(new Rectangle((int) (belowPRC.getX() - viewRect.getX()),
+                        if (parentScrollPane != null) {
+                            Rectangle viewRect = parentScrollPane.getViewport().getViewRect();
+                            parentScrollPane.getViewport().scrollRectToVisible(new Rectangle((int) (belowPRC.getX() - viewRect.getX()),
                                                                                         (int) (belowPRC.getY() - viewRect.getY()),
                                                                                         (int) (belowPRC.getWidth()),
                                                                                         (int) (belowPRC.getHeight())));
@@ -431,14 +429,6 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         resultListPanel = new ResultListPanel(scrollPane);
         scrollPane.setViewportView(resultListPanel);
         resultListPanel.setFocusable(true);
-        resultListPanel.addFocusListener(new FocusListener() {
-            public void focusLost(FocusEvent e) {
-                logger.debug("Result list lost focus");
-            }
-            public void focusGained(FocusEvent e) {
-                logger.debug("Result list gained focus");
-            }
-        });
         resultListPanel.addKeyListener(pageListener);
         resultListPanel.setBackground(UIManager.getColor("List.background")); //$NON-NLS-1$
         resultListPanel.setLayout(new GridLayout(0, 1));
