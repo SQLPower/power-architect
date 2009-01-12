@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -71,7 +70,6 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
     public static final ImageIcon UNIQUE_INDEX_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_unique16.png"));
     public static final ImageIcon COLUMN_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Column16.png"));
     public static final ImageIcon ERROR_BADGE = new ImageIcon(ClassLoader.getSystemResource("icons/parts/noAccess.png"));
-    public static final Icon DB_ERROR_ICON = new ComposedIcon(Arrays.asList(DB_ICON, ERROR_BADGE));
    
     private final List<IconFilter> iconFilterChain = new ArrayList<IconFilter>();
     
@@ -89,11 +87,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 		setText(value.toString());
 	    setToolTipText(getText());
 	    
-        if (value instanceof SQLObject && ((SQLObject) value).getChildrenInaccessibleReason() != null) {
-            logger.debug("Children are not accessible from the node " + ((SQLObject) value).getName());
-            setIcon(DB_ERROR_ICON);
-            setToolTipText("Inaccessible: " + ((SQLObject) value).getChildrenInaccessibleReason());
-        } else if (value instanceof SQLDatabase) {
+        if (value instanceof SQLDatabase) {
 			SQLDatabase db = (SQLDatabase) value;
 			if (db.isPlayPenDatabase()) {
 				setIcon(TARGET_DB_ICON);
@@ -155,6 +149,12 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
         } else {
 			setIcon(null);
 		}
+        
+        if (getIcon() != null && value instanceof SQLObject && ((SQLObject) value).getChildrenInaccessibleReason() != null) {
+            logger.debug("Children are not accessible from the node " + ((SQLObject) value).getName());
+            setIcon(new ComposedIcon(Arrays.asList(getIcon(), ERROR_BADGE)));
+            setToolTipText("Inaccessible: " + ((SQLObject) value).getChildrenInaccessibleReason());
+        }
 
 		this.selected = sel;
 		this.hasFocus = hasFocus;
