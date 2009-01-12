@@ -22,9 +22,11 @@ package ca.sqlpower.architect.swingui.dbtree;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -40,6 +42,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.Column;
+import ca.sqlpower.swingui.ComposedIcon;
 
 /**
  * The DBTreeCellRenderer renders nodes of a JTree which are of
@@ -67,7 +70,8 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
     public static final ImageIcon PK_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_key16.png"));
     public static final ImageIcon UNIQUE_INDEX_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_unique16.png"));
     public static final ImageIcon COLUMN_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Column16.png"));
-    public static final ImageIcon ERROR_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/stop16.png"));
+    public static final ImageIcon ERROR_BADGE = new ImageIcon(ClassLoader.getSystemResource("icons/parts/noAccess.png"));
+    public static final Icon DB_ERROR_ICON = new ComposedIcon(Arrays.asList(DB_ICON, ERROR_BADGE));
    
     private final List<IconFilter> iconFilterChain = new ArrayList<IconFilter>();
     
@@ -87,7 +91,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 	    
         if (value instanceof SQLObject && ((SQLObject) value).getChildrenInaccessibleReason() != null) {
             logger.debug("Children are not accessible from the node " + ((SQLObject) value).getName());
-            setIcon(ERROR_ICON);
+            setIcon(DB_ERROR_ICON);
             setToolTipText("Inaccessible: " + ((SQLObject) value).getChildrenInaccessibleReason());
         } else if (value instanceof SQLDatabase) {
 			SQLDatabase db = (SQLDatabase) value;
