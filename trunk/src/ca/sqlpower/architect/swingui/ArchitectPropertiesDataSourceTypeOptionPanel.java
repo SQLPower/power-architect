@@ -63,6 +63,7 @@ import ca.sqlpower.architect.profile.RemoteDatabaseProfileCreator.StringLengthSQ
 import ca.sqlpower.sql.SPDataSourceType;
 import ca.sqlpower.swingui.AddRemoveIcon;
 import ca.sqlpower.swingui.db.DataSourceTypeEditorTabPanel;
+import ca.sqlpower.swingui.table.TableUtils;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
@@ -281,7 +282,6 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
     
     public ArchitectPropertiesDataSourceTypeOptionPanel() {
         panel = new JPanel(new BorderLayout());
-        panel.setPreferredSize(new Dimension(100, 100));
     }
 
     public void editDsType(SPDataSourceType dsType) {
@@ -299,6 +299,7 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
         currentDSType = dsType;
         profileFunctionTableModel = new ProfileFunctionTableModel();
         final JTable profileFunctionTable = new JTable(profileFunctionTableModel);
+        TableUtils.fitColumnWidths(profileFunctionTable, 0);
         profileFunctionTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         profileFunctionTable.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(new JComboBox(SQLType.getTypes())));
         
@@ -376,7 +377,7 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
         }));
         
         panel.removeAll();
-        DefaultFormBuilder fb = new DefaultFormBuilder(new FormLayout("pref, 4dlu, pref:grow"));
+        DefaultFormBuilder fb = new DefaultFormBuilder(new FormLayout("pref, 4dlu, pref:grow", "pref, pref, pref, pref, pref, fill:min:grow, pref, pref, pref"));
         fb.append("", updatableRSField);
         fb.nextLine();
         fb.append("DDL Generator", ddlGeneratorCombo);
@@ -396,7 +397,7 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
         fb.append(indexScrollPane, 3);
         fb.nextLine();
         fb.append(addRemoveIndexBar, 3);
-        panel.add(new JScrollPane(fb.getPanel()), BorderLayout.CENTER);
+        panel.add(fb.getPanel(), BorderLayout.CENTER);
     }
 
     public boolean applyChanges() {
