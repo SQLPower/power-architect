@@ -147,21 +147,21 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
             } else if (columnIndex == 2) {
                 return "Java Code";
             } else if (columnIndex == 3) {
-                return "Allow Count Distinct";
+                return "Count Distinct";
             } else if (columnIndex == 4) {
-                return "Allow Max Value";
+                return "Max Value";
             } else if (columnIndex == 5) {
-                return "Allow Min Value";
+                return "Min Value";
             } else if (columnIndex == 6) {
-                return "Allow Avg Value";
+                return "Avg Value";
             } else if (columnIndex == 7) {
-                return "Allow Max Length";
+                return "Max Length";
             } else if (columnIndex == 8) {
-                return "Allow Min Length";
+                return "Min Length";
             } else if (columnIndex == 9) {
-                return "Allow Avg Length";
+                return "Avg Length";
             } else if (columnIndex == 10) {
-                return "Allow Sum Decode";
+                return "Sum Decode";
             } else {
                 return null;
             }
@@ -377,25 +377,43 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
         }));
         
         panel.removeAll();
-        DefaultFormBuilder fb = new DefaultFormBuilder(new FormLayout("pref, 4dlu, pref:grow", "pref, pref, pref, pref, pref, fill:min:grow, pref, pref, pref"));
+        DefaultFormBuilder fb = new DefaultFormBuilder(new FormLayout("4dlu, pref, 4dlu, pref:grow, 4dlu", 
+                "pref, 4dlu, pref, 4dlu, pref, 2dlu, pref, 2dlu, pref, 4dlu, fill:min:grow, 2dlu, pref, 4dlu, pref, 2dlu, pref"));
+        fb.nextColumn();
         fb.append("", updatableRSField);
         fb.nextLine();
+        fb.nextLine();
+        fb.nextColumn();
         fb.append("DDL Generator", ddlGeneratorCombo);
         fb.nextLine();
+        fb.nextLine();
+        fb.nextColumn();
         fb.append("Average SQL Function", averageSQLFunctionField);
         fb.nextLine();
+        fb.nextLine();
+        fb.nextColumn();
         fb.append("String Length SQL Function", stringLengthSQLFuncField);
         fb.nextLine();
+        fb.nextLine();
+        fb.nextColumn();
         fb.append("Case When Null SQL Function", caseWhenNullSQLFuncField);
         fb.nextLine();
+        fb.nextLine();
+        fb.nextColumn();
         fb.append(new JScrollPane(profileFunctionTable), 3);
         fb.nextLine();
+        fb.nextLine();
+        fb.nextColumn();
         fb.append(addRemoveProfileFunctionBar, 3);
         fb.nextLine();
+        fb.nextLine();
+        fb.nextColumn();
         JScrollPane indexScrollPane = new JScrollPane(indexTypeJTable);
         indexScrollPane.setPreferredSize(new Dimension((int) indexScrollPane.getPreferredSize().getWidth(), indexTypeJTable.getRowHeight() * 5));
         fb.append(indexScrollPane, 3);
         fb.nextLine();
+        fb.nextLine();
+        fb.nextColumn();
         fb.append(addRemoveIndexBar, 3);
         panel.add(fb.getPanel(), BorderLayout.CENTER);
     }
