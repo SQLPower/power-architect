@@ -51,6 +51,7 @@ import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectHierarchyListener;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLObjectRoot;
 import ca.sqlpower.architect.UserPrompter;
@@ -159,6 +160,21 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * This will store the properties of the print panel.
      */
     private final PrintSettings printSettings;
+    
+    /**
+     * This listener will listen to the SQLObject hierarchy and display exception windows when
+     * an object's children are not accessible.
+     */
+    private final SQLObjectListener childrenInaccessibleListener = new SQLObjectHierarchyListener() {
+        @Override
+        public void dbObjectChanged(SQLObjectEvent e) {
+            super.dbObjectChanged(e);
+            logger.debug("Object " + e.getSource() + " changed in the SQLObject hierarchy.");
+            if (e.getPropertyName().equals("childrenInaccessibleReason") && e.getNewValue() != null) {
+                SPSUtils.showExceptionDialogNoReport(frame, "Children of " + e.getSource() + " are inaccessible due to the following exception.", (Throwable) e.getNewValue());
+            }
+        }  
+    };
 
     /**
      * Creates a new swing session, including a new visible architect frame, with
@@ -173,6 +189,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.isNew = true;
         this.context = context;
         this.delegateSession = new ArchitectSessionImpl(context, name);
+        ArchitectUtils.listenToHierarchy(childrenInaccessibleListener, getRootObject());
         this.olapRootObject = new OLAPRootObject(delegateSession);
         ((ArchitectSessionImpl)delegateSession).setProfileManager(new ProfileManagerImpl(this));
         ((ArchitectSessionImpl)delegateSession).setUserPrompterFactory(this);

@@ -251,12 +251,7 @@ public class SQLObjectTest extends SQLTestCase {
             }
         };
         
-        try {
-            o.populate();
-            fail();
-        } catch (Exception ex) {
-            //should get here
-        }
+        o.populate();
         
         assertEquals(e, o.getChildrenInaccessibleReason());
             
