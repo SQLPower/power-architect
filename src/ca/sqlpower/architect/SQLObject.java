@@ -209,11 +209,9 @@ public abstract class SQLObject implements java.io.Serializable {
 	    try {
 	        populateImpl();
 	    } catch (ArchitectException e) {
-	        childrenInaccessibleReason = e;
-	        throw e;
+	        setChildrenInaccessibleReason(e);
 	    } catch (RuntimeException e) {
-	        childrenInaccessibleReason = e;
-	        throw e;
+	        setChildrenInaccessibleReason(e);
 	    }
 	}
 

@@ -913,6 +913,15 @@ public class SQLTable extends SQLObject {
 
 		public void populateImpl() throws ArchitectException {
 		    populate(null);
+		    if (logger.isDebugEnabled()) {
+		        List<SQLObject> hierarchy = new ArrayList<SQLObject>();
+		        SQLObject parent = this;
+		        while (parent != null) {
+		            hierarchy.add(0, parent);
+		            parent = parent.getParent();
+		        }
+		        logger.debug("Populating folder on " + getParent().getName() + " for type " + type + " with ancestor path " + hierarchy);
+		    }
 		}
 		
 		public void populate(DatabaseMetaData dbmd) throws ArchitectException {
