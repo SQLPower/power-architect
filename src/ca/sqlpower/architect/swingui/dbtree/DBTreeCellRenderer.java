@@ -69,7 +69,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
     public static final ImageIcon PK_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_key16.png"));
     public static final ImageIcon UNIQUE_INDEX_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_unique16.png"));
     public static final ImageIcon COLUMN_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Column16.png"));
-    public static final ImageIcon ERROR_BADGE = new ImageIcon(ClassLoader.getSystemResource("icons/parts/noAccess.png"));
+    public static final ImageIcon ERROR_BADGE = new ImageIcon(DBTreeCellRenderer.class.getResource("/icons/parts/noAccess.png"));
    
     private final List<IconFilter> iconFilterChain = new ArrayList<IconFilter>();
     
