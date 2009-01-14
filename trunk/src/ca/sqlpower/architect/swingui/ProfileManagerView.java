@@ -120,6 +120,11 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
      * This will be null until the first search is executed.
      */
     private Pattern lastSearchPattern;
+    
+    /**
+     * This is the last value given to doSearch() for the matchExactly property.
+     */
+    private boolean lastMatchExactValue;
 
     private class ResultListPanel extends JPanel implements Scrollable, SelectionListener {
         
@@ -525,8 +530,9 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
      * Search the list for profiles matching the given string.
      * XXX match on date fields too??
      */
-    public void doSearch(Pattern p) {
+    public void doSearch(Pattern p, boolean matchExactly) {
         lastSearchPattern = p;
+        lastMatchExactValue = matchExactly;
         showingRows.clear();
         if (p == null || p.pattern() == null || p.pattern().length() == 0) {
             for (ProfileRowComponent r : list) {
@@ -534,9 +540,9 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
             }
         } else {
             for (ProfileRowComponent r : list) {
-                if ((p.flags() & Pattern.LITERAL) == 0 && p.matcher(r.getResult().getProfiledObject().getName()).matches()) {
+                if (matchExactly && p.matcher(r.getResult().getProfiledObject().getName()).matches()) {
                     showingRows.add(r);
-                } else if ((p.flags() & Pattern.LITERAL) > 0 && p.matcher(r.getResult().getProfiledObject().getName()).find()) {
+                } else if (!matchExactly && p.matcher(r.getResult().getProfiledObject().getName()).find()) {
                     showingRows.add(r);
                 }
             }
@@ -548,7 +554,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
     
     private void setComparator(Comparator comparator) {
         this.comparator = comparator;
-        doSearch(lastSearchPattern);
+        doSearch(lastSearchPattern, lastMatchExactValue);
     }
 
     
@@ -573,7 +579,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
                 logger.debug("Cannot create a component based on the profile result " + pr); //$NON-NLS-1$
             }
         }
-        doSearch(lastSearchPattern);
+        doSearch(lastSearchPattern, lastMatchExactValue);
     }
 
     /** Part of the ProfileChangeListener interface; called
@@ -592,7 +598,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
                 }
             }
         }
-        doSearch(lastSearchPattern);
+        doSearch(lastSearchPattern, lastMatchExactValue);
     }
     
     public void profileListChanged(ProfileChangeEvent e) {
