@@ -124,7 +124,9 @@ implements DragSourceListener, LayoutNode {
             int clickItem = pointToItemIndex(p);
 
             if (pp.getMouseMode() != MouseModeType.CREATING_TABLE) {
-                if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
+                if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | 
+                                             InputEvent.CTRL_DOWN_MASK | 
+                                             InputEvent.META_DOWN_MASK)) == 0) {
                     if (!isSelected() || pp.getMouseMode() == MouseModeType.IDLE) {
                         pp.setMouseMode(MouseModeType.SELECT_TABLE);
                         pp.selectNone();
@@ -143,7 +145,8 @@ implements DragSourceListener, LayoutNode {
 
                     if ((evt.getModifiersEx() &
                             (InputEvent.SHIFT_DOWN_MASK |
-                                    InputEvent.CTRL_DOWN_MASK)) == 0) {
+                             InputEvent.CTRL_DOWN_MASK | 
+                             InputEvent.META_DOWN_MASK)) == 0) {
 
                         if (!isItemSelected(clickItem) ){
                             deSelectEverythingElse(evt);
