@@ -79,7 +79,7 @@ public class PreferencesEditor {
             tp.add(Messages.getString("PreferencesEditor.generalSection"), prefPanel); //$NON-NLS-1$
     
             final DataSourceTypeEditor dsTypeEditor =
-                new DataSourceTypeEditor(context.getPlDotIni());
+                new DataSourceTypeEditor(context.getPlDotIni(), owner);
     
             // Add the Kettle Options Panel as a tab to the SPDataSourceTypePanel
             
