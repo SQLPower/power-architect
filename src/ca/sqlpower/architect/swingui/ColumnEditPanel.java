@@ -197,6 +197,20 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                 colName.requestFocusInWindow();
             }
         });
+        colName.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if(logger.isDebugEnabled()) {
+                    logger.debug("focus Gained : " + e);
+                }
+                colName.selectAll();
+            }
+            
+            public void focusLost(FocusEvent e) {
+                if(logger.isDebugEnabled()) {
+                    logger.debug("focus lost : " + e);
+                }
+            }
+        });
 
         layout.appendRow(RowSpec.decode("5dlu"));
         row++;
@@ -228,6 +242,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         panel.add(colPrec = createPrecisionEditor(), cc.xy(2, row));
         componentEnabledMap.put(colPrec, cb);
         colPrec.addChangeListener(checkboxEnabler);
+        focusThenSelectAll(colPrec);
         
         cb = new JCheckBox();
         if (cols.size() > 1) {
@@ -236,6 +251,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         panel.add(colScale = createScaleEditor(), cc.xy(5, row++));
         componentEnabledMap.put(colScale, cb);
         colScale.addChangeListener(checkboxEnabler);
+        focusThenSelectAll(colScale);
         
         layout.appendRow(RowSpec.decode("5dlu"));
         row++;
@@ -793,4 +809,36 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
             }
         }
     };
+    
+    /**
+     * When the spinner's textfield gains focus,it will be selected all.
+     * The reason why not directly use .getTextField().selectAll() is it
+     * doesn't work with JSpinner (though it's supposed to),So it is a bug
+     * in java which they haven't solved yet.
+     */
+    private void focusThenSelectAll(JSpinner spinner) {
+        JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor)spinner.getEditor();
+        editor.getTextField().addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Focus Gained: " + e);
+                }
+                if (e.getSource() instanceof JTextComponent) {
+                    final JTextComponent textComponent = ((JTextComponent)e.getSource());
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            textComponent.selectAll();
+                        }
+                    });
+                }
+            }
+            
+            public void focusLost(FocusEvent e) {
+                if(logger.isDebugEnabled()) {
+                    logger.debug("Focus Lost:" + e);
+                }
+            }
+        });
+    }
+
 }
