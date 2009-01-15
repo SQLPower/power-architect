@@ -23,6 +23,8 @@ import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.sql.DatabaseMetaData;
@@ -79,7 +81,7 @@ import com.jgoodies.forms.layout.RowSpec;
  * edit mode.
  */
 public class ColumnEditPanel implements ActionListener, DataEntryPanel {
-
+    
     private static final Logger logger = Logger.getLogger(ColumnEditPanel.class);
 
     private static final Font TITLE_FONT = UIManager.getFont("Label.font").deriveFont(Font.BOLD, 10f);
@@ -183,10 +185,18 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         layout.appendRow(new RowSpec("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.name")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colName = new JTextField(), cc.xyw(2, row++, 4));
         componentEnabledMap.put(colName, cb);
         colName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
+        colName.addComponentListener(new ComponentAdapter() {
+            public void componentResized(ComponentEvent e) {
+                colName.requestFocusInWindow();
+            }
+        });
 
         layout.appendRow(new RowSpec("5dlu"));
         row++;
@@ -194,7 +204,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         layout.appendRow(new RowSpec("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.type")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colType = new JComboBox(SQLType.getTypes()), cc.xyw(2, row++, 4));
         componentEnabledMap.put(colType, cb);
         colType.setSelectedItem(null);
@@ -208,12 +221,18 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.scale")), cc.xy(5, row++)); //$NON-NLS-1$
 
         layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colPrec = createPrecisionEditor(), cc.xy(2, row));
         componentEnabledMap.put(colPrec, cb);
         colPrec.addChangeListener(checkboxEnabler);
         
-        panel.add(cb = new JCheckBox(), cc.xy(4, row));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(4, row));
+        }
         panel.add(colScale = createScaleEditor(), cc.xy(5, row++));
         componentEnabledMap.put(colScale, cb);
         colScale.addChangeListener(checkboxEnabler);
@@ -222,7 +241,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         row++;
 
         layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colInPK = new JCheckBox(Messages.getString("ColumnEditPanel.inPrimaryKey")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         componentEnabledMap.put(colInPK, cb);
         colInPK.addActionListener(this);
@@ -232,7 +254,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         row++;
 
         layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colNullable = new JCheckBox(Messages.getString("ColumnEditPanel.allowsNulls")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         componentEnabledMap.put(colNullable, cb);
         colNullable.addActionListener(this);
@@ -242,7 +267,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         row++;
 
         layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colAutoInc = new JCheckBox(Messages.getString("ColumnEditPanel.autoIncrement")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         componentEnabledMap.put(colAutoInc, cb);
         colAutoInc.addActionListener(this);
@@ -254,7 +282,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         layout.appendRow(new RowSpec("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.sequenceName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colAutoIncSequenceName = new JTextField(), cc.xyw(2, row++, 4));
         componentEnabledMap.put(colAutoIncSequenceName, cb);
         colAutoIncSequenceName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
@@ -299,7 +330,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         layout.appendRow(new RowSpec("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.remarks")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         layout.appendRow(new RowSpec("pref:grow"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row, "center, top"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row, "center, top"));
+        }
         panel.add(new JScrollPane(colRemarks = new JTextArea()), cc.xyw(2, row++, 4, "fill, fill"));
         componentEnabledMap.put(colRemarks, cb);
         colRemarks.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
@@ -313,7 +347,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         layout.appendRow(new RowSpec("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.defaultValue")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colDefaultValue = new JTextField(), cc.xyw(2, row++, 4));
         colDefaultValue.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
         componentEnabledMap.put(colDefaultValue, cb);
