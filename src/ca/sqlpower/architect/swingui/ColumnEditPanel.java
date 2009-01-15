@@ -174,17 +174,17 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         
         JCheckBox cb;
         int row = 1;
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.source")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(sourceLabel = new JLabel(), cc.xyw(2, row++, 4));
 
-        layout.appendRow(new RowSpec("5dlu"));
+        layout.appendRow(RowSpec.decode("5dlu"));
         row++;
         
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.name")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
@@ -198,12 +198,12 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
             }
         });
 
-        layout.appendRow(new RowSpec("5dlu"));
+        layout.appendRow(RowSpec.decode("5dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.type")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
@@ -213,14 +213,14 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         colType.setSelectedItem(null);
         colType.addActionListener(this);
 
-        layout.appendRow(new RowSpec("5dlu"));
+        layout.appendRow(RowSpec.decode("5dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.precision")), cc.xy(2, row)); //$NON-NLS-1$
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.scale")), cc.xy(5, row++)); //$NON-NLS-1$
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
@@ -237,10 +237,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         componentEnabledMap.put(colScale, cb);
         colScale.addChangeListener(checkboxEnabler);
         
-        layout.appendRow(new RowSpec("5dlu"));
+        layout.appendRow(RowSpec.decode("5dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
@@ -250,10 +250,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         colInPK.addActionListener(this);
         colInPK.addActionListener(checkboxEnabler);
         
-        layout.appendRow(new RowSpec("3dlu"));
+        layout.appendRow(RowSpec.decode("3dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
@@ -263,10 +263,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         colNullable.addActionListener(this);
         colNullable.addActionListener(checkboxEnabler);
 
-        layout.appendRow(new RowSpec("3dlu"));
+        layout.appendRow(RowSpec.decode("3dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
@@ -276,12 +276,12 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         colAutoInc.addActionListener(this);
         colAutoInc.addActionListener(checkboxEnabler);
 
-        layout.appendRow(new RowSpec("6dlu"));
+        layout.appendRow(RowSpec.decode("6dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.sequenceName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
@@ -324,12 +324,12 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
             }
         });
 
-        layout.appendRow(new RowSpec("5dlu"));
+        layout.appendRow(RowSpec.decode("5dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.remarks")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(new RowSpec("pref:grow"));
+        layout.appendRow(RowSpec.decode("pref:grow"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row, "center, top"));
@@ -341,12 +341,12 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         colRemarks.setLineWrap(true);
         colRemarks.setWrapStyleWord(true);
 
-        layout.appendRow(new RowSpec("5dlu"));
+        layout.appendRow(RowSpec.decode("5dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.defaultValue")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
