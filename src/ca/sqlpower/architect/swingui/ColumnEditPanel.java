@@ -193,7 +193,8 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         componentEnabledMap.put(colName, cb);
         colName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
         colName.addComponentListener(new ComponentAdapter() {
-            public void componentResized(ComponentEvent e) {
+            @Override
+            public void componentShown(ComponentEvent e) {
                 colName.requestFocusInWindow();
             }
         });
