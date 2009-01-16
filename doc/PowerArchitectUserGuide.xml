@@ -9,7 +9,7 @@
 		<!-- $Id$ -->
 
 		<title id="book">Power*Architect User Guide</title>
-
+		
 		<mediaobject>
 			<imageobject id="architect_logo">
 				<imagedata fileref="doc/images/architect_logo.png"
@@ -588,7 +588,7 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/Database16.png" format="PNG" />
+								fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Database16.png" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					Database
@@ -597,7 +597,7 @@
 				<para>
 					<inlinemediaobject>
 						<imageobject>
-							<imagedata fileref="src/icons/Catalog16.png"
+							<imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Catalog16.png"
 								format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
@@ -607,7 +607,7 @@
 				<para>
 					<inlinemediaobject>
 						<imageobject>
-							<imagedata fileref="src/icons/Schema16.png"
+							<imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Schema16.png"
 								format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
@@ -617,7 +617,7 @@
 				<para>
 					<inlinemediaobject>
 						<imageobject>
-							<imagedata fileref="src/icons/Owner16.png"
+							<imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Owner16.png"
 								format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
@@ -627,7 +627,7 @@
 				<para>
 					<inlinemediaobject>
 						<imageobject>
-							<imagedata fileref="src/icons/Table16.png"
+							<imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Table16.png"
 								format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
@@ -637,7 +637,7 @@
 				<para>
 					<inlinemediaobject>
 						<imageobject>
-							<imagedata fileref="src/icons/Column16.png"
+							<imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Column16.png"
 								format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
@@ -648,7 +648,7 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/Index_key16.png" format="PNG" />
+								fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Index_key16.png" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					Primary Key
@@ -658,7 +658,7 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/ExportedKey16.png" format="PNG" />
+								fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/ExportedKey16.png" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					Exported Key
@@ -668,7 +668,7 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/ImportedKey16.png" format="PNG" />
+								fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/ImportedKey16.png" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					Imported Key
@@ -677,7 +677,7 @@
 				<para>
 					<inlinemediaobject>
 						<imageobject>
-							<imagedata fileref="src/icons/Index16.png"
+							<imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Index16.png"
 								format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
@@ -688,7 +688,7 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/Index_unique16.png" format="PNG" />
+								fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Index_unique16.png" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					Unique Index
@@ -794,12 +794,14 @@
 
 						<para>
 							Setup Driver. Select File-&gt;User
-							Preferences and select the JDBC Drivers tab.
+							Preferences if you are using Windows and 
+							Architect-&gt;Preferences if you are using 
+							Macintosh. Then select the JDBC Drivers tab.
 							Select the database connection type you wish
 							to use from the list on the left. If there
 							is already a driver for the connection type
 							you wish to use, click OK and go on to the
-							next step. Otherwise, click the Add button,
+							next step. Otherwise, click the Add JAR button,
 							navigate to where you have the driver Jar
 							file installed, and click OK.
 						</para>
@@ -813,15 +815,15 @@
 							section of the main window, right click and
 							choose Add Source Connection-&gt;New
 							Connection. For this example you can use a
-							name like SampleDB, for both the Connection
-							Name and the Database name (these names do
-							not have to be the same, but we&apos;ll keep
-							them the same for simplicity). If you select
-							the JDBC Driver before you type the database
-							name, then as you type the Database name, it
-							will be added to the DB URL, so you
+							name like SampleDB for the Connection Name.
+							Then select a data type you wish to use, 
+							which should be the driver you set before. 
+							Then fill the hostname, port, database, file 
+							if asked. The JDBC URL will automatically 
+							generate when you fill those blanks, so you
 							don&apos;t have to type it an extra time.
-							Fill in all the fields and click OK.
+							Fill in the Username and password (which 
+							is set on the server machine).
 						</para>
 
 					</listitem>
@@ -857,9 +859,8 @@
 					<listitem>
 
 						<para>
-							Double-click the title, and the Table
-							Properties Dialog will appear. Rename this
-							table to Customers.
+							Also, the Table	Properties Dialog will 
+							appear. Rename this	table to Customers.
 						</para>
 
 					</listitem>
@@ -867,10 +868,9 @@
 					<listitem>
 
 						<para>
-							Click the Insert Column icon, and a "New
-							Column" will appear. When the new column is
-							created a property window will appear for
-							it. Rename the column to customer_id and
+							Click the Insert Column icon, and a column
+							property window will appear for the new 
+							column. Rename the column to customer_id and
 							make it part of the primary key.
 						</para>
 
@@ -1051,7 +1051,7 @@
 							Click the Insert Column field and, as
 							before, rename the New Column, this time to
 							Shipping_Amount. Change its type to
-							Decimal(10,2).
+							Decimal with precision 10 and scale 2.
 						</para>
 
 					</listitem>
@@ -1068,6 +1068,11 @@
 							Project" (since it is now newer than the
 							database you created in Step 6). Set the
 							output format to SQL.
+						</para>
+						
+						<para>
+							PS: swap button can help you easily swap 
+							the newer the the older.
 						</para>
 
 						<mediaobject>
@@ -1090,7 +1095,7 @@
 						<mediaobject>
 							<imageobject>
 								<imagedata
-									fileref="doc/images/example_10.png" format="PNG" width="4in" />
+									fileref="doc/images/SimpleExample7.png" format="PNG" width="4in" />
 							</imageobject>
 						</mediaobject>
 					</listitem>
@@ -1572,18 +1577,7 @@
 
 							</listitem>
 
-							<listitem>
-
-								<para>
-
-									If you click a column in the primary
-									key, the new column is added within
-									the primary key.
-
-								</para>
-
-							</listitem>
-
+							
 						</itemizedlist>
 
 					</listitem>
@@ -2134,6 +2128,37 @@
 						</para>
 
 					</listitem>
+					
+					<listitem>
+					
+						<para>
+							
+							For modifying multiple columns at a same time: select multiple 
+							columns, then open column properties as above. The window looked
+							like this:
+							
+						</para>
+						
+						<mediaobject>
+						
+							<imageobject>
+							
+							<imagedata
+								fileref = "doc/images/Multi_Column_Properties.png" format="PNG"
+								width="4in" />
+								
+							</imageobject>
+							
+						</mediaobject>
+						
+						<para>
+						
+							You can modify the properties of every column you 
+							selected by checking the checkboxes in front of them.
+						
+						</para>
+					
+					</listitem>
 
 					<listitem>
 
@@ -2258,7 +2283,7 @@
 			<mediaobject>
 				<imageobject>
 					<imagedata fileref="doc/images/pk_add.png"
-						format="PNG" width="4in" />
+						format="PNG" width="2in" />
 				</imageobject>
 			</mediaobject>
 
@@ -3084,10 +3109,188 @@
 
 											</itemizedlist>
 
-
 										</entry>
-
+										
 									</row>
+									    
+								    <row>
+									   
+										<entry>
+											
+											<para>
+												Delete Rule
+											</para>
+											
+										</entry>
+										
+										<entry>
+										
+											<itemizedlist>
+												
+												<listitem>
+												
+													<para>
+														Restrict - Prevents deletion of a referenced row.												
+													</para>
+												
+												</listitem>
+												
+												<listitem>
+												
+													<para>
+														No Action - If any referencing rows still exist when 
+														the constraint is checked, an error raised; this is
+														the default behavior if you do not specify anything.
+														(The essential difference between two choices is that 
+														No Action allows the check to be deferred until later 
+														in the transaction, whereas Restrict does not.)										
+													</para>
+												
+												</listitem>
+												
+												<listitem>
+												
+													<para>
+														Casecade - When a referenced row is deleted, row(s)
+														referencing it should be automatically deleted as well.
+													</para>
+												
+												</listitem>
+												
+												<listitem>
+												
+													<para>
+														Set Null - Cause the referencing columns to be set to 
+														nulls when the referenced row is deleted.
+													</para>
+												
+												</listitem>
+												
+												<listitem>
+												
+													<para>
+														Set Default - Cause the referencing columns to be set to 
+														default values when the referenced row is deleted.																								
+													</para>
+													
+													<para>
+														NOTE: Set Default and Set Nulls do not excuse you from 
+														observing any constraints. For example, if an action specifies
+														Set Default but the default value would not satisfy the foreign
+														key, the operation will fail.
+													</para>
+												
+												</listitem>
+												
+											</itemizedlist>
+																											
+										</entry>
+										
+									</row>
+									
+									<row>
+										
+										<entry>
+											
+											<para>
+												Update Rule
+											</para>
+										
+										</entry>
+										
+										<entry>
+										
+											<para>
+												Analogous to Delete Rule there is also Update Rule which 
+												is invoked when a referenced column is changed (updated).
+												The possible actions are the same.
+											</para>
+										
+										</entry>
+									
+									</row>	
+									
+									<row>
+										
+										<entry>
+											
+											<para>
+												Platform Supports
+											</para>
+										
+										</entry>
+										
+										<entry>
+										
+										<itemizedlist>
+										
+											<listitem>
+												
+												<para>
+													Oracle - Supports only Restrict, No Action in the Update Rules
+													and everything except Set Default in the Delete Rules.
+												</para>
+												
+											</listitem>
+											
+											<listitem>
+												
+												<para>
+													PostgreSQL - Supports every rule. 
+												</para>
+												
+											</listitem>
+											
+											<listitem>
+												
+												<para>
+													MySQL - Supports everything except Set Default in both the
+													Update and Delete Rules. 
+												</para>
+												
+											</listitem>
+											
+											<listitem>
+												
+												<para>
+													IBM DB2 - Supports only Restrict, No Action in Update Rules
+													and everything except Set Default in Delete Rules.
+												</para>
+												
+											</listitem>
+											
+											<listitem>
+												
+												<para>
+													HSQLDB - Supports everything except Restrict in both
+													Update and Delete Rules.
+												</para>
+												
+											</listitem>
+											
+											<listitem>
+												
+												<para>
+													SQL Server 2000 - Supports only Casecade and No Action in both
+													Update Rule and Delete Rule.
+												</para>
+												
+											</listitem>
+											
+											<listitem>
+												
+												<para>
+													SQL Server 2005 - Supports everything except Restrict in both
+													Update and Delete Rule.
+												</para>
+												
+											</listitem>
+											
+											</itemizedlist>
+											
+										</entry>
+									
+									</row>				
 
 								</tbody>
 
@@ -3111,8 +3314,8 @@
 
 						<para>
 
-							Note: If a column in the child table is
-							shown in red, this means the column is a
+							Note: If a column in the child table has 
+							[FK] beside it, this means the column is a
 							foreign key in another parent table. This
 							alerts you that the column is already "in
 							use", since you wouldn't normally use the
@@ -3202,6 +3405,17 @@
 						</para>
 
 						<itemizedlist>
+						
+							<listitem>
+
+								<para>
+
+									Left-click a table in the playpen,
+									then press I.
+
+								</para>
+
+							</listitem>
 
 							<listitem>
 
@@ -5738,6 +5952,106 @@
 									</entry>
 
 								</row>
+								
+								<row>
+									
+									<entry>
+										
+										<para>
+											Show Options
+										</para>
+										
+									</entry>
+									
+									<entry>
+										
+										<para>
+											Select how to display your project in 
+											the playpen.		
+										</para>
+										
+										<para>
+											Note: Changing these options affects 
+											new and existing columns and tags.
+										</para>
+										
+										<itemizedlist>
+										
+											<listitem>
+												
+												<para>
+													Show Primary Key Columns - display Primary Key 
+													Columns if checked, else otherwise.
+												</para>												
+												
+											</listitem>
+											
+											<listitem>
+											
+												<para>
+													Show Foreign Key Columns - display Foreign Key
+													Columns if checked, else otherwise.
+												</para>
+												
+											</listitem>
+											
+											<listitem>
+											
+												<para>
+													Show Indexed Key Columns - display Indexed Key 
+													Columns if checked, else otherwise.
+												</para>
+												
+											</listitem>
+											
+											<listitem>
+											
+												<para>
+													Show Unique Key Columns - display Unique Key Columns
+													if checked, else otherwise.
+												</para>
+												
+											</listitem>
+											
+											<listitem>
+											
+												<para>
+													Show Remaining Key Columns - display rest Columns
+													if checked, else otherwise.
+												</para>
+												
+											</listitem>
+											
+											<listitem>
+											
+												<para>
+													Show PK tags - display [PK] tags for Primary Key 
+													columns if checked, else otherwise.
+												</para>
+												
+											</listitem>
+											
+											<listitem>
+											
+												<para>
+													Show FK tags - display [FK] tags for Foreign Key
+													columns if checked, else otherwise.
+												</para>
+												
+											</listitem>
+											
+											<listitem>
+											
+												<para>
+													Show AK tags - display [AK] tags for the columns
+													which belong to the unique indexes.
+												</para>
+												
+											</listitem>
+											
+										</itemizedlist>
+									</entry>
+								</row>
 
 							</tbody>
 
@@ -5778,7 +6092,7 @@
 				<listitem>
 					<para>
 						Select File » User Preferences. For Macintosh,
-						select Application » User Preferences.
+						select Architect » Preferences.
 					</para>
 
 					<para>
@@ -6854,7 +7168,7 @@
 
 							<listitem>
 								<para>
-									Right-click a table or column in the
+									Right-click a table in the
 									database tree, then click Profile.
 								</para>
 							</listitem>
@@ -7094,6 +7408,7 @@
 					</listitem>
 
 					<listitem>
+					
 						<para>
 							To delete a profile, click
 							<inlinemediaobject>
@@ -7103,7 +7418,16 @@
 								</imageobject>
 							</inlinemediaobject>
 
-							beside the profile.
+							beside the profile or press delete.
+						</para>
+						
+					</listitem>
+					
+					<listitem>
+						<para>
+							To delete multiple profiles, use CTRL to select 
+							all the profiles you want to delete, then press
+							delete.
 						</para>
 					</listitem>
 
@@ -7762,29 +8086,23 @@
 
 			</section>
 
-		</section>
+		</section>"doc/images/sqlquery_html_output.png"
 
 	</chapter>
 
-	<chapter id="SQLRunner">
+	<chapter id="SQL Query">
 
-		<title>SQLRunner</title>
+		<title>SQL Query</title>
 
 		<para>
-			SQLRunner is a "fall-back" tool that lets you work at the
+			SQL Query is a "fall-back" tool that lets you work at the
 			raw SQL command level. This is an advanced topic and should
 			only be used by those familiar with the intricacies of SQL
 			commands and the details of your database.
 		</para>
 
 		<para>
-			SQLRunner was written by Ian Darwin, and is distributed
-			under a liberal free-software, open-source license which
-			permits its inclusion in programs such as Power*Architect.
-		</para>
-
-		<para>
-			SQLRunner is started from the menu entry under the Tools
+			SQL Query is started from the menu entry under the Tools
 			menu, and begins with the GUI window shown below. The first
 			thing you should do is select which database connection you
 			wish to use. The list of Connections is the same as the main
@@ -7792,112 +8110,42 @@
 		</para>
 
 		<para>
-			The basic steps to using SQLRunner are to type a command in
-			the top (SQL Command) window and click the Run button; the
+			The basic steps to using SQL Query are to type a command in
+			the top (SQL Command) window and click the Execute button; the
 			results are displayed in the bottom (SQL Results) window. To
-			save you some typing, there is a "Statement Template"
-			mechanism that will insert a template for SELECT, INSERT or
-			UPDATE SQL statements (just select the template you want and
-			click "Apply Template" and the template will replace the
-			current Input Statement).
+			save you some typing, you can just drag the databases, tables 
+			and columns shown in the DB tree of the SQL Query and drop on 
+			the top (SQL Command) window.
 		</para>
 
 		<mediaobject>
 			<imageobject>
-				<imagedata fileref="doc/images/sqlrunner.png"
+				<imagedata fileref="doc/images/sqlquery.png"
 					format="PNG" width="4in" />
 			</imageobject>
 		</mediaobject>
+		
 		<para>
-			The command can actually be one of two kinds: either one of
-			a half-dozen escape commands listed below, or, anything that
-			is valid input to your database&apos;s command interface
-			(e.g., programs such as psql or Oracle SQL*Plus).
+			SQL Statements can be entered multiple at a time, can be more than
+			one line long, but be careful! if you have multiple commands, do 
+			end the previous ones with a semicolon, which is unnecessary if there
+			is only one command. These statements are not interpreted by SQL Query
+		    itself, so anything that the given database and driver accepts can be
+			used. For example, with Oracle, you can use PL*SQL statements. With 
+			most drivers you should be able to use stored procedures. Each SQL 
+			statement is executed in its own transaction context if you turn the
+			Auto Commit on, that is, changes are committed immediately (so be careful!).
+			If you turn the Auto Commit off, you can decide to Commit or Rollback later.
 		</para>
 
-		<informaltable frame="all">
-
-			<tgroup cols="2">
-
-				<thead>
-
-					<row>
-						<entry>Escape Sequence</entry>
-						<entry>Action</entry>
-					</row>
-
-				</thead>
-
-				<tbody>
-
-					<row>
-						<entry>\dt</entry>
-						<entry>Describe list of all tables</entry>
-					</row>
-
-					<row>
-						<entry>\dtT</entry>
-						<entry>
-							Describe column names of table named T
-						</entry>
-					</row>
-
-					<row>
-						<entry>\dmX</entry>
-						<entry>
-							Set the mode, where X is the first letter of
-							the mode (t for text, s for SQL, h for HTML
-							or x for XML; not needed in the embedded
-							version because the GUI has a control for
-							this)
-						</entry>
-					</row>
-
-					<row>
-						<entry>\oF</entry>
-						<entry>
-							Send output to the given file instead of the
-							screen (though you can usually just view the
-							output and copy-and-paste to save parts of
-							it into a file; does not work in GUI
-							versions).
-						</entry>
-					</row>
-
-					<row>
-						<entry>\q</entry>
-						<entry>
-							Exit the program (not supported in embedded
-							versions).
-						</entry>
-					</row>
-
-				</tbody>
-
-			</tgroup>
-
-		</informaltable>
-
-		<para>
-			SQL Statements are entered one at a time, can be more than
-			one line long, and need not end with a semicolon. These
-			statements are not interpreted by SQLRunner itself, so
-			anything that the given database and driver accepts can be
-			used. For example, with Oracle, you can use PL*SQL
-			statements. With most drivers you should be able to use
-			stored procedures. Each SQL statement is executed in its own
-			transaction context, that is, changes are committed
-			immediately (so be careful!).
-		</para>
-
-		<section id="SQLRunner.results">
+		<section id="SQL Query.results">
 
 			<title>Output (Results) Window</title>
 
 			<para>
-				Command Output in the chosen format (see below) appears
-				in the SQL Output window. A scrollbar will appear if the
-				information cannot all be seen at once.
+				Command Output appears in the SQL Output window.
+				A scrollbar will appear if the information cannot
+				all be seen at once.
 			</para>
 
 			<para>
@@ -7915,71 +8163,63 @@
 
 		</section>
 
-		<section id="SQLRunner.output_format">
+		<section id="SQL Query.output_format">
 
 			<title>Output Formats</title>
 
 			<para>
-				There are several output modes for the display of SQL
-				"select" results: text, SQL, HTML, XML, and Table.
-				Output from the escape commands are always displayed as
-				plain text. Text mode is the default, and is primarily a
-				raw display format. SQL output is most useful with the
-				output of a SELECT statement; it will generate SQL that
-				will attempt to re-create the data in another database.
-				HTML mode generates an HTML table to display the results
-				of a Select. XML format is similar but may be used for
-				exporting data into other applications. Finally, table
-				mode provides a friendlier interface which ensures all
-				of the columns are lined up properly. In this mode, it
-				is even possible to rearrange the columns by dragging
-				them.
+				The output format in the result window is always Table
+				mode, which provides a friendlier interface which ensures
+				all of the columns are lined up properly. If you right-click
+				on a table or multiple tables,you can generate a HTML file 
+				or CSV file. HTML mode generates an HTML table to display the 
+				results	of a Select. CSV mode generates a CSV file, which is
+				a specially formatted plain text file which stores spreadsheet
+				or basic database-style information in a very format. 
 			</para>
 
 			<para>
-				For example, with SQL mode selected, a "select * from
-				anecdotes" (a table in a sample bookstore web
-				site&apos;s database, used to display a casual quotation
-				about books) looked like this:
-
+				CSV files are often used as a simple way to transfer a large 
+				volume of spreadsheet or database information between programs,
+				without worrying about special file types. For example, transferring
+				a home-made address book from power*architect into a database 
+				program such as	Filemaker Pro could be done by exporting the file as
+				a CSV from Excel, then importing that CSV into Filemaker.
+			</para>
+			
+			<para>
+				For example, a "select * from art_logs" looked like this:
 			</para>
 
 			<mediaobject>
 				<imageobject>
-					<imagedata fileref="doc/images/sqlrunner_output.png"
+					<imagedata fileref="doc/images/sqlquery_output.png"
 						format="PNG" width="4in" />
 				</imageobject>
 			</mediaobject>
-			<para>
-				This could, as you can see, be used to create a SQL
-				script to re-create the contents of the database. In
-				fact, some developers use SQLRunner primarily for this
-				purpose: to create stable test databases from "live"
-				data that was created by their application.
-			</para>
 
 			<para>
-				You can view this same data in HTML just by changing the
-				Format selection to HTML and clicking the Run button
-				again:
+				You can view this same data in HTML just by right-click
+				the selected table and choose "Exported selected to
+				HTML..". When tried to open this file just by text editor,
+				it looked like this: 
 			</para>
 
 			<mediaobject>
 				<imageobject>
 					<imagedata
-						fileref="doc/images/sqlrunner_output_2.png" format="PNG"
+						fileref="doc/images/sqlquery_html_file.png" format="PNG"
 						width="4in" />
 				</imageobject>
 			</mediaobject>
 			<para>
-				When copied and pasted into an HTML file and viewed in a
-				browser, the output looked like this:
+				when used a web browser to open this file, the output liked this:
 			</para>
 
 			<mediaobject>
 				<imageobject>
 					<imagedata
-						fileref="doc/images/sqlrunner_html_output.png" format="PNG"
+						fileref="doc/images/sqlquery_html_output.png" format="PNG"
 						width="4in" />
 				</imageobject>
 			</mediaobject>
@@ -7989,8 +8229,9 @@
 			</para>
 
 			<para>
-				SQLRunner is not perfect, but it is adequate for many
-				purposes involving direct use of SQL.
+				SQL Query is not perfect, but it is adequate for many
+				purposes involving direct use of SQL (We will add more
+				useful features to it later).
 			</para>
 
 		</section>
