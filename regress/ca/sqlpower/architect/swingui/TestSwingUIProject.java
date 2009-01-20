@@ -164,7 +164,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         " <source-stuff datastoreTypeAsString='PROJECT' connectName='Arthur_test' " +
         " schema='ARCHITECT_REGRESS' filepath='' />"+
         "<target-stuff datastoreTypeAsString='FILE' filePath='Testpath' /> </compare-dm-settings>"+
-        " <play-pen zoom=\"12.3\" viewportX=\"200\" viewportY=\"20\" relationship-style=\"rectilinear\" showPrimaryTag=\"true\" showForeignTag=\"true\" showAlternateTag=\"true\" showPrimary=\"true\" showForeign=\"true\" showIndexed=\"true\" showUnique=\"true\" showTheRest=\"true\">" +
+        " <play-pen zoom=\"12.3\" viewportX=\"200\" viewportY=\"20\" relationship-style=\"rectilinear\" showPrimaryTag=\"true\" showForeignTag=\"true\" showAlternateTag=\"true\" showPK=\"false\" showPKFK=\"false\" showIndexed=\"false\" showPKFKUnique=\"false\" showPKFKUniqueIndexed=\"false\" showAll=\"true\" >" +
         "  <table-pane table-ref='TAB0' x='85' y='101' />" +
         "  <table-pane table-ref='TAB6' x='196' y='38' />" +
         "  <table-link relationship-ref='REL12' pk-x='76' pk-y='60' fk-x='114' fk-y='30' />" +
@@ -1027,11 +1027,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         session.setShowPkTag(false);
         session.setShowFkTag(false);
         session.setShowAkTag(false);
-        session.setShowPrimary(false);
-        session.setShowForeign(false);
-        session.setShowIndexed(false);
-        session.setShowUnique(false);
-        session.setShowTheRest(false);
+        session.setShowPK(false);
+        session.setShowPKFK(false);
+        session.setShowPKFKUnique(false);
+        session.setShowPKFKUniqueIndexed(false);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream, ENCODING);
 
@@ -1049,11 +1048,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertEquals("PK Tag", session.isShowPkTag(), newSession.isShowPkTag());
         assertEquals("FK Tag", session.isShowFkTag(), newSession.isShowFkTag());
         assertEquals("AK Tag", session.isShowAkTag(), newSession.isShowAkTag());
-        assertEquals("Primary Column", session.isShowPrimary(), newSession.isShowPrimary());
-        assertEquals("Foreign Column", session.isShowForeign(), newSession.isShowForeign());
-        assertEquals("Indexed Column", session.isShowIndexed(), newSession.isShowIndexed());
-        assertEquals("Unique Column", session.isShowUnique(), newSession.isShowUnique());
-        assertEquals("The Rest of the Columns", session.isShowTheRest(), newSession.isShowTheRest());
+        assertEquals("Primary Column", session.isShowPK(), newSession.isShowPK());
+        assertEquals("PK and Fk Column", session.isShowPKFK(), newSession.isShowPKFK());
+        assertEquals("PK, FK and Unique Column", session.isShowPKFKUnique(), newSession.isShowPKFKUnique());
+        assertEquals("PK, FK, Unique and Indexed Columns", session.isShowPKFKUniqueIndexed(), newSession.isShowPKFKUniqueIndexed());
         
     }
     
@@ -1071,11 +1069,11 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertEquals("PK Tag", true, session.isShowPkTag());
         assertEquals("FK Tag", true, session.isShowFkTag());
         assertEquals("AK Tag", true, session.isShowAkTag());
-        assertEquals("Primary Column", true, session.isShowPrimary());
-        assertEquals("Foreign Column", true, session.isShowForeign());
-        assertEquals("Indexed Column", true, session.isShowIndexed());
-        assertEquals("Unique Column", true, session.isShowUnique());
-        assertEquals("The Rest of the Columns", true, session.isShowTheRest());
+        assertEquals("Primary Columns", false, session.isShowPK());
+        assertEquals("PK and Fk Columns", false, session.isShowPKFK());
+        assertEquals("PK, FK and Unique Columns", false, session.isShowPKFKUnique());
+        assertEquals("PK, FK, Unique and Indexed Columns", false, session.isShowPKFKUniqueIndexed());
+        assertEquals("All Columns", true, session.isShowAll());
     }
     
     /**

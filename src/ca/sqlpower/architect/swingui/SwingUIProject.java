@@ -289,24 +289,24 @@ public class SwingUIProject extends CoreProject {
         	setupGenericPlayPen(pp, attributes);
         	
         	// default values in playpen are true
-        	String showPrimary = attributes.getValue("showPrimary"); //$NON-NLS-1$
-        	if (showPrimary != null) {
-        	    getSession().setShowPrimary(Boolean.valueOf(showPrimary));
+        	String showPK = attributes.getValue("showPK"); //$NON-NLS-1$
+        	if (showPK != null) {
+        	    getSession().setShowPK(Boolean.valueOf(showPK));
         	}
-        	String showForeign = attributes.getValue("showForeign"); //$NON-NLS-1$
-        	if (showForeign != null) {
-        	    getSession().setShowForeign(Boolean.valueOf(showForeign));        	}
-        	String showIndexed = attributes.getValue("showIndexed"); //$NON-NLS-1$
-        	if (showIndexed != null) {
-        	    getSession().setShowIndexed(Boolean.valueOf(showIndexed));
+        	String showPKFK = attributes.getValue("showPKFK"); //$NON-NLS-1$
+        	if (showPKFK != null) {
+        	    getSession().setShowPKFK(Boolean.valueOf(showPKFK));        	}
+        	String showPKFKUnique = attributes.getValue("showPKFKUnique"); //$NON-NLS-1$
+        	if (showPKFKUnique != null) {
+        	    getSession().setShowPKFKUnique(Boolean.valueOf(showPKFKUnique));
         	}
-        	String showUnique = attributes.getValue("showUnique"); //$NON-NLS-1$
-        	if (showUnique != null) {
-        	    getSession().setShowUnique(Boolean.valueOf(showUnique));
+        	String showPKFKUniqueIndexed = attributes.getValue("showPKFKUniqueIndexed"); //$NON-NLS-1$
+        	if (showPKFKUniqueIndexed != null) {
+        	    getSession().setShowPKFKUniqueIndexed(Boolean.valueOf(showPKFKUniqueIndexed));
         	}
-        	String showTheRest = attributes.getValue("showTheRest"); //$NON-NLS-1$
-        	if (showTheRest != null) {
-        	    getSession().setShowTheRest(Boolean.valueOf(showTheRest));
+        	String showAll = attributes.getValue("showAll"); //$NON-NLS-1$
+        	if (showAll != null) {
+        	    getSession().setShowAll(Boolean.valueOf(showAll));
         	}
         	
         	String showPrimaryTag = attributes.getValue("showPrimaryTag"); //$NON-NLS-1$
@@ -972,11 +972,11 @@ public class SwingUIProject extends CoreProject {
             tagText.append(" showPrimaryTag=\"").append(getSession().isShowPkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" showForeignTag=\"").append(getSession().isShowFkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" showAlternateTag=\"").append(getSession().isShowAkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showPrimary=\"").append(getSession().isShowPrimary()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showForeign=\"").append(getSession().isShowForeign()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showIndexed=\"").append(getSession().isShowIndexed()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showUnique=\"").append(getSession().isShowUnique()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showTheRest=\"").append(getSession().isShowTheRest()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" showPK=\"").append(getSession().isShowPK()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" showPKFK=\"").append(getSession().isShowPKFK()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" showPKFKUnique=\"").append(getSession().isShowPKFKUnique()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" showPKFKUniqueIndexed=\"").append(getSession().isShowPKFKUniqueIndexed()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" showAll=\"").append(getSession().isShowAll()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
         }
         tagText.append(">"); //$NON-NLS-1$
         ioo.println(out, tagText.toString());

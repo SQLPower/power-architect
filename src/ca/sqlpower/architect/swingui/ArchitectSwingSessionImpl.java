@@ -142,11 +142,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private boolean showFkTag = true;
     private boolean showAkTag = true;
 
-    private boolean showPrimary = true;
-    private boolean showForeign = true;
-    private boolean showIndexed = true;
-    private boolean showUnique = true;
-    private boolean showTheRest = true;
+    private boolean showAll = true;
+    private boolean show_Pk_Fk_Unique_Indexed = false;
+    private boolean show_Pk_Fk_Unique = false;
+    private boolean show_Pk_Fk = false;
+    private boolean show_Pk = false;
     
     private List<OLAPEditSession> olapEditSessions;
     
@@ -871,44 +871,44 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
     }
 
-    public boolean isShowPrimary() {
-        return showPrimary;
+    public boolean isShowAll() {
+        return showAll;
     }
 
-    public void setShowPrimary(boolean showPrimary) {
-        this.showPrimary = showPrimary;
+    public void setShowAll(boolean showAll) {
+        this.showAll = showAll;
     }
 
-    public boolean isShowForeign() {
-        return showForeign;
+    public boolean isShowPKFKUniqueIndexed() {
+        return show_Pk_Fk_Unique_Indexed;
     }
 
-    public void setShowForeign(boolean showForeign) {
-        this.showForeign = showForeign;
+    public void setShowPKFKUniqueIndexed(boolean showIndexed) {
+        this.show_Pk_Fk_Unique_Indexed = showIndexed;
     }
 
-    public boolean isShowIndexed() {
-        return showIndexed;
+    public boolean isShowPKFKUnique() {
+        return show_Pk_Fk_Unique;
     }
 
-    public void setShowIndexed(boolean showIndexed) {
-        this.showIndexed = showIndexed;
+    public void setShowPKFKUnique(boolean showPKFKUnique) {
+        this.show_Pk_Fk_Unique = showPKFKUnique;
+    }
+    
+    public boolean isShowPKFK() {
+        return show_Pk_Fk;
     }
 
-    public boolean isShowUnique() {
-        return showUnique;
+    public void setShowPKFK(boolean showPKFK) {
+        this.show_Pk_Fk = showPKFK;
     }
 
-    public void setShowUnique(boolean showUnique) {
-        this.showUnique = showUnique;
+    public boolean isShowPK() {
+        return show_Pk;
     }
 
-    public boolean isShowTheRest() {
-        return showTheRest;
-    }
-
-    public void setShowTheRest(boolean showTheRest) {
-        this.showTheRest = showTheRest;
+    public void setShowPK(boolean showPK) {
+        this.show_Pk = showPK;
     }
     
     public void showOLAPSchemaManager(Window owner) {
@@ -949,5 +949,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public PrintSettings getPrintSettings() {
         return printSettings;
     }
+
 
 }
