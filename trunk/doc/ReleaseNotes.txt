@@ -18,6 +18,12 @@ Power*Architect Release Notes
 	  * Fixed print preview behaviour
 	  * Fixed an issue where loading an OLAP session resulted in a new OLAP
 	  session being added to the project.
+	  * Improved the Show Column features in Project Settings. Change the 
+	  settings from checkboxes to radiobuttons which makes more sense.(Note:
+	  when first time useing this build to load previous projects, it will be 
+	  set to the default value - Show All Columns)  
+	     
+  
   
 
 0.9.12

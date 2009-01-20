@@ -396,24 +396,22 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
 	    // if all the boxes are checked, then hide no columns, only these 3 need be
 	    // checked. Draw a truth table if you don't believe me.
-	    if (!(session.isShowForeign() && session.isShowIndexed() 
-	            && session.isShowTheRest())) {
-
+	    if (!session.isShowAll()) {
+	        
 	        // start with a list of all the columns, then remove the ones that 
 	        // should be shown
 	        hiddenColumns.addAll(getItems());
 	        for (SQLColumn col : getItems()) {
-	            if (session.isShowPrimary() && col.isPrimaryKey()) {
+	            if (col.isPrimaryKey()) {
 	                hiddenColumns.remove(col);
-	            } else if (session.isShowForeign() && col.isForeignKey()) {
+	            } 
+	            if (!session.isShowPK() && col.isForeignKey()) {
 	                hiddenColumns.remove(col);
-	            } else if (session.isShowIndexed() && col.isIndexed()) {
+	            }
+	            if (!session.isShowPK() && !session.isShowPKFK() && col.isUniqueIndexed()) {
 	                hiddenColumns.remove(col);
-	            } else if (session.isShowUnique() && col.isUniqueIndexed()) {
-	                hiddenColumns.remove(col);
-	            } else if (session.isShowTheRest() && !(col.isPrimaryKey() || col.isForeignKey() 
-	                    || col.isIndexed())) {
-	                // unique index not checked because it is a subset of index
+	            }
+	            if (!session.isShowPK() && !session.isShowPKFK() && !session.isShowPKFKUnique() && col.isIndexed()) {
 	                hiddenColumns.remove(col);
 	            }
 	        }

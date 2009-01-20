@@ -220,54 +220,56 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public void setShowAkTag(boolean showAkTag);
    
     /**
-     * Indicates whether PK Columns will be shown. 
+     * Indicates whether All Columns will be shown. 
      */
-    public boolean isShowPrimary();
+    
+    public boolean isShowAll();
     
     /**
-     * Sets whether PK Columns should be shown.
+     * Sets whether All Columns should be shown.
      */
-    public void setShowPrimary(boolean showPrimary);
+    public void setShowAll(boolean showForeign);
     
     /**
-     * Indicates whether FK Columns will be shown. 
+     * Indicates whether PK, FK, Unique and Indexed Columns will be shown. 
      */
-    public boolean isShowForeign();
+    public boolean isShowPKFKUniqueIndexed();
     
     /**
-     * Sets whether FK Columns should be shown.
+     * Sets whether PK, FK, Unique and Indexed Columns should be shown.
      */
-    public void setShowForeign(boolean showForeign);
+    public void setShowPKFKUniqueIndexed(boolean showUnique);
     
     /**
-     * Indicates whether Unique Columns will be shown. 
+     * Indicates whether PK, FK and Unique Columns will be shown. 
      */
-    public boolean isShowUnique();
+    public boolean isShowPKFKUnique();
     
     /**
-     * Sets whether Unique Columns should be shown.
+     * Sets whether PK,FK and Unique Columns should be shown.
      */
-    public void setShowUnique(boolean showUnique);
+    public void setShowPKFKUnique(boolean showPKFKUnique);
+    
+
+    /**
+     * Indicates whether only PK and FK Columns will be shown. 
+     */
+    public boolean isShowPKFK();
     
     /**
-     * Indicates whether Indexed Columns will be shown. 
+     * Sets whether only PK and FK Columns should be shown.
      */
-    public boolean isShowIndexed();
+    public void setShowPKFK(boolean showThePKFK);
     
     /**
-     * Sets whether Indexed Columns should be shown.
+     * Indicates whether only PK Columns will be shown. 
      */
-    public void setShowIndexed(boolean showIndexed);
+    public boolean isShowPK();
     
     /**
-     * Indicates whether Columns that are not PK, FK, Unique or Indexed will be shown. 
+     * Sets whether only PK Columns should be shown.
      */
-    public boolean isShowTheRest();
-    
-    /**
-     * Sets whether Columns that are not PK, FK, Unique or Indexed should be shown.
-     */
-    public void setShowTheRest(boolean showTheRest);
+    public void setShowPK(boolean showThePK);
     
     /**
      * Shows the schema manager dialog for this session's OLAP Schemas. 

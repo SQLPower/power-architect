@@ -63,11 +63,12 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
     private JCheckBox showPkTag;
     private JCheckBox showFkTag;
     private JCheckBox showAkTag;
-    private JCheckBox showPrimary;
-    private JCheckBox showForeign;
-    private JCheckBox showIndexed;
-    private JCheckBox showUnique;
-    private JCheckBox showTheRest;
+    
+    private JRadioButton showAll;
+    private JRadioButton show_Pk_Fk_Unique_Indexed;
+    private JRadioButton show_Pk_Fk_Unique;
+    private JRadioButton show_Pk_Fk;
+    private JRadioButton show_Pk;
     
 	public ProjectSettingsPanel(ArchitectSwingSession session) {
 		this.session = session;
@@ -111,24 +112,32 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         add(new JSeparator(), cc.xyw(1, row, 2));
         
         row++;
-        add(showPrimary = new JCheckBox(Messages.getString("ProjectSettingsPanel.showPrimaryKeyColumns")), cc.xy(1, row)); //$NON-NLS-1$
+        add(showAll = new JRadioButton (Messages.getString("ProjectSettingsPanel.showAll")), cc.xy(1, row)); //$NON-NLS-1$
         add(showPkTag = new JCheckBox(Messages.getString("ProjectSettingsPanel.showPKTags")), cc.xy(2, row)); //$NON-NLS-1$
         
         row++;
-        add(showForeign = new JCheckBox(Messages.getString("ProjectSettingsPanel.showForeignKeyColumns")), cc.xy(1, row)); //$NON-NLS-1$
+        add(show_Pk_Fk_Unique_Indexed = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPKFKUniqueIndexed")), cc.xy(1, row)); //$NON-NLS-1$
         add(showFkTag = new JCheckBox(Messages.getString("ProjectSettingsPanel.showFKTags")), cc.xy(2, row)); //$NON-NLS-1$
         
         row++;
-        add(showIndexed = new JCheckBox(Messages.getString("ProjectSettingsPanel.showIndexedColumns")), cc.xy(1, row)); //$NON-NLS-1$
+        add(show_Pk_Fk_Unique = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPKFKUnique")), cc.xy(1, row)); //$NON-NLS-1$
         add(showAkTag = new JCheckBox(Messages.getString("ProjectSettingsPanel.showAKTags")), cc.xy(2, row)); //$NON-NLS-1$
         
         row++;
-        add(showUnique = new JCheckBox(Messages.getString("ProjectSettingsPanel.showUniqueColumns")), cc.xy(1, row)); //$NON-NLS-1$
+        add(show_Pk_Fk = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPKFK")), cc.xy(1, row)); //$NON-NLS-1$
         add(new JLabel(), cc.xy(2, row));
         
         row++;
-        add(showTheRest = new JCheckBox(Messages.getString("ProjectSettingsPanel.showRemainingColumns")), cc.xy(1, row)); //$NON-NLS-1$
+        add(show_Pk = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPK")), cc.xy(1, row)); //$NON-NLS-1$
         add(new JLabel(), cc.xy(2, row));
+        
+        ButtonGroup column_show_settings = new ButtonGroup();
+        column_show_settings.add(showAll);
+        column_show_settings.add(show_Pk_Fk_Unique_Indexed);
+        column_show_settings.add(show_Pk_Fk_Unique);
+        column_show_settings.add(show_Pk_Fk);
+        column_show_settings.add(show_Pk);
+   
         /*
         */
 	}
@@ -146,12 +155,19 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
             showPkTag.setSelected(session.isShowPkTag());
             showFkTag.setSelected(session.isShowFkTag());
             showAkTag.setSelected(session.isShowAkTag());
-            showPrimary.setSelected(session.isShowPrimary());
-            showForeign.setSelected(session.isShowForeign());
-            showIndexed.setSelected(session.isShowIndexed());
-            showUnique.setSelected(session.isShowUnique());
-            showTheRest.setSelected(session.isShowTheRest());
-	}
+            
+        if (session.isShowAll()) {
+            showAll.setSelected(true);
+        } else if (session.isShowPKFKUniqueIndexed()) {
+            show_Pk_Fk_Unique_Indexed.setSelected(true);
+        } else if (session.isShowPKFKUnique()) {
+            show_Pk_Fk_Unique.setSelected(true);
+        } else if (session.isShowPKFK()) {
+            show_Pk_Fk.setSelected(true);
+        } else {
+            show_Pk.setSelected(true);
+        }
+    }
 
 	public boolean applyChanges() {
 		session.setSavingEntireSource(saveEntireSource.isSelected());
@@ -175,12 +191,13 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         session.setShowPkTag(showPkTag.isSelected());
         session.setShowFkTag(showFkTag.isSelected());
         session.setShowAkTag(showAkTag.isSelected());
-        session.setShowPrimary(showPrimary.isSelected());
-        session.setShowForeign(showForeign.isSelected());
-        session.setShowIndexed(showIndexed.isSelected());
-        session.setShowUnique(showUnique.isSelected());
-        session.setShowTheRest(showTheRest.isSelected());
-
+        
+        session.setShowAll(showAll.isSelected());
+        session.setShowPKFKUniqueIndexed(show_Pk_Fk_Unique_Indexed.isSelected());
+        session.setShowPKFKUnique(show_Pk_Fk_Unique.isSelected());
+        session.setShowPKFK(show_Pk_Fk.isSelected());
+        session.setShowPK(show_Pk.isSelected());
+        
         session.getPlayPen().updateHiddenColumns();
         
         return true;

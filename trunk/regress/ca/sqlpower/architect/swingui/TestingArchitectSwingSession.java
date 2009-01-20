@@ -75,11 +75,11 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private boolean showFkTag = true;
     private boolean showAkTag = true;
     
-    protected boolean showPrimary = true;
-    protected boolean showForeign = true;
-    protected boolean showIndexed = true;
-    protected boolean showUnique = true;
-    protected boolean showTheRest = true;
+    protected boolean showAll = true;
+    protected boolean show_PK = false;
+    protected boolean show_PK_FK= false;
+    protected boolean show_PK_FK_Unique = false;
+    protected boolean show_PK_FK_Unique_Indexed = false;
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws ArchitectException {
         this.context = context;
@@ -303,44 +303,45 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         }
     }
     
-    public boolean isShowPrimary() {
-        return showPrimary;
+    public boolean isShowPK() {
+        return show_PK;
     }
 
-    public void setShowPrimary(boolean showPrimary) {
-        this.showPrimary = showPrimary;
+    public void setShowPK(boolean showPrimary) {
+        this.show_PK = showPrimary;
     }
 
-    public boolean isShowForeign() {
-        return showForeign;
+    public boolean isShowPKFK() {
+        return show_PK_FK;
     }
 
-    public void setShowForeign(boolean showForeign) {
-        this.showForeign = showForeign;
+    public void setShowPKFK(boolean showForeign) {
+        this.show_PK_FK = showForeign;
     }
 
-    public boolean isShowIndexed() {
-        return showIndexed;
+    public boolean isShowPKFKUnique() {
+        return show_PK_FK_Unique;
     }
 
-    public void setShowIndexed(boolean showIndexed) {
-        this.showIndexed = showIndexed;
+    public void setShowPKFKUnique(boolean showUnique) {
+        this.show_PK_FK_Unique = showUnique;
+    }
+    
+    public boolean isShowPKFKUniqueIndexed() {
+        return show_PK_FK_Unique_Indexed;
     }
 
-    public boolean isShowUnique() {
-        return showUnique;
+    public void setShowPKFKUniqueIndexed(boolean showIndexed) {
+        this.show_PK_FK_Unique_Indexed = showIndexed;
     }
 
-    public void setShowUnique(boolean showUnique) {
-        this.showUnique = showUnique;
+
+    public boolean isShowAll() {
+        return showAll;
     }
 
-    public boolean isShowTheRest() {
-        return showTheRest;
-    }
-
-    public void setShowTheRest(boolean showTheRest) {
-        this.showTheRest = showTheRest;
+    public void setShowAll(boolean showTheRest) {
+        this.showAll = showTheRest;
     }
 
     public OLAPRootObject getOLAPRootObject() {
