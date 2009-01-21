@@ -304,7 +304,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
             if (evt.getButton() == MouseEvent.BUTTON1) {
                 if (evt.getClickCount() == 2) {
                     showProfile(obj);
-                } else if ((evt.getModifiers() & (InputEvent.CTRL_MASK | InputEvent.META_MASK)) != 0) {
+                } else if ((evt.getModifiers() & InputEvent.META_MASK) != 0) {
                     setSelected(!selected, SelectionEvent.CTRL_MULTISELECT);
                 } else if ((evt.getModifiers() & InputEvent.SHIFT_MASK) != 0){
                     setSelected(true, SelectionEvent.SHIFT_MULTISELECT);
