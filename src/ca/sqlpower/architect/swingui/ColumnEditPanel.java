@@ -815,7 +815,8 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      * When the spinner's textfield gains focus,it will be selected all.
      * The reason why not directly use .getTextField().selectAll() is it
      * doesn't work with JSpinner (though it's supposed to),So it is a bug
-     * in java which they haven't solved yet.
+     * in java which they haven't solved yet. URL to this bug : 
+     * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4699955
      */
     private void focusThenSelectAll(JSpinner spinner) {
         JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor)spinner.getEditor();
