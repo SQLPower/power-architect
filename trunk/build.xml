@@ -277,7 +277,7 @@
 			classpath="${pmd.jar}"/>
 		<property name="pmd-results" value="${reports}/pmd-ant-results.${pmd.report.format}"/>
 		<pmd shortFilenames="true" targetjdk="1.5">
-			<ruleset>basic,codesize,design,strings,imports</ruleset>
+			<ruleset>basic,imports</ruleset>
 			<formatter type="${pmd.report.format}" toFile="${pmd-results}"/>
 			<fileset dir="${src}">
 				<include name="**/*.java"/>
@@ -1166,16 +1166,14 @@
 	<target name="osx_tgz" depends="osx_dist" if="isNotMac">
 		<tar destfile="${dist.dir}/Architect-OSX-${app.version}.tar.gz"
 					compression="gzip">
-			<tarfileset dir="${staging.dir}" includes="Power Architect.app/**"/>
-			<tarfileset dir="${staging.dir}" includes="jdbc/*.ini"/>
+			<tarfileset dir="${staging.dir}" includes="Power*Architect.app/**"/>
 		</tar>
 	</target>
 
 	<target name="osx_jdbc_tgz" depends="osx_jdbc_dist" if="isNotMac">
 		<tar destfile="${dist.dir}/Architect-OSX-jdbc-${app.version}.tar.gz"
 					compression="gzip">
-			<tarfileset dir="${staging.dir}" includes="Power Architect JDBC.app/**"/>
-			<tarfileset dir="${staging.dir}" includes="jdbc/*"/>
+			<tarfileset dir="${staging.dir}" includes="Power*Architect*JDBC.app/**"/>
 		</tar>
 	</target>
 
