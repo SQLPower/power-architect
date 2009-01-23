@@ -70,6 +70,7 @@ import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
@@ -289,24 +290,10 @@ public class SwingUIProject extends CoreProject {
         	setupGenericPlayPen(pp, attributes);
         	
         	// default values in playpen are true
-        	String showPK = attributes.getValue("showPK"); //$NON-NLS-1$
-        	if (showPK != null) {
-        	    getSession().setShowPK(Boolean.valueOf(showPK));
-        	}
-        	String showPKFK = attributes.getValue("showPKFK"); //$NON-NLS-1$
-        	if (showPKFK != null) {
-        	    getSession().setShowPKFK(Boolean.valueOf(showPKFK));        	}
-        	String showPKFKUnique = attributes.getValue("showPKFKUnique"); //$NON-NLS-1$
-        	if (showPKFKUnique != null) {
-        	    getSession().setShowPKFKUnique(Boolean.valueOf(showPKFKUnique));
-        	}
-        	String showPKFKUniqueIndexed = attributes.getValue("showPKFKUniqueIndexed"); //$NON-NLS-1$
-        	if (showPKFKUniqueIndexed != null) {
-        	    getSession().setShowPKFKUniqueIndexed(Boolean.valueOf(showPKFKUniqueIndexed));
-        	}
-        	String showAll = attributes.getValue("showAll"); //$NON-NLS-1$
-        	if (showAll != null) {
-        	    getSession().setShowAll(Boolean.valueOf(showAll));
+        	
+        	String columnVisibility = attributes.getValue("columnVisibility"); //$NON-NLS-1$
+        	if (columnVisibility != null) {
+        	    getSession().setColumnVisibility(ColumnVisibility.valueOf(columnVisibility));
         	}
         	
         	String showPrimaryTag = attributes.getValue("showPrimaryTag"); //$NON-NLS-1$
@@ -972,11 +959,7 @@ public class SwingUIProject extends CoreProject {
             tagText.append(" showPrimaryTag=\"").append(getSession().isShowPkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" showForeignTag=\"").append(getSession().isShowFkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" showAlternateTag=\"").append(getSession().isShowAkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showPK=\"").append(getSession().isShowPK()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showPKFK=\"").append(getSession().isShowPKFK()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showPKFKUnique=\"").append(getSession().isShowPKFKUnique()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showPKFKUniqueIndexed=\"").append(getSession().isShowPKFKUniqueIndexed()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showAll=\"").append(getSession().isShowAll()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" columnVisibility=\"").append(getSession().getColumnVisibility()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
         }
         tagText.append(">"); //$NON-NLS-1$
         ioo.println(out, tagText.toString());

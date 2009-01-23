@@ -64,6 +64,7 @@ import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.swingui.ColorIcon;
@@ -393,11 +394,11 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	public void updateHiddenColumns() {
 	    hiddenColumns.clear();
 	    ArchitectSwingSession session = getPlayPen().getSession();
+	    ColumnVisibility choice = session.getColumnVisibility();
 
 	    // if all the boxes are checked, then hide no columns, only these 3 need be
 	    // checked. Draw a truth table if you don't believe me.
-	    if (!session.isShowAll()) {
-	        
+	    if(!choice.equals(ColumnVisibility.ALL)) {
 	        // start with a list of all the columns, then remove the ones that 
 	        // should be shown
 	        hiddenColumns.addAll(getItems());
@@ -405,13 +406,14 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	            if (col.isPrimaryKey()) {
 	                hiddenColumns.remove(col);
 	            } 
-	            if (!session.isShowPK() && col.isForeignKey()) {
+	            if (!choice.equals(ColumnVisibility.PK) && col.isForeignKey()) {
 	                hiddenColumns.remove(col);
 	            }
-	            if (!session.isShowPK() && !session.isShowPKFK() && col.isUniqueIndexed()) {
+	            if (!choice.equals(ColumnVisibility.PK) && !choice.equals(ColumnVisibility.PK_FK) && col.isUniqueIndexed()) {
 	                hiddenColumns.remove(col);
 	            }
-	            if (!session.isShowPK() && !session.isShowPKFK() && !session.isShowPKFKUnique() && col.isIndexed()) {
+	            if (!choice.equals(ColumnVisibility.PK) && !choice.equals(ColumnVisibility.PK_FK) &&
+	                    !choice.equals(ColumnVisibility.PK_FK_UNIQUE) && col.isIndexed()) {
 	                hiddenColumns.remove(col);
 	            }
 	        }

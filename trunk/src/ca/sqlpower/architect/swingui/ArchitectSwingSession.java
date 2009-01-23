@@ -30,6 +30,7 @@ import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
@@ -218,58 +219,19 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * Sets whether the AK Tags will be shown
      */
     public void setShowAkTag(boolean showAkTag);
-   
-    /**
-     * Indicates whether All Columns will be shown. 
-     */
-    
-    public boolean isShowAll();
     
     /**
-     * Sets whether All Columns should be shown.
+     * Sets the choice of what columns to show
+     * @param choice The choice user made on how
+     * to show columns.
      */
-    public void setShowAll(boolean showForeign);
+    public void setColumnVisibility(ColumnVisibility choice);
     
     /**
-     * Indicates whether PK, FK, Unique and Indexed Columns will be shown. 
+     * 
+     * @return the choice of how to show columns.
      */
-    public boolean isShowPKFKUniqueIndexed();
-    
-    /**
-     * Sets whether PK, FK, Unique and Indexed Columns should be shown.
-     */
-    public void setShowPKFKUniqueIndexed(boolean showUnique);
-    
-    /**
-     * Indicates whether PK, FK and Unique Columns will be shown. 
-     */
-    public boolean isShowPKFKUnique();
-    
-    /**
-     * Sets whether PK,FK and Unique Columns should be shown.
-     */
-    public void setShowPKFKUnique(boolean showPKFKUnique);
-    
-
-    /**
-     * Indicates whether only PK and FK Columns will be shown. 
-     */
-    public boolean isShowPKFK();
-    
-    /**
-     * Sets whether only PK and FK Columns should be shown.
-     */
-    public void setShowPKFK(boolean showThePKFK);
-    
-    /**
-     * Indicates whether only PK Columns will be shown. 
-     */
-    public boolean isShowPK();
-    
-    /**
-     * Sets whether only PK Columns should be shown.
-     */
-    public void setShowPK(boolean showThePK);
+    public ColumnVisibility getColumnVisibility();
     
     /**
      * Shows the schema manager dialog for this session's OLAP Schemas. 

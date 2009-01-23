@@ -43,6 +43,7 @@ import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -75,11 +76,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private boolean showFkTag = true;
     private boolean showAkTag = true;
     
-    protected boolean showAll = true;
-    protected boolean show_PK = false;
-    protected boolean show_PK_FK= false;
-    protected boolean show_PK_FK_Unique = false;
-    protected boolean show_PK_FK_Unique_Indexed = false;
+    private ColumnVisibility choice = ColumnVisibility.ALL;
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws ArchitectException {
         this.context = context;
@@ -303,47 +300,14 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         }
     }
     
-    public boolean isShowPK() {
-        return show_PK;
-    }
-
-    public void setShowPK(boolean showPrimary) {
-        this.show_PK = showPrimary;
-    }
-
-    public boolean isShowPKFK() {
-        return show_PK_FK;
-    }
-
-    public void setShowPKFK(boolean showForeign) {
-        this.show_PK_FK = showForeign;
-    }
-
-    public boolean isShowPKFKUnique() {
-        return show_PK_FK_Unique;
-    }
-
-    public void setShowPKFKUnique(boolean showUnique) {
-        this.show_PK_FK_Unique = showUnique;
+    public void setColumnVisibility(ColumnVisibility option) {
+        choice = option;
     }
     
-    public boolean isShowPKFKUniqueIndexed() {
-        return show_PK_FK_Unique_Indexed;
+    public  ColumnVisibility getColumnVisibility() {
+        return choice;
     }
-
-    public void setShowPKFKUniqueIndexed(boolean showIndexed) {
-        this.show_PK_FK_Unique_Indexed = showIndexed;
-    }
-
-
-    public boolean isShowAll() {
-        return showAll;
-    }
-
-    public void setShowAll(boolean showTheRest) {
-        this.showAll = showTheRest;
-    }
-
+    
     public OLAPRootObject getOLAPRootObject() {
         return olapRootObject;
     }
