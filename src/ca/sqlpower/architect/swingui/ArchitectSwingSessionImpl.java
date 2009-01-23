@@ -141,13 +141,17 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private boolean showPkTag = true;
     private boolean showFkTag = true;
     private boolean showAkTag = true;
-
-    private boolean showAll = true;
-    private boolean show_Pk_Fk_Unique_Indexed = false;
-    private boolean show_Pk_Fk_Unique = false;
-    private boolean show_Pk_Fk = false;
-    private boolean show_Pk = false;
     
+    private ColumnVisibility columnVisibility = ColumnVisibility.ALL;
+    
+    public static enum ColumnVisibility {
+        ALL, 
+        PK, 
+        PK_FK, 
+        PK_FK_UNIQUE, 
+        PK_FK_UNIQUE_INDEXED;
+    }
+
     private List<OLAPEditSession> olapEditSessions;
     
     /**
@@ -871,44 +875,19 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
     }
 
-    public boolean isShowAll() {
-        return showAll;
-    }
-
-    public void setShowAll(boolean showAll) {
-        this.showAll = showAll;
-    }
-
-    public boolean isShowPKFKUniqueIndexed() {
-        return show_Pk_Fk_Unique_Indexed;
-    }
-
-    public void setShowPKFKUniqueIndexed(boolean showIndexed) {
-        this.show_Pk_Fk_Unique_Indexed = showIndexed;
-    }
-
-    public boolean isShowPKFKUnique() {
-        return show_Pk_Fk_Unique;
-    }
-
-    public void setShowPKFKUnique(boolean showPKFKUnique) {
-        this.show_Pk_Fk_Unique = showPKFKUnique;
+    /**
+     * Sets the visibility of columns in the playpen of this session.
+     * 
+     * @param option The new column visibility setting. If null, all columns will
+     * be shown (equivalent to specifying {@link ColumnVisibility#ALL}).
+     */
+    public void setColumnVisibility(ColumnVisibility option) {
+        columnVisibility = option;
+        // XXX should fire property change event, but apparently the session doesn't support that
     }
     
-    public boolean isShowPKFK() {
-        return show_Pk_Fk;
-    }
-
-    public void setShowPKFK(boolean showPKFK) {
-        this.show_Pk_Fk = showPKFK;
-    }
-
-    public boolean isShowPK() {
-        return show_Pk;
-    }
-
-    public void setShowPK(boolean showPK) {
-        this.show_Pk = showPK;
+    public ColumnVisibility getColumnVisibility() {
+        return columnVisibility;
     }
     
     public void showOLAPSchemaManager(Window owner) {
