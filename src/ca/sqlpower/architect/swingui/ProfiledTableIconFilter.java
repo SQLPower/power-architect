@@ -22,10 +22,10 @@ package ca.sqlpower.architect.swingui;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.dbtree.IconFilter;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**

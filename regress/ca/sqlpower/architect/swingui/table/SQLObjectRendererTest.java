@@ -20,10 +20,10 @@ package ca.sqlpower.architect.swingui.table;
 
 import javax.swing.JLabel;
 
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.swingui.table.BaseRendererTest;
 
 public class SQLObjectRendererTest extends BaseRendererTest {

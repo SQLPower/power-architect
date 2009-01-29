@@ -38,15 +38,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectRoot;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLUtils;
@@ -57,6 +50,13 @@ import ca.sqlpower.sql.DataMover;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -97,7 +97,7 @@ public class DataMoverPanel {
      */
     private ArchitectSwingSession session;
     
-    public DataMoverPanel(ArchitectSwingSession session) throws ArchitectException {
+    public DataMoverPanel(ArchitectSwingSession session) throws SQLObjectException {
         this.session = session;
         
         setupDBTrees();
@@ -130,14 +130,14 @@ public class DataMoverPanel {
             public void databaseAdded(DatabaseListChangeEvent e) {
                 try {
                     setupDBTrees();                            
-                } catch (ArchitectException ex) {
+                } catch (SQLObjectException ex) {
                     SPSUtils.showExceptionDialogNoReport(panel, Messages.getString("DataMoverPanel.couldNotFindDB"), ex); //$NON-NLS-1$
                 }
             }
             public void databaseRemoved(DatabaseListChangeEvent e) {
                 try {
                     setupDBTrees();                            
-                } catch (ArchitectException ex) {
+                } catch (SQLObjectException ex) {
                     SPSUtils.showExceptionDialogNoReport(panel, Messages.getString("DataMoverPanel.couldNotFindDB"), ex); //$NON-NLS-1$
                 }
             }
@@ -158,7 +158,7 @@ public class DataMoverPanel {
      * Sets the trees in the data mover panel to have all of the connections
      * in the current context.
      */
-    private void setupDBTrees() throws ArchitectException {
+    private void setupDBTrees() throws SQLObjectException {
         if (treeRoot == null) {
             treeRoot = new SQLObjectRoot();
         } else {
@@ -196,7 +196,7 @@ public class DataMoverPanel {
         return panel;
     }
     
-    public void doDataMove() throws SQLException, ArchitectException {
+    public void doDataMove() throws SQLException, SQLObjectException {
         final TreePath[] sourcePaths = sourceTree.getSelectionPaths();
         int tableCount = 0;
         int rowCount = 0;
@@ -228,9 +228,9 @@ public class DataMoverPanel {
      * @param sourcePath
      * @return The number of rows moved, or -1 if the user canceled the operation.
      * @throws SQLException
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    private int moveSingleTable(final SQLTable sourceTable) throws SQLException, ArchitectException {
+    private int moveSingleTable(final SQLTable sourceTable) throws SQLException, SQLObjectException {
         final SQLDatabase sourceDB = getParentDatabase(sourceTable);
         
         final TreePath destPath = destTree.getSelectionPath();

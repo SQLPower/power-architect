@@ -20,7 +20,7 @@ package ca.sqlpower.architect.ddl;
 
 import java.util.List;
 
-import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * A DDLWarning object encapsulates the details of a single warning

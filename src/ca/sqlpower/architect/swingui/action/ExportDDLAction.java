@@ -39,8 +39,6 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.ConflictResolver;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLWarning;
@@ -50,6 +48,8 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
 import ca.sqlpower.architect.swingui.SQLScriptDialog;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.MonitorableWorker;
@@ -253,12 +253,12 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		 * @param parentDialog The JDialog we're doing this in.
 		 * @param target The target database (where to search for the conflicts).
 		 * @param ddlg The DDL Generator that we're using.
-		 * @throws ArchitectException If there is a problem connecting to the target database
+		 * @throws SQLObjectException If there is a problem connecting to the target database
 		 * @throws SQLException If the conflict resolver chokes
 		 */
 		public ConflictFinderProcess(JDialog parentDialog, SQLDatabase target,
 				DDLGenerator ddlg, List statements, ArchitectSwingSession session)
-			throws ArchitectException {
+			throws SQLObjectException {
 			super(session);
 			this.parentDialog = parentDialog;
 			this.target = target;

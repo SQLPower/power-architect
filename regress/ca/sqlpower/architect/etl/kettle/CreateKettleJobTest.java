@@ -49,11 +49,7 @@ import org.pentaho.di.repository.RepositoryMeta;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.TestingArchitectSession;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
 import ca.sqlpower.architect.UserPrompter;
@@ -61,6 +57,10 @@ import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class CreateKettleJobTest extends TestCase {
 
@@ -137,7 +137,7 @@ public class CreateKettleJobTest extends TestCase {
         targetTableMixedSource.addColumn(new SQLColumn(targetTableMixedSource, "ColumnF", 2, 10, 0));
     }
     
-    public void testCreatingJobsWithTablesWithNoSource() throws ArchitectException, IOException, RuntimeException, KettleException, SQLException {
+    public void testCreatingJobsWithTablesWithNoSource() throws SQLObjectException, IOException, RuntimeException, KettleException, SQLException {
         new File("TestingJob.kjb").delete();
         new File("transformation_for_table_TargetTable1.ktr").delete();
         KettleJob job = new KettleJob(session);
@@ -152,7 +152,7 @@ public class CreateKettleJobTest extends TestCase {
         assertFalse(new File("transformation_for_table_TargetTable1.ktr").exists());
     }
     
-    public void testCreatingJobsWithTablesWithSources() throws ArchitectException, IOException, RuntimeException, KettleException, SQLException {
+    public void testCreatingJobsWithTablesWithSources() throws SQLObjectException, IOException, RuntimeException, KettleException, SQLException {
         new File("TestingJob.kjb").delete();
         new File("transformation_for_table_TargetTable2.ktr").delete();
         KettleJob job = new KettleJob(session);

@@ -23,10 +23,10 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * DDLUtils is a collection of utilities related to creating and

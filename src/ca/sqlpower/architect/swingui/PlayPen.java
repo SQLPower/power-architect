@@ -90,18 +90,7 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.MondrianModel;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
@@ -129,12 +118,24 @@ import ca.sqlpower.architect.swingui.olap.PaneSection;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEventListener;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.jdbcwrapper.DatabaseMetaDataDecorator;
 import ca.sqlpower.sql.jdbcwrapper.DatabaseMetaDataDecorator.CacheType;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.undo.CompoundEvent;
+import ca.sqlpower.sqlobject.undo.CompoundEventListener;
+import ca.sqlpower.sqlobject.undo.CompoundEvent.EventTypes;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -460,7 +461,7 @@ public class PlayPen extends JPanel
         firePlayPenLifecycleEvent();
         try {
             removeHierarcyListeners(session.getTargetDatabase());
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             logger.error("Couldn't unlisten this playpen from the database", ex); //$NON-NLS-1$
         }
     }
@@ -469,7 +470,7 @@ public class PlayPen extends JPanel
      * Returns a new list of all tables in this play pen. The list returned will
      * be your own private (shallow) copy, so you are free to modify it.
      */
-    public List<SQLTable> getTables() throws ArchitectException {
+    public List<SQLTable> getTables() throws SQLObjectException {
         List<SQLTable> tables = new ArrayList<SQLTable>();
         ArchitectUtils.findDescendentsByClass(session.getTargetDatabase(), SQLTable.class, tables);
         return tables;
@@ -487,8 +488,8 @@ public class PlayPen extends JPanel
         newdb.setDataSource(dbcs);
 
 		try {
-			ArchitectUtils.listenToHierarchy(this, newdb);
-		} catch (ArchitectException ex) {
+			SQLObjectUtils.listenToHierarchy(this, newdb);
+		} catch (SQLObjectException ex) {
 			logger.error("Couldn't listen to database", ex); //$NON-NLS-1$
 		}
 		tableNames = new HashSet<String>();
@@ -547,8 +548,8 @@ public class PlayPen extends JPanel
                                 tp.selectNone();
                                 tp.selectItem(newIndex);
                             }
-                        } catch (ArchitectException ex) {
-                            throw new ArchitectRuntimeException(ex);
+                        } catch (SQLObjectException ex) {
+                            throw new SQLObjectRuntimeException(ex);
                         }
                     }
                 }
@@ -586,11 +587,11 @@ public class PlayPen extends JPanel
                                         tp.selectNone();
                                         tp.selectItem(newIndex);
                                     }
-                                } catch (ArchitectException ex) {
-                                    throw new ArchitectRuntimeException(ex);
+                                } catch (SQLObjectException ex) {
+                                    throw new SQLObjectRuntimeException(ex);
                                 }
                             }
-                        } catch (ArchitectException e1) {
+                        } catch (SQLObjectException e1) {
                             logger.error("Could not get columns of "+ tp.getName(), e1); //$NON-NLS-1$
                         }
                     }
@@ -1270,7 +1271,7 @@ public class PlayPen extends JPanel
 	 * @see SQLTable#inherit
 	 * @see PlayPenLayout#addLayoutComponent(Component,Object)
 	 */
-	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws ArchitectException {
+	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws SQLObjectException {
 		SQLTable newTable = SQLTable.getDerivedInstance(source, session.getTargetDatabase()); // adds newTable to db
 		String key = source.getName().toLowerCase();
 		boolean isAlreadyOnPlaypen = false;
@@ -1320,9 +1321,9 @@ public class PlayPen extends JPanel
      * @param suffix
      *            Indicating the number of the copies of the table we have already
      *            on the playpen
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    private void createRelationshipsFromPP(SQLTable source, SQLTable newTable, boolean isPrimaryKeyTableNew, boolean isAlreadyOnPlaypen, int suffix) throws ArchitectException {
+    private void createRelationshipsFromPP(SQLTable source, SQLTable newTable, boolean isPrimaryKeyTableNew, boolean isAlreadyOnPlaypen, int suffix) throws SQLObjectException {
         // create exported relationships if the importing tables exist in pp
 		Iterator sourceKeys = null;
         if (isPrimaryKeyTableNew) {
@@ -1395,7 +1396,7 @@ public class PlayPen extends JPanel
 		}
     }
 
-    private void setupMapping(SQLTable newTable, SQLTable otherTable, SQLRelationship newRel, SQLRelationship.ColumnMapping m, boolean newTableIsPk) throws ArchitectException {
+    private void setupMapping(SQLTable newTable, SQLTable otherTable, SQLRelationship newRel, SQLRelationship.ColumnMapping m, boolean newTableIsPk) throws SQLObjectException {
         SQLColumn pkCol = null;
         SQLColumn fkCol = null;
 
@@ -1435,7 +1436,7 @@ public class PlayPen extends JPanel
 	/**
 	 * Calls {@link #importTableCopy} for each table contained in the given schema.
 	 */
-	public synchronized void addObjects(List list, Point preferredLocation, SPSwingWorker nextProcess) throws ArchitectException {
+	public synchronized void addObjects(List list, Point preferredLocation, SPSwingWorker nextProcess) throws SQLObjectException {
 		ProgressMonitor pm
 		 = new ProgressMonitor(this,
 		                      Messages.getString("PlayPen.copyingObjectsToThePlaypen"), //$NON-NLS-1$
@@ -1525,7 +1526,7 @@ public class PlayPen extends JPanel
 	                DatabaseMetaDataDecorator.putHint(DatabaseMetaDataDecorator.CACHE_TYPE, CacheType.EAGER_CACHE);
 				}
 				ensurePopulated(sqlObjects);
-			} catch (ArchitectException e) {
+			} catch (SQLObjectException e) {
 				logger.error("Unexpected exception during populate", e); //$NON-NLS-1$
                 setDoStuffException(e);
 				errorMessage = "Unexpected exception during populate: " + e.getMessage(); //$NON-NLS-1$
@@ -1549,7 +1550,7 @@ public class PlayPen extends JPanel
 				try {
 					if (so instanceof SQLTable) progress++;
 					ensurePopulated(so.getChildren());
-				} catch (ArchitectException e) {
+				} catch (SQLObjectException e) {
                     errorMessage = "Couldn't get children of " + so; //$NON-NLS-1$
                     setDoStuffException(e);
 					logger.error("Couldn't get children of " + so, e); //$NON-NLS-1$
@@ -1627,7 +1628,7 @@ public class PlayPen extends JPanel
 						logger.error("Unknown object dropped in PlayPen: "+someData); //$NON-NLS-1$
 					}
 				}
-			} catch (ArchitectException e) {
+			} catch (SQLObjectException e) {
 				ASUtils.showExceptionDialog(session,
                     "Unexpected Exception During Import", e); //$NON-NLS-1$
 			} finally {
@@ -1660,9 +1661,9 @@ public class PlayPen extends JPanel
 	 * the sqlobject hieracrchy.  At this time only the play pen
 	 * needs to listen.
 	 */
-	private void addHierarcyListeners(SQLObject sqlObject) throws ArchitectException
+	private void addHierarcyListeners(SQLObject sqlObject) throws SQLObjectException
 	{
-		ArchitectUtils.listenToHierarchy(this, sqlObject);
+		SQLObjectUtils.listenToHierarchy(this, sqlObject);
 
 	}
 
@@ -1671,9 +1672,9 @@ public class PlayPen extends JPanel
 	 * the sqlobject hieracrchy.  At this time only the play pen
 	 * needs to be removed
 	 */
-	private void removeHierarcyListeners(SQLObject sqlObject) throws ArchitectException
+	private void removeHierarcyListeners(SQLObject sqlObject) throws SQLObjectException
 	{
-		ArchitectUtils.unlistenToHierarchy(this,sqlObject);
+		SQLObjectUtils.unlistenToHierarchy(this,sqlObject);
 	}
 
 	/**
@@ -1689,7 +1690,7 @@ public class PlayPen extends JPanel
 		for (int i = 0; i < c.length; i++) {
 			try {
 				addHierarcyListeners(c[i]);
-			} catch (ArchitectException ex) {
+			} catch (SQLObjectException ex) {
 				logger.error("Couldn't listen to added object", ex); //$NON-NLS-1$
 			}
 			if (c[i] instanceof SQLTable
@@ -1728,7 +1729,7 @@ public class PlayPen extends JPanel
 		for (int i = 0; i < c.length; i++) {
 			try {
 				removeHierarcyListeners(c[i]);
-			} catch (ArchitectException ex) {
+			} catch (SQLObjectException ex) {
 				logger.error("Couldn't unlisten to removed object", ex); //$NON-NLS-1$
 			}
 
@@ -1923,35 +1924,35 @@ public class PlayPen extends JPanel
 
 	protected LinkedList undoEventListeners = new LinkedList();
 
-	public void addUndoEventListener(UndoCompoundEventListener l) {
+	public void addUndoEventListener(CompoundEventListener l) {
 		undoEventListeners.add(l);
 	}
 
-	public void removeSelectionListener(UndoCompoundEventListener l) {
+	public void removeSelectionListener(CompoundEventListener l) {
 		undoEventListeners.remove(l);
 	}
 
-	private void fireUndoCompoundEvent(UndoCompoundEvent e) {
+	private void fireUndoCompoundEvent(CompoundEvent e) {
 		Iterator it = undoEventListeners.iterator();
 
 		if (e.getType().isStartEvent()) {
 			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).compoundEditStart(e);
+				((CompoundEventListener) it.next()).compoundEditStart(e);
 			}
 		} else {
 			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).compoundEditEnd(e);
+				((CompoundEventListener) it.next()).compoundEditEnd(e);
 			}
 		}
 
 	}
 
 	public void startCompoundEdit(String message){
-		fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START,message));
+		fireUndoCompoundEvent(new CompoundEvent(EventTypes.COMPOUND_EDIT_START,message));
 	}
 
 	public void endCompoundEdit(String message){
-		fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END,message));
+		fireUndoCompoundEvent(new CompoundEvent(EventTypes.COMPOUND_EDIT_END,message));
 	}
 	// ------------------------------------- INNER CLASSES ----------------------------
 
@@ -2071,7 +2072,7 @@ public class PlayPen extends JPanel
 				} catch (InvalidDnDOperationException ex) {
 					logger.error(ex);
 					dtde.rejectDrop();
-				} catch (ArchitectException ex) {
+				} catch (SQLObjectException ex) {
 					logger.error(ex);
 					dtde.rejectDrop();
 				}
@@ -2622,9 +2623,9 @@ public class PlayPen extends JPanel
      * If the given SQL Object isn't in the playpen, this method has no effect.
      *
      * @param selection A list of SQLObjects, should only have SQLColumn, SQLTable or SQLRelationship.
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
-    public void selectObjects(List<SQLObject> selections) throws ArchitectException {
+    public void selectObjects(List<SQLObject> selections) throws SQLObjectException {
         if (ignoreTreeSelection) return;
         ignoreTreeSelection = true;
 
@@ -2729,9 +2730,9 @@ public class PlayPen extends JPanel
      * If the given OLAPObjects aren't in the playpen, this method has no effect.
      *
      * @param selection A list of OLAPObjects.
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
-    public void selectObjects(List<OLAPObject> selections, OLAPTree tree) throws ArchitectException {
+    public void selectObjects(List<OLAPObject> selections, OLAPTree tree) throws SQLObjectException {
         if (ignoreTreeSelection) return;
         ignoreTreeSelection = true;
         logger.debug("selecting: " + selections); //$NON-NLS-1$

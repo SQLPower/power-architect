@@ -23,7 +23,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.sqlobject.SQLColumn;
 
 public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
 

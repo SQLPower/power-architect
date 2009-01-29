@@ -23,9 +23,9 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.JDialog;
 
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.query.QueryDialog;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * This action will pop up the query tool in Architect and select all of the

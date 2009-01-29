@@ -29,15 +29,15 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreePath;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.ArchitectSessionImpl;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestDBTreeModel extends TestCase {
 
@@ -107,7 +107,7 @@ public class TestDBTreeModel extends TestCase {
         tm.setTestMode(true);
 	}
 	
-    public void testRefireRelationshipMappingEvents() throws ArchitectException {
+    public void testRefireRelationshipMappingEvents() throws SQLObjectException {
         SQLObject treeRoot = (SQLObject) tm.getRoot();
         SQLDatabase db = new SQLDatabase();
         db.setName("test database");

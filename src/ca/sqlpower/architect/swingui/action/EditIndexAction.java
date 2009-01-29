@@ -22,10 +22,10 @@ import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.IndexEditPanel;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 /**
@@ -44,7 +44,7 @@ public abstract class EditIndexAction extends AbstractArchitectAction {
     /**
      * Creates and shows the index properties dialog for the given index.
      */
-    protected void makeDialog(SQLIndex index) throws ArchitectException {
+    protected void makeDialog(SQLIndex index) throws SQLObjectException {
         final JDialog d;
         final IndexEditPanel editPanel = new IndexEditPanel(index, session);
   

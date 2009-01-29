@@ -37,6 +37,9 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
 
 /**
  * Basic implementation of ArchitectSession, for testing
@@ -108,7 +111,7 @@ public class TestingArchitectSession implements ArchitectSession {
 
     }
 
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
         // TODO Auto-generated method stub
 
     }

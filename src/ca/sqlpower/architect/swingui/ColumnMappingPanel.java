@@ -38,10 +38,10 @@ import javax.swing.JScrollPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 /**
@@ -135,7 +135,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
                         }
                     }
                 }
-            } catch (ArchitectException ex) {
+            } catch (SQLObjectException ex) {
                 throw new RuntimeException(ex);
             }
         }
@@ -145,7 +145,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
          * @param p
          * @return
          */
-        public Map.Entry<SQLColumn, SQLColumn> mappingForFkHandleAt(Point p) throws ArchitectException {
+        public Map.Entry<SQLColumn, SQLColumn> mappingForFkHandleAt(Point p) throws SQLObjectException {
             SQLTable fkTable = rhsTable.getModel();
             List<SQLColumn> fkCols = fkTable.getColumns();
             if ( (p.x < rhsTable.getX()) && (p.x > rhsTable.getX() - handleLength) ) {
@@ -205,7 +205,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
                     panel.setDraggingHandle(null);
                     panel.setDraggingPoint(null);
                 }
-            } catch (ArchitectException ex) {
+            } catch (SQLObjectException ex) {
                 throw new RuntimeException(ex);
             }
         }
@@ -240,7 +240,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
                     mappings.put(pkCol, newFkCol);
                     modified = true;
                 }
-            } catch (ArchitectException ex) {
+            } catch (SQLObjectException ex) {
                 throw new RuntimeException(ex);
             } finally {
                 panel.setDraggingHandle(null);
@@ -351,7 +351,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
                     rhsTable.addColumnHighlight(cm.getFkColumn(), otherRelColour);
                 }
             }
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -360,7 +360,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
      * Updates the ColumnMapping children in {@link #r} to match those in this
      * panel's internal representation of the mappings.
      */
-    public void updateRelationshipFromMappings() throws ArchitectException {
+    public void updateRelationshipFromMappings() throws SQLObjectException {
         try {
             r.startCompoundEdit("Modify Column Mappings"); //$NON-NLS-1$
             logger.debug("Removing all mappings from relationship..."); //$NON-NLS-1$
@@ -391,7 +391,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
     public boolean applyChanges() {
         try {
             updateRelationshipFromMappings();
-        } catch (ArchitectException e) {
+        } catch (SQLObjectException e) {
             throw new RuntimeException(e);
         } finally {
             cleanup();

@@ -27,12 +27,12 @@ import java.awt.image.BufferedImage;
 import javax.swing.AbstractAction;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.BasicTreeAutoLayout;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestAutoLayoutAction extends TestCase {
 	
@@ -58,7 +58,7 @@ public class TestAutoLayoutAction extends TestCase {
 		assertNotNull(layoutAction.getValue(AbstractAction.SMALL_ICON));
 	}
 	
-	public void testNoOverlaps() throws ArchitectException {
+	public void testNoOverlaps() throws SQLObjectException {
 		PlayPen pp = layoutAction.getPlayPen();
 		SQLDatabase ppdb = pp.getSession().getTargetDatabase();
 		SQLTable t1 = new SQLTable(ppdb, "This is the name of the first table", "", "TABLE", true);
@@ -79,7 +79,7 @@ public class TestAutoLayoutAction extends TestCase {
 		assertFalse(tp1.getBounds().intersects(tp2.getBounds()));
 	}
 	
-	public void testNoCrossingLinesEasy() throws ArchitectException {
+	public void testNoCrossingLinesEasy() throws SQLObjectException {
 		PlayPen pp = layoutAction.getPlayPen();
 		SQLDatabase ppdb = pp.getSession().getTargetDatabase();
 		

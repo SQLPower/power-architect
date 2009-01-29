@@ -28,13 +28,13 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.Monitorable;
 
 public class CompareSQL implements Monitorable {
@@ -144,7 +144,7 @@ public class CompareSQL implements Monitorable {
 		setFinished(false);
 	}
 	
-	public List<DiffChunk<SQLObject>> generateTableDiffs() throws ArchitectException {
+	public List<DiffChunk<SQLObject>> generateTableDiffs() throws SQLObjectException {
 		try {
 			Iterator<SQLTable> sourceIter = sourceTableSet.iterator();
 			Iterator<SQLTable> targetIter = targetTableSet.iterator();
@@ -264,7 +264,7 @@ public class CompareSQL implements Monitorable {
 	}
 	
 	private List<DiffChunk<SQLObject>> generateRelationshipDiffs(
-			Collection<SQLTable> sourceTables, Collection<SQLTable> targetTables) throws ArchitectException {
+			Collection<SQLTable> sourceTables, Collection<SQLTable> targetTables) throws SQLObjectException {
 		SQLRelationshipComparator relComparator = new SQLRelationshipComparator();		
 		Set<SQLRelationship> sourceRels = new TreeSet<SQLRelationship>(relComparator);
 		Set<SQLRelationship> targetRels = new TreeSet<SQLRelationship>(relComparator);
@@ -393,11 +393,11 @@ public class CompareSQL implements Monitorable {
      * in the target table will be considered obsolete.
      * @param targetTable The "right side" for the comparison.  If null, then all indices
      * in the source table will be considered new.
-	 * @throws ArchitectException If the getIndices() methods of the source or target
+	 * @throws SQLObjectException If the getIndices() methods of the source or target
      * tables run into trouble.
      */
 	private List<DiffChunk<SQLObject>> generateIndexDiffs(
-	        Collection<SQLTable> sourceTables, Collection<SQLTable> targetTables) throws ArchitectException {
+	        Collection<SQLTable> sourceTables, Collection<SQLTable> targetTables) throws SQLObjectException {
 	    SQLIndexComparator indComparator = new SQLIndexComparator();      
 	    Set<SQLIndex> sourceInds = new TreeSet<SQLIndex>(indComparator);
 	    Set<SQLIndex> targetInds = new TreeSet<SQLIndex>(indComparator);
@@ -522,12 +522,12 @@ public class CompareSQL implements Monitorable {
 	 * in the target table will be considered obsolete.
 	 * @param targetTable The "right side" for the comparison.  If null, then all columns
 	 * in the source table will be considered new.
-	 * @throws ArchitectException If the getColumns() methods of the source or target
+	 * @throws SQLObjectException If the getColumns() methods of the source or target
 	 * tables run into trouble.
 	 */
 	private List<DiffChunk<SQLObject>> generateColumnDiffs(
 			SQLTable sourceTable,
-			SQLTable targetTable) throws ArchitectException {
+			SQLTable targetTable) throws SQLObjectException {
 		TreeSet<SQLColumn> sourceColumnList;
 		TreeSet<SQLColumn> targetColumnList;
 		Iterator<SQLColumn> sourceColIter;

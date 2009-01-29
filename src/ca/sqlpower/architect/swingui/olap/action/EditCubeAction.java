@@ -25,13 +25,13 @@ import java.awt.event.ActionEvent;
 import javax.swing.JDialog;
 import javax.swing.SwingUtilities;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.CubeEditPanel;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
@@ -58,7 +58,7 @@ public class EditCubeAction extends AbstractArchitectAction{
             JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Cube Properties", "OK");
             dialog.setLocationRelativeTo(session.getArchitectFrame());
             dialog.setVisible(true);
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             ASUtils.showExceptionDialogNoReport(
                     dialogOwner,
                     "Failed to get list of tables in your database. " +

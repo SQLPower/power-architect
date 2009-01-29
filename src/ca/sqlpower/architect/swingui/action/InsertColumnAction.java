@@ -24,13 +24,13 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class InsertColumnAction extends AbstractTableTargetedAction {
 	private static final Logger logger = Logger.getLogger(InsertColumnAction.class);
@@ -44,7 +44,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
 
 
 
-    void processSQLObject(SQLObject so) throws ArchitectException {
+    void processSQLObject(SQLObject so) throws SQLObjectException {
         SQLTable st = null;
         int idx = 0;
         if (so instanceof SQLTable) {
@@ -74,7 +74,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         
     }
 
-    void processTablePane(TablePane tp) throws ArchitectException {
+    void processTablePane(TablePane tp) throws SQLObjectException {
         int idx = tp.getSelectedItemIndex();
         
         if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();

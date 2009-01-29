@@ -47,12 +47,6 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
@@ -61,6 +55,12 @@ import ca.sqlpower.architect.swingui.event.PlayPenContentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenContentListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * Factory class that creates a PlayPen instance that's set up for use in
@@ -254,7 +254,7 @@ public class RelationalPlayPenFactory {
         /**
          * Synchronizes the dbtTree selection with the playpen selections
          * 
-         * @throws ArchitectException
+         * @throws SQLObjectException
          * 
          */
         public void updateDBTree() {
@@ -325,8 +325,8 @@ public class RelationalPlayPenFactory {
                 }
                 try {
                     pp.selectObjects(objects);
-                } catch (ArchitectException e) {
-                    throw new ArchitectRuntimeException(e);
+                } catch (SQLObjectException e) {
+                    throw new SQLObjectRuntimeException(e);
                 }
             }
         }

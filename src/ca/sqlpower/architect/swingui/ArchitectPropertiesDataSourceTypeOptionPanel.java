@@ -43,8 +43,6 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLType;
 import ca.sqlpower.architect.ddl.DB2DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.ddl.HSQLDBDDLGenerator;
@@ -61,6 +59,8 @@ import ca.sqlpower.architect.profile.RemoteDatabaseProfileCreator.AverageSQLFunc
 import ca.sqlpower.architect.profile.RemoteDatabaseProfileCreator.CaseWhenNullSQLFunction;
 import ca.sqlpower.architect.profile.RemoteDatabaseProfileCreator.StringLengthSQLFunction;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.swingui.AddRemoveIcon;
 import ca.sqlpower.swingui.db.DataSourceTypeEditorTabPanel;
 import ca.sqlpower.swingui.table.TableUtils;

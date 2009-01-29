@@ -18,7 +18,7 @@
  */
 package ca.sqlpower.architect.ddl;
 
-import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * The DDLStatement class combines a high-level description of what a

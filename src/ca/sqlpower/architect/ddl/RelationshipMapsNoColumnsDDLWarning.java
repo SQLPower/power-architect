@@ -21,8 +21,8 @@ package ca.sqlpower.architect.ddl;
 
 import java.util.Arrays;
 
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * A DDL warning for when a relationship does not map any columns. There is no

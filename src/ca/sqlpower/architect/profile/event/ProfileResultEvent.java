@@ -1,7 +1,7 @@
 package ca.sqlpower.architect.profile.event;
 
-import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.profile.ProfileResult;
+import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * This event represents a change in the state of a profiling operation.

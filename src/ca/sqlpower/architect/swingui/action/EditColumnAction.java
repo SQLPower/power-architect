@@ -28,9 +28,6 @@ import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
@@ -40,6 +37,9 @@ import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class EditColumnAction extends AbstractArchitectAction implements SelectionListener {
@@ -82,14 +82,14 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 	        d.setLocationRelativeTo(frame);
 	        d.setVisible(true);
 	        
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             ASUtils.showExceptionDialog(session, "Failed to create column property editor", ex);
         }
 
 	}
 	
 	// FIXME only used by InsertColumnAction
-    protected void showDialog(final SQLTable st, final int colIdx) throws ArchitectException {
+    protected void showDialog(final SQLTable st, final int colIdx) throws SQLObjectException {
         showDialog(st, colIdx, false, null);
     }
 
@@ -100,7 +100,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 	        final int colIdx,
 	        final boolean addToTable,
 	        final TablePane tp)
-	throws ArchitectException {
+	throws SQLObjectException {
 				    
 		    logger.debug("Creating new column editor panel"); //$NON-NLS-1$
 		    
@@ -128,7 +128,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 						        tp.getModel().startCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 							    try {
 							        tp.getModel().addColumn(colIdx, column);
-							    } catch (ArchitectException e) {
+							    } catch (SQLObjectException e) {
 							        ASUtils.showExceptionDialog(session, "Error Could not add column to table", e); //$NON-NLS-1$
 							    }
 							}
@@ -171,7 +171,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 						logger.debug ("Enabling EditColumnAction"); //$NON-NLS-1$
 						setEnabled(true);
 						name = tp.getModel().getColumn(tp.getSelectedItemIndex()).getName();
-					} catch (ArchitectException ex) {
+					} catch (SQLObjectException ex) {
 						logger.error("Couldn't get selected column name", ex); //$NON-NLS-1$
 					}
 				} else {

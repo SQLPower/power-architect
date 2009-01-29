@@ -34,7 +34,13 @@ import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.ExceptionReport;
 
@@ -43,7 +49,7 @@ import ca.sqlpower.util.ExceptionReport;
  */
 public class ArchitectUtils {
 
-	private static final Logger logger = Logger.getLogger(ArchitectUtils.class);
+	public static final Logger logger = Logger.getLogger(ArchitectUtils.class);
 
 	/**
 	 * This class is just a container for utility routines; you do not
@@ -77,123 +83,6 @@ public class ArchitectUtils {
 	}
 
 	/**
-	 * Adds listener to source's listener list and all of source's
-	 * children's listener lists recursively.
-	 */
-	public static void listenToHierarchy(SQLObjectListener listener, SQLObject source)
-	throws ArchitectException {
-		if (logger.isDebugEnabled()) logger.debug("Listening to new SQL Object "+source);
-		source.addSQLObjectListener(listener);
-		if (source.isPopulated() && source.allowsChildren()) {
-			Iterator it = source.getChildren().iterator();
-			while (it.hasNext()) {
-				listenToHierarchy(listener, (SQLObject) it.next());
-			}
-		}
-
-	}
-
-	/**
-	 * Adds listener to source's listener list and all of source's
-	 * children's listener lists recursively.
-	 */
-	public static void addUndoListenerToHierarchy(UndoCompoundEventListener listener, SQLObject source)
-	throws ArchitectException {
-        if (logger.isDebugEnabled()) logger.debug("Undo Listening to new SQL Object "+source);
-		source.addUndoEventListener(listener);
-		if (source.isPopulated() && source.allowsChildren()) {
-			Iterator it = source.getChildren().iterator();
-			while (it.hasNext()) {
-				addUndoListenerToHierarchy(listener, (SQLObject) it.next());
-			}
-		}
-
-	}
-
-	/**
-	 * Calls listenToHierarchy on each element in the sources array.
-	 * Does nothing if sources is null.
-	 */
-	public static void addUndoListenerToHierarchy(UndoCompoundEventListener listener, SQLObject[] sources)
-	throws ArchitectException {
-		if (sources == null) return;
-		for (int i = 0; i < sources.length; i++) {
-			addUndoListenerToHierarchy(listener, sources[i]);
-		}
-	}
-
-	/**
-	 * Calls listenToHierarchy on each element in the sources array.
-	 * Does nothing if sources is null.
-	 */
-	public static void listenToHierarchy(SQLObjectListener listener, SQLObject[] sources)
-	throws ArchitectException {
-		if (sources == null) return;
-		for (int i = 0; i < sources.length; i++) {
-			listenToHierarchy(listener, sources[i]);
-		}
-	}
-
-	/**
-	 * Removes listener from source's listener list and all of source's
-	 * children's listener lists recursively.
-	 */
-	public static void undoUnlistenToHierarchy(UndoCompoundEventListener listener, SQLObject source)
-	throws ArchitectException {
-        if (logger.isDebugEnabled()) logger.debug("Unlistening to SQL Object "+source);
-		source.removeUndoEventListener(listener);
-		if (source.isPopulated() && source.allowsChildren()) {
-			Iterator it = source.getChildren().iterator();
-			while (it.hasNext()) {
-				SQLObject ob = (SQLObject) it.next();
-				undoUnlistenToHierarchy(listener, ob);
-			}
-		}
-	}
-
-	/**
-	 * Calls unlistenToHierarchy on each element in the sources array.
-	 * Does nothing if sources is null.
-	 */
-	public static void undoUnlistenToHierarchy(UndoCompoundEventListener listener, SQLObject[] sources)
-	throws ArchitectException {
-		if (sources == null) return;
-		for (int i = 0; i < sources.length; i++) {
-			undoUnlistenToHierarchy(listener, sources[i]);
-		}
-	}
-
-	/**
-	 * Removes listener from source's listener list and all of source's
-	 * children's listener lists recursively.
-	 */
-	public static void unlistenToHierarchy(SQLObjectListener listener, SQLObject source)
-	throws ArchitectException {
-        if (logger.isDebugEnabled()) logger.debug("Removing "+listener+" from listener list of "+source);
-		source.removeSQLObjectListener(listener);
-		if (source.isPopulated() && source.allowsChildren()) {
-            if (logger.isDebugEnabled()) logger.debug("        Now removing for children: "+source.getChildren());
-			Iterator it = source.getChildren().iterator();
-			while (it.hasNext()) {
-				SQLObject ob = (SQLObject) it.next();
-				unlistenToHierarchy(listener, ob);
-			}
-		}
-	}
-
-	/**
-	 * Calls unlistenToHierarchy on each element in the sources array.
-	 * Does nothing if sources is null.
-	 */
-	public static void unlistenToHierarchy(SQLObjectListener listener, SQLObject[] sources)
-	throws ArchitectException {
-		if (sources == null) return;
-		for (int i = 0; i < sources.length; i++) {
-			unlistenToHierarchy(listener, sources[i]);
-		}
-	}
-
-	/**
 	 * Does a generic object comparison where one or both of the objects could
 	 * be null.  If both objects are null, they are considered equal; if only
 	 * one is null, they are not equal; otherwise they are compared using
@@ -214,7 +103,7 @@ public class ArchitectUtils {
 	 * @return A list of all columns in the target database whose source database is the same
 	 * as the given source object. Every item in the list will be of type SQLColumn.
 	 */
-	public static List<SQLColumn> findColumnsSourcedFromDatabase(SQLDatabase target, SQLDatabase source) throws ArchitectException {
+	public static List<SQLColumn> findColumnsSourcedFromDatabase(SQLDatabase target, SQLDatabase source) throws SQLObjectException {
 		if (logger.isDebugEnabled()) logger.debug("Searching for dependencies on "+source+" in "+target);
 		List matches = new ArrayList();
 		Iterator it = target.getChildren().iterator();
@@ -243,7 +132,7 @@ public class ArchitectUtils {
 	 *
 	 * @param source the source object (usually the database)
 	 */
-	public static int countTablesSnapshot(SQLObject so) throws ArchitectException {
+	public static int countTablesSnapshot(SQLObject so) throws SQLObjectException {
 		if (so instanceof SQLTable) {
 			return 1;
 		} else {
@@ -265,7 +154,7 @@ public class ArchitectUtils {
 	 */
 	public static <T extends SQLObject>
 	List<T> findDescendentsByClass(SQLObject so, java.lang.Class<T> clazz, List<T> addTo)
-	throws ArchitectException {
+	throws SQLObjectException {
 		if (clazz == so.getClass()) {
 			addTo.add(clazz.cast(so));
 		} else {
@@ -300,7 +189,7 @@ public class ArchitectUtils {
 	 *
 	 * @param source the source object (usually the database)
 	 */
-	public static int countTables(SQLObject so) throws ArchitectException {
+	public static int countTables(SQLObject so) throws SQLObjectException {
 		if (so instanceof SQLTable) {
 			return 1;
 		} else if ( (!so.allowsChildren()) || !(so.isPopulated()) || so.getChildren() == null) {
@@ -380,9 +269,9 @@ public class ArchitectUtils {
      * database does not have schemas.
      * @return The appropriate SQLObject under db that is a parent of SQLTable objects,
      * given the catalog and schema name arguments.
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
-    public static SQLObject getTableContainer(SQLDatabase db, String catName, String schemaName) throws ArchitectException {
+    public static SQLObject getTableContainer(SQLDatabase db, String catName, String schemaName) throws SQLObjectException {
         db.populate();
         logger.debug("Looking for catalog="+catName+", schema="+schemaName+" in db "+db);
         if (db.getChildType() == SQLTable.class) {
@@ -437,9 +326,9 @@ public class ArchitectUtils {
      * successful call to {@link #addSimulatedTable(SQLDatabase, String, String, String)}.
      * See that method's documentation for the meaning of the arguments.
      * 
-     * @throws ArchitectException if populating any of the relevant SQLObjects fails.
+     * @throws SQLObjectException if populating any of the relevant SQLObjects fails.
      */
-    public static boolean isCompatibleWithHierarchy(SQLDatabase db, String catalog, String schema, String name) throws ArchitectException {
+    public static boolean isCompatibleWithHierarchy(SQLDatabase db, String catalog, String schema, String name) throws SQLObjectException {
         SQLObject schemaContainer;
         if ( catalog != null){
             if (db.isCatalogContainer()){
@@ -491,18 +380,18 @@ public class ArchitectUtils {
      * given database doesn't have schemas.
      * @param name The name of the table to create.
      * @return The table that was created
-     * @throws ArchitectException If you specify catalog or schema for a database that doesn't
+     * @throws SQLObjectException If you specify catalog or schema for a database that doesn't
      * support catalogs or schemas; also if the database uses catalogs and schemas but you
      * fail to provide them.
      */
-    public static SQLTable addSimulatedTable(SQLDatabase db, String catalog, String schema, String name) throws ArchitectException {
+    public static SQLTable addSimulatedTable(SQLDatabase db, String catalog, String schema, String name) throws SQLObjectException {
         if (db.getTableByName(catalog, schema, name) != null) {
-            throw new ArchitectException("The table "+catalog+"."+schema+"."+name+" already exists");
+            throw new SQLObjectException("The table "+catalog+"."+schema+"."+name+" already exists");
         }
         SQLObject schemaContainer;
         if (catalog != null) {
             if (!db.isCatalogContainer()) {
-                throw new ArchitectException("You tried to add a table with a catalog ancestor to a database that doesn't support catalogs.");
+                throw new SQLObjectException("You tried to add a table with a catalog ancestor to a database that doesn't support catalogs.");
             }
             schemaContainer = db.getCatalogByName(catalog);
             if (schemaContainer == null) {
@@ -517,7 +406,7 @@ public class ArchitectUtils {
         if (schema != null) {
             Class<? extends SQLObject> childType = schemaContainer.getChildType();
             if ( !(childType == null || childType == SQLSchema.class) ) {
-                throw new ArchitectException(
+                throw new SQLObjectException(
                         "The schema container ("+schemaContainer+
                         ") can't actually contain children of type SQLSchema.");
             }
@@ -534,47 +423,6 @@ public class ArchitectUtils {
         tableContainer.addChild(newTable);
 
         return newTable;
-    }
-
-    /**
-     * Creates a dot-separated string of the name of the given SQLObject and the
-     * names of each of its ancestors.  The top-level ancestor's name will be the
-     * first name to appear in the string, and the given object's name will be
-     * the last. This is the equivalent of calling toQualifiedName(obj, null).
-     */
-    public static String toQualifiedName(SQLObject obj) {
-        return toQualifiedName(obj, null);
-    }
-    
-    /**
-     * Creates a dot-separated string of the name of the given SQLObject and the
-     * names of each of its ancestors, stopping at the first ancestor of the
-     * given type. The top-level ancestor's name will be the first name to
-     * appear in the string, and the given object's name will be the last.
-     * 
-     * @param obj
-     *            The object whose qualified name you wish to obtain
-     * @param stopAt
-     *            The class of ancestor to stop at. The name of this ancestor
-     *            will not be included in the returned string. If stopAt is
-     *            null, or a class which is not an ancestor of the given
-     *            SQLObject, the returned string will contain all ancestor
-     *            object names up to the root of the SQLObject tree.
-     */
-    public static String toQualifiedName(SQLObject obj, Class<? extends SQLObject> stopAt) {
-        List<SQLObject> ancestors = new ArrayList<SQLObject>();
-        while (obj != null && obj.getClass() != stopAt) {
-            ancestors.add(obj);
-            obj = obj.getParent();
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = ancestors.size() - 1; i >= 0; i--) {
-            sb.append(ancestors.get(i).getName());
-            if (i != 0) {
-                sb.append(".");
-            }
-        }
-        return sb.toString();
     }
 
     /**
@@ -716,7 +564,7 @@ public class ArchitectUtils {
      * @return The valid pl.ini path. This may be different from the one given
      *         if the user changed it.
      */
-    public static String checkForValidPlDotIni(String plDotIniPath, String projectName) throws ArchitectException {
+    public static String checkForValidPlDotIni(String plDotIniPath, String projectName) throws SQLObjectException {
         while (!isPlDotIniPathValid(plDotIniPath)) {
             String message;
             String[] options = new String[] {"Browse", "Create"};
@@ -737,7 +585,7 @@ public class ArchitectUtils {
                     "Missing PL.INI", 0, JOptionPane.INFORMATION_MESSAGE, null, options, null);
             File newPlIniFile;
             if (choice == JOptionPane.CLOSED_OPTION) {
-                throw new ArchitectException("Can't start without a pl.ini file");
+                throw new SQLObjectException("Can't start without a pl.ini file");
             } else if (choice == 0) {
                 
                 // Don't use recent files menu for default dir here.. we're looking for PL.INI
@@ -754,7 +602,7 @@ public class ArchitectUtils {
             } else if (choice == 1) {
                 newPlIniFile = new File(System.getProperty("user.home"), "pl.ini");
             } else
-                throw new ArchitectException("Unexpected return from JOptionPane.showOptionDialog to get pl.ini");
+                throw new SQLObjectException("Unexpected return from JOptionPane.showOptionDialog to get pl.ini");
 
             if (newPlIniFile != null) try {
                 newPlIniFile.createNewFile();
@@ -780,24 +628,5 @@ public class ArchitectUtils {
             File f = new File(path);
             return (f.canRead() && f.isFile());
         }
-    }
-    
-    /**
-     * This will check if the two objects given are contained in the same
-     * session by finding their top ancestors and comparing them. o1 and o2
-     * cannot be null.
-     */
-    public static boolean isInSameSession(SQLObject o1, SQLObject o2) {
-        SQLObject o1Parent = o1;
-        while (o1Parent.getParent() != null) {
-            o1Parent = o1Parent.getParent();
-        }
-        SQLObject o2Parent = o2;
-        while (o2Parent.getParent() != null) {
-            o2Parent = o2Parent.getParent();
-        }
-        
-        logger.debug("Parent of " + o1 + " is " + o1Parent + ", parent of " + o2 + " is " + o2Parent);
-        return o1Parent == o2Parent;
     }
 }

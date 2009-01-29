@@ -41,8 +41,8 @@ import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
-import ca.sqlpower.architect.undo.NotifyingUndoManager;
-import ca.sqlpower.architect.undo.PropertyChangeEdit;
+import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
+import ca.sqlpower.sqlobject.undo.PropertyChangeEdit;
 
 /**
  * A customized undo manager that works well with the OLAP business model and GUI.

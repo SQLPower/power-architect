@@ -22,8 +22,8 @@ import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestBasicRelationshipUI extends TestCase {
 	Relationship rel;

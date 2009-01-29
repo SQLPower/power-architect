@@ -25,13 +25,13 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import mondrian.olap.DimensionType;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
 import ca.sqlpower.validation.swingui.NotNullValidator;
@@ -61,10 +61,10 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
      * Creates a new property editor for the given OLAP dimension. 
      * 
      * @param dimension The dimension to edit
-     * @throws ArchitectException
+     * @throws SQLObjectException
      *             if digging up the source table results in a database error
      */
-    public DimensionEditPanel(Dimension dimension) throws ArchitectException {
+    public DimensionEditPanel(Dimension dimension) throws SQLObjectException {
         this.dimension = dimension;
 
         FormLayout layout = new FormLayout(

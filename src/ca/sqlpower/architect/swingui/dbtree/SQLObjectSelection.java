@@ -26,9 +26,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * A transferable implementation that passes a reference to an array of SQLObjects.
@@ -41,7 +41,7 @@ public class SQLObjectSelection implements Transferable {
      */
     public static final DataFlavor LOCAL_SQLOBJECT_ARRAY_FLAVOUR =
         new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType +
-                "; class=\"[Lca.sqlpower.architect.SQLObject;\"", "Local Array of SQLObject");
+                "; class=\"[Lca.sqlpower.sqlobject.SQLObject;\"", "Local Array of SQLObject");
     
     /**
      * Data flavour that indicates a reference to a string array containing a string

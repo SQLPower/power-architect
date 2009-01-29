@@ -20,7 +20,7 @@ package ca.sqlpower.architect.ddl;
 
 import java.util.HashMap;
 
-import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.sqlobject.SQLObject;
 
 public class CaseInsensitiveHashMap extends HashMap<String, SQLObject> {
         @Override

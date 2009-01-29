@@ -32,6 +32,8 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 
 public class ArchitectSessionContextImpl implements ArchitectSessionContext {
     
@@ -66,9 +68,9 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
      * Important note: This constructor must be called on the Swing Event Dispatch
      * Thread.  See SwingUtilities.invokeLater() for a way of ensuring this method
      * is called on the proper thread.
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
-    public ArchitectSessionContextImpl() throws ArchitectException {
+    public ArchitectSessionContextImpl() throws SQLObjectException {
         sessions = new HashSet<ArchitectSession>();
         
         ArchitectUtils.startup();
@@ -85,7 +87,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
      * Similar to the default constructor, but we can specify a pl.ini path
      * ourselves. (This has been created in order to fully automate the JUnit test).
      */
-    public ArchitectSessionContextImpl(String PlDotIniPath) throws ArchitectException {
+    public ArchitectSessionContextImpl(String PlDotIniPath) throws SQLObjectException {
         sessions = new HashSet<ArchitectSession>();
         
         ArchitectUtils.startup();
@@ -97,11 +99,11 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
         setPlDotIniPath(ArchitectUtils.checkForValidPlDotIni(PlDotIniPath, "Architect"));
     }
     
-    public ArchitectSession createSession() throws ArchitectException {
+    public ArchitectSession createSession() throws SQLObjectException {
         return createSessionImpl("New Project");
     }
 
-    public ArchitectSession createSession(InputStream in) throws ArchitectException, IOException {
+    public ArchitectSession createSession(InputStream in) throws SQLObjectException, IOException {
         ArchitectSession session = createSessionImpl("Loading...");
         session.getProject().load(in, getPlDotIni());
         return session;
@@ -116,11 +118,11 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
      * 
      * @param projectName
      * @return
-     * @throws ArchitectException
+     * @throws SQLObjectException
      * @throws IllegalStateException if showGUI==true and this method was
      * not called on the Event Dispatch Thread.
      */
-    private ArchitectSession createSessionImpl(String projectName) throws ArchitectException {
+    private ArchitectSession createSessionImpl(String projectName) throws SQLObjectException {
         logger.debug("About to create a new session for project \"" + projectName + "\"");
         ArchitectSessionImpl session = new ArchitectSessionImpl(this, projectName);
         sessions.add(session);
@@ -150,7 +152,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
                 logger.debug("Reading PL.INI defaults");
                 plDotIni.read(getClass().getClassLoader().getResourceAsStream("ca/sqlpower/sql/default_database_types.ini"));
             } catch (IOException e) {
-                throw new ArchitectRuntimeException(new ArchitectException("Failed to read system resource default_database_types.ini",e));
+                throw new SQLObjectRuntimeException(new SQLObjectException("Failed to read system resource default_database_types.ini",e));
             }
             try {
                 if (plDotIni != null) {
@@ -158,7 +160,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
                     plDotIni.read(new File(path));
                 }
             } catch (IOException e) {
-                throw new ArchitectRuntimeException(new ArchitectException("Failed to read pl.ini at \""+getPlDotIniPath()+"\"", e));
+                throw new SQLObjectRuntimeException(new SQLObjectException("Failed to read pl.ini at \""+getPlDotIniPath()+"\"", e));
             }
         }
         return plDotIni;

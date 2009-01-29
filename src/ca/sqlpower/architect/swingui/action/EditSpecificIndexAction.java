@@ -34,11 +34,11 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLIndex;
 
 /**
  * An action that, when invoked, pops up the IndexEditPanel for a certain
@@ -74,8 +74,8 @@ public class EditSpecificIndexAction extends EditIndexAction {
     public void actionPerformed(ActionEvent evt) {
         try {
             makeDialog(index);
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         } 
     }
 }

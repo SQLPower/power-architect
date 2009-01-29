@@ -25,10 +25,10 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
 /**
  * Implements the quirks required for successful DDL generation that targets

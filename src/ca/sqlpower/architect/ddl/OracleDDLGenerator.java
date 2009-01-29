@@ -28,14 +28,14 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSequence;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSequence;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
 /**
  * The base class for version-specific Oracle DDL generators. This class exists
@@ -343,7 +343,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
      * create index ddl in oracle syntax
      */
     @Override
-    public void addIndex(SQLIndex index) throws ArchitectException {
+    public void addIndex(SQLIndex index) throws SQLObjectException {
         createPhysicalName(topLevelNames, index);
         println("");
         print("CREATE ");
@@ -379,7 +379,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
      * in the table.
      */
     @Override
-    public void addTable(SQLTable t) throws SQLException, ArchitectException {
+    public void addTable(SQLTable t) throws SQLException, SQLObjectException {
         
         // Create all the sequences that will be needed for auto-increment cols in this table
         for (SQLColumn c : t.getColumns()) {

@@ -34,8 +34,8 @@ import javax.swing.JTextField;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.Messages;
+import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * An instance of this class displays the warning message associated with an

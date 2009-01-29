@@ -3,6 +3,13 @@ package ca.sqlpower.architect;
 import java.util.List;
 
 import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectPreEvent;
+import ca.sqlpower.sqlobject.SQLObjectPreEventListener;
 
 /**
  * Watches the session's root object, and reacts when SQLDatabase items
@@ -40,8 +47,8 @@ public class SourceObjectIntegrityWatcher implements SQLObjectPreEventListener {
                         e.veto();
                     }
                 }
-            } catch (ArchitectException ex) {
-                throw new ArchitectRuntimeException(ex);
+            } catch (SQLObjectException ex) {
+                throw new SQLObjectRuntimeException(ex);
             }
         }
     }

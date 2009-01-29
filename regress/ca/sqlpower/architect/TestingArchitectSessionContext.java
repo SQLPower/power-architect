@@ -30,17 +30,18 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
 
 public class TestingArchitectSessionContext implements ArchitectSessionContext {
 
     private DataSourceCollection emptyPlDotIni = new PlDotIni();
     private Preferences prefs = Preferences.userNodeForPackage(ArchitectSwingSessionContextImpl.class);
 
-    public ArchitectSession createSession() throws ArchitectException {
+    public ArchitectSession createSession() throws SQLObjectException {
         return new ArchitectSessionImpl(this, "Test");
     }
 
-    public ArchitectSession createSession(InputStream in) throws ArchitectException, IOException {
+    public ArchitectSession createSession(InputStream in) throws SQLObjectException, IOException {
         ArchitectSession s = createSession();
         s.getProject().load(in, getPlDotIni());
         return s;

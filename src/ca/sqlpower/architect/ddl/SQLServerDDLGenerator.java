@@ -28,13 +28,13 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 
 /**
  * The base class for version-specific SQL Server DDL generators. This class is
@@ -395,7 +395,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
     }
 
     @Override
-    public void addIndex(SQLIndex index) throws ArchitectException {
+    public void addIndex(SQLIndex index) throws SQLObjectException {
         if (logger.isDebugEnabled()) {
             String parentTableName = null;
             String parentFolder = null;
@@ -459,8 +459,8 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         try {
             print("\nALTER TABLE " + toQualifiedName(t.getName())
                 + " DROP " + t.getPrimaryKeyName());
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
         endStatement(DDLStatement.StatementType.DROP, t);
     }

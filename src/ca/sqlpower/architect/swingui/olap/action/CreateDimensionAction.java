@@ -24,7 +24,6 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.KeyStroke;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
@@ -36,6 +35,7 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.olap.DimensionEditPanel;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.OSUtils;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CreateDimensionAction extends AbstractArchitectAction {
@@ -80,7 +80,7 @@ public class CreateDimensionAction extends AbstractArchitectAction {
         }
 
         @Override
-        public DataEntryPanel place(Point p) throws ArchitectException {
+        public DataEntryPanel place(Point p) throws SQLObjectException {
             schema.startCompoundEdit("Create a dimension");
             schema.addDimension(dp.getModel());
             playpen.selectNone();

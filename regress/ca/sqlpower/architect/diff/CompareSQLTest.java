@@ -24,11 +24,11 @@ import java.util.Collection;
 import java.util.List;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class CompareSQLTest extends TestCase {
 
@@ -101,7 +101,7 @@ public class CompareSQLTest extends TestCase {
 		
 	}
 	
-	public void testDiffListWithTablesOnly() throws ArchitectException{
+	public void testDiffListWithTablesOnly() throws SQLObjectException{
 		//Testing diffchunk with nothing and nothing
 		List <SQLTable> list1 = new ArrayList();
 		
@@ -154,7 +154,7 @@ public class CompareSQLTest extends TestCase {
 	}
 	
 	
-	public void testDiffListWithTableHavingColumn() throws ArchitectException{
+	public void testDiffListWithTableHavingColumn() throws SQLObjectException{
 		List <SQLTable >tableList1 = new ArrayList();
 		List <SQLTable >tableList2 = new ArrayList();
 		
@@ -254,7 +254,7 @@ public class CompareSQLTest extends TestCase {
 
 	}
 	
-	public void testTableWithRelationShip() throws ArchitectException{
+	public void testTableWithRelationShip() throws SQLObjectException{
 		SQLTable newTable1 = table1;
 		SQLTable newTable2 = table2;
 		SQLRelationship relation1 = new SQLRelationship();
@@ -287,7 +287,7 @@ public class CompareSQLTest extends TestCase {
 		
 	}
 	
-	public void testRelationshipsWithSameMappings() throws ArchitectException {
+	public void testRelationshipsWithSameMappings() throws SQLObjectException {
 
 		// Set up source (left hand side) envorinment
 		SQLTable newTable1L = makeTable(4);
@@ -324,7 +324,7 @@ public class CompareSQLTest extends TestCase {
 		}
 	}
 	
-	public void testRelationshipsWithDifferentNames() throws ArchitectException {
+	public void testRelationshipsWithDifferentNames() throws SQLObjectException {
 
 		// Set up source (left hand side) envorinment
 		SQLTable newTable1L = makeTable(4);
@@ -369,7 +369,7 @@ public class CompareSQLTest extends TestCase {
 		}
 	}
 
-	public void testRelationshipsWithDifferentMappings() throws ArchitectException {
+	public void testRelationshipsWithDifferentMappings() throws SQLObjectException {
 
 		// Set up source (left hand side) envorinment
 		SQLTable newTable1L = makeTable(4);
@@ -423,7 +423,7 @@ public class CompareSQLTest extends TestCase {
 	 * This test adds a primary key to the source table which is not added
 	 * to the primary key target table. This will simulate a user removing a key from a table.
 	 */
-	public void testKeyRemovedFromPrimaryKey() throws ArchitectException{			
+	public void testKeyRemovedFromPrimaryKey() throws SQLObjectException{			
 		List<SQLTable> list1 = new ArrayList<SQLTable>();
 		SQLTable t1 = makeTable(4);
 		list1.add(t1);
@@ -466,7 +466,7 @@ public class CompareSQLTest extends TestCase {
      * to the target table. This will simulate a user deleting a column that 
      * was a primary key.
      */
-    public void testKeyRemoved() throws ArchitectException{         
+    public void testKeyRemoved() throws SQLObjectException{         
         List<SQLTable> list1 = new ArrayList<SQLTable>();
         SQLTable t1 = makeTable(4);
         list1.add(t1);
@@ -510,7 +510,7 @@ public class CompareSQLTest extends TestCase {
      * to the source table. This will simulate a user adding a new column 
      * to be the primary key of a table.
      */
-    public void testKeyAddedNew() throws ArchitectException{         
+    public void testKeyAddedNew() throws SQLObjectException{         
         List<SQLTable> list1 = new ArrayList<SQLTable>();
         SQLTable t1 = makeTable(4);
         list1.add(t1);
@@ -552,7 +552,7 @@ public class CompareSQLTest extends TestCase {
      * the source table. This will simulate a user setting an existing
      * column to be the primary key of a table.
      */
-    public void testKeyAddedFromExisting() throws ArchitectException{         
+    public void testKeyAddedFromExisting() throws SQLObjectException{         
         List<SQLTable> list1 = new ArrayList<SQLTable>();
         SQLTable t1 = makeTable(4);
         list1.add(t1);
@@ -593,7 +593,7 @@ public class CompareSQLTest extends TestCase {
      * column in the same table. This will simulate a user changing
      * the primary key of a table but not adding or removing any columns.
      */
-    public void testKeyModified() throws ArchitectException{         
+    public void testKeyModified() throws SQLObjectException{         
         List<SQLTable> list1 = new ArrayList<SQLTable>();
         SQLTable t1 = makeTable(4);
         list1.add(t1);
@@ -640,9 +640,9 @@ public class CompareSQLTest extends TestCase {
 	 * 
 	 * @param i The number of columns to give the new table (and also the suffix on its name)
 	 * @return A new SQLTable instance.
-	 * @throws ArchitectException 
+	 * @throws SQLObjectException 
 	 */
-	private SQLTable makeTable(int i) throws ArchitectException {
+	private SQLTable makeTable(int i) throws SQLObjectException {
 		SQLTable t = new SQLTable(null, "table_"+i, "remark on this", "TABLE", true);
 		for (int j = 0; j < i; j++) {
 			t.addColumn(new SQLColumn(t, "column_"+j, Types.INTEGER, 3, 0));

@@ -52,18 +52,18 @@ import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 import org.pentaho.di.trans.steps.tableinput.TableInputMeta;
 import org.pentaho.di.trans.steps.tableoutput.TableOutputMeta;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.UserPrompter;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.util.MonitorableImpl;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * This class stores the settings for creating Kettle jobs. This class also creates
@@ -152,7 +152,7 @@ public class KettleJob implements Monitorable {
      * them to KJB and KTR files OR a repository.
      * @throws KettleException 
      */
-    public void doExport(List<SQLTable> tableList, SQLDatabase targetDB ) throws ArchitectException, RuntimeException, IOException, KettleException, SQLException {
+    public void doExport(List<SQLTable> tableList, SQLDatabase targetDB ) throws SQLObjectException, RuntimeException, IOException, KettleException, SQLException {
 
         monitor = new MonitorableImpl();
         monitor.setMessage("");

@@ -54,16 +54,6 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.action.NewDataSourceAction;
@@ -73,6 +63,16 @@ import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
 import ca.sqlpower.swingui.SPDataSourcePanel;
@@ -113,7 +113,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	// ----------- CONSTRUCTORS ------------
 
-	public DBTree(final ArchitectSwingSession session) throws ArchitectException {
+	public DBTree(final ArchitectSwingSession session) throws SQLObjectException {
         this.session = session;
         setModel(new DBTreeModel(session.getRootObject()));
 		setUI(new MultiDragTreeUI());
@@ -180,7 +180,7 @@ public class DBTree extends JTree implements DragSourceListener {
      * if it exists as a connection in the project (which means they're in this
      * tree's model).
 	 */
-	public boolean dbcsAlreadyExists(SPDataSource spec) throws ArchitectException {
+	public boolean dbcsAlreadyExists(SPDataSource spec) throws SQLObjectException {
 		SQLObject so = (SQLObject) getModel().getRoot();
 		// the children of the root, if they exists, are always SQLDatabase objects
 		Iterator it = so.getChildren().iterator();
@@ -503,7 +503,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			            JMenuItem popupCompareToCurrent = new JMenuItem(compareToCurrentAction);            
 			            newMenu.add(popupCompareToCurrent);
 			        }
-			    } catch (ArchitectException e) {
+			    } catch (SQLObjectException e) {
 			        SPSUtils.showExceptionDialogNoReport(this, Messages.getString("DBTree.errorCommunicatingWithDb"), e); //$NON-NLS-1$
 			    }
 			    
@@ -537,7 +537,7 @@ public class DBTree extends JTree implements DragSourceListener {
                         JMenuItem popupCompareToCurrent = new JMenuItem(compareToCurrentAction);            
                         newMenu.add(popupCompareToCurrent);
                     }
-                } catch (ArchitectException e) {
+                } catch (SQLObjectException e) {
                     SPSUtils.showExceptionDialogNoReport(this, Messages.getString("DBTree.errorCommunicatingWithDb"), e); //$NON-NLS-1$
                 }
                 
@@ -575,7 +575,7 @@ public class DBTree extends JTree implements DragSourceListener {
                         node.setPopulated(false);
                         try {
                             node.getChildren(); // forces populate
-                        } catch (ArchitectException ex) {
+                        } catch (SQLObjectException ex) {
                             SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
                                     Messages.getString("DBTree.exceptionDuringRetry"), ex); //$NON-NLS-1$
                         }
@@ -656,7 +656,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	            PokeDBWorker poker = new PokeDBWorker(newDB);
 	            new Thread(poker, "PokeDB: " + newDB.getName()).start(); //$NON-NLS-1$
 	        }
-	    } catch (ArchitectException ex) {
+	    } catch (SQLObjectException ex) {
 	        logger.warn("Couldn't add new database to tree", ex); //$NON-NLS-1$
 	        SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
 	                Messages.getString("DBTree.couldNotAddNewConnection"), ex); //$NON-NLS-1$
@@ -722,7 +722,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		 * on a worker thread, and it shouldn't do anything that needs to be
 		 * done on Swing's Event Dispatch Thread!
 		 */
-		private boolean pokeDatabase(final SQLObject source) throws ArchitectException {
+		private boolean pokeDatabase(final SQLObject source) throws SQLObjectException {
 		    if (logger.isDebugEnabled()) logger.debug("HELLO my class is " + source.getClass().getName() + ", my name is + " + source.getName()); //$NON-NLS-1$ //$NON-NLS-2$
 		    if (source.allowsChildren()) {
 		        mostRecentlyVisited = source;
@@ -932,9 +932,9 @@ public class DBTree extends JTree implements DragSourceListener {
                         DBTree.this.addSelectionPath(getTreePathForNode(childTable));
                     }
                 }
-            } catch (ArchitectException ex) {
+            } catch (SQLObjectException ex) {
                 logger.debug("Failed to select all child tables", ex);
-                throw new ArchitectRuntimeException(ex);
+                throw new SQLObjectRuntimeException(ex);
             }
         }
     }

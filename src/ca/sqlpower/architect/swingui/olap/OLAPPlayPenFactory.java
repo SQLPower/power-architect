@@ -39,8 +39,6 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
@@ -61,9 +59,11 @@ import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
-import ca.sqlpower.architect.undo.PropertyChangeEdit;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.undo.CompoundEvent;
+import ca.sqlpower.sqlobject.undo.CompoundEventListener;
+import ca.sqlpower.sqlobject.undo.PropertyChangeEdit;
 
 public class OLAPPlayPenFactory {
 
@@ -293,7 +293,7 @@ public class OLAPPlayPenFactory {
         }
     }
     
-    static class PlayPenUndoAdapter implements PlayPenContentListener, PropertyChangeListener, UndoCompoundEventListener {
+    static class PlayPenUndoAdapter implements PlayPenContentListener, PropertyChangeListener, CompoundEventListener {
 
         private final OLAPUndoManager undoManager;
 
@@ -319,11 +319,11 @@ public class OLAPPlayPenFactory {
             }
         }
 
-        public void compoundEditStart(UndoCompoundEvent e) {
+        public void compoundEditStart(CompoundEvent e) {
             undoManager.addEdit(new PlayPenComponentLocationEdit());
         }
         
-        public void compoundEditEnd(UndoCompoundEvent e) {
+        public void compoundEditEnd(CompoundEvent e) {
             // the location edit will simply stop absorbing
             // edits because new edits are of the wrong type
         }
@@ -346,7 +346,7 @@ public class OLAPPlayPenFactory {
         
         /**
          * Synchronizes the olapTree selection with the playpen selections
-         * @throws ArchitectException 
+         * @throws SQLObjectException 
          * 
          */
         public void updateOLAPTree() {
@@ -444,8 +444,8 @@ public class OLAPPlayPenFactory {
                 }
                 try {
                     pp.selectObjects(objects, tree);
-                } catch (ArchitectException e) {
-                    throw new ArchitectRuntimeException(e);
+                } catch (SQLObjectException e) {
+                    throw new SQLObjectRuntimeException(e);
                 }
             }
         }

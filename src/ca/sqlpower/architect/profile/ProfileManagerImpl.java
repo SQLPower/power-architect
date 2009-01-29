@@ -31,17 +31,17 @@ import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectPreEvent;
-import ca.sqlpower.architect.SQLObjectPreEventListener;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectPreEvent;
+import ca.sqlpower.sqlobject.SQLObjectPreEventListener;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * The default ProfileManager implementation. Creates profiles of tables,
@@ -195,7 +195,7 @@ public class ProfileManagerImpl implements ProfileManager {
     }
     
     /* docs inherited from interface */
-    public TableProfileResult createProfile(SQLTable table) throws ArchitectException {
+    public TableProfileResult createProfile(SQLTable table) throws SQLObjectException {
         TableProfileResult tpr = new TableProfileResult(table, getDefaultProfileSettings());
         addResults(Collections.singletonList(tpr));
         
@@ -205,7 +205,7 @@ public class ProfileManagerImpl implements ProfileManager {
         } catch (InterruptedException ex) {
             logger.info("Profiling was interrupted (likely because this manager is being shut down)");
         } catch (ExecutionException ex) {
-            throw new ArchitectException("Profile execution failed", ex);
+            throw new SQLObjectException("Profile execution failed", ex);
         }
         
         return tpr;

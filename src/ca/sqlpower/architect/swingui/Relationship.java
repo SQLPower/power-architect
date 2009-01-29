@@ -41,16 +41,16 @@ import javax.swing.event.MouseInputAdapter;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 
 public class Relationship extends PlayPenComponent implements SQLObjectListener, LayoutEdge {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
@@ -109,7 +109,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 	 * the given SQLRelationship and adds it to the playpen.  It
 	 * doesn't maniuplate the model at all.
 	 */
-	public Relationship(SQLRelationship model, PlayPenContentPane parent) throws ArchitectException {
+	public Relationship(SQLRelationship model, PlayPenContentPane parent) throws SQLObjectException {
 		super(parent);
 		this.model = model;
 		setPkTable(getPlayPen().findTablePane(model.getPkTable()));
@@ -213,7 +213,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
                         fkTable.removeColumnHighlight(m.getFkColumn(), columnHighlightColour);
                     }
 		        }
-		    } catch (ArchitectException e) {
+		    } catch (SQLObjectException e) {
 		        logger.error("Couldn't modify highlights for columns in the mapping", e); //$NON-NLS-1$
 		    }
 			selected = isSelected;

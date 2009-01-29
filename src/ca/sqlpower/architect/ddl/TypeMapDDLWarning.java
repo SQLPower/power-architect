@@ -20,8 +20,8 @@ package ca.sqlpower.architect.ddl;
 
 import java.util.Arrays;
 
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * A class of warning that means some column's data type cannot be

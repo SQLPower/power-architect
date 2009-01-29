@@ -34,6 +34,10 @@ package ca.sqlpower.architect;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+
 public class InsertionPointWatcher<T extends SQLObject> {
 
     private static final Logger logger = Logger.getLogger(InsertionPointWatcher.class);

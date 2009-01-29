@@ -42,10 +42,6 @@ import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
-import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
@@ -54,6 +50,20 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLIndex.Column;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLTable.Folder;
 import ca.sqlpower.xml.UnescapingSaxParser;
 
 public class CoreProject {
@@ -75,7 +85,7 @@ public class CoreProject {
     private static void LoadSQLObjectAttributes(SQLObject obj, Attributes attr) {
         String message = attr.getValue("sql-exception");
         if (message != null) {
-            obj.setChildrenInaccessibleReason(new ArchitectException(message));
+            obj.setChildrenInaccessibleReason(new SQLObjectException(message));
         }
     }
     
@@ -169,7 +179,7 @@ public class CoreProject {
      * @param dataSources
      *            Collection of the data sources used in the project
      */
-    public void load(InputStream in, DataSourceCollection dataSources) throws IOException, ArchitectException {
+    public void load(InputStream in, DataSourceCollection dataSources) throws IOException, SQLObjectException {
         UnclosableInputStream uin = new UnclosableInputStream(in);
         try {
             dbcsLoadIdMap = new HashMap<String, SPDataSource>();
@@ -191,13 +201,13 @@ public class CoreProject {
                     digester.getDocumentLocator().getLineNumber() + " Column:" +
                     digester.getDocumentLocator().getColumnNumber();
                 }
-                throw new ArchitectException(message, ex);
+                throw new SQLObjectException(message, ex);
             } catch (IOException ex) {
                 logger.error("IO Exception in project file parse!", ex);
-                throw new ArchitectException("There was an I/O error while reading the file", ex);
+                throw new SQLObjectException("There was an I/O error while reading the file", ex);
             } catch (Exception ex) {
                 logger.error("General Exception in project file parse!", ex);
-                throw new ArchitectException("Unexpected Exception", ex);
+                throw new SQLObjectException("Unexpected Exception", ex);
             }
 
             SQLObject dbConnectionContainer = ((SQLObject) getSession().getRootObject());
@@ -544,7 +554,7 @@ public class CoreProject {
      * Creates a SQLTable instance and adds it to the objectIdMap.
      */
     private class SQLTableFactory extends AbstractObjectCreationFactory {
-        public Object createObject(Attributes attributes) throws ArchitectException{
+        public Object createObject(Attributes attributes) throws SQLObjectException{
             SQLTable tab = new SQLTable();
 
             String id = attributes.getValue("id");
@@ -561,7 +571,7 @@ public class CoreProject {
             if (populated != null && populated.equals("false")) {
                 try {
                     tab.initFolders(false);
-                } catch (ArchitectException e) {
+                } catch (SQLObjectException e) {
                     logger.error("Couldn't add folder to table \""+tab.getName()+"\"", e);
                 }
             }
@@ -603,8 +613,8 @@ public class CoreProject {
             Folder f = new SQLTable.Folder(type, true);
             try {
                 currentTable.addChild(f);
-            } catch (ArchitectException ex) {
-                throw new ArchitectRuntimeException(ex);
+            } catch (SQLObjectException ex) {
+                throw new SQLObjectRuntimeException(ex);
             }
             
             LoadSQLObjectAttributes(f, attributes);
@@ -675,7 +685,7 @@ public class CoreProject {
                 SQLTable pkTable = (SQLTable) sqlObjectLoadIdMap.get(pkTableId);
                 try {
                     rel.attachRelationship(pkTable, fkTable, false);
-                } catch (ArchitectException e) {
+                } catch (SQLObjectException e) {
                     logger.error("Couldn't attach relationship to pktable \""+pkTable.getName()+"\" and fktable \""+fkTable.getName()+"\"", e);
                     JOptionPane.showMessageDialog(null, "Failed to attach relationship to pktable \""+pkTable.getName()+"\" and fktable \""+fkTable.getName()+"\":\n"+e.getMessage());
                 }
@@ -813,7 +823,7 @@ public class CoreProject {
      */
     private class ProfileManagerFactory extends AbstractObjectCreationFactory {
         @Override
-        public Object createObject(Attributes attributes) throws ArchitectException {
+        public Object createObject(Attributes attributes) throws SQLObjectException {
             return session.getProfileManager();
         }
     }
@@ -826,16 +836,16 @@ public class CoreProject {
         TableProfileResult tableProfileResult;
     
         @Override
-        public Object createObject(Attributes attributes) throws ArchitectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+        public Object createObject(Attributes attributes) throws SQLObjectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
             String refid = attributes.getValue("ref-id");
             String className = attributes.getValue("type");
             
             if (refid == null) {
-                throw new ArchitectException("Missing mandatory attribute \"ref-id\" in <profile-result> element");
+                throw new SQLObjectException("Missing mandatory attribute \"ref-id\" in <profile-result> element");
             }
 
             if (className == null) {
-                throw new ArchitectException("Missing mandatory attribute \"type\" in <profile-result> element");
+                throw new SQLObjectException("Missing mandatory attribute \"type\" in <profile-result> element");
             } else if (className.equals(TableProfileResult.class.getName())) {
                 SQLTable t = (SQLTable) sqlObjectLoadIdMap.get(refid);
                 
@@ -852,17 +862,17 @@ public class CoreProject {
                 tableProfileResult.addColumnProfileResult(cpr);
                 return cpr;
             } else {
-                throw new ArchitectException("Profile result type \""+className+"\" not recognised");
+                throw new SQLObjectException("Profile result type \""+className+"\" not recognised");
             }
         }
     }
 
     private class ProfileResultValueFactory extends AbstractObjectCreationFactory {
         @Override
-        public Object createObject(Attributes attributes) throws ArchitectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+        public Object createObject(Attributes attributes) throws SQLObjectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
             String className = attributes.getValue("type");
             if (className == null) {
-                throw new ArchitectException("Missing mandatory attribute \"type\" in <avgValue> or <minValue> or <maxValue> element");
+                throw new SQLObjectException("Missing mandatory attribute \"type\" in <avgValue> or <minValue> or <maxValue> element");
             } else if (className.equals(BigDecimal.class.getName()) ) {
                 return new BigDecimal(attributes.getValue("value"));
             } else if (className.equals(Timestamp.class.getName()) ) {
@@ -877,7 +887,7 @@ public class CoreProject {
 
     private class ProfileResultTopNValueFactory extends AbstractObjectCreationFactory {
         @Override
-        public Object createObject(Attributes attributes) throws ArchitectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+        public Object createObject(Attributes attributes) throws SQLObjectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
             String className = attributes.getValue("type");
             int count = Integer.valueOf(attributes.getValue("count"));
             
@@ -942,9 +952,9 @@ public class CoreProject {
      * for loading projects, so please think twice about using it for other stuff.
      *
      * @param db The database to add tables from.  The database must contain tables directly.
-     * @throws ArchitectException If adding the tables of db fails
+     * @throws SQLObjectException If adding the tables of db fails
      */
-    public void addAllTablesFrom(SQLDatabase db) throws ArchitectException {
+    public void addAllTablesFrom(SQLDatabase db) throws SQLObjectException {
         SQLDatabase ppdb = getSession().getTargetDatabase();
         for (SQLObject table : (List<SQLObject>) db.getChildren()) {
             ppdb.addChild(table);

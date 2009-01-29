@@ -32,6 +32,7 @@
 
 package ca.sqlpower.architect;
 
+import ca.sqlpower.sqlobject.StubSQLObject;
 import junit.framework.TestCase;
 
 public class InsertionPointWatcherTest extends TestCase {

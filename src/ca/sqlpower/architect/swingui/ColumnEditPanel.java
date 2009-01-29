@@ -59,16 +59,17 @@ import javax.swing.text.JTextComponent;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLType;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.layout.CellConstraints;
@@ -148,11 +149,11 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
     private final ArchitectSession session;
 
     
-    public ColumnEditPanel(SQLColumn col, ArchitectSwingSession session) throws ArchitectException {
+    public ColumnEditPanel(SQLColumn col, ArchitectSwingSession session) throws SQLObjectException {
         this(Collections.singleton(col), session);
     }
     
-    public ColumnEditPanel(Collection<SQLColumn> cols, ArchitectSwingSession session) throws ArchitectException {
+    public ColumnEditPanel(Collection<SQLColumn> cols, ArchitectSwingSession session) throws SQLObjectException {
         logger.debug("ColumnEditPanel called"); //$NON-NLS-1$
 
         if (session == null) {
@@ -389,7 +390,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         colName.requestFocus();
         colName.selectAll();
         
-        ArchitectUtils.listenToHierarchy(obsolesenceListener, session.getRootObject());
+        SQLObjectUtils.listenToHierarchy(obsolesenceListener, session.getRootObject());
         panel.addAncestorListener(cleanupListener);
     }
 
@@ -419,7 +420,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      * @param col
      *            The column to edit
      */
-    private void updateComponents(SQLColumn col) throws ArchitectException {
+    private void updateComponents(SQLColumn col) throws SQLObjectException {
         SQLColumn sourceColumn = col.getSourceColumn();
         if (sourceColumn == null) {
             sourceLabel.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
@@ -804,9 +805,9 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
 
         public void ancestorRemoved(AncestorEvent event) {
             try {
-                ArchitectUtils.unlistenToHierarchy(obsolesenceListener, session.getRootObject());
-            } catch (ArchitectException e) {
-                throw new ArchitectRuntimeException(e);
+                SQLObjectUtils.unlistenToHierarchy(obsolesenceListener, session.getRootObject());
+            } catch (SQLObjectException e) {
+                throw new SQLObjectRuntimeException(e);
             }
         }
     };

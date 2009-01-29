@@ -43,11 +43,11 @@ import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.SPDataSourcePanel;
@@ -374,7 +374,7 @@ public class ASUtils {
             try {
                 context = new ArchitectSwingSessionContextImpl();
                 context.setExitAfterAllSessionsClosed(true);
-            } catch (ArchitectException e) {
+            } catch (SQLObjectException e) {
                 showExceptionDialogNoReport(Messages.getString("ASUtils.couldNotLaunchPowerArchitect"), e); //$NON-NLS-1$
                 System.exit(1);
             }

@@ -24,7 +24,6 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.KeyStroke;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
@@ -36,6 +35,7 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.olap.OSUtils;
 import ca.sqlpower.architect.swingui.olap.VirtualCubeEditPanel;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CreateVirtualCubeAction extends AbstractArchitectAction {
@@ -77,7 +77,7 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
         }
 
         @Override
-        public DataEntryPanel place(Point p) throws ArchitectException {
+        public DataEntryPanel place(Point p) throws SQLObjectException {
             schema.startCompoundEdit("Create a virtual cube");
             schema.addVirtualCube(vcp.getModel());
             

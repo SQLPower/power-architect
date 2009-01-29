@@ -21,7 +21,7 @@ package ca.sqlpower.architect.ddl;
 
 import java.util.Collections;
 
-import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.sqlobject.SQLColumn;
 
 /**
  * A DDL warning about relationship update or delete rule that tries to set default

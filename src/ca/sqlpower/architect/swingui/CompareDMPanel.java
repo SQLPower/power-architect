@@ -57,12 +57,6 @@ import javax.swing.event.ListDataListener;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.diff.CompareSQL;
@@ -73,6 +67,12 @@ import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.ConnectionComboBoxModel;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
@@ -371,7 +371,7 @@ public class CompareDMPanel extends JPanel {
 					started = true;
 					db.populate();
 
-				} catch (ArchitectException e) {
+				} catch (SQLObjectException e) {
 					logger.debug(
 						"Unexpected architect exception in ConnectionListener",	e); //$NON-NLS-1$
                     ASUtils.showExceptionDialogNoReport(CompareDMPanel.this,
@@ -392,7 +392,7 @@ public class CompareDMPanel extends JPanel {
 			 * </ul>
 			 */
 			@Override
-			public void cleanup() throws ArchitectException {
+			public void cleanup() throws SQLObjectException {
 			    setCleanupExceptionMessage(Messages.getString("CompareDMPanel.couldNotPopulateCatalogDropdown")); //$NON-NLS-1$
 
 				catalogDropdown.removeAllItems();
@@ -463,10 +463,10 @@ public class CompareDMPanel extends JPanel {
 						 * Populates the schema dropdown box from the schema
 						 * parent that doStuff() populated.
 						 *
-						 * @throws ArchitectException
+						 * @throws SQLObjectException
 						 */
 						@Override
-						public void cleanup() throws ArchitectException {
+						public void cleanup() throws SQLObjectException {
 							setCleanupExceptionMessage(Messages.getString("CompareDMPanel.couldNotPopulateSchemaDropdown")); //$NON-NLS-1$
 
 							for (SQLObject item : (List<SQLObject>) finalSchemaParent
@@ -575,7 +575,7 @@ public class CompareDMPanel extends JPanel {
 			}
 
 			@Override
-			public void doStuff() throws ArchitectException {
+			public void doStuff() throws SQLObjectException {
 				logger.debug("SCHEMA POPULATOR IS STARTED..."); //$NON-NLS-1$
 				ProgressWatcher.watchProgress(progressBar, this);
 				started = true;
@@ -590,10 +590,10 @@ public class CompareDMPanel extends JPanel {
 			 * GUI. If the catalog doesn't contain schemas, cleanup just checks
 			 * if the comparison action is startable.
 			 *
-			 * @throws ArchitectException
+			 * @throws SQLObjectException
 			 */
 			@Override
-			public void cleanup() throws ArchitectException {
+			public void cleanup() throws SQLObjectException {
 			    logger.debug("SCHEMA POPULATOR IS ABOUT TO CLEAN UP..."); //$NON-NLS-1$
 				schemaLabel.setText(""); //$NON-NLS-1$
 				SQLCatalog populatedCat = (SQLCatalog) catalogDropdown
@@ -825,11 +825,11 @@ public class CompareDMPanel extends JPanel {
 		 * Figures out which SQLObject holds the tables we want to compare, and
 		 * returns it.
 		 *
-		 * @throws ArchitectException
+		 * @throws SQLObjectException
 		 * @throws IOException
 		 * @throws IOException
 		 */
-		public SQLObject getObjectToCompare() throws ArchitectException,
+		public SQLObject getObjectToCompare() throws SQLObjectException,
 				IOException {
 			SQLObject o;
 			if (playPenRadio.isSelected()) {
@@ -1141,7 +1141,7 @@ public class CompareDMPanel extends JPanel {
 		setPreferredSize(new Dimension(800,600));
 		try {
 			restoreSettingsFromProject();
-		} catch (ArchitectException e) {
+		} catch (SQLObjectException e) {
 			logger.warn("Failed to save user CompareDM preferences!", e); //$NON-NLS-1$
 		}
 	}
@@ -1233,7 +1233,7 @@ public class CompareDMPanel extends JPanel {
 						targetTables);
 				targetComp = new CompareSQL(targetTables,
 						sourceTables);
-			} catch (ArchitectException ex) {
+			} catch (SQLObjectException ex) {
 			    ASUtils.showExceptionDialog(session,
 			            Messages.getString("CompareDMPanel.couldNotBeginDiffProcess"), ex); //$NON-NLS-1$
 			    return;
@@ -1250,7 +1250,7 @@ public class CompareDMPanel extends JPanel {
 				private List<DiffChunk<SQLObject>> diff;
 				private List<DiffChunk<SQLObject>> diff1;
 
-				public void doStuff() throws ArchitectException {
+				public void doStuff() throws SQLObjectException {
 					diff = sourceComp.generateTableDiffs();
 					diff1 = targetComp.generateTableDiffs();
 				}
@@ -1349,7 +1349,7 @@ public class CompareDMPanel extends JPanel {
 			setting.setDatastoreType(CompareDMSettings.DatastoreType.PROJECT);
 	}
 
-	private void restoreSettingsFromProject() throws ArchitectException {
+	private void restoreSettingsFromProject() throws SQLObjectException {
 		CompareDMSettings s = session.getCompareDMSettings();
 
 		restoreSourceOrTargetSettingsFromProject(source,s.getSourceSettings());
@@ -1367,7 +1367,7 @@ public class CompareDMPanel extends JPanel {
 
 
 	private void restoreSourceOrTargetSettingsFromProject(SourceOrTargetStuff stuff,
-			SourceOrTargetSettings set) throws ArchitectException {
+			SourceOrTargetSettings set) throws SQLObjectException {
 
 		DatastoreType rbs = set.getDatastoreType();
 		if ( rbs == CompareDMSettings.DatastoreType.PROJECT )

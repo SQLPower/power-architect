@@ -23,14 +23,14 @@ import java.awt.Point;
 import java.util.List;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestCreateRelationshipAction extends TestCase {
 
@@ -63,7 +63,7 @@ public class TestCreateRelationshipAction extends TestCase {
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.action.CreateRelationshipAction.doCreateRelationship(SQLTable, SQLTable, PlayPen, boolean)'
 	 */
-	public void testDoCreateRelationshipIdentifying() throws ArchitectException {
+	public void testDoCreateRelationshipIdentifying() throws SQLObjectException {
 		assertEquals("Oops started out with relationships",0,pp.getRelationships().size());
 		CreateRelationshipAction.doCreateRelationship(pkTable,fkTable,pp,true);
 		assertEquals("Wrong number of relationships created",1,pp.getRelationships().size());
@@ -78,7 +78,7 @@ public class TestCreateRelationshipAction extends TestCase {
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.action.CreateRelationshipAction.doCreateRelationship(SQLTable, SQLTable, PlayPen, boolean)'
 	 */
-	public void testDoCreateRelationshipNonIdentifying() throws ArchitectException {
+	public void testDoCreateRelationshipNonIdentifying() throws SQLObjectException {
 		assertEquals("Oops started out with relationships",0,pp.getRelationships().size());
 		CreateRelationshipAction.doCreateRelationship(pkTable,fkTable,pp,false);
 		assertEquals("Wrong number of relationships created",1,pp.getRelationships().size());
@@ -91,7 +91,7 @@ public class TestCreateRelationshipAction extends TestCase {
 		
 	}
 	
-	public void testDoCreateRelationshipHicjackColumn() throws ArchitectException {
+	public void testDoCreateRelationshipHicjackColumn() throws SQLObjectException {
 		fkTable.addColumn(new SQLColumn());
 		fkTable.getColumn(0).setName("pk1");
 		assertEquals("Oops started out with relationships",0,pp.getRelationships().size());

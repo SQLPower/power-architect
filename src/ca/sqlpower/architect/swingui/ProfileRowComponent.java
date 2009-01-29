@@ -47,7 +47,6 @@ import javax.swing.UIManager;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -58,6 +57,7 @@ import ca.sqlpower.architect.profile.event.ProfileResultListener;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
 

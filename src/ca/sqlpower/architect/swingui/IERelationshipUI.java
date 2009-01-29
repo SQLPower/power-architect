@@ -25,7 +25,7 @@ import java.awt.Stroke;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship;
 
 public class IERelationshipUI extends BasicRelationshipUI {
 	private static Logger logger = Logger.getLogger(IERelationshipUI.class);

@@ -23,15 +23,20 @@ import java.awt.Point;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.sql.Types;
+import java.util.Collections;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class ArchitectSwingSessionImplTest extends TestCase {
 
@@ -139,7 +144,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         }
 
         @Override
-        public ArchitectSwingSession createSession(boolean showGUI) throws ArchitectException {
+        public ArchitectSwingSession createSession(boolean showGUI) throws SQLObjectException {
             return new ArchitectSwingSessionImpl(this, "testing");
         }
     }
@@ -233,6 +238,63 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         session.getSourceDatabases().addSourceConnection(new SPDataSource(context.getPlDotIni()));
         assertEquals(2, session.getSourceDatabases().getDatabaseList().size());
         assertFalse(session.isNew());
+    }
+    
+    /**
+     * Test for bug in 0.9.13. If a column is dropped from one session
+     * to another the source will remain from the session it was dragged
+     * from. This can lead to problems with saving and loading.
+     */
+    public void testDnDAcrossSessionsRemovesSource() throws Exception {
+        TestingArchitectSwingSessionContext sourceContext = new TestingArchitectSwingSessionContext();
+        final ArchitectSwingSession sourceSession = sourceContext.createSession(false);
+        
+        final SQLTable sourceTable = new SQLTable(sourceSession.getTargetDatabase(), true);
+        SQLColumn sourceColumn = new SQLColumn(sourceTable, "Source column", Types.VARCHAR, 10, 0);
+        sourceTable.addColumn(sourceColumn);
+        
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        final ArchitectSwingSession session = context.createSession(false);
+
+        SQLTable table = new SQLTable(session.getTargetDatabase(), true);
+        SQLColumn column = SQLColumn.getDerivedInstance(sourceColumn, table);
+
+        assertNull(column.getSourceColumn());
+    }
+    
+    /**
+     * Test for bug in 0.9.13. If a column is dropped from one database
+     * in a session to the play pen database the column should keep its lineage.
+     */
+    public void testDnDWithinSessionKeepsSource() throws Exception {
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        final ArchitectSwingSession session = context.createSession(false);
+        SQLDatabase db = new SQLDatabase();
+        session.setSourceDatabaseList(Collections.singletonList(db));
+        session.getRootObject().addChild(session.getTargetDatabase());
+        assertEquals(session.getRootObject(), session.getTargetDatabase().getParent());
+        
+        final SQLTable sourceTable = new SQLTable(db, true);
+        SQLColumn sourceColumn = new SQLColumn(sourceTable, "Source column", Types.VARCHAR, 10, 0);
+        sourceTable.addColumn(sourceColumn);
+
+        SQLTable table = new SQLTable(session.getTargetDatabase(), true);
+        SQLColumn column = SQLColumn.getDerivedInstance(sourceColumn, table);
+        
+        SQLObject o1Parent = column;
+        while (o1Parent.getParent() != null) {
+            o1Parent = o1Parent.getParent();
+            System.out.println("Columns ancestor is " + o1Parent);
+        }
+        SQLObject o2Parent = sourceColumn;
+        while (o2Parent.getParent() != null) {
+            o2Parent = o2Parent.getParent();
+            System.out.println("Source Column ancestor is " + o2Parent);
+        }
+        
+        assertTrue(SQLObjectUtils.isInSameSession(column, sourceColumn));
+
+        assertNotNull(column.getSourceColumn());
     }
     
 }

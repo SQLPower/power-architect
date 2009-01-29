@@ -25,10 +25,10 @@ package ca.sqlpower.architect.util;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.testutil.MockJDBCConnection;
 import ca.sqlpower.testutil.MockJDBCDriver;
 
