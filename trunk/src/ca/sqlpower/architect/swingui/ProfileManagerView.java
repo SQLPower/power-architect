@@ -302,6 +302,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
                         showingRows.get(i).setSelected(true, SelectionEvent.SINGLE_SELECT);
                     }
                 }
+                showingRows.get(selectedRowIndex).setSelected(true, SelectionEvent.SINGLE_SELECT);
             }
             ignoreSelectionEvents = false;
         }
