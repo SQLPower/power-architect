@@ -22,16 +22,16 @@ import java.awt.Point;
 import java.sql.Types;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestEditColumnAction extends TestCase {
 
@@ -66,7 +66,7 @@ public class TestEditColumnAction extends TestCase {
 		
 	}
 
-	public void testTableSelected() throws ArchitectException{
+	public void testTableSelected() throws SQLObjectException{
 		assertFalse("Action enabled with no items",editColumn.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
@@ -93,7 +93,7 @@ public class TestEditColumnAction extends TestCase {
 		tp.setSelected(false,SelectionEvent.SINGLE_SELECT);		
 	}
 	
-	public void testColumnSelected() throws ArchitectException{
+	public void testColumnSelected() throws SQLObjectException{
 		assertFalse("Action enabled with no items",editColumn.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		tp.selectItem(0);

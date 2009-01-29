@@ -27,8 +27,6 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ColumnMappingPanel;
 import ca.sqlpower.architect.swingui.DBTree;
@@ -40,6 +38,8 @@ import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TabbedDataEntryPanel;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class EditRelationshipAction extends AbstractArchitectAction implements SelectionListener {

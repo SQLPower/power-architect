@@ -399,7 +399,8 @@
 	<target name="dbtree_library.jar" depends="library.jar">
 		<!-- TODO a manifest with author, version, and license info in it -->
 		<jar jarfile="${build}/architect_dbtree_lib.jar" basedir="${build}"
-			includes="ca/sqlpower/architect/swingui/dbtree/**">
+			includes="ca/sqlpower/architect/swingui/dbtree/**,
+			          icons/parts/**">
 		</jar>
 	</target>
 	

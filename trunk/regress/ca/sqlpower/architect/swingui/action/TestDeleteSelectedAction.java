@@ -23,17 +23,17 @@ import java.sql.Types;
 import java.util.List;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestDeleteSelectedAction extends TestCase {
 	
@@ -68,7 +68,7 @@ public class TestDeleteSelectedAction extends TestCase {
 		pp.addRelationship(r);
 	}
 
-	public void testTableSelected() throws ArchitectException{
+	public void testTableSelected() throws SQLObjectException{
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		assertEquals(1, session.getArchitectFrame().getDbTree().getSelectionCount());
@@ -98,7 +98,7 @@ public class TestDeleteSelectedAction extends TestCase {
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 	}
 	
-	public void testColumnSelected() throws ArchitectException{
+	public void testColumnSelected() throws SQLObjectException{
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		tp.selectItem(0);

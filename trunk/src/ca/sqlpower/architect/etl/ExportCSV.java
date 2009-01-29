@@ -22,14 +22,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class ExportCSV {
     private Collection<SQLTable> exportList;
@@ -40,7 +40,7 @@ public class ExportCSV {
         this.exportList = exportList;
     }
     
-    public String getCSVMapping() throws ArchitectException {
+    public String getCSVMapping() throws SQLObjectException {
         StringBuffer buf = new StringBuffer();
         buf.append(createHeader()+EOL);
         for (String row : createBody()) {
@@ -54,7 +54,7 @@ public class ExportCSV {
         return getColumnToCSVHeaders("SOURCE_")+"," + getColumnToCSVHeaders("TARGET_");
     }
     
-    public List<String> createBody() throws ArchitectException {
+    public List<String> createBody() throws SQLObjectException {
         List<String> rows = new ArrayList<String>();
         for (Object o :  exportList){
             if (o instanceof SQLTable){
@@ -76,7 +76,7 @@ public class ExportCSV {
         return buf.toString();
     }
     
-    private StringBuffer columnToCSV(SQLColumn c) throws ArchitectException {
+    private StringBuffer columnToCSV(SQLColumn c) throws SQLObjectException {
         StringBuffer connection = new StringBuffer();
         StringBuffer database = new StringBuffer();
         StringBuffer schema =new StringBuffer();
@@ -98,7 +98,7 @@ public class ExportCSV {
                 } else if (parent instanceof SQLTable.Folder){
                     
                 } else{
-                    throw new ArchitectException("Invalid object tree, parent should be a database, schema or catalog");
+                    throw new SQLObjectException("Invalid object tree, parent should be a database, schema or catalog");
                 }
                 parent = parent.getParent();
             }

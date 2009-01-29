@@ -22,8 +22,8 @@ package ca.sqlpower.architect.olap;
 import java.util.Collections;
 import java.util.List;
 
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.sqlobject.SQLDatabase;
 
 /**
  * The collection of objects that support editing and use of an OLAP schema.

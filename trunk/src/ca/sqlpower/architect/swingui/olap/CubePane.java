@@ -24,7 +24,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
@@ -35,6 +34,7 @@ import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CubePane extends OLAPPane<Cube, OLAPObject> {
@@ -83,7 +83,7 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
     }
 
     @Override
-    public DataEntryPanel createEditDialog(PlayPenCoordinate<Cube, OLAPObject> coord) throws ArchitectException {
+    public DataEntryPanel createEditDialog(PlayPenCoordinate<Cube, OLAPObject> coord) throws SQLObjectException {
         DataEntryPanel panel;
         // TODO add getName() method to DataEntryPanel.
         if (coord.getIndex() == PlayPenCoordinate.ITEM_INDEX_TITLE) {

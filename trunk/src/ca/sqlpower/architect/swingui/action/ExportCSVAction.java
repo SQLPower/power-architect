@@ -29,10 +29,10 @@ import javax.swing.JFrame;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.etl.ExportCSV;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 
 public class ExportCSVAction extends AbstractAction {
 
@@ -80,8 +80,8 @@ public class ExportCSVAction extends AbstractAction {
             output.flush();
         } catch (IOException e1) {
             throw new RuntimeException(e1);
-        } catch (ArchitectException e1) {
-            throw new ArchitectRuntimeException(e1);
+        } catch (SQLObjectException e1) {
+            throw new SQLObjectRuntimeException(e1);
         } finally {
             if (output != null) {
                 try {

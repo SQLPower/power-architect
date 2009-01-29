@@ -24,12 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
@@ -46,6 +41,11 @@ import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.olap.MondrianModel.View;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * A collection of static utility methods for working with the OLAP classes.
@@ -256,10 +256,10 @@ public class OLAPUtil {
      * @return The table whose columns represent the columns of hierarchy's source
      *         table (or view, inline table, or join), or null if the hierarchy
      *         has no table selected.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      *             if populating the necessary SQLObjects fails
      */
-    public static SQLTable tableForHierarchy(Hierarchy hier) throws ArchitectException {
+    public static SQLTable tableForHierarchy(Hierarchy hier) throws SQLObjectException {
         OLAPSession session = getSession(hier);
         SQLDatabase database = session.getDatabase();
         RelationOrJoin relation = hier.getRelation();
@@ -282,10 +282,10 @@ public class OLAPUtil {
      * @return The table whose columns represent the columns of cube's source
      *         table (or view, inline table, or join), or null if the cube
      *         has no table set.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      *             if populating the necessary SQLObjects fails.
      */             
-    public static SQLTable tableForCube(Cube cube) throws ArchitectException {
+    public static SQLTable tableForCube(Cube cube) throws SQLObjectException {
         OLAPSession session = getSession(cube);
         SQLDatabase database = session.getDatabase();
         
@@ -300,10 +300,10 @@ public class OLAPUtil {
      * @param relation The RelationOrJoin identifying the table.
      * @return The SQLTable that the given relation represents, or null if non
      *         found.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      *             if populating the necessary SQLObjects fails
      */
-    private static SQLTable tableForRelationOrJoin(SQLDatabase database, RelationOrJoin relation) throws ArchitectException {
+    private static SQLTable tableForRelationOrJoin(SQLDatabase database, RelationOrJoin relation) throws SQLObjectException {
         if (relation == null) {
             return null;
         } else if (relation instanceof Table) {
@@ -326,9 +326,9 @@ public class OLAPUtil {
      * 
      * @param table Table object representing a table in a relational database
      * @return a SQLTable in SQLDatabase representing the given table
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    public static SQLTable getSQLTableFromOLAPTable(SQLDatabase database, Table table) throws ArchitectException {
+    public static SQLTable getSQLTableFromOLAPTable(SQLDatabase database, Table table) throws SQLObjectException {
         String qualifier = table.getSchema();
         String name = table.getName();
         if (qualifier == null || qualifier.length() == 0) {
@@ -354,11 +354,11 @@ public class OLAPUtil {
      *            An object in the session you want the table list for.
      * @return The list of all accessible tables. If the OLAP session doesn't
      *         have a database chosen, an empty list is returned.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      *             If there is a problem populating the list of tables (for
      *             example, the database might not be reachable).
      */
-    public static List<SQLTable> getAvailableTables(OLAPObject obj) throws ArchitectException {
+    public static List<SQLTable> getAvailableTables(OLAPObject obj) throws SQLObjectException {
         OLAPSession osession = OLAPUtil.getSession(obj);
         SQLDatabase db = osession.getDatabase();
         List<SQLTable> tables;

@@ -32,17 +32,17 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLTable;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
@@ -116,13 +116,13 @@ public class ProfilePDFFormat implements ProfileFormat {
     /**
      * Outputs a PDF file report of the data in drs to the given
      * output stream.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
     public void format(OutputStream out, List<ProfileResult> profileResults)
                 throws DocumentException, IOException, SQLException,
-                    ArchitectException, InstantiationException,
+                    SQLObjectException, InstantiationException,
                     IllegalAccessException, ClassNotFoundException {
 
         final int minRowsTogether = 1;  // counts smaller than this are considered orphan/widow
@@ -342,7 +342,7 @@ public class ProfilePDFFormat implements ProfileFormat {
      * each table's column widths using the final resulting widths
      * array.  If you want each table to have its own optimal widths,
      * use a new array for each invocation.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      * @throws SQLException
      * @throws IllegalAccessException
      * @throws InstantiationException
@@ -352,7 +352,7 @@ public class ProfilePDFFormat implements ProfileFormat {
                                                 BaseFont bf,
                                                 float fsize,
                                                 float[] widths)
-            throws DocumentException, IOException, ArchitectException,
+            throws DocumentException, IOException, SQLObjectException,
                     SQLException, InstantiationException, IllegalAccessException {
 
         logger.debug("Making next table");
@@ -384,7 +384,7 @@ public class ProfilePDFFormat implements ProfileFormat {
                             float titleFSize,
                             float colHeadingFSize,
                             float[] widths )
-        throws DocumentException, IOException, ArchitectException {
+        throws DocumentException, IOException, SQLObjectException {
 
 
         int ncols = headings.length;
@@ -398,7 +398,7 @@ public class ProfilePDFFormat implements ProfileFormat {
         PdfPTable infoTable = new PdfPTable(2);
         StringBuffer heading = new StringBuffer();
         heading.append("Connection: ").append(sqlTable.getParentDatabase().getName()).append("\n");
-        heading.append("Table: ").append(ArchitectUtils.toQualifiedName(sqlTable, SQLDatabase.class));
+        heading.append("Table: ").append(SQLObjectUtils.toQualifiedName(sqlTable, SQLDatabase.class));
         if ( result.getException() != null ) {
             heading.append("\nProfiling Error");
             if ( result.getException() != null ) {
@@ -701,7 +701,7 @@ public class ProfilePDFFormat implements ProfileFormat {
                                 Font f,
                                 float fsize,
                                 float[] widths)
-        throws DocumentException, IOException, ArchitectException, SQLException {
+        throws DocumentException, IOException, SQLObjectException, SQLException {
 
         SQLColumn col = result.getProfiledObject();
         
@@ -746,7 +746,7 @@ public class ProfilePDFFormat implements ProfileFormat {
             int alignment;
 
             if ( headings[colNo].equalsIgnoreCase("table name") ) {
-                String fqTableName = ArchitectUtils.toQualifiedName(col.getParentTable(), SQLDatabase.class);
+                String fqTableName = SQLObjectUtils.toQualifiedName(col.getParentTable(), SQLDatabase.class);
                 if ( tProfile == null || tProfile.getException() != null) {
                     contents = fqTableName + "\nProfiling Error:\n";
                     if ( tProfile != null && tProfile.getException() != null ) {

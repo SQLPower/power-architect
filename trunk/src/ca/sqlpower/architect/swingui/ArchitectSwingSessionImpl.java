@@ -42,18 +42,10 @@ import javax.swing.ToolTipManager;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectHierarchyListener;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLObjectRoot;
 import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
@@ -71,6 +63,14 @@ import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectHierarchyListener;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
@@ -186,14 +186,14 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * 
      * @param context
      * @param name
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
     ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, String name)
-    throws ArchitectException {
+    throws SQLObjectException {
         this.isNew = true;
         this.context = context;
         this.delegateSession = new ArchitectSessionImpl(context, name);
-        ArchitectUtils.listenToHierarchy(childrenInaccessibleListener, getRootObject());
+        SQLObjectUtils.listenToHierarchy(childrenInaccessibleListener, getRootObject());
         this.olapRootObject = new OLAPRootObject(delegateSession);
         ((ArchitectSessionImpl)delegateSession).setProfileManager(new ProfileManagerImpl(this));
         ((ArchitectSessionImpl)delegateSession).setUserPrompterFactory(this);
@@ -203,7 +203,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 File f = new File(fileName);
                 try {
                     OpenProjectAction.openAsynchronously(getContext().createSession(false), f, ArchitectSwingSessionImpl.this);
-                } catch (ArchitectException ex) {
+                } catch (SQLObjectException ex) {
                     SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), Messages.getString("ArchitectSwingSessionImpl.openProjectFileFailed"), ex); //$NON-NLS-1$
                 }
             }
@@ -259,11 +259,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         printSettings = new PrintSettings();
     }
 
-    public void initGUI() throws ArchitectException {
+    public void initGUI() throws SQLObjectException {
         initGUI(null);
     }
 
-    public void initGUI(ArchitectSwingSession openingSession) throws ArchitectException {
+    public void initGUI(ArchitectSwingSession openingSession) throws SQLObjectException {
         if (!SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException("This method must be called on the Swing Event Dispatch Thread."); //$NON-NLS-1$
         }
@@ -556,7 +556,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 // XXX this could/should be done by the frame with a session closing listener
                 frame.saveSettings();
             }
-        } catch (ArchitectException e) {
+        } catch (SQLObjectException e) {
             logger.error("Couldn't save settings: "+e); //$NON-NLS-1$
         }
 
@@ -579,7 +579,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 logger.debug ("closing connection: " + db.getName()); //$NON-NLS-1$
                 db.disconnect();
             }
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             throw new AssertionError("Got impossible ArchitectException from root object"); //$NON-NLS-1$
         }
 
@@ -608,7 +608,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.sourceDatabases = argSourceDatabases;
     }
 
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
         delegateSession.setSourceDatabaseList(databases);
     }
 
@@ -634,8 +634,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
          */
         public ProjectModificationWatcher(PlayPen pp) {
             try {
-                ArchitectUtils.listenToHierarchy(this, getTargetDatabase());
-            } catch (ArchitectException e) {
+                SQLObjectUtils.listenToHierarchy(this, getTargetDatabase());
+            } catch (SQLObjectException e) {
                 logger.error("Can't listen to business model for changes", e); //$NON-NLS-1$
             }
             PlayPenContentPane ppcp = pp.contentPane;
@@ -648,8 +648,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             SQLObject[] newKids = e.getChildren();
             for (int i = 0; i < newKids.length; i++) {
                 try {
-                    ArchitectUtils.listenToHierarchy(this, newKids[i]);
-                } catch (ArchitectException e1) {
+                    SQLObjectUtils.listenToHierarchy(this, newKids[i]);
+                } catch (SQLObjectException e1) {
                     logger.error("Couldn't listen to SQLObject hierarchy rooted at "+newKids[i], e1); //$NON-NLS-1$
                 }
             }

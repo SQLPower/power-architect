@@ -30,14 +30,14 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
 import ca.sqlpower.validation.swingui.NotNullValidator;
@@ -71,7 +71,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
      * 
      * @param cube The data model of the hierarchy to edit
      */
-    public HierarchyEditPanel(Hierarchy hierarchy) throws ArchitectException {
+    public HierarchyEditPanel(Hierarchy hierarchy) throws SQLObjectException {
         this.hierarchy = hierarchy;
         
         List<SQLTable> tables = OLAPUtil.getAvailableTables(hierarchy);
@@ -142,8 +142,8 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
                 enableColumns = true;
             }
             primaryKey.setEnabled(enableColumns);
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
         }
     }
     

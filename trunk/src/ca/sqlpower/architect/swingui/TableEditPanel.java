@@ -32,13 +32,13 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.ColorCellRenderer;
 import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.DataEntryPanel;
@@ -107,9 +107,9 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                 pkName.setText(t.getPrimaryKeyName());
                 pkName.setEnabled(true);
             }
-            ArchitectUtils.listenToHierarchy(this, session.getRootObject());
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+            SQLObjectUtils.listenToHierarchy(this, session.getRootObject());
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
 		remarks.setText(t.getRemarks());
 		name.selectAll();
@@ -125,9 +125,9 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
 	    try {
-            ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+            SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
 		table.startCompoundEdit(Messages.getString("TableEditPanel.compoundEditName"));		 //$NON-NLS-1$
         try {	
@@ -179,8 +179,8 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                 //this is done so we can go back to this dialog after the error message
                 return false;
             }            
-		} catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+		} catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         } finally {
 			table.endCompoundEdit("Ending new compound edit event in table edit panel"); //$NON-NLS-1$
 		}
@@ -188,9 +188,9 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 
 	public void discardChanges() {
 	    try {
-            ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+            SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
 	}
 	
@@ -234,14 +234,14 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
         for (SQLObject obj : c) {
             try {
                 if (table.equals(obj)) {
-                    ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+                    SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
                     if (editDialog != null) {
                         editDialog.dispose();
                     }
                     break;
                 }
-            } catch (ArchitectException ex) {
-                throw new ArchitectRuntimeException(ex);
+            } catch (SQLObjectException ex) {
+                throw new SQLObjectRuntimeException(ex);
             }
         }
     }

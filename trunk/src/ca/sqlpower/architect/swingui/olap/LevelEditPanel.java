@@ -45,9 +45,6 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableModel;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -61,6 +58,9 @@ import ca.sqlpower.architect.olap.MondrianModel.Property;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.table.EditableJTable;
 import ca.sqlpower.validation.Status;
 import ca.sqlpower.validation.ValidateResult;
@@ -97,10 +97,10 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
      * 
      * @param cube
      *            The data model of the Level to edit
-     * @throws ArchitectException
+     * @throws SQLObjectException
      *             if digging up the source table results in a database error
      */
-    public LevelEditPanel(Level level) throws ArchitectException {
+    public LevelEditPanel(Level level) throws SQLObjectException {
         this.level = level;
         
         FormLayout layout = new FormLayout(
@@ -293,10 +293,10 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
          * @param handler
          *            Used for adding the {@link PropertiesTableNameValidator}
          *            on the JTable.
-         * @throws ArchitectException
+         * @throws SQLObjectException
          *             If retrieving the columns from the table fails.
          */
-        public PropertiesEditPanel(SQLTable table, ValidationHandler handler) throws ArchitectException {
+        public PropertiesEditPanel(SQLTable table, ValidationHandler handler) throws SQLObjectException {
             setBorder(new EmptyBorder(10, 10, 10, 10));
             setLayout(new BorderLayout(10, 10));
             
@@ -330,10 +330,10 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
              * @param table
              *            Should contain the columns that a Property could use,
              *            can be null.
-             * @throws ArchitectException
+             * @throws SQLObjectException
              *             If retrieving the columns from the table fails.
              */
-            public PropertiesTable(SQLTable table) throws ArchitectException {
+            public PropertiesTable(SQLTable table) throws SQLObjectException {
                 super();
                 this.columns = table == null ? null : table.getColumns();
                 

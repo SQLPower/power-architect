@@ -26,11 +26,11 @@ import java.util.Date;
 import java.util.List;
 
 import au.com.bytecode.opencsv.CSVWriter;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.table.DateTableCellRenderer;
 import ca.sqlpower.swingui.table.DecimalTableCellRenderer;
 import ca.sqlpower.swingui.table.PercentTableCellRenderer;

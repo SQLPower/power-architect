@@ -22,12 +22,12 @@ import java.io.IOException;
 import java.sql.DatabaseMetaData;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLType;
 
 public class TestColumnEditPanel extends TestCase {
 	SQLDatabase db;
@@ -74,7 +74,7 @@ public class TestColumnEditPanel extends TestCase {
 		super.tearDown();
 	}
 
-	public void testSetComponentsToColumnValues() throws ArchitectException {
+	public void testSetComponentsToColumnValues() throws SQLObjectException {
 	    assertEquals(2, table.getColumnIndex(col3));
 	    assertEquals("The column we plan to edit should not be in PK",
                 null, col3.getPrimaryKeySeq());
@@ -168,7 +168,7 @@ public class TestColumnEditPanel extends TestCase {
      * being selected.
      * @throws IOException 
      */
-    public void testColumnStaysSelectedWhenMovedToPK() throws ArchitectException, IOException {
+    public void testColumnStaysSelectedWhenMovedToPK() throws SQLObjectException, IOException {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
         PlayPen pp = new PlayPen(session);        

@@ -31,10 +31,10 @@ import javax.swing.tree.TreeModel;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.query.SQLQueryUIComponents;
 
 /**
@@ -68,7 +68,7 @@ public class QueryDialog extends JDialog {
        setSize(900,650);
        try {
            dbTree = new DBTree(session);
-       } catch (ArchitectException e) {
+       } catch (SQLObjectException e) {
            throw new RuntimeException(e);
        }
        

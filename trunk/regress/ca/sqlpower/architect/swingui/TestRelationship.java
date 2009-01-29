@@ -22,12 +22,12 @@ import java.awt.Color;
 import java.awt.Point;
 import java.sql.Types;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestRelationship extends TestPlayPenComponent<Relationship> {
 
@@ -68,7 +68,7 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         copySameInstanceIgnoreProperties.add("pkTable");
 	}
 	
-    public void testHighlightWithRelationshipTypeChange() throws ArchitectException {               
+    public void testHighlightWithRelationshipTypeChange() throws SQLObjectException {               
         rel.setSelected(true,SelectionEvent.SINGLE_SELECT);
         assertEquals(Color.RED,tp1.getColumnHighlight(0));
         assertEquals(Color.RED,tp2.getColumnHighlight(1));
@@ -89,7 +89,7 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         assertEquals(tp2.getForegroundColor(), tp2.getColumnHighlight(1));      
     }
     
-    private void setupRefCountTests(SQLDatabase db, SQLTable pkTable, SQLTable fkTable, SQLRelationship sourceRel) throws ArchitectException {
+    private void setupRefCountTests(SQLDatabase db, SQLTable pkTable, SQLTable fkTable, SQLRelationship sourceRel) throws SQLObjectException {
         pkTable.setName("pkTable");
         pkTable.addColumn(new SQLColumn(pkTable, "PKTableCol1", Types.INTEGER, 1, 0));
         pkTable.addColumn(new SQLColumn(pkTable, "PKTableCol2", Types.INTEGER, 1, 0));
@@ -104,7 +104,7 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         sourceRel.attachRelationship(pkTable, fkTable, true);        
     }
     
-    public void testRefCountWithFkTableInsertedFirst() throws ArchitectException {
+    public void testRefCountWithFkTableInsertedFirst() throws SQLObjectException {
         SQLDatabase db = new SQLDatabase();        
         SQLTable fkTable = new SQLTable(db, true);
         SQLRelationship sourceRel = new SQLRelationship();
@@ -118,7 +118,7 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         assertEquals(1, PkPane.getModel().getColumn(0).getReferenceCount());    
     }
 
-    public void testRefCountWithPkTableInsertedFirst() throws ArchitectException {
+    public void testRefCountWithPkTableInsertedFirst() throws SQLObjectException {
         SQLDatabase db = new SQLDatabase();
         SQLTable fkTable = new SQLTable(db, true);
         SQLRelationship sourceRel = new SQLRelationship();
@@ -132,7 +132,7 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         assertEquals(1, PkPane.getModel().getColumn(0).getReferenceCount());    
     }
     
-    public void testRefCountWithMultipleTablesInserted() throws ArchitectException{
+    public void testRefCountWithMultipleTablesInserted() throws SQLObjectException{
         SQLDatabase db = new SQLDatabase();
         SQLTable fkTable = new SQLTable(db, true);
         SQLRelationship sourceRel = new SQLRelationship();

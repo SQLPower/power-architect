@@ -28,13 +28,10 @@ import javax.swing.JDialog;
 import javax.swing.JMenu;
 
 import ca.sqlpower.architect.AlwaysOKUserPrompter;
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObjectRoot;
 import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
@@ -46,6 +43,9 @@ import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
@@ -78,7 +78,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     
     private ColumnVisibility choice = ColumnVisibility.ALL;
     
-    public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws ArchitectException {
+    public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws SQLObjectException {
         this.context = context;
         this.recent = new RecentMenu(this.getClass()) {
             @Override
@@ -102,7 +102,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         try {
             ddlGenerator = new GenericDDLGenerator();
         } catch (SQLException e) {
-            throw new ArchitectException("SQL Error in ddlGenerator",e);
+            throw new SQLObjectException("SQL Error in ddlGenerator",e);
         }
 
         frame = new ArchitectFrame(this, null);
@@ -113,7 +113,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         printSettings = new PrintSettings();
     }
     
-    public TestingArchitectSwingSession(ArchitectSwingSessionContext context, SwingUIProject project) throws ArchitectException {
+    public TestingArchitectSwingSession(ArchitectSwingSessionContext context, SwingUIProject project) throws SQLObjectException {
         this(context);
     }
     
@@ -193,7 +193,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public void setSavingEntireSource(boolean argSavingEntireSource) {
     }
 
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
         while (rootObject.getChildCount() > 0) {
             rootObject.removeChild(rootObject.getChildCount() - 1);
         }
@@ -210,11 +210,11 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public void setKettleJob(KettleJob kettleJob) {
     }
 
-    public void initGUI() throws ArchitectException {
+    public void initGUI() throws SQLObjectException {
         throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
     }
 
-    public void initGUI(ArchitectSwingSession session) throws ArchitectException {
+    public void initGUI(ArchitectSwingSession session) throws SQLObjectException {
         throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
     }
     

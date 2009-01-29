@@ -18,6 +18,8 @@
  */
 package ca.sqlpower.architect;
 
+import ca.sqlpower.sqlobject.SQLObjectException;
+
 /**
  * The DeferredLoadable interface allows a heterogeneous collection of
  * objects to be managed by a single piece of code that knows when
@@ -33,7 +35,7 @@ public interface DeferredLoadable {
 	 * be called many times, so you should be sure to only preform the
 	 * costly startup operation the first time.
 	 */
-	public void loadNow() throws ArchitectException;
+	public void loadNow() throws SQLObjectException;
 
 	/**
 	 * This method tells callers whether or not the loadNow() will do
@@ -42,5 +44,5 @@ public interface DeferredLoadable {
 	 * @return true if the load operation has already been completed;
 	 * false if the load operation will be costly.
 	 */
-	public boolean isLoaded() throws ArchitectException;
+	public boolean isLoaded() throws SQLObjectException;
 }

@@ -47,17 +47,17 @@ import javax.swing.table.TableColumn;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.architect.SQLTable.Folder;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
+import ca.sqlpower.sqlobject.SQLIndex.Column;
+import ca.sqlpower.sqlobject.SQLTable.Folder;
 import ca.sqlpower.swingui.table.CleanupTableModel;
 import ca.sqlpower.swingui.table.EditableJTable;
 
@@ -134,8 +134,8 @@ public class IndexColumnTable {
                 for (int i = 0; i < columnsFolder.getChildCount(); i++) {
                     columnsFolder.getChild(i).addSQLObjectListener(this);
                 }
-            } catch (ArchitectException e) {
-                throw new ArchitectRuntimeException(e);
+            } catch (SQLObjectException e) {
+                throw new SQLObjectRuntimeException(e);
             }
         }
 
@@ -188,8 +188,8 @@ public class IndexColumnTable {
         private void repopulateModel() {
             try {
                 index.makeColumnsLike(actualIndex);
-            } catch (ArchitectException ex) {
-                throw new ArchitectRuntimeException(ex);
+            } catch (SQLObjectException ex) {
+                throw new SQLObjectRuntimeException(ex);
             }
             for (int i = rowList.size() - 1; i >= 0; i--) {
                 rowList.remove(i);
@@ -216,8 +216,8 @@ public class IndexColumnTable {
                         rowList.add(new Row(false, col, AscendDescend.UNSPECIFIED));
                     }
                 }
-            } catch (ArchitectException e) {
-                throw new ArchitectRuntimeException(e);
+            } catch (SQLObjectException e) {
+                throw new SQLObjectRuntimeException(e);
             }
         }
 
@@ -256,7 +256,7 @@ public class IndexColumnTable {
             if (col == 0) return IN_INDEX; //$NON-NLS-1$
             else if (col == 1) return COL_NAME; //$NON-NLS-1$
             else if (col == 2) return ORDER; //$NON-NLS-1$
-            else throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns.")); //$NON-NLS-1$
+            else throw new SQLObjectRuntimeException(new SQLObjectException("This table only has 3 columns.")); //$NON-NLS-1$
         }
 
 
@@ -280,8 +280,8 @@ public class IndexColumnTable {
                 for (int i = 0; i < columnsFolder.getChildCount(); i++) {
                     columnsFolder.getChild(i).removeSQLObjectListener(this);
                 }
-            } catch (ArchitectException e) {
-                throw new ArchitectRuntimeException(e);
+            } catch (SQLObjectException e) {
+                throw new SQLObjectRuntimeException(e);
             }
             columnsFolder.removeSQLObjectListener(this);
             this.actualIndex.removeSQLObjectListener(indexListener);
@@ -300,7 +300,7 @@ public class IndexColumnTable {
             else if (col == 1 && rowList.get(row).getSQLColumn() != null) return rowList.get(row).getSQLColumn();
             else if (col == 1) return rowList.get(row).getColumn();
             else if (col == 2) return rowList.get(row).getOrder();
-            else throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns.")); //$NON-NLS-1$
+            else throw new SQLObjectRuntimeException(new SQLObjectException("This table only has 3 columns.")); //$NON-NLS-1$
         }
 
         public void setValueAt(Object value, int row, int col) {
@@ -315,7 +315,7 @@ public class IndexColumnTable {
             } else if (col == 2) {
                 rowList.get(row).setOrder((AscendDescend) value);
             } else {
-                throw new ArchitectRuntimeException(new ArchitectException("This table only has 3 columns.")); //$NON-NLS-1$
+                throw new SQLObjectRuntimeException(new SQLObjectException("This table only has 3 columns.")); //$NON-NLS-1$
             }
             fireTableCellUpdated(row, col);
         }
@@ -504,8 +504,8 @@ public class IndexColumnTable {
                 }
             }
 
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
     }
 

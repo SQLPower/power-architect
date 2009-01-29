@@ -33,14 +33,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLIndex.Column;
+import ca.sqlpower.sqlobject.SQLTable.Folder;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -77,21 +77,21 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
      */
     private static String DEFAULT_INDEX_TYPE = Messages.getString("IndexEditPanel.defaultIndexType"); //$NON-NLS-1$
 
-    public IndexEditPanel(SQLIndex index, ArchitectSwingSession session) throws ArchitectException {
+    public IndexEditPanel(SQLIndex index, ArchitectSwingSession session) throws SQLObjectException {
         super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref", //$NON-NLS-1$
                 "pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu")); //$NON-NLS-1$
         this.session = session;
         createGUI(index, index.getParentTable(), session);
     }
 
-    public IndexEditPanel(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws ArchitectException {
+    public IndexEditPanel(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws SQLObjectException {
         super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref", //$NON-NLS-1$
                 "pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu")); //$NON-NLS-1$
         this.session = session;
         createGUI(index, parent, session);
     }
 
-    private void createGUI(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws ArchitectException {
+    private void createGUI(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws SQLObjectException {
         this.parent = parent;
         PanelBuilder pb = new PanelBuilder((FormLayout) this.getLayout(), this);
         CellConstraints cc = new CellConstraints();
@@ -162,8 +162,8 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                     return true;
                 }
             }
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
         return false;
     }
@@ -198,7 +198,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         return indexTypes;
     }
 
-    public void editIndex(SQLIndex index) throws ArchitectException {
+    public void editIndex(SQLIndex index) throws SQLObjectException {
         this.index = index;
         name.setText(index.getName());
         indexCopy = new SQLIndex(index);
@@ -308,8 +308,8 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 //this is done so we can go back to this dialog after the error message
                 return false;
             }
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         } finally {
             parent.getIndicesFolder().endCompoundEdit(Messages.getString("IndexEditPanel.compoundEditName")); //$NON-NLS-1$
         }

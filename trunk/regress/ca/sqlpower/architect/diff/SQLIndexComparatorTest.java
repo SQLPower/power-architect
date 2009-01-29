@@ -24,12 +24,12 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLIndex.Column;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
+import ca.sqlpower.sqlobject.SQLIndex.Column;
 
 /**
  * Simple test cases to test the SQLIndexComparator that performs indices comparisons. 
@@ -114,7 +114,7 @@ public class SQLIndexComparatorTest extends TestCase {
         assertTrue("Should compare as source < target.", indComparator.compare(left, right) < 0);
     }
     
-    public void testCompareByPrimaryKeyIndex() throws ArchitectException {
+    public void testCompareByPrimaryKeyIndex() throws SQLObjectException {
         SQLIndex ind1 = new SQLIndex();
         SQLIndex ind2 = new SQLIndex();
         
@@ -180,7 +180,7 @@ public class SQLIndexComparatorTest extends TestCase {
      * The Column's will have names in the format "col_i" and UNSPECIFIED as
      * ascend/descend.
      */
-    private SQLIndex makeIndex(int num) throws ArchitectException {
+    private SQLIndex makeIndex(int num) throws SQLObjectException {
         SQLIndex ind = new SQLIndex();
         for (int i = 0; i < num; i++) {
             ind.addChild(ind.new Column("col_" + i, AscendDescend.UNSPECIFIED));

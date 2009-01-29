@@ -39,14 +39,14 @@ import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.Relationship;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class ReverseRelationshipAction extends AbstractArchitectAction {
     
@@ -100,7 +100,7 @@ public class ReverseRelationshipAction extends AbstractArchitectAction {
             Relationship r = new Relationship(model, playpen.getContentPane());
             playpen.addRelationship(r);
             r.revalidate();
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             logger.error("Couldn't reverse relationship", ex); //$NON-NLS-1$
             ASUtils.showExceptionDialogNoReport(playpen,
                     Messages.getString("ReverseRelationshipAction.couldNotReverseRelationship"), ex); //$NON-NLS-1$

@@ -38,12 +38,12 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.RepaintManager;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
 
 /**
  * Navigator defines the behaviours of the overview navigation dialog. It
@@ -79,9 +79,9 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
         this.pp = session.getPlayPen();
         
         try {
-            ArchitectUtils.listenToHierarchy(this, pp.getSession().getTargetDatabase());
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
+            SQLObjectUtils.listenToHierarchy(this, pp.getSession().getTargetDatabase());
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
         }
 
         pp.getPlayPenContentPane().addPropertyChangeListener("location", this);
@@ -214,9 +214,9 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
         SQLObject[] children = e.getChildren();
         for (SQLObject child : children) {
             try {
-                ArchitectUtils.listenToHierarchy(this, child);
-            } catch (ArchitectException ex) {
-                throw new ArchitectRuntimeException(ex);
+                SQLObjectUtils.listenToHierarchy(this, child);
+            } catch (SQLObjectException ex) {
+                throw new SQLObjectRuntimeException(ex);
             }
         }
     }
@@ -230,9 +230,9 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
         SQLObject[] children = e.getChildren();
         for (SQLObject child : children) {
             try {
-                ArchitectUtils.unlistenToHierarchy(this, child);
-            } catch (ArchitectException ex) {
-                throw new ArchitectRuntimeException(ex);
+                SQLObjectUtils.unlistenToHierarchy(this, child);
+            } catch (SQLObjectException ex) {
+                throw new SQLObjectRuntimeException(ex);
             }
         }
     }
@@ -256,9 +256,9 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
      */
     public void cleanup() {
         try {
-            ArchitectUtils.unlistenToHierarchy(this, pp.getSession().getTargetDatabase());
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
+            SQLObjectUtils.unlistenToHierarchy(this, pp.getSession().getTargetDatabase());
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
         }
         pp.getPlayPenContentPane().removePropertyChangeListener(this);
     }

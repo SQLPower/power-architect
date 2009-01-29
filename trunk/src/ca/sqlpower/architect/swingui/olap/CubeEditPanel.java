@@ -36,12 +36,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
 import ca.sqlpower.validation.swingui.StatusComponent;
@@ -76,7 +76,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
      * 
      * @param cube The data model of the cube to edit
      */
-    public CubeEditPanel(Cube cube) throws ArchitectException {
+    public CubeEditPanel(Cube cube) throws SQLObjectException {
         this.cube = cube;
         
         List<SQLTable> tables = OLAPUtil.getAvailableTables(cube);

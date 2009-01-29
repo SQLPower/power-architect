@@ -36,11 +36,11 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 
 import sun.font.FontManager;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestPlayPen extends TestCase {
 	ArchitectFrame af;
@@ -60,7 +60,7 @@ public class TestPlayPen extends TestCase {
 
 	}
 
-	public void testUndoAddTable() throws ArchitectException {
+	public void testUndoAddTable() throws SQLObjectException {
 		SQLTable t = new SQLTable(ppdb, "test_me", "", "TABLE", true);
 
 		TablePane tp = new TablePane(t, pp.getContentPane());
@@ -79,7 +79,7 @@ public class TestPlayPen extends TestCase {
 		assertNull(pp.findTablePane(t));
 	}
 
-	public void testRedoAddTable() throws ArchitectException {
+	public void testRedoAddTable() throws SQLObjectException {
 		SQLTable t = new SQLTable(ppdb, "test_me", "", "TABLE", true);
 
 		TablePane tp = new TablePane(t, pp.getContentPane());
@@ -110,7 +110,7 @@ public class TestPlayPen extends TestCase {
 	 * process, we reverse engineering the parent table again into the playpen. Now we shoud
 	 * expect 3 tables in total lying on playpen, and 1 relationship between the first two tables.
 	 */
-	public void testImportTableCopyHijacksProperly() throws ArchitectException {
+	public void testImportTableCopyHijacksProperly() throws SQLObjectException {
 
 		SQLDatabase sourceDB = new SQLDatabase();
 

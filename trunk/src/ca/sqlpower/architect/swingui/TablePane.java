@@ -51,22 +51,22 @@ import javax.swing.JScrollPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.InsertionPointWatcher;
-import ca.sqlpower.architect.LockedColumnException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.LockedColumnException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.SPSUtils;
@@ -160,8 +160,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	protected List<SQLColumn> getItems() {
 	    try {
 	        return model.getColumns();
-	    } catch (ArchitectException e) {
-	        throw new ArchitectRuntimeException(e);
+	    } catch (SQLObjectException e) {
+	        throw new SQLObjectRuntimeException(e);
 	    }
 	}
 
@@ -193,8 +193,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	 */
 	public void destroy() {
 		try {
-			ArchitectUtils.unlistenToHierarchy(columnListener, model);
-		} catch (ArchitectException e) {
+			SQLObjectUtils.unlistenToHierarchy(columnListener, model);
+		} catch (SQLObjectException e) {
 			logger.error("Caught exception while unlistening to all children", e); //$NON-NLS-1$
 		}
 	}
@@ -254,8 +254,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 }
             }
             try {
-                ArchitectUtils.listenToHierarchy(this, e.getChildren());
-            } catch (ArchitectException ex) {
+                SQLObjectUtils.listenToHierarchy(this, e.getChildren());
+            } catch (SQLObjectException ex) {
                 logger.error("Caught exception while listening to added children", ex); //$NON-NLS-1$
             }
             
@@ -303,9 +303,9 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             
             // no matter where the event came from, we should no longer be listening to the removed children
             try {
-                ArchitectUtils.unlistenToHierarchy(this, e.getChildren());
-            } catch (ArchitectException ex) {
-                throw new ArchitectRuntimeException(ex);
+                SQLObjectUtils.unlistenToHierarchy(this, e.getChildren());
+            } catch (SQLObjectException ex) {
+                throw new SQLObjectRuntimeException(ex);
             }
             updateHiddenColumns();
             firePropertyChange("model.children", null, null); //$NON-NLS-1$
@@ -352,13 +352,13 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			for (SQLColumn column: model.getColumns()) {
 				columnHighlight.put(column, new ArrayList<Color>());
 			}
-		} catch (ArchitectException e) {
+		} catch (SQLObjectException e) {
 			logger.error("Error getting children on new model", e); //$NON-NLS-1$
 		}
 
 		try {
-			ArchitectUtils.listenToHierarchy(columnListener, model);
-		} catch (ArchitectException e) {
+			SQLObjectUtils.listenToHierarchy(columnListener, model);
+		} catch (SQLObjectException e) {
 			logger.error("Caught exception while listening to new model", e); //$NON-NLS-1$
 		}
 	}
@@ -450,9 +450,9 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	 * This can be a nonnegative integer to specify a position in the column list, or one
 	 * of the constants COLUMN_INDEX_END_OF_PK or COLUMN_INDEX_START_OF_NON_PK to indicate a special position.
 	 * @return True if the insert worked; false otherwise
-	 * @throws ArchitectException If there are problems in the business model
+	 * @throws SQLObjectException If there are problems in the business model
 	 */
-	public boolean insertObjects(List<? extends SQLObject> items, int insertionPoint) throws ArchitectException {
+	public boolean insertObjects(List<? extends SQLObject> items, int insertionPoint) throws SQLObjectException {
 		boolean newColumnsInPk = false;
 		if (insertionPoint == COLUMN_INDEX_END_OF_PK) {
 		    insertionPoint = getModel().getPkSize();
@@ -557,9 +557,9 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
      * @param i The index of the column in question
      * @return The current highlight colour for the column at index i in this table.
      *   null indicates the current tablepane foreground colour will be used.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    public Color getColumnHighlight(int i) throws ArchitectException {
+    public Color getColumnHighlight(int i) throws SQLObjectException {
         return getColumnHighlight(model.getColumn(i));
     }
 
@@ -739,7 +739,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 setInsertionPoint(ITEM_INDEX_NONE);
                 try {
                     getModel().normalizePrimaryKey();
-                } catch (ArchitectException e) {
+                } catch (SQLObjectException e) {
                     logger.error("Error processing normalize PrimaryKey", e); //$NON-NLS-1$
                     ASUtils.showExceptionDialogNoReport(getParent().getOwner(),
                             "Error processing normalize PrimaryKey after processing drop operation", e); //$NON-NLS-1$
@@ -806,8 +806,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 edges.add(getPlayPen().findRelationship(r));
             }
             return edges;
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
         }
     }
 
@@ -819,8 +819,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 edges.add(getPlayPen().findRelationship(r));
             }
             return edges;
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
         }
     }
 
@@ -908,8 +908,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 }
                 tablePanePopup.add(menu);
             }
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
 
         tablePanePopup.addSeparator();

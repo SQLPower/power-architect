@@ -27,16 +27,16 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -256,10 +256,10 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 		relationshipName.selectAll();
 		
 		try {
-            ArchitectUtils.listenToHierarchy(this, session.getRootObject());
-        } catch (ArchitectException e) {
+            SQLObjectUtils.listenToHierarchy(this, session.getRootObject());
+        } catch (SQLObjectException e) {
             logger.error("Fail to add sql object listener to the edit panel.", e);
-            throw new ArchitectRuntimeException(e);
+            throw new SQLObjectRuntimeException(e);
         }
 	}
 
@@ -267,16 +267,16 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 	
 	public boolean applyChanges() {
 	    try {
-	        ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-	    } catch (ArchitectException e) {
-	        throw new ArchitectRuntimeException(e);
+	        SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
+	    } catch (SQLObjectException e) {
+	        throw new SQLObjectRuntimeException(e);
 	    }
 		relationship.startCompoundEdit("Modify Relationship Properties");
 		try {
 			relationship.setName(relationshipName.getText());
 			try {
 				relationship.setIdentifying(identifyingButton.isSelected());
-			} catch (ArchitectException ex) {
+			} catch (SQLObjectException ex) {
 				logger.warn("Call to setIdentifying failed. Continuing with other properties.", ex);
 			}
 			
@@ -338,9 +338,9 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 
 	public void discardChanges() {
 	    try {
-            ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+            SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
 	}
 
@@ -367,13 +367,13 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         for (SQLObject obj : c) {
             if (relationship.equals(obj)) {
                 try {
-                    ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+                    SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
                     if (editDialog != null) {
                         editDialog.dispose();
                     }
                     break;
-                } catch (ArchitectException ex) {
-                    throw new ArchitectRuntimeException(ex);
+                } catch (SQLObjectException ex) {
+                    throw new SQLObjectRuntimeException(ex);
                 }
             }
         }

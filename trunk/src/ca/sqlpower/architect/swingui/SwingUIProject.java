@@ -44,18 +44,9 @@ import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.CoreProject;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UnclosableInputStream;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.olap.MondrianXMLReader;
@@ -80,6 +71,15 @@ import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.ExceptionReport;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.xml.XMLHelper;
@@ -134,7 +134,7 @@ public class SwingUIProject extends CoreProject {
      * loading into and saving out from.
      * @throws NullPointerException if the given session is null
      */
-    public SwingUIProject(ArchitectSwingSession session) throws ArchitectException {
+    public SwingUIProject(ArchitectSwingSession session) throws SQLObjectException {
         super(session);
         
         if (session == null) {
@@ -157,7 +157,7 @@ public class SwingUIProject extends CoreProject {
     
     // ------------- READING THE PROJECT FILE ---------------
 
-    public void load(InputStream in, DataSourceCollection dataSources) throws IOException, ArchitectException {
+    public void load(InputStream in, DataSourceCollection dataSources) throws IOException, SQLObjectException {
         olapPaneLoadIdMap = new HashMap<String, OLAPPane<?, ?>>();
         
         UnclosableInputStream uin = new UnclosableInputStream(in);
@@ -180,10 +180,10 @@ public class SwingUIProject extends CoreProject {
                 MondrianXMLReader.parse(uin, getSession().getOLAPRootObject(), sessionDbMap, olapObjectLoadIdMap);
             } catch (SAXException e) {
                 logger.error("Error parsing project file's olap schemas!", e);
-                throw new ArchitectException("SAX Exception in project file olap schemas parse!", e);
+                throw new SQLObjectException("SAX Exception in project file olap schemas parse!", e);
             } catch (Exception ex) {
                 logger.error("General Exception in project file olap schemas parse!", ex);
-                throw new ArchitectException("Unexpected Exception", ex);
+                throw new SQLObjectException("Unexpected Exception", ex);
             }
             
             in.reset();
@@ -507,7 +507,7 @@ public class SwingUIProject extends CoreProject {
                 ((RelationshipUI) r.getUI()).setOrientation(orientation);
                 r.setPkConnectionPoint(new Point(pkx, pky));
                 r.setFkConnectionPoint(new Point(fkx, fky));
-            } catch (ArchitectException e) {
+            } catch (SQLObjectException e) {
                 logger.error("Couldn't create relationship component", e); //$NON-NLS-1$
             } catch (NumberFormatException e) {
                 logger.warn("Didn't set connection points because of integer parse error"); //$NON-NLS-1$
@@ -593,12 +593,12 @@ public class SwingUIProject extends CoreProject {
      * periodically during the save operation.  If you use a progress monitor, don't
      * invoke this method on the AWT event dispatch thread!
      */
-    public void save(ProgressMonitor pm) throws IOException, ArchitectException {
+    public void save(ProgressMonitor pm) throws IOException, SQLObjectException {
         // write to temp file and then rename (this preserves old project file
         // when there's problems)
         if (file.exists() && !file.canWrite()) {
             // write problems with architect file will muck up the save process
-            throw new ArchitectException(Messages.getString("SwingUIProject.errorSavingProject", file.getAbsolutePath())); //$NON-NLS-1$
+            throw new SQLObjectException(Messages.getString("SwingUIProject.errorSavingProject", file.getAbsolutePath())); //$NON-NLS-1$
         }
 
         File backupFile = new File (file.getParent(), file.getName()+"~"); //$NON-NLS-1$
@@ -614,7 +614,7 @@ public class SwingUIProject extends CoreProject {
             // If creating this temp file fails, feed the user back a more explanatory message
             out = new PrintWriter(tempFile,encoding);
         } catch (IOException e) {
-            throw new ArchitectException(Messages.getString("SwingUIProject.cannotCreateOutputFile") + e, e); //$NON-NLS-1$
+            throw new SQLObjectException(Messages.getString("SwingUIProject.cannotCreateOutputFile") + e, e); //$NON-NLS-1$
         }
 
         progress = 0;
@@ -652,13 +652,13 @@ public class SwingUIProject extends CoreProject {
             fstatus = file.renameTo(backupFile);
             logger.debug("rename current file to backupFile: " + fstatus); //$NON-NLS-1$
             if (!fstatus) {
-                throw new ArchitectException((
+                throw new SQLObjectException((
                         Messages.getString("SwingUIProject.couldNotRenameFile", tempFile.toString(), file.toString()))); //$NON-NLS-1$
             }
         }
         fstatus = tempFile.renameTo(file);
         if (!fstatus) {
-            throw new ArchitectException((
+            throw new SQLObjectException((
                     Messages.getString("SwingUIProject.couldNotRenameTempFile", tempFile.toString(), file.toString()))); //$NON-NLS-1$
         }
         logger.debug("rename tempFile to current file: " + fstatus); //$NON-NLS-1$
@@ -671,9 +671,9 @@ public class SwingUIProject extends CoreProject {
      * @param out - the file to write to
      * @return True iff the save completed OK
      * @throws IOException
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    public void save(PrintWriter out, String encoding) throws IOException, ArchitectException {
+    public void save(PrintWriter out, String encoding) throws IOException, SQLObjectException {
         sqlObjectSaveIdMap = new IdentityHashMap<SQLObject, String>();
         olapObjectSaveIdMap = new IdentityHashMap<OLAPObject, String>();
         dbcsSaveIdMap = new HashMap<SPDataSource, String>();
@@ -709,7 +709,7 @@ public class SwingUIProject extends CoreProject {
         } catch (IOException e) {
             ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_VERSION.toString(), "Architect").toXML());
             throw e;
-        } catch (ArchitectException e) {
+        } catch (SQLObjectException e) {
             ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_VERSION.toString(), "Architect").toXML());
             throw e;
         } catch (RuntimeException e) {
@@ -720,7 +720,7 @@ public class SwingUIProject extends CoreProject {
         }
     }
 
-    public void save(OutputStream out, String encoding) throws IOException, ArchitectException {
+    public void save(OutputStream out, String encoding) throws IOException, SQLObjectException {
         save(new PrintWriter(new OutputStreamWriter(out, encoding)), encoding);
     }
     
@@ -774,7 +774,7 @@ public class SwingUIProject extends CoreProject {
         ioo.indent--;
     }
     
-    private void saveDataSources(PrintWriter out) throws IOException, ArchitectException {
+    private void saveDataSources(PrintWriter out) throws IOException, SQLObjectException {
         // FIXME this needs work.  It should include everything we need in order to build
         //       the referenced parent type from scratch (except the jdbc driver path)
         //       and the code that loads a project should check if the referenced parent
@@ -885,7 +885,7 @@ public class SwingUIProject extends CoreProject {
      * or more &lt;database&gt; elements.
      * @param out2
      */
-    private void saveSourceDatabases(PrintWriter out) throws IOException, ArchitectException {
+    private void saveSourceDatabases(PrintWriter out) throws IOException, SQLObjectException {
         ioo.println(out, "<source-databases>"); //$NON-NLS-1$
         ioo.indent++;
         SQLObject dbTreeRoot = (SQLObject) getSession().getSourceDatabases().getModel().getRoot();
@@ -904,7 +904,7 @@ public class SwingUIProject extends CoreProject {
      * Recursively walks through the children of db, writing to the
      * output file all SQLRelationship objects encountered.
      */
-    private void saveRelationships(PrintWriter out, SQLDatabase db) throws ArchitectException, IOException {
+    private void saveRelationships(PrintWriter out, SQLDatabase db) throws SQLObjectException, IOException {
         ioo.println(out, "<relationships>"); //$NON-NLS-1$
         ioo.indent++;
         Iterator it = db.getChildren().iterator();
@@ -918,7 +918,7 @@ public class SwingUIProject extends CoreProject {
     /**
      * The recursive subroutine of saveRelationships.
      */
-    private void saveRelationshipsRecurse(PrintWriter out, SQLObject o) throws ArchitectException, IOException {
+    private void saveRelationshipsRecurse(PrintWriter out, SQLObject o) throws SQLObjectException, IOException {
         if ( (!getSession().isSavingEntireSource()) && (!o.isPopulated()) ) {
             return;
         } else if (o instanceof SQLRelationship) {
@@ -931,7 +931,7 @@ public class SwingUIProject extends CoreProject {
         }
     }
 
-    private void saveTargetDatabase(PrintWriter out) throws IOException, ArchitectException {
+    private void saveTargetDatabase(PrintWriter out) throws IOException, SQLObjectException {
         SQLDatabase db = (SQLDatabase) getSession().getTargetDatabase();
         ioo.println(out, "<target-database id=\"ppdb\" dbcs-ref="+ //$NON-NLS-1$
                 quote(dbcsSaveIdMap.get(db.getDataSource()))+ ">"); //$NON-NLS-1$
@@ -1160,7 +1160,7 @@ public class SwingUIProject extends CoreProject {
      * is responsible for deferencing the attribute and setting the
      * property manually.
      */
-    private void saveSQLObject(PrintWriter out, SQLObject o) throws IOException, ArchitectException {
+    private void saveSQLObject(PrintWriter out, SQLObject o) throws IOException, SQLObjectException {
         String id = sqlObjectSaveIdMap.get(o);
         if (id != null) {
             ioo.println(out, "<reference ref-id=\""+SQLPowerUtils.escapeXML(id)+"\" />"); //$NON-NLS-1$ //$NON-NLS-2$

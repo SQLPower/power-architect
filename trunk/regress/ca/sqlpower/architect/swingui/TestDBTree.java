@@ -23,15 +23,15 @@ import javax.swing.JPopupMenu;
 import javax.swing.tree.TreePath;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestDBTree extends TestCase {
 
@@ -49,7 +49,7 @@ public class TestDBTree extends TestCase {
 		dbTree = new DBTree(session);
 	}
 	
-	public void testdbcsAlreadyExists() throws ArchitectException {
+	public void testdbcsAlreadyExists() throws SQLObjectException {
 		SPDataSource ds2 = new SPDataSource(new PlDotIni());
 		assertTrue("ds2 must .equals ds for this test to work", ds.equals(ds2));
 		assertFalse("dbcsAlreadyExists Should not find ds2", dbTree.dbcsAlreadyExists(ds2));

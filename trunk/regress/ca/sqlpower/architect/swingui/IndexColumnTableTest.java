@@ -20,11 +20,11 @@
 package ca.sqlpower.architect.swingui;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.swingui.IndexColumnTable.IndexColumnTableModel;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
+import ca.sqlpower.sqlobject.SQLIndex.Column;
 
 public class IndexColumnTableTest extends TestCase {
 

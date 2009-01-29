@@ -22,7 +22,7 @@ import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Locale;
 
-import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.sqlobject.SQLObject;
 
 public class SQLObjectComparator implements Comparator<SQLObject>, Serializable {
 

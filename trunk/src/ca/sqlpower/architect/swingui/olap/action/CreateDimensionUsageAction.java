@@ -28,8 +28,6 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
@@ -40,6 +38,8 @@ import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.DimensionUsageEditPanel;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
@@ -95,8 +95,8 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
                         cancelCall);
                 d.setLocationRelativeTo(playpen);
                 d.setVisible(true);
-            } catch (ArchitectException e) {
-                throw new ArchitectRuntimeException(e);
+            } catch (SQLObjectException e) {
+                throw new SQLObjectRuntimeException(e);
             }
         } else {
             String errorMsg = "Cube Dimension \"" + dimension.getName() + "\" already exists in \"" +

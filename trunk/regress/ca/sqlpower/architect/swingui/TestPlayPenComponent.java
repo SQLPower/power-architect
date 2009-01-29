@@ -36,9 +36,9 @@ import junit.framework.TestCase;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 
 import sun.font.FontManager;
 
@@ -218,7 +218,7 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends T
      * @param oldVal The existing value of the property to modify.  The returned value
      * will not equal this one at the time this method was first called.
      */
-	private Object getNewDifferentValue(PropertyDescriptor property, Object oldVal) throws ArchitectException {
+	private Object getNewDifferentValue(PropertyDescriptor property, Object oldVal) throws SQLObjectException {
 	    Object newVal; // don't init here so compiler can warn if the
 	    // following code doesn't always give it a value
 	    if (property.getPropertyType() == String.class) {

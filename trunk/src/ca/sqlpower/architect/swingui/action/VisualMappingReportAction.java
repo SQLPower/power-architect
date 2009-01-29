@@ -39,15 +39,15 @@ import javax.swing.JScrollPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.etl.ExportCSV;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.MappingReport;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLTable;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 
@@ -117,7 +117,7 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
                     super.paintComponent(g);
                     try {
                         mr.drawHighLevelReport((Graphics2D) g,null);
-                    } catch (ArchitectException e1) {
+                    } catch (SQLObjectException e1) {
                         logger.error("ArchitectException while generating mapping diagram", e1); //$NON-NLS-1$
                         ASUtils.showExceptionDialogNoReport(
                                 Messages.getString("VisualMappingReportAction.couldNotGenerateMappingDiagram"), e1); //$NON-NLS-1$
@@ -153,8 +153,8 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
                         output.flush();
                     } catch (IOException e1) {
                         throw new RuntimeException(e1);
-                    } catch (ArchitectException e1) {
-                        throw new ArchitectRuntimeException(e1);
+                    } catch (SQLObjectException e1) {
+                        throw new SQLObjectRuntimeException(e1);
                     } finally {
                         if (output != null) {
                             try {
@@ -186,8 +186,8 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
             f.pack();
             f.setLocationRelativeTo(parentFrame);
             f.setVisible(true);
-        } catch (ArchitectException e1) {
-            throw new ArchitectRuntimeException(e1);
+        } catch (SQLObjectException e1) {
+            throw new SQLObjectRuntimeException(e1);
         }
     }
 }

@@ -24,11 +24,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * The DDLGenerator interface is a generic API for turning a SQLObject
@@ -57,10 +57,10 @@ public interface DDLGenerator {
      * @return The list of DDL statements that can create the given database, in the
      * order they should be executed.
      * @throws SQLException If there is a problem getting type info from the target DB.
-     * @throws ArchitectException If there are problems with the Architect objects.
+     * @throws SQLObjectException If there are problems with the Architect objects.
      */
     public List<DDLStatement> generateDDLStatements(Collection<SQLTable> tables)
-    throws SQLException, ArchitectException;
+    throws SQLException, SQLObjectException;
 
     /**
      * Generates the series of DDL Statements as in {@link #generateDDLStatements(Collection)},
@@ -72,9 +72,9 @@ public interface DDLGenerator {
      * @param tables The collection of tables the generated script should create.
      * @return The String representation of the generated DDL script.
      * @throws SQLException If there is a problem getting type info from the target DB.
-     * @throws ArchitectException If there are problems with the Architect objects.
+     * @throws SQLObjectException If there are problems with the Architect objects.
      */
-    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, ArchitectException;
+    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, SQLObjectException;
     
     /**
      * Appends the DDL statement for dropping the given column from its parent
@@ -126,13 +126,13 @@ public interface DDLGenerator {
      * Appends the DDL statements for creating a table in this DDL Generator's
      * current catalog and schema using SQLTable t as a template.
      */
-    public void addTable(SQLTable t) throws SQLException, ArchitectException;
+    public void addTable(SQLTable t) throws SQLException, SQLObjectException;
 
     /**
      * Appends the DDL statements for creating the given index this DDL Generator's
      * current catalog and schema.
      */
-    public void addIndex(SQLIndex idx) throws ArchitectException;
+    public void addIndex(SQLIndex idx) throws SQLObjectException;
     
     /**
      * Returns the list of DDL statements that have been created so far.  Call
@@ -246,7 +246,7 @@ public interface DDLGenerator {
 
     public void dropPrimaryKey(SQLTable t);
 
-    public void addPrimaryKey(SQLTable t) throws ArchitectException;
+    public void addPrimaryKey(SQLTable t) throws SQLObjectException;
 
     /**
      * Returns the string that should be used at the end of each statement.

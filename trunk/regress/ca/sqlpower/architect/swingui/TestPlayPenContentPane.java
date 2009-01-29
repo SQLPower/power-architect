@@ -21,8 +21,8 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Point;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestPlayPenContentPane extends TestCase {
 

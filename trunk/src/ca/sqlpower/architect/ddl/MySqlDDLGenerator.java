@@ -30,14 +30,14 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
 public class MySqlDDLGenerator extends GenericDDLGenerator {
 
@@ -364,7 +364,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     }
 
     @Override
-    protected void addPrimaryKeysToCreateTable(SQLTable t) throws ArchitectException {
+    protected void addPrimaryKeysToCreateTable(SQLTable t) throws SQLObjectException {
         logger.debug("Adding Primary keys");
 
         Iterator it = t.getColumns().iterator();
@@ -402,10 +402,10 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
      * the primary key. We don't even have to specify a name for the primary
      * key.
      * 
-     * @see ca.sqlpower.architect.ddl.GenericDDLGenerator#writePrimaryKey(ca.sqlpower.architect.SQLTable)
+     * @see ca.sqlpower.architect.ddl.GenericDDLGenerator#writePrimaryKey(ca.sqlpower.sqlpower.SQLTable)
      */
     @Override
-    protected void writePrimaryKey(SQLTable t) throws ArchitectException {
+    protected void writePrimaryKey(SQLTable t) throws SQLObjectException {
         logger.debug("Writing the primary key of " + t.getName());
         boolean firstCol = true;
         Iterator it = t.getColumns().iterator();
@@ -445,7 +445,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     }
 
     @Override
-    public void addIndex(SQLIndex index) throws ArchitectException {
+    public void addIndex(SQLIndex index) throws SQLObjectException {
 
         createPhysicalName(topLevelNames, index);
 

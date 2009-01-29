@@ -60,10 +60,8 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
@@ -113,7 +111,9 @@ import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPSchemaManagerAction;
-import ca.sqlpower.architect.undo.NotifyingUndoManager;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**
@@ -217,9 +217,9 @@ public class ArchitectFrame extends JFrame {
      *            A Rectangle whose x and y properties will be used to determine
      *            the position of newly created ArchitectFrame
      * 
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-	ArchitectFrame(ArchitectSwingSession architectSession, Rectangle bounds) throws ArchitectException {
+	ArchitectFrame(ArchitectSwingSession architectSession, Rectangle bounds) throws SQLObjectException {
 
         session = architectSession;
         ArchitectSwingSessionContext context = session.getContext();
@@ -304,9 +304,9 @@ public class ArchitectFrame extends JFrame {
      * @param context
      * @param sprefs
      * @param accelMask
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    void init() throws ArchitectException {
+    void init() throws SQLObjectException {
         UserSettings sprefs = session.getUserSettings().getSwingSettings();
         int accelMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
         
@@ -689,7 +689,7 @@ public class ArchitectFrame extends JFrame {
      * Creates a new project in the same session context as this one, 
      * and opens it in a new ArchitectFrame instance.
      */
-    private void createNewProject() throws ArchitectException {
+    private void createNewProject() throws SQLObjectException {
         session.getContext().createSession(session);
     }
 
@@ -724,7 +724,7 @@ public class ArchitectFrame extends JFrame {
      * Saves this frame's settings as user prefs.  Settings are frame location,
      * divider location, that kind of stuff.
      */
-	public void saveSettings() throws ArchitectException {
+	public void saveSettings() throws SQLObjectException {
 
 	    CoreUserSettings us = session.getUserSettings();
 
@@ -763,7 +763,7 @@ public class ArchitectFrame extends JFrame {
 	 * an acceptable way to launch the Architect application.
 	 */
     @SuppressWarnings("deprecation") //$NON-NLS-1$
-	public static void main(final String args[]) throws ArchitectException {
+	public static void main(final String args[]) throws SQLObjectException {
 		SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
                 try {

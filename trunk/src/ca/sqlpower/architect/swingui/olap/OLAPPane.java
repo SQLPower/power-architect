@@ -44,7 +44,6 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
@@ -59,6 +58,7 @@ import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
@@ -141,10 +141,10 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * 
      * @return A DataEntryPanel for editting the OLAPObject, null if location is
      *         invalid.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      *             If creating an edit dialog failed.
      */
-    public abstract DataEntryPanel createEditDialog(PlayPenCoordinate<T, C> coord) throws ArchitectException;
+    public abstract DataEntryPanel createEditDialog(PlayPenCoordinate<T, C> coord) throws SQLObjectException;
     
     @Override
     public void handleMouseEvent(MouseEvent evt) {

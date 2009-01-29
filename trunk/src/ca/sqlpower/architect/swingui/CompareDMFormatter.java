@@ -36,21 +36,21 @@ import javax.swing.text.StyleConstants;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.diff.ArchitectDiffException;
 import ca.sqlpower.architect.diff.DiffChunk;
 import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class CompareDMFormatter {
 
@@ -174,7 +174,7 @@ public class CompareDMFormatter {
         } catch (ArchitectDiffException ex) {
             ASUtils.showExceptionDialog(session, "Could not perform the diff", ex);
             logger.error("Couldn't do diff", ex);
-        } catch (ArchitectException exp) {
+        } catch (SQLObjectException exp) {
             ASUtils.showExceptionDialog(session, "StartCompareAction failed", exp);
             logger.error("StartCompareAction failed", exp);
         } catch (BadLocationException ex) {
@@ -189,7 +189,7 @@ public class CompareDMFormatter {
     }
 
     private void sqlScriptGenerator(Map<DiffType, AttributeSet> styles, List<DiffChunk<SQLObject>> diff,
-            DDLGenerator gen) throws ArchitectDiffException, SQLException, ArchitectException, BadLocationException,
+            DDLGenerator gen) throws ArchitectDiffException, SQLException, SQLObjectException, BadLocationException,
             InstantiationException, IllegalAccessException {
         for (DiffChunk<SQLObject> chunk : diff) {
             if (chunk.getType() == DiffType.KEY_CHANGED) {
@@ -259,12 +259,12 @@ public class CompareDMFormatter {
      * what kind of SQLType it is to produce the proper english description
      * output
      * @throws BadLocationException
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
     private void generateEnglishDescription(
             Map<DiffType, AttributeSet> styles,
             List<DiffChunk<SQLObject>> diff, DefaultStyledDocument sourceDoc)
-            throws BadLocationException, ArchitectException {
+            throws BadLocationException, SQLObjectException {
 
         String currentTableName = "";
         
@@ -434,14 +434,14 @@ public class CompareDMFormatter {
         if (needBrackets) {
             fileName.append(" (");
         }
-        fileName.append(ArchitectUtils.toQualifiedName(leftOrRight));
+        fileName.append(SQLObjectUtils.toQualifiedName(leftOrRight));
         if (needBrackets) {
             fileName.append(")");
         }
         return fileName.toString(); 
     }
     
-    private boolean hasKey(SQLTable t) throws ArchitectException {
+    private boolean hasKey(SQLTable t) throws SQLObjectException {
         boolean hasKey = false;
         for (SQLColumn c : t.getColumns()) {
             if (c.isPrimaryKey()) {

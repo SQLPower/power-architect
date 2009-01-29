@@ -26,9 +26,6 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -39,6 +36,9 @@ import ca.sqlpower.architect.swingui.PlayPen.CancelableListener;
 import ca.sqlpower.architect.swingui.PlayPen.CursorManager;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class CreateRelationshipAction extends AbstractArchitectAction
 	implements ActionListener, SelectionListener, CancelableListener {
@@ -98,17 +98,12 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 	static public void doCreateRelationship(SQLTable pkTable, SQLTable fkTable, PlayPen pp, boolean identifying) {
 		try {
 			pp.startCompoundEdit("Add Relationship"); //$NON-NLS-1$
-			SQLRelationship model = new SQLRelationship();
-			// XXX: need to ensure uniqueness of setName(), but 
-			// to_identifier should take care of this...			
-			model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk");  //$NON-NLS-1$ //$NON-NLS-2$
-			model.setIdentifying(identifying);
-			model.attachRelationship(pkTable,fkTable,true);
+			SQLRelationship model = SQLRelationship.createRelationship(pkTable, fkTable, identifying);
 			
 			Relationship r = new Relationship(model, pp.getContentPane());
 			pp.addRelationship(r);
 			r.revalidate();
-		} catch (ArchitectException ex) {
+		} catch (SQLObjectException ex) {
 			logger.error("Couldn't create relationship", ex); //$NON-NLS-1$
 			ASUtils.showExceptionDialogNoReport(pp, Messages.getString("CreateRelationshipAction.couldNotCreateRelationship"), ex); //$NON-NLS-1$
 		} finally {
@@ -116,9 +111,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 		}
 	}
 
-	// -------------------- SELECTION EVENTS --------------------
-	
-	public void itemSelected(SelectionEvent e) {
+    public void itemSelected(SelectionEvent e) {
 	
 		if (!active) return;
 

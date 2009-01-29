@@ -21,8 +21,8 @@ package ca.sqlpower.architect.swingui;
 import java.sql.Types;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestTableEditPane extends TestCase {
 

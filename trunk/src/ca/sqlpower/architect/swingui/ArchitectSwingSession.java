@@ -24,7 +24,6 @@ import java.util.List;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
@@ -33,6 +32,7 @@ import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
@@ -142,11 +142,11 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * Initializes the GUI components for this session. Call this only if you need a GUI.
      * This method must be called on the Swing Event Dispatch Thread.
      * 
-     * @throws ArchitectException
+     * @throws SQLObjectException
      * @throws IllegalStateException if showGUI==true and this method was
      * not called on the Event Dispatch Thread.
      */
-    public void initGUI() throws ArchitectException;
+    public void initGUI() throws SQLObjectException;
 
     /**
      * Like initGUI(), this method initializes the GUI components for this
@@ -158,12 +158,12 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * @param openingSession
      *            The ArchitectSwingSession to which this session's GUI
      *            components will be positioned relative to
-     * @throws ArchitectException
+     * @throws SQLObjectException
      * @throws IllegalStateException
      *             if showGUI==true and this method was not called on the Event
      *             Dispatch Thread.
      */
-    public void initGUI(ArchitectSwingSession openingSession) throws ArchitectException;
+    public void initGUI(ArchitectSwingSession openingSession) throws SQLObjectException;
     
     /**
      * Returns true if the session contains a completely new and unmodified project.

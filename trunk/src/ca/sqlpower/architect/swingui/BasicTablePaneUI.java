@@ -38,9 +38,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListener, java.io.Serializable {
 	private static Logger logger = Logger.getLogger(BasicTablePaneUI.class);
@@ -270,7 +270,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			}
 			
 			g.translate(-insets.left, -insets.top);
-		} catch (ArchitectException e) {
+		} catch (SQLObjectException e) {
 			logger.warn("BasicTablePaneUI.paint failed", e); //$NON-NLS-1$
 		}
 	}
@@ -320,7 +320,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 				logger.debug("new width is: " + width); //$NON-NLS-1$
 			}
 			width += insets.left + c.getMargin().left + BOX_LINE_THICKNESS*2 + c.getMargin().right + insets.right;
-		} catch (ArchitectException e) {
+		} catch (SQLObjectException e) {
 			logger.warn("BasicTablePaneUI.getPreferredSize failed due to", e); //$NON-NLS-1$
 			width = 100;
 			height = 100;

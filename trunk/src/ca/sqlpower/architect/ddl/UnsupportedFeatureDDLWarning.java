@@ -21,7 +21,7 @@ package ca.sqlpower.architect.ddl;
 
 import java.util.Arrays;
 
-import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * A warning class to let the user know their data model cannot be faithfully

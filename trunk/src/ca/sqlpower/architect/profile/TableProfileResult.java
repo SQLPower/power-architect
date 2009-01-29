@@ -27,12 +27,12 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.util.MonitorableImpl;
 
@@ -177,18 +177,18 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * 
      * @param col1
      * @return
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    public DDLGenerator getDDLGenerator() throws ArchitectException {
+    public DDLGenerator getDDLGenerator() throws SQLObjectException {
         SPDataSource ds = getProfiledObject().getParentDatabase().getDataSource();
         try {
             return DDLUtils.createDDLGenerator(ds);
         } catch (InstantiationException ex) {
-            throw new ArchitectException("Couldn't create DDL Generator for data source "+ds, ex);
+            throw new SQLObjectException("Couldn't create DDL Generator for data source "+ds, ex);
         } catch (IllegalAccessException ex) {
-            throw new ArchitectException("Couldn't create DDL Generator for data source "+ds, ex);
+            throw new SQLObjectException("Couldn't create DDL Generator for data source "+ds, ex);
         } catch (ClassNotFoundException ex) {
-            throw new ArchitectException("Couldn't create DDL Generator for data source "+ds, ex);
+            throw new SQLObjectException("Couldn't create DDL Generator for data source "+ds, ex);
         }
     }
 

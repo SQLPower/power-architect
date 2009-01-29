@@ -26,12 +26,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestTablePane extends TestPlayPenComponent<TablePane> {
 
@@ -83,7 +83,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
         copyIgnoreProperties.add("fullyQualifiedNameInHeader");
 	}
 	
-	public void testInsertColumnAtTop() throws ArchitectException {
+	public void testInsertColumnAtTop() throws SQLObjectException {
 		SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
 		t2.setName("Another Test Table");
 		SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
@@ -96,7 +96,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	}
 
 	/** This tests for a regression we found in March 2006 (bug 1057) */
-	public void testInsertColumnAtStartOfNonPK() throws ArchitectException {
+	public void testInsertColumnAtStartOfNonPK() throws SQLObjectException {
 		SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
 		t.addColumn(0, newcol);
 		
@@ -111,7 +111,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	}
 
 	/** This tests for a regression we found in March 2006 (bug 1057) */
-	public void testInsertColumnAboveFirstNonPKColumn() throws ArchitectException {
+	public void testInsertColumnAboveFirstNonPKColumn() throws SQLObjectException {
 		SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
 		t.addColumn(0, newcol);
 		
@@ -125,7 +125,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		assertNull("Column should have moved out of primary key", newcol.getPrimaryKeySeq());
 	}
 
-	public void testInsertNewColumnAboveFirstNonPKColumn() throws ArchitectException {
+	public void testInsertNewColumnAboveFirstNonPKColumn() throws SQLObjectException {
 		SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
 		t2.setName("Another Test Table");
 		SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
@@ -142,7 +142,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	}
 	
 	/** This tests for a real regression (the column was ending up at index 2 instead of 3) */
-	public void testInsertNewColumnAtEndOfPK() throws ArchitectException {
+	public void testInsertNewColumnAtEndOfPK() throws SQLObjectException {
 		SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
 		t2.setName("Another Test Table");
 		SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
@@ -158,7 +158,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		assertNotNull("Column should be in primary key", newcol.getPrimaryKeySeq());
 	}
 
-	public void testDisallowImportTableFromPlaypen() throws ArchitectException {
+	public void testDisallowImportTableFromPlaypen() throws SQLObjectException {
 		SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
 		t2.setName("Another Test Table");
 		
@@ -173,7 +173,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	 * from the table it listened on; in fact, the events can come from the table or
 	 * any of its folders and those events have to be handled in the right way.
 	 */
-	public void testListenerDoesntCleanUpEarly() throws ArchitectException {
+	public void testListenerDoesntCleanUpEarly() throws SQLObjectException {
 		class MySQLTable extends SQLTable {
 			class MyFolder extends SQLTable.Folder<SQLColumn> {
 				MyFolder() {
@@ -184,7 +184,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 					children.remove(children.size() - 1);
 				}
 			}
-			public MySQLTable(String name) throws ArchitectException {
+			public MySQLTable(String name) throws SQLObjectException {
 				super(session.getTargetDatabase(), true);
 				setName(name);
 				children.set(0, new MyFolder());
@@ -216,7 +216,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		tp.columnListener.dbChildrenRemoved(new SQLObjectEvent(t.getColumnsFolder(), new int[] {0}, new SQLObject[] {c1}));
 	}
 	
-    public void testMultiHighlight() throws ArchitectException {
+    public void testMultiHighlight() throws SQLObjectException {
         SQLColumn col = tp.getModel().getColumn(0);
         tp.addColumnHighlight(col, Color.RED);
         tp.addColumnHighlight(col, Color.GREEN);

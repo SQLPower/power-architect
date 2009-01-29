@@ -32,14 +32,14 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLObjectRoot;
-import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLRelationship;
 
 public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serializable {
 
@@ -63,10 +63,10 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	 * root object associated with the given session, but it normally
 	 * will be.
 	 */
-	public DBTreeModel(SQLObjectRoot root) throws ArchitectException {
+	public DBTreeModel(SQLObjectRoot root) throws SQLObjectException {
 		this.root = root;
 		this.treeModelListeners = new LinkedList();
-		ArchitectUtils.listenToHierarchy(this, root);
+		SQLObjectUtils.listenToHierarchy(this, root);
 	}
 
 	public Object getRoot() {
@@ -109,10 +109,10 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		try {
 			if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getIndexOfChild("+parent+","+child+"): returning "+((SQLObject) parent).getChildren().indexOf(child)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			return ((SQLObject) parent).getChildren().indexOf(child);
-		} catch (ArchitectException e) {
+		} catch (SQLObjectException e) {
 			//logger.error("Couldn't get index of child "+child, e);
 			//return -1;
-			throw new ArchitectRuntimeException(e);
+			throw new SQLObjectRuntimeException(e);
 		}
 	}
 
@@ -274,9 +274,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		try {
 			SQLObject[] newEventSources = e.getChildren();
 			for (int i = 0; i < newEventSources.length; i++) {
-				ArchitectUtils.listenToHierarchy(this, newEventSources[i]);
+				SQLObjectUtils.listenToHierarchy(this, newEventSources[i]);
 			}
-		} catch (ArchitectException ex) {
+		} catch (SQLObjectException ex) {
 			logger.error("Error listening to added object", ex); //$NON-NLS-1$
 		}
 
@@ -320,9 +320,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		try {
 			SQLObject[] oldEventSources = e.getChildren();
 			for (int i = 0; i < oldEventSources.length; i++) {
-				ArchitectUtils.unlistenToHierarchy(this, oldEventSources[i]);
+				SQLObjectUtils.unlistenToHierarchy(this, oldEventSources[i]);
 			}
-		} catch (ArchitectException ex) {
+		} catch (SQLObjectException ex) {
 			logger.error("Error unlistening to removed object", ex); //$NON-NLS-1$
 		}
 

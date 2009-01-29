@@ -32,13 +32,13 @@ import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.db.DataSourceDialogFactory;
 import ca.sqlpower.swingui.db.DataSourceTypeDialogFactory;
@@ -110,9 +110,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * Important note: This constructor must be called on the Swing Event Dispatch
      * Thread.  See SwingUtilities.invokeLater() for a way of ensuring this method
      * is called on the proper thread.
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
-    ArchitectSwingSessionContextImpl() throws ArchitectException {
+    ArchitectSwingSessionContextImpl() throws SQLObjectException {
         delegateContext = new ArchitectSessionContextImpl();
         
         System.setProperty("apple.laf.useScreenMenuBar", "true"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -145,11 +145,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * then call {@link ArchitectSwingSession#initGUI()} on the returned
      * session using the event dispatch thread some time later on.
      * @throws IOException If the file is not found or can't be read.
-     * @throws ArchitectException if there is some problem with the file
+     * @throws SQLObjectException if there is some problem with the file
      * @throws IllegalStateException if showGUI==true and this method was
      * not called on the Event Dispatch Thread.
      */
-    public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, IOException {
+    public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws SQLObjectException, IOException {
         ArchitectSwingSession session = createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.projectLoadingDialogTitle"), false, null); //$NON-NLS-1$
         
         try {
@@ -160,7 +160,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             }
         
             return session;
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             try {
                 session.close();
             } catch (Exception e) {
@@ -185,21 +185,21 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     }
     
     /* javadoc inherited from interface */
-    public ArchitectSwingSession createSession() throws ArchitectException {
+    public ArchitectSwingSession createSession() throws SQLObjectException {
         return createSession(true);
     }
 
     /* javadoc inherited from interface */
-    public ArchitectSwingSession createSession(boolean showGUI) throws ArchitectException {
+    public ArchitectSwingSession createSession(boolean showGUI) throws SQLObjectException {
         return createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.defaultNewProjectName"), showGUI, null); //$NON-NLS-1$
     }
     
     /* javadoc inherited from interface */
-    public ArchitectSwingSession createSession(InputStream in) throws ArchitectException, IOException {
+    public ArchitectSwingSession createSession(InputStream in) throws SQLObjectException, IOException {
         return createSession(in, true);
     }
 
-    public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws ArchitectException {
+    public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws SQLObjectException {
         return createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.defaultNewProjectName"), true, openingSession); //$NON-NLS-1$
     }
 
@@ -220,12 +220,12 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      *            positions the new windows according to the most recently
      *            stored user preference.
      * @return An new ArchitectSwingSession with the given project name.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      * @throws IllegalStateException
      *             if showGUI==true and this method was not called on the Event
      *             Dispatch Thread.
      */
-    private ArchitectSwingSession createSessionImpl(String projectName, boolean showGUI, ArchitectSwingSession openingSession) throws ArchitectException {
+    private ArchitectSwingSession createSessionImpl(String projectName, boolean showGUI, ArchitectSwingSession openingSession) throws SQLObjectException {
         logger.debug("About to create a new session for project \"" + projectName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
         ArchitectSwingSession session = new ArchitectSwingSessionImpl(this, projectName);
         getSessions().add(session);

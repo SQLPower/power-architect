@@ -33,23 +33,23 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSequence;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLType;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSequence;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLType;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
+import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
 public class GenericDDLGenerator implements DDLGenerator {
 
@@ -162,7 +162,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		createTypeMap();
 	}
 
-    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, ArchitectException {
+    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, SQLObjectException {
         List statements = generateDDLStatements(tables);
 
 		ddl = new StringBuffer(4000);
@@ -191,7 +191,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * @return the list of DDL statements in the order they should be executed
 	 * @see ca.sqlpower.architect.ddl.DDLGenerator#generateDDLStatements(Collection)
 	 */
-	public final List<DDLStatement> generateDDLStatements(Collection<SQLTable> tables) throws SQLException, ArchitectException {
+	public final List<DDLStatement> generateDDLStatements(Collection<SQLTable> tables) throws SQLException, SQLObjectException {
         warnings = new ArrayList();
 		ddlStatements = new ArrayList<DDLStatement>();
 		ddl = new StringBuffer(500);
@@ -708,7 +708,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         return td;
     }
 
-	public void addTable(SQLTable t) throws SQLException, ArchitectException {
+	public void addTable(SQLTable t) throws SQLException, SQLObjectException {
 		Map colNameMap = new HashMap();  // for detecting duplicate column names
 		// generate a new physical name if necessary
 		createPhysicalName(topLevelNames,t); // also adds generated physical name to the map
@@ -742,7 +742,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		return Types.VARCHAR;
 	}
 	
-	protected void addPrimaryKeysToCreateTable(SQLTable t) throws ArchitectException {
+	protected void addPrimaryKeysToCreateTable(SQLTable t) throws SQLObjectException {
 	       logger.debug("Adding Primary keys");
 	        
 	        Iterator it = t.getColumns().iterator();
@@ -768,7 +768,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	        }
 	}
 
-	protected void writePrimaryKey(SQLTable t) throws ArchitectException {
+	protected void writePrimaryKey(SQLTable t) throws SQLObjectException {
 		boolean firstCol = true;
 		Iterator it = t.getColumns().iterator();
 		while (it.hasNext()) {
@@ -800,7 +800,7 @@ public class GenericDDLGenerator implements DDLGenerator {
     /**
      * Adds statements for creating every exported key in the given table.
      */
-	protected void writeExportedRelationships(SQLTable t) throws ArchitectException {
+	protected void writeExportedRelationships(SQLTable t) throws SQLObjectException {
 		Iterator it = t.getExportedKeys().iterator();
 		while (it.hasNext()) {
 			SQLRelationship rel = (SQLRelationship) it.next();
@@ -1036,7 +1036,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	/**
      * Generate, set, and return a valid identifier for this SQLObject.
-	 * @throws ArchitectException
+	 * @throws SQLObjectException
      */
 	protected String createPhysicalName(Map<String, SQLObject> dupCheck, SQLObject so) {
 		logger.debug("transform identifier source: " + so.getPhysicalName());
@@ -1116,7 +1116,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	/**
      * Generate, set, and return a valid identifier for this SQLSequence.
      * Has a side effect of changing the given SQLColumn's autoIncrementSequenceName.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      * 
      * @param dupCheck  The Map to check for duplicate names
      * @param seq       The SQLSequence to generate, set and return a valid identifier for.
@@ -1186,10 +1186,10 @@ public class GenericDDLGenerator implements DDLGenerator {
      * logical primary key name run through "toIdentifier()".
      * Before returning it, run it past checkDupName to check in and add
      * it to the topLevelNames Map.
-	 * @throws ArchitectException 
+	 * @throws SQLObjectException 
      */
 
-    private String createPhysicalPrimaryKeyName(SQLTable t) throws ArchitectException {
+    private String createPhysicalPrimaryKeyName(SQLTable t) throws SQLObjectException {
         String physName = toIdentifier(t.getPrimaryKeyName());
         t.setPhysicalPrimaryKeyName(physName);
         createPhysicalName(topLevelNames, t.getPrimaryKeyIndex());
@@ -1223,13 +1223,13 @@ public class GenericDDLGenerator implements DDLGenerator {
 		try {
             print("\nALTER TABLE " + toQualifiedName(t.getName())
             	+ " DROP PRIMARY KEY " + t.getPrimaryKeyName());
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
 		endStatement(DDLStatement.StatementType.DROP, t);
 	}
 
-	public void addPrimaryKey(SQLTable t) throws ArchitectException {
+	public void addPrimaryKey(SQLTable t) throws SQLObjectException {
 		Map colNameMap = new HashMap();
 		StringBuffer sqlStatement = new StringBuffer();
 		boolean first = true;
@@ -1263,7 +1263,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * STATISTIC indices are just artificial JDBC constructs to describe
      * table statistics (you can't create or drop them).
      */
-    public void addIndex(SQLIndex index) throws ArchitectException {
+    public void addIndex(SQLIndex index) throws SQLObjectException {
         createPhysicalName(topLevelNames, index);
 
         println("");

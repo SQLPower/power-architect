@@ -20,8 +20,8 @@
 package ca.sqlpower.architect.ddl;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class GenericDDLGeneratorTest extends TestCase {
 

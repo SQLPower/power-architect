@@ -21,8 +21,8 @@ package ca.sqlpower.architect.ddl;
 
 import java.sql.SQLException;
 
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
 public class SQLServer2000DDLGenerator extends SQLServerDDLGenerator {
 

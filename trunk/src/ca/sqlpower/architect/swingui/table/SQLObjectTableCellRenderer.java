@@ -27,7 +27,7 @@ import java.text.ParsePosition;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.swingui.table.FormatFactory;
 
 public class SQLObjectTableCellRenderer extends DefaultTableCellRenderer implements FormatFactory {

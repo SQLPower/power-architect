@@ -25,6 +25,10 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
 
 /**
  * The ArchitectSession class represents a single user's session with
@@ -61,7 +65,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
     private CoreProject project;
 
 	public ArchitectSessionImpl(final ArchitectSessionContext context,
-	        String name) throws ArchitectException {
+	        String name) throws SQLObjectException {
 	    this.context = context;
 	    this.name = name;
 	    this.rootObject = new SQLObjectRoot();
@@ -74,7 +78,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
         try {
             ddlGenerator = new GenericDDLGenerator();
         } catch (SQLException e) {
-            throw new ArchitectException("SQL Error in ddlGenerator",e);
+            throw new SQLObjectException("SQL Error in ddlGenerator",e);
         }
 	}
 
@@ -121,7 +125,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
     public ArchitectSessionContext getContext() {
         return context;
     }
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
         SQLObject root = getRootObject();
         while (root.getChildCount() > 0) {
             root.removeChild(root.getChildCount() - 1);

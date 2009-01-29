@@ -32,15 +32,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.MeasureExpression;
 import ca.sqlpower.architect.olap.MondrianModel.SQL;
 import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
 import ca.sqlpower.validation.swingui.NotNullValidator;
@@ -73,10 +73,10 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
      * Creates a new property editor for the given OLAP Measure. 
      * 
      * @param cube The data model of the measure to edit
-     * @throws ArchitectException
+     * @throws SQLObjectException
      *             if populating the necessary SQLObjects fails
      */
-    public MeasureEditPanel(Measure measure) throws ArchitectException {
+    public MeasureEditPanel(Measure measure) throws SQLObjectException {
         this.measure = measure;
         
         handler = new FormValidationHandler(status, true);
