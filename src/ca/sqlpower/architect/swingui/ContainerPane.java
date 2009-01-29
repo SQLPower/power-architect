@@ -52,6 +52,7 @@ import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
 import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.swingui.SPSUtils;
 
 /**
  * A playpen component that represents a model with a list of individually selectable items. 
@@ -124,7 +125,7 @@ implements DragSourceListener, LayoutNode {
             int clickItem = pointToItemIndex(p);
 
             if (pp.getMouseMode() != MouseModeType.CREATING_TABLE) {
-                if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.META_DOWN_MASK)) == 0) {
+                if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | SPSUtils.MULTISELECT_MASK)) == 0) {
                     if (!isSelected() || pp.getMouseMode() == MouseModeType.IDLE) {
                         pp.setMouseMode(MouseModeType.SELECT_TABLE);
                         pp.selectNone();
@@ -142,7 +143,7 @@ implements DragSourceListener, LayoutNode {
                         clickItem < getItems().size()) {
 
                     if ((evt.getModifiersEx() &
-                            (InputEvent.SHIFT_DOWN_MASK | InputEvent.META_DOWN_MASK)) == 0) {
+                            (InputEvent.SHIFT_DOWN_MASK | SPSUtils.MULTISELECT_MASK)) == 0) {
 
                         if (!isItemSelected(clickItem) ){
                             deSelectEverythingElse(evt);
