@@ -18,7 +18,11 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Color;
+import java.util.List;
+
 import javax.swing.ButtonGroup;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -28,15 +32,17 @@ import javax.swing.JTextField;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.swingui.ColorCellRenderer;
+import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -99,11 +105,28 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
     private JRadioButton deleteSetNull;
     private JRadioButton deleteNoAction;
     private JRadioButton deleteSetDefault;
+    
+    private JComboBox relationLineColor;
 
     private ArchitectSession session;
     
+    private Color color;
+
+    private List<Relationship> relationshipLines;
+    
 	public RelationshipEditPanel(ArchitectSwingSession session) {
-        this.session = session;
+	    this.session = session;
+        
+        relationshipLines = session.getPlayPen().getSelectedRelationShips();
+        //Since now can only select one relationship to edit at the same time,
+        //so the length of relationships is only 1. 
+        for(Relationship r: relationshipLines) {
+            if(logger.isDebugEnabled()) {
+                logger.debug("This relationship is : " + r);
+            }
+            this.color = r.getColor();
+        }
+        
         FormLayout layout = new FormLayout("pref, 4dlu, pref:grow, 4dlu, pref, 4dlu, pref:grow");
         layout.setColumnGroups(new int[][] { { 3, 7 } });
         DefaultFormBuilder fb = new DefaultFormBuilder(layout, logger.isDebugEnabled() ? new FormDebugPanel() : new JPanel());
@@ -184,7 +207,14 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         updateRuleGroup.add(updateSetDefault);
         fb.append("", deleteSetDefault = new JRadioButton("Set Default"));
         deleteRuleGroup.add(deleteSetDefault);
-
+        
+        fb.nextLine();
+        
+        fb.append("Relationship Line Color", relationLineColor = new JComboBox(ColourScheme.FOREGROUND_COLOURS));
+        ColorCellRenderer renderer = new ColorCellRenderer(40, 20);
+        relationLineColor.setRenderer(renderer);
+        
+        //TO-FIX,doesn't work!
         relationshipName.selectAll();
         
         fb.setDefaultDialogBorder();
@@ -252,6 +282,8 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         } else if (r.getDeleteRule() == UpdateDeleteRule.SET_NULL) {
             deleteSetNull.setSelected(true);
         }
+        
+        relationLineColor.setSelectedItem(color);
 
 		relationshipName.selectAll();
 		
@@ -329,6 +361,11 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
             } else if (deleteSetNull.isSelected()) {
                 relationship.setDeleteRule(UpdateDeleteRule.SET_NULL);
             }
+            
+            for(Relationship r: relationshipLines) {
+                r.setColor((Color)relationLineColor.getSelectedItem());
+            }
+           
 
 		} finally {
 			relationship.endCompoundEdit("Modify Relationship Properties");
