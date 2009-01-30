@@ -68,8 +68,6 @@ public class BasicRelationshipUI extends RelationshipUI
 	 */
 	protected transient GeneralPath containmentPath;
 
-	protected Color selectedColor = new Color(204, 204, 255);
-	protected Color unselectedColor = Color.black;
 	protected BasicStroke nonIdStroke = new BasicStroke(1.0f);
 	protected BasicStroke idStroke = new BasicStroke(1.0f);
 
@@ -250,10 +248,10 @@ public class BasicRelationshipUI extends RelationshipUI
                 path = new GeneralPath(containmentPath);
 			}
 			
-			if (r.isSelected()) {
-				g2.setColor(selectedColor);
+			if (!r.isSelected()) {
+				g2.setColor(r.getColor());
 			} else {
-				g2.setColor(unselectedColor);
+			    g2.setColor(r.getColor().darker());
 			}
 
 			Stroke oldStroke = g2.getStroke();

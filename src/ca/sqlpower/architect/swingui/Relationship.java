@@ -45,17 +45,21 @@ import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectListener;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
+import ca.sqlpower.util.WebColour;
 
 public class Relationship extends PlayPenComponent implements SQLObjectListener, LayoutEdge {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 
-	private SQLRelationship model;
+	//Set the default color for Relationship lines
+	private Color color = new WebColour("#cc0000");
+
+    private SQLRelationship model;
 	private TablePane pkTable;
 	private TablePane fkTable;
 
@@ -227,6 +231,14 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 	}
 
 	// -------------------- ACCESSORS AND MUTATORS ---------------------
+	
+	public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
 
     public String getUIClassID() {
         return RelationshipUI.UI_CLASS_ID;
