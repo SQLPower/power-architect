@@ -507,6 +507,13 @@ public class SwingUIProject extends CoreProject {
                 ((RelationshipUI) r.getUI()).setOrientation(orientation);
                 r.setPkConnectionPoint(new Point(pkx, pky));
                 r.setFkConnectionPoint(new Point(fkx, fky));
+                
+                String rLineColor = attributes.getValue("relationshipLineColor"); //$NON-NLS-1$
+                if (rLineColor != null) {
+                    Color relationshipLineColor = Color.decode(rLineColor);
+                    r.setForegroundColor(relationshipLineColor);
+                }
+                
             } catch (SQLObjectException e) {
                 logger.error("Couldn't create relationship component", e); //$NON-NLS-1$
             } catch (NumberFormatException e) {
@@ -1037,11 +1044,16 @@ public class SwingUIProject extends CoreProject {
         for (PlayPenComponent ppc : ppcs) {
             if (ppc instanceof Relationship) {
                 Relationship r = (Relationship) ppc;
+                
+                Color relationshipLineColor = r.getForegroundColor();                
+                String rColorString = String.format("0x%02x%02x%02x", relationshipLineColor.getRed(), relationshipLineColor.getGreen(), relationshipLineColor.getBlue()); //$NON-NLS-1$
+                
                 ioo.println(out, "<table-link relationship-ref="+quote(sqlObjectSaveIdMap.get(r.getModel())) //$NON-NLS-1$
                         +" pk-x=\""+r.getPkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" pk-y=\""+r.getPkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" fk-x=\""+r.getFkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" fk-y=\""+r.getFkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" relationshipLineColor="+quote(rColorString) //$NON-NLS-1$
                         +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$
             } else if (ppc instanceof UsageComponent) {
                 UsageComponent usageComp = (UsageComponent) ppc;

@@ -124,7 +124,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
             if(logger.isDebugEnabled()) {
                 logger.debug("This relationship is : " + r);
             }
-            this.color = r.getColor();
+            this.color = r.getForegroundColor();
         }
         
         FormLayout layout = new FormLayout("pref, 4dlu, pref:grow, 4dlu, pref, 4dlu, pref:grow");
@@ -132,7 +132,13 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         DefaultFormBuilder fb = new DefaultFormBuilder(layout, logger.isDebugEnabled() ? new FormDebugPanel() : new JPanel());
         
         fb.append("Relationship Name", relationshipName = new JTextField(), 5);
-
+        
+        fb.nextLine();
+        fb.append("Relationship Line Color", relationLineColor = new JComboBox(ColourScheme.RELATIONSHIP_LINE_COLOURS));
+        ColorCellRenderer renderer = new ColorCellRenderer(40, 20);
+        relationLineColor.setRenderer(renderer);
+        
+        fb.nextLine();
 		identifyingGroup = new ButtonGroup();
 		fb.append("Relationship Type", identifyingButton = new JRadioButton("Identifying"), 5);
 		identifyingGroup.add(identifyingButton);
@@ -208,12 +214,6 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         fb.append("", deleteSetDefault = new JRadioButton("Set Default"));
         deleteRuleGroup.add(deleteSetDefault);
         
-        fb.nextLine();
-        
-        fb.append("Relationship Line Color", relationLineColor = new JComboBox(ColourScheme.FOREGROUND_COLOURS));
-        ColorCellRenderer renderer = new ColorCellRenderer(40, 20);
-        relationLineColor.setRenderer(renderer);
-        
         //TO-FIX,doesn't work!
         relationshipName.selectAll();
         
@@ -225,6 +225,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 	public void setRelationship(SQLRelationship r) {
 		this.relationship = r;
 		relationshipName.setText(r.getName());
+        relationLineColor.setSelectedItem(color);
 		pkTableName.setText("PK Table: " + relationship.getPkTable().getName());
 		fkTableName.setText("FK Table: " + relationship.getFkTable().getName());
 		if ( r.isIdentifying()){
@@ -282,8 +283,6 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         } else if (r.getDeleteRule() == UpdateDeleteRule.SET_NULL) {
             deleteSetNull.setSelected(true);
         }
-        
-        relationLineColor.setSelectedItem(color);
 
 		relationshipName.selectAll();
 		
@@ -311,6 +310,10 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 			} catch (SQLObjectException ex) {
 				logger.warn("Call to setIdentifying failed. Continuing with other properties.", ex);
 			}
+			
+			for(Relationship r: relationshipLines) {
+                r.setForegroundColor((Color)relationLineColor.getSelectedItem());
+            }
 			
 			if (pkTypeZeroOne.isSelected()) {
 				relationship.setPkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE);
@@ -362,11 +365,6 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
                 relationship.setDeleteRule(UpdateDeleteRule.SET_NULL);
             }
             
-            for(Relationship r: relationshipLines) {
-                r.setColor((Color)relationLineColor.getSelectedItem());
-            }
-           
-
 		} finally {
 			relationship.endCompoundEdit("Modify Relationship Properties");
 		}
