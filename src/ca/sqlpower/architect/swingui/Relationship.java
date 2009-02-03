@@ -23,6 +23,7 @@ import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -30,6 +31,7 @@ import java.beans.PropertyChangeListener;
 import java.util.Iterator;
 
 import javax.swing.AbstractAction;
+import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -51,13 +53,11 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectListener;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
-import ca.sqlpower.util.WebColour;
+import ca.sqlpower.swingui.ColorIcon;
+import ca.sqlpower.swingui.ColourScheme;
 
 public class Relationship extends PlayPenComponent implements SQLObjectListener, LayoutEdge {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
-
-	//Set the default color for Relationship lines
-	private Color color = new WebColour("#cc0000");
 
     private SQLRelationship model;
 	private TablePane pkTable;
@@ -153,6 +153,24 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
         setFocusToRelatedTables.add(mi);
         popup.add(setFocusToRelatedTables);
         
+        JMenu setRelationshipLineColor = new JMenu(Messages.getString("Relationship.relationshipLineColor")); //$NON-NLS-1$
+        for (final Color color : ColourScheme.RELATIONSHIP_LINE_COLOURS) {
+            Icon icon = new ColorIcon(60, 25, color);
+            mi = new JMenuItem(icon);
+            mi.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    getPlayPen().startCompoundEdit("Started setting the relationship line colour"); //$NON-NLS-1$
+                    for (Relationship r : getPlayPen().getSelectedRelationShips()) {
+                        logger.info("relationship line: ");
+                        r.setForegroundColor(color);
+                    }
+                    getPlayPen().endCompoundEdit("Finished setting the relationship line colour"); //$NON-NLS-1$
+                }
+            });
+            setRelationshipLineColor.add(mi);
+        }
+        popup.add(setRelationshipLineColor);
+        
         mi = new JMenuItem(af.getReverseRelationshipAction());
         popup.add(mi);
         
@@ -231,14 +249,6 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 	}
 
 	// -------------------- ACCESSORS AND MUTATORS ---------------------
-	
-	public Color getColor() {
-        return color;
-    }
-
-    public void setColor(Color color) {
-        this.color = color;
-    }
 
     public String getUIClassID() {
         return RelationshipUI.UI_CLASS_ID;

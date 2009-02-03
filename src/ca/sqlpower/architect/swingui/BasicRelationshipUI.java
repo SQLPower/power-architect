@@ -248,10 +248,18 @@ public class BasicRelationshipUI extends RelationshipUI
                 path = new GeneralPath(containmentPath);
 			}
 			
+            // if the relationship line is selected and the darker color 
+            // is the same, then set it to default selected color 
+            // (204,204,255)
+            
 			if (!r.isSelected()) {
-				g2.setColor(r.getColor());
+				g2.setColor(r.getForegroundColor());
 			} else {
-			    g2.setColor(r.getColor().darker());
+			    if(r.getForegroundColor().darker().equals(r.getForegroundColor())) {
+			        g2.setColor(new Color(204,204,255));
+			    } else {
+			        g2.setColor(r.getForegroundColor().darker());
+			    }
 			}
 
 			Stroke oldStroke = g2.getStroke();
