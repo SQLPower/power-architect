@@ -50,6 +50,9 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
     private ArchitectSwingSession session;
     private String versionPropertyString;
 
+    private HttpURLConnection urlc;
+    private InputStream propertyInputStream;
+
     public CheckForUpdateAction(ArchitectSwingSession session) {
         super(session, Messages.getString("CheckForUpdateAction.name"), //$NON-NLS-1$
                 Messages.getString("CheckForUpdateAction.description")); //$NON-NLS-1$
@@ -63,13 +66,13 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
     public void actionPerformed(ActionEvent e) {
         try {
             URL url = new URL(VERSION_FILE_URL);
-            HttpURLConnection urlc = (HttpURLConnection) url.openConnection();
+            urlc = (HttpURLConnection) url.openConnection();
             urlc.setAllowUserInteraction(false);
             urlc.setRequestMethod("GET"); //$NON-NLS-1$
             urlc.setDoInput(true);
             urlc.setDoOutput(false);
             urlc.connect();
-            InputStream propertyInputStream = urlc.getInputStream();
+            propertyInputStream = urlc.getInputStream();
             Properties properties = new Properties();
             properties.load(propertyInputStream);
 
@@ -89,6 +92,14 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
             logger.error("Fail to retrieve current version number!"); //$NON-NLS-1$
             ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
                     Messages.getString("CheckForUpdateAction.failedToCheckForUpdate"), ex); //$NON-NLS-1$
+        } finally {
+            urlc.disconnect();
+            try {
+                propertyInputStream.close();
+            } catch (IOException ex2) {
+                logger.error("Exception while trying to close input stream."); //$NON-NLS-1$
+                throw new RuntimeException(ex2);
+            }
         }
     }
 
