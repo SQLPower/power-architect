@@ -46,7 +46,6 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
@@ -63,18 +62,21 @@ import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectHierarchyListener;
 import ca.sqlpower.sqlobject.SQLObjectListener;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.swingui.ModalDialogUserPrompter;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
 public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
@@ -166,6 +168,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private final PrintSettings printSettings;
     
     /**
+     * This user prompter factory will create all the necessary GUI user prompts
+     * for Architect.
+     */
+    private final SwingUIUserPrompterFactory swinguiUserPrompterFactory;
+    
+    /**
      * This listener will listen to the SQLObject hierarchy and display exception windows when
      * an object's children are not accessible.
      */
@@ -190,6 +198,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      */
     ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, String name)
     throws SQLObjectException {
+        swinguiUserPrompterFactory = new SwingUIUserPrompterFactory(null, context.getPlDotIni());
         this.isNew = true;
         this.context = context;
         this.delegateSession = new ArchitectSessionImpl(context, name);
@@ -283,6 +292,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             frame = new ArchitectFrame(this, null);
         }
 
+        swinguiUserPrompterFactory.setParentFrame(frame);
+        
         // MUST be called after constructed to set up the actions
         frame.init(); 
         frame.setVisible(true);
@@ -838,10 +849,14 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * 
      * @see ModalDialogUserPrompter
      */
-    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-        return new ModalDialogUserPrompter(frame, question, okText, notOkText, cancelText);
+    public UserPrompter createUserPrompter(String question, String okText, String newText, String notOkText,
+            String cancelText, UserPromptType responseType, UserPromptResponse defaultResponseType,
+            Object defaultResponse) {
+        return swinguiUserPrompterFactory.createUserPrompter(question, okText, newText, notOkText, cancelText, 
+                responseType, defaultResponseType, defaultResponse);
+        
     }
-
+    
     public boolean isShowPkTag() {
         return showPkTag;
     }
@@ -928,6 +943,5 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public PrintSettings getPrintSettings() {
         return printSettings;
     }
-
 
 }

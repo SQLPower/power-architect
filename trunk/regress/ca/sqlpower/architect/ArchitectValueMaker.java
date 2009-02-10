@@ -21,9 +21,9 @@ package ca.sqlpower.architect;
 
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.etl.kettle.RootRepositoryDirectoryChooser;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.testutil.GenericNewValueMaker;
 
 public class ArchitectValueMaker extends GenericNewValueMaker {
@@ -37,8 +37,6 @@ public class ArchitectValueMaker extends GenericNewValueMaker {
         } else if (valueType == SQLIndex.class) {
             newVal = new SQLIndex();
             ((SQLIndex) newVal).setName("a new index");
-        } else if (valueType == UserPrompter.class) {
-            newVal = new AlwaysOKUserPrompter();
         } else if (valueType == KettleRepositoryDirectoryChooser.class) {
             newVal = new RootRepositoryDirectoryChooser();
         } else if (valueType.isAssignableFrom(Throwable.class)) {

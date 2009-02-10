@@ -37,9 +37,12 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.util.DefaultUserPrompterFactory;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
 /**
  * Basic implementation of ArchitectSession, for testing
@@ -47,6 +50,8 @@ import ca.sqlpower.sqlobject.SQLObjectRoot;
 public class TestingArchitectSession implements ArchitectSession {
 
     private final ArchitectSessionContext context;
+    
+    private final DefaultUserPrompterFactory defaultUPF = new DefaultUserPrompterFactory();
 
     /**
      * Creates a new testing session within the given context.
@@ -55,13 +60,6 @@ public class TestingArchitectSession implements ArchitectSession {
         this.context = context;
     }
     
-    /**
-     * Returns an "always ok" prompter
-     */
-    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-        return new AlwaysOKUserPrompter();
-    }
-
     public ArchitectSessionContext getContext() {
         return context;
     }
@@ -118,5 +116,15 @@ public class TestingArchitectSession implements ArchitectSession {
 
     public OLAPRootObject getOLAPRootObject() {
         return null;
+    }
+
+    /**
+     * Returns a default prompter
+     */
+    public UserPrompter createUserPrompter(String question, String okText, String newText, String notOkText,
+            String cancelText, UserPromptType responseType, UserPromptResponse defaultResponseType,
+            Object defaultResponse) {
+        return defaultUPF.createUserPrompter(question, okText, newText, notOkText, cancelText, responseType, 
+                defaultResponseType, defaultResponse);
     }
 }

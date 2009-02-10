@@ -50,10 +50,9 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 
 import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.TestingArchitectSession;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
-import ca.sqlpower.architect.UserPrompter;
-import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
@@ -61,8 +60,45 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
 public class CreateKettleJobTest extends TestCase {
+    
+    /**
+     * This implementation of the {@link TestingArchitectSessionContext} is used to allow the file
+     * validator return type to be specified by the test. This is for testing how the saving of
+     * Kettle jobs reacts if the a file is canceled or selected to not be saved.
+     */
+    private class ArchitectSessionContextWithFileValidator extends TestingArchitectSession {
+        
+        private final UserPromptResponse fvr;
+
+        public ArchitectSessionContextWithFileValidator(ArchitectSessionContext context, UserPromptResponse fvr) {
+            super(context);
+            this.fvr = fvr;
+        }
+
+        @Override
+        public UserPrompter createUserPrompter(String question, String okText, String newText, String notOkText,
+                String cancelText, UserPromptType responseType, UserPromptResponse defaultResponseType,
+                Object defaultResponse) {
+            return new UserPrompter() {
+
+                public Object getUserSelectedResponse() {
+                    if (fvr == UserPromptResponse.OK) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                public UserPromptResponse promptUser(Object... formatArgs) {
+                    return fvr;
+                }
+            };
+        }
+    }
 
     private SQLDatabase target;
     private SQLTable targetTableNoSource;
@@ -324,16 +360,8 @@ public class CreateKettleJobTest extends TestCase {
         List<TransMeta> transList = new ArrayList<TransMeta>();
         transList.add(transMeta);
 
-        KettleJob kettleJob = new KettleJob(new TestingArchitectSession(new TestingArchitectSessionContext()) {
-            @Override
-            public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-                return new UserPrompter() {
-                    public UserPromptResponse promptUser(Object... formatArgs) {
-                        return fvr;
-                    }
-                };
-            }
-        }, new KettleRepositoryDirectoryChooser(){
+        KettleJob kettleJob = new KettleJob(new ArchitectSessionContextWithFileValidator(new TestingArchitectSessionContext(), fvr), 
+                new KettleRepositoryDirectoryChooser(){
             public RepositoryDirectory selectDirectory(Repository repo) {
                 return new RepositoryDirectory();
             }
@@ -387,16 +415,8 @@ public class CreateKettleJobTest extends TestCase {
         newJob.setName("jobName");
         newJob.addNote(new NotePadMeta("new job note", 0, 150, 125, 125));
         
-        KettleJob kettleJob = new KettleJob(new TestingArchitectSession(new TestingArchitectSessionContext()) {
-            @Override
-            public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-                return new UserPrompter() {
-                    public UserPromptResponse promptUser(Object... formatArgs) {
-                        return fvr;
-                    }
-                };
-            }
-        }, new RootRepositoryDirectoryChooser());
+        KettleJob kettleJob = new KettleJob(new ArchitectSessionContextWithFileValidator(new TestingArchitectSessionContext(), fvr),
+                new RootRepositoryDirectoryChooser());
         kettleJob.setFilePath(jobOutputFile.getPath());
         kettleJob.setSavingToFile(true);
         kettleJob.setJobName("jobName");
