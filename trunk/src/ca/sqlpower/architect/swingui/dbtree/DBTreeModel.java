@@ -190,6 +190,18 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			notifier.run();
 		
 	}
+	
+	/**
+	 * This method will update the view of the tree by firing a structure change
+	 * on the root. This is necessary to update the tree after loading the project
+	 * on a separate thread.
+	 * 
+	 * NOTE: This method fires a TreeStructureChanged event which is not undoable
+	 * and can be a heavy operation!
+	 */
+	public void refreshTreeStructure() {
+        fireTreeStructureChanged(new TreeModelEvent(root, new Object[]{root}));
+	}
 
 	/**
 	 * Returns the path from the conceptual, hidden root node (of type
