@@ -40,6 +40,7 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.RecentMenu;
+import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -194,6 +195,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
             } else {
                 recent.putRecentFileName(file.getAbsolutePath());
                 session.initGUI(openingSession);
+                ((DBTreeModel) session.getSourceDatabases().getModel()).refreshTreeStructure();
             }
 
             try {
