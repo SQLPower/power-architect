@@ -22,9 +22,10 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.util.UserPrompterFactory;
 
 public interface ArchitectSession extends UserPrompterFactory {
 
@@ -98,7 +99,4 @@ public interface ArchitectSession extends UserPrompterFactory {
      */
     public void setDDLGenerator(DDLGenerator generator);
 
-    /* docs inherit from interface */
-    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText);
-    
 }

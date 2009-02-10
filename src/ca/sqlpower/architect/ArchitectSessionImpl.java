@@ -29,6 +29,10 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.util.DefaultUserPrompterFactory;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompterFactory;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
 /**
  * The ArchitectSession class represents a single user's session with
@@ -54,7 +58,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
      * for the GUI will replace the default factory with one that actually
      * prompts the user.
      */
-    private UserPrompterFactory userPrompterFactory = new AlwaysOKUserPrompterFactory();
+    private UserPrompterFactory userPrompterFactory = new DefaultUserPrompterFactory();
     
     private DDLGenerator ddlGenerator;
     
@@ -147,8 +151,11 @@ public class ArchitectSessionImpl implements ArchitectSession {
         profileManager = manager;
     }
     
-    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-        return userPrompterFactory.createUserPrompter(question, okText, notOkText, cancelText);
+    public UserPrompter createUserPrompter(String question, String okText, String newText, String notOkText,
+            String cancelText, UserPromptType responseType, UserPromptResponse defaultResponseType,
+            Object defaultResponse) {
+        return userPrompterFactory.createUserPrompter(question, okText, newText, notOkText, cancelText, 
+                responseType, defaultResponseType, defaultResponse);
     }
 
     /**

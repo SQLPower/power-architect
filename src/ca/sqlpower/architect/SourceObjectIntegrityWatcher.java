@@ -2,7 +2,6 @@ package ca.sqlpower.architect;
 
 import java.util.List;
 
-import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -10,6 +9,9 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectPreEvent;
 import ca.sqlpower.sqlobject.SQLObjectPreEventListener;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
 /**
  * Watches the session's root object, and reacts when SQLDatabase items
@@ -29,7 +31,8 @@ public class SourceObjectIntegrityWatcher implements SQLObjectPreEventListener {
     public void dbChildrenPreRemove(SQLObjectPreEvent e) {
         UserPrompter up = session.createUserPrompter(
                 Messages.getString("SourceObjectIntegrityWatcher.removingETLLineageWarning"), //$NON-NLS-1$
-                Messages.getString("SourceObjectIntegrityWatcher.forgetLineageOption"), Messages.getString("SourceObjectIntegrityWatcher.keepSourceConnectionOption"), Messages.getString("cancel")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                Messages.getString("SourceObjectIntegrityWatcher.forgetLineageOption"), null, Messages.getString("SourceObjectIntegrityWatcher.keepSourceConnectionOption"), Messages.getString("cancel"), 
+                UserPromptType.BOOLEAN, UserPromptResponse.OK, Boolean.TRUE); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         for (SQLObject so : e.getChildren()) {
             SQLDatabase db = (SQLDatabase) so;
             try {

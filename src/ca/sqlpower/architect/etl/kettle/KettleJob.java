@@ -54,11 +54,12 @@ import org.pentaho.di.trans.steps.tableoutput.TableOutputMeta;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.DepthFirstSearch;
-import ca.sqlpower.architect.UserPrompter;
-import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.util.MonitorableImpl;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -418,7 +419,7 @@ public class KettleJob implements Monitorable {
         
         UserPrompter up = session.createUserPrompter(
                 "The file {0} already exists. Overwrite?",
-                "Overwrite", "Don't Overwrite", "Cancel");
+                "Overwrite", null, "Don't Overwrite", "Cancel", UserPromptType.BOOLEAN, UserPromptResponse.NOT_OK, false);
         for (File f : outputs.keySet()) {
             try {
                 logger.debug("The file to output is " + f.getPath());
@@ -500,7 +501,7 @@ public class KettleJob implements Monitorable {
             try {
                 UserPrompter up = session.createUserPrompter(
                         "{0} {1} already exists in the repository. Replace?",
-                        "Replace", "Don't Replace", "Cancel");
+                        "Replace", null, "Don't Replace", "Cancel", UserPromptType.BOOLEAN, UserPromptResponse.NOT_OK, false);
                 for (TransMeta tm: transformations) {
                     if (monitor.isCancelled()) {
                         cancel();

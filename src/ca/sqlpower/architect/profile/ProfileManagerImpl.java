@@ -32,8 +32,6 @@ import java.util.concurrent.Future;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.UserPrompter;
-import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -42,6 +40,9 @@ import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectPreEvent;
 import ca.sqlpower.sqlobject.SQLObjectPreEventListener;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
 /**
  * The default ProfileManager implementation. Creates profiles of tables,
@@ -67,7 +68,7 @@ public class ProfileManagerImpl implements ProfileManager {
                     "\n" +
                     "If you proceed, the profiling information from the database" +
                     " will be removed.",
-                    "Remove Profiles", "Keep Profiles", "Cancel");
+                    "Remove Profiles", null, "Keep Profiles", "Cancel", UserPromptType.BOOLEAN, UserPromptResponse.OK, Boolean.TRUE);
             for (SQLObject so : e.getChildren()) {
                 SQLDatabase db = (SQLDatabase) so;
                 List<TableProfileResult> refs = new ArrayList<TableProfileResult>(); 
