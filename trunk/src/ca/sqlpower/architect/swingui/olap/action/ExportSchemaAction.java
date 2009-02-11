@@ -32,9 +32,9 @@ import ca.sqlpower.architect.olap.MondrianXMLWriter;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.RecentMenu;
 import ca.sqlpower.architect.swingui.action.ProgressAction;
 import ca.sqlpower.architect.swingui.olap.OSUtils;
+import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.MonitorableImpl;
 

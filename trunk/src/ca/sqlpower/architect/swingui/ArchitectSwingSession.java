@@ -33,6 +33,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
