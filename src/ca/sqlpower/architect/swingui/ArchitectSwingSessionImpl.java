@@ -71,6 +71,7 @@ import ca.sqlpower.sqlobject.SQLObjectListener;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.swingui.ModalDialogUserPrompter;
+import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;

@@ -34,6 +34,7 @@ import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.swingui.RecentMenu;
 
 /**
  * Minimally functional session context implementation that creates and returns an instance of

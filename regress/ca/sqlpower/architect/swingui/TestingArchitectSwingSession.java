@@ -44,6 +44,7 @@ import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.DefaultUserPrompterFactory;
