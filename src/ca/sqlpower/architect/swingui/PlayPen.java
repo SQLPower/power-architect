@@ -1518,7 +1518,7 @@ public class PlayPen extends JPanel
 				// first pass: figure out how much work we need to do...
 				while (soIt.hasNext() && !isCancelled()) {
 					SQLObject so = soIt.next();
-                    tableCount += ArchitectUtils.countTablesSnapshot(so);
+                    tableCount += SQLObjectUtils.countTablesSnapshot(so);
 				}
 				jobSize = new Integer(tableCount);
 

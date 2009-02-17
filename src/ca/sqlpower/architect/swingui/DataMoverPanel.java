@@ -38,7 +38,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
@@ -55,6 +54,7 @@ import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.SPSUtils;
@@ -254,7 +254,7 @@ public class DataMoverPanel {
                 destCatalogName, destSchemaName, destTableName);
         if (destTable == null) {
             needToCreate = true;
-            destTable = ArchitectUtils.addSimulatedTable(
+            destTable = SQLObjectUtils.addSimulatedTable(
                 destDB, destCatalogName, destSchemaName, destTableName);
         }
         

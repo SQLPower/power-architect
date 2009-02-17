@@ -60,7 +60,6 @@ import javax.swing.text.JTextComponent;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
@@ -567,7 +566,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
     private List<String> updateModel() {
         logger.debug("Updating model"); //$NON-NLS-1$
         List<String> errors = new ArrayList<String>();
-        SQLObject compoundEditRoot = ArchitectUtils.findCommonAncestor(columns);
+        SQLObject compoundEditRoot = SQLObjectUtils.findCommonAncestor(columns);
         logger.debug("Compound edit root is " + compoundEditRoot);
         try {
             compoundEditRoot.startCompoundEdit(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$

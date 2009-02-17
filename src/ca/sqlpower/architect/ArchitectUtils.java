@@ -22,10 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JFileChooser;
@@ -34,13 +30,9 @@ import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
-import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLSchema;
-import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.ExceptionReport;
 
@@ -94,64 +86,14 @@ public class ArchitectUtils {
 		else return o1.equals(o2);
 	}
 
-	/**
-	 * Searches for all columns in the target database which are marked as having
-	 * source columns in the given source database.
-	 *
-	 * @param target The database to search.  All columns of all tables in this database are searched.
-	 * @param source The database to look for in the target database's columns.
-	 * @return A list of all columns in the target database whose source database is the same
-	 * as the given source object. Every item in the list will be of type SQLColumn.
-	 */
-	public static List<SQLColumn> findColumnsSourcedFromDatabase(SQLDatabase target, SQLDatabase source) throws SQLObjectException {
-		if (logger.isDebugEnabled()) logger.debug("Searching for dependencies on "+source+" in "+target);
-		List matches = new ArrayList();
-		Iterator it = target.getChildren().iterator();
-		while (it.hasNext()) {
-			SQLObject so = (SQLObject) it.next();
-			if (logger.isDebugEnabled()) logger.debug("-->Next target item is "+so.getClass().getName()+": "+so+" ("+so.getChildCount()+" children)");
-			if (so instanceof SQLTable) {
-				SQLTable t = (SQLTable) so;
-				Iterator cit = t.getColumns().iterator();
-				while (cit.hasNext()) {
-					Object next = cit.next();
-					if (logger.isDebugEnabled()) logger.debug("---->Next item in columns list is a "+next.getClass().getName());
-					SQLColumn col = (SQLColumn) next;
-					if (col.getSourceColumn() != null && source.equals(col.getSourceColumn().getParentTable().getParentDatabase())) {
-						matches.add(col);
-					}
-				}
-			}
-		}
-		return matches;
-	}
-
-	/**
-	 * Recursively count tables in the project, including ones that have not been
-	 * expanded in the DBTree.
-	 *
-	 * @param source the source object (usually the database)
-	 */
-	public static int countTablesSnapshot(SQLObject so) throws SQLObjectException {
-		if (so instanceof SQLTable) {
-			return 1;
-		} else {
-			int count = 0;
-			Iterator it = so.getChildren().iterator();
-			while (it.hasNext()) {
-				count += countTablesSnapshot((SQLObject) it.next());
-			}
-		    return count;
-		}
-	}
-
-	/**
-	 * Keep in mind that if you go after anything lower than
-	 * SQLTable, you will invoke a potentially expensive
-	 * populate() method multiple times.
-	 *
-	 * @param source the source object (usually the database)
-	 */
+    /**
+     * Searches for all SQLObjects under a given starting point which are of the
+     * given type. Keep in mind that if you go after anything lower than
+     * SQLTable, you will invoke many potentially expensive populate() methods.
+     * 
+     * @param source
+     *            the source object (usually the database)
+     */
 	public static <T extends SQLObject>
 	List<T> findDescendentsByClass(SQLObject so, java.lang.Class<T> clazz, List<T> addTo)
 	throws SQLObjectException {
@@ -177,30 +119,6 @@ public class ArchitectUtils {
 			return s;
 		} else {
 			return s.substring(27) + "...";
-		}
-	}
-
-	/**
-	 * Recursively count tables in the project, but only consider tables that
-	 * have been expanded.
-	 *
-	 * This might be undercounting a little bit because I think this suppresses
-	 * the Target Database (playpen) entries.
-	 *
-	 * @param source the source object (usually the database)
-	 */
-	public static int countTables(SQLObject so) throws SQLObjectException {
-		if (so instanceof SQLTable) {
-			return 1;
-		} else if ( (!so.allowsChildren()) || !(so.isPopulated()) || so.getChildren() == null) {
-		    return 0;
-		} else {
-			int myCount = 0;
-			Iterator it = so.getChildren().iterator();
-			while (it.hasNext()) {
-				myCount += countTables((SQLObject) it.next());
-			}
-			return myCount;
 		}
 	}
 
@@ -237,192 +155,6 @@ public class ArchitectUtils {
             return sb.toString();
         }
         return val;
-    }
-
-    /**
-     * Returns the parent database of <tt>so</tt> or <tt>null</tt> if <tt>so</tt>
-     * doesn't have an ancestor whose class is <tt>ancestorType</tt>.
-     *
-     * @param so The object for whose ancestor to look. (Thanks, Winston).
-     * @return The nearest ancestor of type ancestorType, or null if no such ancestor exists.
-     */
-    public static <T extends SQLObject> T getAncestor(SQLObject so, Class<T> ancestorType) {
-        while (so != null) {
-            if (so.getClass().equals(ancestorType)) return (T) so;
-            so = so.getParent();
-        }
-        return null;
-    }
-
-    /**
-     * Returns the object that contains tables in the given database.
-     * Depending on platform, this could be a SQLDatabase, a SQLCatalog,
-     * or a SQLSchema.  A null catName or schemName argument means that
-     * catalogs or schemas are not present in the given database.
-     * <p>
-     * Note, all comparisons are done case-insensitively.
-     * 
-     * @param db The database to retrieve the table container from.
-     * @param catName The name of the catalog to retrieve.  Must be null iff the
-     * database does not have catalogs.
-     * @param schemaName The name of the schema to retrieve.  Must be null iff the
-     * database does not have schemas.
-     * @return The appropriate SQLObject under db that is a parent of SQLTable objects,
-     * given the catalog and schema name arguments.
-     * @throws SQLObjectException 
-     */
-    public static SQLObject getTableContainer(SQLDatabase db, String catName, String schemaName) throws SQLObjectException {
-        db.populate();
-        logger.debug("Looking for catalog="+catName+", schema="+schemaName+" in db "+db);
-        if (db.getChildType() == SQLTable.class) {
-            if (catName != null || schemaName != null) {
-                throw new IllegalArgumentException("Catalog or Schema name was given but neither is necessary.");
-            }
-            return db;
-        } else if (db.getChildType() == SQLSchema.class) {
-           if (catName != null) {
-               throw new IllegalArgumentException("Catalog name was given but is not necessary.");
-           }
-           if (schemaName == null) {
-               throw new IllegalArgumentException("Schema name was expected but none was given.");
-           }
-           
-           return (SQLSchema) db.getChildByNameIgnoreCase(schemaName);
-        } else if (db.getChildType() == SQLCatalog.class) {
-            if (catName == null) {
-                throw new IllegalArgumentException("Catalog name was expected but none was given.");
-            }
-            SQLCatalog tempCat = db.getCatalogByName(catName);
-            
-            if (tempCat == null) return null;
-            
-            tempCat.populate();
-            
-            logger.debug("Found catalog "+catName+". Child Type="+tempCat.getChildType());
-            if (tempCat.getChildType() == SQLSchema.class) {
-                if (schemaName == null) {
-                    throw new IllegalArgumentException("Schema name was expected but none was given.");
-                }
-                
-                return (SQLSchema) tempCat.getChildByNameIgnoreCase(schemaName);
-            }
-            
-            if (schemaName != null) {
-                throw new IllegalArgumentException("Schema name was given but is not necessary.");
-            }
-            
-            return tempCat;
-        } else if (db.getChildType() == null) {
-            // special case: there are no children of db
-            logger.debug("Database "+db+" has no children");
-            return null;
-        } else {
-            throw new IllegalStateException("Unknown database child type: " + db.getChildType());
-        }
-    }
-
-    /**
-     * Returns true if and only if the given set of arguments would result in a
-     * successful call to {@link #addSimulatedTable(SQLDatabase, String, String, String)}.
-     * See that method's documentation for the meaning of the arguments.
-     * 
-     * @throws SQLObjectException if populating any of the relevant SQLObjects fails.
-     */
-    public static boolean isCompatibleWithHierarchy(SQLDatabase db, String catalog, String schema, String name) throws SQLObjectException {
-        SQLObject schemaContainer;
-        if ( catalog != null){
-            if (db.isCatalogContainer()){
-                schemaContainer = db.getCatalogByName(catalog);
-                if (schemaContainer == null) {
-                    return true;
-                }
-            } else {
-                return false;
-            }
-        } else {
-            schemaContainer = db;
-        }
-
-        SQLObject tableContainer;
-        if (schema != null){
-            if (schemaContainer.getChildType() == SQLSchema.class){
-                tableContainer = schemaContainer.getChildByName(schema);
-                if (tableContainer == null) {
-                    return true;
-                }
-            } else if (schemaContainer.getChildType() == null) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            tableContainer = schemaContainer;
-        }
-
-        if (name != null) {
-            if (tableContainer.getChildType() == null || tableContainer.getChildType() == SQLTable.class){
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Creates a SQLTable in the given database, optionally under a catalog and/or schema.
-     * 
-     * @param db The database to create the table in.
-     * @param catalog The catalog that the table (or the table's schema) should be in.
-     * If null, it is assumed the given database doesn't have catalogs.
-     * @param schema The schema that the table should be in.  If null, it is assumed the
-     * given database doesn't have schemas.
-     * @param name The name of the table to create.
-     * @return The table that was created
-     * @throws SQLObjectException If you specify catalog or schema for a database that doesn't
-     * support catalogs or schemas; also if the database uses catalogs and schemas but you
-     * fail to provide them.
-     */
-    public static SQLTable addSimulatedTable(SQLDatabase db, String catalog, String schema, String name) throws SQLObjectException {
-        if (db.getTableByName(catalog, schema, name) != null) {
-            throw new SQLObjectException("The table "+catalog+"."+schema+"."+name+" already exists");
-        }
-        SQLObject schemaContainer;
-        if (catalog != null) {
-            if (!db.isCatalogContainer()) {
-                throw new SQLObjectException("You tried to add a table with a catalog ancestor to a database that doesn't support catalogs.");
-            }
-            schemaContainer = db.getCatalogByName(catalog);
-            if (schemaContainer == null) {
-                schemaContainer = new SQLCatalog(db, catalog, true);
-                db.addChild(schemaContainer);
-            }
-        } else {
-            schemaContainer = db;
-        }
-
-        SQLObject tableContainer;
-        if (schema != null) {
-            Class<? extends SQLObject> childType = schemaContainer.getChildType();
-            if ( !(childType == null || childType == SQLSchema.class) ) {
-                throw new SQLObjectException(
-                        "The schema container ("+schemaContainer+
-                        ") can't actually contain children of type SQLSchema.");
-            }
-            tableContainer = schemaContainer.getChildByName(schema);
-            if (tableContainer == null) {
-                tableContainer = new SQLSchema(schemaContainer, schema, true);
-                schemaContainer.addChild(tableContainer);
-            }
-        } else {
-            tableContainer = schemaContainer;
-        }
-
-        SQLTable newTable = new SQLTable(tableContainer, name, null, "TABLE", true);
-        tableContainer.addChild(newTable);
-
-        return newTable;
     }
 
     /**
@@ -500,58 +232,6 @@ public class ArchitectUtils {
         } else {
             return type;
         }
-    }
-
-    /**
-     * Finds the nearest common ancestor of all SQLObjects passed in. For
-     * example, if a bunch of columns from the same table are passed in, this
-     * method will return that table's columns folder. If a bunch of columns
-     * from different tables in the same schema are passed in, this method
-     * returns the database, catalog, or schema the tables belong to.
-     * 
-     * @param items The items to find the common ancestor of
-     * @return
-     */
-    public static SQLObject findCommonAncestor(Collection<? extends SQLObject> items) {
-        
-        // first build up the full ancestory of one randomly chosen item
-        List<SQLObject> commonAncestors = ancestorList(items.iterator().next());
-        logger.debug("Initial ancestor list: " + commonAncestors);
-        
-        // now prune the ancestor list to the largest common prefix with each item
-        for (SQLObject item : items) {
-            List<SQLObject> itemAncestors = ancestorList(item);
-            logger.debug("       Comparing with: " + itemAncestors);
-            
-            Iterator<SQLObject> cit = commonAncestors.iterator();
-            Iterator<SQLObject> iit = itemAncestors.iterator();
-            while (cit.hasNext() && iit.hasNext()) {
-                if (cit.next() != iit.next()) {
-                    cit.remove();
-                    break;
-                }
-            }
-            
-            // remove all remaining items in the common list because they're not in common with this item
-            while (cit.hasNext()) {
-                cit.next();
-                cit.remove();
-            }
-            logger.debug("     After this prune: " + commonAncestors);
-        }
-        
-        SQLObject commonAncestor = commonAncestors.get(commonAncestors.size() - 1);
-        logger.debug("Returning: " + commonAncestor);
-        return commonAncestor;
-    }
-    
-    private static List<SQLObject> ancestorList(SQLObject so) {
-        List<SQLObject> ancestors = new LinkedList<SQLObject>();
-        while (so != null) {
-            ancestors.add(0, so);
-            so = so.getParent();
-        }
-        return ancestors;
     }
 
     /**
