@@ -215,14 +215,14 @@ public class ArchitectUtilsTest extends TestCase {
         parentdb.addChild(sch);
         sch.addChild(t);
         
-        assertEquals(parentdb, ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
-        assertEquals(sch, ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLSchema.class));
-        assertEquals(t, ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLTable.class));
-        assertEquals(t.getColumnsFolder(), ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLTable.Folder.class));
-        assertNull(ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLCatalog.class));
+        assertEquals(parentdb, SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
+        assertEquals(sch, SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLSchema.class));
+        assertEquals(t, SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLTable.class));
+        assertEquals(t.getColumnsFolder(), SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLTable.Folder.class));
+        assertNull(SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLCatalog.class));
         
         parentdb.removeChild(sch);
-        assertNull(ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
+        assertNull(SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
     }
     
     public void testCreateTableWhenExisting() throws Exception {
@@ -235,7 +235,7 @@ public class ArchitectUtilsTest extends TestCase {
         schem.addChild(tab);
         
         try {
-            ArchitectUtils.addSimulatedTable(db, "cat", "schem", "tab");
+            SQLObjectUtils.addSimulatedTable(db, "cat", "schem", "tab");
             fail("Should not have been allowed because table exists");
         } catch (SQLObjectException ex) {
             // expected

@@ -9,6 +9,7 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectPreEvent;
 import ca.sqlpower.sqlobject.SQLObjectPreEventListener;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
@@ -36,7 +37,7 @@ public class SourceObjectIntegrityWatcher implements SQLObjectPreEventListener {
         for (SQLObject so : e.getChildren()) {
             SQLDatabase db = (SQLDatabase) so;
             try {
-                List<SQLColumn> refs = ArchitectUtils.findColumnsSourcedFromDatabase(session.getTargetDatabase(), db);
+                List<SQLColumn> refs = SQLObjectUtils.findColumnsSourcedFromDatabase(session.getTargetDatabase(), db);
                 if (!refs.isEmpty()) {
                     UserPromptResponse response = up.promptUser(refs.size(), db.getName());
                     if (response == UserPromptResponse.OK) {

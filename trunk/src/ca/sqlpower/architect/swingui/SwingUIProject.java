@@ -44,7 +44,6 @@ import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.UnclosableInputStream;
@@ -77,6 +76,7 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -630,9 +630,9 @@ public class SwingUIProject extends CoreProject {
             int pmMax = 0;
             pm.setMinimum(0);
             if (getSession().isSavingEntireSource()) {
-                pmMax = ArchitectUtils.countTablesSnapshot((SQLObject) getSession().getSourceDatabases().getModel().getRoot());
+                pmMax = SQLObjectUtils.countTablesSnapshot((SQLObject) getSession().getSourceDatabases().getModel().getRoot());
             } else {
-                pmMax = ArchitectUtils.countTables((SQLObject) getSession().getSourceDatabases().getModel().getRoot());
+                pmMax = SQLObjectUtils.countTables((SQLObject) getSession().getSourceDatabases().getModel().getRoot());
             }
             logger.debug("Setting progress monitor maximum to "+pmMax); //$NON-NLS-1$
             pm.setMaximum(pmMax);

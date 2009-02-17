@@ -27,7 +27,6 @@ import javax.swing.table.AbstractTableModel;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
@@ -43,6 +42,7 @@ import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -133,13 +133,13 @@ public class ProfileTableModel extends AbstractTableModel {
 
         switch(column) {
         case DATABASE:
-            return ArchitectUtils.getAncestor(col,SQLDatabase.class);
+            return SQLObjectUtils.getAncestor(col,SQLDatabase.class);
         case CATALOG:
-            return ArchitectUtils.getAncestor(col,SQLCatalog.class);
+            return SQLObjectUtils.getAncestor(col,SQLCatalog.class);
         case  SCHEMA:
-            return ArchitectUtils.getAncestor(col,SQLSchema.class);
+            return SQLObjectUtils.getAncestor(col,SQLSchema.class);
         case TABLE:
-            return ArchitectUtils.getAncestor(col,SQLTable.class);
+            return SQLObjectUtils.getAncestor(col,SQLTable.class);
         case COLUMN:
             return col;
         case RUNDATE:

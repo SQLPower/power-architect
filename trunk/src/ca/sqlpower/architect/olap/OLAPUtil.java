@@ -44,6 +44,7 @@ import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -337,9 +338,9 @@ public class OLAPUtil {
             String cat = qualifier.substring(0, qualifier.indexOf('.'));
             String schema = qualifier.substring(qualifier.indexOf('.') + 1);
             return database.getTableByName(cat, schema, name);
-        } else if (ArchitectUtils.isCompatibleWithHierarchy(database, qualifier, null, name)) {
+        } else if (SQLObjectUtils.isCompatibleWithHierarchy(database, qualifier, null, name)) {
             return database.getTableByName(qualifier, null, name);
-        } else if (ArchitectUtils.isCompatibleWithHierarchy(database, null, qualifier, name)) {
+        } else if (SQLObjectUtils.isCompatibleWithHierarchy(database, null, qualifier, name)) {
             return database.getTableByName(null, qualifier, name);
         } else {
             return null;

@@ -42,6 +42,7 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSequence;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -208,7 +209,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         
 		try {
 			if (allowConnection && tableList.size() > 0) {
-                SQLDatabase parentDb = ArchitectUtils.getAncestor(tableList.get(0), SQLDatabase.class);
+                SQLDatabase parentDb = SQLObjectUtils.getAncestor(tableList.get(0), SQLDatabase.class);
 				con = parentDb.getConnection();
 			} else {
 				con = null;
