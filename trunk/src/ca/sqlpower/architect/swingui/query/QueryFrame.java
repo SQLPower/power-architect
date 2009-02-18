@@ -31,6 +31,7 @@ import javax.swing.tree.TreeModel;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.sql.SPDataSource;
@@ -40,9 +41,9 @@ import ca.sqlpower.swingui.query.SQLQueryUIComponents;
 /**
  * This is like DBVisualizer, only not. It'll be different, I promise, trust me....
  */
-public class QueryDialog extends JDialog {
+public class QueryFrame extends JFrame {
     
-    private static Logger logger = Logger.getLogger(QueryDialog.class);
+    private static Logger logger = Logger.getLogger(QueryFrame.class);
     
     private final DBTree dbTree;
     
@@ -52,8 +53,8 @@ public class QueryDialog extends JDialog {
     /**
      * Creates and displays the window for executing SQL queries.
      */
-    public QueryDialog(ArchitectSwingSession session, JFrame sessionframe, String title) {
-        this(session, sessionframe, title, null, null);
+    public QueryFrame(ArchitectSwingSession session, String title) {
+        this(session, title, null, null);
     }
         
     /**
@@ -62,8 +63,9 @@ public class QueryDialog extends JDialog {
      * window. If a null value is passed in for the ds or initialSQL 
      * then no initial querying will be done.
      */
-    public QueryDialog(ArchitectSwingSession session, JFrame sessionframe, String title, SPDataSource ds, String initialSQL) {
-       super(sessionframe, title);
+    public QueryFrame(ArchitectSwingSession session, String title, SPDataSource ds, String initialSQL) {
+       super(title);
+       setIconImage(ASUtils.getFrameIconImage());
        setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
        setSize(900,650);
        try {
