@@ -460,7 +460,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             print(" USING " + index.getType());
         }
         print("\n ON ");
-        print(index.getParentTable().getName());
+        print(toQualifiedName(index.getParentTable()));
         print("\n ( ");
 
         boolean first = true;
