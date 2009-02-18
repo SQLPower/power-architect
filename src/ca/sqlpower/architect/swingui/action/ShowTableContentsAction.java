@@ -21,10 +21,10 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.JDialog;
+import javax.swing.JFrame;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.query.QueryDialog;
+import ca.sqlpower.architect.swingui.query.QueryFrame;
 import ca.sqlpower.sqlobject.SQLTable;
 
 /**
@@ -46,7 +46,7 @@ public class ShowTableContentsAction extends AbstractArchitectAction {
 
     public void actionPerformed(ActionEvent e) {
         String sql = "SELECT * FROM " + table.toQualifiedName();
-        JDialog sqlQueryDialog = new QueryDialog(session, session.getArchitectFrame(), Messages.getString("SQLQueryAction.dialogTitle"), table.getParentDatabase().getDataSource(), sql);
+        JFrame sqlQueryDialog = new QueryFrame(session, Messages.getString("SQLQueryAction.dialogTitle"), table.getParentDatabase().getDataSource(), sql);
         sqlQueryDialog.setVisible(true);
     }
 
