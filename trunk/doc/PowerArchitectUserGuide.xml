@@ -471,9 +471,11 @@
 			<title>About Advanced Features</title>
 
 			<para>
-				Power*Architect contains a tool, called SQLRunner, that
-				allows you to work at the raw SQL command level. This
-				feature should only be used by advanced users.
+				Power*Architect contains a general-purpose SQL query tool
+				that that allows you to work at the raw SQL command level. This
+				feature is meant as a convenience for advanced users. It is
+				not necessary to use this tool during routine data modeling,
+				profiling, or database comparison activity.
 			</para>
 
 			<para>For more information, see:</para>
@@ -483,7 +485,7 @@
 
 				<listitem>
 					<para>
-						<xref linkend="SQLRunner" />
+						<xref linkend="sql_query" />
 					</para>
 				</listitem>
 
@@ -8090,7 +8092,7 @@
 
 	</chapter>
 
-	<chapter id="SQL Query">
+	<chapter id="sql_query">
 
 		<title>SQL Query</title>
 
@@ -8111,11 +8113,12 @@
 
 		<para>
 			The basic steps to using SQL Query are to type a command in
-			the top (SQL Command) window and click the Execute button; the
-			results are displayed in the bottom (SQL Results) window. To
-			save you some typing, you can just drag the databases, tables 
-			and columns shown in the DB tree of the SQL Query and drop on 
-			the top (SQL Command) window.
+			the top (SQL Command) section of the window and click the
+			Execute button; the results are displayed in the bottom (SQL
+			Results) section. To save you some typing, you can just drag
+			the databases, tables and columns shown in the DB tree at the
+			left of the SQL Query window and drop them on the top (SQL
+			Command) section.
 		</para>
 
 		<mediaobject>
@@ -8126,19 +8129,33 @@
 		</mediaobject>
 		
 		<para>
-			SQL Statements can be entered multiple at a time, can be more than
-			one line long, but be careful! if you have multiple commands, do 
-			end the previous ones with a semicolon, which is unnecessary if there
-			is only one command. These statements are not interpreted by SQL Query
+			You can enter more than one SQL statement in the SQL Command section.
+			If you do this, be sure to terminate each one with a semicolon. If you
+			enter only one SQL statement, the terminating semicolon is unnecessary.
+			The statements are not interpreted by SQL Query
 		    itself, so anything that the given database and driver accepts can be
-			used. For example, with Oracle, you can use PL*SQL statements. With 
-			most drivers you should be able to use stored procedures. Each SQL 
-			statement is executed in its own transaction context if you turn the
-			Auto Commit on, that is, changes are committed immediately (so be careful!).
-			If you turn the Auto Commit off, you can decide to Commit or Rollback later.
+			used. For example, with Oracle, you can use PL/SQL statements. With 
+			most drivers you should be able to use stored procedures.
 		</para>
 
-		<section id="SQL Query.results">
+		<para>
+			To execute your commands, use the mouse to press the execute button, or
+			hit Ctrl-Enter (Command-Enter on Mac). Normally, all statements in the SQL Command
+			text area will be executed in sequence. However, if there is a selection
+			(in other words, some of the text is highlighted) when you execute, only the
+			selected text will be executed. So if you only want to execute a subset
+			of the commands, simply select the part you wish to execute.
+		</para>
+			
+		<para>
+			By default, auto-commit is enabled, which means each SQL 
+			statement is executed in its own transaction context. Be careful, because
+			this means the effects of your update and delete statements are not undoable!
+			If you turn the Auto Commit off, and your database supports transactions
+			(most do), you can manually Commit or Rollback later.
+		</para>
+
+		<section id="sql_query.results">
 
 			<title>Output (Results) Window</title>
 
@@ -8149,21 +8166,23 @@
 			</para>
 
 			<para>
-				A visual indication of the success or failure of the
-				command is displayed below the output: green for
-				success, red for failure. As well, failures will be
-				accompanied by a pop-up window containing details on the
-				failure.
-			</para>
-
-			<para>
-				The Clear Output button clears the contents of the
-				output window.
+				SQL Query keeps a log of statements executed and errors
+				encountered. If you run an undate-type statement, or your
+				statement is rejected by the database, the bottom half of
+				the window will automatically switch to the "Log" tab so you
+				can see the row count or database error message, respectively.
+				Conversely, when you execute a select-type statement, the bottom
+				half of the window switches to the tabular result set view so
+				you can see the data that was selected. Note that in this case,
+				there will still be an entry in the log tab with the date and time
+				the query was executed, how long it took to execute, and how many
+				rows were selected. You can see this information by manually switching
+				to the "Log" tab.
 			</para>
 
 		</section>
 
-		<section id="SQL Query.output_format">
+		<section id="sql_query.output_format">
 
 			<title>Output Formats</title>
 
@@ -8171,24 +8190,25 @@
 				The output format in the result window is always Table
 				mode, which provides a friendlier interface which ensures
 				all of the columns are lined up properly. If you right-click
-				on a table or multiple tables,you can generate a HTML file 
-				or CSV file. HTML mode generates an HTML table to display the 
-				results	of a Select. CSV mode generates a CSV file, which is
-				a specially formatted plain text file which stores spreadsheet
-				or basic database-style information in a very format. 
+				on a table or multiple tables, you can save the results to a file 
+				in HTML or CSV format. The HTML format consists of a table containing 
+				results	of the select statement. The CSV format, produces a comma-separated
+				values file with a header row, which is suitable for importing to any
+				spreadsheet program, such as Microsoft Excel or OpenOffice Calc.
 			</para>
 
 			<para>
 				CSV files are often used as a simple way to transfer a large 
 				volume of spreadsheet or database information between programs,
 				without worrying about special file types. For example, transferring
-				a home-made address book from power*architect into a database 
+				a home-made address book from Power*Architect into a database 
 				program such as	Filemaker Pro could be done by exporting the file as
 				a CSV from Excel, then importing that CSV into Filemaker.
 			</para>
 			
 			<para>
-				For example, a "select * from art_logs" looked like this:
+				For example, here are the results of executing the select statement,
+				"select * from art_logs":
 			</para>
 
 			<mediaobject>
@@ -8199,10 +8219,9 @@
 			</mediaobject>
 
 			<para>
-				You can view this same data in HTML just by right-click
-				the selected table and choose "Exported selected to
-				HTML..". When tried to open this file just by text editor,
-				it looked like this: 
+				You can view this same data in HTML by right-clicking
+				the selected table, then choosing "Exported selected to
+				HTML..". Here is what the generated HTML looks like in a text editor: 
 			</para>
 
 			<mediaobject>
@@ -8213,7 +8232,7 @@
 				</imageobject>
 			</mediaobject>
 			<para>
-				when used a web browser to open this file, the output liked this:
+				and formatted in a web browser:
 			</para>
 
 			<mediaobject>
@@ -8224,14 +8243,11 @@
 				</imageobject>
 			</mediaobject>
 			<para>
-				With a bit of formatting, or even a CSS style sheet,
-				this HTML page could be made quite usable.
-			</para>
-
-			<para>
-				SQL Query is not perfect, but it is adequate for many
-				purposes involving direct use of SQL (We will add more
-				useful features to it later).
+				With the addition of a custom CSS style sheet,
+				this HTML page could fill a basic reporting need. For more advanced report
+				layout, be sure to try
+				<ulink url="http://www.sqlpower.ca/wabit">Wabit</ulink>,
+				the open source reporting tool from SQL Power.
 			</para>
 
 		</section>
