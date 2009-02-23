@@ -410,6 +410,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("zoomInAction");
 		propertiesToIgnore.add("zoomOutAction");
         propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("tableContainer");
 		
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(db, propertiesToIgnore);
@@ -481,6 +482,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("secondaryChangeMode");
 		propertiesToIgnore.add("populated");
         propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("tableContainer");
 
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
