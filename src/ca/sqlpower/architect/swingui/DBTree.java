@@ -57,6 +57,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.action.NewDataSourceAction;
+import ca.sqlpower.architect.swingui.action.RefreshAction;
 import ca.sqlpower.architect.swingui.action.RemoveSourceDBAction;
 import ca.sqlpower.architect.swingui.action.ShowTableContentsAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
@@ -301,8 +302,8 @@ public class DBTree extends JTree implements DragSourceListener {
     }
 
 	/**
-	 * Creates a context sensitive menu for managing Database Connections. There
-     * are several modes of operations:
+	 * Creates a context sensitive menu for manipulating the SQLObjects in the
+	 * tree. There are several modes of operations:
      *
      * <ol>
      *  <li>click on target database.  the user can modify the properties manually,
@@ -320,7 +321,7 @@ public class DBTree extends JTree implements DragSourceListener {
      * contents of the playpen with the selected schema. 
 	 * </ol>
      *
-     * <p>FIXME: add in column, table, exported key, imported keys menus; you can figure
+     * <p>TODO: add in column, table, exported key, imported keys menus; you can figure
      * out where the click came from by checking the TreePath.
 	 */
 	protected JPopupMenu refreshMenu(TreePath p) {
@@ -483,6 +484,10 @@ public class DBTree extends JTree implements DragSourceListener {
 				mi.setEnabled(false);
 			}
 		} else if (p != null && !isTargetDatabaseNode(p)) { // clicked on DBCS item in DBTree
+			newMenu.addSeparator();
+			
+			newMenu.add(new RefreshAction(session));
+			
 			newMenu.addSeparator();
 
 			if (p.getLastPathComponent() instanceof SQLDatabase){
