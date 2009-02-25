@@ -41,6 +41,7 @@ import ca.sqlpower.sqlobject.SQLObjectPreEvent;
 import ca.sqlpower.sqlobject.SQLObjectPreEventListener;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
@@ -67,8 +68,8 @@ public class ProfileManagerImpl implements ProfileManager {
                     "{0} tables have been profiled from the database {1}.\n" +
                     "\n" +
                     "If you proceed, the profiling information from the database" +
-                    " will be removed.",
-                    "Remove Profiles", null, "Keep Profiles", "Cancel", UserPromptType.BOOLEAN, UserPromptResponse.OK, Boolean.TRUE);
+                    " will be removed.", UserPromptType.BOOLEAN, UserPromptOptions.OK_NOTOK_CANCEL, UserPromptResponse.OK, 
+                    Boolean.TRUE, "Remove Profiles", null, "Keep Profiles", "Cancel");
             for (SQLObject so : e.getChildren()) {
                 SQLDatabase db = (SQLDatabase) so;
                 List<TableProfileResult> refs = new ArrayList<TableProfileResult>(); 

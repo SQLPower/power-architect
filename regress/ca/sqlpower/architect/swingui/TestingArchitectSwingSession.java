@@ -49,6 +49,7 @@ import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.DefaultUserPrompterFactory;
 import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
 /**
@@ -337,10 +338,9 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         return printSettings;
     }
 
-    public UserPrompter createUserPrompter(String question, String okText, String newText, String notOkText,
-            String cancelText, UserPromptType responseType, UserPromptResponse defaultResponseType,
-            Object defaultResponse) {
-        return new DefaultUserPrompterFactory().createUserPrompter(question, okText, newText, notOkText, cancelText, responseType, defaultResponseType, defaultResponse);
+    public UserPrompter createUserPrompter(String question, UserPromptType responseType, UserPromptOptions optionType, UserPromptResponse defaultResponseType,
+            Object defaultResponse, String ... buttonNames) {
+        return new DefaultUserPrompterFactory().createUserPrompter(question, responseType, optionType, defaultResponseType, defaultResponse, buttonNames);
     }
 
 }

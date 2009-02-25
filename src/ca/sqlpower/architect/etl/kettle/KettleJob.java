@@ -58,6 +58,7 @@ import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.util.MonitorableImpl;
 import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 import ca.sqlpower.sql.SPDataSource;
@@ -418,8 +419,8 @@ public class KettleJob implements Monitorable {
         outputs.put(new File(fileName), job.getXML());
         
         UserPrompter up = session.createUserPrompter(
-                "The file {0} already exists. Overwrite?",
-                "Overwrite", null, "Don't Overwrite", "Cancel", UserPromptType.BOOLEAN, UserPromptResponse.NOT_OK, false);
+                "The file {0} already exists. Overwrite?", UserPromptType.BOOLEAN, UserPromptOptions.OK_NOTOK_CANCEL, UserPromptResponse.NOT_OK, 
+                false, "Overwrite", "Don't Overwrite", "Cancel");
         for (File f : outputs.keySet()) {
             try {
                 logger.debug("The file to output is " + f.getPath());
@@ -500,8 +501,8 @@ public class KettleJob implements Monitorable {
 
             try {
                 UserPrompter up = session.createUserPrompter(
-                        "{0} {1} already exists in the repository. Replace?",
-                        "Replace", null, "Don't Replace", "Cancel", UserPromptType.BOOLEAN, UserPromptResponse.NOT_OK, false);
+                        "{0} {1} already exists in the repository. Replace?", UserPromptType.BOOLEAN, UserPromptOptions.OK_NOTOK_CANCEL,
+                        UserPromptResponse.NOT_OK, false, "Replace", "Don't Replace", "Cancel");
                 for (TransMeta tm: transformations) {
                     if (monitor.isCancelled()) {
                         cancel();

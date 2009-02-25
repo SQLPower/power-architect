@@ -27,6 +27,7 @@ import ca.sqlpower.swingui.DataSourceUserPrompter;
 import ca.sqlpower.swingui.ModalDialogUserPrompter;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompterFactory;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
 public class SwingUIUserPrompterFactory implements UserPrompterFactory {
@@ -39,15 +40,13 @@ public class SwingUIUserPrompterFactory implements UserPrompterFactory {
         this.dsCollection = dsCollection;
     }
 
-    public UserPrompter createUserPrompter(String question, String okText, String newText, String notOkText,
-            String cancelText, UserPromptType responseType, UserPromptResponse defaultResponseType,
-            Object defaultResponse) {
+    public UserPrompter createUserPrompter(String question, UserPromptType responseType, UserPromptOptions optionType, UserPromptResponse defaultResponseType,
+            Object defaultResponse, String ... buttonNames) {
         switch (responseType) {
             case BOOLEAN :
-                return new ModalDialogUserPrompter(defaultResponseType, owner, question, okText, notOkText, cancelText);
+                return new ModalDialogUserPrompter(optionType, defaultResponseType, owner, question, buttonNames);
             case DATA_SOURCE:
-                return new DataSourceUserPrompter(defaultResponseType, (SPDataSource) defaultResponse, owner, question, okText, newText, notOkText, cancelText,
-                        dsCollection);
+                return new DataSourceUserPrompter(optionType, defaultResponseType, (SPDataSource) defaultResponse, owner, question, dsCollection, buttonNames);
             default :
                 throw new UnsupportedOperationException("User prompt type " + responseType + " is unknown.");
         }
