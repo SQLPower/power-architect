@@ -8094,17 +8094,17 @@
 
 	<chapter id="sql_query">
 
-		<title>SQL Query</title>
+		<title>Universal SQL Access</title>
 
 		<para>
-			SQL Query is a "fall-back" tool that lets you work at the
+			Universal SQL Access is a "fall-back" tool that lets you work at the
 			raw SQL command level. This is an advanced topic and should
 			only be used by those familiar with the intricacies of SQL
 			commands and the details of your database.
 		</para>
 
 		<para>
-			SQL Query is started from the menu entry under the Tools
+			Universal SQL Access is started from the menu entry under the Tools
 			menu, and begins with the GUI window shown below. The first
 			thing you should do is select which database connection you
 			wish to use. The list of Connections is the same as the main
@@ -8112,12 +8112,12 @@
 		</para>
 
 		<para>
-			The basic steps to using SQL Query are to type a command in
+			The basic steps to using Universal SQL Access are to type a command in
 			the top (SQL Command) section of the window and click the
 			Execute button; the results are displayed in the bottom (SQL
 			Results) section. To save you some typing, you can just drag
 			the databases, tables and columns shown in the DB tree at the
-			left of the SQL Query window and drop them on the top (SQL
+			left of the Universal SQL Access window and drop them on the top (SQL
 			Command) section.
 		</para>
 
@@ -8132,7 +8132,7 @@
 			You can enter more than one SQL statement in the SQL Command section.
 			If you do this, be sure to terminate each one with a semicolon. If you
 			enter only one SQL statement, the terminating semicolon is unnecessary.
-			The statements are not interpreted by SQL Query
+			The statements are not interpreted by Universal SQL Access
 		    itself, so anything that the given database and driver accepts can be
 			used. For example, with Oracle, you can use PL/SQL statements. With 
 			most drivers you should be able to use stored procedures.
@@ -8166,7 +8166,7 @@
 			</para>
 
 			<para>
-				SQL Query keeps a log of statements executed and errors
+				Universal SQL Access keeps a log of statements executed and errors
 				encountered. If you run an undate-type statement, or your
 				statement is rejected by the database, the bottom half of
 				the window will automatically switch to the "Log" tab so you
