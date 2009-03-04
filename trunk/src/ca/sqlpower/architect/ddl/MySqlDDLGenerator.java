@@ -30,9 +30,11 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
@@ -523,6 +525,36 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         }
     }
 
+    @Override
+    public void addColumn(SQLColumn c) {
+        Map colNameMap = new HashMap();
+        print("\nALTER TABLE ");
+        print(toQualifiedName(c.getParentTable()));
+        print(" ADD COLUMN ");
+        print(columnDefinition(c,colNameMap));
+        
+        /* MySQL supports adding a column at a particular position
+         * instead of always being the last column
+         */
+        try {
+            int colPosition = c.getParent().getChildren().indexOf(c);
+            if (colPosition == 0) {
+                print(" FIRST");
+            } else if (colPosition > 0) {
+                SQLObject precedingColumn = c.getParent().getChild(colPosition - 1);
+                print(" AFTER " + precedingColumn.getPhysicalName());
+            } else {
+                throw new IllegalStateException(
+                        "Column " + c + " is not a child of its parent!" +
+                        " Children are: " + c.getParent().getChildren());
+            }
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
+        }
+        
+        endStatement(DDLStatement.StatementType.CREATE, c);
+    }
+    
     @Override
     public void modifyColumn(SQLColumn c) {
         Map colNameMap = new HashMap();
