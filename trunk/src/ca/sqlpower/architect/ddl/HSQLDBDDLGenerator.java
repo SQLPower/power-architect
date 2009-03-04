@@ -40,6 +40,8 @@ import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
  */
 public class HSQLDBDDLGenerator extends GenericDDLGenerator {
     
+    public static final String GENERATOR_VERSION = "$Revision: 2933 $";
+
     public HSQLDBDDLGenerator() throws SQLException {
         super();
     }
@@ -141,5 +143,10 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
         } else {
             return super.getDeleteActionClause(r);
         }
+    }
+    
+    @Override
+    public String toString() {
+        return "SQL Power HSQLDB DDL Generator " + GENERATOR_VERSION;
     }
 }
