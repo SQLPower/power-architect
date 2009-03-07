@@ -678,7 +678,7 @@ public class CompareDMPanel extends JPanel {
 		 * which changes when the user saves their project under a different filename.
 		 */
 		void updatePlayPenNameLabel() {
-		    String newPlaypenName = Messages.getString("CompareDMPanel.currentProject", session.getName());
+		    String newPlaypenName = Messages.getString("CompareDMPanel.currentProject", session.getName()); //$NON-NLS-1$
             playPenName.setText(newPlaypenName);  //$NON-NLS-1$
             logger.debug("Updated playpen name to " + newPlaypenName);  //$NON-NLS-1$
 		}
@@ -874,12 +874,16 @@ public class CompareDMPanel extends JPanel {
 		 */
 		private ValidateResult getStartabilityStatus() {
 		    ValidateResult result;
-		    String sourceOrTarget = isSource() ? "Older" : "Newer";
+		    String sourceOrTarget = isSource() ?
+		            Messages.getString("CompareDMPanel.older") : //$NON-NLS-1$
+		            Messages.getString("CompareDMPanel.newer"); //$NON-NLS-1$
 			if (playPenRadio.isSelected()) {
 				result = null;
 			} else if (physicalRadio.isSelected()) {
 				if (databaseDropdown.getSelectedItem() == null) {
-				    result = ValidateResult.createValidateResult(Status.FAIL, sourceOrTarget + " physical database selection incomplete");
+				    result = ValidateResult.createValidateResult(
+				            Status.FAIL,
+				            Messages.getString("CompareDMPanel.incompleteSelection", sourceOrTarget)); //$NON-NLS-1$
 				} else {
 				    result = null;
 				}
@@ -887,7 +891,9 @@ public class CompareDMPanel extends JPanel {
 			    if (new File(loadFilePath.getText()).canRead()) {
 			        result = null;
 			    } else {
-			        result = ValidateResult.createValidateResult(Status.FAIL, sourceOrTarget + " project file not readable");
+			        result = ValidateResult.createValidateResult(
+			                Status.FAIL,
+			                Messages.getString("CompareDMPanel.projectFileNotReadable", sourceOrTarget)); //$NON-NLS-1$
 			    }
 			} else {
 				throw new IllegalStateException(
@@ -972,7 +978,7 @@ public class CompareDMPanel extends JPanel {
 		logger.debug("isStartable is checking..."); //$NON-NLS-1$
 		ValidateResult result = null;
 		if (sqlButton.isSelected() && sqlTypeDropdown.getSelectedItem() == null) {
-		    result = ValidateResult.createValidateResult(Status.FAIL, "Please choose an SQL dialect");
+		    result = ValidateResult.createValidateResult(Status.FAIL, Messages.getString("CompareDMPanel.chooseSQLDialect")); //$NON-NLS-1$
 		}
 		
 		if (result == null) {

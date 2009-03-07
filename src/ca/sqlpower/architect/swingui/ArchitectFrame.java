@@ -676,7 +676,7 @@ public class ArchitectFrame extends JFrame {
     }
    
     private JMenu buildOLAPEditMenu() {
-        JMenu menu = new JMenu("Edit Schema");
+        JMenu menu = new JMenu(Messages.getString("ArchitectFrame.editSchemaMenu")); //$NON-NLS-1$
         menu.add(new JMenuItem(new OLAPEditAction(session, null)));
         menu.addSeparator(); 
         for (OLAPSession olapSession : session.getOLAPRootObject().getChildren()) {
