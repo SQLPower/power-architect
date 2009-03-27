@@ -52,6 +52,24 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
     
     private final OLAPPanesWatcher olapPanesWatcher = new OLAPPanesWatcher();
 
+    /**
+     * Creates a copy of the given UsageComponent.
+     * 
+     * <p>BUG: The new copy will not react properly to its associated panes
+     * moving around. It should, however, be sufficient for printing or PDF
+     * generation.
+     * 
+     * @param copyMe The UsageComponent to copy.
+     */
+    public UsageComponent(UsageComponent copyMe, PlayPenContentPane parent) {
+        super(copyMe, parent);
+        model = copyMe.model;
+        // TODO refactor listener strategy so listeners could be set up here
+        pane1 = copyMe.pane1;
+        pane2 = copyMe.pane2;
+        updateUI();
+    }
+    
     public UsageComponent(PlayPenContentPane parent, OLAPObject model, OLAPPane<?, ?> pane1, OLAPPane<?, ?> pane2) {
         super(parent);
         this.model = model;

@@ -70,6 +70,40 @@ public abstract class PlayPenComponent implements Selectable {
     protected boolean selected;
 
     protected boolean componentPreviouslySelected;
+
+    /**
+     * Copy constructor. Makes deep copies of all PlayPenComponent state.
+     * Subclasses that implement a copy constructor should chain to this
+     * constructor in their own copy constructors.
+     * <p>
+     * The parent reference of the new copy will be null. Copy constructors in
+     * subclasses should also leave the parent pointer null--it is up to the
+     * code initiating the copy to add the newly-copied component to some parent
+     * (if you want it to belong to some parent).
+     * 
+     * @param copyMe the playpen component this new component should be a copy of
+     * @param parent the parent content pane of this new copy
+     */
+    protected PlayPenComponent(PlayPenComponent copyMe, PlayPenContentPane parent) {
+        backgroundColor = copyMe.backgroundColor;
+        if (copyMe.bounds != null) {
+            bounds = new Rectangle(copyMe.bounds);
+        }
+        componentPreviouslySelected = copyMe.componentPreviouslySelected;
+        foregroundColor = copyMe.foregroundColor;
+        if (copyMe.insets != null) {
+            insets = new Insets(
+                    copyMe.insets.top, copyMe.insets.left,
+                    copyMe.insets.bottom, copyMe.insets.right);
+        }
+        opaque = copyMe.opaque;
+        this.parent = parent;
+        // pcs should not be copied
+        selected = copyMe.selected;
+        // selectionListeners should not be copied
+        toolTipText = copyMe.toolTipText;
+        // ui should not be copied, but subclass should call updateUI()
+    }
     
     protected PlayPenComponent(PlayPenContentPane parent) {
         this.parent = parent;
@@ -452,7 +486,7 @@ public abstract class PlayPenComponent implements Selectable {
 
     // --------------------- SELECTABLE SUPPORT ---------------------
 
-    private List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
+    private final List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
 
     public final void addSelectionListener(SelectionListener l) {
         selectionListeners.add(l);

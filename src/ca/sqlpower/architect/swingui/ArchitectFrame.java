@@ -365,7 +365,7 @@ public class ArchitectFrame extends JFrame {
         printAction.putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_P, accelMask));
 
-        exportPlaypenToPDFAction = new ExportPlaypenToPDFAction(session);
+        exportPlaypenToPDFAction = new ExportPlaypenToPDFAction(session, session.getPlayPen());
 
         zoomInAction = new ZoomAction(session, session.getPlayPen(), ZOOM_STEP);
         zoomOutAction = new ZoomAction(session, session.getPlayPen(), ZOOM_STEP * -1.0);

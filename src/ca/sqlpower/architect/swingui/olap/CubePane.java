@@ -42,6 +42,11 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
     @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(CubePane.class);
     
+    public CubePane(CubePane copyMe, PlayPenContentPane parent) {
+        super(copyMe, parent);
+        updateUI();
+    }
+    
     public CubePane(Cube model, PlayPenContentPane parent) {
         super(parent);
         this.model = model;

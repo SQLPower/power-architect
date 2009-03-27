@@ -418,26 +418,40 @@ public class PlayPen extends JPanel
 	 */
 	public PlayPen(ArchitectSwingSession session, PlayPen pp) {
 		this(session);
-
+		logger.debug("Copying PlayPen@" + System.identityHashCode(pp) + " into " + System.identityHashCode(this));
 		this.antialiasSetting = pp.antialiasSetting;
 		
 		setFont(pp.getFont());
 		this.setForeground(pp.getForeground());
 		this.setBackground(pp.getBackground());
 		
+		// XXX this should be done by making PlayPenComponent cloneable.
+		// it's silly that playpen has to know about every subclass of ppc
+		logger.debug("Copying " + pp.getContentPane().getComponentCount() + " components...");
 		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
 			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
 			if (ppc instanceof TablePane) {
 				TablePane tp = (TablePane) ppc;
-				addImpl(new TablePane(tp, contentPane), ppc.getPreferredLocation(), contentPane.getComponentCount());
-			}
-		}
-
-		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
-			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
-			if (ppc instanceof Relationship) {
+				addImpl(new TablePane(tp, contentPane), ppc.getPreferredLocation(), i);
+			} else if (ppc instanceof Relationship) {
 				Relationship rel = (Relationship) ppc;
-				addImpl(new Relationship(rel, contentPane), ppc.getPreferredLocation(), contentPane.getComponentCount());
+				addImpl(new Relationship(rel, contentPane), ppc.getPreferredLocation(), i);
+            } else if (ppc instanceof CubePane) {
+                CubePane cp = (CubePane) ppc;
+                addImpl(new CubePane(cp, contentPane), ppc.getPreferredLocation(), i);
+            } else if (ppc instanceof DimensionPane) {
+                DimensionPane dp = (DimensionPane) ppc;
+                addImpl(new DimensionPane(dp, contentPane), ppc.getPreferredLocation(), i);
+            } else if (ppc instanceof VirtualCubePane) {
+                VirtualCubePane vcp = (VirtualCubePane) ppc;
+                addImpl(new VirtualCubePane(vcp, contentPane), ppc.getPreferredLocation(), i);
+            } else if (ppc instanceof UsageComponent) {
+                UsageComponent uc = (UsageComponent) ppc;
+                getContentPane().add(new UsageComponent(uc, contentPane), i);
+			} else {
+			    throw new UnsupportedOperationException(
+			            "I don't know how to copy PlayPenComponent type " +
+			            ppc.getClass().getName());
 			}
 		}
 		setSize(getPreferredSize());
@@ -458,6 +472,7 @@ public class PlayPen extends JPanel
      * stop using it.
      */
     public void destroy() {
+        // FIXME the content pane must be notified of this destruction, either explicitly or via a lifecycle event
         firePlayPenLifecycleEvent();
         try {
             removeHierarcyListeners(session.getTargetDatabase());
