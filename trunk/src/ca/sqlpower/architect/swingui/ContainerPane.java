@@ -91,6 +91,27 @@ implements DragSourceListener, LayoutNode {
      */
     protected final Set<C> selectedItems = new HashSet<C>();
 
+    /**
+     * Creates a copy of this container pane suitable for use with printing or
+     * PDF generation. The new copy may not have all listeners set up properly
+     * for interactive use.
+     * 
+     * @param copyMe
+     *            the container pane to copy.
+     */
+    protected ContainerPane(ContainerPane<T, C> copyMe, PlayPenContentPane parent) {
+        super(copyMe, parent);
+        dashed = copyMe.dashed;
+        // itemSelectionListeners should not be copied
+        if (copyMe.margin != null) {
+            margin = new Insets(
+                    copyMe.margin.top, copyMe.margin.left,
+                    copyMe.margin.bottom, copyMe.margin.right);
+        }
+        model = copyMe.model;
+        rounded = copyMe.rounded;
+    }
+    
     protected ContainerPane(PlayPenContentPane parent) {
         super(parent);
         this.backgroundColor = new Color(240, 240, 240);

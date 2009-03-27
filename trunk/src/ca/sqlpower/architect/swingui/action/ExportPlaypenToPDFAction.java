@@ -50,10 +50,20 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
 
     private static final String FILE_KEY = "FILE_KEY"; //$NON-NLS-1$
     
-    private static int OUTSIDE_PADDING = 10; 
+    private static int OUTSIDE_PADDING = 10;
 
-    public ExportPlaypenToPDFAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("ExportPlaypenToPDFAction.name"), Messages.getString("ExportPlaypenToPDFAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
+    /**
+     * Creates an action that exports the session's relational playpen to a PDF
+     * file.
+     * 
+     * @param session
+     *            The session that owns this action.
+     * @param playPen
+     *            The playpen to export. Could be the relational playpen or one
+     *            of the OLAP playpens.
+     */
+    public ExportPlaypenToPDFAction(ArchitectSwingSession session, PlayPen playPen) {
+        super(session, playPen, Messages.getString("ExportPlaypenToPDFAction.name"), Messages.getString("ExportPlaypenToPDFAction.description"), null); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     /**
@@ -69,7 +79,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
         
         File file = null;
         while (true) {
-            int response = chooser.showSaveDialog(session.getArchitectFrame());
+            int response = chooser.showSaveDialog(playpen);
 
             if (response != JFileChooser.APPROVE_OPTION) {
                 return false;
@@ -107,6 +117,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
 
     @Override
     public void doStuff(MonitorableImpl monitor, Map<String, Object> properties) {
+        logger.debug("Creating PDF of playpen: " + playpen);
         PlayPen playPen = new PlayPen(session, playpen);
         
         // don't need this playpen to be interactive or respond to SQLObject changes
@@ -141,6 +152,9 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
             int j=0;
             for (int i = contentPane.getComponentCount() - 1; i >= 0; i--) {
                 PlayPenComponent ppc = contentPane.getComponent(i);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Painting component " + ppc);
+                }
                 g.translate(ppc.getLocation().x, ppc.getLocation().y);
                 ppc.paint(g);
                 g.translate(-ppc.getLocation().x, -ppc.getLocation().y);

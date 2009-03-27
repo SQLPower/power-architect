@@ -104,6 +104,11 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
 
     private final HierarchyWatcher hierarchyWatcher = new HierarchyWatcher();
     
+    public DimensionPane(DimensionPane copyMe, PlayPenContentPane parent) {
+        super(copyMe, parent);
+        updateUI();
+    }
+    
     public DimensionPane(Dimension m, PlayPenContentPane parent) {
         super(parent);
         this.model = m;

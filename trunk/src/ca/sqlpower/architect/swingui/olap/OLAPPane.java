@@ -92,7 +92,20 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      */
     private PlayPenCoordinate<T, C> insertionPoint;
 
-
+    /**
+     * Creates a copy of this OLAP pane suitable for use with printing or
+     * PDF generation. The new copy may not have all listeners set up properly
+     * for interactive use.
+     * 
+     * @param copyMe
+     *            the OLAP pane to copy.
+     */
+    protected OLAPPane(OLAPPane<T, C> copyMe, PlayPenContentPane parent) {
+        super(copyMe, parent);
+        sections.addAll(copyMe.sections); // XXX might need deep copy (could be tricky)
+        // don't worry about preserving selections
+    }
+    
     protected OLAPPane(PlayPenContentPane parent) {
         super(parent);
     }

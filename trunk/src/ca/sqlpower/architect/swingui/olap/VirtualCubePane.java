@@ -39,6 +39,11 @@ import ca.sqlpower.swingui.DataEntryPanel;
 
 public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
 
+    public VirtualCubePane(VirtualCubePane copyMe, PlayPenContentPane parent) {
+        super(copyMe, parent);
+        updateUI();
+    }
+    
     public VirtualCubePane(VirtualCube model, PlayPenContentPane parent) {
         super(parent);
         this.model = model;
