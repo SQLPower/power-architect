@@ -1163,10 +1163,11 @@
 	</target>
 
 	<target name="osx_jdbc_tgz" depends="osx_jdbc_dist" if="isNotMac">
-		<tar destfile="${dist.dir}/Architect-OSX-jdbc-${app.version}.tar.gz"
-					compression="gzip">
-			<tarfileset dir="${staging.dir}" includes="Power*Architect*JDBC.app/**"/>
-		</tar>
+		<exec executable="tar" dir="${staging.dir}">
+			<arg value="-cpzf" />
+			<arg value="../${dist.dir}/Architect-OSX-${app.version}.tar.gz"/>
+			<arg value="Power Architect JDBC.app"/>
+		</exec>
 	</target>
 
 	<!-- Build a "generic" (e.g., UNIX) install that users will just un-tar -->
