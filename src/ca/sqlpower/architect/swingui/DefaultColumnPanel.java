@@ -27,6 +27,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.sql.Types;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -218,11 +219,11 @@ public class DefaultColumnPanel extends JPanel implements ActionListener, DataEn
     public boolean applyChanges() {
         logger.debug("DefaultColumnPanel applyChanges");
         logger.debug(colName.getText().trim().equals(""));
-        if (!colName.getText().trim().equals("")) {
-            SQLColumn.setDefaultName(colName.getText());
-        }
+        SQLColumn.setDefaultName(colName.getText());
         if (colType.getSelectedItem() != null) {
             SQLColumn.setDefaultType(((SQLType)colType.getSelectedItem()).getType());
+        } else {
+            SQLColumn.setDefaultType(Types.INTEGER);
         }
         SQLColumn.setDefaultPrec((Integer)colPrec.getValue());
         SQLColumn.setDefaultScale((Integer)colScale.getValue());
