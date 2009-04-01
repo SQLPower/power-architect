@@ -154,7 +154,7 @@ public class TestColumnEditPanel extends TestCase {
 		c2.setPrimaryKeySeq(1);
 		assertEquals(5, table.getColumns().size());
         assertTrue(c1.isPrimaryKey());
-        assertTrue(c1.isPrimaryKey());
+        assertTrue(c2.isPrimaryKey());
 		
         int previousIdx = table.getColumnIndex(table.getColumnByName("PKColumn 1"));
         ColumnEditPanel editPanel = new ColumnEditPanel(c1, session);
