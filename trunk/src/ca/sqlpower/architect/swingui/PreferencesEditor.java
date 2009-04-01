@@ -92,6 +92,10 @@ public class PreferencesEditor {
             dsTypeEditor.addTab(Messages.getString("PreferencesEditor.propertiesSection"), architectPropPanel);
             
             tp.add(Messages.getString("PreferencesEditor.jdbcDriversSection"), dsTypeEditor.getPanel()); //$NON-NLS-1$
+        
+            final DefaultColumnPanel defaultColumnPanel = new DefaultColumnPanel(context);
+            tp.add(Messages.getString("PreferencesEditor.defaultColumnSection"),defaultColumnPanel);
+            
     
         
             JDefaultButton okButton = new JDefaultButton(DataEntryPanelBuilder.OK_BUTTON_LABEL);
@@ -99,6 +103,7 @@ public class PreferencesEditor {
                     public void actionPerformed(ActionEvent evt) {
                         prefPanel.applyChanges();
                         dsTypeEditor.applyChanges();
+                        defaultColumnPanel.applyChanges();
                         d.setVisible(false);
                     }
                 });
@@ -107,6 +112,7 @@ public class PreferencesEditor {
                     public void actionPerformed(ActionEvent evt) {
                         prefPanel.discardChanges();
                         dsTypeEditor.discardChanges();
+                        defaultColumnPanel.discardChanges();
                         d.setVisible(false);
                     }
             };
