@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Types;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -59,7 +60,6 @@ import javax.swing.event.MenuListener;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
-import org.hsqldb.Types;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
@@ -113,8 +113,8 @@ import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPSchemaManagerAction;
 import ca.sqlpower.sqlobject.SQLColumn;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 import ca.sqlpower.swingui.SPSUtils;
 
