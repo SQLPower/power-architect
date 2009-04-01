@@ -59,6 +59,7 @@ import javax.swing.event.MenuListener;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
+import org.hsqldb.Types;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
@@ -111,6 +112,7 @@ import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPSchemaManagerAction;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
@@ -266,6 +268,16 @@ public class ArchitectFrame extends JFrame {
         addWindowListener(new ArchitectFrameWindowListener());
         session.getUserSettings().getSwingSettings().setBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN,
                 prefs.getBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, true));
+        
+        SQLColumn.setDefaultName(prefs.get(DefaultColumnUserSettings.DEFAULT_COLUMN_NAME, "New Column"));
+        SQLColumn.setDefaultType(prefs.getInt(DefaultColumnUserSettings.DEFAULT_COLUMN_TYPE, Types.INTEGER));
+        SQLColumn.setDefaultPrec(prefs.getInt(DefaultColumnUserSettings.DEFAULT_COLUMN_PREC, 10));
+        SQLColumn.setDefaultScale(prefs.getInt(DefaultColumnUserSettings.DEFAULT_COLUMN_SCALE, 0));
+        SQLColumn.setDefaultInPK(prefs.getBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_INPK, false));
+        SQLColumn.setDefaultNullable(prefs.getBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_NULLABLE, false));
+        SQLColumn.setDefaultAutoInc(prefs.getBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_AUTOINC, false));
+        SQLColumn.setDefaultRemarks(prefs.get(DefaultColumnUserSettings.DEFAULT_COLUMN_REMARKS, ""));
+        SQLColumn.setDefaultForDefaultValue(prefs.get(DefaultColumnUserSettings.DEFAULT_COLUMN_DEFAULT_VALUE, ""));
         
         addComponentListener(new ComponentListener() {
             public void componentHidden(ComponentEvent e) {
@@ -743,6 +755,16 @@ public class ArchitectFrame extends JFrame {
 
 		us.write();
         prefs.put(ArchitectSession.PREFS_PL_INI_PATH, session.getContext().getPlDotIniPath());
+        
+        prefs.put(DefaultColumnUserSettings.DEFAULT_COLUMN_NAME, SQLColumn.getDefaultName());
+        prefs.putInt(DefaultColumnUserSettings.DEFAULT_COLUMN_TYPE, SQLColumn.getDefaultType());
+        prefs.putInt(DefaultColumnUserSettings.DEFAULT_COLUMN_PREC, SQLColumn.getDefaultPrec());
+        prefs.putInt(DefaultColumnUserSettings.DEFAULT_COLUMN_SCALE, SQLColumn.getDefaultScale());
+        prefs.putBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_INPK, SQLColumn.isDefaultInPK());
+        prefs.putBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_NULLABLE, SQLColumn.isDefaultNullable());
+        prefs.putBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_AUTOINC, SQLColumn.isDefaultAutoInc());
+        prefs.put(DefaultColumnUserSettings.DEFAULT_COLUMN_REMARKS, SQLColumn.getDefaultRemarks());
+        prefs.put(DefaultColumnUserSettings.DEFAULT_COLUMN_DEFAULT_VALUE, SQLColumn.getDefaultForDefaultValue());
 		try {
             session.getContext().getPlDotIni().write(new File(session.getContext().getPlDotIniPath()));
         } catch (IOException e) {

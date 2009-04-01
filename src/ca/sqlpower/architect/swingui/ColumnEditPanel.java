@@ -70,6 +70,7 @@ import ca.sqlpower.sqlobject.SQLObjectListener;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -243,7 +244,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         panel.add(colPrec = createPrecisionEditor(), cc.xy(2, row));
         componentEnabledMap.put(colPrec, cb);
         colPrec.addChangeListener(checkboxEnabler);
-        focusThenSelectAll(colPrec);
+        SPSUtils.makeJSpinnerSelectAllTextOnFocus(colPrec);
         
         cb = new JCheckBox();
         if (cols.size() > 1) {
@@ -252,7 +253,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         panel.add(colScale = createScaleEditor(), cc.xy(5, row++));
         componentEnabledMap.put(colScale, cb);
         colScale.addChangeListener(checkboxEnabler);
-        focusThenSelectAll(colScale);
+        SPSUtils.makeJSpinnerSelectAllTextOnFocus(colScale);
         
         layout.appendRow(RowSpec.decode("5dlu"));
         row++;
@@ -443,7 +444,15 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         updateComponent(colDefaultValue, col.getDefaultValue());
         
         // TODO handle checkboxes
-        colInPK.setSelected(col.getPrimaryKeySeq() != null);
+        if (col.getParentTable() == null) {
+            colInPK.setSelected(SQLColumn.isDefaultInPK());
+            logger.debug("new constructed column");
+        } else {
+            colInPK.setSelected(col.isPrimaryKey());
+            logger.debug("existing column");
+        }
+        logger.debug("Selected" + colInPK.isSelected());
+        
         colAutoInc.setSelected(col.isAutoIncrement());
 
         updateComponent(colAutoIncSequenceName, col.getAutoIncrementSequenceName());
@@ -811,36 +820,6 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         }
     };
     
-    /**
-     * When the spinner's textfield gains focus,it will be selected all.
-     * The reason why not directly use .getTextField().selectAll() is it
-     * doesn't work with JSpinner (though it's supposed to),So it is a bug
-     * in java which they haven't solved yet. URL to this bug : 
-     * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4699955
-     */
-    private void focusThenSelectAll(JSpinner spinner) {
-        JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor)spinner.getEditor();
-        editor.getTextField().addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent e) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Focus Gained: " + e);
-                }
-                if (e.getSource() instanceof JTextComponent) {
-                    final JTextComponent textComponent = ((JTextComponent)e.getSource());
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            textComponent.selectAll();
-                        }
-                    });
-                }
-            }
-            
-            public void focusLost(FocusEvent e) {
-                if(logger.isDebugEnabled()) {
-                    logger.debug("Focus Lost:" + e);
-                }
-            }
-        });
-    }
+
 
 }
