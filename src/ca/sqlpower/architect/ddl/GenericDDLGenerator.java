@@ -152,15 +152,21 @@ public class GenericDDLGenerator implements DDLGenerator {
     protected Map<String, ProfileFunctionDescriptor> profileFunctionMap;
 
 
-
+    public GenericDDLGenerator(boolean allowConnection) throws SQLException {
+        this.allowConnection = allowConnection;
+        warnings = new ArrayList();
+        ddlStatements = new ArrayList();
+        ddl = new StringBuffer(500);
+        println("");
+        topLevelNames = new CaseInsensitiveHashMap();  // for tracking dup table/relationship names
+        createTypeMap();
+    }
+    
+    /**
+     * Creates a new generic DDL generator that's allowed to connect to the target database.
+     */
 	public GenericDDLGenerator() throws SQLException {
-		allowConnection = true;
-		warnings = new ArrayList();
-		ddlStatements = new ArrayList();
-		ddl = new StringBuffer(500);
-		println("");
-		topLevelNames = new CaseInsensitiveHashMap();  // for tracking dup table/relationship names
-		createTypeMap();
+	    this(true);
 	}
 
     public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, SQLObjectException {
