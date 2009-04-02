@@ -61,12 +61,12 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.swingui.DataEntryPanel;
@@ -106,7 +106,9 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      */
     private final JLabel sourceLabel;
 
-    private final JTextField colName;
+    private final JTextField colPhysicalName;
+    
+    private final JTextField colLogicalName;
 
     private final JComboBox colType;
 
@@ -184,33 +186,55 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         row++;
         
         layout.appendRow(RowSpec.decode("p"));
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.name")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.physicalName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
         }
-        panel.add(colName = new JTextField(), cc.xyw(2, row++, 4));
-        componentEnabledMap.put(colName, cb);
-        colName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
-        colName.addComponentListener(new ComponentAdapter() {
+        panel.add(colPhysicalName = new JTextField(), cc.xyw(2, row++, 4));
+        componentEnabledMap.put(colPhysicalName, cb);
+        colPhysicalName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
+        colPhysicalName.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentShown(ComponentEvent e) {
-                colName.requestFocusInWindow();
+                colPhysicalName.requestFocusInWindow();
             }
         });
-        colName.addFocusListener(new FocusAdapter() {
+        colPhysicalName.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent e) {
                 if(logger.isDebugEnabled()) {
                     logger.debug("focus Gained : " + e);
                 }
-                colName.selectAll();
+                colPhysicalName.selectAll();
             }
-            
-            public void focusLost(FocusEvent e) {
+        });
+
+        layout.appendRow(RowSpec.decode("5dlu"));
+        row++;
+
+        layout.appendRow(RowSpec.decode("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.logicalName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
+        layout.appendRow(RowSpec.decode("p"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
+        panel.add(colLogicalName = new JTextField(), cc.xyw(2, row++, 4));
+        componentEnabledMap.put(colLogicalName, cb);
+        colLogicalName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
+        colLogicalName.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                colLogicalName.requestFocusInWindow();
+            }
+        });
+        colLogicalName.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
                 if(logger.isDebugEnabled()) {
-                    logger.debug("focus lost : " + e);
+                    logger.debug("focus Gained : " + e);
                 }
+                colLogicalName.selectAll();
             }
         });
 
@@ -309,7 +333,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         colAutoIncSequenceName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
         
         // Listener to update the sequence name when the column name changes
-        colName.getDocument().addDocumentListener(new DocumentListener() {
+        colPhysicalName.getDocument().addDocumentListener(new DocumentListener() {
             public void changedUpdate(DocumentEvent e) {
                 syncSequenceName();
             }
@@ -337,7 +361,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                     discoverSequenceNamePattern(column.getName());
                     syncSequenceName();
                 } else {
-                    discoverSequenceNamePattern(colName.getText());
+                    discoverSequenceNamePattern(colPhysicalName.getText());
                 }
             }
         });
@@ -387,8 +411,8 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         }
 
 //         TODO only give focus to column name if it's enabled?
-        colName.requestFocus();
-        colName.selectAll();
+        colPhysicalName.requestFocus();
+        colPhysicalName.selectAll();
         
         SQLObjectUtils.listenToHierarchy(obsolesenceListener, session.getRootObject());
         panel.addAncestorListener(cleanupListener);
@@ -431,7 +455,8 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                             sourceColumn.getParentTable()) + "." + sourceColumn.getName());
         }
         
-        updateComponent(colName, col.getName());
+        updateComponent(colPhysicalName, col.getName());
+        updateComponent(colLogicalName, col.getLogicalName());
         updateComponent(colType, SQLType.getType(col.getType()));
         
         updateComponent(colScale, Integer.valueOf(col.getScale()));
@@ -518,7 +543,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      */
     private void syncSequenceName() {
         if (seqNamePrefix != null && seqNameSuffix != null) {
-            String newName = seqNamePrefix + colName.getText() + seqNameSuffix;
+            String newName = seqNamePrefix + colPhysicalName.getText() + seqNameSuffix;
             colAutoIncSequenceName.setText(newName);
         }
     }
@@ -581,14 +606,16 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
             compoundEditRoot.startCompoundEdit(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
             
             for (SQLColumn column : columns) {
-                if (componentEnabledMap.get(colName).isSelected()) {
-                    if (colName.getText().trim().length() == 0) {
+                if (componentEnabledMap.get(colPhysicalName).isSelected()) {
+                    if (colPhysicalName.getText().trim().length() == 0) {
                         errors.add(Messages.getString("ColumnEditPanel.columnNameRequired")); //$NON-NLS-1$
                     } else {
-                        column.setName(colName.getText());
+                        column.setName(colPhysicalName.getText());
                     }
                 }
-                
+                if (componentEnabledMap.get(colLogicalName).isSelected()) {
+                    column.setLogicalName(colLogicalName.getText());
+                }                
                 if (componentEnabledMap.get(colType).isSelected()) {
                     column.setType(((SQLType) colType.getSelectedItem()).getType());
                 }
@@ -683,10 +710,14 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
     public JCheckBox getColInPK() {
         return colInPK;
     }
-
     /** Only for testing. Normal client code should not need to call this. */
-    public JTextField getColName() {
-        return colName;
+    public JTextField getColLogicalName() {
+        return colLogicalName;
+    }
+    
+    /** Only for testing. Normal client code should not need to call this. */
+    public JTextField getColPhysicalName() {
+        return colPhysicalName;
     }
 
     /** Only for testing. Normal client code should not need to call this. */
