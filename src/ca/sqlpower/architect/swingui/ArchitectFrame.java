@@ -73,8 +73,10 @@ import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CheckForUpdateAction;
 import ca.sqlpower.architect.swingui.action.CloseProjectAction;
 import ca.sqlpower.architect.swingui.action.CompareDMAction;
+import ca.sqlpower.architect.swingui.action.CopySelectedAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.CreateTableAction;
+import ca.sqlpower.architect.swingui.action.CutSelectedAction;
 import ca.sqlpower.architect.swingui.action.DataMoverAction;
 import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
@@ -94,6 +96,7 @@ import ca.sqlpower.architect.swingui.action.InsertColumnAction;
 import ca.sqlpower.architect.swingui.action.InsertIndexAction;
 import ca.sqlpower.architect.swingui.action.KettleJobAction;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
+import ca.sqlpower.architect.swingui.action.PasteSelectedAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.action.PrintAction;
 import ca.sqlpower.architect.swingui.action.ProfileAction;
@@ -195,6 +198,9 @@ public class ArchitectFrame extends JFrame {
     private Action compareDMAction;
     private Action dataMoverAction;
     private Action sqlQueryAction;
+    private CopySelectedAction copyAction;
+    private CutSelectedAction cutAction;
+    private PasteSelectedAction pasteAction;
     
     /**
      * Closes all sessions and terminates the JVM.
@@ -204,8 +210,6 @@ public class ArchitectFrame extends JFrame {
             session.getContext().closeAll();
         }
     };
-
-
 
     /**
      * This constructor is used by the session implementation. To obtain an
@@ -424,6 +428,9 @@ public class ArchitectFrame extends JFrame {
         focusToParentAction = new FocusToChildOrParentTableAction(session, Messages.getString("ArchitectFrame.setFocusToParentTableActionName"), Messages.getString("ArchitectFrame.setFocusToParentTableActionDescription"), true); //$NON-NLS-1$ //$NON-NLS-2$
         focusToChildAction = new FocusToChildOrParentTableAction(session, Messages.getString("ArchitectFrame.setFocusToChildTableActionName"), Messages.getString("ArchitectFrame.setFocusToChildTableActionDescription"), false); //$NON-NLS-1$ //$NON-NLS-2$
         
+        copyAction = new CopySelectedAction(session);
+        cutAction = new CutSelectedAction(session);
+        pasteAction = new PasteSelectedAction(session);
         
         menuBar = createNewMenuBar();        
         setJMenuBar(menuBar);
@@ -532,6 +539,10 @@ public class ArchitectFrame extends JFrame {
 
         JMenu editMenu = new JMenu(Messages.getString("ArchitectFrame.editMenu")); //$NON-NLS-1$
         editMenu.setMnemonic('e');
+        editMenu.add(cutAction);
+        editMenu.add(copyAction);
+        editMenu.add(pasteAction);
+        editMenu.addSeparator();
         editMenu.add(undoAction);
         editMenu.add(redoAction);
         editMenu.addSeparator();

@@ -19,7 +19,11 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Component;
+import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.Transferable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -36,6 +40,7 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -54,7 +59,7 @@ import ca.sqlpower.swingui.event.SessionLifecycleListener;
  * It may one day be desirable for this to be an interface, but there didn't seem
  * to be a need for it when we first created this class.
  */
-public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionContext {
+public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionContext, ClipboardOwner {
     
     private static final Logger logger = Logger.getLogger(ArchitectSwingSessionContextImpl.class);
     
@@ -80,6 +85,13 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * The Preferences editor for this application context.
      */
     private final PreferencesEditor prefsEditor;
+    
+    /**
+     * This internal clipboard allows copying and pasting objects within
+     * the app to stay as objects. The system clipboard throws modification
+     * exceptions when it is used with SQLObjects.
+     */
+    private final Clipboard clipboard = new Clipboard("Internal clipboard");
     
     /**
      * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, SPDataSource, Runnable)}
@@ -339,5 +351,27 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
     public void setPlDotIniPath(String plDotIniPath) {
         delegateContext.setPlDotIniPath(plDotIniPath);
+    }
+    
+    public Transferable getClipboardContents() {
+        if (clipboard.getContents(null) != null) {
+            return clipboard.getContents(null);
+        }
+        return Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+    }
+    
+    public void setClipboardContents(Transferable t) {
+        clipboard.setContents(t, this);
+        if (t instanceof SQLObjectSelection) {
+            ((SQLObjectSelection) t).setLocal(false);
+        }
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(t, this);
+        if (t instanceof SQLObjectSelection) {
+            ((SQLObjectSelection) t).setLocal(true);
+        }
+    }
+
+    public void lostOwnership(Clipboard clipboard, Transferable contents) {
+        clipboard.setContents(null, this);
     }
 }

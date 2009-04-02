@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Window;
+import java.awt.datatransfer.Transferable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -183,5 +184,13 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
         }
         this.plDotIniPath = plDotIniPath;
         this.plDotIni = null;
+    }
+
+    public Transferable getClipboardContents() {
+        throw new IllegalStateException("Getting clipboard contents not currently implemented.");
+    }
+
+    public void setClipboardContents(Transferable t) {
+        throw new IllegalStateException("Setting clipboard contents not currently implemented.");        
     }
 }
