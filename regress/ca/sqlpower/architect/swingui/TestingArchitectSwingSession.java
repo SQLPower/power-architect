@@ -79,6 +79,8 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private boolean showFkTag = true;
     private boolean showAkTag = true;
     
+    private boolean usingAliasNames = false;
+    
     private ColumnVisibility choice = ColumnVisibility.ALL;
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws SQLObjectException {
@@ -341,6 +343,14 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public UserPrompter createUserPrompter(String question, UserPromptType responseType, UserPromptOptions optionType, UserPromptResponse defaultResponseType,
             Object defaultResponse, String ... buttonNames) {
         return new DefaultUserPrompterFactory().createUserPrompter(question, responseType, optionType, defaultResponseType, defaultResponse, buttonNames);
+    }
+
+    public boolean isUsingAliasNames() {
+       return usingAliasNames;
+    }
+
+    public void setUsingAliasNames(boolean usingAliasNames) {
+        this.usingAliasNames = usingAliasNames;
     }
 
 }

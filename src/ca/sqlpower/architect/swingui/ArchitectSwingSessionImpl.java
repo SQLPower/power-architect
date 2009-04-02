@@ -141,6 +141,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private ProjectModificationWatcher projectModificationWatcher;
 
     private boolean relationshipLinesDirect;
+    private boolean usingAliasNames;
 
     private boolean showPkTag = true;
     private boolean showFkTag = true;
@@ -817,10 +818,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         return projectModificationWatcher;
     }
 
-    public boolean isRelationshipLinesDirect() {
-        return relationshipLinesDirect;
-    }
-
     public void setRelationshipLinesDirect(boolean relationshipLinesDirect) {
         this.relationshipLinesDirect = relationshipLinesDirect;
         getPlayPen().repaint();
@@ -828,6 +825,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public boolean getRelationshipLinesDirect() {
         return relationshipLinesDirect;
+    }
+    
+    public boolean isUsingAliasNames() {
+        return usingAliasNames;
+    }
+    
+    public void setUsingAliasNames(boolean usingAliasNames) {
+        this.usingAliasNames = usingAliasNames;
+        getPlayPen().repaint();
     }
 
     public SQLObjectRoot getRootObject() {
