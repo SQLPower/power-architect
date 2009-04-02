@@ -52,7 +52,8 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
      */
     private JDialog editDialog;
 	protected SQLTable table;
-	JTextField name;
+	JTextField technicalName;
+	JTextField aliasName;
 	JTextField pkName;
 	JTextArea remarks;
 	private JComboBox bgColor;
@@ -67,8 +68,10 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		super(new FormLayout());
 		this.session = session;
 		this.tp = session.getPlayPen().findTablePane(t);
-		add(new JLabel(Messages.getString("TableEditPanel.tableNameLabel"))); //$NON-NLS-1$
-		add(name = new JTextField("", 30)); //$NON-NLS-1$
+		add(new JLabel(Messages.getString("TableEditPanel.tableTechnicalNameLabel"))); //$NON-NLS-1$
+		add(technicalName = new JTextField("", 30)); //$NON-NLS-1$
+		add(new JLabel(Messages.getString("TableEditPanel.tableAliasNameLabel"))); //$NON-NLS-1$
+        add(aliasName = new JTextField("", 30)); //$NON-NLS-1$
 		add(new JLabel(Messages.getString("TableEditPanel.primaryKeyNameLabel"))); //$NON-NLS-1$
 		add(pkName = new JTextField("", 30)); //$NON-NLS-1$
 		add(new JLabel(Messages.getString("TableEditPanel.remarksLabel"))); //$NON-NLS-1$
@@ -99,7 +102,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 
 	private void editTable(SQLTable t) {
 		table = t;
-		name.setText(t.getName());
+		technicalName.setText(t.getName());
         try {
             if (t.getPrimaryKeyIndex() == null) {
                 pkName.setEnabled(false);
@@ -112,7 +115,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
             throw new SQLObjectRuntimeException(e);
         }
 		remarks.setText(t.getRemarks());
-		name.selectAll();
+		technicalName.selectAll();
 		
 		if (tp != null) {
     		bgColor.setSelectedItem(tp.getBackgroundColor());
@@ -134,7 +137,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		    StringBuffer warnings = new StringBuffer();
             //We need to check if the table name and/or primary key name is empty or not
             //if they are, we need to warn the user since it will mess up the SQLScripts we create
-            if (name.getText().trim().length() == 0) {
+            if (technicalName.getText().trim().length() == 0) {
                 warnings.append(Messages.getString("TableEditPanel.blankTableNameWarning")); //$NON-NLS-1$
                 
             }
@@ -156,7 +159,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                     table.getPrimaryKeyIndex().setName(pkName.getText());
                 }
                 
-                table.setName(name.getText());
+                table.setName(technicalName.getText());
                 table.setRemarks(remarks.getText());   
                 
                 if (tp != null) {
@@ -199,11 +202,11 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 	}
 
     public String getNameText() {
-        return name.getText();
+        return technicalName.getText();
     }
 
     public void setNameText(String newName) {
-        name.setText(newName);
+        technicalName.setText(newName);
     }
 
     public String getPkNameText() {

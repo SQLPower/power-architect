@@ -71,6 +71,9 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
     private JRadioButton showPkFk;
     private JRadioButton showPk;
     
+    private JRadioButton technicalName;
+    private JRadioButton aliasName;
+    
 	public ProjectSettingsPanel(ArchitectSwingSession session) {
 		this.session = session;
 		setup();
@@ -81,7 +84,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 	    CellConstraints cc = new CellConstraints();
 	    com.jgoodies.forms.layout.FormLayout layout = new com.jgoodies.forms.layout.FormLayout(
 	            "pref,pref",  //$NON-NLS-1$
-                "pref,4dlu,pref,4dlu,pref,4dlu,4dlu,pref,pref,4dlu,pref,pref,pref,pref,pref,pref"); //$NON-NLS-1$
+                "pref,4dlu,pref,4dlu,pref,4dlu,4dlu,pref,pref,4dlu,4dlu,pref,pref,4dlu,pref,pref,pref,pref,pref,pref,4dlu"); //$NON-NLS-1$
 		setLayout(layout);
 		int row = 1;
 		add(new JLabel(Messages.getString("ProjectSettingsPanel.snapshotSourceDbOption")), cc.xy(1, row)); //$NON-NLS-1$
@@ -108,6 +111,20 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         ButtonGroup lineStyleGroup = new ButtonGroup();
         lineStyleGroup.add(rectilinearRelationships);
         lineStyleGroup.add(directRelationships);
+        
+        row+=2;
+        add(new JSeparator(), cc.xyw(1, row, 2));
+        
+        row++;
+        add(new JLabel(Messages.getString("ProjectSettingsPanel.displayTechnicalOrAlias")), cc.xy(1, row)); //$NON-NLS-1$
+        add(technicalName = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayTechnicalNames")), cc.xy(2, row)); //$NON-NLS-1$
+        
+        row++;
+        add(new JLabel(), cc.xy(1, row));
+        add(aliasName = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayAliasNames")), cc.xy(2, row)); //$NON-NLS-1$
+        ButtonGroup nameDisplay = new ButtonGroup();
+        nameDisplay.add(technicalName);
+        nameDisplay.add(aliasName);
         
         row++;
         add(new JSeparator(), cc.xyw(1, row, 2));
@@ -138,9 +155,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         column_show_settings.add(showPkFkUnique);
         column_show_settings.add(showPkFk);
         column_show_settings.add(showPk);
-   
-        /*
-        */
+
 	}
 
 	private void revertToProjectSettings() {

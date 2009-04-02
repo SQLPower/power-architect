@@ -192,6 +192,18 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public void setRelationshipLinesDirect(boolean direct);
     
     /**
+     * Boolean to decide whether to display the logical(alias) names or the physical(technical) names
+     * for columns and tables.
+     */
+    public boolean isUsingAliasNames();
+    
+    /**
+     * To use alias names or not: True, if the alias names are to be displayed. False, if the
+     * technical names are to be displayed.
+     */
+    public void setUsingAliasNames(boolean usingAliasNames);
+    
+    /**
      * Returns whether the PK Tags will be shown
      */
     public boolean isShowPkTag();
