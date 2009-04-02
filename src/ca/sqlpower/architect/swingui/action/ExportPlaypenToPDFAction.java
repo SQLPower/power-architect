@@ -118,18 +118,18 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
     @Override
     public void doStuff(MonitorableImpl monitor, Map<String, Object> properties) {
         logger.debug("Creating PDF of playpen: " + playpen);
-        PlayPen playPen = new PlayPen(session, playpen);
+        PlayPen pp = new PlayPen(session, playpen);
         
         // don't need this playpen to be interactive or respond to SQLObject changes
-        playpen.destroy();
+        pp.destroy();
         
         /* We translate the graphics to (OUTSIDE_PADDING, OUTSIDE_PADDING) 
          * so nothing is drawn right on the edge of the document. So
          * we multiply by 2 so we can accomodate the translate and ensure
          * nothing gets drawn outside of the document size.
          */
-        final int width = playPen.getBounds().width + 2*OUTSIDE_PADDING;
-        final int height = playPen.getBounds().height + 2*OUTSIDE_PADDING;
+        final int width = pp.getBounds().width + 2*OUTSIDE_PADDING;
+        final int height = pp.getBounds().height + 2*OUTSIDE_PADDING;
         final Rectangle ppSize = new Rectangle(width, height);
         
         OutputStream out = null;
@@ -148,7 +148,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
             Graphics2D g = cb.createGraphicsShapes(width, height);
             // ensure a margin
             g.translate(OUTSIDE_PADDING, OUTSIDE_PADDING);
-            PlayPenContentPane contentPane = playPen.getContentPane();
+            PlayPenContentPane contentPane = pp.getContentPane();
             int j=0;
             for (int i = contentPane.getComponentCount() - 1; i >= 0; i--) {
                 PlayPenComponent ppc = contentPane.getComponent(i);
@@ -161,7 +161,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                 monitor.setProgress(j);
                 j++;
             }
-            playPen.paintComponent(g);
+            pp.paintComponent(g);
             g.dispose();
         } catch (Exception ex) {
             ASUtils.showExceptionDialog(session, 
