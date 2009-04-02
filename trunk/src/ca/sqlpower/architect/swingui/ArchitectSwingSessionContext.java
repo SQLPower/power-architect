@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Window;
+import java.awt.datatransfer.Transferable;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -145,4 +146,16 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      * Gets the user settings for this session 
      */
     public abstract CoreUserSettings getUserSettings();
+    
+    /**
+     * This gets either the clipboard internal to the context or the
+     * system's clipboard depending on the information contained by each.
+     */
+    public Transferable getClipboardContents();
+    
+    /**
+     * This sets either the clipboard internal to the context or the
+     * system's clipboard depending on the information contained by each.
+     */
+    public void setClipboardContents(Transferable t);
 }

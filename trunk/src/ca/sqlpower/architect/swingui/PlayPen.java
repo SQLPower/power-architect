@@ -121,14 +121,14 @@ import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.jdbcwrapper.DatabaseMetaDataDecorator;
 import ca.sqlpower.sql.jdbcwrapper.DatabaseMetaDataDecorator.CacheType;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
@@ -472,6 +472,7 @@ public class PlayPen extends JPanel
      * stop using it.
      */
     public void destroy() {
+        logger.debug("Destroying playpen " + System.identityHashCode(this));
         // FIXME the content pane must be notified of this destruction, either explicitly or via a lifecycle event
         firePlayPenLifecycleEvent();
         try {
@@ -1288,6 +1289,14 @@ public class PlayPen extends JPanel
 	 */
 	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws SQLObjectException {
 		SQLTable newTable = SQLTable.getDerivedInstance(source, session.getTargetDatabase()); // adds newTable to db
+		
+		//If the root source is in the play pen it's not really a source for ETL. 
+		for (SQLColumn col : newTable.getColumns()) {
+		    if (col.getSourceColumn() != null && getTables().contains(col.getSourceColumn().getParentTable())) {
+		        col.setSourceColumn(null);
+		    }
+		}
+		
 		String key = source.getName().toLowerCase();
 		boolean isAlreadyOnPlaypen = false;
 		int newSuffix = 0;
@@ -1451,7 +1460,7 @@ public class PlayPen extends JPanel
 	/**
 	 * Calls {@link #importTableCopy} for each table contained in the given schema.
 	 */
-	public synchronized void addObjects(List list, Point preferredLocation, SPSwingWorker nextProcess) throws SQLObjectException {
+	public synchronized void addObjects(List<SQLObject> list, Point preferredLocation, SPSwingWorker nextProcess) throws SQLObjectException {
 		ProgressMonitor pm
 		 = new ProgressMonitor(this,
 		                      Messages.getString("PlayPen.copyingObjectsToThePlaypen"), //$NON-NLS-1$
@@ -2055,42 +2064,27 @@ public class PlayPen extends JPanel
 
 			Transferable t = dtde.getTransferable();
 			PlayPen playpen = (PlayPen) dtde.getDropTargetContext().getComponent();
-			DataFlavor importFlavor = bestImportFlavor(playpen, t.getTransferDataFlavors());
-			if (importFlavor == null) {
-				dtde.rejectDrop();
-			} else {
-				try {
+			try {
+			    Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));
+			    if (playpen.addTransferable(t, dropLoc)){
+			        dtde.acceptDrop(DnDConstants.ACTION_COPY);
+			        dtde.dropComplete(true);
+			    } else {
+			        dtde.rejectDrop();
+			    }
 
-					dtde.acceptDrop(DnDConstants.ACTION_COPY);
-					Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));
-					Object[] paths = (Object[]) t.getTransferData(importFlavor);
-					// turn into a Collection of SQLObjects to make this more generic
-					List<SQLObject> sqlObjects = new ArrayList<SQLObject>();
-					for (Object oo : paths) {
-						if (oo instanceof SQLObject) {
-							sqlObjects.add((SQLObject) oo);
-						} else {
-							logger.error("Unknown object dropped in PlayPen: "+oo); //$NON-NLS-1$
-						}
-					}
-
-					// null: no next task is chained off this
-					playpen.addObjects(sqlObjects, dropLoc, null);
-					dtde.dropComplete(true);
-
-				} catch (UnsupportedFlavorException ufe) {
-					logger.error(ufe);
-					dtde.rejectDrop();
-				} catch (IOException ioe) {
-					logger.error(ioe);
-					dtde.rejectDrop();
-				} catch (InvalidDnDOperationException ex) {
-					logger.error(ex);
-					dtde.rejectDrop();
-				} catch (SQLObjectException ex) {
-					logger.error(ex);
-					dtde.rejectDrop();
-				}
+			} catch (UnsupportedFlavorException ufe) {
+			    logger.error(ufe);
+			    dtde.rejectDrop();
+			} catch (IOException ioe) {
+			    logger.error(ioe);
+			    dtde.rejectDrop();
+			} catch (InvalidDnDOperationException ex) {
+			    logger.error(ex);
+			    dtde.rejectDrop();
+			} catch (SQLObjectException ex) {
+			    logger.error(ex);
+			    dtde.rejectDrop();
 			}
 		}
 
@@ -2148,6 +2142,72 @@ public class PlayPen extends JPanel
 		}
 	}
 
+    /**
+     * This method takes a transferable object and tries to add the SQLObjects
+     * in the transferable to the play pen. If there is no transferable object
+     * then if there is a string or list of strings in the transferable this
+     * method will try to create SQLObjects for the transferred values.
+     * 
+     * @param t
+     *            The transferable to get objects from to add to the playpen
+     * @param dropPoint
+     *            The location where new objects will be added to the playpen
+     * @return True if objects were added successfully to the playpen. False
+     *         otherwise.
+     * @throws IOException 
+     * @throws UnsupportedFlavorException 
+     * @throws SQLObjectException 
+     */
+	private boolean addTransferable(Transferable t, Point dropPoint) throws UnsupportedFlavorException, IOException, SQLObjectException {
+	    if (t.isDataFlavorSupported(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR)) {
+            SQLObject[] paths = (SQLObject[]) t.getTransferData(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR);
+            // turn into a Collection of SQLObjects to make this more generic
+            List<SQLObject> sqlObjects = new ArrayList<SQLObject>();
+            for (Object oo : paths) {
+                if (oo instanceof SQLObject) {
+                    sqlObjects.add((SQLObject) oo);
+                } else {
+                    logger.error("Unknown object dropped in PlayPen: "+oo); //$NON-NLS-1$
+                }
+            }
+
+            // null: no next task is chained off this
+            addObjects(sqlObjects, dropPoint, null);
+	        return true;
+	    } else {
+	        return false;
+	    }
+	}
+	
+	/**
+     * This method takes a transferable object and tries to add the SQLObjects
+     * in the transferable to the play pen. If there is no transferable object
+     * then if there is a string or list of strings in the transferable this
+     * method will try to create SQLObjects for the transferred values. The
+     * objects will be placed at the mouse location if it is on the play pen
+     * or at the origin if it is not.
+     * 
+     * @param t
+     *            The transferable to get objects from to add to the playpen
+     */
+	public void addTransferable(Transferable t) {
+	    Point p = getMousePosition();
+	    if (p == null) {
+	        p = new Point(0, 0);
+	    }
+	    try {
+            if (!addTransferable(t, p)) {
+                JOptionPane.showMessageDialog(this, "Cannot paste the copied objects. Unknown object type.", "Cannot Paste Objects", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (UnsupportedFlavorException e) {
+            throw new RuntimeException("Could not paste copied object type.", e);
+        } catch (IOException e) {
+            logger.error("The real IOException", e);
+            throw new RuntimeException("Data copied changed while pasting.", e);
+        } catch (SQLObjectException e) {
+            throw new RuntimeException("Exception while pasting a SQLObject.", e);
+        }
+	}
 
 	public class TablePaneDragGestureListener implements DragGestureListener {
 		public void dragGestureRecognized(DragGestureEvent dge) {

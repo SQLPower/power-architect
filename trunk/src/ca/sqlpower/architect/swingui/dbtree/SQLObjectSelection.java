@@ -50,6 +50,12 @@ public class SQLObjectSelection implements Transferable {
     public static final DataFlavor SQLOBJECT_NAMES = new DataFlavor(String[].class, "List of selected object names");
     
     /**
+     * Data flavour that indicates a reference to a string containing the names
+     * of SQLObjects separated by a newline character.
+     */
+    public static final DataFlavor MULTILINE_SQLOBJECT_NAMES = new DataFlavor(String.class, "List of selected object names as one string separated by newlines");
+    
+    /**
      * These are the actual SQLObjects we're transfering.
      */
     private final SQLObject[] sqlObjects;
@@ -58,6 +64,23 @@ public class SQLObjectSelection implements Transferable {
      * These are the names of the SQLObjects we're transfering.
      */
     private final String[] sqlObjectNames;
+    
+    /**
+     * Thesea re the names of the SQLObjects we're transfering separated by newline characters.
+     */
+    private final String sqlObjectNamesNewlineSeparated;
+    
+    /**
+     * Tracks if this SQLObject is still local to the JVM it was created in. If
+     * this transferable is sent to the system's clipboard then it is no longer
+     * local and the SQLObject array cannot be used to copy or paste into
+     * other applications.
+     * <p>
+     * If another type of transferable is made this may need to be moved to an
+     * abstract class that is the parent of each transferable to make managing this
+     * simpler.
+     */
+    private boolean isLocal = true;
 
     /**
      * Creates a new transferable for the given collection of SQLObjects.
@@ -84,6 +107,14 @@ public class SQLObjectSelection implements Transferable {
         }
         this.sqlObjects = sqlObjects;
         sqlObjectNames = getObjectNames(sqlObjects);
+        StringBuffer sb = new StringBuffer();
+        boolean first = true;
+        for (SQLObject o : sqlObjects) {
+            if (!first) sb.append("\n");
+            sb.append(getObjectName(o));
+            first = false;
+        }
+        sqlObjectNamesNewlineSeparated = sb.toString();
     }
     
     public Object getTransferData(DataFlavor flavor)
@@ -92,17 +123,23 @@ public class SQLObjectSelection implements Transferable {
             return sqlObjects;
         } else if (flavor == SQLOBJECT_NAMES) {
             return sqlObjectNames;
+        } else if (flavor == MULTILINE_SQLOBJECT_NAMES) {
+            return sqlObjectNamesNewlineSeparated;
         } else {
             throw new UnsupportedFlavorException(flavor);
         }
     }
 
     public DataFlavor[] getTransferDataFlavors() {
-        return new DataFlavor[] { LOCAL_SQLOBJECT_ARRAY_FLAVOUR, SQLOBJECT_NAMES };
+        if (isLocal) {
+            return new DataFlavor[] { LOCAL_SQLOBJECT_ARRAY_FLAVOUR, SQLOBJECT_NAMES, MULTILINE_SQLOBJECT_NAMES };
+        } else {
+            return new DataFlavor[] {SQLOBJECT_NAMES, MULTILINE_SQLOBJECT_NAMES };
+        }
     }
 
     public boolean isDataFlavorSupported(DataFlavor flavor) {
-        return (flavor == LOCAL_SQLOBJECT_ARRAY_FLAVOUR || flavor == SQLOBJECT_NAMES);
+        return ((isLocal && flavor == LOCAL_SQLOBJECT_ARRAY_FLAVOUR) || flavor == SQLOBJECT_NAMES || flavor == MULTILINE_SQLOBJECT_NAMES);
     }
     
     /**
@@ -111,20 +148,33 @@ public class SQLObjectSelection implements Transferable {
      private String[] getObjectNames(SQLObject[] objects){
          String[] nodeNames = new String[objects.length];
          for (int i = 0; i < objects.length; i++) {
-             if (objects[i] instanceof SQLTable) {
-                 nodeNames[i] = ((SQLTable) objects[i]).toQualifiedName();
-             } else if (objects[i] instanceof SQLColumn) {
-                 nodeNames[i] = ((SQLColumn) objects[i]).getParentTable().getName() + "." + ((SQLColumn) objects[i]).getName();
-             } else {
-                 nodeNames[i] = objects[i].getName();
-             }
+             final SQLObject object = objects[i];
+             nodeNames[i] = getObjectName(object);
          }
          return nodeNames;
      }
+
+     /**
+      * Takes the tree paths to store the name of a SQLObject which will be used in a flavor.
+      */
+    private String getObjectName(final SQLObject object) {
+        String nodeName;
+        if (object instanceof SQLTable) {
+            nodeName = ((SQLTable) object).toQualifiedName();
+        } else if (object instanceof SQLColumn) {
+            nodeName = ((SQLColumn) object).getParentTable().getName() + "." + ((SQLColumn) object).getName();
+        } else {
+            nodeName = object.getName();
+        }
+        return nodeName;
+    }
      
      @Override
     public String toString() {
         return Arrays.toString(sqlObjectNames);
     }
 
+    public void setLocal(boolean isLocal) {
+        this.isLocal = isLocal;
+    }
 }

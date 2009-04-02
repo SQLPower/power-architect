@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Cursor;
+import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
 import java.awt.dnd.DragGestureListener;
@@ -35,8 +36,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -64,13 +70,14 @@ import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -110,8 +117,7 @@ public class DBTree extends JTree implements DragSourceListener {
      */
 	private static final Object KEY_DELETE_SELECTED
         = "ca.sqlpower.architect.swingui.DBTree.KEY_DELETE_SELECTED"; //$NON-NLS-1$
-
-
+	
 	// ----------- CONSTRUCTORS ------------
 
 	public DBTree(final ArchitectSwingSession session) throws SQLObjectException {
@@ -157,6 +163,18 @@ public class DBTree extends JTree implements DragSourceListener {
             }
             public void mouseClicked(MouseEvent e) {
                 //no-op
+            }
+        });
+        
+        getActionMap().put("copy", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                copySelection();
+            }
+        });
+        
+        getActionMap().put("cut", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                cutSelection();
             }
         });
 	}
@@ -812,44 +830,20 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
 			
 			DBTree t = (DBTree) dge.getComponent();
-  			TreePath[] p = t.getSelectionPaths();
-			if (p ==  null || p.length == 0) {
-				// nothing to export
-				return;
-			} else {
-				// export list of DnD-type tree paths
-			    StringBuilder userVisibleName = new StringBuilder();
-			    List<SQLObject> transferObjects = new ArrayList<SQLObject>();
-				for (int i = 0; i < p.length; i++) {
-					// ignore any playpen tables
-				    SQLObject so = (SQLObject) p[i].getLastPathComponent();
-				    boolean transferObject = true;
-				    SQLObject parent = so.getParent();
-				    while(parent != null) {
-				        if (parent instanceof SQLDatabase && ((SQLDatabase) parent).isPlayPenDatabase()) {
-				            transferObject = false;
-				            break;
-				        }
-				        parent = parent.getParent();
-				    }
-                    if (transferObject) {
-                        transferObjects.add(so);
-                        if (userVisibleName.length() != 0) {
-                            userVisibleName.append("\n");
-                        }
-                        userVisibleName.append(so.getName());
-                    }
-				}
-				logger.info("DBTree: exporting list of DnD-type tree paths"); //$NON-NLS-1$
+  			final Set<SQLObject> sqlObjectsToCopy = t.findSQLObjectsToCopy();
+  			if (!sqlObjectsToCopy.isEmpty()) {
+  			    Transferable transferObject = new SQLObjectSelection(sqlObjectsToCopy);
+  			    if (transferObject != null) {
+  			        // TODO add undo event
+  			        dge.getDragSource().startDrag
+  			                (dge,
+  			                null, //DragSource.DefaultCopyNoDrop,
+  			                transferObject,
+  			                t);
+  			    }
+  			}
+		}
 
-				// TODO add undo event
-				dge.getDragSource().startDrag
-					(dge,
-					 null, //DragSource.DefaultCopyNoDrop,
-					 new SQLObjectSelection(transferObjects),
-					 t);
-			}
- 		}
 	}
  	
  	public void setupKeyboardActions() {
@@ -872,10 +866,139 @@ public class DBTree extends JTree implements DragSourceListener {
         });
     }
  	
+ 	/**
+     * Creates a list of SQLObjects to decide which of the selected object(s)
+     * in the tree are to be copied or dragged to a different location.
+     * An empty set will be returned if the transferable cannot be created.
+     * <p>
+     * This is package private for testing purposes.
+     */
+    Set<SQLObject> findSQLObjectsToCopy() {
+        TreePath[] p = this.getSelectionPaths();
+        Set<SQLObject> objectsToTransfer = new HashSet<SQLObject>();
+        if (p ==  null || p.length == 0) {
+            // nothing to export
+            return new HashSet<SQLObject>();
+        } else {
+            
+            //If there are multiple selections, then transfer the objects
+            //that are of the same type. To choose what type to move look
+            //at the ancestors of each component to decide if (a) items
+            //selected are parents of other components and (b) where is the
+            //highest point in the tree path that multiple objects of the same
+            //type are selected.
+            Map<Integer, List<SQLObject>> pathLengthsToSelectedObjectsMap = new HashMap<Integer, List<SQLObject>>();
+            for (int i = 0; i < p.length; i++) {
+                if (pathLengthsToSelectedObjectsMap.get(p[i].getPathCount()) == null) {
+                    pathLengthsToSelectedObjectsMap.put(p[i].getPathCount(), new ArrayList<SQLObject>());
+                }
+                pathLengthsToSelectedObjectsMap.get(p[i].getPathCount()).add((SQLObject) p[i].getLastPathComponent());
+            }
+            
+            List<Integer> sortedLengths = new ArrayList<Integer>(pathLengthsToSelectedObjectsMap.keySet());
+            Collections.sort(sortedLengths);
+            
+            for (int i = 0; i < sortedLengths.size(); i++) {
+                Integer pathCount = sortedLengths.get(i);
+                //get the length of each tree path to see if there are multiples
+                //at the lowest length
+                if (pathLengthsToSelectedObjectsMap.get(pathCount).size() > 1) {
+                    objectsToTransfer.addAll(pathLengthsToSelectedObjectsMap.get(pathCount));
+                    
+                    for (int j = i + 1; j < sortedLengths.size(); j++) {
+                        for (SQLObject childObject : pathLengthsToSelectedObjectsMap.get(sortedLengths.get(j))) {
+                            SQLObject parent = childObject;
+                            for (int k = 0; k < sortedLengths.get(j) - pathCount; k++) {
+                                parent = parent.getParent();
+                            }
+                            objectsToTransfer.add(parent);
+                        }
+                    }
+                    break;
+                } else {
+                    //if there is only one at the lowest length we need to see if it
+                    //is the parent of the rest of the elements
+                    SQLObject singleParent = pathLengthsToSelectedObjectsMap.get(pathCount).get(0);
+                    boolean isParentOfAllSelected = true;
+                    for (int j = i + 1; j < sortedLengths.size(); j++) {
+                        for (SQLObject childObject : pathLengthsToSelectedObjectsMap.get(sortedLengths.get(j))) {
+                            SQLObject parent = childObject;
+                            for (int k = 0; k < sortedLengths.get(j) - pathCount; k++) {
+                                parent = parent.getParent();
+                            }
+                            if (parent != singleParent) {
+                                isParentOfAllSelected = false;
+                                break;
+                            }
+                        }
+                        if (!isParentOfAllSelected) {
+                            break;
+                        }
+                    }
+                    //if it is not the parent then that is the depth we will copy and need to find the parent
+                    //of all other selections
+                    if (!isParentOfAllSelected) {
+                        objectsToTransfer.addAll(pathLengthsToSelectedObjectsMap.get(pathCount));
+
+                        for (int j = i + 1; j < sortedLengths.size(); j++) {
+                            for (SQLObject childObject : pathLengthsToSelectedObjectsMap.get(sortedLengths.get(j))) {
+                                SQLObject parent = childObject;
+                                for (int k = 0; k < sortedLengths.get(j) - pathCount; k++) {
+                                    parent = parent.getParent();
+                                }
+                                objectsToTransfer.add(parent);
+                            }
+                        }
+                        break;
+                    }
+                }
+                //if it is the parent of the rest then we only need to copy selections that are lower
+                //but if it is the lowest component in the selections then the elements at this level
+                //should be selected.
+                if (i + 1 == sortedLengths.size()) {
+                    objectsToTransfer.addAll(pathLengthsToSelectedObjectsMap.get(pathCount));
+                }
+                
+            }
+             
+            logger.info("DBTree: exporting list of DnD-type tree paths"); //$NON-NLS-1$
+
+        }
+        return objectsToTransfer;
+    }
+ 	
+ 	/**
+ 	 * This will copy the selection of the DBTree to the system's clipboard
+ 	 * via a Transferable.
+ 	 */
+ 	public void copySelection() {
+ 	    Transferable transferObject = new SQLObjectSelection(findSQLObjectsToCopy());
+ 	    if (transferObject != null) {
+ 	        session.getContext().setClipboardContents(transferObject);
+ 	    }
+ 	}
+ 	
+ 	/**
+     * This will cut the selection of the DBTree to the system's clipboard
+     * via a Transferable.
+     */
+ 	public void cutSelection() {
+ 	   final Set<SQLObject> copyObjects = findSQLObjectsToCopy();
+ 	   Transferable transferObject = new SQLObjectSelection(copyObjects);
+       if (transferObject != null) {
+           session.getContext().setClipboardContents(transferObject);
+       }
+       for (SQLObject o : copyObjects) {
+           SQLDatabase target = session.getTargetDatabase();
+           if (SQLObjectUtils.ancestorList(o).contains(target) && !(o instanceof SQLTable.Folder)) {
+               o.getParent().removeChild(o);
+           }
+       }
+ 	}
+ 	
 
  	/**
  	 * Removes all selections of objects that are not represented on the playpen.
- 	 * 
  	 */
     public void clearNonPlayPenSelections() {
         if (getSelectionPaths() == null) return;
