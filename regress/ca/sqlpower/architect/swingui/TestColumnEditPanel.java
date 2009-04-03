@@ -50,6 +50,7 @@ public class TestColumnEditPanel extends TestCase {
 		col3 = new SQLColumn(null,"Column 3",1,2,3);
 		col4 = new SQLColumn(null,"Column 4",1,2,3);	
 		
+		col2.setPhysicalName("Physical Name 2");
 		col2.setAutoIncrement(false);
 		col2.setNullable(DatabaseMetaData.columnNoNulls);
 		col2.setPrimaryKeySeq(0);
@@ -81,7 +82,7 @@ public class TestColumnEditPanel extends TestCase {
 
 	    panel = new ColumnEditPanel(col3, session);
         
-		assertEquals("Wrong column technical name",col3.getName(),panel.getColPhysicalName().getText());
+		assertEquals("Wrong column logical name",col3.getName(),panel.getColLogicalName().getText());
 		assertEquals("Wrong Precision",col3.getPrecision(),((Integer) (panel.getColPrec().getValue())).intValue());
 		assertEquals("Wrong type",col3.getType(),((SQLType)(panel.getColType().getSelectedItem())).getType());
 		assertEquals("Wrong Scale",col3.getScale(),((Integer) (panel.getColScale().getValue())).intValue());
@@ -92,7 +93,7 @@ public class TestColumnEditPanel extends TestCase {
 
         panel = new ColumnEditPanel(col2, session);
 
-        assertEquals("Wrong column technical name",col2.getName(),panel.getColPhysicalName().getText());
+        assertEquals("Wrong column logical name",col2.getName(),panel.getColLogicalName().getText());
         assertEquals("Wrong Precision",col2.getPrecision(),((Integer) (panel.getColPrec().getValue())).intValue());
         assertEquals("Wrong type",col2.getType(),((SQLType)(panel.getColType().getSelectedItem())).getType());
         assertEquals("Wrong Scale",col2.getScale(),((Integer) (panel.getColScale().getValue())).intValue());
@@ -117,8 +118,8 @@ public class TestColumnEditPanel extends TestCase {
 		
 		panel.applyChanges();
 		assertEquals("Panel check boxes borked",true,panel.getColAutoInc().getModel().isSelected());
-		assertEquals("Wrong column technical name","CHANGED",col2.getName());
-		assertEquals("Wrong column alias name","Easier Use Column Name",col2.getLogicalName());
+		assertEquals("Wrong column physical name","CHANGED",col2.getPhysicalName());
+		assertEquals("Wrong column logical name","Easier Use Column Name",col2.getName());
 		assertEquals("Wrong Precision",1234,col2.getPrecision());
 		assertEquals("Wrong type",16,col2.getType());
 		assertEquals("Wrong Scale",5432,col2.getScale());
@@ -138,8 +139,8 @@ public class TestColumnEditPanel extends TestCase {
 		panel.getColNullable().getModel().setSelected(true);
 		panel.discardChanges();
 		
-		assertEquals("Wrong column technical name","Column 2",col2.getName());
-		assertEquals("Wrong column alias name","",col2.getLogicalName());
+		assertEquals("Wrong column physical name","Physical Name 2",col2.getPhysicalName());
+		assertEquals("Wrong column logical name","Column 2",col2.getName());
 		assertEquals("Wrong Precision",3,col2.getPrecision());
 		assertEquals("Wrong type",2,col2.getType());
 		assertEquals("Wrong Scale",4,col2.getScale());
