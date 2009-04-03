@@ -1222,7 +1222,6 @@ public class SwingUIProject extends CoreProject {
             if (sourceCol != null) {
                 propNames.put("source-column-ref", sqlObjectSaveIdMap.get(sourceCol)); //$NON-NLS-1$
             }
-            propNames.put("logicalName", ((SQLColumn) o).getLogicalName()); //$NON-NLS-1$
             propNames.put("type", new Integer(((SQLColumn) o).getType())); //$NON-NLS-1$
             propNames.put("sourceDataTypeName", ((SQLColumn) o).getSourceDataTypeName()); //$NON-NLS-1$
             propNames.put("scale", new Integer(((SQLColumn) o).getScale())); //$NON-NLS-1$

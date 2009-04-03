@@ -106,9 +106,9 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      */
     private final JLabel sourceLabel;
 
-    private final JTextField colPhysicalName;
-    
     private final JTextField colLogicalName;
+    
+    private final JTextField colPhysicalName;
 
     private final JComboBox colType;
 
@@ -186,34 +186,6 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         row++;
         
         layout.appendRow(RowSpec.decode("p"));
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.physicalName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(RowSpec.decode("p"));
-        cb = new JCheckBox();
-        if (cols.size() > 1) {
-            panel.add(cb, cc.xy(1, row));
-        }
-        panel.add(colPhysicalName = new JTextField(), cc.xyw(2, row++, 4));
-        componentEnabledMap.put(colPhysicalName, cb);
-        colPhysicalName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
-        colPhysicalName.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentShown(ComponentEvent e) {
-                colPhysicalName.requestFocusInWindow();
-            }
-        });
-        colPhysicalName.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent e) {
-                if(logger.isDebugEnabled()) {
-                    logger.debug("focus Gained : " + e);
-                }
-                colPhysicalName.selectAll();
-            }
-        });
-
-        layout.appendRow(RowSpec.decode("5dlu"));
-        row++;
-
-        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.logicalName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
@@ -235,6 +207,34 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                     logger.debug("focus Gained : " + e);
                 }
                 colLogicalName.selectAll();
+            }
+        });
+
+        layout.appendRow(RowSpec.decode("5dlu"));
+        row++;
+
+        layout.appendRow(RowSpec.decode("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.physicalName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
+        layout.appendRow(RowSpec.decode("p"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
+        panel.add(colPhysicalName = new JTextField(), cc.xyw(2, row++, 4));
+        componentEnabledMap.put(colPhysicalName, cb);
+        colPhysicalName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
+        colPhysicalName.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                colPhysicalName.requestFocusInWindow();
+            }
+        });
+        colPhysicalName.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if(logger.isDebugEnabled()) {
+                    logger.debug("focus Gained : " + e);
+                }
+                colPhysicalName.selectAll();
             }
         });
 
@@ -455,8 +455,8 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                             sourceColumn.getParentTable()) + "." + sourceColumn.getName());
         }
         
-        updateComponent(colPhysicalName, col.getName());
-        updateComponent(colLogicalName, col.getLogicalName());
+        updateComponent(colLogicalName, col.getName());
+        updateComponent(colPhysicalName, col.getPhysicalName());
         updateComponent(colType, SQLType.getType(col.getType()));
         
         updateComponent(colScale, Integer.valueOf(col.getScale()));
@@ -606,15 +606,15 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
             compoundEditRoot.startCompoundEdit(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
             
             for (SQLColumn column : columns) {
-                if (componentEnabledMap.get(colPhysicalName).isSelected()) {
-                    if (colPhysicalName.getText().trim().length() == 0) {
+                if (componentEnabledMap.get(colLogicalName).isSelected()) {
+                    if (colLogicalName.getText().trim().length() == 0) {
                         errors.add(Messages.getString("ColumnEditPanel.columnNameRequired")); //$NON-NLS-1$
                     } else {
-                        column.setName(colPhysicalName.getText());
+                        column.setName(colLogicalName.getText());
                     }
                 }
-                if (componentEnabledMap.get(colLogicalName).isSelected()) {
-                    column.setLogicalName(colLogicalName.getText());
+                if (componentEnabledMap.get(colPhysicalName).isSelected()) {
+                    column.setPhysicalName(colPhysicalName.getText());
                 }                
                 if (componentEnabledMap.get(colType).isSelected()) {
                     column.setType(((SQLType) colType.getSelectedItem()).getType());
