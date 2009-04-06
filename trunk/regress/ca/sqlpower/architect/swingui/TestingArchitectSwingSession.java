@@ -79,7 +79,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private boolean showFkTag = true;
     private boolean showAkTag = true;
     
-    private boolean usingAliasNames = false;
+    private boolean usingLogicalNames = false;
     
     private ColumnVisibility choice = ColumnVisibility.ALL;
     
@@ -345,12 +345,12 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         return new DefaultUserPrompterFactory().createUserPrompter(question, responseType, optionType, defaultResponseType, defaultResponse, buttonNames);
     }
 
-    public boolean isUsingAliasNames() {
-       return usingAliasNames;
+    public boolean isUsingLogicalNames() {
+       return usingLogicalNames;
     }
 
-    public void setUsingAliasNames(boolean usingAliasNames) {
-        this.usingAliasNames = usingAliasNames;
+    public void setUsingLogicalNames(boolean usingLogicalNames) {
+        this.usingLogicalNames = usingLogicalNames;
     }
 
 }

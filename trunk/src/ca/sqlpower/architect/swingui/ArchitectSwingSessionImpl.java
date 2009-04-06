@@ -141,7 +141,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private ProjectModificationWatcher projectModificationWatcher;
 
     private boolean relationshipLinesDirect;
-    private boolean usingAliasNames;
+    
+    private boolean usingLogicalNames = true;
 
     private boolean showPkTag = true;
     private boolean showFkTag = true;
@@ -827,12 +828,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         return relationshipLinesDirect;
     }
     
-    public boolean isUsingAliasNames() {
-        return usingAliasNames;
+    public boolean isUsingLogicalNames() {
+        return usingLogicalNames;
     }
     
-    public void setUsingAliasNames(boolean usingAliasNames) {
-        this.usingAliasNames = usingAliasNames;
+    public void setUsingLogicalNames(boolean usingLogicalNames) {
+        this.usingLogicalNames = usingLogicalNames;
         getPlayPen().repaint();
     }
 

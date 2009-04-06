@@ -1073,6 +1073,7 @@ public class PlayPen extends JPanel
 			if (c instanceof TablePane) {
 				// Makes drag and dropped tables show the proper columns
 				((TablePane) c).updateHiddenColumns();
+				((TablePane) c).updateNameDisplay();
 			}
 		} else {
 			throw new IllegalArgumentException("PlayPen can't contain components of type " //$NON-NLS-1$
@@ -3272,9 +3273,10 @@ public class PlayPen extends JPanel
         scrollRectToVisible(zoomRect(r));
     }
     
-    public void updateHiddenColumns() {
+    public void updateTablePanes() {
         for (TablePane tp : getTablePanes()) {
             tp.updateHiddenColumns();
+            tp.updateNameDisplay();
             tp.revalidate();
             tp.repaint();
         }

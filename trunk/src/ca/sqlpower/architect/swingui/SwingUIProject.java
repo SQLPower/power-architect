@@ -322,6 +322,15 @@ public class SwingUIProject extends CoreProject {
             } else {
                 getSession().setShowAkTag(true);
             }
+            
+            String usingLogicalNames = attributes.getValue("names-displayLogicalNames"); //$NON-NLS-1$
+            if (usingLogicalNames == null) {
+                getSession().setUsingLogicalNames(true);
+            } else if (!Boolean.valueOf(usingLogicalNames)) {
+                getSession().setUsingLogicalNames(false);
+            } else {
+                getSession().setUsingLogicalNames(true);
+            }
         	
         	String relStyle = attributes.getValue("relationship-style"); //$NON-NLS-1$
             boolean direct;
@@ -963,6 +972,7 @@ public class SwingUIProject extends CoreProject {
             String relStyle = getSession().getRelationshipLinesDirect() ?
                     RELATIONSHIP_STYLE_DIRECT : RELATIONSHIP_STYLE_RECTILINEAR;
             tagText.append(" relationship-style=").append(quote(relStyle)); //$NON-NLS-1$
+            tagText.append(" names-displayLogicalNames=\"").append(getSession().isUsingLogicalNames()).append("\""); //$NON-NLS-1$
             tagText.append(" showPrimaryTag=\"").append(getSession().isShowPkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" showForeignTag=\"").append(getSession().isShowFkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" showAlternateTag=\"").append(getSession().isShowAkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$

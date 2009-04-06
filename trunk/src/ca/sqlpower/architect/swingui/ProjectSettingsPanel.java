@@ -71,8 +71,8 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
     private JRadioButton showPkFk;
     private JRadioButton showPk;
     
-    private JRadioButton technicalName;
-    private JRadioButton aliasName;
+    private JRadioButton physicalNames;
+    private JRadioButton logicalNames;
     
 	public ProjectSettingsPanel(ArchitectSwingSession session) {
 		this.session = session;
@@ -116,15 +116,15 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         add(new JSeparator(), cc.xyw(1, row, 2));
         
         row++;
-        add(new JLabel(Messages.getString("ProjectSettingsPanel.displayTechnicalOrAlias")), cc.xy(1, row)); //$NON-NLS-1$
-        add(technicalName = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayTechnicalNames")), cc.xy(2, row)); //$NON-NLS-1$
+        add(new JLabel(Messages.getString("ProjectSettingsPanel.displayPhysicalOrLogical")), cc.xy(1, row)); //$NON-NLS-1$
+        add(logicalNames = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayLogicalNames")), cc.xy(2, row)); //$NON-NLS-1$
         
         row++;
         add(new JLabel(), cc.xy(1, row));
-        add(aliasName = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayAliasNames")), cc.xy(2, row)); //$NON-NLS-1$
+        add(physicalNames = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayPhysicalNames")), cc.xy(2, row)); //$NON-NLS-1$
         ButtonGroup nameDisplay = new ButtonGroup();
-        nameDisplay.add(technicalName);
-        nameDisplay.add(aliasName);
+        nameDisplay.add(logicalNames);
+        nameDisplay.add(physicalNames);
         
         row++;
         add(new JSeparator(), cc.xyw(1, row, 2));
@@ -168,6 +168,12 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         } else {
             rectilinearRelationships.setSelected(true);
         }
+        if (session.isUsingLogicalNames()) {
+            logicalNames.setSelected(true);
+        } else {
+            physicalNames.setSelected(true);
+        }
+        
             showPkTag.setSelected(session.isShowPkTag());
             showFkTag.setSelected(session.isShowFkTag());
             showAkTag.setSelected(session.isShowAkTag());
@@ -212,6 +218,13 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         } else {
             session.setRelationshipLinesDirect(false);
         }
+        
+        if (logicalNames.isSelected()) {
+            session.setUsingLogicalNames(true);
+        } else {
+            session.setUsingLogicalNames(false);
+        }
+        
         session.setShowPkTag(showPkTag.isSelected());
         session.setShowFkTag(showFkTag.isSelected());
         session.setShowAkTag(showAkTag.isSelected());
@@ -233,7 +246,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         }
         
         // XXX this refresh should be handled via a property change event on the session
-        session.getPlayPen().updateHiddenColumns();
+        session.getPlayPen().updateTablePanes();
         
         return true;
 	}

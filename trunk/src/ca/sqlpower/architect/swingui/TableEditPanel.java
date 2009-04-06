@@ -68,9 +68,9 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		super(new FormLayout());
 		this.session = session;
 		this.tp = session.getPlayPen().findTablePane(t);
-		add(new JLabel(Messages.getString("TableEditPanel.tableLogicalName"))); //$NON-NLS-1$
+        add(new JLabel(Messages.getString("TableEditPanel.tableLogicalNameLabel"))); //$NON-NLS-1$
         add(logicalName = new JTextField("", 30)); //$NON-NLS-1$
-        add(new JLabel(Messages.getString("TableEditPanel.tablePhysicalName"))); //$NON-NLS-1$
+        add(new JLabel(Messages.getString("TableEditPanel.tablePhysicalNameLabel"))); //$NON-NLS-1$
         add(physicalName = new JTextField("", 30)); //$NON-NLS-1$
 		add(new JLabel(Messages.getString("TableEditPanel.primaryKeyNameLabel"))); //$NON-NLS-1$
 		add(pkName = new JTextField("", 30)); //$NON-NLS-1$
