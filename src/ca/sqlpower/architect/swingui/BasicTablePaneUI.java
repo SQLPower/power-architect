@@ -295,7 +295,11 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
      */
 	private String columnText(SQLColumn col) {
         StringBuilder displayName = new StringBuilder(50);
-        displayName.append(col.getName()).append(": ");
+        if (tablePane.isUsingLogicalNames()) {
+            displayName.append(col.getName()).append(": ");
+        } else {
+            displayName.append(col.getPhysicalName()).append(": ");
+        }
         displayName.append(ddlg.getColumnDataTypeName(col));
         displayName.append(getColumnTag(col));
         return displayName.toString();
@@ -465,10 +469,10 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
             fqn.append(db);
             if (cat != null) fqn.append('.').append(cat);
             if (sch != null) fqn.append('.').append(sch);
-            fqn.append('.').append(tp.getModel().getName());
+            fqn.append('.').append(tp.isUsingLogicalNames()? tp.getModel().getName():tp.getModel().getPhysicalName());
             return fqn.toString();
         } else {
-            return tp.getModel().getName();
+            return tp.isUsingLogicalNames()? tp.getModel().getName():tp.getModel().getPhysicalName();
         }
     }
 

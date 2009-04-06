@@ -97,6 +97,12 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	 * Tracks which columns in this table are currently hidden.
 	 */
 	protected Set<SQLColumn> hiddenColumns;
+	
+	/**
+	 * Keeps tracks of whether the user wants to see the logical names or the
+	 * physical names.
+	 */
+	boolean usingLogicalNames;
 
 	/**
 	 * Tracks current highlight colours of the columns in this table.
@@ -307,6 +313,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             } catch (SQLObjectException ex) {
                 throw new SQLObjectRuntimeException(ex);
             }
+//            updateNameDisplay();
             updateHiddenColumns();
             firePropertyChange("model.children", null, null); //$NON-NLS-1$
             //revalidate();
@@ -325,6 +332,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                         " oldVal="+e.getOldValue()+" newVal="+e.getNewValue() +  //$NON-NLS-1$ //$NON-NLS-2$
                         " selectedItems=" + getSelectedItems());
             }
+//            updateNameDisplay();
             updateHiddenColumns();
             firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
             //repaint();
@@ -419,6 +427,23 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	        }
 	    }
 	}
+	
+	public boolean isUsingLogicalNames() {
+	    PlayPen pp = getPlayPen();
+	    if (pp != null) {
+	        ArchitectSwingSession session = pp.getSession();
+	        if (session != null) {
+	            return session.isUsingLogicalNames();
+	        }
+	    }
+	    return true;
+	}
+	
+	public void updateNameDisplay() {
+        ArchitectSwingSession session = getPlayPen().getSession();
+        usingLogicalNames = session.isUsingLogicalNames();
+
+    }
 
 	// ------------------ utility methods ---------------------
 
