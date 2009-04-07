@@ -28,7 +28,9 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
@@ -55,10 +57,19 @@ import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.ColourScheme;
+import ca.sqlpower.util.WebColour;
 
 public class Relationship extends PlayPenComponent implements SQLObjectListener, LayoutEdge {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 
+	public static final WebColour[] SUGGESTED_COLOURS;
+	static {
+	    List<WebColour> l = new ArrayList<WebColour>();
+	    l.addAll(ColourScheme.BREWER_SET19);
+	    l.add(new WebColour(0, 0, 0));
+	    SUGGESTED_COLOURS = l.toArray(new WebColour[l.size()]);
+	}
+	
     private SQLRelationship model;
 	private TablePane pkTable;
 	private TablePane fkTable;
@@ -154,17 +165,16 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
         popup.add(setFocusToRelatedTables);
         
         JMenu setRelationshipLineColor = new JMenu(Messages.getString("Relationship.relationshipLineColor")); //$NON-NLS-1$
-        for (final Color color : ColourScheme.RELATIONSHIP_LINE_COLOURS) {
+        for (final Color color : SUGGESTED_COLOURS) {
             Icon icon = new ColorIcon(60, 25, color);
             mi = new JMenuItem(icon);
             mi.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    getPlayPen().startCompoundEdit("Started setting the relationship line colour"); //$NON-NLS-1$
+                    getPlayPen().startCompoundEdit("Set relationship line colour");
                     for (Relationship r : getPlayPen().getSelectedRelationShips()) {
-                        logger.info("relationship line: ");
                         r.setForegroundColor(color);
                     }
-                    getPlayPen().endCompoundEdit("Finished setting the relationship line colour"); //$NON-NLS-1$
+                    getPlayPen().endCompoundEdit("Set relationship line colour");
                 }
             });
             setRelationshipLineColor.add(mi);
@@ -435,6 +445,15 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 		}
 	}
 
+    /**
+     * Returns the colour that will be used to highlight columns participating
+     * in this relationship when this relationship is selected.
+     * 
+     * @return
+     */
+	public Color getColumnHighlightColour() {
+        return columnHighlightColour;
+    }
 
 	// ------------------ sqlobject listener ----------------
 	public void dbChildrenInserted(SQLObjectEvent e) {

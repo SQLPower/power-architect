@@ -18,7 +18,6 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Color;
 import java.awt.Point;
 import java.sql.Types;
 
@@ -70,8 +69,8 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
 	
     public void testHighlightWithRelationshipTypeChange() throws SQLObjectException {               
         rel.setSelected(true,SelectionEvent.SINGLE_SELECT);
-        assertEquals(Color.RED,tp1.getColumnHighlight(0));
-        assertEquals(Color.RED,tp2.getColumnHighlight(1));
+        assertEquals(rel.getColumnHighlightColour(), tp1.getColumnHighlight(0));
+        assertEquals(rel.getColumnHighlightColour(), tp2.getColumnHighlight(1));
         assertEquals(tp2.getForegroundColor(), tp2.getColumnHighlight(0));
         rel.setSelected(false,SelectionEvent.SINGLE_SELECT);
         
@@ -82,10 +81,10 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         rel.setSelected(true,SelectionEvent.SINGLE_SELECT);
         rel.getModel().setIdentifying(true);       
         
-        assertEquals(Color.RED,tp1.getColumnHighlight(0));
+        assertEquals(rel.getColumnHighlightColour(), tp1.getColumnHighlight(0));
         SQLColumn fkCol = tp2.getModel().getColumnByName("fkcol");
         assertEquals(0, tp2.getModel().getColumnIndex(fkCol));
-        assertEquals(Color.RED,tp2.getColumnHighlight(0));
+        assertEquals(rel.getColumnHighlightColour(), tp2.getColumnHighlight(0));
         assertEquals(tp2.getForegroundColor(), tp2.getColumnHighlight(1));      
     }
     

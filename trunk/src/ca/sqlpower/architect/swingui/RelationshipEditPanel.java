@@ -42,7 +42,6 @@ import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.swingui.ColorCellRenderer;
-import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -134,7 +133,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         fb.append(Messages.getString("RelationshipEditPanel.name"), relationshipName = new JTextField(), 5); //$NON-NLS-1$
         
         fb.nextLine();
-        fb.append(Messages.getString("RelationshipEditPanel.lineColour"), relationLineColor = new JComboBox(ColourScheme.RELATIONSHIP_LINE_COLOURS)); //$NON-NLS-1$
+        fb.append(Messages.getString("RelationshipEditPanel.lineColour"), relationLineColor = new JComboBox(Relationship.SUGGESTED_COLOURS)); //$NON-NLS-1$
         ColorCellRenderer renderer = new ColorCellRenderer(40, 20);
         relationLineColor.setRenderer(renderer);
         
