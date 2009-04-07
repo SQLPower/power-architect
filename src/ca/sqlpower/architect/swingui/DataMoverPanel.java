@@ -267,11 +267,13 @@ public class DataMoverPanel {
             final String sourceQualifiedName = DDLUtils.toQualifiedName(
                     sourceTable.getCatalogName(),
                     sourceTable.getSchemaName(),
-                    sourceTable.getName());
+                    sourceTable.getName(),
+                    "\"", "\"");
             final String destQualifiedName = DDLUtils.toQualifiedName(
                     destCatalogName,
                     destSchemaName,
-                    destTableName);
+                    destTableName,
+                    "\"", "\"");
 
             if (needToCreate) {
                 int choice = JOptionPane.showConfirmDialog(panel, Messages.getString("DataMoverPanel.destinationTableDoesNotExist", destQualifiedName)); //$NON-NLS-1$
