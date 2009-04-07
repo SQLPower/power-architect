@@ -41,13 +41,13 @@ public class InvalidNameDDLWarning extends AbstractDDLWarning {
                 true,
                 quickFixMesssage,
                 whichObjectQuickFixRenames,
-                "name");
+                "physicalName");
         this.whatQuickFixShouldCallIt = whatQuickFixShouldCallIt;
     }
 
     public boolean quickFix() {
         // XXX need differentiator for setName() vs setPhysicalName()
-        whichObjectQuickFixFixes.setName(whatQuickFixShouldCallIt);
+        whichObjectQuickFixFixes.setPhysicalName(whatQuickFixShouldCallIt);
         return true;
     }
 }

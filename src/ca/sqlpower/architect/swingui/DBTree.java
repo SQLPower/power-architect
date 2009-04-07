@@ -908,10 +908,12 @@ public class DBTree extends JTree implements DragSourceListener {
                     for (int j = i + 1; j < sortedLengths.size(); j++) {
                         for (SQLObject childObject : pathLengthsToSelectedObjectsMap.get(sortedLengths.get(j))) {
                             SQLObject parent = childObject;
+                            logger.debug("Initial Object before recursively go to parent is: " + parent);
                             for (int k = 0; k < sortedLengths.get(j) - pathCount; k++) {
                                 parent = parent.getParent();
                             }
                             objectsToTransfer.add(parent);
+                            logger.debug("Final Object after recursively go to parent is: " + parent);
                         }
                     }
                     break;
@@ -963,6 +965,11 @@ public class DBTree extends JTree implements DragSourceListener {
              
             logger.info("DBTree: exporting list of DnD-type tree paths"); //$NON-NLS-1$
 
+        }
+        if (logger.isDebugEnabled()) {
+        	for(SQLObject object: objectsToTransfer) {
+            	logger.debug("The object to transfer copy is: " + object);
+        	}
         }
         return objectsToTransfer;
     }

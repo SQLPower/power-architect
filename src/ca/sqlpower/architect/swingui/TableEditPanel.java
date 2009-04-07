@@ -202,23 +202,55 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 	public JPanel getPanel() {
 		return this;
 	}
-
+	
+	 /**
+     * For testing only
+     * @return the String currently in the logicalName textField
+     */
     public String getNameText() {
         return logicalName.getText();
     }
-
+    
+    /**
+     * For testing only
+     * @param newName new logical name for the table
+     */
     public void setNameText(String newName) {
         logicalName.setText(newName);
     }
-
+    
+    /**
+     * For testing only
+     * @return the String currently in the pkName textField
+     */
     public String getPkNameText() {
         return pkName.getText();
     }
-
+    
+    /**
+     * For testing only
+     * @param newPKName new primaryKeyName for the table
+     */
     public void setPkNameText(String newPkName) {
         pkName.setText(newPkName);
     }
-
+    
+    /**
+     * For testing only
+     * @return the String currently in the physicalName textField
+     */
+    public String getPhysicalNameTest() {
+        return physicalName.getText();
+    }
+    
+    /**
+     * For testing only
+     * @param newPhysicalName new physical name for the table
+     */
+    public void setPhysicalNameText(String newPhysicalName) {
+        physicalName.setText(newPhysicalName);
+    }
+    
     public boolean hasUnsavedChanges() {
         // TODO return whether this panel has been changed
         return true;

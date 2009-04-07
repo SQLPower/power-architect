@@ -61,7 +61,6 @@ public class PasteSelectedAction extends AbstractArchitectAction {
         
             public void sessionClosing(SessionLifecycleEvent<ArchitectSwingSession> e) {
                 session.getPlayPen().removeFocusListener(focusListener);
-                session.removeSessionLifecycleListener(this);
             }
         };
         session.addSessionLifecycleListener(lifecycleListener);

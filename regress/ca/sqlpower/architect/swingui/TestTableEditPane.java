@@ -35,6 +35,7 @@ public class TestTableEditPane extends TestCase {
         ArchitectSwingSession session = context.createSession();
 		t = new SQLTable(session.getTargetDatabase(), true);
 		t.setName("Test Table");
+		t.setPhysicalName("Test_Table_1");
 		SQLColumn pk1 = new SQLColumn(t, "PKColumn1", Types.INTEGER, 10,0);
 		
 		t.addColumn(0,pk1);						
@@ -43,25 +44,37 @@ public class TestTableEditPane extends TestCase {
         tep = new TableEditPanel(session, t);
 	}
 	
-    public void testChangeName(){           
+    public void testChangeName() {           
         tep.setNameText("New Name");
         tep.applyChanges();
         assertEquals ("New Name", t.getName());     
     }
+    
+    public void testChangePhysicalName(){
+        tep.setPhysicalNameText("New_Name");
+        tep.applyChanges();
+        assertEquals("New_Name", t.getPhysicalName());
+    }
 
-    public void testNameChangeUpdatesPk() throws Exception {
-        assertEquals("Test Table_pk", t.getPrimaryKeyName());
-        tep.setNameText("New Name");
+    public void testPrimaryNameChangeUpdatesPk() throws Exception {
+        assertEquals("Test_Table_1_pk", t.getPrimaryKeyName());
+        tep.setPhysicalNameText("New Name");
         tep.applyChanges();
         assertEquals ("New Name_pk", t.getPrimaryKeyName());     
     }
 
-    public void testNameChangeDoesNotUpdatePkWhenPkNameAlsoChanged() throws Exception {
-        assertEquals("Test Table_pk", t.getPrimaryKeyName());
-        tep.setNameText("New Name");
+    public void testNameChangeDoesNotUpdatePK() throws Exception {
+        tep.setNameText("New Table Name");
+        tep.applyChanges();
+        assertEquals("Test_Table_1_pk", t.getPrimaryKeyName());
+    }
+    
+    public void testPhysicalNameChangeDoesNotUpdatePkWhenPkNameAlsoChanged() throws Exception {
+        assertEquals("Test_Table_1_pk", t.getPrimaryKeyName());
+        tep.setPhysicalNameText("New Name");
         tep.setPkNameText("New PK Name");
         tep.applyChanges();
-        assertEquals ("New PK Name", t.getPrimaryKeyName());     
+        assertEquals ("New PK Name", t.getPhysicalPrimaryKeyName());     
     }
 
 }
