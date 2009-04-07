@@ -1046,8 +1046,22 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * @throws SQLObjectException
      */
 	protected String createPhysicalName(Map<String, SQLObject> dupCheck, SQLObject so) {
-		logger.debug("transform identifier source: " + so.getPhysicalName());
-		so.setPhysicalName(toIdentifier(so.getName()));
+        logger.debug("transform identifier source: " + so.getPhysicalName());
+        if ((so instanceof SQLTable || so instanceof SQLColumn) &&
+                (so.getPhysicalName() != null && !so.getPhysicalName().trim().equals(""))) {
+		    String physicalName = so.getPhysicalName();
+		    logger.debug("The physical name for this SQLObject is: " + physicalName);
+		    if (physicalName.lastIndexOf(' ') != -1) {
+		        String renameTo = (toIdentifier(physicalName));
+                warnings.add(new InvalidNameDDLWarning(
+		                String.format("Name %s has white spaces", physicalName),
+		                Arrays.asList(new SQLObject[] {so}),
+		                String.format("Rename %s to %s", physicalName, renameTo ),
+		                so, renameTo));
+		    }
+		} else {
+		    so.setPhysicalName(toIdentifier(so.getName()));
+		}
         String physicalName = so.getPhysicalName();
         if(isReservedWord(physicalName)) {
             String renameTo = physicalName   + "_1";
@@ -1058,18 +1072,19 @@ public class GenericDDLGenerator implements DDLGenerator {
                     so, renameTo));
             return physicalName;
         }
-
+        logger.debug("The logical name field now is: " + so.getName());
+        logger.debug("The physical name field now is: " + physicalName);
         int pointIndex = so.getPhysicalName().lastIndexOf('.');
-        if (!so.getName().substring(pointIndex+1,pointIndex+2).matches("[a-zA-Z]")){
+        if (!so.getPhysicalName().substring(pointIndex+1,pointIndex+2).matches("[a-zA-Z]")){
             String renameTo;
             if (so instanceof SQLTable) {
-                renameTo = "Table_" + so.getName();
+                renameTo = "Table_" + so.getPhysicalName();
             } else if (so instanceof SQLColumn) {
-                renameTo = "Column_" + so.getName();
+                renameTo = "Column_" + so.getPhysicalName();
             } else if (so instanceof SQLIndex) {
-                renameTo = "Index_" + so.getName();
+                renameTo = "Index_" + so.getPhysicalName();
             } else {
-                renameTo = "X_" + so.getName();
+                renameTo = "X_" + so.getPhysicalName();
             }
             warnings.add(new InvalidNameDDLWarning(
                     String.format("Name %s starts with a non-alpha character", physicalName),
@@ -1100,17 +1115,17 @@ public class GenericDDLGenerator implements DDLGenerator {
             String message;
             if (so instanceof SQLColumn) {
                 message = String.format("Column name %s in table %s already in use", 
-                        so.getName(), 
-                        ((SQLColumn) so).getParentTable().getName());
+                        so.getPhysicalName(), 
+                        ((SQLColumn) so).getParentTable().getPhysicalName());
             } else {
-                message = String.format("Global name %s already in use", physicalName);
+                message = String.format("Global name %s already in use", physicalName2);
             }
             logger.debug("Rename to : " + renameTo2);
 
             warnings.add(new InvalidNameDDLWarning(
                     message,
                     Arrays.asList(new SQLObject[] { so }),
-                    String.format("Rename %s to %s", physicalName, renameTo2),
+                    String.format("Rename %s to %s", physicalName2, renameTo2),
                     so, renameTo2));
             
             dupCheck.put(renameTo2, so);
@@ -1197,6 +1212,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
 
     private String createPhysicalPrimaryKeyName(SQLTable t) throws SQLObjectException {
+        logger.debug("The physical primary key name of the table is: " + t.getPhysicalPrimaryKeyName());
         String physName = toIdentifier(t.getPrimaryKeyName());
         t.setPhysicalPrimaryKeyName(physName);
         createPhysicalName(topLevelNames, t.getPrimaryKeyIndex());
