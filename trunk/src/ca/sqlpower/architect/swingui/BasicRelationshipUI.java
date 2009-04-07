@@ -37,6 +37,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.swingui.ColourScheme;
+
 /**
  * The BasicRelationshipUI is responsible for drawing the lines
  * between tables.  Subclasses decorate the ends of the lines.
@@ -68,9 +70,16 @@ public class BasicRelationshipUI extends RelationshipUI
 	 */
 	protected transient GeneralPath containmentPath;
 
-	protected BasicStroke nonIdStroke = new BasicStroke(1.0f);
-	protected BasicStroke idStroke = new BasicStroke(1.0f);
-
+	/**
+	 * The stroke width to use when the relationship is selected.
+	 */
+	protected float nonSelectedStrokeWidth = 1f;
+	
+	/**
+	 * The stroke width to use when the relationship is not selected.
+	 */
+	protected float selectedStrokeWidth = 2f;
+    
 	/**
 	 * Points within radius pixels of this relationship's visible path
 	 * are considered to be contained within this component.
@@ -248,15 +257,11 @@ public class BasicRelationshipUI extends RelationshipUI
                 path = new GeneralPath(containmentPath);
 			}
 			
-            // if the relationship line is selected and the darker color 
-            // is the same, then set it to default selected color 
-            // (204,204,255)
-            
 			if (!r.isSelected()) {
 				g2.setColor(r.getForegroundColor());
 			} else {
 			    if(r.getForegroundColor().darker().equals(r.getForegroundColor())) {
-			        g2.setColor(new Color(204,204,255));
+			        g2.setColor(ColourScheme.SQLPOWER_ORANGE);
 			    } else {
 			        g2.setColor(r.getForegroundColor().darker());
 			    }
@@ -273,8 +278,9 @@ public class BasicRelationshipUI extends RelationshipUI
 			g2.draw(path);
 			if (logger.isDebugEnabled()) logger.debug("Drew path "+path);
 
-			g2.setStroke(oldStroke);
+			g2.setStroke(new BasicStroke(getStrokeWidth()));
 			paintTerminations(g2, start, end, orientation);
+			g2.setStroke(oldStroke);
 		} finally {
 			g2.translate(c.getX(), c.getY()); // playpen coordinate space
 		}
@@ -595,12 +601,30 @@ public class BasicRelationshipUI extends RelationshipUI
 	    return relationship;
 	}
 
+    /**
+     * Returns the stroke thickness that should be used, based on the
+     * relationship component's current state (for example, whether or not it's
+     * selected).
+     * <p>
+     * If you just want to know what stroke to use, don't call this method; use
+     * {@link #getIdentifyingStroke()} or {@link #getNonIdentifyingStroke()}.
+     * 
+     * @return The correct stroke thickness to use.
+     */
+	protected float getStrokeWidth() {
+	    if (relationship.isSelected()) {
+            return selectedStrokeWidth;
+        } else {
+            return nonSelectedStrokeWidth;
+        }
+	}
+	
 	public Stroke getIdentifyingStroke() {
-		return idStroke;
+	    return new BasicStroke(getStrokeWidth());
 	}
 
 	public Stroke getNonIdentifyingStroke() {
-		return nonIdStroke;
+        return new BasicStroke(getStrokeWidth());
 	}
 
 	/**
