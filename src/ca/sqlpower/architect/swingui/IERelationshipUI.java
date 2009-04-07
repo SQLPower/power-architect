@@ -34,13 +34,6 @@ public class IERelationshipUI extends BasicRelationshipUI {
 		logger.debug("Creating new IERelationshipUI for "+c);
         return new IERelationshipUI();
     }
-
-	public IERelationshipUI() {
-	    idStroke = new BasicStroke(1.0f);
-	    nonIdStroke = new BasicStroke(
-	            1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
-	            1.0f, new float[] {15.0f, 4.0f}, 0.0f);
-	}
 	
 	/**
 	 * Paints relationship line terminations based on the IE diagram
@@ -168,10 +161,12 @@ public class IERelationshipUI extends BasicRelationshipUI {
 	}
 
 	public Stroke getIdentifyingStroke() {
-		return idStroke;
+	    return new BasicStroke(getStrokeWidth());
 	}
 
 	public Stroke getNonIdentifyingStroke() {
-		return nonIdStroke;
+	    return new BasicStroke(
+	            getStrokeWidth(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+	            1.0f, new float[] {15.0f, 4.0f}, 0.0f);
 	}
 }

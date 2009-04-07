@@ -72,7 +72,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
     /**
 	 * The colour to highlight related columns with when this relationship is selected.
 	 */
-    private Color columnHighlightColour = Color.red;
+    private Color columnHighlightColour = ColourScheme.SQLPOWER_ORANGE;
  
     /**
      * This constructor is only for making a copy of an existing relationship component.
