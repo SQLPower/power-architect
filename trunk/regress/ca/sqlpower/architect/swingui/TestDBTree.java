@@ -34,6 +34,7 @@ import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -277,6 +278,31 @@ public class TestDBTree extends TestCase {
         Set<SQLObject> objectsToCopy = dbTree.findSQLObjectsToCopy();
         assertEquals(2, objectsToCopy.size());
         assertTrue(objectsToCopy.contains(table));
+        assertTrue(objectsToCopy.contains(table2));
+        
+    }
+    
+    /**
+     * This test selects two tables in different databases and confirms that the tables
+     * are the objects being transfered, not the databases themselves.
+     */
+    public void testFindSQLObjectsToCopySelectionAcrossDBs() throws Exception {
+        SQLDatabase db1 = new SQLDatabase();
+        SQLDatabase db2 = new SQLDatabase();
+        ((SQLObjectRoot) dbTree.getModel().getRoot()).addChild(db1);
+        ((SQLObjectRoot) dbTree.getModel().getRoot()).addChild(db2);
+        
+        SQLTable table1 = new SQLTable(db1, true);
+        SQLTable table2 = new SQLTable(db2, true);
+        
+        TreePath path1 = new TreePath(new Object[]{dbTree.getModel().getRoot(), db1, table1});
+        TreePath path2 = new TreePath(new Object[]{dbTree.getModel().getRoot(), db2, table2});
+        
+        dbTree.setSelectionPaths(new TreePath[]{path1, path2});
+        
+        Set<SQLObject> objectsToCopy = dbTree.findSQLObjectsToCopy();
+        assertEquals(2, objectsToCopy.size());
+        assertTrue(objectsToCopy.contains(table1));
         assertTrue(objectsToCopy.contains(table2));
         
     }

@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.awt.datatransfer.Transferable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -250,5 +251,11 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
         } else {
             getModel().addChild(item);
         }
+    }
+
+    @Override
+    public void pasteData(Transferable t) {
+        // TODO Auto-generated method stub
+        
     }
 }

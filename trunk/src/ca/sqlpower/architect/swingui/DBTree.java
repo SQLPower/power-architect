@@ -212,6 +212,27 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 		return found;
 	}
+	
+	/**
+	 * If the SPDataSource exists in the DBTree then the SQLDatabase
+	 * containing it will be returned. If the SPDataSource does not
+	 * exist null will be returned.
+	 * @throws SQLObjectException 
+	 */
+	public SQLDatabase getDatabase(SPDataSource spec) throws SQLObjectException {
+	    SQLObject so = (SQLObject) getModel().getRoot();
+        // the children of the root, if they exists, are always SQLDatabase objects
+        Iterator it = so.getChildren().iterator();
+        boolean found = false;
+        while (it.hasNext() && found == false) {
+            final SQLDatabase database = (SQLDatabase) it.next();
+            SPDataSource dbcs = database.getDataSource();
+            if (spec==dbcs) {
+                return database;
+            }
+        }
+        return null;
+	}
 
 	/**
      * Pass in a spec, and look for a duplicate in the list of DBCS objects in
@@ -835,6 +856,8 @@ public class DBTree extends JTree implements DragSourceListener {
   			    Transferable transferObject = new SQLObjectSelection(sqlObjectsToCopy);
   			    if (transferObject != null) {
   			        // TODO add undo event
+  			        
+  			        dge.getSourceAsDragGestureRecognizer().setSourceActions(DnDConstants.ACTION_COPY);
   			        dge.getDragSource().startDrag
   			                (dge,
   			                null, //DragSource.DefaultCopyNoDrop,

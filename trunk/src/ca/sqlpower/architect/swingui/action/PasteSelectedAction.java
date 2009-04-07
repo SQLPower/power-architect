@@ -73,7 +73,7 @@ public class PasteSelectedAction extends AbstractArchitectAction {
             Transferable clipboardContents = session.getContext().getClipboardContents();
             logger.debug("Pasting " + clipboardContents + " into the playpen.");
             if (clipboardContents != null) {
-                playPen.addTransferable(clipboardContents);
+                playPen.pasteData(clipboardContents);
             } else {
                 JOptionPane.showMessageDialog(session.getArchitectFrame(), "There is no contents in the clipboard to paste.", "Clipboard empty", JOptionPane.INFORMATION_MESSAGE);
             }

@@ -23,9 +23,9 @@ import java.awt.Point;
 import java.sql.Types;
 
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -105,14 +105,15 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
     }
     
     public void testRefCountWithFkTableInsertedFirst() throws SQLObjectException {
-        SQLDatabase db = new SQLDatabase();        
+        SQLDatabase db = new SQLDatabase(); 
+        pp.getSession().getRootObject().addChild(db);
         SQLTable fkTable = new SQLTable(db, true);
         SQLRelationship sourceRel = new SQLRelationship();
         SQLTable pkTable = new SQLTable(db, true);        
         setupRefCountTests(db,pkTable, fkTable, sourceRel);
         
-        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10));
-        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10));
+        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10), ASUtils.createDuplicateProperties(session, fkTable));
+        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10), ASUtils.createDuplicateProperties(session, pkTable));
                 
         assertEquals(2,FkPane.getModel().getColumn(0).getReferenceCount());
         assertEquals(1, PkPane.getModel().getColumn(0).getReferenceCount());    
@@ -120,13 +121,14 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
 
     public void testRefCountWithPkTableInsertedFirst() throws SQLObjectException {
         SQLDatabase db = new SQLDatabase();
+        pp.getSession().getRootObject().addChild(db);
         SQLTable fkTable = new SQLTable(db, true);
         SQLRelationship sourceRel = new SQLRelationship();
         SQLTable pkTable = new SQLTable(db, true);        
         setupRefCountTests(db, pkTable, fkTable, sourceRel);
         
-        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10));        
-        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10));
+        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10), ASUtils.createDuplicateProperties(session, pkTable));        
+        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10), ASUtils.createDuplicateProperties(session, fkTable));
 
         assertEquals(2, FkPane.getModel().getColumn(0).getReferenceCount());
         assertEquals(1, PkPane.getModel().getColumn(0).getReferenceCount());    
@@ -134,6 +136,7 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
     
     public void testRefCountWithMultipleTablesInserted() throws SQLObjectException{
         SQLDatabase db = new SQLDatabase();
+        pp.getSession().getRootObject().addChild(db);
         SQLTable fkTable = new SQLTable(db, true);
         SQLRelationship sourceRel = new SQLRelationship();
         SQLTable pkTable = new SQLTable(db, true);        
@@ -146,9 +149,9 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         newRel.attachRelationship(pkTable,fkTable2, true);
                
         
-        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10));        
-        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10));
-        TablePane FkPane2 = pp.importTableCopy(fkTable2, new Point(10, 10));               
+        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10), ASUtils.createDuplicateProperties(session, pkTable));        
+        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10), ASUtils.createDuplicateProperties(session, fkTable));
+        TablePane FkPane2 = pp.importTableCopy(fkTable2, new Point(10, 10), ASUtils.createDuplicateProperties(session, fkTable2));               
         
         assertEquals (1, PkPane.getModel().getColumn(0).getReferenceCount());
         assertEquals (2, FkPane.getModel().getColumn(0).getReferenceCount());

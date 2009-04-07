@@ -42,7 +42,7 @@ public class CopySelectedAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        final DBTree dbTree = session.getArchitectFrame().getDbTree();
+        final DBTree dbTree = session.getSourceDatabases();
         final Component focusOwner = session.getArchitectFrame().getFocusOwner();
         logger.debug("Copy action invoked. Focus owner is " + focusOwner);
         if (session.getArchitectFrame().isAncestorOf(focusOwner)) {

@@ -133,6 +133,7 @@ import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.sqlobject.undo.CompoundEvent;
 import ca.sqlpower.sqlobject.undo.CompoundEventListener;
 import ca.sqlpower.sqlobject.undo.CompoundEvent.EventTypes;
@@ -167,8 +168,8 @@ public class PlayPen extends JPanel
 						MULTI_SELECT,
 						RUBBERBAND_MOVE}
 	private MouseModeType mouseMode = MouseModeType.IDLE;
-
-    /**
+	
+	/**
      * A simple class that encapsulates the logic for making the cursor image
      * look correct for the current activity.
      */
@@ -1280,7 +1281,7 @@ public class PlayPen extends JPanel
 	}
 
 	/**
-	 * Adds a copy of the given source table to this playpen, using
+	 * Adds or reverse engineers a copy of the given source table to this playpen, using
 	 * preferredLocation as the layout constraint.  Tries to avoid
 	 * adding two tables with identical names.
 	 *
@@ -1288,15 +1289,26 @@ public class PlayPen extends JPanel
 	 * @see SQLTable#inherit
 	 * @see PlayPenLayout#addLayoutComponent(Component,Object)
 	 */
-	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws SQLObjectException {
-		SQLTable newTable = SQLTable.getDerivedInstance(source, session.getTargetDatabase()); // adds newTable to db
-		
-		//If the root source is in the play pen it's not really a source for ETL. 
-		for (SQLColumn col : newTable.getColumns()) {
-		    if (col.getSourceColumn() != null && getTables().contains(col.getSourceColumn().getParentTable())) {
-		        col.setSourceColumn(null);
-		    }
-		}
+	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation, DuplicateProperties duplicateProperties) throws SQLObjectException {
+	    SQLTable newTable;
+	    switch (duplicateProperties.getDefaultTransferStyle()) {
+	    case REVERSE_ENGINEER:
+	        newTable = source.createInheritingInstance(session.getTargetDatabase()); // adds newTable to db
+	        break;
+	    case COPY:
+	        newTable = source.createCopy(session.getTargetDatabase(), duplicateProperties.isPreserveColumnSource());
+	        break;
+	    default:
+	        throw new IllegalStateException("Unknown transfer style " + duplicateProperties.getDefaultTransferStyle());
+	    }
+	    
+	    //need to add data sources as necessary if a SQLObject was copied and pasted from one session
+	    //to another in the same context. Also need to correct the source columns to point to the 
+	    //correct session's source database objects.
+	    for (SQLColumn column : newTable.getColumns()) {
+	        SQLColumn sourceColumn = newTable.getColumnByName(column.getName());
+	        ASUtils.correctSourceColumn(sourceColumn, duplicateProperties, column, getSession().getSourceDatabases());
+	    }
 		
 		String key = source.getName().toLowerCase();
 		boolean isAlreadyOnPlaypen = false;
@@ -1320,8 +1332,10 @@ public class PlayPen extends JPanel
 		addImpl(tp, preferredLocation, getPPComponentCount());
 		tp.revalidate();
 
-        createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, newSuffix);
-        createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, newSuffix);
+		if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.REVERSE_ENGINEER) {
+		    createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, newSuffix);
+		    createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, newSuffix);
+		}
 		return tp;
 	}
 
@@ -1461,7 +1475,7 @@ public class PlayPen extends JPanel
 	/**
 	 * Calls {@link #importTableCopy} for each table contained in the given schema.
 	 */
-	public synchronized void addObjects(List<SQLObject> list, Point preferredLocation, SPSwingWorker nextProcess) throws SQLObjectException {
+	public synchronized void addObjects(List<SQLObject> list, Point preferredLocation, SPSwingWorker nextProcess, TransferStyles transferStyle) throws SQLObjectException {
 		ProgressMonitor pm
 		 = new ProgressMonitor(this,
 		                      Messages.getString("PlayPen.copyingObjectsToThePlaypen"), //$NON-NLS-1$
@@ -1469,7 +1483,7 @@ public class PlayPen extends JPanel
 		                      0,
 			                  100);
 		AddObjectsTask t = new AddObjectsTask(list,
-				preferredLocation, pm, session);
+				preferredLocation, pm, session, transferStyle);
 		t.setNextProcess(nextProcess);
 		new Thread(t, "Objects-Adder").start(); //$NON-NLS-1$
 	}
@@ -1492,13 +1506,17 @@ public class PlayPen extends JPanel
 		private String errorMessage = null;
 		private ProgressMonitor pm;
 
+        private final TransferStyles transferStyle;
+
 		public AddObjectsTask(List<SQLObject> sqlObjects,
 				Point preferredLocation,
 				ProgressMonitor pm,
-                ArchitectSwingSession session) {
+                ArchitectSwingSession session,
+                TransferStyles transferStyle) {
             super(session);
 			this.sqlObjects = sqlObjects;
 			this.preferredLocation = preferredLocation;
+            this.transferStyle = transferStyle;
 			finished = false;
 			ProgressWatcher.watchProgress(pm, this);
 			this.pm = pm;
@@ -1607,8 +1625,15 @@ public class PlayPen extends JPanel
 
 				while (soIt.hasNext() && !isCancelled()) {
 					SQLObject someData = soIt.next();
+					DuplicateProperties duplicateProperties = ASUtils.createDuplicateProperties(getSession(), someData);
+					if (transferStyle == TransferStyles.COPY && duplicateProperties.isCanCopy()) {
+					    duplicateProperties.setDefaultTransferStyle(transferStyle);
+					} else if (transferStyle == TransferStyles.REVERSE_ENGINEER && duplicateProperties.isCanReverseEngineer()) {
+					    duplicateProperties.setDefaultTransferStyle(transferStyle);
+					}
+					
 					if (someData instanceof SQLTable) {
-						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation);
+						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation, duplicateProperties);
 						message = ArchitectUtils.truncateString(((SQLTable)someData).getName());
                         preferredLocation.x += tp.getPreferredSize().width + 5;
 						progress++;
@@ -1619,7 +1644,7 @@ public class PlayPen extends JPanel
                             Object nextTable = it.next();
 							SQLTable sourceTable = (SQLTable) nextTable;
 							message = ArchitectUtils.truncateString(sourceTable.getName());
-							TablePane tp = importTableCopy(sourceTable, preferredLocation);
+							TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties);
 							preferredLocation.x += tp.getPreferredSize().width + 5;
 							progress++;
 						}
@@ -1634,7 +1659,7 @@ public class PlayPen extends JPanel
 									Object nextTable = it.next();
                                     SQLTable sourceTable = (SQLTable) nextTable;
 									message = ArchitectUtils.truncateString(sourceTable.getName());
-									TablePane tp = importTableCopy(sourceTable, preferredLocation);
+									TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties);
 									preferredLocation.x += tp.getPreferredSize().width + 5;
 									progress++;
 								}
@@ -1644,7 +1669,7 @@ public class PlayPen extends JPanel
                                 Object nextTable = cit.next();
 								SQLTable sourceTable = (SQLTable) nextTable;
 								message = ArchitectUtils.truncateString(sourceTable.getName());
-								TablePane tp = importTableCopy(sourceTable, preferredLocation);
+								TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties);
 								preferredLocation.x += tp.getPreferredSize().width + 5;
 								progress++;
 							}
@@ -2048,7 +2073,7 @@ public class PlayPen extends JPanel
 			if (tpTarget != null) {
 				tpTarget.dragOver(dtde);
 			} else {
-				dtde.acceptDrag(DnDConstants.ACTION_COPY);
+				dtde.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE & dtde.getDropAction());
 			}
 		}
 
@@ -2057,17 +2082,23 @@ public class PlayPen extends JPanel
 		 * or current target TablePane if there is one.
 		 */
 		public void drop(DropTargetDropEvent dtde) {
+		    logger.debug("On drop, source actions are " + dtde.getSourceActions() + " and drop action is " + dtde.getDropAction());
 			logger.info("Drop: I am over dtde="+dtde); //$NON-NLS-1$
 			if (tpTarget != null) {
 				tpTarget.drop(dtde);
 				return;
 			}
-
+			
+			if ((dtde.getSourceActions() & dtde.getDropAction()) == 0) {
+			    dtde.rejectDrop();
+			    return;
+			}
+			
 			Transferable t = dtde.getTransferable();
 			PlayPen playpen = (PlayPen) dtde.getDropTargetContext().getComponent();
 			try {
 			    Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));
-			    if (playpen.addTransferable(t, dropLoc)){
+			    if (playpen.addTransferable(t, dropLoc, TransferStyles.REVERSE_ENGINEER)){
 			        dtde.acceptDrop(DnDConstants.ACTION_COPY);
 			        dtde.dropComplete(true);
 			    } else {
@@ -2159,7 +2190,7 @@ public class PlayPen extends JPanel
      * @throws UnsupportedFlavorException 
      * @throws SQLObjectException 
      */
-	private boolean addTransferable(Transferable t, Point dropPoint) throws UnsupportedFlavorException, IOException, SQLObjectException {
+	private boolean addTransferable(Transferable t, Point dropPoint, TransferStyles transferStyle) throws UnsupportedFlavorException, IOException, SQLObjectException {
 	    if (t.isDataFlavorSupported(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR)) {
             SQLObject[] paths = (SQLObject[]) t.getTransferData(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR);
             // turn into a Collection of SQLObjects to make this more generic
@@ -2173,7 +2204,7 @@ public class PlayPen extends JPanel
             }
 
             // null: no next task is chained off this
-            addObjects(sqlObjects, dropPoint, null);
+            addObjects(sqlObjects, dropPoint, null, transferStyle);
 	        return true;
 	    } else {
 	        return false;
@@ -2191,13 +2222,20 @@ public class PlayPen extends JPanel
      * @param t
      *            The transferable to get objects from to add to the playpen
      */
-	public void addTransferable(Transferable t) {
+	public void pasteData(Transferable t) {
+        if (!getSelectedContainers().isEmpty()) {
+            for (ContainerPane<?, ?> cp : getSelectedContainers()) {
+                cp.pasteData(t);
+            }
+            return;
+        }
 	    Point p = getMousePosition();
 	    if (p == null) {
 	        p = new Point(0, 0);
 	    }
+	    unzoomPoint(p);
 	    try {
-            if (!addTransferable(t, p)) {
+            if (!addTransferable(t, p, TransferStyles.COPY)) {
                 JOptionPane.showMessageDialog(this, "Cannot paste the copied objects. Unknown object type.", "Cannot Paste Objects", JOptionPane.WARNING_MESSAGE);
             }
         } catch (UnsupportedFlavorException e) {
@@ -2255,6 +2293,7 @@ public class PlayPen extends JPanel
                     Graphics2D imageGraphics = dragImage.createGraphics();
                     label.paint(imageGraphics);
                     imageGraphics.dispose();
+                    dge.getSourceAsDragGestureRecognizer().setSourceActions(DnDConstants.ACTION_COPY_OR_MOVE);
                     dge.getDragSource().startDrag(
 				            dge, null, dragImage, new Point(0, 0), transferableSelection, tp);
 				}

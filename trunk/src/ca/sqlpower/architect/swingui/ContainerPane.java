@@ -620,6 +620,11 @@ implements DragSourceListener, LayoutNode {
      */
     public abstract Transferable createTransferableForSelection();
     
+    /**
+     * This adds the data in a transferable to the container pane if the transferable
+     * contains a valid flavour.
+     */
+    public abstract void pasteData(Transferable t);
     
     /**
      * Simple implementation for LayoutNode interface. Simply calls getName().
