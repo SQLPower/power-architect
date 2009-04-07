@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.awt.datatransfer.Transferable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -155,6 +156,12 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
         }
 
         return insertIndex;
+    }
+    
+    @Override
+    public void pasteData(Transferable t) {
+        // TODO Auto-generated method stub
+        
     }
 
 }

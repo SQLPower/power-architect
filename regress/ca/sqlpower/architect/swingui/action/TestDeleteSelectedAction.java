@@ -71,7 +71,7 @@ public class TestDeleteSelectedAction extends TestCase {
 	public void testTableSelected() throws SQLObjectException{
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		assertEquals(1, session.getArchitectFrame().getDbTree().getSelectionCount());
+		assertEquals(1, session.getSourceDatabases().getSelectionCount());
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("Incorrect Tooltip", "Delete Table1 (Shortcut delete)",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		tp.setSelected(false,SelectionEvent.SINGLE_SELECT);
@@ -142,7 +142,7 @@ public class TestDeleteSelectedAction extends TestCase {
 	public void testRetrieveDeletableItems() throws Exception {
 	    tp.setSelected(true, SelectionEvent.SINGLE_SELECT);
 	    tp2.setSelected(true, SelectionEvent.SINGLE_SELECT);
-	    assertEquals(2, session.getArchitectFrame().getDbTree().getSelectionPaths().length);
+	    assertEquals(2, session.getSourceDatabases().getSelectionPaths().length);
 	    List<SQLObject> list = deleteAction.retrieveDeletableItems();
 	    assertEquals(2, list.size());
 	    System.out.println(list);

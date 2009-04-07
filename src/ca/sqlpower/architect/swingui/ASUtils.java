@@ -43,11 +43,19 @@ import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.SPDataSourcePanel;
@@ -454,6 +462,122 @@ public class ASUtils {
                 logger.error("got a null session in showExceptionDialog()"); //$NON-NLS-1$
             }
             SPSUtils.showExceptionDialogNoReport(owner, message, t);
+        }
+    }
+
+    /**
+     * Given a SQLObject as a source that is being duplicated, this method will
+     * create a properties object to define how the source can be modified or a
+     * duplicate can be made from it to place in or on a target.
+     */
+    public static DuplicateProperties createDuplicateProperties(ArchitectSwingSession currentSession, SQLObject source) {
+        ArchitectSwingSession containingSession = null;
+        final List<SQLObject> ancestorList = SQLObjectUtils.ancestorList(source);
+        for (ArchitectSession s : currentSession.getContext().getSessions()) {
+            ArchitectSwingSession session = (ArchitectSwingSession) s;
+            SQLObjectRoot root = session.getRootObject();
+            if (ancestorList.contains(root)) {
+                containingSession = session;
+                break;
+            }
+        }
+        if (containingSession == null) { //The SQLObject source comes from outside this context.
+            return new DuplicateProperties(
+                    false, //This is technically possible but ridiculous. The Architects could be loaded from different pl.ini files.
+                    SQLTable.TransferStyles.COPY,
+                    false, 
+                    false,
+                    true
+                    );
+        }
+        
+        if (containingSession != currentSession) { //Duplicating a SQLObject across sessions in the same context.
+            return new DuplicateProperties(
+                    true, //Have to add the source db to the project if it's missing.
+                    SQLTable.TransferStyles.COPY,
+                    false, 
+                    true,
+                    true
+                    );
+        }
+        
+        if (!ancestorList.contains(currentSession.getTargetDatabase())) { //Duplicating a SQLObject from a source to the target database.
+            return new DuplicateProperties(
+                    true,
+                    SQLTable.TransferStyles.REVERSE_ENGINEER, 
+                    false,
+                    true, //This flag should not matter as doing any duplicate from a source to the target should be a reverse engineer.
+                    false
+                    );
+        } else { //Duplicating a SQLObject from the target database to the same target database.
+            return new DuplicateProperties(
+                    false,
+                    SQLTable.TransferStyles.COPY,
+                    true,
+                    true,
+                    true
+                    );
+        }
+    }
+
+    /**
+     * This method will take a given column that has been added to a session and
+     * update its source column to be the same source as a column in another
+     * session. The DuplicateProperties will decide if the new column should
+     * have its source updated. Data sources required to update the source
+     * column will be added to the new session as needed.
+     */
+    public static void correctSourceColumn(SQLColumn source, DuplicateProperties duplicateProperties, SQLColumn column, DBTree dbTree)
+            throws SQLObjectException {
+        if (!duplicateProperties.isPreserveColumnSource()) {
+            return;
+        }
+        SQLColumn sourceColumn;
+        if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.REVERSE_ENGINEER) {
+            sourceColumn = source;
+        } else if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.COPY) {
+            sourceColumn = source.getSourceColumn();
+        } else {
+            sourceColumn = null;
+        }
+        correctSourceColumn(column, sourceColumn, dbTree);
+    }
+
+    /**
+     * This method will take a given column that has been added to a session and update its source
+     * column to be the same source as a column in another session. Data sources required to update
+     * the source column will be added to the new session as needed.
+     * <p>
+     * This is a helper method for the two public correctSourceColumn methods.
+     */
+    private static void correctSourceColumn(SQLColumn column, SQLColumn sourceColumn, DBTree dbTree) throws SQLObjectException {
+        logger.debug("New column " + column.getName() + " has source " + column.getSourceColumn());
+        if (sourceColumn != null && !SQLObjectUtils.isInSameSession(column, sourceColumn)) {
+            
+            //The source database of the source column ETL lineage from the source column from the import/copy (if you can understand that) 
+            SQLDatabase sourceSourceDatabase = SQLObjectUtils.getAncestor(sourceColumn, SQLDatabase.class);
+            
+            //The source data source of the target of this import/copy if it exists (less confusing than above thankfully)
+            SPDataSource targetSourceSPDataSource = dbTree.getDuplicateDbcs(sourceSourceDatabase.getDataSource());
+            if (targetSourceSPDataSource == null) {
+                throw new IllegalStateException("Cannot find target data source " + sourceSourceDatabase + " in the target session but was available in the source.");
+            }
+            if (!dbTree.dbcsAlreadyExists(targetSourceSPDataSource)) {
+                dbTree.addSourceConnection(sourceSourceDatabase.getDataSource());
+            }
+            SQLDatabase targetSourceDatabase = dbTree.getDatabase(targetSourceSPDataSource);
+            
+            //set the source column of the column we are creating in the target of the import/copy to the column equivalent in the targetSourceDatabase defined above.
+            List<SQLObject> ancestors = SQLObjectUtils.ancestorList(sourceColumn);
+            System.out.println(ancestors);
+            SQLObject child = targetSourceDatabase;
+            for (int i = 2; i < ancestors.size(); i++) {
+                SQLObject ancestor = ancestors.get(i);
+                System.out.println("Child " + child + " ancestor " + ancestor);
+                child = child.getChildByName(ancestor.getName());
+            }
+            column.setSourceColumn((SQLColumn) child);
+            
         }
     }
 }

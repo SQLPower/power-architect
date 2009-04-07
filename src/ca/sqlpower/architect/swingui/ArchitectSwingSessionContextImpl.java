@@ -23,7 +23,9 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -64,6 +66,36 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     private static final Logger logger = Logger.getLogger(ArchitectSwingSessionContextImpl.class);
     
     private static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x")); //$NON-NLS-1$ //$NON-NLS-2$
+    
+    /**
+     * This dummy transferable is placed on the local clipboard if the system 
+     * clipboard is lost. This is used instead of a null value as setting
+     * the local clipboard to have null as its content causes an NPE.
+     */
+    private class DummyTransferable implements Transferable {
+
+        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        public DataFlavor[] getTransferDataFlavors() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        public boolean isDataFlavorSupported(DataFlavor flavor) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+        
+    }
+    
+    /**
+     * The dummy transferable to place on the local clipboard to avoid an
+     * NPE when setting the contents to null.
+     */
+    private final Transferable dummyTransferable = new DummyTransferable();
     
     /**
      * A more structured interface to the prefs node.  Might be going away soon.
@@ -273,7 +305,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * Defaults to false, which is required by the interface spec.
      */
     private boolean exitAfterAllSessionsClosed = false;
-    
+
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#isMacOSX()
      */
@@ -354,7 +386,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     }
     
     public Transferable getClipboardContents() {
-        if (clipboard.getContents(null) != null) {
+        if (clipboard.getContents(null) != dummyTransferable) {
             return clipboard.getContents(null);
         }
         return Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
@@ -372,6 +404,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     }
 
     public void lostOwnership(Clipboard clipboard, Transferable contents) {
-        clipboard.setContents(null, this);
+        clipboard.setContents(dummyTransferable, this);
     }
 }

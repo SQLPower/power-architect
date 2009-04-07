@@ -257,7 +257,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         final ArchitectSwingSession session = context.createSession(false);
 
         SQLTable table = new SQLTable(session.getTargetDatabase(), true);
-        SQLColumn column = SQLColumn.getDerivedInstance(sourceColumn, table);
+        SQLColumn column = sourceColumn.createInheritingInstance(table);
 
         assertNull(column.getSourceColumn());
     }
@@ -279,7 +279,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         sourceTable.addColumn(sourceColumn);
 
         SQLTable table = new SQLTable(session.getTargetDatabase(), true);
-        SQLColumn column = SQLColumn.getDerivedInstance(sourceColumn, table);
+        SQLColumn column = sourceColumn.createInheritingInstance(table);
         
         SQLObject o1Parent = column;
         while (o1Parent.getParent() != null) {

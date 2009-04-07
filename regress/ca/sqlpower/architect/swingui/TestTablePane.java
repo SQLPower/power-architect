@@ -26,10 +26,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -89,43 +89,156 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
 		List<SQLObject> newcolList = new ArrayList<SQLObject>();
 		newcolList.add(newcol);
-		tp.insertObjects(newcolList, 0);
+		tp.insertObjects(newcolList, 0, false);
 		
 		assertEquals(7, t.getColumns().size());
 		assertEquals(4, t.getPkSize());
 	}
+	
+	/** This tests for a regression we found in March 2006 (bug 1057) */
+    public void testInsertColumnAtStartOfNonPK() throws SQLObjectException {
+        SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
+        t.addColumn(0, newcol);
+        
+        assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
+        
+        List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
+        
+        List<SQLObject> movecolList = new ArrayList<SQLObject>();
+        movecolList.add(newcol);
+        tp.insertObjects(movecolList, TablePane.COLUMN_INDEX_START_OF_NON_PK, true);
+        
+        List<SQLColumn> newColumns = new ArrayList<SQLColumn>(t.getColumns());
+        newColumns.removeAll(oldColumns);
+        
+        assertEquals(1, newColumns.size());
+        final SQLColumn copyCol = newColumns.get(0);
+        assertEquals(3, t.getColumnIndex(copyCol));
+        assertNull("Column should have moved out of primary key", copyCol.getPrimaryKeySeq());
+    }
+
+    /** This tests for a regression we found in March 2006 (bug 1057) */
+    public void testInsertColumnAboveFirstNonPKColumn() throws SQLObjectException {
+        SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
+        t.addColumn(0, newcol);
+        
+        assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
+        
+        List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
+        
+        List<SQLObject> movecolList = new ArrayList<SQLObject>();
+        movecolList.add(newcol);
+        tp.insertObjects(movecolList, 4, true);
+        
+        List<SQLColumn> newColumns = new ArrayList<SQLColumn>(t.getColumns());
+        newColumns.removeAll(oldColumns);
+        
+        assertEquals(1, newColumns.size());
+        final SQLColumn copyCol = newColumns.get(0);
+        assertEquals(3, t.getColumnIndex(copyCol));
+        assertNull("Column should have moved out of primary key", copyCol.getPrimaryKeySeq());
+    }
+
+    public void testInsertNewColumnAboveFirstNonPKColumn() throws SQLObjectException {
+        SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
+        t2.setName("Another Test Table");
+        SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
+        t2.addColumn(0, newcol);
+        newcol.setPrimaryKeySeq(1);
+        assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
+        
+        List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
+        
+        List<SQLObject> movecolList = new ArrayList<SQLObject>();
+        movecolList.add(newcol);
+        tp.insertObjects(movecolList, 3, true);
+        
+        List<SQLColumn> newColumns = new ArrayList<SQLColumn>(t.getColumns());
+        newColumns.removeAll(oldColumns);
+        
+        assertEquals(1, newColumns.size());
+        final SQLColumn copyCol = newColumns.get(0);
+        assertEquals(3, t.getColumnIndex(copyCol));
+        assertNull("Column should not be in primary key", copyCol.getPrimaryKeySeq());
+    }
+    
+    /** This tests for a real regression (the column was ending up at index 2 instead of 3) */
+    public void testInsertNewColumnAtEndOfPK() throws SQLObjectException {
+        SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
+        t2.setName("Another Test Table");
+        SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
+        t2.addColumn(0, newcol);
+        newcol.setPrimaryKeySeq(1);
+        assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
+        
+        List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
+        
+        List<SQLObject> movecolList = new ArrayList<SQLObject>();
+        movecolList.add(newcol);
+        tp.insertObjects(movecolList, TablePane.COLUMN_INDEX_END_OF_PK, true);
+        
+        List<SQLColumn> newColumns = new ArrayList<SQLColumn>(t.getColumns());
+        newColumns.removeAll(oldColumns);
+        
+        assertEquals(1, newColumns.size());
+        final SQLColumn copyCol = newColumns.get(0);
+        assertEquals(3, t.getColumnIndex(copyCol));
+        assertNotNull("Column should be in primary key", copyCol.getPrimaryKeySeq());
+    }
 
 	/** This tests for a regression we found in March 2006 (bug 1057) */
-	public void testInsertColumnAtStartOfNonPK() throws SQLObjectException {
+	public void testInsertColumnAtStartOfNonPKByCopy() throws SQLObjectException {
 		SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
 		t.addColumn(0, newcol);
 		
 		assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
 		
+		List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
+		
 		List<SQLObject> movecolList = new ArrayList<SQLObject>();
 		movecolList.add(newcol);
-		tp.insertObjects(movecolList, TablePane.COLUMN_INDEX_START_OF_NON_PK);
+		tp.insertObjects(movecolList, TablePane.COLUMN_INDEX_START_OF_NON_PK, false);
 		
-		assertEquals(3, t.getColumnIndex(newcol));
-		assertNull("Column should have moved out of primary key", newcol.getPrimaryKeySeq());
+		List<SQLColumn> newColumns = new ArrayList<SQLColumn>(t.getColumns());
+		newColumns.removeAll(oldColumns);
+		
+		assertEquals(1, newColumns.size());
+		final SQLColumn copyCol = newColumns.get(0);
+        assertEquals(4, t.getColumnIndex(copyCol));
+		assertNull("Column should have moved out of primary key", copyCol.getPrimaryKeySeq());
+		
+		//assert column copied still exists
+		assertEquals(0, t.getColumnIndex(newcol));
+		assertNotNull("Column copied should stay in primary key", newcol.getPrimaryKeySeq());
 	}
 
 	/** This tests for a regression we found in March 2006 (bug 1057) */
-	public void testInsertColumnAboveFirstNonPKColumn() throws SQLObjectException {
+	public void testInsertColumnAboveFirstNonPKColumnByCopy() throws SQLObjectException {
 		SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
 		t.addColumn(0, newcol);
 		
 		assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
 		
+		List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
+		
 		List<SQLObject> movecolList = new ArrayList<SQLObject>();
 		movecolList.add(newcol);
-		tp.insertObjects(movecolList, 4);
+		tp.insertObjects(movecolList, 4, false);
 		
-		assertEquals(3, t.getColumnIndex(newcol));
-		assertNull("Column should have moved out of primary key", newcol.getPrimaryKeySeq());
+		List<SQLColumn> newColumns = new ArrayList<SQLColumn>(t.getColumns());
+		newColumns.removeAll(oldColumns);
+
+		assertEquals(1, newColumns.size());
+		SQLColumn copyColumn = newColumns.get(0);
+		assertEquals(4, t.getColumnIndex(copyColumn));
+		assertNull("Column copied should be out of primary key", copyColumn.getPrimaryKeySeq());
+		
+		//column copied should not be changed
+		assertEquals(0, t.getColumnIndex(newcol));
+		assertNotNull("Column should stay in primary key", newcol.getPrimaryKeySeq());
 	}
 
-	public void testInsertNewColumnAboveFirstNonPKColumn() throws SQLObjectException {
+	public void testInsertNewColumnAboveFirstNonPKColumnByCopy() throws SQLObjectException {
 		SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
 		t2.setName("Another Test Table");
 		SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
@@ -133,16 +246,26 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		newcol.setPrimaryKeySeq(1);
 		assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
 		
+		List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
+		
 		List<SQLObject> movecolList = new ArrayList<SQLObject>();
 		movecolList.add(newcol);
-		tp.insertObjects(movecolList, 3);
+		tp.insertObjects(movecolList, 3, false);
 		
-		assertEquals(3, t.getColumnIndex(newcol));
-		assertNull("Column should not be in primary key", newcol.getPrimaryKeySeq());
+		List<SQLColumn> newColumns = new ArrayList<SQLColumn>(t.getColumns());
+		newColumns.removeAll(oldColumns);
+		
+		assertEquals(1, newColumns.size());
+		SQLColumn copyCol = newColumns.get(0);
+		assertEquals(3, t.getColumnIndex(copyCol));
+		assertNull("Copy column should not bein in the primary key", copyCol.getPrimaryKeySeq());
+		
+		assertEquals(0, t2.getColumnIndex(newcol));
+		assertNotNull("Column should still be in primary key", newcol.getPrimaryKeySeq());
 	}
 	
 	/** This tests for a real regression (the column was ending up at index 2 instead of 3) */
-	public void testInsertNewColumnAtEndOfPK() throws SQLObjectException {
+	public void testInsertNewColumnAtEndOfPKByCopy() throws SQLObjectException {
 		SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
 		t2.setName("Another Test Table");
 		SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
@@ -150,22 +273,45 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		newcol.setPrimaryKeySeq(1);
 		assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
 		
+		List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
+		
 		List<SQLObject> movecolList = new ArrayList<SQLObject>();
 		movecolList.add(newcol);
-		tp.insertObjects(movecolList, TablePane.COLUMN_INDEX_END_OF_PK);
+		tp.insertObjects(movecolList, TablePane.COLUMN_INDEX_END_OF_PK, false);
 		
-		assertEquals(3, t.getColumnIndex(newcol));
-		assertNotNull("Column should be in primary key", newcol.getPrimaryKeySeq());
+		List<SQLColumn> newColumns = new ArrayList<SQLColumn>(t.getColumns());
+		newColumns.removeAll(oldColumns);
+		
+		assertEquals(1, newColumns.size());
+		SQLColumn copyCol = newColumns.get(0);
+		
+		assertEquals(3, t.getColumnIndex(copyCol));
+		assertNotNull("Copy column should be in primary key", copyCol.getPrimaryKeySeq());
+		
+		//Assert column copied is unmodified.
+		assertEquals(0, t2.getColumnIndex(newcol));
+		assertNotNull("Column should still be in primary key", newcol.getPrimaryKeySeq());
 	}
 
-	public void testDisallowImportTableFromPlaypen() throws SQLObjectException {
+	public void testImportTableFromPlaypenByCopy() throws SQLObjectException {
 		SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
 		t2.setName("Another Test Table");
+		SQLColumn newCol = new SQLColumn(t2, "another column", Types.VARCHAR, 10, 0);
+		t2.addColumn(newCol);
 		
 		List<SQLObject> tableList = new ArrayList<SQLObject>();
 		tableList.add(t2);
 		
-		assertFalse("Inserting a table from the playpen is not allowed", tp.insertObjects(tableList, 0));
+		List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
+		
+		tp.insertObjects(tableList, 0, false);
+		
+		List<SQLColumn> newColumns = new ArrayList<SQLColumn>(t.getColumns());
+		newColumns.removeAll(oldColumns);
+		
+		assertEquals(1, t2.getColumns().size());
+		assertEquals(1, newColumns.size());
+		assertEquals(newCol.getName(), newColumns.get(0).getName());
 	}
 	
 	/**
@@ -246,7 +392,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
         // That removal from t1 causes the side effect of removing the imported
         // copy of parentPk1 in t2. Hence, t2 shrinks by one column, and the
         // specified insertion index is out of bounds.
-        tp2.insertObjects(Collections.singletonList(parentPk1), t2.getColumns().size());
+        tp2.insertObjects(Collections.singletonList(parentPk1), t2.getColumns().size(), false);
     }
     
     public void testUnlistenToRemovedColumns() throws Exception {
@@ -335,15 +481,23 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
         assertEquals(3, t.getPkSize());
         assertEquals(3, fkTable.getPkSize());
         
-        System.out.println(tp.getModel().getParentDatabase() + ", "+ fkTable.getParentDatabase());
-        tp.insertObjects(Collections.singletonList(col), TablePane.COLUMN_INDEX_END_OF_PK);
+        List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
         
-        assertEquals(tp.getModel(), col.getParentTable());
+        tp.insertObjects(Collections.singletonList(col), TablePane.COLUMN_INDEX_END_OF_PK, false);
+        
+        List<SQLColumn> newColumns = new ArrayList<SQLColumn>(t.getColumns());
+        newColumns.removeAll(oldColumns);
+        
+        assertEquals(1, newColumns.size());
+        SQLColumn copyCol = newColumns.get(0);
+        assertTrue(copyCol.isPrimaryKey());
+        
+        assertEquals(fkTable, col.getParentTable());
         assertTrue(col.isPrimaryKey());
         assertEquals(4, fkTable.getColumns().size());
         assertEquals(4, rel.getMappings().size());
-        assertNotNull(rel.getMappingByPkCol(col));
-        assertNotNull(rel.getMappingByFkCol(fkTable.getColumn(0)));
+        assertNotNull(rel.getMappingByPkCol(copyCol));
+        assertNotNull(rel.getMappingByFkCol(col));
     }
 
     @Override

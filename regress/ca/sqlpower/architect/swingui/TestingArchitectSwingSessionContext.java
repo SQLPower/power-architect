@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.prefs.Preferences;
@@ -46,6 +47,7 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
     private Preferences prefs;
     private CoreUserSettings userSettings;
     private RecentMenu recent;
+    private final List<ArchitectSession> sessions = new ArrayList<ArchitectSession>();
     
     /**
      * The parsed list of connections.
@@ -74,7 +76,9 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
     }
     
     public ArchitectSwingSession createSession() throws SQLObjectException {
-        return new TestingArchitectSwingSession(this);
+        ArchitectSwingSession session = new TestingArchitectSwingSession(this);
+        sessions.add(session);
+        return session;
     }
 
     public ArchitectSession createSession(InputStream in) throws SQLObjectException, IOException {
@@ -90,7 +94,7 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
     }
     
     public Collection<ArchitectSession> getSessions() {
-        return null;
+        return sessions;
     }
 
     public Preferences getPrefs() {

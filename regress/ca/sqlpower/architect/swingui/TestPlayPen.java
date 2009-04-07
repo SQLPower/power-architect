@@ -22,6 +22,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
 import java.beans.PropertyDescriptor;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,11 +38,14 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 
 import sun.font.FontManager;
-import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 
 public class TestPlayPen extends TestCase {
 	ArchitectFrame af;
@@ -113,7 +118,7 @@ public class TestPlayPen extends TestCase {
 	public void testImportTableCopyHijacksProperly() throws SQLObjectException {
 
 		SQLDatabase sourceDB = new SQLDatabase();
-
+		pp.getSession().getRootObject().addChild(sourceDB);
 		SQLTable sourceParentTable = new SQLTable(sourceDB, true);
 		sourceParentTable.setName("parent");
 		sourceParentTable.addColumn(new SQLColumn(sourceParentTable, "key", Types.BOOLEAN, 1, 0));
@@ -128,9 +133,9 @@ public class TestPlayPen extends TestCase {
 		SQLRelationship sourceRel = new SQLRelationship();
 		sourceRel.attachRelationship(sourceParentTable, sourceChildTable, true);
 
-		pp.importTableCopy(sourceChildTable, new Point(10, 10));
-		pp.importTableCopy(sourceParentTable, new Point(10, 10));
-		pp.importTableCopy(sourceParentTable, new Point(10, 10));
+		pp.importTableCopy(sourceChildTable, new Point(10, 10), ASUtils.createDuplicateProperties(pp.getSession(), sourceChildTable));
+		pp.importTableCopy(sourceParentTable, new Point(10, 10), ASUtils.createDuplicateProperties(pp.getSession(), sourceParentTable));
+		pp.importTableCopy(sourceParentTable, new Point(10, 10), ASUtils.createDuplicateProperties(pp.getSession(), sourceParentTable));
 
 		int relCount = 0;
 		int tabCount = 0;
@@ -162,7 +167,7 @@ public class TestPlayPen extends TestCase {
 	 */
 	public void testImportTableCopyOnSelfReferencingTable() throws Exception {
 	    SQLDatabase sourceDB = new SQLDatabase();
-
+	    pp.getSession().getRootObject().addChild(sourceDB);
         SQLTable table = new SQLTable(sourceDB, true);
         table.setName("self_ref");
         SQLColumn pkCol = new SQLColumn(table, "key", Types.INTEGER, 10, 0);
@@ -176,7 +181,7 @@ public class TestPlayPen extends TestCase {
         rel.addMapping(pkCol, fkCol);
         sourceDB.addChild(table);
         
-        pp.importTableCopy(table, new Point(10, 10));
+        pp.importTableCopy(table, new Point(10, 10), ASUtils.createDuplicateProperties(pp.getSession(), table));
         
         int relCount = 0;
         int tabCount = 0;
@@ -204,7 +209,7 @@ public class TestPlayPen extends TestCase {
 	 */
 	public void testImportTableCopyOnTwoCopiesOfSelfReferencingTable() throws Exception {
         SQLDatabase sourceDB = new SQLDatabase();
-
+        pp.getSession().getRootObject().addChild(sourceDB);
         SQLTable table = new SQLTable(sourceDB, true);
         table.setName("self_ref");
         SQLColumn pkCol = new SQLColumn(table, "key", Types.INTEGER, 10, 0);
@@ -218,8 +223,8 @@ public class TestPlayPen extends TestCase {
         rel.addMapping(pkCol, fkCol);
         sourceDB.addChild(table);
         
-        pp.importTableCopy(table, new Point(10, 10));
-        pp.importTableCopy(table, new Point(30, 30));
+        pp.importTableCopy(table, new Point(10, 10), ASUtils.createDuplicateProperties(pp.getSession(), table));
+        pp.importTableCopy(table, new Point(30, 30), ASUtils.createDuplicateProperties(pp.getSession(), table));
         
         int relCount = 0;
         int tabCount = 0;
@@ -400,6 +405,127 @@ public class TestPlayPen extends TestCase {
 	            }
 	        }
 	}
+	
+	/**
+	 * This tests that copying and pasting a new table into
+	 * the play pen works. This also confirms that the new table
+	 * copied is not the source of the columns.
+	 */
+	public void testPasteNewTable() throws Exception {
+	    SQLTable table = new SQLTable(null, "NewTable", "Remarks", "TABLE", true);
+	    table.addColumn(new SQLColumn(table, "NewCol1", Types.VARCHAR, 50, 0));
+	    table.addColumn(new SQLColumn(table, "NewCol2", Types.NUMERIC, 50, 0));
+	    
+	    DuplicateProperties duplicateProperties = ASUtils.createDuplicateProperties(pp.getSession(), table);
+	    duplicateProperties.setDefaultTransferStyle(TransferStyles.COPY);
+        pp.importTableCopy(table, new Point(0, 0), duplicateProperties);
+	    assertEquals(1, pp.getTables().size());
+	    SQLTable copy = pp.getTables().get(0);
+	    assertEquals("NewTable", copy.getName());
+	    assertEquals(2, copy.getColumns().size());
+	    assertTrue(copy.getColumnByName("NewCol1") != null);
+	    assertTrue(copy.getColumnByName("NewCol2") != null);
+	    assertNull(copy.getColumnByName("NewCol1").getSourceColumn());
+	    assertNull(copy.getColumnByName("NewCol2").getSourceColumn());
+	}
+
+    /**
+     * This tests that copying and pasting a table with source information into
+     * the play pen works. This also confirms that the new table copied has the
+     * same sources as the original table and does not use the table copied from
+     * as its source. Note that this is testing copy, not reverse engineering.
+     */
+    public void testPasteCopyTable() throws Exception {
+        SQLDatabase db = new SQLDatabase();
+        pp.getSession().getRootObject().addChild(db);
+        SQLColumn sourceCol = new SQLColumn();
+        SQLTable sourceTable = new SQLTable(db, true);
+        sourceTable.addColumn(sourceCol);
+        SQLTable table = new SQLTable(db, "NewTable", "Remarks", "TABLE", true);
+        final SQLColumn col1 = new SQLColumn(table, "NewCol1", Types.VARCHAR, 50, 0);
+        col1.setSourceColumn(sourceCol);
+        table.addColumn(col1);
+        final SQLColumn col2 = new SQLColumn(table, "NewCol2", Types.NUMERIC, 50, 0);
+        col2.setSourceColumn(sourceCol);
+        table.addColumn(col2);
+        
+        DuplicateProperties duplicateProperties = ASUtils.createDuplicateProperties(pp.getSession(), table);
+        duplicateProperties.setDefaultTransferStyle(TransferStyles.COPY);
+        pp.importTableCopy(table, new Point(0, 0), duplicateProperties);
+        assertEquals(1, pp.getTables().size());
+        SQLTable copy = pp.getTables().get(0);
+        assertEquals("NewTable", copy.getName());
+        assertEquals(2, copy.getColumns().size());
+        assertTrue(copy.getColumnByName("NewCol1") != null);
+        assertTrue(copy.getColumnByName("NewCol2") != null);
+        assertEquals(sourceCol, copy.getColumnByName("NewCol1").getSourceColumn());
+        assertEquals(sourceCol, copy.getColumnByName("NewCol2").getSourceColumn());
+    }
+    
+    /**
+     * This tests that copying and pasting a table with source information into
+     * the play pen works. This also confirms that the new table copied uses
+     * the table reverse engineered from as its source.
+     */
+    public void testPasteReverseEngineeredTable() throws Exception {
+        SQLDatabase db = new SQLDatabase();
+        pp.getSession().getRootObject().addChild(db);
+        SQLColumn sourceCol = new SQLColumn();
+        SQLTable sourceTable = new SQLTable(db, true);
+        sourceTable.addColumn(sourceCol);
+        SQLTable table = new SQLTable(db, "NewTable", "Remarks", "TABLE", true);
+        final SQLColumn col1 = new SQLColumn(table, "NewCol1", Types.VARCHAR, 50, 0);
+        col1.setSourceColumn(sourceCol);
+        table.addColumn(col1);
+        final SQLColumn col2 = new SQLColumn(table, "NewCol2", Types.NUMERIC, 50, 0);
+        col2.setSourceColumn(sourceCol);
+        table.addColumn(col2);
+        
+        DuplicateProperties duplicateProperties = ASUtils.createDuplicateProperties(pp.getSession(), table);
+        pp.importTableCopy(table, new Point(0, 0), duplicateProperties);
+        assertEquals(1, pp.getTables().size());
+        SQLTable copy = pp.getTables().get(0);
+        assertEquals("NewTable", copy.getName());
+        assertEquals(2, copy.getColumns().size());
+        assertTrue(copy.getColumnByName("NewCol1") != null);
+        assertTrue(copy.getColumnByName("NewCol2") != null);
+        assertEquals(col1, copy.getColumnByName("NewCol1").getSourceColumn());
+        assertEquals(col2, copy.getColumnByName("NewCol2").getSourceColumn());
+    }
+    
+    /**
+     * This tests that copying and pasting a table from one session to another
+     * session within the same context will add the data source to the new session
+     * and add the table properly.
+     */
+    public void testPasteTableAcrossSessions() throws Exception {
+        ArchitectSwingSessionContext context = pp.getSession().getContext();
+        context.setPlDotIniPath("pl.regression.ini");
+        DataSourceCollection pl = context.getPlDotIni();
+        SPDataSource ds = pl.getDataSource("regression_test");
+        Connection con = ds.createConnection();
+        Statement stmt = con.createStatement();
+        stmt.execute("Create table newtable (newcol1 varchar(50), newcol2 varchar(50))");
+        stmt.close();
+        con.close();
+        
+        SQLDatabase db = new SQLDatabase(ds);
+        SQLTable table = db.getTableByName("newtable");
+        
+        //New play pen in same context
+        PlayPen newPP = pp.getSession().getContext().createSession().getPlayPen();
+        
+        DuplicateProperties duplicateProperties = ASUtils.createDuplicateProperties(newPP.getSession(), table);
+        newPP.importTableCopy(table, new Point(0, 0), duplicateProperties);
+        assertEquals(1, newPP.getTables().size());
+        SQLTable copy = newPP.getTables().get(0);
+        assertEquals("NEWTABLE", copy.getName().toUpperCase());
+        assertEquals(2, copy.getColumns().size());
+        assertTrue(copy.getColumnByName("NewCol1") != null);
+        assertTrue(copy.getColumnByName("NewCol2") != null);
+        assertTrue(table.getColumnByName("newcol1") != copy.getColumnByName("NewCol1").getSourceColumn());
+        assertTrue(table.getColumnByName("newcol2") != copy.getColumnByName("NewCol2").getSourceColumn());
+    }
 	
     /**
      * Returns a new value that is not equal to oldVal. The

@@ -39,7 +39,7 @@ public class CutSelectedAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        final DBTree dbTree = session.getArchitectFrame().getDbTree();
+        final DBTree dbTree = session.getSourceDatabases();
         final Component focusOwner = session.getArchitectFrame().getFocusOwner();
         if (session.getArchitectFrame().isAncestorOf(focusOwner)) {
             dbTree.cutSelection();
