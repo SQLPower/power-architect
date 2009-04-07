@@ -177,6 +177,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         // sets the icon so exception dialogs handled by SPSUtils instead
         // of ASUtils can still have the correct icon
         SPSUtils.setMasterIcon(new ImageIcon(ASUtils.getFrameIconImage()));
+        
+        logger.debug("toolkit has system clipboard " + Toolkit.getDefaultToolkit().getSystemClipboard());
+        clipboard.setContents(dummyTransferable, this);
     }
     
     /**
@@ -386,24 +389,30 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     }
     
     public Transferable getClipboardContents() {
+        logger.debug("local clipboard contents are " + clipboard.getContents(null));
         if (clipboard.getContents(null) != dummyTransferable) {
+            logger.debug("Getting clipboard contents from local clipboard");
             return clipboard.getContents(null);
         }
+        logger.debug("Getting clipboard contents from system");
         return Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
     }
     
     public void setClipboardContents(Transferable t) {
         clipboard.setContents(t, this);
+        logger.debug("Setting local clipboard contents");
         if (t instanceof SQLObjectSelection) {
             ((SQLObjectSelection) t).setLocal(false);
         }
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(t, this);
+        logger.debug("toolkit pasting to system clipboard " + Toolkit.getDefaultToolkit().getSystemClipboard());
         if (t instanceof SQLObjectSelection) {
             ((SQLObjectSelection) t).setLocal(true);
         }
     }
 
     public void lostOwnership(Clipboard clipboard, Transferable contents) {
-        clipboard.setContents(dummyTransferable, this);
+        this.clipboard.setContents(dummyTransferable, this);
+        logger.debug("Context lost clipboard ownership");
     }
 }

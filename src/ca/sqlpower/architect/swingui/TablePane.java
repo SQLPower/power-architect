@@ -54,6 +54,7 @@ import javax.swing.JScrollPane;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.InsertionPointWatcher;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
@@ -511,13 +512,48 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			    }
 			} else if (someData instanceof SQLColumn) {
 			    SQLColumn col = (SQLColumn) someData;
-
-			    // importing column from a source database
-			    getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource());
-			    if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision()); //$NON-NLS-1$ //$NON-NLS-2$
-			    ASUtils.correctSourceColumn(col, duplicateProperties, getModel().getColumnByName(col.getName()), getPlayPen().getSession().getSourceDatabases());
 			    if (deleteSource) {
-			        col.removeReference();
+			        if (col.getParentTable() == getModel()) {
+			            // moving column inside the same table
+			            int oldIndex = col.getParentTable().getColumns().indexOf(col);
+			            if (insertionPoint > oldIndex) {
+			                insertionPoint--;
+			            }
+			            getModel().changeColumnIndex(oldIndex, insertionPoint, newColumnsInPk);
+			        } else if (col.getParentTable().getParentDatabase() == getModel().getParentDatabase()) {
+			            // moving column within playpen
+
+			            InsertionPointWatcher<SQLTable.Folder<SQLColumn>> ipWatcher =
+			                new InsertionPointWatcher<SQLTable.Folder<SQLColumn>>(getModel().getColumnsFolder(), insertionPoint);
+			            col.getParentTable().removeColumn(col);
+			            ipWatcher.dispose();
+
+			            if (logger.isDebugEnabled()) {
+			                logger.debug("Moving column '"+col.getName() //$NON-NLS-1$
+			                        +"' to table '"+getModel().getName() //$NON-NLS-1$
+			                        +"' at position "+ipWatcher.getInsertionPoint()); //$NON-NLS-1$
+			            }
+			            getModel().addColumn(ipWatcher.getInsertionPoint(), col);
+			            // You need to disable the normalization otherwise it goes around
+			            // the property change events and causes undo to fail when dragging
+			            // into the primary key of a table
+			            logger.debug("Column listeners are " + col.getSQLObjectListeners());
+
+			            if (newColumnsInPk) {
+			                col.setPrimaryKeySeq(new Integer(ipWatcher.getInsertionPoint()), false);
+			            } else {
+			                col.setPrimaryKeySeq(null, false);
+			            }
+			        } else {
+			            // importing column from a source database
+			            getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource());
+			            if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision()); //$NON-NLS-1$ //$NON-NLS-2$
+			        }
+
+			    } else {
+			        getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource());
+			        if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision()); //$NON-NLS-1$ //$NON-NLS-2$
+			        ASUtils.correctSourceColumn(col, duplicateProperties, getModel().getColumnByName(col.getName()), getPlayPen().getSession().getSourceDatabases());
 			    }
 			} else {
 				return false;
@@ -727,7 +763,22 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         try {
             int insertionPoint = pointToItemIndex(loc);
 
-            List<SQLObject> droppedItems = Arrays.asList((SQLObject[]) t.getTransferData(importFlavor));
+            List<SQLObject> droppedItems;
+            if (importFlavor == SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR) {
+                droppedItems = Arrays.asList((SQLObject[]) t.getTransferData(importFlavor));
+            } else if (importFlavor == DataFlavor.stringFlavor) {
+                String[] stringPieces = ((String) t.getTransferData(DataFlavor.stringFlavor)).split("[\n\r\t]+");
+                droppedItems = new ArrayList<SQLObject>();
+                for (String s : stringPieces) {
+                    if (s.length() > 0) {
+                        SQLColumn newCol = new SQLColumn();
+                        newCol.setName(s);
+                        droppedItems.add(newCol);
+                    }
+                }
+            } else {
+                return false;
+            }
 
             logger.debug("Importing items: " + droppedItems); //$NON-NLS-1$
 
@@ -761,6 +812,9 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 }
                 success = insertObjects(droppedItems, insertionPoint, deleteSource);
             } catch (LockedColumnException ex ) {
+                if (logger.isDebugEnabled()) {
+                    ex.printStackTrace();
+                }
                 JOptionPane.showConfirmDialog(pp,
                         "Could not delete the column " + //$NON-NLS-1$
                         ex.getCol().getName() +
@@ -843,6 +897,11 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
             if (flavors[i].equals(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR)) {
                 logger.debug("YES"); //$NON-NLS-1$
+                return flavors[i];
+            }
+        }
+        for (int i = 0; i < flavors.length; i++) {
+            if (flavors[i].equals(DataFlavor.stringFlavor)) {
                 return flavors[i];
             }
         }
