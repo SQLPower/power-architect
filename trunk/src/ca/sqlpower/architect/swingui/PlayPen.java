@@ -2206,6 +2206,20 @@ public class PlayPen extends JPanel
             // null: no next task is chained off this
             addObjects(sqlObjects, dropPoint, null, transferStyle);
 	        return true;
+	    } else if (t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+	        String[] stringPieces = ((String) t.getTransferData(DataFlavor.stringFlavor)).split("[\n\r\t]+");
+	        List<SQLObject> sqlObjects = new ArrayList<SQLObject>();
+	        for (String s : stringPieces) {
+	            if (s.length() > 0) {
+	                SQLTable newTable = new SQLTable();
+	                newTable.setName(s);
+	                newTable.initFolders(true);
+	                sqlObjects.add(newTable);
+	            }
+	        }
+	        
+	        addObjects(sqlObjects, dropPoint, null, transferStyle);
+	        return true;
 	    } else {
 	        return false;
 	    }
