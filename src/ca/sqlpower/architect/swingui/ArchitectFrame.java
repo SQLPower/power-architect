@@ -90,6 +90,7 @@ import ca.sqlpower.architect.swingui.action.EditTableAction;
 import ca.sqlpower.architect.swingui.action.ExportCSVAction;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction;
 import ca.sqlpower.architect.swingui.action.ExportPlaypenToPDFAction;
+import ca.sqlpower.architect.swingui.action.ExportHTMLReportAction;
 import ca.sqlpower.architect.swingui.action.FocusToChildOrParentTableAction;
 import ca.sqlpower.architect.swingui.action.HelpAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
@@ -512,7 +513,7 @@ public class ArchitectFrame extends JFrame {
         Action exportCSVAction = new ExportCSVAction(this, session);
         Action mappingReportAction = new VisualMappingReportAction(this, session);
         Action kettleETL = new KettleJobAction(session);
-        
+        Action exportHTMLReportAction = new ExportHTMLReportAction(session);
         menuBar = new JMenuBar();
 
         JMenu fileMenu = new JMenu(Messages.getString("ArchitectFrame.fileMenu")); //$NON-NLS-1$
@@ -526,6 +527,7 @@ public class ArchitectFrame extends JFrame {
         fileMenu.add(saveProjectAsAction);
         fileMenu.add(printAction);
         fileMenu.add(exportPlaypenToPDFAction);
+        fileMenu.add(exportHTMLReportAction);
         fileMenu.addSeparator();
         if (!context.isMacOSX()) {
             fileMenu.add(prefAction);
