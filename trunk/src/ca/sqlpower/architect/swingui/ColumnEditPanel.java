@@ -332,8 +332,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         componentEnabledMap.put(colAutoIncSequenceName, cb);
         colAutoIncSequenceName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
         
-        // Listener to update the sequence name when the column name changes
-        colPhysicalName.getDocument().addDocumentListener(new DocumentListener() {
+        DocumentListener listener = new DocumentListener() {
             public void changedUpdate(DocumentEvent e) {
                 syncSequenceName();
             }
@@ -345,7 +344,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
             public void removeUpdate(DocumentEvent e) {
                 syncSequenceName();
             }
-        });
+        };
+        // Listener to update the sequence name when the column name changes
+        colPhysicalName.getDocument().addDocumentListener(listener);
+        colLogicalName.getDocument().addDocumentListener(listener);
 
         // Listener to rediscover the sequence naming convention, and reset the
         // sequence name to its original (according to the column's own sequence
@@ -358,10 +360,18 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                     // because sequence names have to be unique
                     SQLColumn column = columns.iterator().next();
                     colAutoIncSequenceName.setText(column.getAutoIncrementSequenceName());
-                    discoverSequenceNamePattern(column.getName());
+                    if (column.getPhysicalName() != null && !column.getPhysicalName().trim().equals("")) {
+                        discoverSequenceNamePattern(column.getPhysicalName());
+                    } else {
+                        discoverSequenceNamePattern(column.getName());
+                    }
                     syncSequenceName();
                 } else {
-                    discoverSequenceNamePattern(colPhysicalName.getText());
+                    if (colPhysicalName.getText() != null && !colPhysicalName.getText().trim().equals("")) {
+                        discoverSequenceNamePattern(colPhysicalName.getText());
+                    } else {
+                        discoverSequenceNamePattern(colLogicalName.getText());
+                    }
                 }
             }
         });
@@ -479,10 +489,17 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         logger.debug("Selected" + colInPK.isSelected());
         
         colAutoInc.setSelected(col.isAutoIncrement());
-
+        logger.info("col seq name set? " + col.isAutoIncrementSequenceNameSet());
         updateComponent(colAutoIncSequenceName, col.getAutoIncrementSequenceName());
+        logger.info("col seq name set? " + col.isAutoIncrementSequenceNameSet());
+
+        logger.info("The seq name is: " + col.getAutoIncrementSequenceName());
         updateComponents();
-        discoverSequenceNamePattern(col.getName());
+        if (col.getPhysicalName() != null && !col.getPhysicalName().trim().equals("")) {
+            discoverSequenceNamePattern(col.getPhysicalName());
+        } else {
+            discoverSequenceNamePattern(col.getName());
+        }
     }
 
     /** Subroutine of {@link #updateComponents(SQLColumn)}. */
@@ -543,7 +560,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      */
     private void syncSequenceName() {
         if (seqNamePrefix != null && seqNameSuffix != null) {
-            String newName = seqNamePrefix + colPhysicalName.getText() + seqNameSuffix;
+            String newName = seqNamePrefix;
+            newName += (colPhysicalName.getText() == null || colPhysicalName.getText().trim().equals("")) ? 
+                    colLogicalName.getText() : colPhysicalName.getText();
+            newName += seqNameSuffix;
             colAutoIncSequenceName.setText(newName);
         }
     }
