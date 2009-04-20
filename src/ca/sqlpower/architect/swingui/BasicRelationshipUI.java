@@ -21,6 +21,7 @@ package ca.sqlpower.architect.swingui;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -123,6 +124,8 @@ public class BasicRelationshipUI extends RelationshipUI
 		logger.debug("BasicRelationshipUI is painting");
 		Relationship r = (Relationship) c;
 		Graphics2D g2 = (Graphics2D) g;
+		FontMetrics fm = r.getFontMetrics(r.getFont());
+		logger.debug("orientation is: " + orientation);
 		if (g2 == null)
 		{
 			throw new NullPointerException("Graphics g2 is null");
@@ -173,7 +176,29 @@ public class BasicRelationshipUI extends RelationshipUI
 
 			// XXX: could optimise by checking if PK or FK tables have moved
 			containmentPath = new GeneralPath(GeneralPath.WIND_NON_ZERO, 10);
-
+			
+			float parentToChildLabelStart = 0;
+			float childToParentLabelStart = 0;
+			g2.setColor(r.getForegroundColor());
+			
+			float leftmost = 0;
+            float rightmost = 0;
+            if (r.displayRelationshipLabel()) {
+                if (lineStart.x > lineEnd.x) {
+                    logger.debug("Parent is at the right side of children");
+                    leftmost = lineEnd.x;
+                    rightmost = lineStart.x;
+                } else {
+                    logger.debug("Parent is at the left side of children");
+                    leftmost = lineStart.x;
+                    rightmost = lineEnd.x;
+                }
+                parentToChildLabelStart = calculateRelationshipLabelStart(leftmost, rightmost,
+                                                fm.stringWidth(Relationship.PAREENT_TO_CHILD));
+                childToParentLabelStart = calculateRelationshipLabelStart(leftmost, rightmost,
+                                                fm.stringWidth(Relationship.CHILD_TO_PARENT));
+            }
+             
             if (relationship.getPkTable() == relationship.getFkTable()) {
 				// special case hack for self-referencing table
 				// assume orientation is PARENT_FACES_BOTTOM | CHILD_FACES_LEFT
@@ -184,7 +209,17 @@ public class BasicRelationshipUI extends RelationshipUI
 				containmentPath.lineTo(lineEnd.x - getTerminationLength(), lineEnd.y);
                 containmentPath.lineTo(lineEnd.x, lineEnd.y);
                 containmentPath.lineTo(end.x, end.y);
-				path = new GeneralPath(containmentPath);
+                path = new GeneralPath(containmentPath);
+                // draw relationship labels
+                if (r.displayRelationshipLabel()) {
+                    parentToChildLabelStart = calculateRelationshipLabelStart(lineEnd.x - getTerminationLength(), 
+                                                                        lineStart.x, fm.stringWidth(Relationship.PAREENT_TO_CHILD));
+                    childToParentLabelStart = calculateRelationshipLabelStart(lineEnd.x - getTerminationLength(), 
+                                                                        lineStart.x, fm.stringWidth(Relationship.CHILD_TO_PARENT));
+                    logger.debug("relationship label starts at: " + parentToChildLabelStart);
+                    g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineStart.y + fm.getHeight());
+                    g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineStart.y + 2*fm.getHeight());
+                }
 				
 				containmentPath.lineTo(lineEnd.x - getTerminationLength(), lineEnd.y);
 				containmentPath.lineTo(lineEnd.x - getTerminationLength(), lineStart.y + getTerminationLength());
@@ -207,7 +242,31 @@ public class BasicRelationshipUI extends RelationshipUI
 				containmentPath.lineTo(lineEnd.x, lineEnd.y);
                 containmentPath.lineTo(end.x, end.y);
 				path = new GeneralPath(containmentPath);
-
+				// draw relationship labels
+				if (r.displayRelationshipLabel()) {
+    				if ((orientation & PARENT_FACES_LEFT) != 0) {
+    				    if (lineStart.y < lineEnd.y) {
+    				        logger.debug("pk table is at right and higher");
+    				        g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineEnd.y + fm.getAscent());
+    				        g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineStart.y - fm.getDescent());
+    				    } else {
+    				        logger.debug("pk table is at right and lower");
+    				        g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineStart.y + fm.getAscent());
+                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineEnd.y - fm.getDescent());
+    				    }
+    				} else {
+    				    if (lineStart.y < lineEnd.y) {
+    				        logger.debug("pk table is at left and higher");
+                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineStart.y - fm.getDescent());
+                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineEnd.y + fm.getAscent());
+                        } else {
+                            logger.debug("pk table is at left and lower");
+                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineEnd.y - fm.getDescent());
+                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineStart.y + fm.getAscent());
+                        }
+    				}
+				}
+				
 				containmentPath.lineTo(midx, lineEnd.y);
 				containmentPath.lineTo(midx, lineStart.y);
 				containmentPath.moveTo(lineStart.x, lineStart.y);
@@ -221,7 +280,29 @@ public class BasicRelationshipUI extends RelationshipUI
 				containmentPath.lineTo(lineEnd.x, lineEnd.y);
                 containmentPath.lineTo(end.x, end.y);
 				path = new GeneralPath(containmentPath);
-
+				// draw relationship labels
+				if (r.displayRelationshipLabel()) {
+    				if ((orientation & PARENT_FACES_TOP) != 0) {
+                        logger.debug("pk table is at bottom");
+                        if (lineStart.x > lineEnd.x) {
+                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, midy + fm.getAscent());
+                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, midy - fm.getDescent());
+                        } else {
+                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, midy - fm.getDescent());
+                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, midy + fm.getAscent());
+                        }
+                    } else {
+                        logger.debug("pk table is at top");
+                        if (lineStart.x > lineEnd.x) {
+                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, midy + fm.getAscent());
+                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, midy - fm.getDescent());
+                        } else {
+                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, midy - fm.getDescent());
+                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, midy + fm.getAscent());
+                        }
+                    }
+				}
+				
 				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
 				containmentPath.lineTo(lineEnd.x, midy);
 				containmentPath.lineTo(lineStart.x, midy);
@@ -233,7 +314,19 @@ public class BasicRelationshipUI extends RelationshipUI
 				containmentPath.lineTo(lineEnd.x, lineEnd.y);
                 containmentPath.lineTo(end.x, end.y);
 				path = new GeneralPath(containmentPath);
-
+				// draw relationship labels
+				if (r.displayRelationshipLabel()) {
+    				if ((orientation & PARENT_FACES_LEFT) != 0) {
+                        logger.debug("pk table is at right");
+                        g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineStart.y + fm.getAscent());
+                        g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineStart.y - fm.getDescent());
+                    } else {
+                        logger.debug("pk table is at left");
+                        g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineStart.y - fm.getDescent());
+                        g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineStart.y + fm.getAscent());
+                    }
+				}
+				
 				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
 				containmentPath.lineTo(lineEnd.x, lineStart.y);
 				containmentPath.moveTo(lineStart.x, lineStart.y);
@@ -244,7 +337,29 @@ public class BasicRelationshipUI extends RelationshipUI
 				containmentPath.lineTo(lineEnd.x, lineEnd.y);
                 containmentPath.lineTo(end.x, end.y);
 				path = new GeneralPath(containmentPath);
-
+				// draw relationship labels
+				if (r.displayRelationshipLabel()) {
+    				if ((orientation & PARENT_FACES_TOP) != 0) {
+                        logger.debug("pk table is at bottom");
+                        if (lineStart.x > lineEnd.x) {
+                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineEnd.y + fm.getAscent());
+                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineEnd.y - fm.getDescent());
+                        } else {
+                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineEnd.y - fm.getDescent());
+                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineEnd.y + fm.getAscent());
+                        }
+                    } else {
+                        logger.debug("pk table is at top");
+                        if (lineStart.x > lineEnd.x) {
+                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineEnd.y + fm.getAscent());
+                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineEnd.y - fm.getDescent());
+                        } else {
+                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineEnd.y - fm.getDescent());
+                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineEnd.y + fm.getAscent());
+                        }
+                    }
+				}
+				
 				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
 				containmentPath.lineTo(lineStart.x, lineEnd.y);
 				containmentPath.moveTo(lineStart.x, lineStart.y);
@@ -1168,5 +1283,17 @@ public class BasicRelationshipUI extends RelationshipUI
 	public int getShapeLength() {
 		Rectangle b = path.getBounds();
 		return b.width + b.height;
+	}
+
+	/**
+	 * Calculate and return the appropriate x-position for relationship label.
+	 * @param leftmost The leftmost x coordinate of the relationship line 
+	 * @param rightmost The rightmost x coordinate of the relationship line
+	 * @param StringWidth The width of the display string under the specified fontMetrics 
+	 */
+	private float calculateRelationshipLabelStart(float leftmost, float rightmost, float StringWidth) {
+	    float x;
+	    x = leftmost + (rightmost - leftmost - StringWidth)/2;
+	    return x;
 	}
 }

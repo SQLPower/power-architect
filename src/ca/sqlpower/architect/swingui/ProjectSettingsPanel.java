@@ -61,6 +61,9 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
     private JRadioButton rectilinearRelationships;
     private JRadioButton directRelationships;
     
+    private JRadioButton displayRelationshipLabel;
+    private JRadioButton hideRelationshipLabel;
+    
     private JCheckBox showPkTag;
     private JCheckBox showFkTag;
     private JCheckBox showAkTag;
@@ -84,7 +87,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 	    CellConstraints cc = new CellConstraints();
 	    com.jgoodies.forms.layout.FormLayout layout = new com.jgoodies.forms.layout.FormLayout(
 	            "pref,pref",  //$NON-NLS-1$
-                "pref,4dlu,pref,4dlu,pref,4dlu,4dlu,pref,pref,4dlu,4dlu,pref,pref,4dlu,pref,pref,pref,pref,pref,pref,4dlu"); //$NON-NLS-1$
+                "pref,4dlu,pref,4dlu,pref,4dlu,4dlu,pref,pref,4dlu,4dlu,pref,pref,4dlu,4dlu,pref,pref,4dlu,pref,pref,pref,pref,pref,pref,4dlu"); //$NON-NLS-1$
 		setLayout(layout);
 		int row = 1;
 		add(new JLabel(Messages.getString("ProjectSettingsPanel.snapshotSourceDbOption")), cc.xy(1, row)); //$NON-NLS-1$
@@ -126,7 +129,24 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         nameDisplay.add(logicalNames);
         nameDisplay.add(physicalNames);
         
+        logger.info(row);
+        row+=2;
+        add(new JSeparator(), cc.xyw(1, row, 2));
+        logger.info(row);
+        
         row++;
+        add(new JLabel(Messages.getString("ProjectSettingsPanel.visibilityOfRelationshipLabel")), cc.xy(1, row)); //$NON-NLS-1$
+        add(hideRelationshipLabel = new JRadioButton(Messages.getString("ProjectSettingsPanel.hideRelationshipLabel")), cc.xy(2, row)); //$NON-NLS-1$
+        
+        
+        row++;
+        add(new JLabel(), cc.xy(1, row));
+        add(displayRelationshipLabel = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayRelationshipLabel")), cc.xy(2, row)); //$NON-NLS-1$
+        ButtonGroup DisplayRelationshipLabel = new ButtonGroup();
+        DisplayRelationshipLabel.add(displayRelationshipLabel);
+        DisplayRelationshipLabel.add(hideRelationshipLabel);
+        
+        row+=2;
         add(new JSeparator(), cc.xyw(1, row, 2));
         
         row++;
@@ -172,6 +192,11 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
             logicalNames.setSelected(true);
         } else {
             physicalNames.setSelected(true);
+        }
+        if (session.isDisplayRelationshipLabel()) {
+            displayRelationshipLabel.setSelected(true);
+        } else {
+            hideRelationshipLabel.setSelected(true);
         }
         
             showPkTag.setSelected(session.isShowPkTag());
@@ -223,6 +248,12 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
             session.setUsingLogicalNames(true);
         } else {
             session.setUsingLogicalNames(false);
+        }
+        
+        if (displayRelationshipLabel.isSelected()) {
+            session.setDisplayRelationshipLabel(true);
+        } else {
+            session.setDisplayRelationshipLabel(false);
         }
         
         session.setShowPkTag(showPkTag.isSelected());

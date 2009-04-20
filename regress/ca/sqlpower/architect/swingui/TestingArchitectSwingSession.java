@@ -79,6 +79,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private boolean showFkTag = true;
     private boolean showAkTag = true;
     
+    private boolean displayRelationshipLabel = false;
     private boolean usingLogicalNames = false;
     
     private ColumnVisibility choice = ColumnVisibility.ALL;
@@ -352,5 +353,12 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public void setUsingLogicalNames(boolean usingLogicalNames) {
         this.usingLogicalNames = usingLogicalNames;
     }
+    
+    public boolean isDisplayRelationshipLabel() {
+        return displayRelationshipLabel;
+    }
 
+    public void setDisplayRelationshipLabel(boolean displayRelationshipLabel) {
+        this.displayRelationshipLabel = displayRelationshipLabel;
+    }
 }
