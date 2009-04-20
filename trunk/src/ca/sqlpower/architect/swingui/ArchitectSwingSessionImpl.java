@@ -139,6 +139,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private Set<SPSwingWorker> swingWorkers;
 
     private ProjectModificationWatcher projectModificationWatcher;
+    
+    private boolean displayRelationshipLabel;
 
     private boolean relationshipLinesDirect;
     
@@ -952,4 +954,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         return printSettings;
     }
 
+    public boolean isDisplayRelationshipLabel() {
+        return displayRelationshipLabel;
+    }
+    
+    public void setDisplayRelationshipLabel(boolean displayRelationshipLabel) {
+        this.displayRelationshipLabel = displayRelationshipLabel;
+    }
 }

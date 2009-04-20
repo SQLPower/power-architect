@@ -202,6 +202,19 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * physical names are to be displayed.
      */
     public void setUsingLogicalNames(boolean usingLogicalNames);
+
+    /**
+     * Relationship Label: True means display the relationship label; false
+     * means hide the relationship label.
+     */
+    public boolean isDisplayRelationshipLabel();
+
+    /**
+     * Relationship Label: True means display the relationship label; false
+     * means hide the relationship label. Updating this will hide or display all
+     * the relationship labels in this session's play pen.
+     */
+    public void setDisplayRelationshipLabel(boolean displayRelationshipLabel);
     
     /**
      * Returns whether the PK Tags will be shown

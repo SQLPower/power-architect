@@ -61,6 +61,9 @@ import ca.sqlpower.util.WebColour;
 
 public class Relationship extends PlayPenComponent implements SQLObjectListener, LayoutEdge {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
+	
+	public static final String PAREENT_TO_CHILD = "receives";
+	public static final String CHILD_TO_PARENT = "is received by";
 
 	public static final WebColour[] SUGGESTED_COLOURS;
 	static {
@@ -531,6 +534,17 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
         return false;
     }
 
+    public boolean displayRelationshipLabel() {
+        PlayPen pp = getPlayPen();
+        if (pp != null) {
+            ArchitectSwingSession session = pp.getSession();
+            if (session != null) {
+                return session.isDisplayRelationshipLabel();
+            }
+        }
+        return false;
+    }
+    
     /**
      * Sets the connectionPoints of the relationship from an array of
      * points. Currently, it's only accessed when undo/redo movement

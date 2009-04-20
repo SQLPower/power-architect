@@ -332,6 +332,15 @@ public class SwingUIProject extends CoreProject {
                 getSession().setUsingLogicalNames(true);
             }
         	
+            String displayRelationshipLabel = attributes.getValue("relationshipLabelVisibility"); //$NON-NLS-1$
+            if (displayRelationshipLabel == null) {
+                getSession().setDisplayRelationshipLabel(false);
+            } else if (!Boolean.valueOf(displayRelationshipLabel)) {
+                getSession().setDisplayRelationshipLabel(false);
+            } else {
+                getSession().setDisplayRelationshipLabel(true);
+            }
+            
         	String relStyle = attributes.getValue("relationship-style"); //$NON-NLS-1$
             boolean direct;
             if (relStyle == null) {
@@ -972,11 +981,12 @@ public class SwingUIProject extends CoreProject {
             String relStyle = getSession().getRelationshipLinesDirect() ?
                     RELATIONSHIP_STYLE_DIRECT : RELATIONSHIP_STYLE_RECTILINEAR;
             tagText.append(" relationship-style=").append(quote(relStyle)); //$NON-NLS-1$
-            tagText.append(" names-displayLogicalNames=\"").append(getSession().isUsingLogicalNames()).append("\""); //$NON-NLS-1$
+            tagText.append(" names-displayLogicalNames=\"").append(getSession().isUsingLogicalNames()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" showPrimaryTag=\"").append(getSession().isShowPkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" showForeignTag=\"").append(getSession().isShowFkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" showAlternateTag=\"").append(getSession().isShowAkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" columnVisibility=\"").append(getSession().getColumnVisibility()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" relationshipLabelVisibility=\"").append(getSession().isDisplayRelationshipLabel()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
         }
         tagText.append(">"); //$NON-NLS-1$
         ioo.println(out, tagText.toString());
