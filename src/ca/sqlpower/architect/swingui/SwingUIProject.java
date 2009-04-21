@@ -332,10 +332,10 @@ public class SwingUIProject extends CoreProject {
                 getSession().setUsingLogicalNames(true);
             }
         	
-            String displayRelationshipLabel = attributes.getValue("relationshipLabelVisibility"); //$NON-NLS-1$
-            if (displayRelationshipLabel == null) {
-                getSession().setDisplayRelationshipLabel(false);
-            } else if (!Boolean.valueOf(displayRelationshipLabel)) {
+            String relationshipLabelVisibility = attributes.getValue("relationshipLabelVisibility"); //$NON-NLS-1$
+            if (relationshipLabelVisibility == null) {
+                getSession().setDisplayRelationshipLabel(true);
+            } else if (!Boolean.valueOf(relationshipLabelVisibility)) {
                 getSession().setDisplayRelationshipLabel(false);
             } else {
                 getSession().setDisplayRelationshipLabel(true);
@@ -526,10 +526,18 @@ public class SwingUIProject extends CoreProject {
                 r.setPkConnectionPoint(new Point(pkx, pky));
                 r.setFkConnectionPoint(new Point(fkx, fky));
                 
-                String rLineColor = attributes.getValue("relationshipLineColor"); //$NON-NLS-1$
+                String rLineColor = attributes.getValue("rLineColor"); //$NON-NLS-1$
                 if (rLineColor != null) {
                     Color relationshipLineColor = Color.decode(rLineColor);
                     r.setForegroundColor(relationshipLineColor);
+                }
+                String pkLabelText = attributes.getValue("pkLabelText");
+                if (pkLabelText != null) {
+                    r.setTextForParentLabel(pkLabelText);
+                }
+                String fkLabelText = attributes.getValue("fkLabelText");
+                if (fkLabelText != null) {
+                    r.setTextForChildLabel(fkLabelText);
                 }
                 
             } catch (SQLObjectException e) {
@@ -1073,7 +1081,9 @@ public class SwingUIProject extends CoreProject {
                         +" pk-y=\""+r.getPkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" fk-x=\""+r.getFkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" fk-y=\""+r.getFkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                        +" relationshipLineColor="+quote(rColorString) //$NON-NLS-1$
+                        +" rLineColor="+quote(rColorString) //$NON-NLS-1$
+                        +" pkLabelText="+quote(r.getTextForParentLabel()) //$NON-NLS-1$
+                        +" fkLabelText="+quote(r.getTextForChildLabel()) //$NON-NLS-1$
                         +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$
             } else if (ppc instanceof UsageComponent) {
                 UsageComponent usageComp = (UsageComponent) ppc;

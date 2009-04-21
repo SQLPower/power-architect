@@ -68,6 +68,8 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 	private JDialog editDialog;
 
 	private JTextField relationshipName;
+	private JTextField pkLabelTextField;
+	private JTextField fkLabelTextField;
 
 	private ButtonGroup identifyingGroup;
 	private JRadioButton identifyingButton;
@@ -118,7 +120,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         
         relationshipLines = session.getPlayPen().getSelectedRelationShips();
         //Since now can only select one relationship to edit at the same time,
-        //so the length of relationships is only 1. 
+        //so the number of selected relationships is only 1. 
         for(Relationship r: relationshipLines) {
             if(logger.isDebugEnabled()) {
                 logger.debug("This relationship is : " + r); //$NON-NLS-1$
@@ -138,6 +140,9 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         relationLineColor.setRenderer(renderer);
         
         fb.nextLine();
+        fb.append(Messages.getString("RelationshipEditPanel.pkLabel"), pkLabelTextField = new JTextField());
+        fb.append(Messages.getString("RelationshipEditPanel.fkLabel"), fkLabelTextField = new JTextField());
+        
 		identifyingGroup = new ButtonGroup();
 		fb.append(Messages.getString("RelationshipEditPanel.type"), identifyingButton = new JRadioButton(Messages.getString("RelationshipEditPanel.identifying")), 5); //$NON-NLS-1$ //$NON-NLS-2$
 		identifyingGroup.add(identifyingButton);
@@ -213,7 +218,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         fb.append("", deleteSetDefault = new JRadioButton(Messages.getString("RelationshipEditPanel.setDefault"))); //$NON-NLS-1$ //$NON-NLS-2$
         deleteRuleGroup.add(deleteSetDefault);
         
-        //TO-FIX,doesn't work!
+        //TODO  Doesn't work!
         relationshipName.selectAll();
         
         fb.setDefaultDialogBorder();
@@ -224,6 +229,8 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 	public void setRelationship(SQLRelationship r) {
 		this.relationship = r;
 		relationshipName.setText(r.getName());
+		pkLabelTextField.setText(r.getTextForParentLabel());
+		fkLabelTextField.setText(r.getTextForChildLabel());
         relationLineColor.setSelectedItem(color);
 		pkTableName.setText(Messages.getString("RelationshipEditPanel.pkTable", relationship.getPkTable().getName())); //$NON-NLS-1$
 		fkTableName.setText(Messages.getString("RelationshipEditPanel.fkTable", relationship.getFkTable().getName())); //$NON-NLS-1$
@@ -304,6 +311,10 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 		relationship.startCompoundEdit(Messages.getString("RelationshipEditPanel.modifyRelationshipProperties")); //$NON-NLS-1$
 		try {
 			relationship.setName(relationshipName.getText());
+			// set the parent label text of relationship lines
+			relationship.setTextForParentLabel(pkLabelTextField.getText());
+			// set the child label text of relationship lines
+			relationship.setTextForChildLabel(fkLabelTextField.getText());
 			try {
 				relationship.setIdentifying(identifyingButton.isSelected());
 			} catch (SQLObjectException ex) {
@@ -311,6 +322,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 			}
 			
 			for(Relationship r: relationshipLines) {
+			    // set the color of relationship lines
                 r.setForegroundColor((Color)relationLineColor.getSelectedItem());
             }
 			

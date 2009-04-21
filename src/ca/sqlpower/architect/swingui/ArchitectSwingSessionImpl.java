@@ -140,7 +140,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     private ProjectModificationWatcher projectModificationWatcher;
     
-    private boolean displayRelationshipLabel;
+    private boolean displayRelationshipLabel = true;
 
     private boolean relationshipLinesDirect;
     
