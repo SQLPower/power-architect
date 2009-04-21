@@ -34,7 +34,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.query.SQLQueryUIComponents;
 
@@ -63,7 +63,7 @@ public class QueryFrame extends JFrame {
      * window. If a null value is passed in for the ds or initialSQL 
      * then no initial querying will be done.
      */
-    public QueryFrame(ArchitectSwingSession session, String title, SPDataSource ds, String initialSQL) {
+    public QueryFrame(ArchitectSwingSession session, String title, SQLDatabase db, String initialSQL) {
        super(title);
        setIconImage(ASUtils.getFrameIconImage());
        setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
@@ -77,7 +77,7 @@ public class QueryFrame extends JFrame {
        TreeModel model = session.getSourceDatabases().getModel();
        dbTree.setModel(model);
         
-        queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getContext().getPlDotIni(), this, ds, initialSQL);
+        queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getContext().getPlDotIni(), session, this, db, initialSQL);
         queryPanel.setMinimumSize(new Dimension(100,100));
         
         buildUI(session);

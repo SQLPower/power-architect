@@ -954,6 +954,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         return printSettings;
     }
 
+    public SQLDatabase getDatabase(SPDataSource ds) {
+        return delegateSession.getDatabase(ds);
+    }
+
     public boolean isDisplayRelationshipLabel() {
         return displayRelationshipLabel;
     }
