@@ -615,4 +615,20 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
             setSelected(intersects(pp.rubberBand),SelectionEvent.SINGLE_SELECT);
         } 
     }
+
+    public void setTextForParentLabel(String textForParentLabel) {
+        model.setTextForParentLabel(textForParentLabel);
+    }
+
+    public String getTextForParentLabel() {
+        return model.getTextForParentLabel();
+    }
+
+    public void setTextForChildLabel(String textForChildLabel) {
+        model.setTextForChildLabel(textForChildLabel);
+    }
+
+    public String getTextForChildLabel() {
+        return model.getTextForChildLabel();
+    }
 }
