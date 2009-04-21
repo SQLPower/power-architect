@@ -23,11 +23,12 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLDatabaseMapping;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.util.UserPrompterFactory;
 
-public interface ArchitectSession extends UserPrompterFactory {
+public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMapping {
 
     public static final String PREFS_PL_INI_PATH = "PL.INI.PATH";
     

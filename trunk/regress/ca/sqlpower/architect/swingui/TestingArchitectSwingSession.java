@@ -41,6 +41,7 @@ import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
@@ -356,6 +357,11 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     
     public boolean isDisplayRelationshipLabel() {
         return displayRelationshipLabel;
+    }
+
+    public SQLDatabase getDatabase(SPDataSource ds) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     public void setDisplayRelationshipLabel(boolean displayRelationshipLabel) {

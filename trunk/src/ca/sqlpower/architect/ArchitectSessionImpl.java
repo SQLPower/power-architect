@@ -25,6 +25,7 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -169,6 +170,24 @@ public class ArchitectSessionImpl implements ArchitectSession {
             throw new NullPointerException("Null user prompter factory is not allowed!");
         }
         userPrompterFactory = upFactory; 
+    }
+
+    public SQLDatabase getDatabase(SPDataSource ds) {
+        try {
+            for (SQLObject obj : (List<SQLObject>) rootObject.getChildren()) {
+                if (((SQLDatabase) obj).getDataSource().equals(ds)) {
+                    return (SQLDatabase) obj;
+                }
+            }
+            if (db.getDataSource().equals(ds)) {
+                return db;
+            }
+            SQLDatabase db = new SQLDatabase(ds);
+            rootObject.addChild(db);
+            return db;
+        } catch (SQLObjectException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
