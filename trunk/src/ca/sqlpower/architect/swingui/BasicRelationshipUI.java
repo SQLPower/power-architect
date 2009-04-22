@@ -32,7 +32,6 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
@@ -96,12 +95,6 @@ public class BasicRelationshipUI extends RelationshipUI
 	
 	private JLabel parentToChild = new JLabel();
 	private JLabel childToParent = new JLabel();
-	private Rectangle2D parentToChildRec = new Rectangle();
-	private Rectangle2D childToParentRec = new Rectangle();
-	{
-	    
-	}
-	
 	// ------------------------ ComponentUI methods ------------------------
 
 	public static PlayPenComponentUI createUI(PlayPenComponent c) {
@@ -237,20 +230,12 @@ public class BasicRelationshipUI extends RelationshipUI
                     parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                     parentToChild.paint(g2);
                     g2.translate(-parentToChildLabelStart, -(lineStart.y + getTerminationLength()) + fm.getHeight());
-                    parentToChildRec.setRect(parentToChildLabelStart, 
-                                   lineStart.y + getTerminationLength() - fm.getHeight(), 
-                                   fm.stringWidth(r.getTextForParentLabel()),
-                                   fm.getHeight());
                     
                     g2.translate(childToParentLabelStart,lineStart.y + getTerminationLength());
                     childToParent.setText(r.getTextForChildLabel());
                     childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                     childToParent.paint(g2);
                     g2.translate(-childToParentLabelStart, -(lineStart.y + getTerminationLength()));
-                    childToParentRec.setRect(childToParentLabelStart, 
-                                  lineStart.y + getTerminationLength(), 
-                                  fm.stringWidth(r.getTextForChildLabel()),
-                                  fm.getHeight());
                 }
 				
 				containmentPath.lineTo(lineEnd.x - getTerminationLength(), lineEnd.y);
@@ -286,22 +271,12 @@ public class BasicRelationshipUI extends RelationshipUI
     	                    parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
     	                    parentToChild.paint(g2);
     	                    g2.translate(-parentToChildLabelStart, -lineEnd.y);
-    	                    parentToChildRec.setRect(parentToChildLabelStart, 
-    	                                   lineEnd.y, 
-    	                                   fm.stringWidth(r.getTextForParentLabel()),
-    	                                   fm.getHeight());
     	                    
     	                    g2.translate(childToParentLabelStart,lineStart.y - fm.getHeight());
     	                    childToParent.setText(r.getTextForChildLabel());
     	                    childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
     	                    childToParent.paint(g2);
     	                    g2.translate(-childToParentLabelStart, -(lineStart.y - fm.getHeight()));
-    	                    childToParentRec.setRect(childToParentLabelStart, 
-    	                                   lineStart.y -fm.getHeight(), 
-    	                                   fm.stringWidth(r.getTextForChildLabel()),
-    	                                   fm.getHeight());
-//    				        g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineEnd.y + fm.getAscent());
-//    				        g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineStart.y - fm.getDescent());
     				    } else {
     				        logger.debug("pk table is at right and lower");
     				        g2.translate(parentToChildLabelStart,lineStart.y);
@@ -309,22 +284,12 @@ public class BasicRelationshipUI extends RelationshipUI
                             parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                             parentToChild.paint(g2);
                             g2.translate(-parentToChildLabelStart, -lineStart.y);
-                            parentToChildRec.setRect(parentToChildLabelStart, 
-                                           lineStart.y, 
-                                           fm.stringWidth(r.getTextForParentLabel()),
-                                           fm.getHeight());
                             
                             g2.translate(childToParentLabelStart,lineEnd.y - fm.getHeight());
                             childToParent.setText(r.getTextForChildLabel());
                             childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                             childToParent.paint(g2);
                             g2.translate(-childToParentLabelStart, -(lineEnd.y - fm.getHeight()));
-                            childToParentRec.setRect(childToParentLabelStart, 
-                                           lineEnd.y - fm.getHeight(), 
-                                           fm.stringWidth(r.getTextForChildLabel()),
-                                           fm.getHeight());
-//    				          g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineStart.y + fm.getAscent());
-//                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineEnd.y - fm.getDescent());
     				    }
     				} else {
     				    if (lineStart.y < lineEnd.y) {
@@ -334,22 +299,12 @@ public class BasicRelationshipUI extends RelationshipUI
                             parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                             parentToChild.paint(g2);
                             g2.translate(-parentToChildLabelStart, -(lineStart.y - fm.getHeight()));
-                            parentToChildRec.setRect(parentToChildLabelStart, 
-                                           lineStart.y - fm.getHeight(), 
-                                           fm.stringWidth(r.getTextForParentLabel()),
-                                           fm.getHeight());
                             
                             g2.translate(childToParentLabelStart,lineEnd.y);
                             childToParent.setText(r.getTextForChildLabel());
                             childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                             childToParent.paint(g2);
                             g2.translate(-childToParentLabelStart, -lineEnd.y);
-                            childToParentRec.setRect(childToParentLabelStart, 
-                                          lineEnd.y, 
-                                          fm.stringWidth(r.getTextForChildLabel()),
-                                          fm.getHeight());
-//                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineStart.y - fm.getDescent());
-//                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineEnd.y + fm.getAscent());
                         } else {
                             logger.debug("pk table is at left and lower");
                             g2.translate(parentToChildLabelStart,lineEnd.y - fm.getHeight());
@@ -357,22 +312,12 @@ public class BasicRelationshipUI extends RelationshipUI
                             parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                             parentToChild.paint(g2);
                             g2.translate(-parentToChildLabelStart, -(lineEnd.y - fm.getHeight()));
-                            parentToChildRec.setRect(parentToChildLabelStart, 
-                                           lineEnd.y - fm.getHeight(), 
-                                           fm.stringWidth(r.getTextForParentLabel()),
-                                           fm.getHeight());
                             
                             g2.translate(childToParentLabelStart,lineStart.y);
                             childToParent.setText(r.getTextForChildLabel());
                             childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                             childToParent.paint(g2);
                             g2.translate(-childToParentLabelStart, -lineStart.y);
-                            childToParentRec.setRect(childToParentLabelStart, 
-                                           lineStart.y, 
-                                           fm.stringWidth(r.getTextForChildLabel()),
-                                           fm.getHeight());
-//                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineEnd.y - fm.getDescent());
-//                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineStart.y + fm.getAscent());
                         }
     				}
 				}
@@ -399,22 +344,12 @@ public class BasicRelationshipUI extends RelationshipUI
                         parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         parentToChild.paint(g2);
                         g2.translate(-parentToChildLabelStart, -midy);
-                        parentToChildRec.setRect(parentToChildLabelStart, 
-                                       midy, 
-                                       fm.stringWidth(r.getTextForParentLabel()),
-                                       fm.getHeight());
                         
                         g2.translate(childToParentLabelStart, midy - fm.getHeight());
                         childToParent.setText(r.getTextForChildLabel());
                         childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         childToParent.paint(g2);
                         g2.translate(-childToParentLabelStart, -(midy - fm.getHeight()));
-                        childToParentRec.setRect(childToParentLabelStart, 
-                                       midy - fm.getHeight(), 
-                                       fm.stringWidth(r.getTextForChildLabel()),
-                                       fm.getHeight());
-//                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, midy + fm.getAscent());
-//                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, midy - fm.getDescent());
                     } else {
                         logger.debug("TOP-BOTTOM : pk table is at left");
                         g2.translate(parentToChildLabelStart,midy - fm.getHeight());
@@ -422,22 +357,12 @@ public class BasicRelationshipUI extends RelationshipUI
                         parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         parentToChild.paint(g2);
                         g2.translate(-parentToChildLabelStart, -(midy - fm.getHeight()));
-                        parentToChildRec.setRect(parentToChildLabelStart, 
-                                       midy - fm.getHeight(), 
-                                       fm.stringWidth(r.getTextForParentLabel()),
-                                       fm.getHeight());
                         
                         g2.translate(childToParentLabelStart, midy);
                         childToParent.setText(r.getTextForChildLabel());
                         childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         childToParent.paint(g2);
                         g2.translate(-childToParentLabelStart, -midy);
-                        childToParentRec.setRect(childToParentLabelStart, 
-                                      midy, 
-                                      fm.stringWidth(r.getTextForChildLabel()),
-                                      fm.getHeight());
-//                            g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, midy - fm.getDescent());
-//                            g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, midy + fm.getAscent());
                     }
 				}
 				
@@ -461,22 +386,12 @@ public class BasicRelationshipUI extends RelationshipUI
                         parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         parentToChild.paint(g2);
                         g2.translate(-parentToChildLabelStart, -lineStart.y);
-                        parentToChildRec.setRect(parentToChildLabelStart, 
-                                       lineStart.y, 
-                                       fm.stringWidth(r.getTextForParentLabel()),
-                                       fm.getHeight());
                         
                         g2.translate(childToParentLabelStart,lineStart.y - fm.getHeight());
                         childToParent.setText(r.getTextForChildLabel());
                         childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         childToParent.paint(g2);
                         g2.translate(-childToParentLabelStart, -(lineStart.y - fm.getHeight()));
-                        childToParentRec.setRect(childToParentLabelStart, 
-                                       lineStart.y - fm.getHeight(), 
-                                       fm.stringWidth(r.getTextForChildLabel()),
-                                       fm.getHeight());
-//                        g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineStart.y + fm.getAscent());
-//                        g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineStart.y - fm.getDescent());
                     } else {
                         logger.debug("pk table is at left");
                         g2.translate(parentToChildLabelStart,lineStart.y - fm.getHeight());
@@ -484,22 +399,12 @@ public class BasicRelationshipUI extends RelationshipUI
                         parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         parentToChild.paint(g2);
                         g2.translate(-parentToChildLabelStart, -(lineStart.y - fm.getHeight()));
-                        parentToChildRec.setRect(parentToChildLabelStart, 
-                                       lineStart.y - fm.getHeight(), 
-                                       fm.stringWidth(r.getTextForParentLabel()),
-                                       fm.getHeight());
                         
                         g2.translate(childToParentLabelStart,lineStart.y);
                         childToParent.setText(r.getTextForChildLabel());
                         childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         childToParent.paint(g2);
                         g2.translate(-childToParentLabelStart, -lineStart.y);
-                        childToParentRec.setRect(childToParentLabelStart, 
-                                       lineStart.y, 
-                                       fm.stringWidth(r.getTextForChildLabel()),
-                                       fm.getHeight());
-//                        g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineStart.y - fm.getDescent());
-//                        g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineStart.y + fm.getAscent());
                     }
 				}
 				
@@ -522,22 +427,12 @@ public class BasicRelationshipUI extends RelationshipUI
                         parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         parentToChild.paint(g2);
                         g2.translate(-parentToChildLabelStart, -lineEnd.y);
-                        parentToChildRec.setRect(parentToChildLabelStart, 
-                                       lineEnd.y, 
-                                       fm.stringWidth(r.getTextForParentLabel()),
-                                       fm.getHeight());
                         
                         g2.translate(childToParentLabelStart,lineEnd.y - fm.getHeight());
                         childToParent.setText(r.getTextForChildLabel());
                         childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         childToParent.paint(g2);
                         g2.translate(-childToParentLabelStart, -(lineEnd.y - fm.getHeight()));
-                        childToParentRec.setRect(childToParentLabelStart, 
-                                       lineEnd.y - fm.getHeight(), 
-                                       fm.stringWidth(r.getTextForChildLabel()),
-                                       fm.getHeight());
-//                        g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineEnd.y + fm.getAscent());
-//                        g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineEnd.y - fm.getDescent());
                     } else {
                         logger.debug("TOP_BOTTOM--LEFT_RIGHT pk table is at left");
                         g2.translate(parentToChildLabelStart,lineEnd.y - fm.getHeight());
@@ -545,22 +440,12 @@ public class BasicRelationshipUI extends RelationshipUI
                         parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         parentToChild.paint(g2);
                         g2.translate(-parentToChildLabelStart, -(lineEnd.y - fm.getHeight()));
-                        parentToChildRec.setRect(parentToChildLabelStart, 
-                                       lineEnd.y - fm.getHeight(), 
-                                       fm.stringWidth(r.getTextForParentLabel()),
-                                       fm.getHeight());
                         
                         g2.translate(childToParentLabelStart,lineEnd.y);
                         childToParent.setText(r.getTextForChildLabel());
                         childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         childToParent.paint(g2);
                         g2.translate(-childToParentLabelStart, -lineEnd.y);
-                        childToParentRec.setRect(childToParentLabelStart, 
-                                       lineEnd.y, 
-                                       fm.stringWidth(r.getTextForChildLabel()),
-                                       fm.getHeight());
-//                        g2.drawString(Relationship.PAREENT_TO_CHILD, parentToChildLabelStart, lineEnd.y - fm.getDescent());
-//                        g2.drawString(Relationship.CHILD_TO_PARENT, childToParentLabelStart, lineEnd.y + fm.getAscent());
                     }
 				}
 				
@@ -575,7 +460,6 @@ public class BasicRelationshipUI extends RelationshipUI
                 containmentPath.lineTo(end.x, end.y);
                 path = new GeneralPath(containmentPath);
 			}
-			
 			if (!r.isSelected()) {
 				g2.setColor(r.getForegroundColor());
 			} else {
