@@ -705,15 +705,31 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    (c.getSourceDataTypeName(), c.getType(), c.getPrecision(),
 		            null, null, c.getNullable(), false, false);
 		    oldType.determineScaleAndPrecision();
-		    warnings.add(new TypeMapDDLWarning(c, String.format(
+		    TypeMapDDLWarning o = new TypeMapDDLWarning(c, String.format(
                     "Type '%s' of column '%s' in table '%s' is unknown in the target platform", 
                     SQLType.getTypeName(c.getType()), 
-                    c.getName(), 
-                    c.getParentTable().getName()), oldType, td));
+                    c.getPhysicalName(), 
+                    c.getParentTable().getPhysicalName()), oldType, td);
+		   if (!contains(warnings, o)) {
+		       warnings.add(o);
+		   }
         }
         return td;
     }
-
+    
+    private boolean contains(List list, TypeMapDDLWarning o) {
+        Iterator iterator = list.iterator();
+        while (iterator.hasNext()) {
+            Object next = iterator.next();
+            if (next instanceof TypeMapDDLWarning) {
+                if (((TypeMapDDLWarning)next).getMessage().equals(o.getMessage())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
 	public void addTable(SQLTable t) throws SQLException, SQLObjectException {
 		Map colNameMap = new HashMap();  // for detecting duplicate column names
 		// generate a new physical name if necessary
