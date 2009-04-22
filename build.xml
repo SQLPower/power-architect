@@ -643,7 +643,7 @@
 
     	<jar destfile="${staging.dir}/architect.jar" update="no"
     				basedir="${build}" 
-    				includes="ca/** icons/** sounds/** log4j.properties default_database_types.ini"
+    				includes="ca/** icons/** sounds/** xsltStylesheets/** log4j.properties default_database_types.ini"
     				manifest="${build}/manifest">
     	</jar>
 		<copy todir="${staging.dir}/jdbc">
