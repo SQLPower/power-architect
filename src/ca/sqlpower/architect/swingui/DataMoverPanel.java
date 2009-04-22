@@ -270,9 +270,9 @@ public class DataMoverPanel {
                     sourceTable.getName(),
                     "\"", "\"");
             final String destQualifiedName = DDLUtils.toQualifiedName(
-                    destCatalogName,
-                    destSchemaName,
-                    destTableName,
+                    destTable.getCatalogName(),
+                    destTable.getSchemaName(),
+                    destTable.getName(),
                     "\"", "\"");
 
             if (needToCreate) {
