@@ -24,16 +24,15 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -365,29 +364,34 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         return null;
     }
 
+    /**
+     * Overridden because MySQL doesn't allow the naming of PK constraints. This
+     * version's text begins with "PRIMARY KEY" and is otherwise the same as the
+     * generic method it overrides.
+     */
     @Override
-    protected void addPrimaryKeysToCreateTable(SQLTable t) throws SQLObjectException {
-        logger.debug("Adding Primary keys");
+    protected void writePKConstraintClause(SQLIndex pk) throws SQLObjectException {
+        if (!pk.isPrimaryKeyIndex()) {
+            throw new IllegalArgumentException("The given index is not a primary key");
+        }
+        createPhysicalName(topLevelNames, pk);
+        print("PRIMARY KEY (");
 
-        Iterator it = t.getColumns().iterator();
         boolean firstCol = true;
-        while (it.hasNext()) {
-            SQLColumn col = (SQLColumn) it.next();
-            if (col.getPrimaryKeySeq() == null)
-                break;
-            if (firstCol) {
-                print(",\n                PRIMARY KEY (");
-                firstCol = false;
-            } else {
-                print(", ");
-            }
+        for (SQLIndex.Column col : pk.getChildren()) {
+            if (!firstCol) print(", ");
             print(col.getPhysicalName());
+            firstCol = false;
         }
-        if (!firstCol) {
-            print(")");
-        }
+        print(")");
     }
 
+    @Override
+    public void dropPrimaryKey(SQLTable t) {
+        print("\nALTER TABLE " + toQualifiedName(t.getName()) + " DROP PRIMARY KEY");
+        endStatement(DDLStatement.StatementType.DROP, t);
+    }
+    
     public void dropRelationship(SQLRelationship r) {
 
         print("\nALTER TABLE ");
@@ -396,42 +400,6 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         print(" DROP FOREIGN KEY ");
         print(r.getName());
         endStatement(DDLStatement.StatementType.DROP, r);
-    }
-
-    /*
-     * The primary key name in MySQL is completely ignored. Every primary key is
-     * named PRIMARY so we don't have to do any checking of name conflicts for
-     * the primary key. We don't even have to specify a name for the primary
-     * key.
-     * 
-     * @see ca.sqlpower.architect.ddl.GenericDDLGenerator#writePrimaryKey(ca.sqlpower.sqlpower.SQLTable)
-     */
-    @Override
-    protected void writePrimaryKey(SQLTable t) throws SQLObjectException {
-        logger.debug("Writing the primary key of " + t.getName());
-        boolean firstCol = true;
-        Iterator it = t.getColumns().iterator();
-        while (it.hasNext()) {
-            SQLColumn col = (SQLColumn) it.next();
-            if (col.getPrimaryKeySeq() == null)
-                break;
-            if (firstCol) {
-                // generate a unique primary key name
-                println("");
-                print("ALTER TABLE ");
-                print(toQualifiedName(t));
-                print(" ADD CONSTRAINT ");
-                print("PRIMARY KEY (");
-                firstCol = false;
-            } else {
-                print(", ");
-            }
-            print(col.getPhysicalName());
-        }
-        if (!firstCol) {
-            print(")");
-            endStatement(DDLStatement.StatementType.ADD_PK, t);
-        }
     }
 
     /**
