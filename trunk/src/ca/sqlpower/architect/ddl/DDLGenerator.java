@@ -244,7 +244,7 @@ public interface DDLGenerator {
      */
     public String getSchemaTerm();
 
-    public void dropPrimaryKey(SQLTable t);
+    public void dropPrimaryKey(SQLTable t) throws SQLObjectException;
 
     public void addPrimaryKey(SQLTable t) throws SQLObjectException;
 

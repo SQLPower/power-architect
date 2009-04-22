@@ -74,7 +74,8 @@ public class TestTableEditPane extends TestCase {
         tep.setPhysicalNameText("New Name");
         tep.setPkNameText("New PK Name");
         tep.applyChanges();
-        assertEquals ("New PK Name", t.getPhysicalPrimaryKeyName());     
+        assertEquals ("New PK Name", t.getPrimaryKeyName());     
+        assertEquals ("New PK Name", t.getPrimaryKeyIndex().getPhysicalName());     
     }
 
 }

@@ -36,12 +36,11 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSequence;
@@ -735,7 +734,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 			firstCol = false;
 		}
 		
-		addPrimaryKeysToCreateTable(t);
+		SQLIndex pk = t.getPrimaryKeyIndex();
+		if (pk != null) {
+		    print(",\n");
+            print("                ");
+		    writePKConstraintClause(pk);
+		}
 		
 		print("\n)");
 		endStatement(DDLStatement.StatementType.CREATE, t);
@@ -748,60 +752,48 @@ public class GenericDDLGenerator implements DDLGenerator {
 	protected Object getDefaultType() {
 		return Types.VARCHAR;
 	}
-	
-	protected void addPrimaryKeysToCreateTable(SQLTable t) throws SQLObjectException {
-	       logger.debug("Adding Primary keys");
-	        
-	        Iterator it = t.getColumns().iterator();
-	        boolean firstCol = true;
-	        while (it.hasNext()) {
-	            SQLColumn col = (SQLColumn) it.next();
-	            if (col.getPrimaryKeySeq() == null) break;
-	            if (firstCol) {
-	                // generate a unique primary key name
-	                createPhysicalPrimaryKeyName(t);
-	                print(",\n");
-	                print("                CONSTRAINT ");
-	                print(t.getPhysicalPrimaryKeyName());
-	                print(" PRIMARY KEY (");
-	                firstCol = false;
-	            } else {
-	                print(", ");
-	            }
-	            print(col.getPhysicalName());
-	        }
-	        if (!firstCol) {
-	            print(")");
-	        }
+
+    /**
+     * Writes out the primary key constraint clause for the given primary key
+     * index. The clause begins with the word "CONSTRAINT" and has no leading
+     * space, so you must write a newline, space, and/or indentation before
+     * calling this method.
+     * <p>
+     * Side effect: the PK object's name will be initialized if necessary.
+     * 
+     * @param pk
+     *            The primary key index
+     * @throws SQLObjectException
+     *             If the pk object wasn't already populated and the populate
+     *             attempt fails.
+     */
+	protected void writePKConstraintClause(SQLIndex pk) throws SQLObjectException {
+	    if (!pk.isPrimaryKeyIndex()) {
+	        throw new IllegalArgumentException("The given index is not a primary key");
+	    }
+        createPhysicalName(topLevelNames, pk);
+	    print("CONSTRAINT ");
+	    print(pk.getPhysicalName());
+	    print(" PRIMARY KEY (");
+
+	    boolean firstCol = true;
+	    for (SQLIndex.Column col : pk.getChildren()) {
+	        if (!firstCol) print(", ");
+	        print(col.getPhysicalName());
+	        firstCol = false;
+	    }
+	    print(")");
 	}
 
 	protected void writePrimaryKey(SQLTable t) throws SQLObjectException {
-		boolean firstCol = true;
-		Iterator it = t.getColumns().iterator();
-		while (it.hasNext()) {
-			SQLColumn col = (SQLColumn) it.next();
-			if (col.getPrimaryKeySeq() == null) break;
-			if (firstCol) {
-				// generate a unique primary key name
-                createPhysicalPrimaryKeyName(t);
-				println("");
-				print("ALTER TABLE ");
-				print( toQualifiedName(t) );
-				print(" ADD CONSTRAINT ");
-				print(t.getPrimaryKeyName());
-				println("");
-				print("PRIMARY KEY (");
-				firstCol = false;
-			} else {
-				print(", ");
-			}
-			print(col.getPhysicalName());
-		}
-		if (!firstCol) {
-			print(")");
-			endStatement(DDLStatement.StatementType.ADD_PK, t);
-
-		}
+	    println("");
+	    print("ALTER TABLE ");
+	    print( toQualifiedName(t) );
+	    print(" ADD ");
+	    
+	    writePKConstraintClause(t.getPrimaryKeyIndex());
+				
+	    endStatement(DDLStatement.StatementType.ADD_PK, t);
 	}
 
     /**
@@ -1203,22 +1195,6 @@ public class GenericDDLGenerator implements DDLGenerator {
         return seq.getPhysicalName();
     }
 
-	/**
-     * Generate, set, and return a physicalPrimaryKeyName which is just the
-     * logical primary key name run through "toIdentifier()".
-     * Before returning it, run it past checkDupName to check in and add
-     * it to the topLevelNames Map.
-	 * @throws SQLObjectException 
-     */
-
-    private String createPhysicalPrimaryKeyName(SQLTable t) throws SQLObjectException {
-        logger.debug("The physical primary key name of the table is: " + t.getPhysicalPrimaryKeyName());
-        String physName = toIdentifier(t.getPrimaryKeyName());
-        t.setPhysicalPrimaryKeyName(physName);
-        createPhysicalName(topLevelNames, t.getPrimaryKeyIndex());
-        return physName;
-    }
-
     /**
      * Generates a standard <code>DROP TABLE $tablename</code> command.  Should work on most platforms.
      */
@@ -1241,14 +1217,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 		return ddlStatements;
 	}
 
-	public void dropPrimaryKey(SQLTable t) {
-
-		try {
-            print("\nALTER TABLE " + toQualifiedName(t.getName())
-            	+ " DROP PRIMARY KEY " + t.getPrimaryKeyName());
-        } catch (SQLObjectException e) {
-            throw new SQLObjectRuntimeException(e);
-        }
+	public void dropPrimaryKey(SQLTable t) throws SQLObjectException {
+	    SQLIndex pk = t.getPrimaryKeyIndex();
+	    print("\nALTER TABLE " + toQualifiedName(t.getName())
+	            + " DROP CONSTRAINT " + pk.getPhysicalName());
 		endStatement(DDLStatement.StatementType.DROP, t);
 	}
 

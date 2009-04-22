@@ -454,11 +454,15 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         }
     }
     
+    /**
+     * Overrides the syntax to omit the "constraint" keyword.
+     */
     @Override
     public void dropPrimaryKey(SQLTable t) {
         try {
+            SQLIndex pk = t.getPrimaryKeyIndex();
             print("\nALTER TABLE " + toQualifiedName(t.getName())
-                + " DROP " + t.getPrimaryKeyName());
+                + " DROP " + pk.getPhysicalName());
         } catch (SQLObjectException e) {
             throw new SQLObjectRuntimeException(e);
         }
