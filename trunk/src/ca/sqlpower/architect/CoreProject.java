@@ -85,7 +85,11 @@ public class CoreProject {
     private static void LoadSQLObjectAttributes(SQLObject obj, Attributes attr) {
         String message = attr.getValue("sql-exception");
         if (message != null) {
-            obj.setChildrenInaccessibleReason(new SQLObjectException(message));
+            try {
+                obj.setChildrenInaccessibleReason(new SQLObjectException(message), false);
+            } catch (SQLObjectException e) {
+                throw new AssertionError("Unreachable code");
+            }
         }
     }
     
