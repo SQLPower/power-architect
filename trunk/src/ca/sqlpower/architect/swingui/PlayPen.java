@@ -120,8 +120,6 @@ import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sql.jdbcwrapper.DatabaseMetaDataDecorator;
-import ca.sqlpower.sql.jdbcwrapper.DatabaseMetaDataDecorator.CacheType;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -1492,12 +1490,6 @@ public class PlayPen extends JPanel
 	}
 
 	protected class AddObjectsTask extends MonitorableWorker {
-	    
-	    /**
-	     * When there are at least this many tables to add, this task will ask
-	     * our JDBC wrappers to do eager caching of metadata operations.
-	     */
-		private static final int CACHE_THRESHOLD = 5;
 		
         private List<SQLObject> sqlObjects;
 		private Point preferredLocation;
@@ -1568,16 +1560,12 @@ public class PlayPen extends JPanel
 				}
 				jobSize = new Integer(tableCount);
 
-				if (tableCount >= CACHE_THRESHOLD) {
-	                DatabaseMetaDataDecorator.putHint(DatabaseMetaDataDecorator.CACHE_TYPE, CacheType.EAGER_CACHE);
-				}
 				ensurePopulated(sqlObjects);
+				
 			} catch (SQLObjectException e) {
 				logger.error("Unexpected exception during populate", e); //$NON-NLS-1$
                 setDoStuffException(e);
 				errorMessage = "Unexpected exception during populate: " + e.getMessage(); //$NON-NLS-1$
-			} finally {
-	             DatabaseMetaDataDecorator.putHint(DatabaseMetaDataDecorator.CACHE_TYPE, CacheType.NO_CACHE);
 			}
 			logger.info("AddObjectsTask done"); //$NON-NLS-1$
 		}
