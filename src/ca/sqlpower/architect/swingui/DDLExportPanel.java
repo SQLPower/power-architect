@@ -36,6 +36,9 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.DatabaseListChangeEvent;
+import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -61,6 +64,22 @@ public class DDLExportPanel implements DataEntryPanel {
 
 	private JLabel schemaLabel;
 	private JTextField schemaField;
+	
+	private final DatabaseListChangeListener databaseListChangeListener = new DatabaseListChangeListener() {
+    
+        public void databaseRemoved(DatabaseListChangeEvent e) {
+            targetDB.removeItem(e.getDataSource());
+        }
+    
+        public void databaseAdded(DatabaseListChangeEvent e) {
+            targetDB.addItem(e.getDataSource());
+        }
+    };
+
+    /**
+     * This is the available data sources that can be forward engineered to.
+     */
+    private DataSourceCollection plDotIni;
 
 	public DDLExportPanel(ArchitectSwingSession session) {
 		this.session = session;
@@ -102,8 +121,10 @@ public class DDLExportPanel implements DataEntryPanel {
         
         panelProperties.add(new JLabel(Messages.getString("DDLExportPanel.generateDDLForDbType"))); //$NON-NLS-1$
         DDLGenerator ddlg = session.getDDLGenerator();
-		Vector<Class<? extends DDLGenerator>> ddlTypes =
-            DDLUtils.getDDLTypes(session.getContext().getPlDotIni());
+		plDotIni = session.getContext().getPlDotIni();
+		plDotIni.addDatabaseListChangeListener(databaseListChangeListener);
+        Vector<Class<? extends DDLGenerator>> ddlTypes =
+            DDLUtils.getDDLTypes(plDotIni);
         if (!ddlTypes.contains(ddlg.getClass())) {
             ddlTypes.add(ddlg.getClass());
         }
@@ -171,6 +192,7 @@ public class DDLExportPanel implements DataEntryPanel {
 
 	// ------------------------ Architect Panel Stuff -------------------------
 	public boolean applyChanges() {
+	    disconnect();
 		DDLGenerator ddlg = session.getDDLGenerator();
 		Class<? extends DDLGenerator> selectedGeneratorClass =
             (Class<? extends DDLGenerator>) dbType.getSelectedItem();
@@ -226,7 +248,11 @@ public class DDLExportPanel implements DataEntryPanel {
 	}
 
 	public void discardChanges() {
-        // nothing to discard
+        disconnect();
+	}
+	
+	private void disconnect() {
+	    plDotIni.removeDatabaseListChangeListener(databaseListChangeListener);
 	}
 
 	public JTextField getSchemaField() {
