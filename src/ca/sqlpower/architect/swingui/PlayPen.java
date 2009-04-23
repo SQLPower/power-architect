@@ -25,6 +25,7 @@ import java.awt.Composite;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
@@ -1020,7 +1021,9 @@ public class PlayPen extends JPanel
 			if ( g2.hitClip(bounds.x, bounds.y, bounds.width + 1, bounds.height + 1)) {
 				if (logger.isDebugEnabled()) logger.debug("Painting visible component "+c); //$NON-NLS-1$
 				g2.translate(c.getLocation().x, c.getLocation().y);
+				Font g2Font = g2.getFont();
 				c.paint(g2);
+				g2.setFont(g2Font);
 				g2.setTransform(zoomedOrigin);
 			} else {
 				if (logger.isDebugEnabled()) logger.debug("paint: SKIPPING "+c); //$NON-NLS-1$
