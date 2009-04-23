@@ -132,6 +132,8 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 						        tp.getModel().startCompoundEdit("adding a new column '" + columnEditPanel.getColPhysicalName().getText() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 							    try {
 							        tp.getModel().addColumn(colIdx, column);
+							        tp.selectNone();
+							        tp.selectItem(colIdx); // select new column
 							    } catch (SQLObjectException e) {
 							        ASUtils.showExceptionDialog(session, "Error Could not add column to table", e); //$NON-NLS-1$
 							    }
