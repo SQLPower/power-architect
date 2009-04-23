@@ -439,7 +439,7 @@ public class ASUtils {
         try {
             UserSettings settings = context.getUserSettings().getQfaUserSettings();
             if (!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
-            ExceptionReport report = new ExceptionReport(t, ExceptionHandler.DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION.toString(), "Architect");
+            ExceptionReport report = new ExceptionReport(t, ExceptionHandler.DEFAULT_REPORT_URL, ArchitectVersion.APP_FULL_VERSION.toString(), "Architect");
             
             if (session != null &&
                     session.getProject() != null &&
