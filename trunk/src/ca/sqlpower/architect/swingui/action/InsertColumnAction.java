@@ -62,6 +62,9 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         		// not found
         		logger.debug("did not find column, inserting at start of table."); //$NON-NLS-1$
         		idx = 0;
+        	} else {
+        	    //This is so that the column is added after the selected the column
+        	    idx++;
         	}
         }
         if (st == null) {
@@ -82,7 +85,9 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         EditColumnAction editColumnAction = new EditColumnAction(session);
         
         //The actual column is added to the table when the user presses OK
-        editColumnAction.showDialog(tp.getModel(), idx,true, tp);
+        //Its added to the end of the table, if a table is selected or added right after
+        //the selected column
+        editColumnAction.showDialog(tp.getModel(), (tp.getSelectedItemIndex() < 0? idx: idx+1), true, tp);
     }
 
     @Override
