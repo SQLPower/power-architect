@@ -33,12 +33,12 @@ import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.PlayPen.CancelableListener;
-import ca.sqlpower.architect.swingui.PlayPen.CursorManager;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.swingui.CursorManager;
 
 public class CreateRelationshipAction extends AbstractArchitectAction
 	implements ActionListener, SelectionListener, CancelableListener {
