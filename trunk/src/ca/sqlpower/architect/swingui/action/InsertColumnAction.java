@@ -59,9 +59,8 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         	st = sc.getParentTable();
         	idx = st.getColumnIndex(sc);
         	if (idx == -1)  {
-        		// not found
-        		logger.debug("did not find column, inserting at start of table."); //$NON-NLS-1$
-        		idx = 0;
+        	    throw new IllegalStateException("Selected column '" + sc.getName() + 
+        	            "' could not be found in parent table '" + st.getName() + "'");
         	} else {
         	    //This is so that the column is added after the selected the column
         	    idx++;
@@ -69,11 +68,13 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         }
         if (st == null) {
             throw new NullPointerException("The SQLObject must be a instance of SQLTable or SQLColumn");
-        } else {
-            st.addColumn(idx, new SQLColumn());
         }
+        
+        // Expecting the playpen and dbtree selctions to be synchronized.
+        TablePane tp = (TablePane) playpen.getSelectedItems().get(0);
+        
         EditColumnAction editColumnAction = new EditColumnAction(session);
-        editColumnAction.showDialog(st, idx);
+        editColumnAction.showDialog(st, idx, true, tp);
         
     }
 
