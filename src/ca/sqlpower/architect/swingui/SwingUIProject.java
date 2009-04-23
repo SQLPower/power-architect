@@ -716,7 +716,7 @@ public class SwingUIProject extends CoreProject {
 
         try {
             ioo.println(out, "<?xml version=\"1.0\" encoding=\""+encoding+"\"?>"); //$NON-NLS-1$ //$NON-NLS-2$
-            ioo.println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectVersion.APP_VERSION+"\">"); //$NON-NLS-1$ //$NON-NLS-2$
+            ioo.println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectVersion.APP_FULL_VERSION+"\">"); //$NON-NLS-1$ //$NON-NLS-2$
             ioo.indent++;
             ioo.println(out, "<project-name>"+SQLPowerUtils.escapeXML(getSession().getName())+"</project-name>"); //$NON-NLS-1$ //$NON-NLS-2$
             savePrintSettings(out, getSession().getPrintSettings());
@@ -740,13 +740,13 @@ public class SwingUIProject extends CoreProject {
                 oSession.saveNotify();
             }
         } catch (IOException e) {
-            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_VERSION.toString(), "Architect").toXML());
+            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_FULL_VERSION.toString(), "Architect").toXML());
             throw e;
         } catch (SQLObjectException e) {
-            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_VERSION.toString(), "Architect").toXML());
+            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_FULL_VERSION.toString(), "Architect").toXML());
             throw e;
         } catch (RuntimeException e) {
-            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_VERSION.toString(), "Architect").toXML());
+            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_FULL_VERSION.toString(), "Architect").toXML());
             throw e;
         } finally {
             if (out != null) out.close();

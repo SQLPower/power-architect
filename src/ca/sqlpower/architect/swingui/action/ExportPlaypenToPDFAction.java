@@ -140,7 +140,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
             
             d.addTitle(Messages.getString("ExportPlaypenToPDFAction.PdfTitle")); //$NON-NLS-1$
             d.addAuthor(System.getProperty("user.name")); //$NON-NLS-1$
-            d.addCreator(Messages.getString("ExportPlaypenToPDFAction.powerArchitectVersion")+ArchitectVersion.APP_VERSION); //$NON-NLS-1$
+            d.addCreator(Messages.getString("ExportPlaypenToPDFAction.powerArchitectVersion")+ArchitectVersion.APP_FULL_VERSION); //$NON-NLS-1$
             
             PdfWriter writer = PdfWriter.getInstance(d, out);
             d.open();

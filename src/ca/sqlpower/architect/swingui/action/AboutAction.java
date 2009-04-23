@@ -53,7 +53,7 @@ public class AboutAction extends AbstractArchitectAction {
 		
         ImageIcon imageIcon = SPSUtils.createIcon("architect128", "Architect Logo");
 		
-		final AboutPanel aboutPanel = new AboutPanel(imageIcon, "Power*Architect", "ca/sqlpower/architect/architect.version.properties", ArchitectVersion.APP_VERSION.toString());
+		final AboutPanel aboutPanel = new AboutPanel(imageIcon, "Power*Architect", "ca/sqlpower/architect/architect.version.properties", ArchitectVersion.APP_FULL_VERSION.toString());
 		cp.add(aboutPanel, BorderLayout.CENTER);
 			
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

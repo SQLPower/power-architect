@@ -140,7 +140,7 @@ public class ProfilePDFFormat implements ProfileFormat {
         document.addTitle("Table Profiling Report");
         document.addSubject("Tables: " + profileResults);
         document.addAuthor(System.getProperty("user.name"));
-        document.addCreator("Power*Architect version "+ArchitectVersion.APP_VERSION);
+        document.addCreator("Power*Architect version "+ArchitectVersion.APP_FULL_VERSION);
 
         document.open();
 

@@ -78,7 +78,7 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
 
             versionPropertyString = properties.getProperty("app.version"); //$NON-NLS-1$
             ArchitectVersion latestVersion = new ArchitectVersion(versionPropertyString);
-            ArchitectVersion userVersion = ArchitectVersion.APP_VERSION;
+            ArchitectVersion userVersion = ArchitectVersion.APP_FULL_VERSION;
 
             if (userVersion.compareTo(latestVersion) < 0) {
                 promptUpdate();

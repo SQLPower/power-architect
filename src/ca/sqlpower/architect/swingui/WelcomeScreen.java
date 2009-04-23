@@ -19,13 +19,18 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URL;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
@@ -39,6 +44,10 @@ import javax.swing.text.html.HTMLEditorKit;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.BrowserUtil;
+
+import com.jgoodies.forms.builder.DefaultFormBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 
 /**
  * Creates a JPanel that is the Welcome Screen, for adding to the main window.
@@ -62,7 +71,7 @@ public class WelcomeScreen {
     final static String welcomeHTMLstuff =
         "<html><head><style type=\"text/css\">body {margin-left: 100px; margin-right: 100px;}</style></head>" + //$NON-NLS-1$
         "<body>" + //$NON-NLS-1$
-        "<h1 align=\"center\">Power*Architect " + ArchitectVersion.APP_VERSION + "</h1>" + //$NON-NLS-1$ //$NON-NLS-2$
+        "<h1 align=\"center\">Power*Architect " + ArchitectVersion.APP_FULL_VERSION + "</h1>" + //$NON-NLS-1$ //$NON-NLS-2$
         "<br><br><br>" + //$NON-NLS-1$
         "<p>" + Messages.getString("WelcomeScreen.forumInfo", SPSUtils.FORUM_URL) + //$NON-NLS-1$ //$NON-NLS-2$
         "<br><br>" + //$NON-NLS-1$
@@ -74,8 +83,12 @@ public class WelcomeScreen {
     public void showWelcomeDialog(Component dialogOwner) {
         final JDialog d = SPSUtils.makeOwnedDialog(dialogOwner, Messages.getString("WelcomeScreen.welcomeScreenTitle")); //$NON-NLS-1$
         d.setLayout(new BorderLayout(0, 12));
-        
-        d.add(imageLabel, BorderLayout.NORTH);
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow, fill:pref, pref:grow", "pref, pref, pref"));
+        CellConstraints cc = new CellConstraints();
+        JPanel logoPanel = LogoLayout.generateLogoPanel();
+        builder.add(logoPanel, cc.xyw(1, 1, 3));
+        d.add(builder.getPanel(), BorderLayout.NORTH);
+        logoPanel.getLayout().layoutContainer(logoPanel);
         
         HTMLEditorKit htmlKit = new HTMLEditorKit();
         final JEditorPane htmlComponent = new JEditorPane();
@@ -129,5 +142,70 @@ public class WelcomeScreen {
         
         d.setLocationRelativeTo(dialogOwner);
         d.setVisible(true);
+    }
+    
+    private static class LogoLayout implements LayoutManager {
+
+        private int textStartY = 130;
+        private int textStartX = 400;
+        
+        public static JPanel generateLogoPanel() {
+            JPanel panel = new JPanel(new LogoLayout());
+            
+            JLabel bgLabel = new JLabel(new ImageIcon(WelcomeScreen.class.getClassLoader().getResource("icons/architect_header_bkgd.png")));
+            JLabel welcomeLabel = new JLabel(new ImageIcon(WelcomeScreen.class.getClassLoader().getResource("icons/architect_header_welcome.png")));
+            JLabel architectLabel = new JLabel(new ImageIcon(WelcomeScreen.class.getClassLoader().getResource("icons/architect_header_architect.png")));
+            JLabel sqlpowerLabel = new JLabel(new ImageIcon(WelcomeScreen.class.getClassLoader().getResource("icons/architect_header_sqlpower.png")));
+            JLabel versionLabel = new JLabel("" + ArchitectVersion.APP_VERSION);
+            versionLabel.setForeground(new Color(0x999999));
+            
+            panel.add(welcomeLabel);
+            panel.add(architectLabel);
+            panel.add(sqlpowerLabel);
+            panel.add(versionLabel);
+            panel.add(bgLabel);
+            return panel;
+        }
+        
+        private LogoLayout() {
+            //Do nothing for init.
+        }
+        
+        public void layoutContainer(Container parent) {
+            JLabel bgLabel = (JLabel) parent.getComponent(4);
+            JLabel welcomeLabel = (JLabel) parent.getComponent(0);
+            JLabel architectLabel = (JLabel) parent.getComponent(1);
+            JLabel sqlpowerLabel = (JLabel) parent.getComponent(2);
+            JLabel versionLabel = (JLabel) parent.getComponent(3);
+            
+            int headerStartX = (parent.getWidth() - 800) / 2;
+            
+            bgLabel.setBounds(0, 0, parent.getWidth(), parent.getHeight());
+            welcomeLabel.setBounds(headerStartX, 0, welcomeLabel.getPreferredSize().width, welcomeLabel.getPreferredSize().height);
+            architectLabel.setBounds(welcomeLabel.getX() + welcomeLabel.getPreferredSize().width, 0, architectLabel.getPreferredSize().width, architectLabel.getPreferredSize().height);
+            sqlpowerLabel.setBounds(headerStartX + 800 - sqlpowerLabel.getPreferredSize().width, 0, sqlpowerLabel.getPreferredSize().width, sqlpowerLabel.getPreferredSize().height);
+            versionLabel.setBounds(architectLabel.getX() + textStartX, architectLabel.getY() + textStartY, versionLabel.getPreferredSize().width, versionLabel.getPreferredSize().height);
+        }
+
+        public Dimension minimumLayoutSize(Container parent) {
+            JLabel welcomeLabel = (JLabel) parent.getComponent(0);
+            JLabel architectLabel = (JLabel) parent.getComponent(1);
+            JLabel sqlpowerLabel = (JLabel) parent.getComponent(2);
+            
+            return new Dimension(welcomeLabel.getWidth() + architectLabel.getWidth() + sqlpowerLabel.getWidth(),
+                    Math.max(Math.max(welcomeLabel.getHeight(), architectLabel.getHeight()), sqlpowerLabel.getHeight()));
+        }
+
+        public Dimension preferredLayoutSize(Container parent) {
+            return minimumLayoutSize(parent);
+        }
+
+        public void removeLayoutComponent(Component comp) {
+            // no-op
+        }
+        
+        public void addLayoutComponent(String name, Component comp) {
+            // no-op
+        }
     }
 }
