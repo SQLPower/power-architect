@@ -24,7 +24,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JSeparator;
 import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
@@ -33,7 +32,7 @@ import ca.sqlpower.architect.profile.TableProfileCreator;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.swingui.DataEntryPanel;
 
-import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.builder.DefaultFormBuilder;
 
 public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
     private static final Logger logger = Logger.getLogger(ProjectSettingsPanel.class);
@@ -42,6 +41,11 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 	 * The project whose settings we're editting.
 	 */
 	private ArchitectSwingSession session;
+	
+    /**
+     * The panel that contains the editor components.
+     */
+    private JPanel panel;
 
     /**
      * 
@@ -84,90 +88,88 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 	}
 
 	public void setup() {
-	    CellConstraints cc = new CellConstraints();
 	    com.jgoodies.forms.layout.FormLayout layout = new com.jgoodies.forms.layout.FormLayout(
-	            "pref,pref",  //$NON-NLS-1$
-                "pref,4dlu,pref,4dlu,pref,4dlu,4dlu,pref,pref,4dlu,4dlu,pref,pref,4dlu,4dlu,pref,pref,4dlu,pref,pref,pref,pref,pref,pref,4dlu"); //$NON-NLS-1$
-		setLayout(layout);
-		int row = 1;
-		add(new JLabel(Messages.getString("ProjectSettingsPanel.snapshotSourceDbOption")), cc.xy(1, row)); //$NON-NLS-1$
-		add(saveEntireSource = new JCheckBox(), cc.xy(2, row));
-
-		row+=2;
-        add(new JLabel(Messages.getString("ProjectSettingsPanel.numCommonProfileValues")), cc.xy(1, row)); //$NON-NLS-1$
-        add(numberOfFreqValues = new JTextField("",6), cc.xy(2, row)); //$NON-NLS-1$
+	            "pref,4dlu,pref");  //$NON-NLS-1$
+	    DefaultFormBuilder fb = new DefaultFormBuilder(layout, new JPanel());
+	    setLayout(layout);
+		fb.append(Messages.getString("ProjectSettingsPanel.snapshotSourceDbOption"), saveEntireSource = new JCheckBox()); //$NON-NLS-1$
+		fb.nextLine();
+		fb.appendUnrelatedComponentsGapRow();
+        fb.nextLine();
+		
+		fb.append(Messages.getString("ProjectSettingsPanel.numCommonProfileValues"), numberOfFreqValues = new JTextField("",6)); //$NON-NLS-1$
+        fb.nextLine();
+        fb.appendUnrelatedComponentsGapRow();
+        fb.nextLine();
         
-        row+=2;
-        add(new JLabel(Messages.getString("ProjectSettingsPanel.profileMode")), cc.xy(1, row)); //$NON-NLS-1$
-        add(profileMode = new JComboBox(session.getProfileManager().getProfileCreators().toArray()), cc.xy(2, row));
+        fb.append(Messages.getString("ProjectSettingsPanel.profileMode"), profileMode = new JComboBox(session.getProfileManager().getProfileCreators().toArray())); //$NON-NLS-1$
+        fb.nextLine();
+        fb.appendUnrelatedComponentsGapRow();
+        fb.nextLine();
+       
+        fb.append(new JLabel(Messages.getString("ProjectSettingsPanel.relationshipLineStyle"))); //$NON-NLS-1$
+        fb.append(rectilinearRelationships = new JRadioButton(Messages.getString("ProjectSettingsPanel.rectilinearLineOption"))); //$NON-NLS-1$
         
-        row+=2;
-        add(new JSeparator(), cc.xyw(1, row, 2));
+        fb.nextLine();
         
-        row++;
-        add(new JLabel(Messages.getString("ProjectSettingsPanel.relationshipLineStyle")), cc.xy(1, row)); //$NON-NLS-1$
-        add(rectilinearRelationships = new JRadioButton(Messages.getString("ProjectSettingsPanel.rectilinearLineOption")), cc.xy(2, row)); //$NON-NLS-1$
-        
-        row++;
-        add(new JLabel(), cc.xy(1, row));
-        add(directRelationships = new JRadioButton(Messages.getString("ProjectSettingsPanel.directLineOption")), cc.xy(2, row)); //$NON-NLS-1$
+        fb.append("", directRelationships = new JRadioButton(Messages.getString("ProjectSettingsPanel.directLineOption"))); //$NON-NLS-1$
         ButtonGroup lineStyleGroup = new ButtonGroup();
         lineStyleGroup.add(rectilinearRelationships);
         lineStyleGroup.add(directRelationships);
         
-        row+=2;
-        add(new JSeparator(), cc.xyw(1, row, 2));
+        fb.nextLine();
+        fb.appendUnrelatedComponentsGapRow();
+        fb.nextLine();
         
-        row++;
-        add(new JLabel(Messages.getString("ProjectSettingsPanel.displayPhysicalOrLogical")), cc.xy(1, row)); //$NON-NLS-1$
-        add(logicalNames = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayLogicalNames")), cc.xy(2, row)); //$NON-NLS-1$
+        fb.append(new JLabel(Messages.getString("ProjectSettingsPanel.displayPhysicalOrLogical"))); //$NON-NLS-1$
+        fb.append(logicalNames = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayLogicalNames"))); //$NON-NLS-1$
+        fb.nextLine();
         
-        row++;
-        add(new JLabel(), cc.xy(1, row));
-        add(physicalNames = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayPhysicalNames")), cc.xy(2, row)); //$NON-NLS-1$
+        fb.append("", physicalNames = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayPhysicalNames"))); //$NON-NLS-1$
         ButtonGroup nameDisplay = new ButtonGroup();
         nameDisplay.add(logicalNames);
         nameDisplay.add(physicalNames);
         
-        logger.info(row);
-        row+=2;
-        add(new JSeparator(), cc.xyw(1, row, 2));
-        logger.info(row);
+        fb.nextLine();
+        fb.appendUnrelatedComponentsGapRow();
+        fb.nextLine();
         
-        row++;
-        add(new JLabel(Messages.getString("ProjectSettingsPanel.visibilityOfRelationshipLabel")), cc.xy(1, row)); //$NON-NLS-1$
-        add(hideRelationshipLabel = new JRadioButton(Messages.getString("ProjectSettingsPanel.hideRelationshipLabel")), cc.xy(2, row)); //$NON-NLS-1$
+        fb.append(new JLabel(Messages.getString("ProjectSettingsPanel.visibilityOfRelationshipLabel"))); //$NON-NLS-1$
+        fb.append(displayRelationshipLabel = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayRelationshipLabel"))); //$NON-NLS-1$
+       
+        fb.nextLine();
         
-        
-        row++;
-        add(new JLabel(), cc.xy(1, row));
-        add(displayRelationshipLabel = new JRadioButton(Messages.getString("ProjectSettingsPanel.displayRelationshipLabel")), cc.xy(2, row)); //$NON-NLS-1$
+        fb.append("", hideRelationshipLabel = new JRadioButton(Messages.getString("ProjectSettingsPanel.hideRelationshipLabel"))); //$NON-NLS-1$
         ButtonGroup DisplayRelationshipLabel = new ButtonGroup();
         DisplayRelationshipLabel.add(displayRelationshipLabel);
         DisplayRelationshipLabel.add(hideRelationshipLabel);
         
-        row+=2;
-        add(new JSeparator(), cc.xyw(1, row, 2));
+        fb.nextLine();
+        fb.appendUnrelatedComponentsGapRow();
+        fb.nextLine();
         
-        row++;
-        add(showAll = new JRadioButton(Messages.getString("ProjectSettingsPanel.showAll")), cc.xy(1, row)); //$NON-NLS-1$
-        add(showPkTag = new JCheckBox(Messages.getString("ProjectSettingsPanel.showPKTags")), cc.xy(2, row)); //$NON-NLS-1$
+        fb.append(showAll = new JRadioButton(Messages.getString("ProjectSettingsPanel.showAll"))); //$NON-NLS-1$
+        fb.append(showPkTag = new JCheckBox(Messages.getString("ProjectSettingsPanel.showPKTags"))); //$NON-NLS-1$
         
-        row++;
-        add(showPkFkUniqueIndexed = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPKFKUniqueIndexed")), cc.xy(1, row)); //$NON-NLS-1$
-        add(showFkTag = new JCheckBox(Messages.getString("ProjectSettingsPanel.showFKTags")), cc.xy(2, row)); //$NON-NLS-1$
+        fb.nextLine();
         
-        row++;
-        add(showPkFkUnique = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPKFKUnique")), cc.xy(1, row)); //$NON-NLS-1$
-        add(showAkTag = new JCheckBox(Messages.getString("ProjectSettingsPanel.showAKTags")), cc.xy(2, row)); //$NON-NLS-1$
+        fb.append(showPkFkUniqueIndexed = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPKFKUniqueIndexed"))); //$NON-NLS-1$
+        fb.append(showFkTag = new JCheckBox(Messages.getString("ProjectSettingsPanel.showFKTags"))); //$NON-NLS-1$
         
-        row++;
-        add(showPkFk = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPKFK")), cc.xy(1, row)); //$NON-NLS-1$
-        add(new JLabel(), cc.xy(2, row));
+        fb.nextLine();
         
-        row++;
-        add(showPk = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPK")), cc.xy(1, row)); //$NON-NLS-1$
-        add(new JLabel(), cc.xy(2, row));
+        fb.append(showPkFkUnique = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPKFKUnique"))); //$NON-NLS-1$
+        fb.append(showAkTag = new JCheckBox(Messages.getString("ProjectSettingsPanel.showAKTags"))); //$NON-NLS-1$
+        
+        fb.nextLine();
+        
+        fb.append(showPkFk = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPKFK"))); //$NON-NLS-1$
+        
+        fb.nextLine();
+        
+        fb.append(showPk = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPK"))); //$NON-NLS-1$
+        
+        fb.nextLine();
         
         ButtonGroup column_show_settings = new ButtonGroup();
         column_show_settings.add(showAll);
@@ -175,7 +177,9 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         column_show_settings.add(showPkFkUnique);
         column_show_settings.add(showPkFk);
         column_show_settings.add(showPk);
-
+        
+        fb.setDefaultDialogBorder();
+        this.panel = fb.getPanel();
 	}
 
 	private void revertToProjectSettings() {
@@ -287,7 +291,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 	}
 
 	public JPanel getPanel() {
-		return this;
+		return this.panel;
 	}
 
     public boolean hasUnsavedChanges() {
