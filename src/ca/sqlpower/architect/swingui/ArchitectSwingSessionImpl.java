@@ -66,7 +66,6 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectEvent;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectHierarchyListener;
 import ca.sqlpower.sqlobject.SQLObjectListener;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
@@ -178,21 +177,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * for Architect.
      */
     private final SwingUIUserPrompterFactory swinguiUserPrompterFactory;
-    
-    /**
-     * This listener will listen to the SQLObject hierarchy and display exception windows when
-     * an object's children are not accessible.
-     */
-    private final SQLObjectListener childrenInaccessibleListener = new SQLObjectHierarchyListener() {
-        @Override
-        public void dbObjectChanged(SQLObjectEvent e) {
-            super.dbObjectChanged(e);
-            logger.debug("Object " + e.getSource() + " changed in the SQLObject hierarchy.");
-            if (e.getPropertyName().equals("childrenInaccessibleReason") && e.getNewValue() != null) {
-                SPSUtils.showExceptionDialogNoReport(frame, "Children of " + e.getSource() + " are inaccessible due to the following exception.", (Throwable) e.getNewValue());
-            }
-        }  
-    };
 
     /**
      * Creates a new swing session, including a new visible architect frame, with
@@ -208,7 +192,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.isNew = true;
         this.context = context;
         this.delegateSession = new ArchitectSessionImpl(context, name);
-        SQLObjectUtils.listenToHierarchy(childrenInaccessibleListener, getRootObject());
         this.olapRootObject = new OLAPRootObject(delegateSession);
         ((ArchitectSessionImpl)delegateSession).setProfileManager(new ProfileManagerImpl(this));
         ((ArchitectSessionImpl)delegateSession).setUserPrompterFactory(this);
