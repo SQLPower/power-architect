@@ -19,12 +19,18 @@
 
 package ca.sqlpower.architect.swingui.action;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 import javax.swing.tree.TreePath;
 
 import ca.sqlpower.architect.swingui.ASUtils;
@@ -34,8 +40,87 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.swingui.MonitorableWorker;
+import ca.sqlpower.swingui.ProgressWatcher;
+import ca.sqlpower.swingui.SwingWorkerRegistry;
+import ca.sqlpower.swingui.event.TaskTerminationEvent;
+import ca.sqlpower.swingui.event.TaskTerminationListener;
+
+import com.jgoodies.forms.builder.DefaultFormBuilder;
+import com.jgoodies.forms.layout.FormLayout;
 
 public class RefreshAction extends AbstractArchitectAction {
+    
+    /**
+     * This will refresh all of the databases on a different thread and
+     * allows the refresh to be monitorable.
+     */
+    private class RefreshMonitorableWorker extends MonitorableWorker {
+        
+        private final Set<SQLDatabase> databasesToRefresh = new HashSet<SQLDatabase>();
+        private final Component parent;
+        private int progress;
+        private boolean hasStarted;
+        private boolean isFinished;
+        private SQLDatabase dbBeingRefreshed;
+        
+        public RefreshMonitorableWorker(SwingWorkerRegistry registry, Component parent, Set<SQLDatabase> dbs) {
+            super(registry);
+            this.parent = parent;
+            this.databasesToRefresh.addAll(dbs);
+            hasStarted = false;
+            isFinished = false;
+        }
+        
+        public boolean isFinished() {
+            return isFinished;
+        }
+    
+        public boolean hasStarted() {
+            return hasStarted;
+        }
+    
+        public int getProgress() {
+            return progress;
+        }
+    
+        public String getMessage() {
+            if (dbBeingRefreshed == null) {
+                return "Refreshing selected databases.";
+            }
+            return "Refreshing database " + dbBeingRefreshed.getName();
+        }
+    
+        public Integer getJobSize() {
+            return null;
+        }
+    
+        @Override
+        public void doStuff() throws Exception {
+            hasStarted = true;
+            isFinished = false;
+            progress = 0;
+            try {
+                for (SQLDatabase db : databasesToRefresh) {
+                    dbBeingRefreshed = db;
+                    db.refresh();
+                    progress++;
+                }
+            } catch (SQLObjectException ex) {
+                setDoStuffException(ex);
+            } finally {
+                dbBeingRefreshed = null;
+            }
+        }
+    
+        @Override
+        public void cleanup() throws Exception {
+            isFinished = true;
+            if (getDoStuffException() != null) {
+                ASUtils.showExceptionDialogNoReport(parent, "Refresh failed", getDoStuffException());
+            }
+        }
+    }
 
     public RefreshAction(ArchitectSwingSession session) {
         super(session,
@@ -60,14 +145,40 @@ public class RefreshAction extends AbstractArchitectAction {
             JOptionPane.showMessageDialog(dbTree, "Please select a source database to refresh");
             return;
         }
+
+        final MonitorableWorker worker = new RefreshMonitorableWorker(session, session.getArchitectFrame(), databasesToRefresh);
+        final Thread thread = new Thread(worker, "Refresh database worker");
+        JProgressBar progressBar = new JProgressBar();
+        progressBar.setIndeterminate(true);
+        JLabel messageLabel = new JLabel("Refreshing selected databases.");
+        ProgressWatcher.watchProgress(progressBar, worker, messageLabel);
         
-        try {
-            for (SQLDatabase db : databasesToRefresh) {
-                db.refresh();
+        final JDialog dialog = new JDialog(session.getArchitectFrame(), "Refresh");
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow, 5dlu, pref"));
+        builder.setDefaultDialogBorder();
+        builder.append(messageLabel, 3);
+        builder.nextLine();
+        builder.append(progressBar, 3);
+        builder.nextLine();
+        builder.append(new JLabel(""), new JButton(new AbstractAction("Cancel") {
+            public void actionPerformed(ActionEvent e) {
+                worker.kill();
             }
-        } catch (SQLObjectException ex) {
-            ASUtils.showExceptionDialogNoReport(dbTree, "Refresh failed", ex);
-        }
+        }));
+        dialog.add(builder.getPanel());
+        
+        worker.addTaskTerminationListener(new TaskTerminationListener() {
+            public void taskFinished(TaskTerminationEvent e) {
+                dialog.dispose();
+            }
+        });
+        
+        dialog.pack();
+        dialog.setModal(true);
+        dialog.setLocationRelativeTo(session.getArchitectFrame());
+        thread.start();
+        dialog.setVisible(true);
+        
     }
 
 }
