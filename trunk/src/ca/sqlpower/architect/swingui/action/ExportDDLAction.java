@@ -65,7 +65,9 @@ public class ExportDDLAction extends AbstractArchitectAction {
 
 	public ExportDDLAction(final ArchitectSwingSession session) {
 		super(session, Messages.getString("ExportDDLAction.name"), Messages.getString("ExportDDLAction.description"), "fwdSQL"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	
+	}
+
+    public void actionPerformed(ActionEvent e) {
         final DDLExportPanel ddlPanel = new DDLExportPanel(session);
 
         Callable<Boolean> okCall, cancelCall;
@@ -209,10 +211,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                 okCall, cancelCall);
 
         d.pack();
-        d.setLocationRelativeTo(frame);		
-	}
-
-    public void actionPerformed(ActionEvent e) {
+        d.setLocationRelativeTo(frame);
         d.setVisible(true);
     }
 
