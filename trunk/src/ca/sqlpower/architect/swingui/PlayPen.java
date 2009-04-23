@@ -136,6 +136,7 @@ import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.sqlobject.undo.CompoundEvent;
 import ca.sqlpower.sqlobject.undo.CompoundEventListener;
 import ca.sqlpower.sqlobject.undo.CompoundEvent.EventTypes;
+import ca.sqlpower.swingui.CursorManager;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -168,65 +169,10 @@ public class PlayPen extends JPanel
 						RUBBERBAND_MOVE}
 	private MouseModeType mouseMode = MouseModeType.IDLE;
 	
-	/**
-     * A simple class that encapsulates the logic for making the cursor image
-     * look correct for the current activity.
-     */
-    public class CursorManager {
-        
-        private boolean draggingTable = false;
-        private boolean dragAllModeActive = false;
-        private boolean placeModeActive = false;
-        
-        public void tableDragStarted() {
-            draggingTable = true;
-            modifyCursorImage();
-        }
-        
-        public void tableDragFinished() {
-            draggingTable = false;
-            modifyCursorImage();
-        }
-        
-        public void dragAllModeStarted() {
-            dragAllModeActive = true;
-            modifyCursorImage();
-        }
-        
-        public void dragAllModeFinished() {
-            dragAllModeActive = false;
-            modifyCursorImage();
-        }
-
-        public void placeModeStarted() {
-            placeModeActive = true;
-            modifyCursorImage();
-        }
-
-        public void placeModeFinished() {
-            placeModeActive = false;
-            modifyCursorImage();
-        }
-        
-        /**
-         * Sets the appropriate cursor type based on the current
-         * state of this cursor manager.
-         */
-        private void modifyCursorImage() {
-            if (dragAllModeActive || draggingTable) {
-                setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-            } else if (placeModeActive) {
-                setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-            } else {
-                setCursor(null);
-            }
-        }
-    }
-    
     /**
      * The cursor manager for this play pen.
      */
-    private final CursorManager cursorManager = new CursorManager();
+    private final CursorManager cursorManager;
     
 	/**
 	 * Links this PlayPen with an instance of PlayPenDropListener so
@@ -395,7 +341,8 @@ public class PlayPen extends JPanel
 		addMouseListener(ppMouseListener);
 		addMouseMotionListener(ppMouseListener);
 		addMouseWheelListener(ppMouseListener);
-
+		
+		cursorManager = new CursorManager(PlayPen.this);
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
 		ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
@@ -1547,7 +1494,7 @@ public class PlayPen extends JPanel
 		 */
 		public void doStuff() {
 			logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName()); //$NON-NLS-1$
-
+			session.getArchitectFrame().getContentPane().setCursor(new Cursor(Cursor.WAIT_CURSOR));
 			try {
 				hasStarted = true;
 				int tableCount = 0;
@@ -1674,6 +1621,7 @@ public class PlayPen extends JPanel
                     "Unexpected Exception During Import", e); //$NON-NLS-1$
 			} finally {
 				finished = true;
+				session.getArchitectFrame().getContentPane().setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 				hasStarted = false;
 				session.getPlayPen().endCompoundEdit("Ending multi-select"); //$NON-NLS-1$
 			}
