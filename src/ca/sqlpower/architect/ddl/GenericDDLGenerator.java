@@ -795,7 +795,11 @@ public class GenericDDLGenerator implements DDLGenerator {
 	    boolean firstCol = true;
 	    for (SQLIndex.Column col : pk.getChildren()) {
 	        if (!firstCol) print(", ");
-	        print(col.getPhysicalName());
+	        if (col.getColumn() == null) {
+	            throw new IllegalStateException("Index column is not associated with the real column in the table.");
+	        } else {
+	            print(col.getColumn().getPhysicalName());
+	        }
 	        firstCol = false;
 	    }
 	    print(")");
