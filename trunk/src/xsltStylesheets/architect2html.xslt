@@ -30,11 +30,19 @@
         padding:1em;
       }
       .tableNameHeading h1 {
+      	display: inline;
         font-family: Segoe UI, Arial, sans-serif;
         font-size:125%;
         font-weight:bold;
       }
-
+		
+	  .tableNameHeading h2 {
+	  	display: inline;
+        font-family: Segoe UI, Arial, sans-serif;
+        font-size:115%;
+        font-weight:normal;
+      }
+	  
       .tableComment { 
         background-color:#e4efff; margin-bottom:20px;
       }
@@ -139,12 +147,15 @@
     <xsl:sort select="@name"/>
     <xsl:variable name="table" select="@name"/>
     <xsl:variable name="table-id" select="@id"/>
-
+	<xsl:variable name="physicalName" select="@physicalName"/>
     <div class="tableNameHeading">
       <h1>
         <xsl:value-of select="$table"/>
         <a name="{$table}"></a>
       </h1>
+      <h2>
+      (Physical Name: <xsl:value-of select="$physicalName"/>)
+      </h2>
       <xsl:if test="string-length(@remarks) &gt; 0">
         <p class="comment">
         <xsl:apply-templates select="@remarks" />
