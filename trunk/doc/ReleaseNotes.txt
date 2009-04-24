@@ -1,6 +1,29 @@
 Power*Architect Release Notes
 
-0.9.13
+0.9.13-rc2
+
+  New Features:
+    * Source databases can now be refreshed to pick up structural changes made to them after there were added to the project
+    * Support for Copy, Cut, and Paste for Tables, Columns, and Relationships
+  	* Profiles can now be searched with regular expressions, or by exact match 
+  	* Export to PDF for OLAP Playpens
+  	* Ability to export an HTML report generator
+  	* The colour of relationship lines can now be changed
+  	* The default settings for new columns can now be changed in Preferences
+  	* Relationship lines can now be labeled
+
+  Usability Enhancements
+ 	* Profile rows are now selectable in the Profile Manager, and they can be naviagated with the keyboard (up and down keys to change rows, enter to open, and del to delete)
+ 	* Fixed OS X keyboard shortcut so that it uses Command-Select to multi-select tables and columns instead of CTRL-Select. 
+ 	* Shift-select can now select multiple columns in a table
+ 	
+  Bug Fixes:
+    * MySQL DDL generator now uses the fully qualified table name when creating indexes. Before, it would only put the table name, which would only look for the table in the default catalog.
+    * BIGINT data type now gets properly forward engineered to PostgreSQL as BIGINT
+
+
+
+0.9.13-rc1
   
   New Features:
 	  * Added a new SQL Query Tool to replace the older SQL Runner
