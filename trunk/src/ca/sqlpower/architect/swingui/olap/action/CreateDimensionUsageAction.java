@@ -37,6 +37,7 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.DimensionUsageEditPanel;
+import ca.sqlpower.architect.swingui.olap.OSUtils;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
@@ -53,7 +54,7 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
     private static final Logger logger = Logger.getLogger(CreateDimensionUsageAction.class);
 
     public CreateDimensionUsageAction(ArchitectSwingSession session, PlayPen pp) {
-        super(session, pp, DimensionPane.class, CubePane.class, "Dimension Usage", null);
+        super(session, pp, DimensionPane.class, CubePane.class, "Dimension Usage", OSUtils.DIMENSION_USAGE_ADD_ICON);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('s'));
     }
 
