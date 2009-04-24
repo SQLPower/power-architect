@@ -58,6 +58,8 @@ public class OSUtils {
     public static final ImageIcon CUBE_USAGE_ADD_ICON = SPSUtils.createIcon("olap/cubeUsageAdd", "New Cube Usage"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon DIMENSION_ICON = SPSUtils.createIcon("olap/dimension", "Dimension"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon DIMENSION_ADD_ICON = SPSUtils.createIcon("olap/dimensionAdd", "New Dimension"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon DIMENSION_USAGE_ICON = SPSUtils.createIcon("olap/dimensionUsage", "Dimension Usage"); //$NON-NLS-1$ //$NON-NLS-2$
+    public static final ImageIcon DIMENSION_USAGE_ADD_ICON = SPSUtils.createIcon("olap/dimensionUsageAdd", "New Dimension Usage"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon FORMULA_ICON = SPSUtils.createIcon("olap/formula", "Formula"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon FORMULA_ADD_ICON = SPSUtils.createIcon("olap/formulaAdd", "New Formula"); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon HIERARCHY_ICON = SPSUtils.createIcon("olap/hierarchy", "Hierarchy"); //$NON-NLS-1$ //$NON-NLS-2$
