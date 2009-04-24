@@ -98,6 +98,11 @@ public class CompareSQL implements Monitorable {
 	 * A switch to indicate whether indices with be compared.
 	 */
 	private boolean compareIndex;
+	
+	/**
+	 * Flags whether or not the comparison has started.
+	 */
+    private boolean started;
 
 	/**
 	 * The common constructor 
@@ -142,10 +147,14 @@ public class CompareSQL implements Monitorable {
 		setProgress(0);
 		setJobSize(targetTableSet.size()*2 + sourceTableSet.size()*2);
 		setFinished(false);
+		setStarted(false);
+		
 	}
 	
 	public List<DiffChunk<SQLObject>> generateTableDiffs() throws SQLObjectException {
-		try {
+		setStarted(true);
+		setFinished(false);
+	    try {
 			Iterator<SQLTable> sourceIter = sourceTableSet.iterator();
 			Iterator<SQLTable> targetIter = targetTableSet.iterator();
 			SQLTable targetTable;
@@ -682,7 +691,11 @@ public class CompareSQL implements Monitorable {
 	}
 
 	public synchronized boolean hasStarted() {
-		return true;
+		return started;
+	}
+
+	private synchronized void setStarted(boolean started) {
+	    this.started = started;
 	}
 
 	public synchronized boolean isFinished() {

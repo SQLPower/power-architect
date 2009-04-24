@@ -67,17 +67,16 @@ import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.ConnectionComboBoxModel;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
-import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.validation.Status;
 import ca.sqlpower.validation.ValidateResult;
 import ca.sqlpower.validation.swingui.StatusComponent;
@@ -1251,17 +1250,39 @@ public class CompareDMPanel extends JPanel {
 	             reenableGUIComponents();
 			}
 			
-			SPSwingWorker compareWorker = new SPSwingWorker(session) {
+			MonitorableWorker compareWorker = new MonitorableWorker(session) {
 
 				private List<DiffChunk<SQLObject>> diff;
 				private List<DiffChunk<SQLObject>> diff1;
 
+				private String message;
+				private boolean started = false;
+				private boolean finished = false;
+				Integer jobSize = null;
+				
 				public void doStuff() throws SQLObjectException {
+				    started = true;
+	                if (source.physicalRadio.isSelected()) {
+	                    message = "Refreshing older database";
+	                    logger.debug(message);
+	                    source.getDatabase().refresh();
+	                }
+	                if (target.physicalRadio.isSelected()) {
+	                    message = "Refreshing newer database";
+                        logger.debug(message);
+	                    target.getDatabase().refresh();
+	                }
+	                jobSize = sourceComp.getJobSize() + targetComp.getJobSize();
+	                logger.debug("Generating TableDiffs for source");
 					diff = sourceComp.generateTableDiffs();
+					logger.debug("Generating TableDiffs for target");
 					diff1 = targetComp.generateTableDiffs();
+					message = "Finished";
+					logger.debug("Finished Compare");
 				}
 
 				public void cleanup() {
+				    finished = true;
 				    reenableGUIComponents();
                     if (getDoStuffException() != null) {
                         Throwable exc = getDoStuffException();
@@ -1276,12 +1297,38 @@ public class CompareDMPanel extends JPanel {
                     logger.debug("cleanup finished"); //$NON-NLS-1$
 				}
 
+                public Integer getJobSize() {
+                    return jobSize;
+                }
+
+                public String getMessage() {
+                    if (sourceComp.hasStarted() && !sourceComp.isFinished()) {
+                        return sourceComp.getMessage();
+                    } else if (targetComp.hasStarted() && !targetComp.isFinished()) {
+                        return targetComp.getMessage();
+                    } else {
+                        return message;
+                    }
+                }
+
+                public int getProgress() {
+                    return sourceComp.getProgress() + targetComp.getProgress();
+                }
+
+                public boolean hasStarted() {
+                    return started;
+                }
+
+                public boolean isFinished() {
+                    return finished;
+                }
+
 			};
 
-			new Thread(compareWorker).start();
-			ProgressWatcher pw = new ProgressWatcher(progressBar, sourceComp, statusLabel);
+			ProgressWatcher pw = new ProgressWatcher(progressBar, compareWorker, statusLabel);
 			pw.setHideLabelWhenFinished(true);
 			pw.start();
+			new Thread(compareWorker).start();
 		}
 		
 		private void reenableGUIComponents() {
