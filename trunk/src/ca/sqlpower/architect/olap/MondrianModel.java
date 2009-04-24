@@ -1047,15 +1047,13 @@ public static class Cube extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(Relation.class);
-        fact = newval;
-        if (fact == null) {
+        if (fact != null) {
             fireChildRemoved(Relation.class, overallPosition, oldval);
-        } else {
-            fact.setParent(this);
-            fireChildAdded(Relation.class, overallPosition, fact);
         }
-        
-    }
+        fact = newval;
+        fact.setParent(this);
+        fireChildAdded(Relation.class, overallPosition, fact);
+	}
 
     /**  */
     private final List<CubeDimension> dimensions = new ArrayList<CubeDimension>();
@@ -1588,15 +1586,13 @@ public static class VirtualCube extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(CubeUsages.class);
-        cubeUsage = newval;
-        if (cubeUsage == null) {
+        if (cubeUsage != null) {
             fireChildRemoved(CubeUsages.class, overallPosition, oldval);
-        } else {
-            cubeUsage.setParent(this);
-            fireChildAdded(CubeUsages.class, overallPosition, cubeUsage);
         }
-        
-    }
+        cubeUsage = newval;
+        cubeUsage.setParent(this);
+        fireChildAdded(CubeUsages.class, overallPosition, cubeUsage);
+	}
 
     /**  */
     private final List<VirtualCubeDimension> dimensions = new ArrayList<VirtualCubeDimension>();
@@ -3248,15 +3244,13 @@ public static class Hierarchy extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(RelationOrJoin.class);
-        relation = newval;
-        if (relation == null) {
+        if (relation != null) {
             fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
-        } else {
-            relation.setParent(this);
-            fireChildAdded(RelationOrJoin.class, overallPosition, relation);
         }
-        
-    }
+        relation = newval;
+        relation.setParent(this);
+        fireChildAdded(RelationOrJoin.class, overallPosition, relation);
+	}
 
     /**  */
     private final List<Level> levels = new ArrayList<Level>();
@@ -3914,15 +3908,13 @@ public static class Level extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(KeyExpression.class);
-        keyExp = newval;
-        if (keyExp == null) {
+        if (keyExp != null) {
             fireChildRemoved(KeyExpression.class, overallPosition, oldval);
-        } else {
-            keyExp.setParent(this);
-            fireChildAdded(KeyExpression.class, overallPosition, keyExp);
         }
-        
-    }
+        keyExp = newval;
+        keyExp.setParent(this);
+        fireChildAdded(KeyExpression.class, overallPosition, keyExp);
+	}
 
     /** 
                 The SQL expression used to populate this level's name. If not
@@ -3940,15 +3932,13 @@ public static class Level extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(NameExpression.class);
-        nameExp = newval;
-        if (nameExp == null) {
+        if (nameExp != null) {
             fireChildRemoved(NameExpression.class, overallPosition, oldval);
-        } else {
-            nameExp.setParent(this);
-            fireChildAdded(NameExpression.class, overallPosition, nameExp);
         }
-        
-    }
+        nameExp = newval;
+        nameExp.setParent(this);
+        fireChildAdded(NameExpression.class, overallPosition, nameExp);
+	}
 
     /** 
                 The SQL expression used to populate this level's ordinal.
@@ -3965,15 +3955,13 @@ public static class Level extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(OrdinalExpression.class);
-        ordinalExp = newval;
-        if (ordinalExp == null) {
+        if (ordinalExp != null) {
             fireChildRemoved(OrdinalExpression.class, overallPosition, oldval);
-        } else {
-            ordinalExp.setParent(this);
-            fireChildAdded(OrdinalExpression.class, overallPosition, ordinalExp);
         }
-        
-    }
+        ordinalExp = newval;
+        ordinalExp.setParent(this);
+        fireChildAdded(OrdinalExpression.class, overallPosition, ordinalExp);
+	}
 
     /** 
                 The SQL expression used to join to the parent member in a
@@ -3991,15 +3979,13 @@ public static class Level extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(ParentExpression.class);
-        parentExp = newval;
-        if (parentExp == null) {
+        if (parentExp != null) {
             fireChildRemoved(ParentExpression.class, overallPosition, oldval);
-        } else {
-            parentExp.setParent(this);
-            fireChildAdded(ParentExpression.class, overallPosition, parentExp);
         }
-        
-    }
+        parentExp = newval;
+        parentExp.setParent(this);
+        fireChildAdded(ParentExpression.class, overallPosition, parentExp);
+	}
 
     /**  */
     private Closure /* */ closure;
@@ -4014,15 +4000,13 @@ public static class Level extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(Closure.class);
-        closure = newval;
-        if (closure == null) {
+        if (closure != null) {
             fireChildRemoved(Closure.class, overallPosition, oldval);
-        } else {
-            closure.setParent(this);
-            fireChildAdded(Closure.class, overallPosition, closure);
         }
-        
-    }
+        closure = newval;
+        closure.setParent(this);
+        fireChildAdded(Closure.class, overallPosition, closure);
+	}
 
     /**  */
     private final List<Property> properties = new ArrayList<Property>();
@@ -4339,15 +4323,13 @@ public static class Closure extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(Table.class);
-        table = newval;
-        if (table == null) {
+        if (table != null) {
             fireChildRemoved(Table.class, overallPosition, oldval);
-        } else {
-            table.setParent(this);
-            fireChildAdded(Table.class, overallPosition, table);
         }
-        
-    }
+        table = newval;
+        table.setParent(this);
+        fireChildAdded(Table.class, overallPosition, table);
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -4840,15 +4822,13 @@ public static class Measure extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(MeasureExpression.class);
-        measureExp = newval;
-        if (measureExp == null) {
+        if (measureExp != null) {
             fireChildRemoved(MeasureExpression.class, overallPosition, oldval);
-        } else {
-            measureExp.setParent(this);
-            fireChildAdded(MeasureExpression.class, overallPosition, measureExp);
         }
-        
-    }
+        measureExp = newval;
+        measureExp.setParent(this);
+        fireChildAdded(MeasureExpression.class, overallPosition, measureExp);
+	}
 
     /**  */
     private final List<CalculatedMemberProperty> memberProperties = new ArrayList<CalculatedMemberProperty>();
@@ -5186,15 +5166,13 @@ public static class CalculatedMember extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(Formula.class);
-        formulaElement = newval;
-        if (formulaElement == null) {
+        if (formulaElement != null) {
             fireChildRemoved(Formula.class, overallPosition, oldval);
-        } else {
-            formulaElement.setParent(this);
-            fireChildAdded(Formula.class, overallPosition, formulaElement);
         }
-        
-    }
+        formulaElement = newval;
+        formulaElement.setParent(this);
+        fireChildAdded(Formula.class, overallPosition, formulaElement);
+	}
 
     /**  */
     private final List<CalculatedMemberProperty> memberProperties = new ArrayList<CalculatedMemberProperty>();
@@ -5627,15 +5605,13 @@ public static class NamedSet extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(Formula.class);
-        formulaElement = newval;
-        if (formulaElement == null) {
+        if (formulaElement != null) {
             fireChildRemoved(Formula.class, overallPosition, oldval);
-        } else {
-            formulaElement.setParent(this);
-            fireChildAdded(Formula.class, overallPosition, formulaElement);
         }
-        
-    }
+        formulaElement = newval;
+        formulaElement.setParent(this);
+        fireChildAdded(Formula.class, overallPosition, formulaElement);
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -6518,15 +6494,13 @@ public static class Join extends RelationOrJoin {
         	return;
         }
         int overallPosition = childPositionOffset(RelationOrJoin.class);
-        left = newval;
-        if (left == null) {
+        if (left != null) {
             fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
-        } else {
-            left.setParent(this);
-            fireChildAdded(RelationOrJoin.class, overallPosition, left);
         }
-        
-    }
+        left = newval;
+        left.setParent(this);
+        fireChildAdded(RelationOrJoin.class, overallPosition, left);
+	}
 
     /**  */
     private RelationOrJoin /* */ right;
@@ -6541,15 +6515,13 @@ public static class Join extends RelationOrJoin {
         	return;
         }
         int overallPosition = childPositionOffset(RelationOrJoin.class);
-        right = newval;
-        if (right == null) {
+        if (right != null) {
             fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
-        } else {
-            right.setParent(this);
-            fireChildAdded(RelationOrJoin.class, overallPosition, right);
         }
-        
-    }
+        right = newval;
+        right.setParent(this);
+        fireChildAdded(RelationOrJoin.class, overallPosition, right);
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -6767,15 +6739,13 @@ public static class Table extends Relation {
         	return;
         }
         int overallPosition = childPositionOffset(SQL.class);
-        filter = newval;
-        if (filter == null) {
+        if (filter != null) {
             fireChildRemoved(SQL.class, overallPosition, oldval);
-        } else {
-            filter.setParent(this);
-            fireChildAdded(SQL.class, overallPosition, filter);
         }
-        
-    }
+        filter = newval;
+        filter.setParent(this);
+        fireChildAdded(SQL.class, overallPosition, filter);
+	}
 
     /**  */
     private final List<AggExclude> aggExcludes = new ArrayList<AggExclude>();
@@ -7092,15 +7062,13 @@ public static class InlineTable extends Relation {
         	return;
         }
         int overallPosition = childPositionOffset(ColumnDefs.class);
-        columnDefs = newval;
-        if (columnDefs == null) {
+        if (columnDefs != null) {
             fireChildRemoved(ColumnDefs.class, overallPosition, oldval);
-        } else {
-            columnDefs.setParent(this);
-            fireChildAdded(ColumnDefs.class, overallPosition, columnDefs);
         }
-        
-    }
+        columnDefs = newval;
+        columnDefs.setParent(this);
+        fireChildAdded(ColumnDefs.class, overallPosition, columnDefs);
+	}
 
     /**  */
     private Rows /* */ rows;
@@ -7115,15 +7083,13 @@ public static class InlineTable extends Relation {
         	return;
         }
         int overallPosition = childPositionOffset(Rows.class);
-        rows = newval;
-        if (rows == null) {
+        if (rows != null) {
             fireChildRemoved(Rows.class, overallPosition, oldval);
-        } else {
-            rows.setParent(this);
-            fireChildAdded(Rows.class, overallPosition, rows);
         }
-        
-    }
+        rows = newval;
+        rows.setParent(this);
+        fireChildAdded(Rows.class, overallPosition, rows);
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
@@ -8020,15 +7986,13 @@ public abstract static class AggTable extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(AggFactCount.class);
-        factcount = newval;
-        if (factcount == null) {
+        if (factcount != null) {
             fireChildRemoved(AggFactCount.class, overallPosition, oldval);
-        } else {
-            factcount.setParent(this);
-            fireChildAdded(AggFactCount.class, overallPosition, factcount);
         }
-        
-    }
+        factcount = newval;
+        factcount.setParent(this);
+        fireChildAdded(AggFactCount.class, overallPosition, factcount);
+	}
 
     /**  */
     private final List<AggIgnoreColumn> ignoreColumns = new ArrayList<AggIgnoreColumn>();
@@ -10418,15 +10382,13 @@ public static class Role extends OLAPObject {
         	return;
         }
         int overallPosition = childPositionOffset(Union.class);
-        union = newval;
-        if (union == null) {
+        if (union != null) {
             fireChildRemoved(Union.class, overallPosition, oldval);
-        } else {
-            union.setParent(this);
-            fireChildAdded(Union.class, overallPosition, union);
         }
-        
-    }
+        union = newval;
+        union.setParent(this);
+        fireChildAdded(Union.class, overallPosition, union);
+	}
 
     @Override
     public List<OLAPObject> getChildren() {
