@@ -47,8 +47,18 @@ public class SQLObjectComparator implements Comparator<SQLObject>, Serializable 
 		else if (t2 == null) return 1;
 		else {
             //TODO In version 2.0 we want this to be an option
-			String n1 = t1.getName();
-			String n2 = t2.getName();
+		    String n1;
+		    String n2;
+		    if (t1.getPhysicalName() == null || t1.getPhysicalName().trim().equals("")) {
+		        n1 = t1.getName();
+		    } else {
+		        n1 = t1.getPhysicalName();
+		    }
+		    if (t2.getPhysicalName() == null || t2.getPhysicalName().trim().equals("")) {
+                n2 = t2.getName();
+            } else {
+                n2 = t2.getPhysicalName();
+            }
             if (n1 != null) n1 = n1.toLowerCase(Locale.getDefault());
             if (n2 != null) n2 = n2.toLowerCase(Locale.getDefault());
             if (n1 == n2) return 0;

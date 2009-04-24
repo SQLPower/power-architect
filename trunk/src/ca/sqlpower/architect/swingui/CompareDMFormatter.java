@@ -298,7 +298,7 @@ public class CompareDMFormatter {
                         attributes);
                 sourceDoc.insertString(
                         sourceDoc.getLength(),
-                        o.getName() + " ",
+                        (o.getPhysicalName() != null || o.getPhysicalName().trim().equals("") ? o.getName() : o.getPhysicalName())+ " ",
                         boldAttributes);
             } else if (o instanceof SQLColumn) {
                 if (dmSetting.getSuppressSimilarities() && !currentTableName.equals("")) {
