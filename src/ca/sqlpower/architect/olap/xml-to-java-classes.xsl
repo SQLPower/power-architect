@@ -192,15 +192,13 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         	return;
         }
         int overallPosition = childPositionOffset(<xsl:call-template name="attribute-type"/>.class);
-        <xsl:value-of select="@name"/> = newval;
-        if (<xsl:value-of select="@name"/> == null) {
+        if (<xsl:value-of select="@name"/> != null) {
             fireChildRemoved(<xsl:call-template name="attribute-type"/>.class, overallPosition, oldval);
-        } else {
-            <xsl:value-of select="@name"/>.setParent(this);
-            fireChildAdded(<xsl:call-template name="attribute-type"/>.class, overallPosition, <xsl:value-of select="@name"/>);
         }
-        
-    }
+        <xsl:value-of select="@name"/> = newval;
+        <xsl:value-of select="@name"/>.setParent(this);
+        fireChildAdded(<xsl:call-template name="attribute-type"/>.class, overallPosition, <xsl:value-of select="@name"/>);
+	}
 </xsl:template>
 
 <!-- Private instance variable with getter/setter pair. (i.e. a bound JavaBean property) -->
