@@ -18,7 +18,7 @@
  */
 package ca.sqlpower.architect.diff;
 
-import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.sqlobject.SQLObjectException;
 
 /**
  * This Exception is used to check in the StartCompareAction in the 
@@ -27,7 +27,7 @@ import ca.sqlpower.architect.ArchitectException;
  * which would lead to unreliable compare results.
  *
  */
-public class ArchitectDiffException extends ArchitectException {
+public class ArchitectDiffException extends SQLObjectException {
 	public ArchitectDiffException(String message) {
 		super(message);
 	}

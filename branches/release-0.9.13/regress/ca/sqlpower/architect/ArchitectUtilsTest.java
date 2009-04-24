@@ -19,8 +19,18 @@
 package ca.sqlpower.architect;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.CountingSQLObjectListener;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.StubSQLObject;
+import ca.sqlpower.sqlobject.undo.CompoundEvent;
+import ca.sqlpower.sqlobject.undo.CompoundEventListener;
 import ca.sqlpower.util.SQLPowerUtils;
 
 public class ArchitectUtilsTest extends TestCase {
@@ -31,11 +41,11 @@ public class ArchitectUtilsTest extends TestCase {
 		sqlo = new StubSQLObject();
 	}
 	
-	public void testListenToHierarchySQLObjectListenerSQLObject() throws ArchitectException {
+	public void testListenToHierarchySQLObjectListenerSQLObject() throws SQLObjectException {
 
 		SQLObjectListener listener = new CountingSQLObjectListener();
-		ArchitectUtils.listenToHierarchy(listener,sqlo);
-		ArchitectUtils.listenToHierarchy(listener,sqlo);
+		SQLObjectUtils.listenToHierarchy(listener,sqlo);
+		SQLObjectUtils.listenToHierarchy(listener,sqlo);
 		assertEquals("There are the wrong number of listeners",1,sqlo.getSQLObjectListeners().size());
 		assertTrue("The wrong listener is listening",sqlo.getSQLObjectListeners().contains(listener));
 		
@@ -49,48 +59,48 @@ public class ArchitectUtilsTest extends TestCase {
 	
 	}
 
-	public void testAddUndoListenerToHierarchy() throws ArchitectException{
+	public void testAddUndoListenerToHierarchy() throws SQLObjectException{
 
 	    //listener that doesn't do anything
-		UndoCompoundEventListener listener = new UndoCompoundEventListener(){
-			public void compoundEditStart(UndoCompoundEvent e) {
+		CompoundEventListener listener = new CompoundEventListener(){
+			public void compoundEditStart(CompoundEvent e) {
 			}
-			public void compoundEditEnd(UndoCompoundEvent e) {
+			public void compoundEditEnd(CompoundEvent e) {
 			}
 		};
-		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
-		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
+		SQLObjectUtils.addUndoListenerToHierarchy(listener,sqlo);
+		SQLObjectUtils.addUndoListenerToHierarchy(listener,sqlo);
 		assertEquals("There are the wrong number of listeners",1,sqlo.getUndoEventListeners().size());
 		assertTrue("The wrong listener is listening",sqlo.getUndoEventListeners().contains(listener));
 	}
 	
 
-	public void testUnlistenToHierarchySQLObjectListenerSQLObject() throws ArchitectException {
+	public void testUnlistenToHierarchySQLObjectListenerSQLObject() throws SQLObjectException {
 
 		SQLObjectListener listener = new CountingSQLObjectListener();
-		ArchitectUtils.listenToHierarchy(listener,sqlo);
-		ArchitectUtils.listenToHierarchy(listener,sqlo);
+		SQLObjectUtils.listenToHierarchy(listener,sqlo);
+		SQLObjectUtils.listenToHierarchy(listener,sqlo);
 		assertEquals("There are the wrong number of listeners",1,sqlo.getSQLObjectListeners().size());
 		assertTrue("The wrong listener is listening",sqlo.getSQLObjectListeners().contains(listener));
-		ArchitectUtils.unlistenToHierarchy(listener,sqlo);
+		SQLObjectUtils.unlistenToHierarchy(listener,sqlo);
 		assertEquals("There are the wrong number of listeners",0,sqlo.getSQLObjectListeners().size());
 	}
 
-	public void testUndoUnlistenToHierarchy() throws ArchitectException
+	public void testUndoUnlistenToHierarchy() throws SQLObjectException
 	{
 
-		UndoCompoundEventListener listener = new UndoCompoundEventListener(){
-			public void compoundEditStart(UndoCompoundEvent e) {
+		CompoundEventListener listener = new CompoundEventListener(){
+			public void compoundEditStart(CompoundEvent e) {
 			}
-			public void compoundEditEnd(UndoCompoundEvent e) {
+			public void compoundEditEnd(CompoundEvent e) {
 			}
 		};
-		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
-		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
+		SQLObjectUtils.addUndoListenerToHierarchy(listener,sqlo);
+		SQLObjectUtils.addUndoListenerToHierarchy(listener,sqlo);
 		assertEquals("There are the wrong number of listeners",1,sqlo.getUndoEventListeners().size());
 		assertTrue("The wrong listener is listening",sqlo.getUndoEventListeners().contains(listener));
 
-		ArchitectUtils.undoUnlistenToHierarchy(listener,sqlo);
+		SQLObjectUtils.undoUnlistenToHierarchy(listener,sqlo);
 		assertEquals("There are the wrong number of listeners",0,sqlo.getUndoEventListeners().size());
 	}
 	
@@ -197,7 +207,7 @@ public class ArchitectUtilsTest extends TestCase {
 		
 	}
     
-    public void testGetAncestor() throws ArchitectException {
+    public void testGetAncestor() throws SQLObjectException {
         SQLDatabase parentdb = new SQLDatabase();
         SQLSchema sch = new SQLSchema(true);
         SQLTable t = new SQLTable(sch, "cows", "remarkable cows", "TABLE", true);
@@ -205,14 +215,14 @@ public class ArchitectUtilsTest extends TestCase {
         parentdb.addChild(sch);
         sch.addChild(t);
         
-        assertEquals(parentdb, ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
-        assertEquals(sch, ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLSchema.class));
-        assertEquals(t, ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLTable.class));
-        assertEquals(t.getColumnsFolder(), ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLTable.Folder.class));
-        assertNull(ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLCatalog.class));
+        assertEquals(parentdb, SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
+        assertEquals(sch, SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLSchema.class));
+        assertEquals(t, SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLTable.class));
+        assertEquals(t.getColumnsFolder(), SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLTable.Folder.class));
+        assertNull(SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLCatalog.class));
         
         parentdb.removeChild(sch);
-        assertNull(ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
+        assertNull(SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
     }
     
     public void testCreateTableWhenExisting() throws Exception {
@@ -225,9 +235,9 @@ public class ArchitectUtilsTest extends TestCase {
         schem.addChild(tab);
         
         try {
-            ArchitectUtils.addSimulatedTable(db, "cat", "schem", "tab");
+            SQLObjectUtils.addSimulatedTable(db, "cat", "schem", "tab");
             fail("Should not have been allowed because table exists");
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             // expected
         }
     }

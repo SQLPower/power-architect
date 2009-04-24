@@ -27,6 +27,11 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
+
 /**
  * The DepthFirstSearch class performs a depth-first search on a
  * SQLDatabase, treating it as a graph where the SQLTable objects
@@ -150,13 +155,13 @@ public class DepthFirstSearch {
         }
     }
     
-    public DepthFirstSearch(SQLDatabase db) throws ArchitectException {
+    public DepthFirstSearch(SQLDatabase db) throws SQLObjectException {
         List<SQLTable> tables = new ArrayList<SQLTable>();
         ArchitectUtils.findDescendentsByClass(db, SQLTable.class, tables);
         performSearch(tables);
     }
     
-    public DepthFirstSearch(List<SQLTable> tables) throws ArchitectException {
+    public DepthFirstSearch(List<SQLTable> tables) throws SQLObjectException {
         performSearch(tables);
     }
 
@@ -168,9 +173,9 @@ public class DepthFirstSearch {
      * "Introduction to Algorithms" by Cormen et al (ISBN 0-07-013143-0).
      * 
      * @param tables
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    private void performSearch(List<SQLTable> tables) throws ArchitectException {
+    private void performSearch(List<SQLTable> tables) throws SQLObjectException {
         if (logger.isDebugEnabled()) {
             logger.debug("Performing Search on: " + tables);
         }
@@ -195,9 +200,9 @@ public class DepthFirstSearch {
      * 0-07-013143-0).
      *
      * @param u
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    private void visit(SQLTable u) throws ArchitectException {
+    private void visit(SQLTable u) throws SQLObjectException {
         VertexInfo vi = vertexInfo.get(u);
         vi.setDiscoveryTime(++visitTime);
         for (SQLRelationship r : u.getExportedKeys()) {

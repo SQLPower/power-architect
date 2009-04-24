@@ -28,12 +28,12 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.util.MonitorableImpl;
 
@@ -232,7 +232,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
      * 
      * @param tpr The table profile result to populate.
      */
-    private void doTableProfile(TableProfileResult tpr) throws SQLException, ArchitectException {
+    private void doTableProfile(TableProfileResult tpr) throws SQLException, SQLObjectException {
         logger.debug("Doing profile for table " + tpr.getProfiledObject());
         MonitorableImpl pm = (MonitorableImpl) tpr.getProgressMonitor();
         pm.setProgress(0);
@@ -504,7 +504,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
      * @param pm The progress monitor.  This progress monitor is only used for checking
      * if the operation is canceled; it is not updated with progress information.
      */
-    protected void doColumnProfile(ColumnProfileResult cpr, MonitorableImpl pm) throws SQLException, ArchitectException {
+    protected void doColumnProfile(ColumnProfileResult cpr, MonitorableImpl pm) throws SQLException, SQLObjectException {
         logger.debug("Doing profile for column " + cpr.getProfiledObject().getName());
         if (pm.isCancelled()) {
             return;

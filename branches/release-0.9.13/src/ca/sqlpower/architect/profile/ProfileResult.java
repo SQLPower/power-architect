@@ -18,8 +18,8 @@
  */
 package ca.sqlpower.architect.profile;
 
-import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.profile.event.ProfileResultListener;
+import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * A ProfileResult is an interface for populating profile data about

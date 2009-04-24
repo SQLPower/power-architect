@@ -3,6 +3,7 @@
 	<name>architect</name>
 	<comment></comment>
 	<projects>
+		<project>sqlpower_library</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

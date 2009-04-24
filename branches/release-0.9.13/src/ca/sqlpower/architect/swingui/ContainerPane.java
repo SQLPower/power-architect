@@ -52,6 +52,7 @@ import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
 import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.swingui.SPSUtils;
 
 /**
  * A playpen component that represents a model with a list of individually selectable items. 
@@ -75,6 +76,11 @@ implements DragSourceListener, LayoutNode {
     
     private static final Logger logger = Logger.getLogger(ContainerPane.class);
     
+    /**
+     * Contains the last selected Item
+     */
+    private C previousSelectedItem;
+    
     private boolean rounded;
     private boolean dashed;
     
@@ -90,6 +96,27 @@ implements DragSourceListener, LayoutNode {
      */
     protected final Set<C> selectedItems = new HashSet<C>();
 
+    /**
+     * Creates a copy of this container pane suitable for use with printing or
+     * PDF generation. The new copy may not have all listeners set up properly
+     * for interactive use.
+     * 
+     * @param copyMe
+     *            the container pane to copy.
+     */
+    protected ContainerPane(ContainerPane<T, C> copyMe, PlayPenContentPane parent) {
+        super(copyMe, parent);
+        dashed = copyMe.dashed;
+        // itemSelectionListeners should not be copied
+        if (copyMe.margin != null) {
+            margin = new Insets(
+                    copyMe.margin.top, copyMe.margin.left,
+                    copyMe.margin.bottom, copyMe.margin.right);
+        }
+        model = copyMe.model;
+        rounded = copyMe.rounded;
+    }
+    
     protected ContainerPane(PlayPenContentPane parent) {
         super(parent);
         this.backgroundColor = new Color(240, 240, 240);
@@ -113,8 +140,18 @@ implements DragSourceListener, LayoutNode {
         if (evt.getID() == MouseEvent.MOUSE_CLICKED) {
             if (evt.getClickCount() == 1 && evt.getButton() == MouseEvent.BUTTON1){ 
                 int selectedItemIndex = pointToItemIndex(p);
+                if(selectedItemIndex >= 0 && selectedItemIndex < getItems().size()) {
+                    previousSelectedItem = getItems().get(selectedItemIndex);
+                }
                 if (selectedItemIndex > ITEM_INDEX_TITLE && componentPreviouslySelected){
-                    deselectItem(selectedItemIndex);
+                    if(evt.isControlDown()) {
+                        deselectItem(selectedItemIndex);
+                        fireSelectionEvent(new SelectionEvent(this, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+                    } else {
+                    selectNone();
+                    selectItem(selectedItemIndex);
+                    fireSelectionEvent(new SelectionEvent(this, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+                    }
                 } else if (isSelected() && componentPreviouslySelected) {
                     setSelected(false, SelectionEvent.SINGLE_SELECT);
                 }
@@ -124,7 +161,7 @@ implements DragSourceListener, LayoutNode {
             int clickItem = pointToItemIndex(p);
 
             if (pp.getMouseMode() != MouseModeType.CREATING_TABLE) {
-                if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
+                if ((evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | SPSUtils.MULTISELECT_MASK)) == 0) {
                     if (!isSelected() || pp.getMouseMode() == MouseModeType.IDLE) {
                         pp.setMouseMode(MouseModeType.SELECT_TABLE);
                         pp.selectNone();
@@ -140,25 +177,42 @@ implements DragSourceListener, LayoutNode {
 
                 if (clickItem > ITEM_INDEX_TITLE &&
                         clickItem < getItems().size()) {
+                    int previousSelectedIndex;
+                    //This is since dragging columns within the same table does
+                    // not update the previouslySelectedItem
+                    if (isItemSelected(previousSelectedItem)) {    
+                    previousSelectedIndex = getItems().indexOf(previousSelectedItem);
+                    } else {
+                        previousSelectedIndex = getSelectedItemIndex();
+                    }
 
                     if ((evt.getModifiersEx() &
-                            (InputEvent.SHIFT_DOWN_MASK |
-                                    InputEvent.CTRL_DOWN_MASK)) == 0) {
-
-                        if (!isItemSelected(clickItem) ){
-                            deSelectEverythingElse(evt);
+                            (InputEvent.SHIFT_DOWN_MASK | SPSUtils.MULTISELECT_MASK)) == 0) {
+                        if (!isItemSelected(clickItem)){
                             selectNone();
                         }
                         pp.setMouseMode(MouseModeType.SELECT_ITEM);
+                    } else if (((evt.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0) && getSelectedItems().size() > 0 &&
+                        previousSelectedIndex > ITEM_INDEX_TITLE) {
+                    int start = Math.min(previousSelectedIndex, clickItem);
+                    int end = Math.max(previousSelectedIndex, clickItem);
+                    logger.debug("Start: " +start+ " , End: " +end+ " , Total size: " +getItems().size());
+                    for (int i = 0; i < getItems().size(); i++) {
+                        if (i > start && i < end ) {
+                            selectItem(i);
+                            fireSelectionEvent(new SelectionEvent(this, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+                        }
                     }
-                    if (isItemSelected(clickItem)) {
-                        componentPreviouslySelected = true;
-                    } else {
-                        selectItem(clickItem);
-                    }
-
+                }
+                
+                if (isItemSelected(clickItem)) {
+                   componentPreviouslySelected = true;
+                } else {
+                    selectItem(clickItem);
                     fireSelectionEvent(new SelectionEvent(this, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
                     repaint();
+                    previousSelectedItem = getItems().get(clickItem);
+                }
                 }
                 if (isSelected()&& clickItem == ITEM_INDEX_TITLE){
                     componentPreviouslySelected = true;
@@ -566,6 +620,11 @@ implements DragSourceListener, LayoutNode {
      */
     public abstract Transferable createTransferableForSelection();
     
+    /**
+     * This adds the data in a transferable to the container pane if the transferable
+     * contains a valid flavour.
+     */
+    public abstract void pasteData(Transferable t);
     
     /**
      * Simple implementation for LayoutNode interface. Simply calls getName().

@@ -56,11 +56,11 @@ import javax.swing.text.StyleConstants;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
@@ -353,7 +353,7 @@ public class SQLScriptDialog extends JDialog {
 
 			try {
 				con = target.getConnection();
-			} catch (ArchitectException ex) {
+			} catch (SQLObjectException ex) {
 				finished = true;
 				throw new RuntimeException(
 						Messages.getString("SQLScriptDialog.couldNotConnectToTargetDb", ex.getMessage()), ex); //$NON-NLS-1$

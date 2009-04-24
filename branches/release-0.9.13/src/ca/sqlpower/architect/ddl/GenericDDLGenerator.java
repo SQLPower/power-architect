@@ -33,23 +33,23 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSequence;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLType;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSequence;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLType;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
+import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
 public class GenericDDLGenerator implements DDLGenerator {
 
@@ -151,18 +151,24 @@ public class GenericDDLGenerator implements DDLGenerator {
     protected Map<String, ProfileFunctionDescriptor> profileFunctionMap;
 
 
-
+    public GenericDDLGenerator(boolean allowConnection) throws SQLException {
+        this.allowConnection = allowConnection;
+        warnings = new ArrayList();
+        ddlStatements = new ArrayList();
+        ddl = new StringBuffer(500);
+        println("");
+        topLevelNames = new CaseInsensitiveHashMap();  // for tracking dup table/relationship names
+        createTypeMap();
+    }
+    
+    /**
+     * Creates a new generic DDL generator that's allowed to connect to the target database.
+     */
 	public GenericDDLGenerator() throws SQLException {
-		allowConnection = true;
-		warnings = new ArrayList();
-		ddlStatements = new ArrayList();
-		ddl = new StringBuffer(500);
-		println("");
-		topLevelNames = new CaseInsensitiveHashMap();  // for tracking dup table/relationship names
-		createTypeMap();
+	    this(true);
 	}
 
-    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, ArchitectException {
+    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, SQLObjectException {
         List statements = generateDDLStatements(tables);
 
 		ddl = new StringBuffer(4000);
@@ -191,7 +197,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * @return the list of DDL statements in the order they should be executed
 	 * @see ca.sqlpower.architect.ddl.DDLGenerator#generateDDLStatements(Collection)
 	 */
-	public final List<DDLStatement> generateDDLStatements(Collection<SQLTable> tables) throws SQLException, ArchitectException {
+	public final List<DDLStatement> generateDDLStatements(Collection<SQLTable> tables) throws SQLException, SQLObjectException {
         warnings = new ArrayList();
 		ddlStatements = new ArrayList<DDLStatement>();
 		ddl = new StringBuffer(500);
@@ -208,7 +214,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         
 		try {
 			if (allowConnection && tableList.size() > 0) {
-                SQLDatabase parentDb = ArchitectUtils.getAncestor(tableList.get(0), SQLDatabase.class);
+                SQLDatabase parentDb = SQLObjectUtils.getAncestor(tableList.get(0), SQLDatabase.class);
 				con = parentDb.getConnection();
 			} else {
 				con = null;
@@ -699,16 +705,32 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    (c.getSourceDataTypeName(), c.getType(), c.getPrecision(),
 		            null, null, c.getNullable(), false, false);
 		    oldType.determineScaleAndPrecision();
-		    warnings.add(new TypeMapDDLWarning(c, String.format(
+		    TypeMapDDLWarning o = new TypeMapDDLWarning(c, String.format(
                     "Type '%s' of column '%s' in table '%s' is unknown in the target platform", 
                     SQLType.getTypeName(c.getType()), 
-                    c.getName(), 
-                    c.getParentTable().getName()), oldType, td));
+                    c.getPhysicalName(), 
+                    c.getParentTable().getPhysicalName()), oldType, td);
+		   if (!contains(warnings, o)) {
+		       warnings.add(o);
+		   }
         }
         return td;
     }
-
-	public void addTable(SQLTable t) throws SQLException, ArchitectException {
+    
+    private boolean contains(List list, TypeMapDDLWarning o) {
+        Iterator iterator = list.iterator();
+        while (iterator.hasNext()) {
+            Object next = iterator.next();
+            if (next instanceof TypeMapDDLWarning) {
+                if (((TypeMapDDLWarning)next).getMessage().equals(o.getMessage())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+	public void addTable(SQLTable t) throws SQLException, SQLObjectException {
 		Map colNameMap = new HashMap();  // for detecting duplicate column names
 		// generate a new physical name if necessary
 		createPhysicalName(topLevelNames,t); // also adds generated physical name to the map
@@ -728,7 +750,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 			firstCol = false;
 		}
 		
-		addPrimaryKeysToCreateTable(t);
+		SQLIndex pk = t.getPrimaryKeyIndex();
+		if (pk != null) {
+		    print(",\n");
+            print("                ");
+		    writePKConstraintClause(pk);
+		}
 		
 		print("\n)");
 		endStatement(DDLStatement.StatementType.CREATE, t);
@@ -741,66 +768,58 @@ public class GenericDDLGenerator implements DDLGenerator {
 	protected Object getDefaultType() {
 		return Types.VARCHAR;
 	}
-	
-	protected void addPrimaryKeysToCreateTable(SQLTable t) throws ArchitectException {
-	       logger.debug("Adding Primary keys");
-	        
-	        Iterator it = t.getColumns().iterator();
-	        boolean firstCol = true;
-	        while (it.hasNext()) {
-	            SQLColumn col = (SQLColumn) it.next();
-	            if (col.getPrimaryKeySeq() == null) break;
-	            if (firstCol) {
-	                // generate a unique primary key name
-	                createPhysicalPrimaryKeyName(t);
-	                print(",\n");
-	                print("                CONSTRAINT ");
-	                print(t.getPhysicalPrimaryKeyName());
-	                print(" PRIMARY KEY (");
-	                firstCol = false;
-	            } else {
-	                print(", ");
-	            }
-	            print(col.getPhysicalName());
+
+    /**
+     * Writes out the primary key constraint clause for the given primary key
+     * index. The clause begins with the word "CONSTRAINT" and has no leading
+     * space, so you must write a newline, space, and/or indentation before
+     * calling this method.
+     * <p>
+     * Side effect: the PK object's name will be initialized if necessary.
+     * 
+     * @param pk
+     *            The primary key index
+     * @throws SQLObjectException
+     *             If the pk object wasn't already populated and the populate
+     *             attempt fails.
+     */
+	protected void writePKConstraintClause(SQLIndex pk) throws SQLObjectException {
+	    if (!pk.isPrimaryKeyIndex()) {
+	        throw new IllegalArgumentException("The given index is not a primary key");
+	    }
+        createPhysicalName(topLevelNames, pk);
+	    print("CONSTRAINT ");
+	    print(pk.getPhysicalName());
+	    print(" PRIMARY KEY (");
+
+	    boolean firstCol = true;
+	    for (SQLIndex.Column col : pk.getChildren()) {
+	        if (!firstCol) print(", ");
+	        if (col.getColumn() == null) {
+	            throw new IllegalStateException("Index column is not associated with the real column in the table.");
+	        } else {
+	            print(col.getColumn().getPhysicalName());
 	        }
-	        if (!firstCol) {
-	            print(")");
-	        }
+	        firstCol = false;
+	    }
+	    print(")");
 	}
 
-	protected void writePrimaryKey(SQLTable t) throws ArchitectException {
-		boolean firstCol = true;
-		Iterator it = t.getColumns().iterator();
-		while (it.hasNext()) {
-			SQLColumn col = (SQLColumn) it.next();
-			if (col.getPrimaryKeySeq() == null) break;
-			if (firstCol) {
-				// generate a unique primary key name
-                createPhysicalPrimaryKeyName(t);
-				println("");
-				print("ALTER TABLE ");
-				print( toQualifiedName(t) );
-				print(" ADD CONSTRAINT ");
-				print(t.getPrimaryKeyName());
-				println("");
-				print("PRIMARY KEY (");
-				firstCol = false;
-			} else {
-				print(", ");
-			}
-			print(col.getPhysicalName());
-		}
-		if (!firstCol) {
-			print(")");
-			endStatement(DDLStatement.StatementType.ADD_PK, t);
-
-		}
+	protected void writePrimaryKey(SQLTable t) throws SQLObjectException {
+	    println("");
+	    print("ALTER TABLE ");
+	    print( toQualifiedName(t) );
+	    print(" ADD ");
+	    
+	    writePKConstraintClause(t.getPrimaryKeyIndex());
+				
+	    endStatement(DDLStatement.StatementType.ADD_PK, t);
 	}
 
     /**
      * Adds statements for creating every exported key in the given table.
      */
-	protected void writeExportedRelationships(SQLTable t) throws ArchitectException {
+	protected void writeExportedRelationships(SQLTable t) throws SQLObjectException {
 		Iterator it = t.getExportedKeys().iterator();
 		while (it.hasNext()) {
 			SQLRelationship rel = (SQLRelationship) it.next();
@@ -1036,11 +1055,25 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	/**
      * Generate, set, and return a valid identifier for this SQLObject.
-	 * @throws ArchitectException
+	 * @throws SQLObjectException
      */
 	protected String createPhysicalName(Map<String, SQLObject> dupCheck, SQLObject so) {
-		logger.debug("transform identifier source: " + so.getPhysicalName());
-		so.setPhysicalName(toIdentifier(so.getName()));
+        logger.debug("transform identifier source: " + so.getPhysicalName());
+        if ((so instanceof SQLTable || so instanceof SQLColumn) &&
+                (so.getPhysicalName() != null && !so.getPhysicalName().trim().equals(""))) {
+		    String physicalName = so.getPhysicalName();
+		    logger.debug("The physical name for this SQLObject is: " + physicalName);
+		    if (physicalName.lastIndexOf(' ') != -1) {
+		        String renameTo = (toIdentifier(physicalName));
+                warnings.add(new InvalidNameDDLWarning(
+		                String.format("Name %s has white spaces", physicalName),
+		                Arrays.asList(new SQLObject[] {so}),
+		                String.format("Rename %s to %s", physicalName, renameTo ),
+		                so, renameTo));
+		    }
+		} else {
+		    so.setPhysicalName(toIdentifier(so.getName()));
+		}
         String physicalName = so.getPhysicalName();
         if(isReservedWord(physicalName)) {
             String renameTo = physicalName   + "_1";
@@ -1051,18 +1084,19 @@ public class GenericDDLGenerator implements DDLGenerator {
                     so, renameTo));
             return physicalName;
         }
-
+        logger.debug("The logical name field now is: " + so.getName());
+        logger.debug("The physical name field now is: " + physicalName);
         int pointIndex = so.getPhysicalName().lastIndexOf('.');
-        if (!so.getName().substring(pointIndex+1,pointIndex+2).matches("[a-zA-Z]")){
+        if (!so.getPhysicalName().substring(pointIndex+1,pointIndex+2).matches("[a-zA-Z]")){
             String renameTo;
             if (so instanceof SQLTable) {
-                renameTo = "Table_" + so.getName();
+                renameTo = "Table_" + so.getPhysicalName();
             } else if (so instanceof SQLColumn) {
-                renameTo = "Column_" + so.getName();
+                renameTo = "Column_" + so.getPhysicalName();
             } else if (so instanceof SQLIndex) {
-                renameTo = "Index_" + so.getName();
+                renameTo = "Index_" + so.getPhysicalName();
             } else {
-                renameTo = "X_" + so.getName();
+                renameTo = "X_" + so.getPhysicalName();
             }
             warnings.add(new InvalidNameDDLWarning(
                     String.format("Name %s starts with a non-alpha character", physicalName),
@@ -1093,17 +1127,17 @@ public class GenericDDLGenerator implements DDLGenerator {
             String message;
             if (so instanceof SQLColumn) {
                 message = String.format("Column name %s in table %s already in use", 
-                        so.getName(), 
-                        ((SQLColumn) so).getParentTable().getName());
+                        so.getPhysicalName(), 
+                        ((SQLColumn) so).getParentTable().getPhysicalName());
             } else {
-                message = String.format("Global name %s already in use", physicalName);
+                message = String.format("Global name %s already in use", physicalName2);
             }
             logger.debug("Rename to : " + renameTo2);
 
             warnings.add(new InvalidNameDDLWarning(
                     message,
                     Arrays.asList(new SQLObject[] { so }),
-                    String.format("Rename %s to %s", physicalName, renameTo2),
+                    String.format("Rename %s to %s", physicalName2, renameTo2),
                     so, renameTo2));
             
             dupCheck.put(renameTo2, so);
@@ -1116,7 +1150,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	/**
      * Generate, set, and return a valid identifier for this SQLSequence.
      * Has a side effect of changing the given SQLColumn's autoIncrementSequenceName.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      * 
      * @param dupCheck  The Map to check for duplicate names
      * @param seq       The SQLSequence to generate, set and return a valid identifier for.
@@ -1181,21 +1215,6 @@ public class GenericDDLGenerator implements DDLGenerator {
         return seq.getPhysicalName();
     }
 
-	/**
-     * Generate, set, and return a physicalPrimaryKeyName which is just the
-     * logical primary key name run through "toIdentifier()".
-     * Before returning it, run it past checkDupName to check in and add
-     * it to the topLevelNames Map.
-	 * @throws ArchitectException 
-     */
-
-    private String createPhysicalPrimaryKeyName(SQLTable t) throws ArchitectException {
-        String physName = toIdentifier(t.getPrimaryKeyName());
-        t.setPhysicalPrimaryKeyName(physName);
-        createPhysicalName(topLevelNames, t.getPrimaryKeyIndex());
-        return physName;
-    }
-
     /**
      * Generates a standard <code>DROP TABLE $tablename</code> command.  Should work on most platforms.
      */
@@ -1218,18 +1237,14 @@ public class GenericDDLGenerator implements DDLGenerator {
 		return ddlStatements;
 	}
 
-	public void dropPrimaryKey(SQLTable t) {
-
-		try {
-            print("\nALTER TABLE " + toQualifiedName(t.getName())
-            	+ " DROP PRIMARY KEY " + t.getPrimaryKeyName());
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
-        }
+	public void dropPrimaryKey(SQLTable t) throws SQLObjectException {
+	    SQLIndex pk = t.getPrimaryKeyIndex();
+	    print("\nALTER TABLE " + toQualifiedName(t.getName())
+	            + " DROP CONSTRAINT " + pk.getPhysicalName());
 		endStatement(DDLStatement.StatementType.DROP, t);
 	}
 
-	public void addPrimaryKey(SQLTable t) throws ArchitectException {
+	public void addPrimaryKey(SQLTable t) throws SQLObjectException {
 		Map colNameMap = new HashMap();
 		StringBuffer sqlStatement = new StringBuffer();
 		boolean first = true;
@@ -1263,7 +1278,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * STATISTIC indices are just artificial JDBC constructs to describe
      * table statistics (you can't create or drop them).
      */
-    public void addIndex(SQLIndex index) throws ArchitectException {
+    public void addIndex(SQLIndex index) throws SQLObjectException {
         createPhysicalName(topLevelNames, index);
 
         println("");

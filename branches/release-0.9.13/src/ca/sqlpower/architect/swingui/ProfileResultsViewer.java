@@ -44,7 +44,6 @@ import javax.swing.table.JTableHeader;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -55,6 +54,7 @@ import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 import ca.sqlpower.architect.swingui.action.SaveProfileAction;
 import ca.sqlpower.architect.swingui.table.ProfileJTable;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.table.TableModelColumnAutofit;
 import ca.sqlpower.swingui.table.TableModelSearchDecorator;

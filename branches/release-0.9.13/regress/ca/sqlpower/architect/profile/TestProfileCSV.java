@@ -25,9 +25,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.output.ProfileCSVFormat;
 import ca.sqlpower.architect.profile.output.ProfileFormat;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestProfileCSV extends TestProfileBase {
 

@@ -5,10 +5,10 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.tree.TreePath;
 
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.Messages;
+import ca.sqlpower.sqlobject.SQLDatabase;
 
 /**
  * The DBCSPropertiesAction determines which database connection in the tree is

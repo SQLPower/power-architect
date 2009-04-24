@@ -24,13 +24,13 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
 import ca.sqlpower.validation.swingui.NotNullValidator;
 import ca.sqlpower.validation.swingui.StatusComponent;
@@ -54,7 +54,7 @@ public class SchemaEditPanel implements ValidatableDataEntryPanel {
     private FormValidationHandler handler;
     private StatusComponent status = new StatusComponent();
     
-    public SchemaEditPanel(ArchitectSwingSession session, Schema schema) throws ArchitectException {
+    public SchemaEditPanel(ArchitectSwingSession session, Schema schema) throws SQLObjectException {
         this.schema = schema;
         
         FormLayout layout = new FormLayout(

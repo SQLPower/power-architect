@@ -64,14 +64,19 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
      * Full releases do not have a suffix.  In that case, the suffix is the empty
      * string (not null).
      */
-    public static final String APP_VERSION_SUFFIX = "alpha";
+    public static final String APP_VERSION_SUFFIX = "rc2";
     
+    /**
+     * The normal readable version number, formatted as Major.Minor.Tiny. 
+     */
+    public static final ArchitectVersion APP_VERSION = new ArchitectVersion(APP_VERSION_MAJOR + "." +
+            APP_VERSION_MINOR + "." + APP_VERSION_TINY);
     /**
      * The full version number, formatted as Major.Minor.Tiny[-Suffix].  Note the square
      * brackets are not part of the version string; they indicate that the hyphen and
      * suffix are omitted when there is no suffix.
      */
-    public static final ArchitectVersion APP_VERSION = new ArchitectVersion(APP_VERSION_MAJOR + "." +
+    public static final ArchitectVersion APP_FULL_VERSION = new ArchitectVersion(APP_VERSION_MAJOR + "." +
                                             APP_VERSION_MINOR + "." + APP_VERSION_TINY +
                                             (APP_VERSION_SUFFIX.length() > 0
                                               ? "-" + APP_VERSION_SUFFIX

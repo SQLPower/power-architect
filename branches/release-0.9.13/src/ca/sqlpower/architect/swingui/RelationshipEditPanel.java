@@ -18,7 +18,11 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Color;
+import java.util.List;
+
 import javax.swing.ButtonGroup;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -27,16 +31,17 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.swingui.ColorCellRenderer;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -63,6 +68,8 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 	private JDialog editDialog;
 
 	private JTextField relationshipName;
+	private JTextField pkLabelTextField;
+	private JTextField fkLabelTextField;
 
 	private ButtonGroup identifyingGroup;
 	private JRadioButton identifyingButton;
@@ -99,21 +106,47 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
     private JRadioButton deleteSetNull;
     private JRadioButton deleteNoAction;
     private JRadioButton deleteSetDefault;
+    
+    private JComboBox relationLineColor;
 
     private ArchitectSession session;
     
+    private Color color;
+
+    private List<Relationship> relationshipLines;
+    
 	public RelationshipEditPanel(ArchitectSwingSession session) {
-        this.session = session;
-        FormLayout layout = new FormLayout("pref, 4dlu, pref:grow, 4dlu, pref, 4dlu, pref:grow");
+	    this.session = session;
+        
+        relationshipLines = session.getPlayPen().getSelectedRelationShips();
+        //Since now can only select one relationship to edit at the same time,
+        //so the number of selected relationships is only 1. 
+        for(Relationship r: relationshipLines) {
+            if(logger.isDebugEnabled()) {
+                logger.debug("This relationship is : " + r); //$NON-NLS-1$
+            }
+            this.color = r.getForegroundColor();
+        }
+        
+        FormLayout layout = new FormLayout("pref, 4dlu, pref:grow, 4dlu, pref, 4dlu, pref:grow"); //$NON-NLS-1$
         layout.setColumnGroups(new int[][] { { 3, 7 } });
         DefaultFormBuilder fb = new DefaultFormBuilder(layout, logger.isDebugEnabled() ? new FormDebugPanel() : new JPanel());
         
-        fb.append("Relationship Name", relationshipName = new JTextField(), 5);
-
+        fb.append(Messages.getString("RelationshipEditPanel.name"), relationshipName = new JTextField(), 5); //$NON-NLS-1$
+        
+        fb.nextLine();
+        fb.append(Messages.getString("RelationshipEditPanel.lineColour"), relationLineColor = new JComboBox(Relationship.SUGGESTED_COLOURS)); //$NON-NLS-1$
+        ColorCellRenderer renderer = new ColorCellRenderer(40, 20);
+        relationLineColor.setRenderer(renderer);
+        
+        fb.nextLine();
+        fb.append(Messages.getString("RelationshipEditPanel.pkLabel"), pkLabelTextField = new JTextField());
+        fb.append(Messages.getString("RelationshipEditPanel.fkLabel"), fkLabelTextField = new JTextField());
+        
 		identifyingGroup = new ButtonGroup();
-		fb.append("Relationship Type", identifyingButton = new JRadioButton("Identifying"), 5);
+		fb.append(Messages.getString("RelationshipEditPanel.type"), identifyingButton = new JRadioButton(Messages.getString("RelationshipEditPanel.identifying")), 5); //$NON-NLS-1$ //$NON-NLS-2$
 		identifyingGroup.add(identifyingButton);
-		fb.append("", nonIdentifyingButton = new JRadioButton("Non-Identifying"), 5);
+		fb.append("", nonIdentifyingButton = new JRadioButton(Messages.getString("RelationshipEditPanel.nonIdentifying")), 5); //$NON-NLS-1$ //$NON-NLS-2$
 		identifyingGroup.add(nonIdentifyingButton);
 
 		fb.nextLine();
@@ -122,36 +155,36 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         pkTypeGroup = new ButtonGroup();
         fkTypeGroup = new ButtonGroup();
         fb.nextLine();
-        fb.append("Cardinality", pkTableName = new JLabel("PK Table: Unknown"));
-        fb.append("", fkTableName = new JLabel("FK Table: Unknown"));
+        fb.append(Messages.getString("RelationshipEditPanel.cardinality"), pkTableName = new JLabel("PK Table: Unknown")); //$NON-NLS-1$ //$NON-NLS-2$
+        fb.append("", fkTableName = new JLabel("FK Table: Unknown")); //$NON-NLS-1$ //$NON-NLS-2$
 
-        fb.append("", pkTypeZeroToMany = new JRadioButton("Zero or More"));
+        fb.append("", pkTypeZeroToMany = new JRadioButton(Messages.getString("RelationshipEditPanel.zeroOrMore"))); //$NON-NLS-1$ //$NON-NLS-2$
 		pkTypeGroup.add(pkTypeZeroToMany);
-		fb.append("", fkTypeZeroToMany = new JRadioButton("Zero or More"));
+		fb.append("", fkTypeZeroToMany = new JRadioButton(Messages.getString("RelationshipEditPanel.zeroOrMore"))); //$NON-NLS-1$ //$NON-NLS-2$
 		fkTypeGroup.add(fkTypeZeroToMany);
 
-		fb.append("", pkTypeOneToMany = new JRadioButton("One or More"));
+		fb.append("", pkTypeOneToMany = new JRadioButton(Messages.getString("RelationshipEditPanel.oneOrMore"))); //$NON-NLS-1$ //$NON-NLS-2$
 		pkTypeGroup.add(pkTypeOneToMany);
-		fb.append("", fkTypeOneToMany = new JRadioButton("One or More"));
+		fb.append("", fkTypeOneToMany = new JRadioButton(Messages.getString("RelationshipEditPanel.oneOrMore"))); //$NON-NLS-1$ //$NON-NLS-2$
 		fkTypeGroup.add(fkTypeOneToMany);
 
-		fb.append("", pkTypeZeroOne = new JRadioButton("Zero or One"));
+		fb.append("", pkTypeZeroOne = new JRadioButton(Messages.getString("RelationshipEditPanel.zeroOrOne"))); //$NON-NLS-1$ //$NON-NLS-2$
 		pkTypeGroup.add(pkTypeZeroOne);
-		fb.append("", fkTypeZeroOne = new JRadioButton("Zero or One"));
+		fb.append("", fkTypeZeroOne = new JRadioButton(Messages.getString("RelationshipEditPanel.zeroOrOne"))); //$NON-NLS-1$ //$NON-NLS-2$
 		fkTypeGroup.add(fkTypeZeroOne);
 
-		fb.append("", pkTypeOne = new JRadioButton("Exactly One"));
+		fb.append("", pkTypeOne = new JRadioButton(Messages.getString("RelationshipEditPanel.exactlyOne"))); //$NON-NLS-1$ //$NON-NLS-2$
 		pkTypeGroup.add(pkTypeOne);
 
 		fb.nextLine();
         fb.appendUnrelatedComponentsGapRow();
         fb.nextLine();
         deferrabilityGroup = new ButtonGroup();
-        fb.append("Deferrability", notDeferrable = new JRadioButton("Not Deferrable"), 5);
+        fb.append(Messages.getString("RelationshipEditPanel.deferrability"), notDeferrable = new JRadioButton(Messages.getString("RelationshipEditPanel.notDeferrable")), 5); //$NON-NLS-1$ //$NON-NLS-2$
         deferrabilityGroup.add(notDeferrable);
-        fb.append("", initiallyDeferred = new JRadioButton("Deferrable, Initially Deferred"), 5);
+        fb.append("", initiallyDeferred = new JRadioButton(Messages.getString("RelationshipEditPanel.initiallyDeferred")), 5); //$NON-NLS-1$ //$NON-NLS-2$
         deferrabilityGroup.add(initiallyDeferred);
-        fb.append("", initiallyImmediate = new JRadioButton("Deferrable, Initially Immediate"), 5);
+        fb.append("", initiallyImmediate = new JRadioButton(Messages.getString("RelationshipEditPanel.initiallyImmediate")), 5); //$NON-NLS-1$ //$NON-NLS-2$
         deferrabilityGroup.add(initiallyImmediate);
 
         fb.nextLine();
@@ -160,31 +193,32 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         updateRuleGroup = new ButtonGroup();
         deleteRuleGroup = new ButtonGroup();
         fb.nextLine();
-        fb.append("Update Rule", updateCascade = new JRadioButton("Cascade"));
+        fb.append(Messages.getString("RelationshipEditPanel.updateRule"), updateCascade = new JRadioButton(Messages.getString("RelationshipEditPanel.cascade"))); //$NON-NLS-1$ //$NON-NLS-2$
         updateRuleGroup.add(updateCascade);
-        fb.append("Delete Rule", deleteCascade = new JRadioButton("Cascade"));
+        fb.append(Messages.getString("RelationshipEditPanel.deleteRule"), deleteCascade = new JRadioButton(Messages.getString("RelationshipEditPanel.cascade"))); //$NON-NLS-1$ //$NON-NLS-2$
         deleteRuleGroup.add(deleteCascade);
         
-        fb.append("", updateRestrict = new JRadioButton("Restrict"));
+        fb.append("", updateRestrict = new JRadioButton(Messages.getString("RelationshipEditPanel.restrict"))); //$NON-NLS-1$ //$NON-NLS-2$
         updateRuleGroup.add(updateRestrict);
-        fb.append("", deleteRestrict = new JRadioButton("Restrict"));
+        fb.append("", deleteRestrict = new JRadioButton(Messages.getString("RelationshipEditPanel.restrict"))); //$NON-NLS-1$ //$NON-NLS-2$
         deleteRuleGroup.add(deleteRestrict);
 
-        fb.append("", updateNoAction = new JRadioButton("No Action"));
+        fb.append("", updateNoAction = new JRadioButton(Messages.getString("RelationshipEditPanel.noAction"))); //$NON-NLS-1$ //$NON-NLS-2$
         updateRuleGroup.add(updateNoAction);
-        fb.append("", deleteNoAction = new JRadioButton("No Action"));
+        fb.append("", deleteNoAction = new JRadioButton(Messages.getString("RelationshipEditPanel.noAction"))); //$NON-NLS-1$ //$NON-NLS-2$
         deleteRuleGroup.add(deleteNoAction);
 
-        fb.append("", updateSetNull = new JRadioButton("Set Null"));
+        fb.append("", updateSetNull = new JRadioButton(Messages.getString("RelationshipEditPanel.setNull"))); //$NON-NLS-1$ //$NON-NLS-2$
         updateRuleGroup.add(updateSetNull);
-        fb.append("", deleteSetNull = new JRadioButton("Set Null"));
+        fb.append("", deleteSetNull = new JRadioButton(Messages.getString("RelationshipEditPanel.setNull"))); //$NON-NLS-1$ //$NON-NLS-2$
         deleteRuleGroup.add(deleteSetNull);
 
-        fb.append("", updateSetDefault = new JRadioButton("Set Default"));
+        fb.append("", updateSetDefault = new JRadioButton(Messages.getString("RelationshipEditPanel.setDefault"))); //$NON-NLS-1$ //$NON-NLS-2$
         updateRuleGroup.add(updateSetDefault);
-        fb.append("", deleteSetDefault = new JRadioButton("Set Default"));
+        fb.append("", deleteSetDefault = new JRadioButton(Messages.getString("RelationshipEditPanel.setDefault"))); //$NON-NLS-1$ //$NON-NLS-2$
         deleteRuleGroup.add(deleteSetDefault);
-
+        
+        //TODO  Doesn't work!
         relationshipName.selectAll();
         
         fb.setDefaultDialogBorder();
@@ -195,8 +229,11 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 	public void setRelationship(SQLRelationship r) {
 		this.relationship = r;
 		relationshipName.setText(r.getName());
-		pkTableName.setText("PK Table: " + relationship.getPkTable().getName());
-		fkTableName.setText("FK Table: " + relationship.getFkTable().getName());
+		pkLabelTextField.setText(r.getTextForParentLabel());
+		fkLabelTextField.setText(r.getTextForChildLabel());
+        relationLineColor.setSelectedItem(color);
+		pkTableName.setText(Messages.getString("RelationshipEditPanel.pkTable", relationship.getPkTable().getName())); //$NON-NLS-1$
+		fkTableName.setText(Messages.getString("RelationshipEditPanel.fkTable", relationship.getFkTable().getName())); //$NON-NLS-1$
 		if ( r.isIdentifying()){
 			identifyingButton.setSelected(true);
 		} else {
@@ -256,10 +293,10 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 		relationshipName.selectAll();
 		
 		try {
-            ArchitectUtils.listenToHierarchy(this, session.getRootObject());
-        } catch (ArchitectException e) {
-            logger.error("Fail to add sql object listener to the edit panel.", e);
-            throw new ArchitectRuntimeException(e);
+            SQLObjectUtils.listenToHierarchy(this, session.getRootObject());
+        } catch (SQLObjectException e) {
+            logger.error("Fail to add sql object listener to the edit panel.", e); //$NON-NLS-1$
+            throw new SQLObjectRuntimeException(e);
         }
 	}
 
@@ -267,18 +304,27 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 	
 	public boolean applyChanges() {
 	    try {
-	        ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-	    } catch (ArchitectException e) {
-	        throw new ArchitectRuntimeException(e);
+	        SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
+	    } catch (SQLObjectException e) {
+	        throw new SQLObjectRuntimeException(e);
 	    }
-		relationship.startCompoundEdit("Modify Relationship Properties");
+		relationship.startCompoundEdit(Messages.getString("RelationshipEditPanel.modifyRelationshipProperties")); //$NON-NLS-1$
 		try {
 			relationship.setName(relationshipName.getText());
+			// set the parent label text of relationship lines
+			relationship.setTextForParentLabel(pkLabelTextField.getText());
+			// set the child label text of relationship lines
+			relationship.setTextForChildLabel(fkLabelTextField.getText());
 			try {
 				relationship.setIdentifying(identifyingButton.isSelected());
-			} catch (ArchitectException ex) {
-				logger.warn("Call to setIdentifying failed. Continuing with other properties.", ex);
+			} catch (SQLObjectException ex) {
+				logger.warn("Call to setIdentifying failed. Continuing with other properties.", ex); //$NON-NLS-1$
 			}
+			
+			for(Relationship r: relationshipLines) {
+			    // set the color of relationship lines
+                r.setForegroundColor((Color)relationLineColor.getSelectedItem());
+            }
 			
 			if (pkTypeZeroOne.isSelected()) {
 				relationship.setPkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE);
@@ -329,18 +375,18 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
             } else if (deleteSetNull.isSelected()) {
                 relationship.setDeleteRule(UpdateDeleteRule.SET_NULL);
             }
-
+            
 		} finally {
-			relationship.endCompoundEdit("Modify Relationship Properties");
+			relationship.endCompoundEdit(Messages.getString("RelationshipEditPanel.modifyRelationshipProperties")); //$NON-NLS-1$
 		}
 		return true;
 	}
 
 	public void discardChanges() {
 	    try {
-            ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+            SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
 	}
 
@@ -361,19 +407,19 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
      * playpen. If yes, exit the editing dialog window.
      */
     public void dbChildrenRemoved(SQLObjectEvent e) {
-        logger.debug("SQLObject children got removed: "+e);
+        logger.debug("SQLObject children got removed: "+e); //$NON-NLS-1$
         SQLObject[] c = e.getChildren();
 
         for (SQLObject obj : c) {
             if (relationship.equals(obj)) {
                 try {
-                    ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+                    SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
                     if (editDialog != null) {
                         editDialog.dispose();
                     }
                     break;
-                } catch (ArchitectException ex) {
-                    throw new ArchitectRuntimeException(ex);
+                } catch (SQLObjectException ex) {
+                    throw new SQLObjectRuntimeException(ex);
                 }
             }
         }
@@ -383,10 +429,6 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         
     }
 
-    public void dbStructureChanged(SQLObjectEvent e) {
-        
-    }
-    
     public void setEditDialog(JDialog editDialog) {
         this.editDialog = editDialog;
     }

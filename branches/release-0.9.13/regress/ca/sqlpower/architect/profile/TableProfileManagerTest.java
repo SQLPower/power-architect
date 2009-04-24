@@ -25,14 +25,14 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TableProfileManagerTest extends TestProfileBase {
 
     // see setUp in superclass. it's pretty fancy.
     
-    public void testGetSpecificProfileResult() throws SQLException, ArchitectException{
+    public void testGetSpecificProfileResult() throws SQLException, SQLObjectException{
         int oldResultCount = pm.getResults(t1).size();
         pm.createProfile(t1);
         assertEquals(oldResultCount + 1, pm.getResults(t1).size());

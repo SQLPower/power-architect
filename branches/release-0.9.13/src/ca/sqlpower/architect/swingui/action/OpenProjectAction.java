@@ -36,12 +36,12 @@ import javax.swing.ProgressMonitorInputStream;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
-import ca.sqlpower.architect.swingui.RecentMenu;
+import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 
@@ -66,7 +66,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
             File f = chooser.getSelectedFile();
             try {
                 OpenProjectAction.openAsynchronously(session.getContext().createSession(false), f, session);
-            } catch (ArchitectException ex) {
+            } catch (SQLObjectException ex) {
                 SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
                         Messages.getString("OpenProjectAction.failedToOpenProjectFile"), ex); //$NON-NLS-1$
             }
@@ -138,13 +138,13 @@ public class OpenProjectAction extends AbstractArchitectAction {
          *            openingSession.isNew() returns true, (i.e. it's an new,
          *            empty, and unmodified project) then openingSession.close()
          *            will be called once the project is finished loading.
-         * @throws ArchitectException
+         * @throws SQLObjectException
          *             when the project creation fails.
          * @throws FileNotFoundException
          *             if file doesn't exist
          */
         public LoadFileWorker(File file, ArchitectSwingSession newSession, ArchitectSwingSession openingSession)
-                throws ArchitectException, FileNotFoundException {
+                throws SQLObjectException, FileNotFoundException {
             // The super constructor registers the LoadFileWorker with the
             // session.
             super(newSession);
@@ -171,7 +171,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
         }
 
         @Override
-        public void cleanup() throws ArchitectException {
+        public void cleanup() throws SQLObjectException {
             if (getDoStuffException() != null) {
                 Throwable cause = getDoStuffException().getCause();
                 // This if clause is to prevent an error from being thrown if
@@ -195,7 +195,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
             } else {
                 recent.putRecentFileName(file.getAbsolutePath());
                 session.initGUI(openingSession);
-                ((SQLObject) session.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
+                ((DBTreeModel) session.getSourceDatabases().getModel()).refreshTreeStructure();
             }
 
             try {

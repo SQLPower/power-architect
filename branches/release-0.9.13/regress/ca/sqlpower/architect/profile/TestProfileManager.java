@@ -22,8 +22,8 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestProfileManager extends TestProfileBase {
 

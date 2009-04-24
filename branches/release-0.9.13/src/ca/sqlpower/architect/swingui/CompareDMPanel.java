@@ -57,12 +57,6 @@ import javax.swing.event.ListDataListener;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.diff.CompareSQL;
@@ -73,11 +67,16 @@ import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.ConnectionComboBoxModel;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
-import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.validation.Status;
 import ca.sqlpower.validation.ValidateResult;
 import ca.sqlpower.validation.swingui.StatusComponent;
@@ -371,7 +370,7 @@ public class CompareDMPanel extends JPanel {
 					started = true;
 					db.populate();
 
-				} catch (ArchitectException e) {
+				} catch (SQLObjectException e) {
 					logger.debug(
 						"Unexpected architect exception in ConnectionListener",	e); //$NON-NLS-1$
                     ASUtils.showExceptionDialogNoReport(CompareDMPanel.this,
@@ -392,7 +391,7 @@ public class CompareDMPanel extends JPanel {
 			 * </ul>
 			 */
 			@Override
-			public void cleanup() throws ArchitectException {
+			public void cleanup() throws SQLObjectException {
 			    setCleanupExceptionMessage(Messages.getString("CompareDMPanel.couldNotPopulateCatalogDropdown")); //$NON-NLS-1$
 
 				catalogDropdown.removeAllItems();
@@ -463,10 +462,10 @@ public class CompareDMPanel extends JPanel {
 						 * Populates the schema dropdown box from the schema
 						 * parent that doStuff() populated.
 						 *
-						 * @throws ArchitectException
+						 * @throws SQLObjectException
 						 */
 						@Override
-						public void cleanup() throws ArchitectException {
+						public void cleanup() throws SQLObjectException {
 							setCleanupExceptionMessage(Messages.getString("CompareDMPanel.couldNotPopulateSchemaDropdown")); //$NON-NLS-1$
 
 							for (SQLObject item : (List<SQLObject>) finalSchemaParent
@@ -575,7 +574,7 @@ public class CompareDMPanel extends JPanel {
 			}
 
 			@Override
-			public void doStuff() throws ArchitectException {
+			public void doStuff() throws SQLObjectException {
 				logger.debug("SCHEMA POPULATOR IS STARTED..."); //$NON-NLS-1$
 				ProgressWatcher.watchProgress(progressBar, this);
 				started = true;
@@ -590,10 +589,10 @@ public class CompareDMPanel extends JPanel {
 			 * GUI. If the catalog doesn't contain schemas, cleanup just checks
 			 * if the comparison action is startable.
 			 *
-			 * @throws ArchitectException
+			 * @throws SQLObjectException
 			 */
 			@Override
-			public void cleanup() throws ArchitectException {
+			public void cleanup() throws SQLObjectException {
 			    logger.debug("SCHEMA POPULATOR IS ABOUT TO CLEAN UP..."); //$NON-NLS-1$
 				schemaLabel.setText(""); //$NON-NLS-1$
 				SQLCatalog populatedCat = (SQLCatalog) catalogDropdown
@@ -678,7 +677,7 @@ public class CompareDMPanel extends JPanel {
 		 * which changes when the user saves their project under a different filename.
 		 */
 		void updatePlayPenNameLabel() {
-		    String newPlaypenName = Messages.getString("CompareDMPanel.currentProject", session.getName());
+		    String newPlaypenName = Messages.getString("CompareDMPanel.currentProject", session.getName()); //$NON-NLS-1$
             playPenName.setText(newPlaypenName);  //$NON-NLS-1$
             logger.debug("Updated playpen name to " + newPlaypenName);  //$NON-NLS-1$
 		}
@@ -825,11 +824,11 @@ public class CompareDMPanel extends JPanel {
 		 * Figures out which SQLObject holds the tables we want to compare, and
 		 * returns it.
 		 *
-		 * @throws ArchitectException
+		 * @throws SQLObjectException
 		 * @throws IOException
 		 * @throws IOException
 		 */
-		public SQLObject getObjectToCompare() throws ArchitectException,
+		public SQLObject getObjectToCompare() throws SQLObjectException,
 				IOException {
 			SQLObject o;
 			if (playPenRadio.isSelected()) {
@@ -874,12 +873,16 @@ public class CompareDMPanel extends JPanel {
 		 */
 		private ValidateResult getStartabilityStatus() {
 		    ValidateResult result;
-		    String sourceOrTarget = isSource() ? "Older" : "Newer";
+		    String sourceOrTarget = isSource() ?
+		            Messages.getString("CompareDMPanel.older") : //$NON-NLS-1$
+		            Messages.getString("CompareDMPanel.newer"); //$NON-NLS-1$
 			if (playPenRadio.isSelected()) {
 				result = null;
 			} else if (physicalRadio.isSelected()) {
 				if (databaseDropdown.getSelectedItem() == null) {
-				    result = ValidateResult.createValidateResult(Status.FAIL, sourceOrTarget + " physical database selection incomplete");
+				    result = ValidateResult.createValidateResult(
+				            Status.FAIL,
+				            Messages.getString("CompareDMPanel.incompleteSelection", sourceOrTarget)); //$NON-NLS-1$
 				} else {
 				    result = null;
 				}
@@ -887,7 +890,9 @@ public class CompareDMPanel extends JPanel {
 			    if (new File(loadFilePath.getText()).canRead()) {
 			        result = null;
 			    } else {
-			        result = ValidateResult.createValidateResult(Status.FAIL, sourceOrTarget + " project file not readable");
+			        result = ValidateResult.createValidateResult(
+			                Status.FAIL,
+			                Messages.getString("CompareDMPanel.projectFileNotReadable", sourceOrTarget)); //$NON-NLS-1$
 			    }
 			} else {
 				throw new IllegalStateException(
@@ -972,7 +977,7 @@ public class CompareDMPanel extends JPanel {
 		logger.debug("isStartable is checking..."); //$NON-NLS-1$
 		ValidateResult result = null;
 		if (sqlButton.isSelected() && sqlTypeDropdown.getSelectedItem() == null) {
-		    result = ValidateResult.createValidateResult(Status.FAIL, "Please choose an SQL dialect");
+		    result = ValidateResult.createValidateResult(Status.FAIL, Messages.getString("CompareDMPanel.chooseSQLDialect")); //$NON-NLS-1$
 		}
 		
 		if (result == null) {
@@ -1141,7 +1146,7 @@ public class CompareDMPanel extends JPanel {
 		setPreferredSize(new Dimension(800,600));
 		try {
 			restoreSettingsFromProject();
-		} catch (ArchitectException e) {
+		} catch (SQLObjectException e) {
 			logger.warn("Failed to save user CompareDM preferences!", e); //$NON-NLS-1$
 		}
 	}
@@ -1233,7 +1238,7 @@ public class CompareDMPanel extends JPanel {
 						targetTables);
 				targetComp = new CompareSQL(targetTables,
 						sourceTables);
-			} catch (ArchitectException ex) {
+			} catch (SQLObjectException ex) {
 			    ASUtils.showExceptionDialog(session,
 			            Messages.getString("CompareDMPanel.couldNotBeginDiffProcess"), ex); //$NON-NLS-1$
 			    return;
@@ -1245,17 +1250,39 @@ public class CompareDMPanel extends JPanel {
 	             reenableGUIComponents();
 			}
 			
-			SPSwingWorker compareWorker = new SPSwingWorker(session) {
+			MonitorableWorker compareWorker = new MonitorableWorker(session) {
 
 				private List<DiffChunk<SQLObject>> diff;
 				private List<DiffChunk<SQLObject>> diff1;
 
-				public void doStuff() throws ArchitectException {
+				private String message;
+				private boolean started = false;
+				private boolean finished = false;
+				Integer jobSize = null;
+				
+				public void doStuff() throws SQLObjectException {
+				    started = true;
+	                if (source.physicalRadio.isSelected()) {
+	                    message = "Refreshing older database";
+	                    logger.debug(message);
+	                    source.getDatabase().refresh();
+	                }
+	                if (target.physicalRadio.isSelected()) {
+	                    message = "Refreshing newer database";
+                        logger.debug(message);
+	                    target.getDatabase().refresh();
+	                }
+	                jobSize = sourceComp.getJobSize() + targetComp.getJobSize();
+	                logger.debug("Generating TableDiffs for source");
 					diff = sourceComp.generateTableDiffs();
+					logger.debug("Generating TableDiffs for target");
 					diff1 = targetComp.generateTableDiffs();
+					message = "Finished";
+					logger.debug("Finished Compare");
 				}
 
 				public void cleanup() {
+				    finished = true;
 				    reenableGUIComponents();
                     if (getDoStuffException() != null) {
                         Throwable exc = getDoStuffException();
@@ -1270,12 +1297,38 @@ public class CompareDMPanel extends JPanel {
                     logger.debug("cleanup finished"); //$NON-NLS-1$
 				}
 
+                public Integer getJobSize() {
+                    return jobSize;
+                }
+
+                public String getMessage() {
+                    if (sourceComp.hasStarted() && !sourceComp.isFinished()) {
+                        return sourceComp.getMessage();
+                    } else if (targetComp.hasStarted() && !targetComp.isFinished()) {
+                        return targetComp.getMessage();
+                    } else {
+                        return message;
+                    }
+                }
+
+                public int getProgress() {
+                    return sourceComp.getProgress() + targetComp.getProgress();
+                }
+
+                public boolean hasStarted() {
+                    return started;
+                }
+
+                public boolean isFinished() {
+                    return finished;
+                }
+
 			};
 
-			new Thread(compareWorker).start();
-			ProgressWatcher pw = new ProgressWatcher(progressBar, sourceComp, statusLabel);
+			ProgressWatcher pw = new ProgressWatcher(progressBar, compareWorker, statusLabel);
 			pw.setHideLabelWhenFinished(true);
 			pw.start();
+			new Thread(compareWorker).start();
 		}
 		
 		private void reenableGUIComponents() {
@@ -1349,7 +1402,7 @@ public class CompareDMPanel extends JPanel {
 			setting.setDatastoreType(CompareDMSettings.DatastoreType.PROJECT);
 	}
 
-	private void restoreSettingsFromProject() throws ArchitectException {
+	private void restoreSettingsFromProject() throws SQLObjectException {
 		CompareDMSettings s = session.getCompareDMSettings();
 
 		restoreSourceOrTargetSettingsFromProject(source,s.getSourceSettings());
@@ -1367,7 +1420,7 @@ public class CompareDMPanel extends JPanel {
 
 
 	private void restoreSourceOrTargetSettingsFromProject(SourceOrTargetStuff stuff,
-			SourceOrTargetSettings set) throws ArchitectException {
+			SourceOrTargetSettings set) throws SQLObjectException {
 
 		DatastoreType rbs = set.getDatastoreType();
 		if ( rbs == CompareDMSettings.DatastoreType.PROJECT )

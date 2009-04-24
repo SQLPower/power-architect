@@ -37,6 +37,14 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.util.DefaultUserPrompterFactory;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
 /**
  * Basic implementation of ArchitectSession, for testing
@@ -44,6 +52,8 @@ import ca.sqlpower.architect.profile.ProfileManager;
 public class TestingArchitectSession implements ArchitectSession {
 
     private final ArchitectSessionContext context;
+    
+    private final DefaultUserPrompterFactory defaultUPF = new DefaultUserPrompterFactory();
 
     /**
      * Creates a new testing session within the given context.
@@ -52,13 +62,6 @@ public class TestingArchitectSession implements ArchitectSession {
         this.context = context;
     }
     
-    /**
-     * Returns an "always ok" prompter
-     */
-    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-        return new AlwaysOKUserPrompter();
-    }
-
     public ArchitectSessionContext getContext() {
         return context;
     }
@@ -108,12 +111,26 @@ public class TestingArchitectSession implements ArchitectSession {
 
     }
 
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
         // TODO Auto-generated method stub
 
     }
 
     public OLAPRootObject getOLAPRootObject() {
+        return null;
+    }
+
+    /**
+     * Returns a default prompter
+     */
+    public UserPrompter createUserPrompter(String question, UserPromptType responseType, UserPromptOptions optionType, UserPromptResponse defaultResponseType,
+            Object defaultResponse, String ... buttonNames) {
+        return defaultUPF.createUserPrompter(question, responseType, optionType,
+                defaultResponseType, defaultResponse, buttonNames);
+    }
+
+    public SQLDatabase getDatabase(SPDataSource ds) {
+        // TODO Auto-generated method stub
         return null;
     }
 }

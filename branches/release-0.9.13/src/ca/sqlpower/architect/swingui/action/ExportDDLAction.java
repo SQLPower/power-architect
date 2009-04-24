@@ -39,8 +39,6 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.ConflictResolver;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLWarning;
@@ -50,6 +48,8 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
 import ca.sqlpower.architect.swingui.SQLScriptDialog;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.MonitorableWorker;
@@ -65,7 +65,9 @@ public class ExportDDLAction extends AbstractArchitectAction {
 
 	public ExportDDLAction(final ArchitectSwingSession session) {
 		super(session, Messages.getString("ExportDDLAction.name"), Messages.getString("ExportDDLAction.description"), "fwdSQL"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	
+	}
+
+    public void actionPerformed(ActionEvent e) {
         final DDLExportPanel ddlPanel = new DDLExportPanel(session);
 
         Callable<Boolean> okCall, cancelCall;
@@ -209,10 +211,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                 okCall, cancelCall);
 
         d.pack();
-        d.setLocationRelativeTo(frame);		
-	}
-
-    public void actionPerformed(ActionEvent e) {
+        d.setLocationRelativeTo(frame);
         d.setVisible(true);
     }
 
@@ -253,12 +252,12 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		 * @param parentDialog The JDialog we're doing this in.
 		 * @param target The target database (where to search for the conflicts).
 		 * @param ddlg The DDL Generator that we're using.
-		 * @throws ArchitectException If there is a problem connecting to the target database
+		 * @throws SQLObjectException If there is a problem connecting to the target database
 		 * @throws SQLException If the conflict resolver chokes
 		 */
 		public ConflictFinderProcess(JDialog parentDialog, SQLDatabase target,
 				DDLGenerator ddlg, List statements, ArchitectSwingSession session)
-			throws ArchitectException {
+			throws SQLObjectException {
 			super(session);
 			this.parentDialog = parentDialog;
 			this.target = target;

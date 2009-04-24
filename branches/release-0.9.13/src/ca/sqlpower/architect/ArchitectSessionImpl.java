@@ -25,6 +25,16 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.util.DefaultUserPrompterFactory;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompterFactory;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
 /**
  * The ArchitectSession class represents a single user's session with
@@ -50,7 +60,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
      * for the GUI will replace the default factory with one that actually
      * prompts the user.
      */
-    private UserPrompterFactory userPrompterFactory = new AlwaysOKUserPrompterFactory();
+    private UserPrompterFactory userPrompterFactory = new DefaultUserPrompterFactory();
     
     private DDLGenerator ddlGenerator;
     
@@ -61,7 +71,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
     private CoreProject project;
 
 	public ArchitectSessionImpl(final ArchitectSessionContext context,
-	        String name) throws ArchitectException {
+	        String name) throws SQLObjectException {
 	    this.context = context;
 	    this.name = name;
 	    this.rootObject = new SQLObjectRoot();
@@ -74,7 +84,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
         try {
             ddlGenerator = new GenericDDLGenerator();
         } catch (SQLException e) {
-            throw new ArchitectException("SQL Error in ddlGenerator",e);
+            throw new SQLObjectException("SQL Error in ddlGenerator",e);
         }
 	}
 
@@ -121,7 +131,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
     public ArchitectSessionContext getContext() {
         return context;
     }
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
         SQLObject root = getRootObject();
         while (root.getChildCount() > 0) {
             root.removeChild(root.getChildCount() - 1);
@@ -143,8 +153,11 @@ public class ArchitectSessionImpl implements ArchitectSession {
         profileManager = manager;
     }
     
-    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-        return userPrompterFactory.createUserPrompter(question, okText, notOkText, cancelText);
+    public UserPrompter createUserPrompter(String question, UserPromptType responseType,
+            UserPromptOptions optionType, UserPromptResponse defaultResponseType,
+            Object defaultResponse, String ... buttonNames) {
+        return userPrompterFactory.createUserPrompter(question, responseType,
+                optionType, defaultResponseType, defaultResponse, buttonNames);
     }
 
     /**
@@ -157,6 +170,24 @@ public class ArchitectSessionImpl implements ArchitectSession {
             throw new NullPointerException("Null user prompter factory is not allowed!");
         }
         userPrompterFactory = upFactory; 
+    }
+
+    public SQLDatabase getDatabase(SPDataSource ds) {
+        try {
+            for (SQLObject obj : (List<SQLObject>) rootObject.getChildren()) {
+                if (((SQLDatabase) obj).getDataSource().equals(ds)) {
+                    return (SQLDatabase) obj;
+                }
+            }
+            if (db.getDataSource().equals(ds)) {
+                return db;
+            }
+            SQLDatabase db = new SQLDatabase(ds);
+            rootObject.addChild(db);
+            return db;
+        } catch (SQLObjectException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

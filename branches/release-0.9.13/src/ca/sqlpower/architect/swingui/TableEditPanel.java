@@ -32,13 +32,13 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.ColorCellRenderer;
 import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.DataEntryPanel;
@@ -52,7 +52,8 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
      */
     private JDialog editDialog;
 	protected SQLTable table;
-	JTextField name;
+	JTextField logicalName;
+	JTextField physicalName;
 	JTextField pkName;
 	JTextArea remarks;
 	private JComboBox bgColor;
@@ -67,8 +68,10 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		super(new FormLayout());
 		this.session = session;
 		this.tp = session.getPlayPen().findTablePane(t);
-		add(new JLabel(Messages.getString("TableEditPanel.tableNameLabel"))); //$NON-NLS-1$
-		add(name = new JTextField("", 30)); //$NON-NLS-1$
+        add(new JLabel(Messages.getString("TableEditPanel.tableLogicalNameLabel"))); //$NON-NLS-1$
+        add(logicalName = new JTextField("", 30)); //$NON-NLS-1$
+        add(new JLabel(Messages.getString("TableEditPanel.tablePhysicalNameLabel"))); //$NON-NLS-1$
+        add(physicalName = new JTextField("", 30)); //$NON-NLS-1$
 		add(new JLabel(Messages.getString("TableEditPanel.primaryKeyNameLabel"))); //$NON-NLS-1$
 		add(pkName = new JTextField("", 30)); //$NON-NLS-1$
 		add(new JLabel(Messages.getString("TableEditPanel.remarksLabel"))); //$NON-NLS-1$
@@ -99,7 +102,8 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 
 	private void editTable(SQLTable t) {
 		table = t;
-		name.setText(t.getName());
+		logicalName.setText(t.getName());
+		physicalName.setText(t.getPhysicalName());
         try {
             if (t.getPrimaryKeyIndex() == null) {
                 pkName.setEnabled(false);
@@ -107,12 +111,12 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                 pkName.setText(t.getPrimaryKeyName());
                 pkName.setEnabled(true);
             }
-            ArchitectUtils.listenToHierarchy(this, session.getRootObject());
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+            SQLObjectUtils.listenToHierarchy(this, session.getRootObject());
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
 		remarks.setText(t.getRemarks());
-		name.selectAll();
+		logicalName.selectAll();
 		
 		if (tp != null) {
     		bgColor.setSelectedItem(tp.getBackgroundColor());
@@ -125,16 +129,16 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
 	    try {
-            ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+            SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
 		table.startCompoundEdit(Messages.getString("TableEditPanel.compoundEditName"));		 //$NON-NLS-1$
         try {	
 		    StringBuffer warnings = new StringBuffer();
             //We need to check if the table name and/or primary key name is empty or not
             //if they are, we need to warn the user since it will mess up the SQLScripts we create
-            if (name.getText().trim().length() == 0) {
+            if (logicalName.getText().trim().length() == 0) {
                 warnings.append(Messages.getString("TableEditPanel.blankTableNameWarning")); //$NON-NLS-1$
                 
             }
@@ -156,7 +160,8 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                     table.getPrimaryKeyIndex().setName(pkName.getText());
                 }
                 
-                table.setName(name.getText());
+                table.setName(logicalName.getText());
+                table.setPhysicalName(physicalName.getText());
                 table.setRemarks(remarks.getText());   
                 
                 if (tp != null) {
@@ -179,8 +184,8 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                 //this is done so we can go back to this dialog after the error message
                 return false;
             }            
-		} catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+		} catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         } finally {
 			table.endCompoundEdit("Ending new compound edit event in table edit panel"); //$NON-NLS-1$
 		}
@@ -188,32 +193,64 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 
 	public void discardChanges() {
 	    try {
-            ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+            SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
 	}
 	
 	public JPanel getPanel() {
 		return this;
 	}
-
+	
+	 /**
+     * For testing only
+     * @return the String currently in the logicalName textField
+     */
     public String getNameText() {
-        return name.getText();
+        return logicalName.getText();
     }
-
+    
+    /**
+     * For testing only
+     * @param newName new logical name for the table
+     */
     public void setNameText(String newName) {
-        name.setText(newName);
+        logicalName.setText(newName);
     }
-
+    
+    /**
+     * For testing only
+     * @return the String currently in the pkName textField
+     */
     public String getPkNameText() {
         return pkName.getText();
     }
-
+    
+    /**
+     * For testing only
+     * @param newPKName new primaryKeyName for the table
+     */
     public void setPkNameText(String newPkName) {
         pkName.setText(newPkName);
     }
-
+    
+    /**
+     * For testing only
+     * @return the String currently in the physicalName textField
+     */
+    public String getPhysicalNameTest() {
+        return physicalName.getText();
+    }
+    
+    /**
+     * For testing only
+     * @param newPhysicalName new physical name for the table
+     */
+    public void setPhysicalNameText(String newPhysicalName) {
+        physicalName.setText(newPhysicalName);
+    }
+    
     public boolean hasUnsavedChanges() {
         // TODO return whether this panel has been changed
         return true;
@@ -234,23 +271,19 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
         for (SQLObject obj : c) {
             try {
                 if (table.equals(obj)) {
-                    ArchitectUtils.unlistenToHierarchy(this, session.getRootObject());
+                    SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
                     if (editDialog != null) {
                         editDialog.dispose();
                     }
                     break;
                 }
-            } catch (ArchitectException ex) {
-                throw new ArchitectRuntimeException(ex);
+            } catch (SQLObjectException ex) {
+                throw new SQLObjectRuntimeException(ex);
             }
         }
     }
 
     public void dbObjectChanged(SQLObjectEvent e) {
-
-    }
-
-    public void dbStructureChanged(SQLObjectEvent e) {
 
     }
 

@@ -27,6 +27,7 @@ import java.util.prefs.Preferences;
 
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
 
 /**
  * The ArchitectSessionContext interface specifies a set of
@@ -46,9 +47,9 @@ public interface ArchitectSessionContext {
     
     /**
      * Creates a new session within this parent context. 
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
-    public abstract ArchitectSession createSession() throws ArchitectException;
+    public abstract ArchitectSession createSession() throws SQLObjectException;
     
     /**
      * Creates a new session by loading the Architect XML project description
@@ -57,7 +58,7 @@ public interface ArchitectSessionContext {
      * @param in The input stream to read the XML data from
      * @return The new session
      */
-    public abstract ArchitectSession createSession(InputStream in) throws ArchitectException, IOException;
+    public abstract ArchitectSession createSession(InputStream in) throws SQLObjectException, IOException;
 
     /**
      * Returns the user preferences node associated with this context.

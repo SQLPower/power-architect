@@ -23,6 +23,8 @@ import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.sql.DatabaseMetaData;
@@ -57,17 +59,18 @@ import javax.swing.text.JTextComponent;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLType;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -79,7 +82,7 @@ import com.jgoodies.forms.layout.RowSpec;
  * edit mode.
  */
 public class ColumnEditPanel implements ActionListener, DataEntryPanel {
-
+    
     private static final Logger logger = Logger.getLogger(ColumnEditPanel.class);
 
     private static final Font TITLE_FONT = UIManager.getFont("Label.font").deriveFont(Font.BOLD, 10f);
@@ -103,7 +106,9 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      */
     private final JLabel sourceLabel;
 
-    private final JTextField colName;
+    private final JTextField colLogicalName;
+    
+    private final JTextField colPhysicalName;
 
     private final JComboBox colType;
 
@@ -146,11 +151,11 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
     private final ArchitectSession session;
 
     
-    public ColumnEditPanel(SQLColumn col, ArchitectSwingSession session) throws ArchitectException {
+    public ColumnEditPanel(SQLColumn col, ArchitectSwingSession session) throws SQLObjectException {
         this(Collections.singleton(col), session);
     }
     
-    public ColumnEditPanel(Collection<SQLColumn> cols, ArchitectSwingSession session) throws ArchitectException {
+    public ColumnEditPanel(Collection<SQLColumn> cols, ArchitectSwingSession session) throws SQLObjectException {
         logger.debug("ColumnEditPanel called"); //$NON-NLS-1$
 
         if (session == null) {
@@ -172,95 +177,162 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         
         JCheckBox cb;
         int row = 1;
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.source")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(sourceLabel = new JLabel(), cc.xyw(2, row++, 4));
 
-        layout.appendRow(new RowSpec("5dlu"));
+        layout.appendRow(RowSpec.decode("5dlu"));
         row++;
         
-        layout.appendRow(new RowSpec("p"));
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.name")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
-        panel.add(colName = new JTextField(), cc.xyw(2, row++, 4));
-        componentEnabledMap.put(colName, cb);
-        colName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
+        layout.appendRow(RowSpec.decode("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.logicalName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
+        layout.appendRow(RowSpec.decode("p"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
+        panel.add(colLogicalName = new JTextField(), cc.xyw(2, row++, 4));
+        componentEnabledMap.put(colLogicalName, cb);
+        colLogicalName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
+        colLogicalName.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                colLogicalName.requestFocusInWindow();
+            }
+        });
+        colLogicalName.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if(logger.isDebugEnabled()) {
+                    logger.debug("focus Gained : " + e);
+                }
+                colLogicalName.selectAll();
+            }
+        });
 
-        layout.appendRow(new RowSpec("5dlu"));
+        layout.appendRow(RowSpec.decode("5dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.physicalName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
+        layout.appendRow(RowSpec.decode("p"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
+        panel.add(colPhysicalName = new JTextField(), cc.xyw(2, row++, 4));
+        componentEnabledMap.put(colPhysicalName, cb);
+        colPhysicalName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
+        colPhysicalName.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                colPhysicalName.requestFocusInWindow();
+            }
+        });
+        colPhysicalName.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if(logger.isDebugEnabled()) {
+                    logger.debug("focus Gained : " + e);
+                }
+                colPhysicalName.selectAll();
+            }
+        });
+
+        layout.appendRow(RowSpec.decode("5dlu"));
+        row++;
+
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.type")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        layout.appendRow(RowSpec.decode("p"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colType = new JComboBox(SQLType.getTypes()), cc.xyw(2, row++, 4));
         componentEnabledMap.put(colType, cb);
         colType.setSelectedItem(null);
         colType.addActionListener(this);
 
-        layout.appendRow(new RowSpec("5dlu"));
+        layout.appendRow(RowSpec.decode("5dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.precision")), cc.xy(2, row)); //$NON-NLS-1$
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.scale")), cc.xy(5, row++)); //$NON-NLS-1$
 
-        layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        layout.appendRow(RowSpec.decode("p"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colPrec = createPrecisionEditor(), cc.xy(2, row));
         componentEnabledMap.put(colPrec, cb);
         colPrec.addChangeListener(checkboxEnabler);
+        SPSUtils.makeJSpinnerSelectAllTextOnFocus(colPrec);
         
-        panel.add(cb = new JCheckBox(), cc.xy(4, row));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(4, row));
+        }
         panel.add(colScale = createScaleEditor(), cc.xy(5, row++));
         componentEnabledMap.put(colScale, cb);
         colScale.addChangeListener(checkboxEnabler);
+        SPSUtils.makeJSpinnerSelectAllTextOnFocus(colScale);
         
-        layout.appendRow(new RowSpec("5dlu"));
+        layout.appendRow(RowSpec.decode("5dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        layout.appendRow(RowSpec.decode("p"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colInPK = new JCheckBox(Messages.getString("ColumnEditPanel.inPrimaryKey")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         componentEnabledMap.put(colInPK, cb);
         colInPK.addActionListener(this);
         colInPK.addActionListener(checkboxEnabler);
         
-        layout.appendRow(new RowSpec("3dlu"));
+        layout.appendRow(RowSpec.decode("3dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        layout.appendRow(RowSpec.decode("p"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colNullable = new JCheckBox(Messages.getString("ColumnEditPanel.allowsNulls")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         componentEnabledMap.put(colNullable, cb);
         colNullable.addActionListener(this);
         colNullable.addActionListener(checkboxEnabler);
 
-        layout.appendRow(new RowSpec("3dlu"));
+        layout.appendRow(RowSpec.decode("3dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        layout.appendRow(RowSpec.decode("p"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colAutoInc = new JCheckBox(Messages.getString("ColumnEditPanel.autoIncrement")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
         componentEnabledMap.put(colAutoInc, cb);
         colAutoInc.addActionListener(this);
         colAutoInc.addActionListener(checkboxEnabler);
 
-        layout.appendRow(new RowSpec("6dlu"));
+        layout.appendRow(RowSpec.decode("6dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.sequenceName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        layout.appendRow(RowSpec.decode("p"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colAutoIncSequenceName = new JTextField(), cc.xyw(2, row++, 4));
         componentEnabledMap.put(colAutoIncSequenceName, cb);
         colAutoIncSequenceName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
         
-        // Listener to update the sequence name when the column name changes
-        colName.getDocument().addDocumentListener(new DocumentListener() {
+        DocumentListener listener = new DocumentListener() {
             public void changedUpdate(DocumentEvent e) {
                 syncSequenceName();
             }
@@ -272,7 +344,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
             public void removeUpdate(DocumentEvent e) {
                 syncSequenceName();
             }
-        });
+        };
+        // Listener to update the sequence name when the column name changes
+        colPhysicalName.getDocument().addDocumentListener(listener);
+        colLogicalName.getDocument().addDocumentListener(listener);
 
         // Listener to rediscover the sequence naming convention, and reset the
         // sequence name to its original (according to the column's own sequence
@@ -285,21 +360,32 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                     // because sequence names have to be unique
                     SQLColumn column = columns.iterator().next();
                     colAutoIncSequenceName.setText(column.getAutoIncrementSequenceName());
-                    discoverSequenceNamePattern(column.getName());
+                    if (column.getPhysicalName() != null && !column.getPhysicalName().trim().equals("")) {
+                        discoverSequenceNamePattern(column.getPhysicalName());
+                    } else {
+                        discoverSequenceNamePattern(column.getName());
+                    }
                     syncSequenceName();
                 } else {
-                    discoverSequenceNamePattern(colName.getText());
+                    if (colPhysicalName.getText() != null && !colPhysicalName.getText().trim().equals("")) {
+                        discoverSequenceNamePattern(colPhysicalName.getText());
+                    } else {
+                        discoverSequenceNamePattern(colLogicalName.getText());
+                    }
                 }
             }
         });
 
-        layout.appendRow(new RowSpec("5dlu"));
+        layout.appendRow(RowSpec.decode("5dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.remarks")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(new RowSpec("pref:grow"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row, "center, top"));
+        layout.appendRow(RowSpec.decode("pref:grow"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row, "center, top"));
+        }
         panel.add(new JScrollPane(colRemarks = new JTextArea()), cc.xyw(2, row++, 4, "fill, fill"));
         componentEnabledMap.put(colRemarks, cb);
         colRemarks.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
@@ -307,13 +393,16 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         colRemarks.setLineWrap(true);
         colRemarks.setWrapStyleWord(true);
 
-        layout.appendRow(new RowSpec("5dlu"));
+        layout.appendRow(RowSpec.decode("5dlu"));
         row++;
 
-        layout.appendRow(new RowSpec("p"));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.defaultValue")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(new RowSpec("p"));
-        panel.add(cb = new JCheckBox(), cc.xy(1, row));
+        layout.appendRow(RowSpec.decode("p"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
         panel.add(colDefaultValue = new JTextField(), cc.xyw(2, row++, 4));
         colDefaultValue.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
         componentEnabledMap.put(colDefaultValue, cb);
@@ -332,10 +421,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         }
 
 //         TODO only give focus to column name if it's enabled?
-        colName.requestFocus();
-        colName.selectAll();
+        colPhysicalName.requestFocus();
+        colPhysicalName.selectAll();
         
-        ArchitectUtils.listenToHierarchy(obsolesenceListener, session.getRootObject());
+        SQLObjectUtils.listenToHierarchy(obsolesenceListener, session.getRootObject());
         panel.addAncestorListener(cleanupListener);
     }
 
@@ -365,7 +454,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      * @param col
      *            The column to edit
      */
-    private void updateComponents(SQLColumn col) throws ArchitectException {
+    private void updateComponents(SQLColumn col) throws SQLObjectException {
         SQLColumn sourceColumn = col.getSourceColumn();
         if (sourceColumn == null) {
             sourceLabel.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
@@ -376,7 +465,8 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                             sourceColumn.getParentTable()) + "." + sourceColumn.getName());
         }
         
-        updateComponent(colName, col.getName());
+        updateComponent(colLogicalName, col.getName());
+        updateComponent(colPhysicalName, col.getPhysicalName());
         updateComponent(colType, SQLType.getType(col.getType()));
         
         updateComponent(colScale, Integer.valueOf(col.getScale()));
@@ -389,12 +479,27 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         updateComponent(colDefaultValue, col.getDefaultValue());
         
         // TODO handle checkboxes
-        colInPK.setSelected(col.getPrimaryKeySeq() != null);
+        if (col.getParentTable() == null) {
+            colInPK.setSelected(SQLColumn.isDefaultInPK());
+            logger.debug("new constructed column");
+        } else {
+            colInPK.setSelected(col.isPrimaryKey());
+            logger.debug("existing column");
+        }
+        logger.debug("Selected" + colInPK.isSelected());
+        
         colAutoInc.setSelected(col.isAutoIncrement());
-
+        logger.info("col seq name set? " + col.isAutoIncrementSequenceNameSet());
         updateComponent(colAutoIncSequenceName, col.getAutoIncrementSequenceName());
+        logger.info("col seq name set? " + col.isAutoIncrementSequenceNameSet());
+
+        logger.info("The seq name is: " + col.getAutoIncrementSequenceName());
         updateComponents();
-        discoverSequenceNamePattern(col.getName());
+        if (col.getPhysicalName() != null && !col.getPhysicalName().trim().equals("")) {
+            discoverSequenceNamePattern(col.getPhysicalName());
+        } else {
+            discoverSequenceNamePattern(col.getName());
+        }
     }
 
     /** Subroutine of {@link #updateComponents(SQLColumn)}. */
@@ -455,7 +560,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      */
     private void syncSequenceName() {
         if (seqNamePrefix != null && seqNameSuffix != null) {
-            String newName = seqNamePrefix + colName.getText() + seqNameSuffix;
+            String newName = seqNamePrefix;
+            newName += (colPhysicalName.getText() == null || colPhysicalName.getText().trim().equals("")) ? 
+                    colLogicalName.getText() : colPhysicalName.getText();
+            newName += seqNameSuffix;
             colAutoIncSequenceName.setText(newName);
         }
     }
@@ -512,20 +620,22 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
     private List<String> updateModel() {
         logger.debug("Updating model"); //$NON-NLS-1$
         List<String> errors = new ArrayList<String>();
-        SQLObject compoundEditRoot = ArchitectUtils.findCommonAncestor(columns);
+        SQLObject compoundEditRoot = SQLObjectUtils.findCommonAncestor(columns);
         logger.debug("Compound edit root is " + compoundEditRoot);
         try {
             compoundEditRoot.startCompoundEdit(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
             
             for (SQLColumn column : columns) {
-                if (componentEnabledMap.get(colName).isSelected()) {
-                    if (colName.getText().trim().length() == 0) {
+                if (componentEnabledMap.get(colLogicalName).isSelected()) {
+                    if (colLogicalName.getText().trim().length() == 0) {
                         errors.add(Messages.getString("ColumnEditPanel.columnNameRequired")); //$NON-NLS-1$
                     } else {
-                        column.setName(colName.getText());
+                        column.setName(colLogicalName.getText());
                     }
                 }
-                
+                if (componentEnabledMap.get(colPhysicalName).isSelected()) {
+                    column.setPhysicalName(colPhysicalName.getText());
+                }                
                 if (componentEnabledMap.get(colType).isSelected()) {
                     column.setType(((SQLType) colType.getSelectedItem()).getType());
                 }
@@ -620,10 +730,14 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
     public JCheckBox getColInPK() {
         return colInPK;
     }
-
     /** Only for testing. Normal client code should not need to call this. */
-    public JTextField getColName() {
-        return colName;
+    public JTextField getColLogicalName() {
+        return colLogicalName;
+    }
+    
+    /** Only for testing. Normal client code should not need to call this. */
+    public JTextField getColPhysicalName() {
+        return colPhysicalName;
     }
 
     /** Only for testing. Normal client code should not need to call this. */
@@ -736,9 +850,6 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
 
         }
 
-        public void dbStructureChanged(SQLObjectEvent e) {
-
-        }
     };
  
     /**
@@ -753,10 +864,13 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
 
         public void ancestorRemoved(AncestorEvent event) {
             try {
-                ArchitectUtils.unlistenToHierarchy(obsolesenceListener, session.getRootObject());
-            } catch (ArchitectException e) {
-                throw new ArchitectRuntimeException(e);
+                SQLObjectUtils.unlistenToHierarchy(obsolesenceListener, session.getRootObject());
+            } catch (SQLObjectException e) {
+                throw new SQLObjectRuntimeException(e);
             }
         }
     };
+    
+
+
 }

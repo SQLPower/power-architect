@@ -20,9 +20,9 @@ package ca.sqlpower.architect.ddl;
 
 import java.util.Arrays;
 
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLSequence;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLSequence;
 
 /**
  * A DDLWarning for invalid name of a SQLSequence that can be 

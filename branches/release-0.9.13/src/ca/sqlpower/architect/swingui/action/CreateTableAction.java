@@ -26,8 +26,6 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.AbstractPlacer;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -35,6 +33,8 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 /**
@@ -61,7 +61,7 @@ public class CreateTableAction extends AbstractArchitectAction {
 		try {
             t = new SQLTable();
 			t.initFolders(true);
-		} catch (ArchitectException e) {
+		} catch (SQLObjectException e) {
 			logger.error("Couldn't add folder to table \""+t.getName()+"\"", e); //$NON-NLS-1$ //$NON-NLS-2$
 			ASUtils.showExceptionDialog(
 			        session,
@@ -89,7 +89,7 @@ public class CreateTableAction extends AbstractArchitectAction {
         }
 
         @Override
-        public DataEntryPanel place(Point p) throws ArchitectException {
+        public DataEntryPanel place(Point p) throws SQLObjectException {
             playpen.addTablePane(tp, p);
             DataEntryPanel editPanel = null;
             session.getTargetDatabase().addChild(tp.getModel());

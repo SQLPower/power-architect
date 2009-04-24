@@ -25,6 +25,7 @@ import java.awt.Composite;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
@@ -90,18 +91,7 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.MondrianModel;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
@@ -129,12 +119,24 @@ import ca.sqlpower.architect.swingui.olap.PaneSection;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEventListener;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sql.jdbcwrapper.DatabaseMetaDataDecorator;
-import ca.sqlpower.sql.jdbcwrapper.DatabaseMetaDataDecorator.CacheType;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
+import ca.sqlpower.sqlobject.undo.CompoundEvent;
+import ca.sqlpower.sqlobject.undo.CompoundEventListener;
+import ca.sqlpower.sqlobject.undo.CompoundEvent.EventTypes;
+import ca.sqlpower.swingui.CursorManager;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -151,7 +153,9 @@ public class PlayPen extends JPanel
 		public void cancel();
 
 	}
-
+ // actionCommand identifier for actions shared by Playpen
+    public static final String ACTION_COMMAND_SRC_PLAYPEN = "PlayPen";
+    
 	private static Logger logger = Logger.getLogger(PlayPen.class);
 
 	public enum MouseModeType {IDLE,
@@ -164,66 +168,11 @@ public class PlayPen extends JPanel
 						MULTI_SELECT,
 						RUBBERBAND_MOVE}
 	private MouseModeType mouseMode = MouseModeType.IDLE;
-
-    /**
-     * A simple class that encapsulates the logic for making the cursor image
-     * look correct for the current activity.
-     */
-    public class CursorManager {
-        
-        private boolean draggingTable = false;
-        private boolean dragAllModeActive = false;
-        private boolean placeModeActive = false;
-        
-        public void tableDragStarted() {
-            draggingTable = true;
-            modifyCursorImage();
-        }
-        
-        public void tableDragFinished() {
-            draggingTable = false;
-            modifyCursorImage();
-        }
-        
-        public void dragAllModeStarted() {
-            dragAllModeActive = true;
-            modifyCursorImage();
-        }
-        
-        public void dragAllModeFinished() {
-            dragAllModeActive = false;
-            modifyCursorImage();
-        }
-
-        public void placeModeStarted() {
-            placeModeActive = true;
-            modifyCursorImage();
-        }
-
-        public void placeModeFinished() {
-            placeModeActive = false;
-            modifyCursorImage();
-        }
-        
-        /**
-         * Sets the appropriate cursor type based on the current
-         * state of this cursor manager.
-         */
-        private void modifyCursorImage() {
-            if (dragAllModeActive || draggingTable) {
-                setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-            } else if (placeModeActive) {
-                setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-            } else {
-                setCursor(null);
-            }
-        }
-    }
-    
+	
     /**
      * The cursor manager for this play pen.
      */
-    private final CursorManager cursorManager = new CursorManager();
+    private final CursorManager cursorManager;
     
 	/**
 	 * Links this PlayPen with an instance of PlayPenDropListener so
@@ -392,7 +341,8 @@ public class PlayPen extends JPanel
 		addMouseListener(ppMouseListener);
 		addMouseMotionListener(ppMouseListener);
 		addMouseWheelListener(ppMouseListener);
-
+		
+		cursorManager = new CursorManager(PlayPen.this);
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
 		ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
@@ -415,26 +365,40 @@ public class PlayPen extends JPanel
 	 */
 	public PlayPen(ArchitectSwingSession session, PlayPen pp) {
 		this(session);
-
+		logger.debug("Copying PlayPen@" + System.identityHashCode(pp) + " into " + System.identityHashCode(this));
 		this.antialiasSetting = pp.antialiasSetting;
 		
 		setFont(pp.getFont());
 		this.setForeground(pp.getForeground());
 		this.setBackground(pp.getBackground());
 		
+		// XXX this should be done by making PlayPenComponent cloneable.
+		// it's silly that playpen has to know about every subclass of ppc
+		logger.debug("Copying " + pp.getContentPane().getComponentCount() + " components...");
 		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
 			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
 			if (ppc instanceof TablePane) {
 				TablePane tp = (TablePane) ppc;
-				addImpl(new TablePane(tp, contentPane), ppc.getPreferredLocation(), contentPane.getComponentCount());
-			}
-		}
-
-		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
-			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
-			if (ppc instanceof Relationship) {
+				addImpl(new TablePane(tp, contentPane), ppc.getPreferredLocation(), i);
+			} else if (ppc instanceof Relationship) {
 				Relationship rel = (Relationship) ppc;
-				addImpl(new Relationship(rel, contentPane), ppc.getPreferredLocation(), contentPane.getComponentCount());
+				addImpl(new Relationship(rel, contentPane), ppc.getPreferredLocation(), i);
+            } else if (ppc instanceof CubePane) {
+                CubePane cp = (CubePane) ppc;
+                addImpl(new CubePane(cp, contentPane), ppc.getPreferredLocation(), i);
+            } else if (ppc instanceof DimensionPane) {
+                DimensionPane dp = (DimensionPane) ppc;
+                addImpl(new DimensionPane(dp, contentPane), ppc.getPreferredLocation(), i);
+            } else if (ppc instanceof VirtualCubePane) {
+                VirtualCubePane vcp = (VirtualCubePane) ppc;
+                addImpl(new VirtualCubePane(vcp, contentPane), ppc.getPreferredLocation(), i);
+            } else if (ppc instanceof UsageComponent) {
+                UsageComponent uc = (UsageComponent) ppc;
+                getContentPane().add(new UsageComponent(uc, contentPane), i);
+			} else {
+			    throw new UnsupportedOperationException(
+			            "I don't know how to copy PlayPenComponent type " +
+			            ppc.getClass().getName());
 			}
 		}
 		setSize(getPreferredSize());
@@ -455,10 +419,12 @@ public class PlayPen extends JPanel
      * stop using it.
      */
     public void destroy() {
+        logger.debug("Destroying playpen " + System.identityHashCode(this));
+        // FIXME the content pane must be notified of this destruction, either explicitly or via a lifecycle event
         firePlayPenLifecycleEvent();
         try {
             removeHierarcyListeners(session.getTargetDatabase());
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             logger.error("Couldn't unlisten this playpen from the database", ex); //$NON-NLS-1$
         }
     }
@@ -467,7 +433,7 @@ public class PlayPen extends JPanel
      * Returns a new list of all tables in this play pen. The list returned will
      * be your own private (shallow) copy, so you are free to modify it.
      */
-    public List<SQLTable> getTables() throws ArchitectException {
+    public List<SQLTable> getTables() throws SQLObjectException {
         List<SQLTable> tables = new ArrayList<SQLTable>();
         ArchitectUtils.findDescendentsByClass(session.getTargetDatabase(), SQLTable.class, tables);
         return tables;
@@ -485,8 +451,8 @@ public class PlayPen extends JPanel
         newdb.setDataSource(dbcs);
 
 		try {
-			ArchitectUtils.listenToHierarchy(this, newdb);
-		} catch (ArchitectException ex) {
+			SQLObjectUtils.listenToHierarchy(this, newdb);
+		} catch (SQLObjectException ex) {
 			logger.error("Couldn't listen to database", ex); //$NON-NLS-1$
 		}
 		tableNames = new HashSet<String>();
@@ -545,8 +511,8 @@ public class PlayPen extends JPanel
                                 tp.selectNone();
                                 tp.selectItem(newIndex);
                             }
-                        } catch (ArchitectException ex) {
-                            throw new ArchitectRuntimeException(ex);
+                        } catch (SQLObjectException ex) {
+                            throw new SQLObjectRuntimeException(ex);
                         }
                     }
                 }
@@ -584,11 +550,11 @@ public class PlayPen extends JPanel
                                         tp.selectNone();
                                         tp.selectItem(newIndex);
                                     }
-                                } catch (ArchitectException ex) {
-                                    throw new ArchitectRuntimeException(ex);
+                                } catch (SQLObjectException ex) {
+                                    throw new SQLObjectRuntimeException(ex);
                                 }
                             }
-                        } catch (ArchitectException e1) {
+                        } catch (SQLObjectException e1) {
                             logger.error("Could not get columns of "+ tp.getName(), e1); //$NON-NLS-1$
                         }
                     }
@@ -1000,7 +966,9 @@ public class PlayPen extends JPanel
 			if ( g2.hitClip(bounds.x, bounds.y, bounds.width + 1, bounds.height + 1)) {
 				if (logger.isDebugEnabled()) logger.debug("Painting visible component "+c); //$NON-NLS-1$
 				g2.translate(c.getLocation().x, c.getLocation().y);
+				Font g2Font = g2.getFont();
 				c.paint(g2);
+				g2.setFont(g2Font);
 				g2.setTransform(zoomedOrigin);
 			} else {
 				if (logger.isDebugEnabled()) logger.debug("paint: SKIPPING "+c); //$NON-NLS-1$
@@ -1054,6 +1022,7 @@ public class PlayPen extends JPanel
 			if (c instanceof TablePane) {
 				// Makes drag and dropped tables show the proper columns
 				((TablePane) c).updateHiddenColumns();
+				((TablePane) c).updateNameDisplay();
 			}
 		} else {
 			throw new IllegalArgumentException("PlayPen can't contain components of type " //$NON-NLS-1$
@@ -1260,7 +1229,7 @@ public class PlayPen extends JPanel
 	}
 
 	/**
-	 * Adds a copy of the given source table to this playpen, using
+	 * Adds or reverse engineers a copy of the given source table to this playpen, using
 	 * preferredLocation as the layout constraint.  Tries to avoid
 	 * adding two tables with identical names.
 	 *
@@ -1268,8 +1237,27 @@ public class PlayPen extends JPanel
 	 * @see SQLTable#inherit
 	 * @see PlayPenLayout#addLayoutComponent(Component,Object)
 	 */
-	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws ArchitectException {
-		SQLTable newTable = SQLTable.getDerivedInstance(source, session.getTargetDatabase()); // adds newTable to db
+	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation, DuplicateProperties duplicateProperties) throws SQLObjectException {
+	    SQLTable newTable;
+	    switch (duplicateProperties.getDefaultTransferStyle()) {
+	    case REVERSE_ENGINEER:
+	        newTable = source.createInheritingInstance(session.getTargetDatabase()); // adds newTable to db
+	        break;
+	    case COPY:
+	        newTable = source.createCopy(session.getTargetDatabase(), duplicateProperties.isPreserveColumnSource());
+	        break;
+	    default:
+	        throw new IllegalStateException("Unknown transfer style " + duplicateProperties.getDefaultTransferStyle());
+	    }
+	    
+	    //need to add data sources as necessary if a SQLObject was copied and pasted from one session
+	    //to another in the same context. Also need to correct the source columns to point to the 
+	    //correct session's source database objects.
+	    for (SQLColumn column : newTable.getColumns()) {
+	        SQLColumn sourceColumn = newTable.getColumnByName(column.getName());
+	        ASUtils.correctSourceColumn(sourceColumn, duplicateProperties, column, getSession().getSourceDatabases());
+	    }
+		
 		String key = source.getName().toLowerCase();
 		boolean isAlreadyOnPlaypen = false;
 		int newSuffix = 0;
@@ -1292,8 +1280,10 @@ public class PlayPen extends JPanel
 		addImpl(tp, preferredLocation, getPPComponentCount());
 		tp.revalidate();
 
-        createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, newSuffix);
-        createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, newSuffix);
+		if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.REVERSE_ENGINEER) {
+		    createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, newSuffix);
+		    createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, newSuffix);
+		}
 		return tp;
 	}
 
@@ -1318,9 +1308,9 @@ public class PlayPen extends JPanel
      * @param suffix
      *            Indicating the number of the copies of the table we have already
      *            on the playpen
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    private void createRelationshipsFromPP(SQLTable source, SQLTable newTable, boolean isPrimaryKeyTableNew, boolean isAlreadyOnPlaypen, int suffix) throws ArchitectException {
+    private void createRelationshipsFromPP(SQLTable source, SQLTable newTable, boolean isPrimaryKeyTableNew, boolean isAlreadyOnPlaypen, int suffix) throws SQLObjectException {
         // create exported relationships if the importing tables exist in pp
 		Iterator sourceKeys = null;
         if (isPrimaryKeyTableNew) {
@@ -1393,7 +1383,7 @@ public class PlayPen extends JPanel
 		}
     }
 
-    private void setupMapping(SQLTable newTable, SQLTable otherTable, SQLRelationship newRel, SQLRelationship.ColumnMapping m, boolean newTableIsPk) throws ArchitectException {
+    private void setupMapping(SQLTable newTable, SQLTable otherTable, SQLRelationship newRel, SQLRelationship.ColumnMapping m, boolean newTableIsPk) throws SQLObjectException {
         SQLColumn pkCol = null;
         SQLColumn fkCol = null;
 
@@ -1433,7 +1423,7 @@ public class PlayPen extends JPanel
 	/**
 	 * Calls {@link #importTableCopy} for each table contained in the given schema.
 	 */
-	public synchronized void addObjects(List list, Point preferredLocation, SPSwingWorker nextProcess) throws ArchitectException {
+	public synchronized void addObjects(List<SQLObject> list, Point preferredLocation, SPSwingWorker nextProcess, TransferStyles transferStyle) throws SQLObjectException {
 		ProgressMonitor pm
 		 = new ProgressMonitor(this,
 		                      Messages.getString("PlayPen.copyingObjectsToThePlaypen"), //$NON-NLS-1$
@@ -1441,18 +1431,12 @@ public class PlayPen extends JPanel
 		                      0,
 			                  100);
 		AddObjectsTask t = new AddObjectsTask(list,
-				preferredLocation, pm, session);
+				preferredLocation, pm, session, transferStyle);
 		t.setNextProcess(nextProcess);
 		new Thread(t, "Objects-Adder").start(); //$NON-NLS-1$
 	}
 
 	protected class AddObjectsTask extends MonitorableWorker {
-	    
-	    /**
-	     * When there are at least this many tables to add, this task will ask
-	     * our JDBC wrappers to do eager caching of metadata operations.
-	     */
-		private static final int CACHE_THRESHOLD = 5;
 		
         private List<SQLObject> sqlObjects;
 		private Point preferredLocation;
@@ -1464,13 +1448,17 @@ public class PlayPen extends JPanel
 		private String errorMessage = null;
 		private ProgressMonitor pm;
 
+        private final TransferStyles transferStyle;
+
 		public AddObjectsTask(List<SQLObject> sqlObjects,
 				Point preferredLocation,
 				ProgressMonitor pm,
-                ArchitectSwingSession session) {
+                ArchitectSwingSession session,
+                TransferStyles transferStyle) {
             super(session);
 			this.sqlObjects = sqlObjects;
 			this.preferredLocation = preferredLocation;
+            this.transferStyle = transferStyle;
 			finished = false;
 			ProgressWatcher.watchProgress(pm, this);
 			this.pm = pm;
@@ -1506,7 +1494,7 @@ public class PlayPen extends JPanel
 		 */
 		public void doStuff() {
 			logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName()); //$NON-NLS-1$
-
+			session.getArchitectFrame().getContentPane().setCursor(new Cursor(Cursor.WAIT_CURSOR));
 			try {
 				hasStarted = true;
 				int tableCount = 0;
@@ -1515,20 +1503,16 @@ public class PlayPen extends JPanel
 				// first pass: figure out how much work we need to do...
 				while (soIt.hasNext() && !isCancelled()) {
 					SQLObject so = soIt.next();
-                    tableCount += ArchitectUtils.countTablesSnapshot(so);
+                    tableCount += SQLObjectUtils.countTablesSnapshot(so);
 				}
 				jobSize = new Integer(tableCount);
 
-				if (tableCount >= CACHE_THRESHOLD) {
-	                DatabaseMetaDataDecorator.putHint(DatabaseMetaDataDecorator.CACHE_TYPE, CacheType.EAGER_CACHE);
-				}
 				ensurePopulated(sqlObjects);
-			} catch (ArchitectException e) {
+				
+			} catch (SQLObjectException e) {
 				logger.error("Unexpected exception during populate", e); //$NON-NLS-1$
                 setDoStuffException(e);
 				errorMessage = "Unexpected exception during populate: " + e.getMessage(); //$NON-NLS-1$
-			} finally {
-	             DatabaseMetaDataDecorator.putHint(DatabaseMetaDataDecorator.CACHE_TYPE, CacheType.NO_CACHE);
 			}
 			logger.info("AddObjectsTask done"); //$NON-NLS-1$
 		}
@@ -1547,7 +1531,7 @@ public class PlayPen extends JPanel
 				try {
 					if (so instanceof SQLTable) progress++;
 					ensurePopulated(so.getChildren());
-				} catch (ArchitectException e) {
+				} catch (SQLObjectException e) {
                     errorMessage = "Couldn't get children of " + so; //$NON-NLS-1$
                     setDoStuffException(e);
 					logger.error("Couldn't get children of " + so, e); //$NON-NLS-1$
@@ -1579,9 +1563,15 @@ public class PlayPen extends JPanel
 
 				while (soIt.hasNext() && !isCancelled()) {
 					SQLObject someData = soIt.next();
-					someData.fireDbStructureChanged();
+					DuplicateProperties duplicateProperties = ASUtils.createDuplicateProperties(getSession(), someData);
+					if (transferStyle == TransferStyles.COPY && duplicateProperties.isCanCopy()) {
+					    duplicateProperties.setDefaultTransferStyle(transferStyle);
+					} else if (transferStyle == TransferStyles.REVERSE_ENGINEER && duplicateProperties.isCanReverseEngineer()) {
+					    duplicateProperties.setDefaultTransferStyle(transferStyle);
+					}
+					
 					if (someData instanceof SQLTable) {
-						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation);
+						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation, duplicateProperties);
 						message = ArchitectUtils.truncateString(((SQLTable)someData).getName());
                         preferredLocation.x += tp.getPreferredSize().width + 5;
 						progress++;
@@ -1592,7 +1582,7 @@ public class PlayPen extends JPanel
                             Object nextTable = it.next();
 							SQLTable sourceTable = (SQLTable) nextTable;
 							message = ArchitectUtils.truncateString(sourceTable.getName());
-							TablePane tp = importTableCopy(sourceTable, preferredLocation);
+							TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties);
 							preferredLocation.x += tp.getPreferredSize().width + 5;
 							progress++;
 						}
@@ -1607,7 +1597,7 @@ public class PlayPen extends JPanel
 									Object nextTable = it.next();
                                     SQLTable sourceTable = (SQLTable) nextTable;
 									message = ArchitectUtils.truncateString(sourceTable.getName());
-									TablePane tp = importTableCopy(sourceTable, preferredLocation);
+									TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties);
 									preferredLocation.x += tp.getPreferredSize().width + 5;
 									progress++;
 								}
@@ -1617,7 +1607,7 @@ public class PlayPen extends JPanel
                                 Object nextTable = cit.next();
 								SQLTable sourceTable = (SQLTable) nextTable;
 								message = ArchitectUtils.truncateString(sourceTable.getName());
-								TablePane tp = importTableCopy(sourceTable, preferredLocation);
+								TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties);
 								preferredLocation.x += tp.getPreferredSize().width + 5;
 								progress++;
 							}
@@ -1626,11 +1616,12 @@ public class PlayPen extends JPanel
 						logger.error("Unknown object dropped in PlayPen: "+someData); //$NON-NLS-1$
 					}
 				}
-			} catch (ArchitectException e) {
+			} catch (SQLObjectException e) {
 				ASUtils.showExceptionDialog(session,
                     "Unexpected Exception During Import", e); //$NON-NLS-1$
 			} finally {
 				finished = true;
+				session.getArchitectFrame().getContentPane().setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 				hasStarted = false;
 				session.getPlayPen().endCompoundEdit("Ending multi-select"); //$NON-NLS-1$
 			}
@@ -1659,9 +1650,9 @@ public class PlayPen extends JPanel
 	 * the sqlobject hieracrchy.  At this time only the play pen
 	 * needs to listen.
 	 */
-	private void addHierarcyListeners(SQLObject sqlObject) throws ArchitectException
+	private void addHierarcyListeners(SQLObject sqlObject) throws SQLObjectException
 	{
-		ArchitectUtils.listenToHierarchy(this, sqlObject);
+		SQLObjectUtils.listenToHierarchy(this, sqlObject);
 
 	}
 
@@ -1670,9 +1661,9 @@ public class PlayPen extends JPanel
 	 * the sqlobject hieracrchy.  At this time only the play pen
 	 * needs to be removed
 	 */
-	private void removeHierarcyListeners(SQLObject sqlObject) throws ArchitectException
+	private void removeHierarcyListeners(SQLObject sqlObject) throws SQLObjectException
 	{
-		ArchitectUtils.unlistenToHierarchy(this,sqlObject);
+		SQLObjectUtils.unlistenToHierarchy(this,sqlObject);
 	}
 
 	/**
@@ -1688,7 +1679,7 @@ public class PlayPen extends JPanel
 		for (int i = 0; i < c.length; i++) {
 			try {
 				addHierarcyListeners(c[i]);
-			} catch (ArchitectException ex) {
+			} catch (SQLObjectException ex) {
 				logger.error("Couldn't listen to added object", ex); //$NON-NLS-1$
 			}
 			if (c[i] instanceof SQLTable
@@ -1727,7 +1718,7 @@ public class PlayPen extends JPanel
 		for (int i = 0; i < c.length; i++) {
 			try {
 				removeHierarcyListeners(c[i]);
-			} catch (ArchitectException ex) {
+			} catch (SQLObjectException ex) {
 				logger.error("Couldn't unlisten to removed object", ex); //$NON-NLS-1$
 			}
 
@@ -1772,22 +1763,6 @@ public class PlayPen extends JPanel
 	public void dbObjectChanged(SQLObjectEvent e) {
 		firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
 		revalidate();
-	}
-
-	/**
-	 * Listens for property changes in the model (significant
-	 * structure change).  If this change affects the appearance of
-	 * this widget, we will notify all change listeners (the UI
-	 * delegate) with a ChangeEvent.
-	 *
-	 * <p>NOTE: This is not currently implemented.
-	 */
-	public void dbStructureChanged(SQLObjectEvent e) {
-		logger.debug("Playpen has recieved a db structure change this is unsupported at the moment"); //$NON-NLS-1$
-		//throw new UnsupportedOperationException
-		//	("FIXME: we have to make sure we're listening to the right objects now!");
-		//firePropertyChange("model.children", null, null);
-		//revalidate();
 	}
 
 	// --------------- SELECTION METHODS ----------------
@@ -1938,35 +1913,35 @@ public class PlayPen extends JPanel
 
 	protected LinkedList undoEventListeners = new LinkedList();
 
-	public void addUndoEventListener(UndoCompoundEventListener l) {
+	public void addUndoEventListener(CompoundEventListener l) {
 		undoEventListeners.add(l);
 	}
 
-	public void removeSelectionListener(UndoCompoundEventListener l) {
+	public void removeSelectionListener(CompoundEventListener l) {
 		undoEventListeners.remove(l);
 	}
 
-	private void fireUndoCompoundEvent(UndoCompoundEvent e) {
+	private void fireUndoCompoundEvent(CompoundEvent e) {
 		Iterator it = undoEventListeners.iterator();
 
 		if (e.getType().isStartEvent()) {
 			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).compoundEditStart(e);
+				((CompoundEventListener) it.next()).compoundEditStart(e);
 			}
 		} else {
 			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).compoundEditEnd(e);
+				((CompoundEventListener) it.next()).compoundEditEnd(e);
 			}
 		}
 
 	}
 
 	public void startCompoundEdit(String message){
-		fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START,message));
+		fireUndoCompoundEvent(new CompoundEvent(EventTypes.COMPOUND_EDIT_START,message));
 	}
 
 	public void endCompoundEdit(String message){
-		fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END,message));
+		fireUndoCompoundEvent(new CompoundEvent(EventTypes.COMPOUND_EDIT_END,message));
 	}
 	// ------------------------------------- INNER CLASSES ----------------------------
 
@@ -2037,7 +2012,7 @@ public class PlayPen extends JPanel
 			if (tpTarget != null) {
 				tpTarget.dragOver(dtde);
 			} else {
-				dtde.acceptDrag(DnDConstants.ACTION_COPY);
+				dtde.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE & dtde.getDropAction());
 			}
 		}
 
@@ -2046,50 +2021,41 @@ public class PlayPen extends JPanel
 		 * or current target TablePane if there is one.
 		 */
 		public void drop(DropTargetDropEvent dtde) {
+		    logger.debug("On drop, source actions are " + dtde.getSourceActions() + " and drop action is " + dtde.getDropAction());
 			logger.info("Drop: I am over dtde="+dtde); //$NON-NLS-1$
 			if (tpTarget != null) {
 				tpTarget.drop(dtde);
 				return;
 			}
-
+			
+			if ((dtde.getSourceActions() & dtde.getDropAction()) == 0) {
+			    dtde.rejectDrop();
+			    return;
+			}
+			
 			Transferable t = dtde.getTransferable();
 			PlayPen playpen = (PlayPen) dtde.getDropTargetContext().getComponent();
-			DataFlavor importFlavor = bestImportFlavor(playpen, t.getTransferDataFlavors());
-			if (importFlavor == null) {
-				dtde.rejectDrop();
-			} else {
-				try {
+			try {
+			    Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));
+			    if (playpen.addTransferable(t, dropLoc, TransferStyles.REVERSE_ENGINEER)){
+			        dtde.acceptDrop(DnDConstants.ACTION_COPY);
+			        dtde.dropComplete(true);
+			    } else {
+			        dtde.rejectDrop();
+			    }
 
-					dtde.acceptDrop(DnDConstants.ACTION_COPY);
-					Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));
-					Object[] paths = (Object[]) t.getTransferData(importFlavor);
-					// turn into a Collection of SQLObjects to make this more generic
-					List<SQLObject> sqlObjects = new ArrayList<SQLObject>();
-					for (Object oo : paths) {
-						if (oo instanceof SQLObject) {
-							sqlObjects.add((SQLObject) oo);
-						} else {
-							logger.error("Unknown object dropped in PlayPen: "+oo); //$NON-NLS-1$
-						}
-					}
-
-					// null: no next task is chained off this
-					playpen.addObjects(sqlObjects, dropLoc, null);
-					dtde.dropComplete(true);
-
-				} catch (UnsupportedFlavorException ufe) {
-					logger.error(ufe);
-					dtde.rejectDrop();
-				} catch (IOException ioe) {
-					logger.error(ioe);
-					dtde.rejectDrop();
-				} catch (InvalidDnDOperationException ex) {
-					logger.error(ex);
-					dtde.rejectDrop();
-				} catch (ArchitectException ex) {
-					logger.error(ex);
-					dtde.rejectDrop();
-				}
+			} catch (UnsupportedFlavorException ufe) {
+			    logger.error(ufe);
+			    dtde.rejectDrop();
+			} catch (IOException ioe) {
+			    logger.error(ioe);
+			    dtde.rejectDrop();
+			} catch (InvalidDnDOperationException ex) {
+			    logger.error(ex);
+			    dtde.rejectDrop();
+			} catch (SQLObjectException ex) {
+			    logger.error(ex);
+			    dtde.rejectDrop();
 			}
 		}
 
@@ -2147,6 +2113,93 @@ public class PlayPen extends JPanel
 		}
 	}
 
+    /**
+     * This method takes a transferable object and tries to add the SQLObjects
+     * in the transferable to the play pen. If there is no transferable object
+     * then if there is a string or list of strings in the transferable this
+     * method will try to create SQLObjects for the transferred values.
+     * 
+     * @param t
+     *            The transferable to get objects from to add to the playpen
+     * @param dropPoint
+     *            The location where new objects will be added to the playpen
+     * @return True if objects were added successfully to the playpen. False
+     *         otherwise.
+     * @throws IOException 
+     * @throws UnsupportedFlavorException 
+     * @throws SQLObjectException 
+     */
+	private boolean addTransferable(Transferable t, Point dropPoint, TransferStyles transferStyle) throws UnsupportedFlavorException, IOException, SQLObjectException {
+	    if (t.isDataFlavorSupported(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR)) {
+            SQLObject[] paths = (SQLObject[]) t.getTransferData(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR);
+            // turn into a Collection of SQLObjects to make this more generic
+            List<SQLObject> sqlObjects = new ArrayList<SQLObject>();
+            for (Object oo : paths) {
+                if (oo instanceof SQLObject) {
+                    sqlObjects.add((SQLObject) oo);
+                } else {
+                    logger.error("Unknown object dropped in PlayPen: "+oo); //$NON-NLS-1$
+                }
+            }
+
+            // null: no next task is chained off this
+            addObjects(sqlObjects, dropPoint, null, transferStyle);
+	        return true;
+	    } else if (t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+	        String[] stringPieces = ((String) t.getTransferData(DataFlavor.stringFlavor)).split("[\n\r\t]+");
+	        List<SQLObject> sqlObjects = new ArrayList<SQLObject>();
+	        for (String s : stringPieces) {
+	            if (s.length() > 0) {
+	                SQLTable newTable = new SQLTable();
+	                newTable.setName(s);
+	                newTable.initFolders(true);
+	                sqlObjects.add(newTable);
+	            }
+	        }
+	        
+	        addObjects(sqlObjects, dropPoint, null, transferStyle);
+	        return true;
+	    } else {
+	        return false;
+	    }
+	}
+	
+	/**
+     * This method takes a transferable object and tries to add the SQLObjects
+     * in the transferable to the play pen. If there is no transferable object
+     * then if there is a string or list of strings in the transferable this
+     * method will try to create SQLObjects for the transferred values. The
+     * objects will be placed at the mouse location if it is on the play pen
+     * or at the origin if it is not.
+     * 
+     * @param t
+     *            The transferable to get objects from to add to the playpen
+     */
+	public void pasteData(Transferable t) {
+        if (!getSelectedContainers().isEmpty()) {
+            for (ContainerPane<?, ?> cp : getSelectedContainers()) {
+                cp.pasteData(t);
+            }
+            return;
+        }
+	    Point p = getMousePosition();
+	    if (p == null) {
+	        p = new Point(0, 0);
+	    }
+	    unzoomPoint(p);
+	    try {
+            if (!addTransferable(t, p, TransferStyles.COPY)) {
+                JOptionPane.showMessageDialog(this, "Cannot paste the copied objects. Unknown object type.", "Cannot Paste Objects", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (UnsupportedFlavorException e) {
+            throw new RuntimeException("Could not paste copied object type.", e);
+        } catch (IOException e) {
+            logger.error("The real IOException", e);
+            throw new RuntimeException("Data copied changed while pasting.", e);
+        } catch (SQLObjectException e) {
+            throw new RuntimeException("Exception while pasting a SQLObject.", e);
+        }
+	}
 
 	public class TablePaneDragGestureListener implements DragGestureListener {
 		public void dragGestureRecognized(DragGestureEvent dge) {
@@ -2193,6 +2246,7 @@ public class PlayPen extends JPanel
                     Graphics2D imageGraphics = dragImage.createGraphics();
                     label.paint(imageGraphics);
                     imageGraphics.dispose();
+                    dge.getSourceAsDragGestureRecognizer().setSourceActions(DnDConstants.ACTION_COPY_OR_MOVE);
                     dge.getDragSource().startDrag(
 				            dge, null, dragImage, new Point(0, 0), transferableSelection, tp);
 				}
@@ -2637,9 +2691,9 @@ public class PlayPen extends JPanel
      * If the given SQL Object isn't in the playpen, this method has no effect.
      *
      * @param selection A list of SQLObjects, should only have SQLColumn, SQLTable or SQLRelationship.
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
-    public void selectObjects(List<SQLObject> selections) throws ArchitectException {
+    public void selectObjects(List<SQLObject> selections) throws SQLObjectException {
         if (ignoreTreeSelection) return;
         ignoreTreeSelection = true;
 
@@ -2744,9 +2798,9 @@ public class PlayPen extends JPanel
      * If the given OLAPObjects aren't in the playpen, this method has no effect.
      *
      * @param selection A list of OLAPObjects.
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
-    public void selectObjects(List<OLAPObject> selections, OLAPTree tree) throws ArchitectException {
+    public void selectObjects(List<OLAPObject> selections, OLAPTree tree) throws SQLObjectException {
         if (ignoreTreeSelection) return;
         ignoreTreeSelection = true;
         logger.debug("selecting: " + selections); //$NON-NLS-1$
@@ -3211,9 +3265,10 @@ public class PlayPen extends JPanel
         scrollRectToVisible(zoomRect(r));
     }
     
-    public void updateHiddenColumns() {
+    public void updateTablePanes() {
         for (TablePane tp : getTablePanes()) {
             tp.updateHiddenColumns();
+            tp.updateNameDisplay();
             tp.revalidate();
             tp.repaint();
         }

@@ -24,18 +24,18 @@ import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public abstract class AbstractTableTargetedAction extends AbstractArchitectAction implements SelectionListener {
 
@@ -61,7 +61,7 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
     
     public void actionPerformed(ActionEvent evt) {
         try {
-            if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
+            if (evt.getActionCommand().equals(PlayPen.ACTION_COMMAND_SRC_PLAYPEN)) {
                 List selection = playpen.getSelectedItems();
                 if (selection.size() < 1) {
                     JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.selectTable")); //$NON-NLS-1$
@@ -73,7 +73,7 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
                 } else {
                     JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.selectedItemNotRecognized")); //$NON-NLS-1$
                 }
-            } else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
+            } else if (evt.getActionCommand().equals(DBTree.ACTION_COMMAND_SRC_DBTREE)) {
                 TreePath [] selections = dbt.getSelectionPaths();
                 // This statement ensures that there is only one item selected
                 // except for the special case of SQLColumns, in which its
@@ -93,14 +93,14 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
                         evt.getActionCommand() + "\"", //$NON-NLS-1$
                         "Internal Architect Error", JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
             }
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             ASUtils.showExceptionDialog(session, Messages.getString("AbstractTableTargetedAction.columnCouldNotBeInserted") + ex.getMessage(), ex); //$NON-NLS-1$
         }
     }
     
 
-    abstract void processTablePane(TablePane tp) throws ArchitectException;
-    abstract void processSQLObject(SQLObject so) throws ArchitectException;
+    abstract void processTablePane(TablePane tp) throws SQLObjectException;
+    abstract void processSQLObject(SQLObject so) throws SQLObjectException;
 
     
     public void setupAction(List selectedItems) {

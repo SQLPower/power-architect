@@ -58,13 +58,13 @@ import javax.swing.table.TableModel;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.CommonCloseAction;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.JDefaultButton;
@@ -218,7 +218,7 @@ public class SearchReplace {
             public void actionPerformed(ActionEvent e) {
                 try {
                     showResults(d, pp);
-                } catch (ArchitectException ex) {
+                } catch (SQLObjectException ex) {
                     ASUtils.showExceptionDialogNoReport(
                         Messages.getString("SearchReplace.problemDuringSearch"), ex); //$NON-NLS-1$
                 }
@@ -267,7 +267,7 @@ public class SearchReplace {
         searchExpression.requestFocus();
     }
 
-    public void showResults(final JDialog parent, final PlayPen pp) throws ArchitectException {
+    public void showResults(final JDialog parent, final PlayPen pp) throws SQLObjectException {
     	try {
 	        final List results = doSearch(pp.getSession().getTargetDatabase());
 
@@ -333,7 +333,7 @@ public class SearchReplace {
 	                            if (searchColumn != null) {
 	                            	try {
 	                                	tp.selectItem(searchTable.getColumnIndex(searchColumn));
-	                            	} catch (ArchitectException ex) {
+	                            	} catch (SQLObjectException ex) {
 	                            		logger.error("Failed to select column becuase getColumnIndex" + //$NON-NLS-1$
 	                            				" threw the following exception:", ex); //$NON-NLS-1$
 	                            		ASUtils.showExceptionDialogNoReport(parent,
@@ -386,7 +386,7 @@ public class SearchReplace {
         }
     }
 
-    public List doSearch(SQLObject start) throws ArchitectException {
+    public List doSearch(SQLObject start) throws SQLObjectException {
         List results = new ArrayList();
         String pat;
         if (substringMatch.isSelected() || exactMatch.isSelected()) {
@@ -417,7 +417,7 @@ public class SearchReplace {
         return recursiveSearch(start, searchPattern, results);
     }
 
-    private List recursiveSearch(SQLObject obj, Pattern searchPattern, List appendTo) throws ArchitectException {
+    private List recursiveSearch(SQLObject obj, Pattern searchPattern, List appendTo) throws SQLObjectException {
         if (logger.isDebugEnabled()) logger.debug("Matching \""+obj.getName()+"\" against /"+searchPattern.pattern()+"/"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         if (searchPattern.matcher(obj.getName()).matches() && searchTypeMatches(obj)) {
             appendTo.add(obj);

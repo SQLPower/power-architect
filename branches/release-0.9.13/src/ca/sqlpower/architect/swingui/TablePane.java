@@ -23,13 +23,16 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragSourceDropEvent;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,21 +54,23 @@ import javax.swing.JScrollPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.InsertionPointWatcher;
-import ca.sqlpower.architect.LockedColumnException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.LayoutEdge;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
+import ca.sqlpower.sqlobject.LockedColumnException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.SPSUtils;
@@ -96,6 +101,12 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	 * Tracks which columns in this table are currently hidden.
 	 */
 	protected Set<SQLColumn> hiddenColumns;
+	
+	/**
+	 * Keeps tracks of whether the user wants to see the logical names or the
+	 * physical names.
+	 */
+	boolean usingLogicalNames;
 
 	/**
 	 * Tracks current highlight colours of the columns in this table.
@@ -159,8 +170,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	protected List<SQLColumn> getItems() {
 	    try {
 	        return model.getColumns();
-	    } catch (ArchitectException e) {
-	        throw new ArchitectRuntimeException(e);
+	    } catch (SQLObjectException e) {
+	        throw new SQLObjectRuntimeException(e);
 	    }
 	}
 
@@ -192,8 +203,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	 */
 	public void destroy() {
 		try {
-			ArchitectUtils.unlistenToHierarchy(columnListener, model);
-		} catch (ArchitectException e) {
+			SQLObjectUtils.unlistenToHierarchy(columnListener, model);
+		} catch (SQLObjectException e) {
 			logger.error("Caught exception while unlistening to all children", e); //$NON-NLS-1$
 		}
 	}
@@ -253,8 +264,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 }
             }
             try {
-                ArchitectUtils.listenToHierarchy(this, e.getChildren());
-            } catch (ArchitectException ex) {
+                SQLObjectUtils.listenToHierarchy(this, e.getChildren());
+            } catch (SQLObjectException ex) {
                 logger.error("Caught exception while listening to added children", ex); //$NON-NLS-1$
             }
             
@@ -302,10 +313,11 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             
             // no matter where the event came from, we should no longer be listening to the removed children
             try {
-                ArchitectUtils.unlistenToHierarchy(this, e.getChildren());
-            } catch (ArchitectException ex) {
-                throw new ArchitectRuntimeException(ex);
+                SQLObjectUtils.unlistenToHierarchy(this, e.getChildren());
+            } catch (SQLObjectException ex) {
+                throw new SQLObjectRuntimeException(ex);
             }
+//            updateNameDisplay();
             updateHiddenColumns();
             firePropertyChange("model.children", null, null); //$NON-NLS-1$
             //revalidate();
@@ -324,34 +336,12 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                         " oldVal="+e.getOldValue()+" newVal="+e.getNewValue() +  //$NON-NLS-1$ //$NON-NLS-2$
                         " selectedItems=" + getSelectedItems());
             }
+//            updateNameDisplay();
             updateHiddenColumns();
             firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
             //repaint();
         }
 
-        /**
-         * Listens for property changes in the model (significant
-         * structure change).  If this change affects the appearance of
-         * this widget, we will notify all change listeners (the UI
-         * delegate) with a ChangeEvent.
-         */
-        public void dbStructureChanged(SQLObjectEvent e) {
-            logger.debug("TablePane got db structure change event. source="+e.getSource()); //$NON-NLS-1$
-            if (e.getSource() == model.getColumnsFolder()) {
-                selectNone();
-                columnHighlight = new HashMap<SQLColumn,List<Color>>();
-                try {
-                    for (SQLColumn child :((List<SQLColumn>) model.getColumnsFolder().getChildren())) {
-                        columnHighlight.put(child,new ArrayList<Color>());
-                    }
-                } catch (ArchitectException e1) {
-                    throw new ArchitectRuntimeException(e1);
-                }
-                updateHiddenColumns();
-                firePropertyChange("model.children", null, null); //$NON-NLS-1$
-                //revalidate();
-            }
-        }
     }
 
 	// ----------------------- accessors and mutators --------------------------
@@ -374,13 +364,13 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			for (SQLColumn column: model.getColumns()) {
 				columnHighlight.put(column, new ArrayList<Color>());
 			}
-		} catch (ArchitectException e) {
+		} catch (SQLObjectException e) {
 			logger.error("Error getting children on new model", e); //$NON-NLS-1$
 		}
 
 		try {
-			ArchitectUtils.listenToHierarchy(columnListener, model);
-		} catch (ArchitectException e) {
+			SQLObjectUtils.listenToHierarchy(columnListener, model);
+		} catch (SQLObjectException e) {
 			logger.error("Caught exception while listening to new model", e); //$NON-NLS-1$
 		}
 	}
@@ -416,32 +406,48 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	public void updateHiddenColumns() {
 	    hiddenColumns.clear();
 	    ArchitectSwingSession session = getPlayPen().getSession();
+	    ColumnVisibility choice = session.getColumnVisibility();
 
 	    // if all the boxes are checked, then hide no columns, only these 3 need be
 	    // checked. Draw a truth table if you don't believe me.
-	    if (!(session.isShowForeign() && session.isShowIndexed() 
-	            && session.isShowTheRest())) {
-
+	    if(!choice.equals(ColumnVisibility.ALL)) {
 	        // start with a list of all the columns, then remove the ones that 
 	        // should be shown
 	        hiddenColumns.addAll(getItems());
 	        for (SQLColumn col : getItems()) {
-	            if (session.isShowPrimary() && col.isPrimaryKey()) {
+	            if (col.isPrimaryKey()) {
 	                hiddenColumns.remove(col);
-	            } else if (session.isShowForeign() && col.isForeignKey()) {
+	            } 
+	            if (!choice.equals(ColumnVisibility.PK) && col.isForeignKey()) {
 	                hiddenColumns.remove(col);
-	            } else if (session.isShowIndexed() && col.isIndexed()) {
+	            }
+	            if (!choice.equals(ColumnVisibility.PK) && !choice.equals(ColumnVisibility.PK_FK) && col.isUniqueIndexed()) {
 	                hiddenColumns.remove(col);
-	            } else if (session.isShowUnique() && col.isUniqueIndexed()) {
-	                hiddenColumns.remove(col);
-	            } else if (session.isShowTheRest() && !(col.isPrimaryKey() || col.isForeignKey() 
-	                    || col.isIndexed())) {
-	                // unique index not checked because it is a subset of index
+	            }
+	            if (!choice.equals(ColumnVisibility.PK) && !choice.equals(ColumnVisibility.PK_FK) &&
+	                    !choice.equals(ColumnVisibility.PK_FK_UNIQUE) && col.isIndexed()) {
 	                hiddenColumns.remove(col);
 	            }
 	        }
 	    }
 	}
+	
+	public boolean isUsingLogicalNames() {
+	    PlayPen pp = getPlayPen();
+	    if (pp != null) {
+	        ArchitectSwingSession session = pp.getSession();
+	        if (session != null) {
+	            return session.isUsingLogicalNames();
+	        }
+	    }
+	    return true;
+	}
+	
+	public void updateNameDisplay() {
+        ArchitectSwingSession session = getPlayPen().getSession();
+        usingLogicalNames = session.isUsingLogicalNames();
+
+    }
 
 	// ------------------ utility methods ---------------------
 
@@ -473,9 +479,9 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	 * This can be a nonnegative integer to specify a position in the column list, or one
 	 * of the constants COLUMN_INDEX_END_OF_PK or COLUMN_INDEX_START_OF_NON_PK to indicate a special position.
 	 * @return True if the insert worked; false otherwise
-	 * @throws ArchitectException If there are problems in the business model
+	 * @throws SQLObjectException If there are problems in the business model
 	 */
-	public boolean insertObjects(List<? extends SQLObject> items, int insertionPoint) throws ArchitectException {
+	public boolean insertObjects(List<? extends SQLObject> items, int insertionPoint, boolean deleteSource) throws SQLObjectException {
 		boolean newColumnsInPk = false;
 		if (insertionPoint == COLUMN_INDEX_END_OF_PK) {
 		    insertionPoint = getModel().getPkSize();
@@ -495,62 +501,65 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
 		for (int i = items.size()-1; i >= 0; i--) {
 			SQLObject someData = items.get(i);
+			DuplicateProperties duplicateProperties = ASUtils.createDuplicateProperties(getParent().getOwner().getSession(), someData);
 			logger.debug("insertObjects: got item of type "+someData.getClass().getName()); //$NON-NLS-1$
 			if (someData instanceof SQLTable) {
-				SQLTable table = (SQLTable) someData;
-				if (table.getParentDatabase() == getModel().getParentDatabase()) {
-					// can't import table from target into target!!
-					return false;
-				} else {
-					getModel().inherit(insertionPoint, table);
-				}
+			    SQLTable table = (SQLTable) someData;
+			    getModel().inherit(insertionPoint, table, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource());
+			    for (SQLColumn column : table.getColumns()) {
+			        SQLColumn targetCol = getModel().getColumnByName(column.getName());
+			        ASUtils.correctSourceColumn(column, duplicateProperties, targetCol, getPlayPen().getSession().getSourceDatabases());
+			    }
 			} else if (someData instanceof SQLColumn) {
-				SQLColumn col = (SQLColumn) someData;
-				if (col.getParentTable() == getModel()) {
-					// moving column inside the same table
-					int oldIndex = col.getParentTable().getColumns().indexOf(col);
-					if (insertionPoint > oldIndex) {
-						insertionPoint--;
-					}
-					getModel().changeColumnIndex(oldIndex, insertionPoint, newColumnsInPk);
-				} else if (col.getParentTable().getParentDatabase() == getModel().getParentDatabase()) {
-					// moving column within playpen
-                    
-                    InsertionPointWatcher<SQLTable.Folder<SQLColumn>> ipWatcher =
-                        new InsertionPointWatcher<SQLTable.Folder<SQLColumn>>(getModel().getColumnsFolder(), insertionPoint);
-					col.getParentTable().removeColumn(col);
-                    ipWatcher.dispose();
-                    
-					if (logger.isDebugEnabled()) {
-						logger.debug("Moving column '"+col.getName() //$NON-NLS-1$
-								+"' to table '"+getModel().getName() //$NON-NLS-1$
-								+"' at position "+ipWatcher.getInsertionPoint()); //$NON-NLS-1$
-					}
-					try {
-                        // You need to disable the magic (really the normalization) otherwise it goes around
-                        // the property change events and causes undo to fail when dragging into the primary
-                        // key of a table
-					    getModel().setMagicEnabled(false);
-					    getModel().addColumn(ipWatcher.getInsertionPoint(), col);
+			    SQLColumn col = (SQLColumn) someData;
+			    if (deleteSource) {
+			        if (col.getParentTable() == getModel()) {
+			            // moving column inside the same table
+			            int oldIndex = col.getParentTable().getColumns().indexOf(col);
+			            if (insertionPoint > oldIndex) {
+			                insertionPoint--;
+			            }
+			            getModel().changeColumnIndex(oldIndex, insertionPoint, newColumnsInPk);
+			        } else if (col.getParentTable().getParentDatabase() == getModel().getParentDatabase()) {
+			            // moving column within playpen
 
-					    if (newColumnsInPk) {
-					        col.setPrimaryKeySeq(new Integer(ipWatcher.getInsertionPoint()));
-					    } else {
-					        col.setPrimaryKeySeq(null);
-					    }
-					} finally {
-                        getModel().setMagicEnabled(true);
-					}
-					getModel().getColumnsFolder().fireDbStructureChanged();
-				} else {
-					// importing column from a source database
-					getModel().inherit(insertionPoint, col, newColumnsInPk);
-					if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision()); //$NON-NLS-1$ //$NON-NLS-2$
-				}
+			            InsertionPointWatcher<SQLTable.Folder<SQLColumn>> ipWatcher =
+			                new InsertionPointWatcher<SQLTable.Folder<SQLColumn>>(getModel().getColumnsFolder(), insertionPoint);
+			            col.getParentTable().removeColumn(col);
+			            ipWatcher.dispose();
+
+			            if (logger.isDebugEnabled()) {
+			                logger.debug("Moving column '"+col.getName() //$NON-NLS-1$
+			                        +"' to table '"+getModel().getName() //$NON-NLS-1$
+			                        +"' at position "+ipWatcher.getInsertionPoint()); //$NON-NLS-1$
+			            }
+			            getModel().addColumn(ipWatcher.getInsertionPoint(), col);
+			            // You need to disable the normalization otherwise it goes around
+			            // the property change events and causes undo to fail when dragging
+			            // into the primary key of a table
+			            logger.debug("Column listeners are " + col.getSQLObjectListeners());
+
+			            if (newColumnsInPk) {
+			                col.setPrimaryKeySeq(new Integer(ipWatcher.getInsertionPoint()), false);
+			            } else {
+			                col.setPrimaryKeySeq(null, false);
+			            }
+			        } else {
+			            // importing column from a source database
+			            getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource());
+			            if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision()); //$NON-NLS-1$ //$NON-NLS-2$
+			        }
+
+			    } else {
+			        getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource());
+			        if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision()); //$NON-NLS-1$ //$NON-NLS-2$
+			        ASUtils.correctSourceColumn(col, duplicateProperties, getModel().getColumnByName(col.getName()), getPlayPen().getSession().getSourceDatabases());
+			    }
 			} else {
 				return false;
 			}
 		}
+		
 		return true;
 	}
 	
@@ -585,9 +594,9 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
      * @param i The index of the column in question
      * @return The current highlight colour for the column at index i in this table.
      *   null indicates the current tablepane foreground colour will be used.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    public Color getColumnHighlight(int i) throws ArchitectException {
+    public Color getColumnHighlight(int i) throws SQLObjectException {
         return getColumnHighlight(model.getColumn(i));
     }
 
@@ -675,6 +684,15 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         int idx = pointToItemIndex(loc);
         setInsertionPoint(idx);
     }
+    
+    @Override
+    public void dragDropEnd(DragSourceDropEvent dsde) {
+        if (dsde.getDropSuccess()) {
+            logger.debug("Succesful drop"); //$NON-NLS-1$
+        } else {
+            logger.debug("Unsuccesful drop"); //$NON-NLS-1$
+        }
+    }
 
     /**
      * Called when the drag operation has terminated with a drop on
@@ -700,57 +718,18 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             setInsertionPoint(ITEM_INDEX_NONE);
         } else {
             try {
-                DBTree dbtree = pp.getSession().getSourceDatabases();  // XXX: bad
-                int insertionPoint = pointToItemIndex(loc);
-
-                // put the undo event adapter into a drag and drop state
-                pp.startCompoundEdit("Drag and Drop"); //$NON-NLS-1$
-
-                List<SQLObject> droppedItems = Arrays.asList((SQLObject[]) t.getTransferData(importFlavor));
-                
-                logger.debug("Importing items: " + droppedItems); //$NON-NLS-1$
-
-                boolean success = false;
-
-                //Check to see if the drag and drop will change the current relationship
-                List<SQLRelationship> importedKeys = getModel().getImportedKeys();
-
-                boolean newColumnsInPk = false;
-                if (insertionPoint == TablePane.COLUMN_INDEX_END_OF_PK) {
-                    newColumnsInPk = true;
-                } else if (insertionPoint == TablePane.COLUMN_INDEX_START_OF_NON_PK) {
-                    newColumnsInPk = false;
-                } else if (insertionPoint == ITEM_INDEX_TITLE) {
-                    newColumnsInPk = true;
-                } else if (insertionPoint < 0) {
-                    newColumnsInPk = false;
-                } else if (insertionPoint < getModel().getPkSize()) {
-                    newColumnsInPk = true;
+                pp.startCompoundEdit("Drag and drop");
+                if ((dtde.getSourceActions() & dtde.getDropAction()) == 0) {
+                    dtde.rejectDrop();
+                    return;
                 }
-
-                try {
-                    for (int i = 0; i < importedKeys.size(); i++) {
-                        // Not dealing with self-referencing tables right now.
-                        if (importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
-                        for (int j = 0; j < droppedItems.size(); j++) {
-                            if (importedKeys.get(i).containsFkColumn((SQLColumn)(droppedItems.get(j)))) {
-                                importedKeys.get(i).setIdentifying(newColumnsInPk);
-                                break;
-                            }
-                        }
-                    }
-                    success = insertObjects(droppedItems, insertionPoint);
-                } catch (LockedColumnException ex ) {
-                    JOptionPane.showConfirmDialog(pp,
-                            "Could not delete the column " + //$NON-NLS-1$
-                            ex.getCol().getName() +
-                            " because it is part of\n" + //$NON-NLS-1$
-                            "the relationship \""+ex.getLockingRelationship()+"\".\n\n", //$NON-NLS-1$ //$NON-NLS-2$
-                            "Column is Locked", //$NON-NLS-1$
-                            JOptionPane.CLOSED_OPTION);
-                    success = false;
-                } 
-
+                
+                boolean success = false;
+                TransferStyles transferStyle = TransferStyles.REVERSE_ENGINEER;
+                if (dtde.getDropAction() == DnDConstants.ACTION_COPY) {
+                    transferStyle = TransferStyles.COPY;
+                }
+                success = addTransferable(loc, t, importFlavor, dtde.getDropAction() == DnDConstants.ACTION_MOVE);
                 if (success) {
                     dtde.acceptDrop(DnDConstants.ACTION_COPY); // XXX: not always true
                 } else {
@@ -765,16 +744,123 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                         "Error processing drop operation", ex); //$NON-NLS-1$
             } finally {
                 setInsertionPoint(ITEM_INDEX_NONE);
-                try {
-                    getModel().normalizePrimaryKey();
-                } catch (ArchitectException e) {
-                    logger.error("Error processing normalize PrimaryKey", e); //$NON-NLS-1$
-                    ASUtils.showExceptionDialogNoReport(getParent().getOwner(),
-                            "Error processing normalize PrimaryKey after processing drop operation", e); //$NON-NLS-1$
-                } finally {
-                    pp.endCompoundEdit("End drag and drop"); //$NON-NLS-1$
-                }
+                pp.endCompoundEdit("Ending drag and drop");
             }
+        }
+    }
+
+
+    /**
+     * This will add data from a transferable to the current table if the importFlavor
+     * given is appropriate for the table. The values will be at the given point in the
+     * table. The values will be moved instead of copied if the movingObjects flag is true.
+     * If the movingObjects flag is false then the data will be copied.
+     */
+    private boolean addTransferable(Point loc, Transferable t, DataFlavor importFlavor, boolean deleteSource)
+            throws UnsupportedFlavorException, IOException, SQLObjectException {
+        boolean success;
+        PlayPen pp = getPlayPen();
+        try {
+            int insertionPoint = pointToItemIndex(loc);
+
+            List<SQLObject> droppedItems;
+            if (importFlavor == SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR) {
+                droppedItems = Arrays.asList((SQLObject[]) t.getTransferData(importFlavor));
+            } else if (importFlavor == DataFlavor.stringFlavor) {
+                String[] stringPieces = ((String) t.getTransferData(DataFlavor.stringFlavor)).split("[\n\r\t]+");
+                droppedItems = new ArrayList<SQLObject>();
+                for (String s : stringPieces) {
+                    if (s.length() > 0) {
+                        SQLColumn newCol = new SQLColumn();
+                        newCol.setName(s);
+                        droppedItems.add(newCol);
+                    }
+                }
+            } else {
+                return false;
+            }
+
+            logger.debug("Importing items: " + droppedItems); //$NON-NLS-1$
+
+
+            //Check to see if the drag and drop will change the current relationship
+            List<SQLRelationship> importedKeys = getModel().getImportedKeys();
+
+            boolean newColumnsInPk = false;
+            if (insertionPoint == TablePane.COLUMN_INDEX_END_OF_PK) {
+                newColumnsInPk = true;
+            } else if (insertionPoint == TablePane.COLUMN_INDEX_START_OF_NON_PK) {
+                newColumnsInPk = false;
+            } else if (insertionPoint == ITEM_INDEX_TITLE) {
+                newColumnsInPk = true;
+            } else if (insertionPoint < 0) {
+                newColumnsInPk = false;
+            } else if (insertionPoint < getModel().getPkSize()) {
+                newColumnsInPk = true;
+            }
+
+            try {
+                for (int i = 0; i < importedKeys.size(); i++) {
+                    // Not dealing with self-referencing tables right now.
+                    if (importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
+                    for (int j = 0; j < droppedItems.size(); j++) {
+                        if (importedKeys.get(i).containsFkColumn((SQLColumn)(droppedItems.get(j)))) {
+                            importedKeys.get(i).setIdentifying(newColumnsInPk);
+                            break;
+                        }
+                    }
+                }
+                success = insertObjects(droppedItems, insertionPoint, deleteSource);
+            } catch (LockedColumnException ex ) {
+                if (logger.isDebugEnabled()) {
+                    ex.printStackTrace();
+                }
+                JOptionPane.showConfirmDialog(pp,
+                        "Could not delete the column " + //$NON-NLS-1$
+                        ex.getCol().getName() +
+                        " because it is part of\n" + //$NON-NLS-1$
+                        "the relationship \""+ex.getLockingRelationship()+"\".\n\n", //$NON-NLS-1$ //$NON-NLS-2$
+                        "Column is Locked", //$NON-NLS-1$
+                        JOptionPane.CLOSED_OPTION);
+                success = false;
+            } 
+
+        } finally {
+            setInsertionPoint(ITEM_INDEX_NONE);
+            try {
+                getModel().normalizePrimaryKey();
+            } catch (SQLObjectException e) {
+                logger.error("Error processing normalize PrimaryKey", e); //$NON-NLS-1$
+                ASUtils.showExceptionDialogNoReport(getParent().getOwner(),
+                        "Error processing normalize PrimaryKey after processing drop operation", e); //$NON-NLS-1$
+            }
+        }
+        return success;
+    }
+    
+    public void pasteData(Transferable t) {
+        Point loc = getPlayPen().unzoomPoint(getPlayPen().getMousePosition());
+        if (loc == null) {
+            loc = new Point(0, getHeight());
+        } else {
+            loc.x -= getX();
+            loc.y -= getY();
+        }
+        
+        DataFlavor bestImportFlavor = null;
+        try {
+            getPlayPen().startCompoundEdit("Transfering data"); //$NON-NLS-1$
+            
+            bestImportFlavor = bestImportFlavor(getPlayPen(), t.getTransferDataFlavors());
+            addTransferable(loc, t, bestImportFlavor, false);
+        } catch (UnsupportedFlavorException e) {
+            throw new RuntimeException("Cannot add items to a table of type " + bestImportFlavor, e);
+        } catch (IOException e) {
+            throw new RuntimeException("Transfer type changed while adding it to the table", e);
+        } catch (SQLObjectException e) {
+            throw new RuntimeException("Unknown object type to add to a table", e);
+        } finally {
+            getPlayPen().endCompoundEdit("End transfering data"); //$NON-NLS-1$
         }
     }
 
@@ -782,7 +868,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
      * Called if the user has modified the current drop gesture.
      */
     public void dropActionChanged(DropTargetDragEvent dtde) {
-        // we don't care
+        logger.debug("");
+        
     }
 
     /**
@@ -813,6 +900,11 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 return flavors[i];
             }
         }
+        for (int i = 0; i < flavors.length; i++) {
+            if (flavors[i].equals(DataFlavor.stringFlavor)) {
+                return flavors[i];
+            }
+        }
         logger.debug("NO!"); //$NON-NLS-1$
         return null;
     }
@@ -834,8 +926,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 edges.add(getPlayPen().findRelationship(r));
             }
             return edges;
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
         }
     }
 
@@ -847,8 +939,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 edges.add(getPlayPen().findRelationship(r));
             }
             return edges;
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
         }
     }
 
@@ -923,7 +1015,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         
         mi = new JMenuItem();
         mi.setAction(af.getInsertIndexAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
         try {
             if (model != null && model.getIndicesFolder().getChildCount() > 0) {
@@ -931,25 +1023,25 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 menu.setIcon(SPSUtils.createIcon("edit_index", Messages.getString("TablePane.editIndexTooltip"), ArchitectSwingSessionContext.ICON_SIZE)); //$NON-NLS-1$ //$NON-NLS-2$
                 for (SQLIndex index : model.getIndices()) {
                     JMenuItem menuItem = new JMenuItem(new EditSpecificIndexAction(getPlayPen().getSession(), index));
-                    menuItem.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+                    menuItem.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
                     menu.add(menuItem);
                 }
                 tablePanePopup.add(menu);
             }
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
 
         tablePanePopup.addSeparator();
 
         mi = new JMenuItem();
         mi.setAction(af.getInsertColumnAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         mi = new JMenuItem();
         mi.setAction(af.getEditColumnAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         tablePanePopup.addSeparator();
@@ -957,13 +1049,13 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         JMenu align = new JMenu(Messages.getString("TablePane.alignTablesMenu")); //$NON-NLS-1$
         mi = new JMenuItem();
         mi.setAction(af.getAlignTableHorizontalAction()); 
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         align.add(mi);
         
         
         mi = new JMenuItem();
         mi.setAction(af.getAlignTableVerticalAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         align.add(mi);
         tablePanePopup.add(align);
 
@@ -1028,25 +1120,25 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         
         mi = new JMenuItem();
         mi.setAction(af.getEditTableAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         tablePanePopup.addSeparator();
 
         mi = new JMenuItem();
         mi.setAction(getPlayPen().bringToFrontAction);
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         mi = new JMenuItem();
         mi.setAction(getPlayPen().sendToBackAction);
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         if (logger.isDebugEnabled()) {
             tablePanePopup.addSeparator();
             mi = new JMenuItem("Show listeners"); //$NON-NLS-1$
-            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+            mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
             mi.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent evt) {
                         List<PlayPenComponent> selection = getPlayPen().getSelectedItems();
@@ -1061,7 +1153,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             tablePanePopup.add(mi);
 
             mi = new JMenuItem("Show Selection List"); //$NON-NLS-1$
-            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+            mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
             mi.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent evt) {
                         List<PlayPenComponent> selection = getPlayPen().getSelectedItems();
@@ -1079,7 +1171,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         tablePanePopup.addSeparator();
         mi = new JMenuItem();
         mi.setAction(af.getDeleteSelectedAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
         
         return tablePanePopup;
@@ -1102,10 +1194,10 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                         ArchitectFrame af = pp.getSession().getArchitectFrame();
                         if (selectedColIndex == ITEM_INDEX_TITLE) {
                             af.getEditTableAction().actionPerformed
-                            (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+                            (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, PlayPen.ACTION_COMMAND_SRC_PLAYPEN));
                         } else if (selectedColIndex >= 0) {
                             af.getEditColumnAction().actionPerformed
-                            (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+                            (new ActionEvent(TablePane.this, ActionEvent.ACTION_PERFORMED, PlayPen.ACTION_COMMAND_SRC_PLAYPEN));
                         }
                     }
                 }

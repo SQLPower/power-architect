@@ -44,33 +44,34 @@ import org.apache.log4j.Logger;
 import org.apache.tools.ant.filters.StringInputStream;
 
 import ca.sqlpower.ArchitectTestCase;
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.CoreProject;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectRoot;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.StubSQLObject;
 import ca.sqlpower.architect.TestUtils;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
 import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
 import ca.sqlpower.architect.olap.MondrianModel;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.StubSQLObject;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.testutil.MockJDBCDriver;
 
 /**
@@ -164,7 +165,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         " <source-stuff datastoreTypeAsString='PROJECT' connectName='Arthur_test' " +
         " schema='ARCHITECT_REGRESS' filepath='' />"+
         "<target-stuff datastoreTypeAsString='FILE' filePath='Testpath' /> </compare-dm-settings>"+
-        " <play-pen zoom=\"12.3\" viewportX=\"200\" viewportY=\"20\" relationship-style=\"rectilinear\" showPrimaryTag=\"true\" showForeignTag=\"true\" showAlternateTag=\"true\" showPrimary=\"true\" showForeign=\"true\" showIndexed=\"true\" showUnique=\"true\" showTheRest=\"true\">" +
+        " <play-pen zoom=\"12.3\" viewportX=\"200\" viewportY=\"20\" relationship-style=\"rectilinear\" showPrimaryTag=\"true\" showForeignTag=\"true\" showAlternateTag=\"true\"  columnVisibility=\"PK_FK\" >" +
         "  <table-pane table-ref='TAB0' x='85' y='101' />" +
         "  <table-pane table-ref='TAB6' x='196' y='38' />" +
         "  <table-link relationship-ref='REL12' pk-x='76' pk-y='60' fk-x='114' fk-y='30' />" +
@@ -225,7 +226,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertNull(t1.getColumn(1).getPrimaryKeySeq());
     }
     
-    private void subroutineForTestSaveLoadPK(SQLTable t) throws ArchitectException {
+    private void subroutineForTestSaveLoadPK(SQLTable t) throws SQLObjectException {
         assertEquals(2, t.getPkSize());
         assertEquals(new Integer(0), t.getColumn(0).getPrimaryKeySeq());
         assertEquals(new Integer(1), t.getColumn(1).getPrimaryKeySeq());
@@ -384,7 +385,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		SPDataSource fakeDataSource = new SPDataSource(new PlDotIni());
 		SQLDatabase db = new SQLDatabase() {
 			@Override
-			public Connection getConnection() throws ArchitectException {
+			public Connection getConnection() throws SQLObjectException {
 				return null;
 			}
 		};
@@ -409,6 +410,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("zoomInAction");
 		propertiesToIgnore.add("zoomOutAction");
         propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("tableContainer");
 		
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(db, propertiesToIgnore);
@@ -435,7 +437,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		System.out.println("DB has child exception " + db.getChildrenInaccessibleReason());
 		
 		Map<String, Object> newDescription =
-			TestUtils.getAllInterestingProperties(db, propertiesToIgnore);
+			ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(db, propertiesToIgnore);
 		
 		assertEquals("loaded-in version of database doesn't match the original!",
 				oldDescription.toString(), newDescription.toString());
@@ -480,6 +482,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("secondaryChangeMode");
 		propertiesToIgnore.add("populated");
         propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("tableContainer");
 
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
@@ -504,7 +507,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		target = (SQLCatalog) db.getChild(0);
 		
 		Map<String, Object> newDescription =
-			TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
+			ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
 		
 		assertMapsEqual(oldDescription, newDescription);
 	}
@@ -558,7 +561,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		target = (SQLSchema) db.getChild(0);
 		
 		Map<String, Object> newDescription =
-			TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
+			ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
 		
 		assertMapsEqual(oldDescription, newDescription);
 	}
@@ -613,7 +616,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		target = (SQLTable) db.getChild(0);
 		
 		Map<String, Object> newDescription =
-			TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
+			ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
 		
 		assertMapsEqual(oldDescription, newDescription);
 	}
@@ -688,7 +691,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		target = ((SQLTable) ppdb.getTableByName(tableName)).getColumn(0);
 		
 		Map<String, Object> newDescription =
-			TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
+			ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
 		
 		assertMapsEqual(oldDescription, newDescription);
 	}
@@ -755,7 +758,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         target = (SQLIndex) (targetTable).getIndicesFolder().getChild(1);
         
         Map<String, Object> newDescription =
-            TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
+            ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }
@@ -800,7 +803,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
         
         Map<String, Object> newDescription =
-            TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
+            ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }
@@ -862,7 +865,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
         
         Map<String, Object> newDescription =
-            TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
+            ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }
@@ -916,7 +919,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(1);
         
         Map<String, Object> newDescription =
-            TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
+            ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }
@@ -1012,7 +1015,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         Map<String, Object> newDescription =
-            TestUtils.getAllInterestingProperties(session.getKettleJob(), propertiesToIgnore);
+            ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(session.getKettleJob(), propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }
@@ -1027,11 +1030,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         session.setShowPkTag(false);
         session.setShowFkTag(false);
         session.setShowAkTag(false);
-        session.setShowPrimary(false);
-        session.setShowForeign(false);
-        session.setShowIndexed(false);
-        session.setShowUnique(false);
-        session.setShowTheRest(false);
+        session.setColumnVisibility(ColumnVisibility.ALL);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream, ENCODING);
 
@@ -1049,12 +1048,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertEquals("PK Tag", session.isShowPkTag(), newSession.isShowPkTag());
         assertEquals("FK Tag", session.isShowFkTag(), newSession.isShowFkTag());
         assertEquals("AK Tag", session.isShowAkTag(), newSession.isShowAkTag());
-        assertEquals("Primary Column", session.isShowPrimary(), newSession.isShowPrimary());
-        assertEquals("Foreign Column", session.isShowForeign(), newSession.isShowForeign());
-        assertEquals("Indexed Column", session.isShowIndexed(), newSession.isShowIndexed());
-        assertEquals("Unique Column", session.isShowUnique(), newSession.isShowUnique());
-        assertEquals("The Rest of the Columns", session.isShowTheRest(), newSession.isShowTheRest());
-        
+        assertEquals("Show Option", session.getColumnVisibility(), newSession.getColumnVisibility());
     }
     
     public void testLoadCoversPlayPen()throws Exception{
@@ -1071,11 +1065,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertEquals("PK Tag", true, session.isShowPkTag());
         assertEquals("FK Tag", true, session.isShowFkTag());
         assertEquals("AK Tag", true, session.isShowAkTag());
-        assertEquals("Primary Column", true, session.isShowPrimary());
-        assertEquals("Foreign Column", true, session.isShowForeign());
-        assertEquals("Indexed Column", true, session.isShowIndexed());
-        assertEquals("Unique Column", true, session.isShowUnique());
-        assertEquals("The Rest of the Columns", true, session.isShowTheRest());
+        assertEquals("ShowOption", ColumnVisibility.PK_FK, session.getColumnVisibility());
     }
     
     /**
@@ -1313,4 +1303,240 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         assertEquals(1, session2.getOLAPEditSessions().size());
     }
+    
+    /**
+     * This tests loading an ascending column on an index works in an older way.
+     * This test is to confirm that we keep backwards compatibility.
+     */
+    public void testHistoricAscendingCol() throws Exception {
+        String testData =
+            "<?xml version='1.0'?>" +
+            "<architect-project version='0.1'>" +
+            " <project-name>TestSwingUIProject</project-name>" +
+            " <project-data-sources>" +
+            "  <data-source id='DS0'>" +
+            "   <property key='Logical' value='Not Configured' />" +
+            "  </data-source>" +
+            " </project-data-sources>" +
+            " <target-database dbcs-ref='DS0'>" +
+            "  <table id=\"TAB1830\" populated=\"true\" name=\"mm_project\" objectType=\"TABLE\" physicalName=\"MM_PROJECT\" remarks=\"\" >" +
+            "   <folder id=\"FOL1831\" populated=\"true\" name=\"Columns\" physicalName=\"Columns\" type=\"1\" >" +
+            "    <column id=\"COL1832\" populated=\"true\" autoIncrement=\"true\" autoIncrementSequenceName=\"mm_project_oid_seq\" name=\"project_oid\" nullable=\"0\" physicalName=\"PROJECT_OID\" precision=\"22\" primaryKeySeq=\"0\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+            "    <column id=\"COL1833\" populated=\"true\" autoIncrement=\"false\" name=\"FOLDER_OID\" nullable=\"1\" physicalName=\"FOLDER_OID\" precision=\"22\" referenceCount=\"2\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+            "    <column id=\"COL1834\" populated=\"true\" autoIncrement=\"false\" name=\"project_name\" nullable=\"1\" physicalName=\"PROJECT_NAME\" precision=\"80\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"12\" />" +
+            "   </folder>" +
+            "   <folder id=\"FOL1889\" populated=\"true\" name=\"Exported Keys\" physicalName=\"Exported Keys\" type=\"3\" >" +
+            "   </folder>" +
+            "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
+            "   </folder>" +
+            "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
+            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"BTREE\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+            "     <index-column id=\"IDC1895\" populated=\"true\" ascending=\"true\" column-ref=\"COL1834\" descending=\"false\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
+            "    </index>" +
+            "   </folder>" +
+            "  </table>" +
+            " </target-database>" +
+            "</architect-project>";
+        
+        ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
+        project.load(r, plIni);
+        SQLTable table = session.getPlayPen().getTables().get(0);
+        assertEquals(AscendDescend.ASCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+    }
+    
+    /**
+     * This tests loading a descending column on an index works in an older way.
+     * This test is to confirm that we keep backwards compatibility.
+     */
+    public void testHistoricDescendingCol() throws Exception {
+        String testData =
+            "<?xml version='1.0'?>" +
+            "<architect-project version='0.1'>" +
+            " <project-name>TestSwingUIProject</project-name>" +
+            " <project-data-sources>" +
+            "  <data-source id='DS0'>" +
+            "   <property key='Logical' value='Not Configured' />" +
+            "  </data-source>" +
+            " </project-data-sources>" +
+            " <target-database dbcs-ref='DS0'>" +
+            "  <table id=\"TAB1830\" populated=\"true\" name=\"mm_project\" objectType=\"TABLE\" physicalName=\"MM_PROJECT\" remarks=\"\" >" +
+            "   <folder id=\"FOL1831\" populated=\"true\" name=\"Columns\" physicalName=\"Columns\" type=\"1\" >" +
+            "    <column id=\"COL1832\" populated=\"true\" autoIncrement=\"true\" autoIncrementSequenceName=\"mm_project_oid_seq\" name=\"project_oid\" nullable=\"0\" physicalName=\"PROJECT_OID\" precision=\"22\" primaryKeySeq=\"0\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+            "    <column id=\"COL1833\" populated=\"true\" autoIncrement=\"false\" name=\"FOLDER_OID\" nullable=\"1\" physicalName=\"FOLDER_OID\" precision=\"22\" referenceCount=\"2\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+            "    <column id=\"COL1834\" populated=\"true\" autoIncrement=\"false\" name=\"project_name\" nullable=\"1\" physicalName=\"PROJECT_NAME\" precision=\"80\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"12\" />" +
+            "   </folder>" +
+            "   <folder id=\"FOL1889\" populated=\"true\" name=\"Exported Keys\" physicalName=\"Exported Keys\" type=\"3\" >" +
+            "   </folder>" +
+            "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
+            "   </folder>" +
+            "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
+            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"BTREE\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+            "     <index-column id=\"IDC1895\" populated=\"true\" ascending=\"false\" column-ref=\"COL1834\" descending=\"true\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
+            "    </index>" +
+            "   </folder>" +
+            "  </table>" +
+            " </target-database>" +
+            "</architect-project>";
+        
+        ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
+        project.load(r, plIni);
+        SQLTable table = session.getPlayPen().getTables().get(0);
+        assertEquals(AscendDescend.DESCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+    }
+    
+    /**
+     * This tests loading an unspecified column on an index works in an older way.
+     * This test is to confirm that we keep backwards compatibility.
+     */
+    public void testHistoricUnspecifiedCol() throws Exception {
+        String testData =
+            "<?xml version='1.0'?>" +
+            "<architect-project version='0.1'>" +
+            " <project-name>TestSwingUIProject</project-name>" +
+            " <project-data-sources>" +
+            "  <data-source id='DS0'>" +
+            "   <property key='Logical' value='Not Configured' />" +
+            "  </data-source>" +
+            " </project-data-sources>" +
+            " <target-database dbcs-ref='DS0'>" +
+            "  <table id=\"TAB1830\" populated=\"true\" name=\"mm_project\" objectType=\"TABLE\" physicalName=\"MM_PROJECT\" remarks=\"\" >" +
+            "   <folder id=\"FOL1831\" populated=\"true\" name=\"Columns\" physicalName=\"Columns\" type=\"1\" >" +
+            "    <column id=\"COL1832\" populated=\"true\" autoIncrement=\"true\" autoIncrementSequenceName=\"mm_project_oid_seq\" name=\"project_oid\" nullable=\"0\" physicalName=\"PROJECT_OID\" precision=\"22\" primaryKeySeq=\"0\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+            "    <column id=\"COL1833\" populated=\"true\" autoIncrement=\"false\" name=\"FOLDER_OID\" nullable=\"1\" physicalName=\"FOLDER_OID\" precision=\"22\" referenceCount=\"2\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+            "    <column id=\"COL1834\" populated=\"true\" autoIncrement=\"false\" name=\"project_name\" nullable=\"1\" physicalName=\"PROJECT_NAME\" precision=\"80\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"12\" />" +
+            "   </folder>" +
+            "   <folder id=\"FOL1889\" populated=\"true\" name=\"Exported Keys\" physicalName=\"Exported Keys\" type=\"3\" >" +
+            "   </folder>" +
+            "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
+            "   </folder>" +
+            "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
+            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"BTREE\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+            "     <index-column id=\"IDC1895\" populated=\"true\" ascending=\"false\" column-ref=\"COL1834\" descending=\"false\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
+            "    </index>" +
+            "   </folder>" +
+            "  </table>" +
+            " </target-database>" +
+            "</architect-project>";
+        
+        ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
+        project.load(r, plIni);
+        SQLTable table = session.getPlayPen().getTables().get(0);
+        assertEquals(AscendDescend.UNSPECIFIED, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+    }
+    
+    /**
+     * This tests loading an ascending column on an index works.
+     */
+    public void testAscendingCol() throws Exception {
+        String testData =
+            "<?xml version='1.0'?>" +
+            "<architect-project version='0.1'>" +
+            " <project-name>TestSwingUIProject</project-name>" +
+            " <project-data-sources>" +
+            "  <data-source id='DS0'>" +
+            "   <property key='Logical' value='Not Configured' />" +
+            "  </data-source>" +
+            " </project-data-sources>" +
+            " <target-database dbcs-ref='DS0'>" +
+            "  <table id=\"TAB1830\" populated=\"true\" name=\"mm_project\" objectType=\"TABLE\" physicalName=\"MM_PROJECT\" remarks=\"\" >" +
+            "   <folder id=\"FOL1831\" populated=\"true\" name=\"Columns\" physicalName=\"Columns\" type=\"1\" >" +
+            "    <column id=\"COL1832\" populated=\"true\" autoIncrement=\"true\" autoIncrementSequenceName=\"mm_project_oid_seq\" name=\"project_oid\" nullable=\"0\" physicalName=\"PROJECT_OID\" precision=\"22\" primaryKeySeq=\"0\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+            "    <column id=\"COL1833\" populated=\"true\" autoIncrement=\"false\" name=\"FOLDER_OID\" nullable=\"1\" physicalName=\"FOLDER_OID\" precision=\"22\" referenceCount=\"2\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+            "    <column id=\"COL1834\" populated=\"true\" autoIncrement=\"false\" name=\"project_name\" nullable=\"1\" physicalName=\"PROJECT_NAME\" precision=\"80\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"12\" />" +
+            "   </folder>" +
+            "   <folder id=\"FOL1889\" populated=\"true\" name=\"Exported Keys\" physicalName=\"Exported Keys\" type=\"3\" >" +
+            "   </folder>" +
+            "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
+            "   </folder>" +
+            "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
+            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"CLUSTERED\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+            "     <index-column id=\"IDC1895\" populated=\"true\" ascendingOrDescending=\"ASCENDING\" column-ref=\"COL1834\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
+            "    </index>" +
+            "   </folder>" +
+            "  </table>" +
+            " </target-database>" +
+            "</architect-project>";
+        
+        ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
+        project.load(r, plIni);
+        SQLTable table = session.getPlayPen().getTables().get(0);
+        assertEquals(AscendDescend.ASCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+    }
+    /**
+     * This tests loading a descending column on an index works.
+     */
+    public void testDescendingCol() throws Exception {
+        String testData =
+            "<?xml version='1.0'?>" +
+            "<architect-project version='0.1'>" +
+            " <project-name>TestSwingUIProject</project-name>" +
+            " <project-data-sources>" +
+            "  <data-source id='DS0'>" +
+            "   <property key='Logical' value='Not Configured' />" +
+            "  </data-source>" +
+            " </project-data-sources>" +
+            " <target-database dbcs-ref='DS0'>" +
+            "  <table id=\"TAB1830\" populated=\"true\" name=\"mm_project\" objectType=\"TABLE\" physicalName=\"MM_PROJECT\" remarks=\"\" >" +
+            "   <folder id=\"FOL1831\" populated=\"true\" name=\"Columns\" physicalName=\"Columns\" type=\"1\" >" +
+            "    <column id=\"COL1832\" populated=\"true\" autoIncrement=\"true\" autoIncrementSequenceName=\"mm_project_oid_seq\" name=\"project_oid\" nullable=\"0\" physicalName=\"PROJECT_OID\" precision=\"22\" primaryKeySeq=\"0\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+            "    <column id=\"COL1833\" populated=\"true\" autoIncrement=\"false\" name=\"FOLDER_OID\" nullable=\"1\" physicalName=\"FOLDER_OID\" precision=\"22\" referenceCount=\"2\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+            "    <column id=\"COL1834\" populated=\"true\" autoIncrement=\"false\" name=\"project_name\" nullable=\"1\" physicalName=\"PROJECT_NAME\" precision=\"80\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"12\" />" +
+            "   </folder>" +
+            "   <folder id=\"FOL1889\" populated=\"true\" name=\"Exported Keys\" physicalName=\"Exported Keys\" type=\"3\" >" +
+            "   </folder>" +
+            "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
+            "   </folder>" +
+            "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
+            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"BTREE\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+            "     <index-column id=\"IDC1895\" populated=\"true\" ascendingOrDescending=\"DESCENDING\" column-ref=\"COL1834\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
+            "    </index>" +
+            "   </folder>" +
+            "  </table>" +
+            " </target-database>" +
+            "</architect-project>";
+        
+        ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
+        project.load(r, plIni);
+        SQLTable table = session.getPlayPen().getTables().get(0);
+        assertEquals(AscendDescend.DESCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+    }
+    /**
+     * This tests loading an unspecified column on an index works.
+     */
+    public void testUnspecifiedCol() throws Exception {
+        String testData =
+            "<?xml version='1.0'?>" +
+            "<architect-project version='0.1'>" +
+            " <project-name>TestSwingUIProject</project-name>" +
+            " <project-data-sources>" +
+            "  <data-source id='DS0'>" +
+            "   <property key='Logical' value='Not Configured' />" +
+            "  </data-source>" +
+            " </project-data-sources>" +
+            " <target-database dbcs-ref='DS0'>" +
+            "  <table id=\"TAB1830\" populated=\"true\" name=\"mm_project\" objectType=\"TABLE\" physicalName=\"MM_PROJECT\" remarks=\"\" >" +
+            "   <folder id=\"FOL1831\" populated=\"true\" name=\"Columns\" physicalName=\"Columns\" type=\"1\" >" +
+            "    <column id=\"COL1832\" populated=\"true\" autoIncrement=\"true\" autoIncrementSequenceName=\"mm_project_oid_seq\" name=\"project_oid\" nullable=\"0\" physicalName=\"PROJECT_OID\" precision=\"22\" primaryKeySeq=\"0\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+            "    <column id=\"COL1833\" populated=\"true\" autoIncrement=\"false\" name=\"FOLDER_OID\" nullable=\"1\" physicalName=\"FOLDER_OID\" precision=\"22\" referenceCount=\"2\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+            "    <column id=\"COL1834\" populated=\"true\" autoIncrement=\"false\" name=\"project_name\" nullable=\"1\" physicalName=\"PROJECT_NAME\" precision=\"80\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"12\" />" +
+            "   </folder>" +
+            "   <folder id=\"FOL1889\" populated=\"true\" name=\"Exported Keys\" physicalName=\"Exported Keys\" type=\"3\" >" +
+            "   </folder>" +
+            "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
+            "   </folder>" +
+            "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
+            "    <index id=\"IDX1894\" populated=\"true\" index-type=\"BTREE\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+            "     <index-column id=\"IDC1895\" populated=\"true\" ascendingOrDescending=\"UNSPECIFIED\" column-ref=\"COL1834\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
+            "    </index>" +
+            "   </folder>" +
+            "  </table>" +
+            " </target-database>" +
+            "</architect-project>";
+        
+        ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
+        project.load(r, plIni);
+        SQLTable table = session.getPlayPen().getTables().get(0);
+        assertEquals(AscendDescend.UNSPECIFIED, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+    }
+
 }

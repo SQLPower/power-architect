@@ -26,11 +26,11 @@ import javax.swing.ComboBoxModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectListener;
 
 /**
  * Combo box model that presents the list of a SQLObject's children as the
@@ -69,16 +69,16 @@ public class SQLObjectComboBoxModel implements ComboBoxModel {
             } else {
                 return parent.getChild(index);
             }
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
         }
     }
 
     public int getSize() {
         try {
             return parent.getChildCount();
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
         }
     }
 
@@ -119,10 +119,5 @@ public class SQLObjectComboBoxModel implements ComboBoxModel {
             // doesn't matter
         }
 
-        public void dbStructureChanged(SQLObjectEvent e) {
-            // I don't think these happen
-            fireListDataEvent(ListDataEvent.CONTENTS_CHANGED, 0, 0);
-        }
-        
     };
 }

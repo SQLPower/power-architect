@@ -22,7 +22,7 @@ import java.util.Map;
 
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
-import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.sqlobject.SQLObject;
 
 public class ArchitectTestCase extends TestCase {
 	

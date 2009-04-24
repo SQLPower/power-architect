@@ -44,7 +44,6 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
@@ -59,6 +58,7 @@ import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
@@ -92,7 +92,20 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      */
     private PlayPenCoordinate<T, C> insertionPoint;
 
-
+    /**
+     * Creates a copy of this OLAP pane suitable for use with printing or
+     * PDF generation. The new copy may not have all listeners set up properly
+     * for interactive use.
+     * 
+     * @param copyMe
+     *            the OLAP pane to copy.
+     */
+    protected OLAPPane(OLAPPane<T, C> copyMe, PlayPenContentPane parent) {
+        super(copyMe, parent);
+        sections.addAll(copyMe.sections); // XXX might need deep copy (could be tricky)
+        // don't worry about preserving selections
+    }
+    
     protected OLAPPane(PlayPenContentPane parent) {
         super(parent);
     }
@@ -141,10 +154,10 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * 
      * @return A DataEntryPanel for editting the OLAPObject, null if location is
      *         invalid.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      *             If creating an edit dialog failed.
      */
-    public abstract DataEntryPanel createEditDialog(PlayPenCoordinate<T, C> coord) throws ArchitectException;
+    public abstract DataEntryPanel createEditDialog(PlayPenCoordinate<T, C> coord) throws SQLObjectException;
     
     @Override
     public void handleMouseEvent(MouseEvent evt) {

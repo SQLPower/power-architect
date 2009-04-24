@@ -23,9 +23,9 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
 
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
 // TODO: override to_identifier routine to ensure identifier names are legal
 // and unique for DB2.  See the Oracle, SQL Server, and Postgres DDL generators

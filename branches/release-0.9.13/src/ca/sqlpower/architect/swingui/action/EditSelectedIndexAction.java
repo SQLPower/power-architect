@@ -39,12 +39,12 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * An action that, when invoked, examines the selection in the DBTree and pops up
@@ -88,8 +88,8 @@ public class EditSelectedIndexAction extends EditIndexAction {
                 si = (SQLIndex) so;
                 try {
                     makeDialog(si);
-                } catch (ArchitectException e) {
-                    throw new ArchitectRuntimeException(e);
+                } catch (SQLObjectException e) {
+                    throw new SQLObjectRuntimeException(e);
                 } 
             } else {
                 JOptionPane.showMessageDialog(dbt, Messages.getString("EditSelectedIndexAction.instructions")); //$NON-NLS-1$

@@ -22,8 +22,13 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLDatabaseMapping;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.util.UserPrompterFactory;
 
-public interface ArchitectSession extends UserPrompterFactory {
+public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMapping {
 
     public static final String PREFS_PL_INI_PATH = "PL.INI.PATH";
     
@@ -81,9 +86,9 @@ public interface ArchitectSession extends UserPrompterFactory {
      *  so DON'T DELETE THIS METHOD even if it looks like it's unused.
      * 
      * @param databases
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException;
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException;
     
     /**
      * The DDL Generator currently in use for this session.
@@ -95,7 +100,4 @@ public interface ArchitectSession extends UserPrompterFactory {
      */
     public void setDDLGenerator(DDLGenerator generator);
 
-    /* docs inherit from interface */
-    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText);
-    
 }

@@ -32,14 +32,14 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSequence;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSequence;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.Monitorable;
 
 /**
@@ -218,9 +218,9 @@ public class ConflictResolver implements Monitorable {
      * 
      * @return a list of object names that need to be removed before ddlStmt
      *         will succeed.
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
-    public void findConflicting() throws SQLException, ArchitectException {
+    public void findConflicting() throws SQLException, SQLObjectException {
    		doingFindConflicting = true;
    		Connection con = null;
    		try {
@@ -300,9 +300,9 @@ public class ConflictResolver implements Monitorable {
      * Drops the conflicting objects which findConflicting() found in the target database.
      * 
      * @throws SQLException
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
-    public void dropConflicting() throws SQLException, ArchitectException {
+    public void dropConflicting() throws SQLException, SQLObjectException {
     		if (conflicts == null) {
     			throw new IllegalStateException("You have to call findConflicting() before dropConflicting()");
     		}

@@ -21,7 +21,7 @@ package ca.sqlpower.architect;
 
 import org.apache.commons.beanutils.Converter;
 
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 
 
 /**

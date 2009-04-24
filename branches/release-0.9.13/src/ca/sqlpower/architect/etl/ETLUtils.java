@@ -25,9 +25,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class ETLUtils {
     
@@ -43,11 +43,11 @@ public class ETLUtils {
      * target tables, and the value set is all target tables.  If a particular
      * target table has no columns with source columns defined, it will be
      * in the mapping <tt>{ null -&gt; [tables, ...] }</tt>.
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
     public static Map<SQLTable, Collection<SQLTable>> 
                 findTableLevelMappings(Collection<SQLTable> targetTables)
-                throws ArchitectException {
+                throws SQLObjectException {
         Map<SQLTable, Collection<SQLTable>> mappings = new HashMap<SQLTable, Collection<SQLTable>>();
         
         for (SQLTable t : targetTables) {

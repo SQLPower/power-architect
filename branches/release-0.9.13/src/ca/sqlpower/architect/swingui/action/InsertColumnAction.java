@@ -24,27 +24,27 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class InsertColumnAction extends AbstractTableTargetedAction {
 	private static final Logger logger = Logger.getLogger(InsertColumnAction.class);
 	
 	public InsertColumnAction(ArchitectSwingSession session) {
         super(session, Messages.getString("InsertColumnAction.name"), Messages.getString("InsertColumnAction.description"), "new_column"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+		putValue(ACTION_COMMAND_KEY, PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
 		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_C,0));
 		setEnabled(false);
 	}
 
 
 
-    void processSQLObject(SQLObject so) throws ArchitectException {
+    void processSQLObject(SQLObject so) throws SQLObjectException {
         SQLTable st = null;
         int idx = 0;
         if (so instanceof SQLTable) {
@@ -59,22 +59,26 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         	st = sc.getParentTable();
         	idx = st.getColumnIndex(sc);
         	if (idx == -1)  {
-        		// not found
-        		logger.debug("did not find column, inserting at start of table."); //$NON-NLS-1$
-        		idx = 0;
+        	    throw new IllegalStateException("Selected column '" + sc.getName() + 
+        	            "' could not be found in parent table '" + st.getName() + "'");
+        	} else {
+        	    //This is so that the column is added after the selected the column
+        	    idx++;
         	}
         }
         if (st == null) {
             throw new NullPointerException("The SQLObject must be a instance of SQLTable or SQLColumn");
-        } else {
-            st.addColumn(idx, new SQLColumn());
         }
+        
+        // Expecting the playpen and dbtree selctions to be synchronized.
+        TablePane tp = (TablePane) playpen.getSelectedItems().get(0);
+        
         EditColumnAction editColumnAction = new EditColumnAction(session);
-        editColumnAction.showDialog(st, idx);
+        editColumnAction.showDialog(st, idx, true, tp);
         
     }
 
-    void processTablePane(TablePane tp) throws ArchitectException {
+    void processTablePane(TablePane tp) throws SQLObjectException {
         int idx = tp.getSelectedItemIndex();
         
         if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();
@@ -82,7 +86,9 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         EditColumnAction editColumnAction = new EditColumnAction(session);
         
         //The actual column is added to the table when the user presses OK
-        editColumnAction.showDialog(tp.getModel(), idx,true, tp);
+        //Its added to the end of the table, if a table is selected or added right after
+        //the selected column
+        editColumnAction.showDialog(tp.getModel(), (tp.getSelectedItemIndex() < 0? idx: idx+1), true, tp);
     }
 
     @Override

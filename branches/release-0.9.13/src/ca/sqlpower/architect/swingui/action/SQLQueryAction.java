@@ -21,10 +21,10 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.JDialog;
+import javax.swing.JFrame;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.query.QueryDialog;
+import ca.sqlpower.architect.swingui.query.QueryFrame;
 
 /**
  * An action that opens a SQLQuery panel.
@@ -39,7 +39,7 @@ public class SQLQueryAction extends AbstractArchitectAction  {
     }
     
     public void actionPerformed(ActionEvent e) {
-        JDialog sqlQueryDialog = new QueryDialog(session, session.getArchitectFrame(), Messages.getString("SQLQueryAction.dialogTitle"));
+        JFrame sqlQueryDialog = new QueryFrame(session, Messages.getString("SQLQueryAction.dialogTitle"));
         sqlQueryDialog.setVisible(true);
         
         

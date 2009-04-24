@@ -31,7 +31,7 @@ import javax.swing.event.ChangeListener;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.undo.NotifyingUndoManager;
+import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 
 public class UndoAction extends AbstractArchitectAction {
 	

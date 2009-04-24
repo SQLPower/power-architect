@@ -31,10 +31,10 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.MonitorableImpl;
 import ca.sqlpower.util.reservoir.BasicReservoir;
 import ca.sqlpower.util.reservoir.JDBCReserviorDataSource;
@@ -76,7 +76,7 @@ public class LocalReservoirProfileCreator extends AbstractTableProfileCreator {
     
     @Override
     protected boolean doProfileImpl(TableProfileResult tpr) 
-    throws ReservoirDataException, SQLException, ArchitectException {
+    throws ReservoirDataException, SQLException, SQLObjectException {
         Connection con = null;
         Object[][] sample = null;
         SQLTable table = tpr.getProfiledObject();

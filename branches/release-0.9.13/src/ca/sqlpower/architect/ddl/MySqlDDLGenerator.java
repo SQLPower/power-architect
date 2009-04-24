@@ -24,20 +24,21 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
 public class MySqlDDLGenerator extends GenericDDLGenerator {
 
@@ -363,29 +364,34 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         return null;
     }
 
+    /**
+     * Overridden because MySQL doesn't allow the naming of PK constraints. This
+     * version's text begins with "PRIMARY KEY" and is otherwise the same as the
+     * generic method it overrides.
+     */
     @Override
-    protected void addPrimaryKeysToCreateTable(SQLTable t) throws ArchitectException {
-        logger.debug("Adding Primary keys");
+    protected void writePKConstraintClause(SQLIndex pk) throws SQLObjectException {
+        if (!pk.isPrimaryKeyIndex()) {
+            throw new IllegalArgumentException("The given index is not a primary key");
+        }
+        createPhysicalName(topLevelNames, pk);
+        print("PRIMARY KEY (");
 
-        Iterator it = t.getColumns().iterator();
         boolean firstCol = true;
-        while (it.hasNext()) {
-            SQLColumn col = (SQLColumn) it.next();
-            if (col.getPrimaryKeySeq() == null)
-                break;
-            if (firstCol) {
-                print(",\n                PRIMARY KEY (");
-                firstCol = false;
-            } else {
-                print(", ");
-            }
+        for (SQLIndex.Column col : pk.getChildren()) {
+            if (!firstCol) print(", ");
             print(col.getPhysicalName());
+            firstCol = false;
         }
-        if (!firstCol) {
-            print(")");
-        }
+        print(")");
     }
 
+    @Override
+    public void dropPrimaryKey(SQLTable t) {
+        print("\nALTER TABLE " + toQualifiedName(t.getName()) + " DROP PRIMARY KEY");
+        endStatement(DDLStatement.StatementType.DROP, t);
+    }
+    
     public void dropRelationship(SQLRelationship r) {
 
         print("\nALTER TABLE ");
@@ -394,42 +400,6 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         print(" DROP FOREIGN KEY ");
         print(r.getName());
         endStatement(DDLStatement.StatementType.DROP, r);
-    }
-
-    /*
-     * The primary key name in MySQL is completely ignored. Every primary key is
-     * named PRIMARY so we don't have to do any checking of name conflicts for
-     * the primary key. We don't even have to specify a name for the primary
-     * key.
-     * 
-     * @see ca.sqlpower.architect.ddl.GenericDDLGenerator#writePrimaryKey(ca.sqlpower.architect.SQLTable)
-     */
-    @Override
-    protected void writePrimaryKey(SQLTable t) throws ArchitectException {
-        logger.debug("Writing the primary key of " + t.getName());
-        boolean firstCol = true;
-        Iterator it = t.getColumns().iterator();
-        while (it.hasNext()) {
-            SQLColumn col = (SQLColumn) it.next();
-            if (col.getPrimaryKeySeq() == null)
-                break;
-            if (firstCol) {
-                // generate a unique primary key name
-                println("");
-                print("ALTER TABLE ");
-                print(toQualifiedName(t));
-                print(" ADD CONSTRAINT ");
-                print("PRIMARY KEY (");
-                firstCol = false;
-            } else {
-                print(", ");
-            }
-            print(col.getPhysicalName());
-        }
-        if (!firstCol) {
-            print(")");
-            endStatement(DDLStatement.StatementType.ADD_PK, t);
-        }
     }
 
     /**
@@ -445,7 +415,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     }
 
     @Override
-    public void addIndex(SQLIndex index) throws ArchitectException {
+    public void addIndex(SQLIndex index) throws SQLObjectException {
 
         createPhysicalName(topLevelNames, index);
 
@@ -460,7 +430,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             print(" USING " + index.getType());
         }
         print("\n ON ");
-        print(index.getParentTable().getName());
+        print(toQualifiedName(index.getParentTable()));
         print("\n ( ");
 
         boolean first = true;
@@ -523,6 +493,36 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         }
     }
 
+    @Override
+    public void addColumn(SQLColumn c) {
+        Map colNameMap = new HashMap();
+        print("\nALTER TABLE ");
+        print(toQualifiedName(c.getParentTable()));
+        print(" ADD COLUMN ");
+        print(columnDefinition(c,colNameMap));
+        
+        /* MySQL supports adding a column at a particular position
+         * instead of always being the last column
+         */
+        try {
+            int colPosition = c.getParent().getChildren().indexOf(c);
+            if (colPosition == 0) {
+                print(" FIRST");
+            } else if (colPosition > 0) {
+                SQLObject precedingColumn = c.getParent().getChild(colPosition - 1);
+                print(" AFTER " + precedingColumn.getPhysicalName());
+            } else {
+                throw new IllegalStateException(
+                        "Column " + c + " is not a child of its parent!" +
+                        " Children are: " + c.getParent().getChildren());
+            }
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
+        }
+        
+        endStatement(DDLStatement.StatementType.CREATE, c);
+    }
+    
     @Override
     public void modifyColumn(SQLColumn c) {
         Map colNameMap = new HashMap();

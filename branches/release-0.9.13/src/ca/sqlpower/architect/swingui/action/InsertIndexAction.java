@@ -25,14 +25,14 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.IndexEditPanel;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class InsertIndexAction extends AbstractTableTargetedAction {
@@ -41,7 +41,7 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
     
     public InsertIndexAction(ArchitectSwingSession session) {
         super(session, Messages.getString("InsertIndexAction.name"), Messages.getString("InsertIndexAction.description"), "new_index"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        putValue(ACTION_COMMAND_KEY, PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I, 0));
         setEnabled(false);
     }
@@ -56,18 +56,18 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
 
 
     @Override
-    void processSQLObject(SQLObject so) throws ArchitectException {
+    void processSQLObject(SQLObject so) throws SQLObjectException {
         if (so instanceof SQLTable) {
             makeDialog((SQLTable) so);
         }
     }
 
     @Override
-    void processTablePane(TablePane tp) throws ArchitectException {
+    void processTablePane(TablePane tp) throws SQLObjectException {
         makeDialog(tp.getModel());
     }
     
-    private void makeDialog(SQLTable parent) throws ArchitectException {
+    private void makeDialog(SQLTable parent) throws SQLObjectException {
         
         // This feature has been disabled because it needs a lot of
         // work so that it (a) makes sense, and (b) doesn't put your

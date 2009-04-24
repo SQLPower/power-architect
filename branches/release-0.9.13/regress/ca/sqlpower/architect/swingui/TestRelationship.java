@@ -18,16 +18,15 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Color;
 import java.awt.Point;
 import java.sql.Types;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestRelationship extends TestPlayPenComponent<Relationship> {
 
@@ -68,10 +67,10 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         copySameInstanceIgnoreProperties.add("pkTable");
 	}
 	
-    public void testHighlightWithRelationshipTypeChange() throws ArchitectException {               
+    public void testHighlightWithRelationshipTypeChange() throws SQLObjectException {               
         rel.setSelected(true,SelectionEvent.SINGLE_SELECT);
-        assertEquals(Color.RED,tp1.getColumnHighlight(0));
-        assertEquals(Color.RED,tp2.getColumnHighlight(1));
+        assertEquals(rel.getColumnHighlightColour(), tp1.getColumnHighlight(0));
+        assertEquals(rel.getColumnHighlightColour(), tp2.getColumnHighlight(1));
         assertEquals(tp2.getForegroundColor(), tp2.getColumnHighlight(0));
         rel.setSelected(false,SelectionEvent.SINGLE_SELECT);
         
@@ -82,14 +81,14 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         rel.setSelected(true,SelectionEvent.SINGLE_SELECT);
         rel.getModel().setIdentifying(true);       
         
-        assertEquals(Color.RED,tp1.getColumnHighlight(0));
+        assertEquals(rel.getColumnHighlightColour(), tp1.getColumnHighlight(0));
         SQLColumn fkCol = tp2.getModel().getColumnByName("fkcol");
         assertEquals(0, tp2.getModel().getColumnIndex(fkCol));
-        assertEquals(Color.RED,tp2.getColumnHighlight(0));
+        assertEquals(rel.getColumnHighlightColour(), tp2.getColumnHighlight(0));
         assertEquals(tp2.getForegroundColor(), tp2.getColumnHighlight(1));      
     }
     
-    private void setupRefCountTests(SQLDatabase db, SQLTable pkTable, SQLTable fkTable, SQLRelationship sourceRel) throws ArchitectException {
+    private void setupRefCountTests(SQLDatabase db, SQLTable pkTable, SQLTable fkTable, SQLRelationship sourceRel) throws SQLObjectException {
         pkTable.setName("pkTable");
         pkTable.addColumn(new SQLColumn(pkTable, "PKTableCol1", Types.INTEGER, 1, 0));
         pkTable.addColumn(new SQLColumn(pkTable, "PKTableCol2", Types.INTEGER, 1, 0));
@@ -104,36 +103,39 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         sourceRel.attachRelationship(pkTable, fkTable, true);        
     }
     
-    public void testRefCountWithFkTableInsertedFirst() throws ArchitectException {
-        SQLDatabase db = new SQLDatabase();        
+    public void testRefCountWithFkTableInsertedFirst() throws SQLObjectException {
+        SQLDatabase db = new SQLDatabase(); 
+        pp.getSession().getRootObject().addChild(db);
         SQLTable fkTable = new SQLTable(db, true);
         SQLRelationship sourceRel = new SQLRelationship();
         SQLTable pkTable = new SQLTable(db, true);        
         setupRefCountTests(db,pkTable, fkTable, sourceRel);
         
-        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10));
-        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10));
+        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10), ASUtils.createDuplicateProperties(session, fkTable));
+        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10), ASUtils.createDuplicateProperties(session, pkTable));
                 
         assertEquals(2,FkPane.getModel().getColumn(0).getReferenceCount());
         assertEquals(1, PkPane.getModel().getColumn(0).getReferenceCount());    
     }
 
-    public void testRefCountWithPkTableInsertedFirst() throws ArchitectException {
+    public void testRefCountWithPkTableInsertedFirst() throws SQLObjectException {
         SQLDatabase db = new SQLDatabase();
+        pp.getSession().getRootObject().addChild(db);
         SQLTable fkTable = new SQLTable(db, true);
         SQLRelationship sourceRel = new SQLRelationship();
         SQLTable pkTable = new SQLTable(db, true);        
         setupRefCountTests(db, pkTable, fkTable, sourceRel);
         
-        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10));        
-        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10));
+        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10), ASUtils.createDuplicateProperties(session, pkTable));        
+        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10), ASUtils.createDuplicateProperties(session, fkTable));
 
         assertEquals(2, FkPane.getModel().getColumn(0).getReferenceCount());
         assertEquals(1, PkPane.getModel().getColumn(0).getReferenceCount());    
     }
     
-    public void testRefCountWithMultipleTablesInserted() throws ArchitectException{
+    public void testRefCountWithMultipleTablesInserted() throws SQLObjectException{
         SQLDatabase db = new SQLDatabase();
+        pp.getSession().getRootObject().addChild(db);
         SQLTable fkTable = new SQLTable(db, true);
         SQLRelationship sourceRel = new SQLRelationship();
         SQLTable pkTable = new SQLTable(db, true);        
@@ -146,9 +148,9 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         newRel.attachRelationship(pkTable,fkTable2, true);
                
         
-        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10));        
-        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10));
-        TablePane FkPane2 = pp.importTableCopy(fkTable2, new Point(10, 10));               
+        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10), ASUtils.createDuplicateProperties(session, pkTable));        
+        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10), ASUtils.createDuplicateProperties(session, fkTable));
+        TablePane FkPane2 = pp.importTableCopy(fkTable2, new Point(10, 10), ASUtils.createDuplicateProperties(session, fkTable2));               
         
         assertEquals (1, PkPane.getModel().getColumn(0).getReferenceCount());
         assertEquals (2, FkPane.getModel().getColumn(0).getReferenceCount());
