@@ -31,17 +31,19 @@ import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectPreEvent;
-import ca.sqlpower.architect.SQLObjectPreEventListener;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.UserPrompter;
-import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectPreEvent;
+import ca.sqlpower.sqlobject.SQLObjectPreEventListener;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
 /**
  * The default ProfileManager implementation. Creates profiles of tables,
@@ -66,8 +68,8 @@ public class ProfileManagerImpl implements ProfileManager {
                     "{0} tables have been profiled from the database {1}.\n" +
                     "\n" +
                     "If you proceed, the profiling information from the database" +
-                    " will be removed.",
-                    "Remove Profiles", "Keep Profiles", "Cancel");
+                    " will be removed.", UserPromptType.BOOLEAN, UserPromptOptions.OK_NOTOK_CANCEL, UserPromptResponse.OK, 
+                    Boolean.TRUE, "Remove Profiles", "Keep Profiles", "Cancel");
             for (SQLObject so : e.getChildren()) {
                 SQLDatabase db = (SQLDatabase) so;
                 List<TableProfileResult> refs = new ArrayList<TableProfileResult>(); 
@@ -195,7 +197,7 @@ public class ProfileManagerImpl implements ProfileManager {
     }
     
     /* docs inherited from interface */
-    public TableProfileResult createProfile(SQLTable table) throws ArchitectException {
+    public TableProfileResult createProfile(SQLTable table) throws SQLObjectException {
         TableProfileResult tpr = new TableProfileResult(table, getDefaultProfileSettings());
         addResults(Collections.singletonList(tpr));
         
@@ -205,7 +207,7 @@ public class ProfileManagerImpl implements ProfileManager {
         } catch (InterruptedException ex) {
             logger.info("Profiling was interrupted (likely because this manager is being shut down)");
         } catch (ExecutionException ex) {
-            throw new ArchitectException("Profile execution failed", ex);
+            throw new SQLObjectException("Profile execution failed", ex);
         }
         
         return tpr;

@@ -20,7 +20,7 @@ package ca.sqlpower.architect.ddl;
 
 import java.util.List;
 
-import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * A DDLWarning for invalid name that can be fixed by calling setName() on
@@ -41,13 +41,13 @@ public class InvalidNameDDLWarning extends AbstractDDLWarning {
                 true,
                 quickFixMesssage,
                 whichObjectQuickFixRenames,
-                "name");
+                "physicalName");
         this.whatQuickFixShouldCallIt = whatQuickFixShouldCallIt;
     }
 
     public boolean quickFix() {
         // XXX need differentiator for setName() vs setPhysicalName()
-        whichObjectQuickFixFixes.setName(whatQuickFixShouldCallIt);
+        whichObjectQuickFixFixes.setPhysicalName(whatQuickFixShouldCallIt);
         return true;
     }
 }

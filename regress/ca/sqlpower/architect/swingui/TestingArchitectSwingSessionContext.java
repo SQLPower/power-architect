@@ -19,21 +19,24 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Window;
+import java.awt.datatransfer.Transferable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.prefs.Preferences;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.swingui.RecentMenu;
 
 /**
  * Minimally functional session context implementation that creates and returns an instance of
@@ -44,6 +47,7 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
     private Preferences prefs;
     private CoreUserSettings userSettings;
     private RecentMenu recent;
+    private final List<ArchitectSession> sessions = new ArrayList<ArchitectSession>();
     
     /**
      * The parsed list of connections.
@@ -71,24 +75,26 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
         setPlDotIniPath(newPlIniFile.getPath());
     }
     
-    public ArchitectSwingSession createSession() throws ArchitectException {
-        return new TestingArchitectSwingSession(this);
+    public ArchitectSwingSession createSession() throws SQLObjectException {
+        ArchitectSwingSession session = new TestingArchitectSwingSession(this);
+        sessions.add(session);
+        return session;
     }
 
-    public ArchitectSession createSession(InputStream in) throws ArchitectException, IOException {
+    public ArchitectSession createSession(InputStream in) throws SQLObjectException, IOException {
         return this.createSession();
     }
     
-    public ArchitectSwingSession createSession(boolean showGUI) throws ArchitectException {
+    public ArchitectSwingSession createSession(boolean showGUI) throws SQLObjectException {
         return this.createSession();
     }
     
-    public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws ArchitectException {
+    public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws SQLObjectException {
         return this.createSession();
     }
     
     public Collection<ArchitectSession> getSessions() {
-        return null;
+        return sessions;
     }
 
     public Preferences getPrefs() {
@@ -107,7 +113,7 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
         return MAC_OS_X;
     }
 
-    public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, FileNotFoundException, IOException {
+    public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws SQLObjectException, FileNotFoundException, IOException {
         return null;
     }
 
@@ -159,14 +165,14 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
             try {
                 plDotIni.read(getClass().getClassLoader().getResourceAsStream("ca/sqlpower/sql/default_database_types.ini"));
             } catch (IOException e) {
-                throw new ArchitectRuntimeException(new ArchitectException("Failed to read system resource default_database_types.ini",e));
+                throw new SQLObjectRuntimeException(new SQLObjectException("Failed to read system resource default_database_types.ini",e));
             }
             try {
                 if (plDotIni != null) {
                     plDotIni.read(new File(path));
                 }
             } catch (IOException e) {
-                throw new ArchitectRuntimeException(new ArchitectException("Failed to read pl.ini at \""+getPlDotIniPath()+"\"", e));
+                throw new SQLObjectRuntimeException(new SQLObjectException("Failed to read pl.ini at \""+getPlDotIniPath()+"\"", e));
             }
         }
         return plDotIni;
@@ -182,5 +188,13 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
         }
         this.plDotIniPath = plDotIniPath;
         this.plDotIni = null;
+    }
+
+    public Transferable getClipboardContents() {
+        throw new IllegalStateException("Getting clipboard contents not currently implemented.");
+    }
+
+    public void setClipboardContents(Transferable t) {
+        throw new IllegalStateException("Setting clipboard contents not currently implemented.");        
     }
 }

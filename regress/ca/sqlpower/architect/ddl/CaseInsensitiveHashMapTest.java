@@ -20,8 +20,8 @@ package ca.sqlpower.architect.ddl;
 
 import java.util.Map;
 
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 
 import junit.framework.TestCase;
 

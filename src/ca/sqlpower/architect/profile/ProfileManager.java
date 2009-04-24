@@ -23,9 +23,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * An interface for classes that create and keep track of ProfileResults.
@@ -69,7 +69,7 @@ public interface ProfileManager {
      *
      * @param tables The database table(s) you want to profile.
      */
-    public TableProfileResult createProfile(SQLTable table) throws SQLException, ArchitectException;
+    public TableProfileResult createProfile(SQLTable table) throws SQLException, SQLObjectException;
 
     /**
      * Creates TableProfileResult objects for each of the tables in the

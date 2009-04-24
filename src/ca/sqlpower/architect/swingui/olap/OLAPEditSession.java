@@ -284,7 +284,9 @@ public class OLAPEditSession implements OLAPChildListener {
      * called automatically when the Architect swing session closes.
      */
     public void close() {
-        frame.dispose();
+        if (frame != null) {
+            frame.dispose();
+        }
     }
     
     /**

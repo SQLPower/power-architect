@@ -21,8 +21,6 @@ package ca.sqlpower.architect.swingui.olap.action;
 
 import java.util.List;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
@@ -32,6 +30,8 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.LevelEditPanel;
 import ca.sqlpower.architect.swingui.olap.OSUtils;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Level> {
@@ -89,8 +89,8 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
     protected DataEntryPanel createDataEntryPanel(Level model) {
         try {
             return new LevelEditPanel(model);
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
         }
     }
 

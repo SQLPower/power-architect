@@ -24,15 +24,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class AlignTableActionTest extends TestCase {
 
@@ -98,7 +98,7 @@ public class AlignTableActionTest extends TestCase {
         selections.add(t3);
         try {
             pp.selectObjects(selections);
-        } catch (ArchitectException e) {
+        } catch (SQLObjectException e) {
             System.out.println("Error in selecting tables in TestAlignTableAction");
             e.printStackTrace();
         }
@@ -116,7 +116,7 @@ public class AlignTableActionTest extends TestCase {
         selections.add(t3);
         try {
             pp.selectObjects(selections);
-        } catch (ArchitectException e) {
+        } catch (SQLObjectException e) {
             System.out.println("Error in selecting tables in TestAlignTableAction");
             e.printStackTrace();
         }

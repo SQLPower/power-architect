@@ -21,10 +21,10 @@ package ca.sqlpower.architect.diff;
 import java.util.Comparator;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.StubSQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.StubSQLObject;
 
 public class SQLComparatorTest extends TestCase {
 	Comparator<SQLObject> comparator = new SQLObjectComparator();
@@ -41,14 +41,14 @@ public class SQLComparatorTest extends TestCase {
 		// e1.equals((Object)e2)
 	}
 	
-	public void testForObjectCompareToNull() throws ArchitectException{
+	public void testForObjectCompareToNull() throws SQLObjectException{
 		SQLTable t = new SQLTable();
 		t.setName("Testing");
 		assertEquals (1, comparator.compare(t, null));
 		assertEquals (-1, comparator.compare(null, t));		
 	}
 	
-	public void testForObjectCompareToObject() throws ArchitectException{
+	public void testForObjectCompareToObject() throws SQLObjectException{
 		SQLTable t1 = new SQLTable();
 		SQLTable t2 = new SQLTable();
 		t1.setName("cow");
@@ -56,13 +56,13 @@ public class SQLComparatorTest extends TestCase {
 		assertTrue( comparator.compare(t1,t2) < 0);
 	}
 	
-	public void testWithNullName() throws ArchitectException {
+	public void testWithNullName() throws SQLObjectException {
 		SQLTable t1 = new SQLTable();
 		SQLTable t2 = new SQLTable();
 		assertEquals(0, comparator.compare(t1,t2));		
 	}
 	
-	public void testWithSameName() throws ArchitectException{
+	public void testWithSameName() throws SQLObjectException{
 		SQLTable t1 = new SQLTable();
 		SQLTable t2 = new SQLTable();
 		t1.setName("cow");

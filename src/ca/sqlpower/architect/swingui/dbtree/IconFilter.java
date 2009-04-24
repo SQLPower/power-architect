@@ -21,7 +21,7 @@ package ca.sqlpower.architect.swingui.dbtree;
 
 import javax.swing.Icon;
 
-import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * This interface is a hook into the DBTreeCellRenderer that allows clients

@@ -30,11 +30,11 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.PlayPen.CancelableListener;
-import ca.sqlpower.architect.swingui.PlayPen.CursorManager;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.OLAPPane;
+import ca.sqlpower.swingui.CursorManager;
 
 /**
  * Abstract action that makes it easy to implement new *usage-creating actions.

@@ -25,10 +25,10 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
 /**
  * Implements the quirks required for successful DDL generation that targets
@@ -40,6 +40,8 @@ import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
  */
 public class HSQLDBDDLGenerator extends GenericDDLGenerator {
     
+    public static final String GENERATOR_VERSION = "$Revision: 2933 $";
+
     public HSQLDBDDLGenerator() throws SQLException {
         super();
     }
@@ -141,5 +143,10 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
         } else {
             return super.getDeleteActionClause(r);
         }
+    }
+    
+    @Override
+    public String toString() {
+        return "SQL Power HSQLDB DDL Generator " + GENERATOR_VERSION;
     }
 }

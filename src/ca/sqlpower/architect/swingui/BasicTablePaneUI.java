@@ -32,19 +32,30 @@ import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListener, java.io.Serializable {
 	private static Logger logger = Logger.getLogger(BasicTablePaneUI.class);
 
+	private static final GenericDDLGenerator ddlg;
+	static {
+        try {
+            ddlg = new GenericDDLGenerator(false);                    
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+	}
+	
 	/**
 	 * The TablePane component that this UI delegate works for.
 	 */
@@ -218,7 +229,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			    // draws the column
 			    currentColor = tp.getColumnHighlight(i);
 			    g2.setColor(currentColor == null ? Color.BLACK : currentColor);
-			    g2.drawString(col.getShortDisplayName() + getColumnTag(col, tp),
+			    g2.drawString(columnText(col),
 			            BOX_LINE_THICKNESS+tp.getMargin().left,
 			            y += fontHeight);
 			    i++;
@@ -270,12 +281,31 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			}
 			
 			g.translate(-insets.left, -insets.top);
-		} catch (ArchitectException e) {
+		} catch (SQLObjectException e) {
 			logger.warn("BasicTablePaneUI.paint failed", e); //$NON-NLS-1$
 		}
 	}
 
-	public Dimension getPreferredSize() {
+    /**
+     * Generates the string to be displayed for the given column. Includes the column's name,
+     * data type, and any "tags" (such as PK and FK) are enabled in the user prefs.
+     * 
+     * @param col The column to create the text for
+     * @return The text that should be displayed for the given column
+     */
+	private String columnText(SQLColumn col) {
+        StringBuilder displayName = new StringBuilder(50);
+        if (tablePane.isUsingLogicalNames()) {
+            displayName.append(col.getName()).append(": ");
+        } else {
+            displayName.append(col.getPhysicalName()).append(": ");
+        }
+        displayName.append(ddlg.getColumnDataTypeName(col));
+        displayName.append(getColumnTag(col));
+        return displayName.toString();
+    }
+
+    public Dimension getPreferredSize() {
 		return getPreferredSize(tablePane);
 	}
 	
@@ -307,7 +337,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 					logger.error("Found null column in table '"+table.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
 					throw new NullPointerException("Found null column in table '"+table.getName()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
 				}
-				itemsToCheck.add(col.toString() + getColumnTag(col, c));
+				itemsToCheck.add(columnText(col));
 			}
 			itemsToCheck.add(getTitleString(c));   // this works as long as the title uses the same font as the columns
 			for(String item : itemsToCheck) {
@@ -320,7 +350,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 				logger.debug("new width is: " + width); //$NON-NLS-1$
 			}
 			width += insets.left + c.getMargin().left + BOX_LINE_THICKNESS*2 + c.getMargin().right + insets.right;
-		} catch (ArchitectException e) {
+		} catch (SQLObjectException e) {
 			logger.warn("BasicTablePaneUI.getPreferredSize failed due to", e); //$NON-NLS-1$
 			width = 100;
 			height = 100;
@@ -439,10 +469,10 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
             fqn.append(db);
             if (cat != null) fqn.append('.').append(cat);
             if (sch != null) fqn.append('.').append(sch);
-            fqn.append('.').append(tp.getModel().getName());
+            fqn.append('.').append(tp.isUsingLogicalNames()? tp.getModel().getName():tp.getModel().getPhysicalName());
             return fqn.toString();
         } else {
-            return tp.getModel().getName();
+            return tp.isUsingLogicalNames()? tp.getModel().getName():tp.getModel().getPhysicalName();
         }
     }
 
@@ -467,22 +497,22 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
     /**
      * Determines what tag to append to the given column
      */
-    private String getColumnTag(SQLColumn col, TablePane tp) {
+    private String getColumnTag(SQLColumn col) {
         StringBuffer tag = new StringBuffer();
         StringBuffer fullTag = new StringBuffer();
         boolean isPK = col.isPrimaryKey();
         boolean isFK = col.isForeignKey();
         boolean isAK = col.isUniqueIndexed() && !isPK;
         boolean emptyTag = true;
-        if (tp.isShowPkTag() && isPK) {
+        if (tablePane.isShowPkTag() && isPK) {
             tag.append("P"); //$NON-NLS-1$
             emptyTag = false;
         } 
-        if (tp.isShowFkTag() && isFK) {
+        if (tablePane.isShowFkTag() && isFK) {
             tag.append("F"); //$NON-NLS-1$
             emptyTag = false;
         }
-        if (tp.isShowAkTag() && isAK) {
+        if (tablePane.isShowAkTag() && isAK) {
             tag.append("A"); //$NON-NLS-1$
             emptyTag = false;
         }

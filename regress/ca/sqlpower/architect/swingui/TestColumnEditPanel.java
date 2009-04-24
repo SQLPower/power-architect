@@ -22,12 +22,12 @@ import java.io.IOException;
 import java.sql.DatabaseMetaData;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLType;
 
 public class TestColumnEditPanel extends TestCase {
 	SQLDatabase db;
@@ -50,6 +50,7 @@ public class TestColumnEditPanel extends TestCase {
 		col3 = new SQLColumn(null,"Column 3",1,2,3);
 		col4 = new SQLColumn(null,"Column 4",1,2,3);	
 		
+		col2.setPhysicalName("Physical Name 2");
 		col2.setAutoIncrement(false);
 		col2.setNullable(DatabaseMetaData.columnNoNulls);
 		col2.setPrimaryKeySeq(0);
@@ -74,14 +75,14 @@ public class TestColumnEditPanel extends TestCase {
 		super.tearDown();
 	}
 
-	public void testSetComponentsToColumnValues() throws ArchitectException {
+	public void testSetComponentsToColumnValues() throws SQLObjectException {
 	    assertEquals(2, table.getColumnIndex(col3));
 	    assertEquals("The column we plan to edit should not be in PK",
                 null, col3.getPrimaryKeySeq());
 
 	    panel = new ColumnEditPanel(col3, session);
         
-		assertEquals("Wrong column name",col3.getName(),panel.getColName().getText());
+		assertEquals("Wrong column logical name",col3.getName(),panel.getColLogicalName().getText());
 		assertEquals("Wrong Precision",col3.getPrecision(),((Integer) (panel.getColPrec().getValue())).intValue());
 		assertEquals("Wrong type",col3.getType(),((SQLType)(panel.getColType().getSelectedItem())).getType());
 		assertEquals("Wrong Scale",col3.getScale(),((Integer) (panel.getColScale().getValue())).intValue());
@@ -92,7 +93,7 @@ public class TestColumnEditPanel extends TestCase {
 
         panel = new ColumnEditPanel(col2, session);
 
-        assertEquals("Wrong column name",col2.getName(),panel.getColName().getText());
+        assertEquals("Wrong column logical name",col2.getName(),panel.getColLogicalName().getText());
         assertEquals("Wrong Precision",col2.getPrecision(),((Integer) (panel.getColPrec().getValue())).intValue());
         assertEquals("Wrong type",col2.getType(),((SQLType)(panel.getColType().getSelectedItem())).getType());
         assertEquals("Wrong Scale",col2.getScale(),((Integer) (panel.getColScale().getValue())).intValue());
@@ -104,7 +105,8 @@ public class TestColumnEditPanel extends TestCase {
 
 	public void testApplyChanges() {
 
-		panel.getColName().setText("CHANGED");
+		panel.getColPhysicalName().setText("CHANGED");
+		panel.getColLogicalName().setText("Easier Use Column Name");
 		panel.getColPrec().setValue(new Integer(1234));
 		panel.getColType().setSelectedIndex(5);
 		panel.getColScale().setValue(new Integer(5432));
@@ -116,7 +118,8 @@ public class TestColumnEditPanel extends TestCase {
 		
 		panel.applyChanges();
 		assertEquals("Panel check boxes borked",true,panel.getColAutoInc().getModel().isSelected());
-		assertEquals("Wrong column name","CHANGED",col2.getName());
+		assertEquals("Wrong column physical name","CHANGED",col2.getPhysicalName());
+		assertEquals("Wrong column logical name","Easier Use Column Name",col2.getName());
 		assertEquals("Wrong Precision",1234,col2.getPrecision());
 		assertEquals("Wrong type",16,col2.getType());
 		assertEquals("Wrong Scale",5432,col2.getScale());
@@ -126,7 +129,8 @@ public class TestColumnEditPanel extends TestCase {
 	}
 
 	public void testDiscardChanges() {
-		panel.getColName().setText("CHANGED");
+		panel.getColPhysicalName().setText("CHANGED");
+		panel.getColLogicalName().setText("Easier Use Column Name");
 		panel.getColPrec().setValue(new Integer(1234));
 		panel.getColType().setSelectedIndex(5);
 		panel.getColScale().setValue(new Integer(5432));
@@ -135,7 +139,8 @@ public class TestColumnEditPanel extends TestCase {
 		panel.getColNullable().getModel().setSelected(true);
 		panel.discardChanges();
 		
-		assertEquals("Wrong column name","Column 2",col2.getName());
+		assertEquals("Wrong column physical name","Physical Name 2",col2.getPhysicalName());
+		assertEquals("Wrong column logical name","Column 2",col2.getName());
 		assertEquals("Wrong Precision",3,col2.getPrecision());
 		assertEquals("Wrong type",2,col2.getType());
 		assertEquals("Wrong Scale",4,col2.getScale());
@@ -154,7 +159,7 @@ public class TestColumnEditPanel extends TestCase {
 		c2.setPrimaryKeySeq(1);
 		assertEquals(5, table.getColumns().size());
         assertTrue(c1.isPrimaryKey());
-        assertTrue(c1.isPrimaryKey());
+        assertTrue(c2.isPrimaryKey());
 		
         int previousIdx = table.getColumnIndex(table.getColumnByName("PKColumn 1"));
         ColumnEditPanel editPanel = new ColumnEditPanel(c1, session);
@@ -168,7 +173,7 @@ public class TestColumnEditPanel extends TestCase {
      * being selected.
      * @throws IOException 
      */
-    public void testColumnStaysSelectedWhenMovedToPK() throws ArchitectException, IOException {
+    public void testColumnStaysSelectedWhenMovedToPK() throws SQLObjectException, IOException {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
         PlayPen pp = new PlayPen(session);        

@@ -24,11 +24,11 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class SQLRelationshipComparatorTest extends TestCase {
 	
@@ -47,12 +47,12 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		left.addMapping(table1L.getColumn(0),table2L.getColumn(1));
 	}
 
-	public void testCompareRelationShipWithOneNull() throws ArchitectException {		
+	public void testCompareRelationShipWithOneNull() throws SQLObjectException {		
 		assertEquals("The source is null, should be -1", -1, relComparator.compare(null, left));
 		assertEquals("The target is null, should be 1", 1, relComparator.compare(left,null));
 	}
 		
-	public void testCompareSameRelationShip() throws ArchitectException {		
+	public void testCompareSameRelationShip() throws SQLObjectException {		
 		SQLTable table1R = makeTable(1);
 		SQLTable table2R = makeTable(3);
 		SQLRelationship right = new SQLRelationship();
@@ -62,7 +62,7 @@ public class SQLRelationshipComparatorTest extends TestCase {
 	}
 	
 
-	public void testCompareWithDifferentMappings() throws ArchitectException {		
+	public void testCompareWithDifferentMappings() throws SQLObjectException {		
 		SQLTable table1R = makeTable(1);
 		SQLTable table2R = makeTable(3);
 		SQLRelationship right = new SQLRelationship();
@@ -71,7 +71,7 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		assertNotSame("Shouldn't be same relationship", 0,relComparator.compare(left,right));
 	}
 	
-	public void testCompareWithExtraMapping() throws ArchitectException {
+	public void testCompareWithExtraMapping() throws SQLObjectException {
 		SQLTable table1R = makeTable(1);
 		SQLTable table2R = makeTable(3);
 		SQLRelationship right = new SQLRelationship();
@@ -81,7 +81,7 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		assertNotSame("Shouldn't be same relationship", 0,relComparator.compare(left,right));
 	}
 	
-	public void testCompareColumn() throws ArchitectException {
+	public void testCompareColumn() throws SQLObjectException {
 		Set<SQLColumn> list1 = generateColumnList(3);
 		Set<SQLColumn> list2 = generateColumnList(3);
 		assertEquals(0, relComparator.compareColumns(list1, list2));
@@ -91,7 +91,7 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		assertEquals(-1, relComparator.compareColumns(list2, list1));
 	}
 	
-	public Set<SQLColumn> generateColumnList(int num) throws ArchitectException {
+	public Set<SQLColumn> generateColumnList(int num) throws SQLObjectException {
 		Set<SQLColumn> colList = new TreeSet<SQLColumn>(comparator);
 		for (int ii=1; ii <= num; ii++){
 			colList.add(new SQLColumn(new SQLTable(),"col"+ii,Types.INTEGER,3, 0)); 
@@ -99,7 +99,7 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		return colList;
 	}
 	
-	private SQLTable makeTable(int i) throws ArchitectException {
+	private SQLTable makeTable(int i) throws SQLObjectException {
 		SQLTable t = new SQLTable(null, "table_"+i, "remark on this", "TABLE", true);
 		for (int j = 0; j < i; j++) {
 			t.addColumn(new SQLColumn(t, "column_"+j, Types.INTEGER, 3, 0));

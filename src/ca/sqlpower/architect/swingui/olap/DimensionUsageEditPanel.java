@@ -24,13 +24,13 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
 import ca.sqlpower.validation.swingui.NotNullValidator;
@@ -60,10 +60,10 @@ public class DimensionUsageEditPanel implements DataEntryPanel{
      * 
      * @param dimensionUsage
      *            usage The data model of the dimension usage to edit
-     * @throws ArchitectException
+     * @throws SQLObjectException
      *             if digging up the source table results in a database error
      */
-    public DimensionUsageEditPanel(DimensionUsage dimensionUsage) throws ArchitectException {
+    public DimensionUsageEditPanel(DimensionUsage dimensionUsage) throws SQLObjectException {
         this.dimensionUsage = dimensionUsage;
 
         FormLayout layout = new FormLayout("left:max(40dlu;pref), 3dlu, 80dlu:grow", "");

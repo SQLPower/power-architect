@@ -27,6 +27,7 @@ import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.swingui.ArchitectSwingUserSettings;
 import ca.sqlpower.architect.swingui.QFAUserSettings;
+import ca.sqlpower.sqlobject.SQLObjectException;
 
 /**
  * This class is ill-conceived. It's part of the core API, but it has direct references
@@ -109,7 +110,7 @@ public class CoreUserSettings {
      * Saves all the preferences that this class knows about back into the
      * prefs node.
      */
-    public void write() throws ArchitectException {
+    public void write() throws SQLObjectException {
         logger.debug("Saving user settings to java.util.prefs");
 
         prefs.putBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
@@ -127,7 +128,7 @@ public class CoreUserSettings {
         try {
             prefs.flush();
         } catch (BackingStoreException e) {
-            throw new ArchitectException("Unable to flush Java preferences", e);
+            throw new SQLObjectException("Unable to flush Java preferences", e);
         }
     }
     

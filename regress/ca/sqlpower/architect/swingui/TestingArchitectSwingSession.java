@@ -27,15 +27,10 @@ import java.util.List;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
 
-import ca.sqlpower.architect.AlwaysOKUserPrompter;
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObjectRoot;
-import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
@@ -43,10 +38,20 @@ import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
+import ca.sqlpower.util.DefaultUserPrompterFactory;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
 /**
  * Minimally functional session implementation that creates but does
@@ -75,13 +80,12 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private boolean showFkTag = true;
     private boolean showAkTag = true;
     
-    protected boolean showPrimary = true;
-    protected boolean showForeign = true;
-    protected boolean showIndexed = true;
-    protected boolean showUnique = true;
-    protected boolean showTheRest = true;
+    private boolean displayRelationshipLabel = false;
+    private boolean usingLogicalNames = false;
     
-    public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws ArchitectException {
+    private ColumnVisibility choice = ColumnVisibility.ALL;
+    
+    public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws SQLObjectException {
         this.context = context;
         this.recent = new RecentMenu(this.getClass()) {
             @Override
@@ -105,7 +109,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         try {
             ddlGenerator = new GenericDDLGenerator();
         } catch (SQLException e) {
-            throw new ArchitectException("SQL Error in ddlGenerator",e);
+            throw new SQLObjectException("SQL Error in ddlGenerator",e);
         }
 
         frame = new ArchitectFrame(this, null);
@@ -116,7 +120,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         printSettings = new PrintSettings();
     }
     
-    public TestingArchitectSwingSession(ArchitectSwingSessionContext context, SwingUIProject project) throws ArchitectException {
+    public TestingArchitectSwingSession(ArchitectSwingSessionContext context, SwingUIProject project) throws SQLObjectException {
         this(context);
     }
     
@@ -196,7 +200,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public void setSavingEntireSource(boolean argSavingEntireSource) {
     }
 
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
         while (rootObject.getChildCount() > 0) {
             rootObject.removeChild(rootObject.getChildCount() - 1);
         }
@@ -213,11 +217,11 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public void setKettleJob(KettleJob kettleJob) {
     }
 
-    public void initGUI() throws ArchitectException {
+    public void initGUI() throws SQLObjectException {
         throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
     }
 
-    public void initGUI(ArchitectSwingSession session) throws ArchitectException {
+    public void initGUI(ArchitectSwingSession session) throws SQLObjectException {
         throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
     }
     
@@ -266,10 +270,6 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         return rootObject;
     }
 
-    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-        return new AlwaysOKUserPrompter();
-    }
-
     public boolean isShowPkTag() {
         return showPkTag;
     }
@@ -303,46 +303,14 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         }
     }
     
-    public boolean isShowPrimary() {
-        return showPrimary;
+    public void setColumnVisibility(ColumnVisibility option) {
+        choice = option;
     }
-
-    public void setShowPrimary(boolean showPrimary) {
-        this.showPrimary = showPrimary;
+    
+    public  ColumnVisibility getColumnVisibility() {
+        return choice;
     }
-
-    public boolean isShowForeign() {
-        return showForeign;
-    }
-
-    public void setShowForeign(boolean showForeign) {
-        this.showForeign = showForeign;
-    }
-
-    public boolean isShowIndexed() {
-        return showIndexed;
-    }
-
-    public void setShowIndexed(boolean showIndexed) {
-        this.showIndexed = showIndexed;
-    }
-
-    public boolean isShowUnique() {
-        return showUnique;
-    }
-
-    public void setShowUnique(boolean showUnique) {
-        this.showUnique = showUnique;
-    }
-
-    public boolean isShowTheRest() {
-        return showTheRest;
-    }
-
-    public void setShowTheRest(boolean showTheRest) {
-        this.showTheRest = showTheRest;
-    }
-
+    
     public OLAPRootObject getOLAPRootObject() {
         return olapRootObject;
     }
@@ -374,4 +342,29 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         return printSettings;
     }
 
+    public UserPrompter createUserPrompter(String question, UserPromptType responseType, UserPromptOptions optionType, UserPromptResponse defaultResponseType,
+            Object defaultResponse, String ... buttonNames) {
+        return new DefaultUserPrompterFactory().createUserPrompter(question, responseType, optionType, defaultResponseType, defaultResponse, buttonNames);
+    }
+
+    public boolean isUsingLogicalNames() {
+       return usingLogicalNames;
+    }
+
+    public void setUsingLogicalNames(boolean usingLogicalNames) {
+        this.usingLogicalNames = usingLogicalNames;
+    }
+    
+    public boolean isDisplayRelationshipLabel() {
+        return displayRelationshipLabel;
+    }
+
+    public SQLDatabase getDatabase(SPDataSource ds) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void setDisplayRelationshipLabel(boolean displayRelationshipLabel) {
+        this.displayRelationshipLabel = displayRelationshipLabel;
+    }
 }

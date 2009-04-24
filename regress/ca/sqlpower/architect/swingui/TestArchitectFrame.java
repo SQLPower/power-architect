@@ -18,6 +18,10 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.prefs.Preferences;
+
 import junit.framework.TestCase;
 
 public class TestArchitectFrame extends TestCase {
@@ -31,6 +35,9 @@ public class TestArchitectFrame extends TestCase {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
 		session = context.createSession();
         af = session.getArchitectFrame();
+        
+        File tmp = File.createTempFile("Architect", "Test");
+        ArchitectFrame.main(new String[]{tmp.getAbsolutePath()});
 	}
 	
 	public void testAutoLayoutAction() {
@@ -38,5 +45,18 @@ public class TestArchitectFrame extends TestCase {
 		assertSame(session.getPlayPen(), af.getAutoLayoutAction().getPlayPen());
 		
 		// FIXME: should check that the toolbar button of the action exists!
+	}
+	
+	/**
+	 * Regression test for 1336. Loading a file from the command prompt should be remembered.
+	 */
+	public void testFileLoadFromCMDPrompt() throws Exception {
+	    Preferences prefs = Preferences.userNodeForPackage(ArchitectSwingSessionImpl.class);
+
+	    String recentFile = prefs.get("recentFile0", null);
+	    
+	    System.out.println(recentFile);
+	    System.out.println("Key count " + prefs.keys().length);
+	    System.out.println("Keys are " + Arrays.toString(prefs.keys()));
 	}
 }

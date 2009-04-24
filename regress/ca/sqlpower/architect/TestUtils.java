@@ -20,8 +20,6 @@
 package ca.sqlpower.architect;
 
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -68,29 +66,7 @@ public class TestUtils {
     	}
     	
     	// read them all back at the end in case there were dependencies between properties
-    	return TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
-    }
-
-    /**
-     * Gets all the settable properties on the given target object
-     * which are not in the given ignore set, and stuffs them into a Map.
-     * 
-     * @param target The object to change the properties of
-     * @param propertiesToIgnore The properties of target not to modify or read
-     * @return The aforementioned stuffed map
-     */
-    public static Map<String, Object> getAllInterestingProperties(Object target, Set<String> propertiesToIgnore) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-    	Map<String,Object> newDescription = new HashMap<String,Object>();
-    	PropertyDescriptor[] props = PropertyUtils.getPropertyDescriptors(target);
-    	for (int i = 0; i < props.length; i++) {
-    		if (PropertyUtils.isReadable(target, props[i].getName()) &&
-    				props[i].getReadMethod() != null &&
-    				!propertiesToIgnore.contains(props[i].getName())) {
-    			newDescription.put(props[i].getName(),
-    					PropertyUtils.getProperty(target, props[i].getName()));
-    		}
-    	}
-    	return newDescription;
+    	return ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
     }
 
 }

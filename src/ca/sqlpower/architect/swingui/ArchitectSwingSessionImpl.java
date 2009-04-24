@@ -42,18 +42,10 @@ import javax.swing.ToolTipManager;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLObjectRoot;
-import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
@@ -70,10 +62,22 @@ import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.swingui.ModalDialogUserPrompter;
+import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
 public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
@@ -134,19 +138,27 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private Set<SPSwingWorker> swingWorkers;
 
     private ProjectModificationWatcher projectModificationWatcher;
+    
+    private boolean displayRelationshipLabel = true;
 
     private boolean relationshipLinesDirect;
+    
+    private boolean usingLogicalNames = true;
 
     private boolean showPkTag = true;
     private boolean showFkTag = true;
     private boolean showAkTag = true;
-
-    private boolean showPrimary = true;
-    private boolean showForeign = true;
-    private boolean showIndexed = true;
-    private boolean showUnique = true;
-    private boolean showTheRest = true;
     
+    private ColumnVisibility columnVisibility = ColumnVisibility.ALL;
+    
+    public static enum ColumnVisibility {
+        ALL, 
+        PK, 
+        PK_FK, 
+        PK_FK_UNIQUE, 
+        PK_FK_UNIQUE_INDEXED;
+    }
+
     private List<OLAPEditSession> olapEditSessions;
     
     /**
@@ -159,6 +171,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * This will store the properties of the print panel.
      */
     private final PrintSettings printSettings;
+    
+    /**
+     * This user prompter factory will create all the necessary GUI user prompts
+     * for Architect.
+     */
+    private final SwingUIUserPrompterFactory swinguiUserPrompterFactory;
 
     /**
      * Creates a new swing session, including a new visible architect frame, with
@@ -166,10 +184,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * 
      * @param context
      * @param name
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
     ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, String name)
-    throws ArchitectException {
+    throws SQLObjectException {
+        swinguiUserPrompterFactory = new SwingUIUserPrompterFactory(null, context.getPlDotIni());
         this.isNew = true;
         this.context = context;
         this.delegateSession = new ArchitectSessionImpl(context, name);
@@ -182,7 +201,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 File f = new File(fileName);
                 try {
                     OpenProjectAction.openAsynchronously(getContext().createSession(false), f, ArchitectSwingSessionImpl.this);
-                } catch (ArchitectException ex) {
+                } catch (SQLObjectException ex) {
                     SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), Messages.getString("ArchitectSwingSessionImpl.openProjectFileFailed"), ex); //$NON-NLS-1$
                 }
             }
@@ -211,9 +230,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         projectModificationWatcher = new ProjectModificationWatcher(playPen);
         
         getRootObject().addSQLObjectListener(new SQLObjectListener() {
-            public void dbStructureChanged(SQLObjectEvent e) {
-                isNew = false;
-            }
             public void dbObjectChanged(SQLObjectEvent e) {
                 isNew = false;        
             }
@@ -241,11 +257,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         printSettings = new PrintSettings();
     }
 
-    public void initGUI() throws ArchitectException {
+    public void initGUI() throws SQLObjectException {
         initGUI(null);
     }
 
-    public void initGUI(ArchitectSwingSession openingSession) throws ArchitectException {
+    public void initGUI(ArchitectSwingSession openingSession) throws SQLObjectException {
         if (!SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException("This method must be called on the Swing Event Dispatch Thread."); //$NON-NLS-1$
         }
@@ -265,6 +281,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             frame = new ArchitectFrame(this, null);
         }
 
+        swinguiUserPrompterFactory.setParentFrame(frame);
+        
         // MUST be called after constructed to set up the actions
         frame.init(); 
         frame.setVisible(true);
@@ -538,7 +556,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 // XXX this could/should be done by the frame with a session closing listener
                 frame.saveSettings();
             }
-        } catch (ArchitectException e) {
+        } catch (SQLObjectException e) {
             logger.error("Couldn't save settings: "+e); //$NON-NLS-1$
         }
 
@@ -561,7 +579,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 logger.debug ("closing connection: " + db.getName()); //$NON-NLS-1$
                 db.disconnect();
             }
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             throw new AssertionError("Got impossible ArchitectException from root object"); //$NON-NLS-1$
         }
 
@@ -590,7 +608,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.sourceDatabases = argSourceDatabases;
     }
 
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
         delegateSession.setSourceDatabaseList(databases);
     }
 
@@ -616,8 +634,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
          */
         public ProjectModificationWatcher(PlayPen pp) {
             try {
-                ArchitectUtils.listenToHierarchy(this, getTargetDatabase());
-            } catch (ArchitectException e) {
+                SQLObjectUtils.listenToHierarchy(this, getTargetDatabase());
+            } catch (SQLObjectException e) {
                 logger.error("Can't listen to business model for changes", e); //$NON-NLS-1$
             }
             PlayPenContentPane ppcp = pp.contentPane;
@@ -630,8 +648,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             SQLObject[] newKids = e.getChildren();
             for (int i = 0; i < newKids.length; i++) {
                 try {
-                    ArchitectUtils.listenToHierarchy(this, newKids[i]);
-                } catch (ArchitectException e1) {
+                    SQLObjectUtils.listenToHierarchy(this, newKids[i]);
+                } catch (SQLObjectException e1) {
                     logger.error("Couldn't listen to SQLObject hierarchy rooted at "+newKids[i], e1); //$NON-NLS-1$
                 }
             }
@@ -651,16 +669,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         /** Marks project dirty. */
         public void dbObjectChanged(SQLObjectEvent e) {
             getProject().setModified(true);
-            isNew = false;
-        }
-
-        /** Marks project dirty and listens to new hierarchy. */
-        public void dbStructureChanged(SQLObjectEvent e) {
-            try {
-                ArchitectUtils.listenToHierarchy(this, e.getSQLSource());
-            } catch (ArchitectException e1) {
-                logger.error("dbStructureChanged listener: Failed to listen to new project hierarchy", e1); //$NON-NLS-1$
-            }
             isNew = false;
         }
 
@@ -796,10 +804,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         return projectModificationWatcher;
     }
 
-    public boolean isRelationshipLinesDirect() {
-        return relationshipLinesDirect;
-    }
-
     public void setRelationshipLinesDirect(boolean relationshipLinesDirect) {
         this.relationshipLinesDirect = relationshipLinesDirect;
         getPlayPen().repaint();
@@ -807,6 +811,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public boolean getRelationshipLinesDirect() {
         return relationshipLinesDirect;
+    }
+    
+    public boolean isUsingLogicalNames() {
+        return usingLogicalNames;
+    }
+    
+    public void setUsingLogicalNames(boolean usingLogicalNames) {
+        this.usingLogicalNames = usingLogicalNames;
+        getPlayPen().repaint();
     }
 
     public SQLObjectRoot getRootObject() {
@@ -830,10 +843,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * 
      * @see ModalDialogUserPrompter
      */
-    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
-        return new ModalDialogUserPrompter(frame, question, okText, notOkText, cancelText);
+    public UserPrompter createUserPrompter(String question, UserPromptType responseType, UserPromptOptions optionType, UserPromptResponse defaultResponseType,
+            Object defaultResponse, String ... buttonNames) {
+        return swinguiUserPrompterFactory.createUserPrompter(question,
+                responseType, optionType, defaultResponseType, defaultResponse, buttonNames);
+        
     }
-
+    
     public boolean isShowPkTag() {
         return showPkTag;
     }
@@ -867,44 +883,19 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
     }
 
-    public boolean isShowPrimary() {
-        return showPrimary;
+    /**
+     * Sets the visibility of columns in the playpen of this session.
+     * 
+     * @param option The new column visibility setting. If null, all columns will
+     * be shown (equivalent to specifying {@link ColumnVisibility#ALL}).
+     */
+    public void setColumnVisibility(ColumnVisibility option) {
+        columnVisibility = option;
+        // XXX should fire property change event, but apparently the session doesn't support that
     }
-
-    public void setShowPrimary(boolean showPrimary) {
-        this.showPrimary = showPrimary;
-    }
-
-    public boolean isShowForeign() {
-        return showForeign;
-    }
-
-    public void setShowForeign(boolean showForeign) {
-        this.showForeign = showForeign;
-    }
-
-    public boolean isShowIndexed() {
-        return showIndexed;
-    }
-
-    public void setShowIndexed(boolean showIndexed) {
-        this.showIndexed = showIndexed;
-    }
-
-    public boolean isShowUnique() {
-        return showUnique;
-    }
-
-    public void setShowUnique(boolean showUnique) {
-        this.showUnique = showUnique;
-    }
-
-    public boolean isShowTheRest() {
-        return showTheRest;
-    }
-
-    public void setShowTheRest(boolean showTheRest) {
-        this.showTheRest = showTheRest;
+    
+    public ColumnVisibility getColumnVisibility() {
+        return columnVisibility;
     }
     
     public void showOLAPSchemaManager(Window owner) {
@@ -946,4 +937,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         return printSettings;
     }
 
+    public SQLDatabase getDatabase(SPDataSource ds) {
+        return delegateSession.getDatabase(ds);
+    }
+
+    public boolean isDisplayRelationshipLabel() {
+        return displayRelationshipLabel;
+    }
+    
+    public void setDisplayRelationshipLabel(boolean displayRelationshipLabel) {
+        this.displayRelationshipLabel = displayRelationshipLabel;
+    }
 }

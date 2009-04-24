@@ -38,12 +38,12 @@ import java.sql.Statement;
 import java.util.Collection;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * Tests for the RemoteDatabaseProfileCreator implementation.

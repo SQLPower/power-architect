@@ -21,7 +21,7 @@ package ca.sqlpower.architect;
 
 import org.apache.commons.beanutils.Converter;
 
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
 /**
  * Converts between String and {@link UpdateDeleteRule} values. Supports

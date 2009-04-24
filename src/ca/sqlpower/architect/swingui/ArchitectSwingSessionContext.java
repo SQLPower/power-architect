@@ -19,12 +19,13 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Window;
+import java.awt.datatransfer.Transferable;
 import java.io.IOException;
 import java.io.InputStream;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.sqlobject.SQLObjectException;
 
 /**
  * The ArchitectSwingSessionContext interface specifies a set of
@@ -51,9 +52,9 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      * Important note: This method must be called on the Swing Event Dispatch
      * Thread.  See SwingUtilities.invokeLater() for a way of ensuring this method
      * is called on the proper thread.
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
-    public abstract ArchitectSwingSession createSession() throws ArchitectException;
+    public abstract ArchitectSwingSession createSession() throws SQLObjectException;
     
     /**
      * Creates a new session within this parent context.  This will cause an
@@ -68,7 +69,7 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      * ArchitectFrame instance; false for an invisible session.
      * @return The new session
      */
-    public abstract ArchitectSwingSession createSession(boolean showGUI) throws ArchitectException;
+    public abstract ArchitectSwingSession createSession(boolean showGUI) throws SQLObjectException;
     
     /**
      * Creates a new session by loading the Architect XML project description
@@ -79,7 +80,7 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      * ArchitectFrame instance; false for an invisible session.
      * @return The new session
      */
-    public abstract ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, IOException;
+    public abstract ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws SQLObjectException, IOException;
 
     /**
      * Creates a new session that will have its GUI components positioned relative to the GUI components
@@ -90,9 +91,9 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      * 
      * @param openingSession
      * @return
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    public abstract ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws ArchitectException;
+    public abstract ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws SQLObjectException;
     
     /**
      * Returns true iff this context is running on a Mac OS X machine.  Some
@@ -145,4 +146,16 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      * Gets the user settings for this session 
      */
     public abstract CoreUserSettings getUserSettings();
+    
+    /**
+     * This gets either the clipboard internal to the context or the
+     * system's clipboard depending on the information contained by each.
+     */
+    public Transferable getClipboardContents();
+    
+    /**
+     * This sets either the clipboard internal to the context or the
+     * system's clipboard depending on the information contained by each.
+     */
+    public void setClipboardContents(Transferable t);
 }

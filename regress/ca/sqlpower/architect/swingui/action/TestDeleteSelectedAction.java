@@ -20,18 +20,20 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.Point;
 import java.sql.Types;
+import java.util.List;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
-import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestDeleteSelectedAction extends TestCase {
 	
@@ -66,10 +68,10 @@ public class TestDeleteSelectedAction extends TestCase {
 		pp.addRelationship(r);
 	}
 
-	public void testTableSelected() throws ArchitectException{
+	public void testTableSelected() throws SQLObjectException{
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		assertEquals(1, session.getArchitectFrame().getDbTree().getSelectionCount());
+		assertEquals(1, session.getSourceDatabases().getSelectionCount());
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("Incorrect Tooltip", "Delete Table1 (Shortcut delete)",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		tp.setSelected(false,SelectionEvent.SINGLE_SELECT);
@@ -96,7 +98,7 @@ public class TestDeleteSelectedAction extends TestCase {
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 	}
 	
-	public void testColumnSelected() throws ArchitectException{
+	public void testColumnSelected() throws SQLObjectException{
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		tp.selectItem(0);
@@ -135,5 +137,16 @@ public class TestDeleteSelectedAction extends TestCase {
 		assertEquals("Delete Table2 (Shortcut delete)", deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		tp2.setSelected(false,SelectionEvent.SINGLE_SELECT);
 		assertFalse ("Nothing is selected", deleteAction.isEnabled());
+	}
+	
+	public void testRetrieveDeletableItems() throws Exception {
+	    tp.setSelected(true, SelectionEvent.SINGLE_SELECT);
+	    tp2.setSelected(true, SelectionEvent.SINGLE_SELECT);
+	    assertEquals(2, session.getSourceDatabases().getSelectionPaths().length);
+	    List<SQLObject> list = deleteAction.retrieveDeletableItems();
+	    assertEquals(2, list.size());
+	    System.out.println(list);
+	    assertTrue(list.contains(tp.getModel()));
+	    assertTrue(list.contains(tp2.getModel()));
 	}
 }

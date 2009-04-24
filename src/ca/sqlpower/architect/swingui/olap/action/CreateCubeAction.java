@@ -24,7 +24,6 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.KeyStroke;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
@@ -36,6 +35,7 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.olap.CubeEditPanel;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.OSUtils;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CreateCubeAction extends AbstractArchitectAction {
@@ -77,7 +77,7 @@ public class CreateCubeAction extends AbstractArchitectAction {
         }
 
         @Override
-        public DataEntryPanel place(Point p) throws ArchitectException {
+        public DataEntryPanel place(Point p) throws SQLObjectException {
             schema.startCompoundEdit("Create Cube");
             schema.addCube(cp.getModel());
             playpen.selectNone();

@@ -23,7 +23,7 @@ import junit.framework.TestCase;
 
 import org.apache.commons.beanutils.Converter;
 
-import ca.sqlpower.architect.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
 /**
  * Test class for the BeanUtils converter for the updateRule/DeleteRule

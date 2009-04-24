@@ -26,10 +26,10 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLIndex.AscendDescend;
-import ca.sqlpower.architect.SQLIndex.Column;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
+import ca.sqlpower.sqlobject.SQLIndex.Column;
 
 /**
  * A comparator class used for SQLIndex comparisons. It will not distinguish
@@ -79,12 +79,12 @@ public class SQLIndexComparator implements Comparator<SQLIndex>, Serializable {
 
 		try {
             sourceCol.addAll(source.getChildren());
-        } catch (ArchitectException e) {
+        } catch (SQLObjectException e) {
             logger.warn("Source index has no columns!");
         }
         try {
             targetCol.addAll(target.getChildren());
-        } catch (ArchitectException e) {
+        } catch (SQLObjectException e) {
             logger.warn("Target index has no columns!");
         }
 

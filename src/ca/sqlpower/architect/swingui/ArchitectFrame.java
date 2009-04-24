@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Types;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -60,10 +61,8 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
@@ -74,8 +73,10 @@ import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CheckForUpdateAction;
 import ca.sqlpower.architect.swingui.action.CloseProjectAction;
 import ca.sqlpower.architect.swingui.action.CompareDMAction;
+import ca.sqlpower.architect.swingui.action.CopySelectedAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.CreateTableAction;
+import ca.sqlpower.architect.swingui.action.CutSelectedAction;
 import ca.sqlpower.architect.swingui.action.DataMoverAction;
 import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
@@ -89,12 +90,14 @@ import ca.sqlpower.architect.swingui.action.EditTableAction;
 import ca.sqlpower.architect.swingui.action.ExportCSVAction;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction;
 import ca.sqlpower.architect.swingui.action.ExportPlaypenToPDFAction;
+import ca.sqlpower.architect.swingui.action.ExportHTMLReportAction;
 import ca.sqlpower.architect.swingui.action.FocusToChildOrParentTableAction;
 import ca.sqlpower.architect.swingui.action.HelpAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
 import ca.sqlpower.architect.swingui.action.InsertIndexAction;
 import ca.sqlpower.architect.swingui.action.KettleJobAction;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
+import ca.sqlpower.architect.swingui.action.PasteSelectedAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.action.PrintAction;
 import ca.sqlpower.architect.swingui.action.ProfileAction;
@@ -113,7 +116,10 @@ import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPSchemaManagerAction;
-import ca.sqlpower.architect.undo.NotifyingUndoManager;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**
@@ -193,6 +199,9 @@ public class ArchitectFrame extends JFrame {
     private Action compareDMAction;
     private Action dataMoverAction;
     private Action sqlQueryAction;
+    private CopySelectedAction copyAction;
+    private CutSelectedAction cutAction;
+    private PasteSelectedAction pasteAction;
     
     /**
      * Closes all sessions and terminates the JVM.
@@ -202,8 +211,6 @@ public class ArchitectFrame extends JFrame {
             session.getContext().closeAll();
         }
     };
-
-
 
     /**
      * This constructor is used by the session implementation. To obtain an
@@ -217,9 +224,9 @@ public class ArchitectFrame extends JFrame {
      *            A Rectangle whose x and y properties will be used to determine
      *            the position of newly created ArchitectFrame
      * 
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-	ArchitectFrame(ArchitectSwingSession architectSession, Rectangle bounds) throws ArchitectException {
+	ArchitectFrame(ArchitectSwingSession architectSession, Rectangle bounds) throws SQLObjectException {
 
         session = architectSession;
         ArchitectSwingSessionContext context = session.getContext();
@@ -267,6 +274,16 @@ public class ArchitectFrame extends JFrame {
         session.getUserSettings().getSwingSettings().setBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN,
                 prefs.getBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, true));
         
+        SQLColumn.setDefaultName(prefs.get(DefaultColumnUserSettings.DEFAULT_COLUMN_NAME, "New Column"));
+        SQLColumn.setDefaultType(prefs.getInt(DefaultColumnUserSettings.DEFAULT_COLUMN_TYPE, Types.INTEGER));
+        SQLColumn.setDefaultPrec(prefs.getInt(DefaultColumnUserSettings.DEFAULT_COLUMN_PREC, 10));
+        SQLColumn.setDefaultScale(prefs.getInt(DefaultColumnUserSettings.DEFAULT_COLUMN_SCALE, 0));
+        SQLColumn.setDefaultInPK(prefs.getBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_INPK, false));
+        SQLColumn.setDefaultNullable(prefs.getBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_NULLABLE, false));
+        SQLColumn.setDefaultAutoInc(prefs.getBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_AUTOINC, false));
+        SQLColumn.setDefaultRemarks(prefs.get(DefaultColumnUserSettings.DEFAULT_COLUMN_REMARKS, ""));
+        SQLColumn.setDefaultForDefaultValue(prefs.get(DefaultColumnUserSettings.DEFAULT_COLUMN_DEFAULT_VALUE, ""));
+        
         addComponentListener(new ComponentListener() {
             public void componentHidden(ComponentEvent e) {
             }
@@ -304,9 +321,9 @@ public class ArchitectFrame extends JFrame {
      * @param context
      * @param sprefs
      * @param accelMask
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    void init() throws ArchitectException {
+    void init() throws SQLObjectException {
         UserSettings sprefs = session.getUserSettings().getSwingSettings();
         int accelMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
         
@@ -365,7 +382,7 @@ public class ArchitectFrame extends JFrame {
         printAction.putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_P, accelMask));
 
-        exportPlaypenToPDFAction = new ExportPlaypenToPDFAction(session);
+        exportPlaypenToPDFAction = new ExportPlaypenToPDFAction(session, session.getPlayPen());
 
         zoomInAction = new ZoomAction(session, session.getPlayPen(), ZOOM_STEP);
         zoomOutAction = new ZoomAction(session, session.getPlayPen(), ZOOM_STEP * -1.0);
@@ -412,6 +429,9 @@ public class ArchitectFrame extends JFrame {
         focusToParentAction = new FocusToChildOrParentTableAction(session, Messages.getString("ArchitectFrame.setFocusToParentTableActionName"), Messages.getString("ArchitectFrame.setFocusToParentTableActionDescription"), true); //$NON-NLS-1$ //$NON-NLS-2$
         focusToChildAction = new FocusToChildOrParentTableAction(session, Messages.getString("ArchitectFrame.setFocusToChildTableActionName"), Messages.getString("ArchitectFrame.setFocusToChildTableActionDescription"), false); //$NON-NLS-1$ //$NON-NLS-2$
         
+        copyAction = new CopySelectedAction(session);
+        cutAction = new CutSelectedAction(session);
+        pasteAction = new PasteSelectedAction(session);
         
         menuBar = createNewMenuBar();        
         setJMenuBar(menuBar);
@@ -452,23 +472,23 @@ public class ArchitectFrame extends JFrame {
         ppBar.add(zoomToFitAction);
         ppBar.addSeparator();
         tempButton = ppBar.add(deleteSelectedAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         ppBar.addSeparator();
         tempButton = ppBar.add(createTableAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         ppBar.addSeparator();
         tempButton  = ppBar.add(insertIndexAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         ppBar.addSeparator();
         tempButton = ppBar.add(insertColumnAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tempButton = ppBar.add(editSelectedAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         ppBar.addSeparator();
         ppBar.add(createNonIdentifyingRelationshipAction);
         ppBar.add(createIdentifyingRelationshipAction);
         tempButton = ppBar.add(editRelationshipAction);
-        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         
         ppBar.setFocusable(false);
         for (Component c : ppBar.getComponents()) {
@@ -493,7 +513,7 @@ public class ArchitectFrame extends JFrame {
         Action exportCSVAction = new ExportCSVAction(this, session);
         Action mappingReportAction = new VisualMappingReportAction(this, session);
         Action kettleETL = new KettleJobAction(session);
-        
+        Action exportHTMLReportAction = new ExportHTMLReportAction(session);
         menuBar = new JMenuBar();
 
         JMenu fileMenu = new JMenu(Messages.getString("ArchitectFrame.fileMenu")); //$NON-NLS-1$
@@ -507,6 +527,7 @@ public class ArchitectFrame extends JFrame {
         fileMenu.add(saveProjectAsAction);
         fileMenu.add(printAction);
         fileMenu.add(exportPlaypenToPDFAction);
+        fileMenu.add(exportHTMLReportAction);
         fileMenu.addSeparator();
         if (!context.isMacOSX()) {
             fileMenu.add(prefAction);
@@ -520,6 +541,10 @@ public class ArchitectFrame extends JFrame {
 
         JMenu editMenu = new JMenu(Messages.getString("ArchitectFrame.editMenu")); //$NON-NLS-1$
         editMenu.setMnemonic('e');
+        editMenu.add(cutAction);
+        editMenu.add(copyAction);
+        editMenu.add(pasteAction);
+        editMenu.addSeparator();
         editMenu.add(undoAction);
         editMenu.add(redoAction);
         editMenu.addSeparator();
@@ -676,7 +701,7 @@ public class ArchitectFrame extends JFrame {
     }
    
     private JMenu buildOLAPEditMenu() {
-        JMenu menu = new JMenu("Edit Schema");
+        JMenu menu = new JMenu(Messages.getString("ArchitectFrame.editSchemaMenu")); //$NON-NLS-1$
         menu.add(new JMenuItem(new OLAPEditAction(session, null)));
         menu.addSeparator(); 
         for (OLAPSession olapSession : session.getOLAPRootObject().getChildren()) {
@@ -689,7 +714,7 @@ public class ArchitectFrame extends JFrame {
      * Creates a new project in the same session context as this one, 
      * and opens it in a new ArchitectFrame instance.
      */
-    private void createNewProject() throws ArchitectException {
+    private void createNewProject() throws SQLObjectException {
         session.getContext().createSession(session);
     }
 
@@ -724,7 +749,7 @@ public class ArchitectFrame extends JFrame {
      * Saves this frame's settings as user prefs.  Settings are frame location,
      * divider location, that kind of stuff.
      */
-	public void saveSettings() throws ArchitectException {
+	public void saveSettings() throws SQLObjectException {
 
 	    CoreUserSettings us = session.getUserSettings();
 
@@ -743,6 +768,16 @@ public class ArchitectFrame extends JFrame {
 
 		us.write();
         prefs.put(ArchitectSession.PREFS_PL_INI_PATH, session.getContext().getPlDotIniPath());
+        
+        prefs.put(DefaultColumnUserSettings.DEFAULT_COLUMN_NAME, SQLColumn.getDefaultName());
+        prefs.putInt(DefaultColumnUserSettings.DEFAULT_COLUMN_TYPE, SQLColumn.getDefaultType());
+        prefs.putInt(DefaultColumnUserSettings.DEFAULT_COLUMN_PREC, SQLColumn.getDefaultPrec());
+        prefs.putInt(DefaultColumnUserSettings.DEFAULT_COLUMN_SCALE, SQLColumn.getDefaultScale());
+        prefs.putBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_INPK, SQLColumn.isDefaultInPK());
+        prefs.putBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_NULLABLE, SQLColumn.isDefaultNullable());
+        prefs.putBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_AUTOINC, SQLColumn.isDefaultAutoInc());
+        prefs.put(DefaultColumnUserSettings.DEFAULT_COLUMN_REMARKS, SQLColumn.getDefaultRemarks());
+        prefs.put(DefaultColumnUserSettings.DEFAULT_COLUMN_DEFAULT_VALUE, SQLColumn.getDefaultForDefaultValue());
 		try {
             session.getContext().getPlDotIni().write(new File(session.getContext().getPlDotIniPath()));
         } catch (IOException e) {
@@ -763,7 +798,7 @@ public class ArchitectFrame extends JFrame {
 	 * an acceptable way to launch the Architect application.
 	 */
     @SuppressWarnings("deprecation") //$NON-NLS-1$
-	public static void main(final String args[]) throws ArchitectException {
+	public static void main(final String args[]) throws SQLObjectException {
 		SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
                 try {

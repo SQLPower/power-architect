@@ -35,8 +35,7 @@ import ca.sqlpower.architect.swingui.TestTablePane;
 import ca.sqlpower.architect.swingui.action.TestCreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.TestDeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.TestEditColumnAction;
-import ca.sqlpower.architect.undo.TestSQLObjectUndoableEventAdapter;
-import ca.sqlpower.architect.undo.TestUndoManager;
+import ca.sqlpower.architect.undo.TestArchitectUndoManager;
 
 /**
  * This suite consists of the GUI tests whose class names do not
@@ -60,10 +59,9 @@ public class ArchitectSwingTestSuite extends TestCase {
 		suite.addTestSuite(TestRelationship.class);
 		suite.addTestSuite(TestPlayPen.class);
 		suite.addTestSuite(TestSwingUIProject.class);
-		suite.addTestSuite(TestSQLObjectUndoableEventAdapter.class);
+		suite.addTestSuite(TestArchitectUndoManager.class);
 		suite.addTestSuite(TestTableEditPane.class);
 		suite.addTestSuite(TestTablePane.class);
-		suite.addTestSuite(TestUndoManager.class);
 		//$JUnit-END$
 		return suite;
 	}

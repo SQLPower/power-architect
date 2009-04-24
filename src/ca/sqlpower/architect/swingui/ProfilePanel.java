@@ -47,12 +47,12 @@ import javax.swing.event.TableModelListener;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.profile.output.ProfileColumn;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
+import ca.sqlpower.sqlobject.SQLColumn;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;

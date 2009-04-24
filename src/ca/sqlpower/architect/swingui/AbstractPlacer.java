@@ -29,8 +29,8 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.swingui.PlayPen.CancelableListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.SPSUtils;
@@ -72,7 +72,7 @@ public abstract class AbstractPlacer extends MouseAdapter implements CancelableL
             d.pack();
             d.setLocationRelativeTo(owner);
             d.setVisible(true);
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             logger.error("Failed to add item to play pen:", ex); //$NON-NLS-1$
             SPSUtils.showExceptionDialogNoReport(
                     playpen.getSession().getArchitectFrame(),
@@ -100,7 +100,7 @@ public abstract class AbstractPlacer extends MouseAdapter implements CancelableL
      *         pop up an editor for the newly-placed component. If you don't
      *         want an editor to pop up, simply return null.
      */
-    public abstract DataEntryPanel place(Point p) throws ArchitectException;
+    public abstract DataEntryPanel place(Point p) throws SQLObjectException;
 
     /**
      * Implements {@link CancelableListener} by canceling this place operation.

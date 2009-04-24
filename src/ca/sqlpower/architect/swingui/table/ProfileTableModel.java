@@ -27,15 +27,6 @@ import javax.swing.table.AbstractTableModel;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
@@ -45,6 +36,15 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.profile.output.ProfileColumn;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class ProfileTableModel extends AbstractTableModel {
 
@@ -133,13 +133,13 @@ public class ProfileTableModel extends AbstractTableModel {
 
         switch(column) {
         case DATABASE:
-            return ArchitectUtils.getAncestor(col,SQLDatabase.class);
+            return SQLObjectUtils.getAncestor(col,SQLDatabase.class);
         case CATALOG:
-            return ArchitectUtils.getAncestor(col,SQLCatalog.class);
+            return SQLObjectUtils.getAncestor(col,SQLCatalog.class);
         case  SCHEMA:
-            return ArchitectUtils.getAncestor(col,SQLSchema.class);
+            return SQLObjectUtils.getAncestor(col,SQLSchema.class);
         case TABLE:
-            return ArchitectUtils.getAncestor(col,SQLTable.class);
+            return SQLObjectUtils.getAncestor(col,SQLTable.class);
         case COLUMN:
             return col;
         case RUNDATE:
@@ -151,7 +151,7 @@ public class ProfileTableModel extends AbstractTableModel {
                 DDLGenerator gddl = DDLUtils.createDDLGenerator(col.getParentTable().getParentDatabase().getDataSource());
                 return gddl.columnType(col);
             } catch (Exception e) {
-                throw new ArchitectRuntimeException(new ArchitectException(
+                throw new SQLObjectRuntimeException(new SQLObjectException(
                         "Unable to get DDL information.  Do we have a valid data source?", e));
             }
         case NULL_COUNT:

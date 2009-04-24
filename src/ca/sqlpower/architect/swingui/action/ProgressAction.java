@@ -31,6 +31,7 @@ import javax.swing.JProgressBar;
 
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.util.MonitorableImpl;
@@ -45,6 +46,15 @@ import com.jgoodies.forms.layout.FormLayout;
  * bar.  The dialog automatically closes when the job finishes.
  */
 public abstract class ProgressAction extends AbstractArchitectAction {
+    
+    public ProgressAction(
+            ArchitectSwingSession session,
+            PlayPen playpen,
+            String actionName,
+            String actionDescription,
+            Icon icon) {
+        super(session, playpen, actionName, actionDescription, icon);
+    }
     
     public ProgressAction(
             ArchitectSwingSession session,

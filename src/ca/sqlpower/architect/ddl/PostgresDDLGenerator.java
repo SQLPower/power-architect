@@ -28,13 +28,13 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLSequence;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.sql.SQL;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLSequence;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * DDL Generator for Postgres 8.x (does not support e.g., ALTER COLUMN operations 7.[34]).
@@ -168,7 +168,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 	protected void createTypeMap() throws SQLException {
 		typeMap = new HashMap();
 
-		typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("NUMERIC", Types.BIGINT, 1000, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 1000, null, null, DatabaseMetaData.columnNullable, false, false));
 		typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("BYTEA", Types.BINARY, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
 		typeMap.put(Integer.valueOf(Types.BIT), new GenericTypeDescriptor("BIT", Types.BIT, 1, null, null, DatabaseMetaData.columnNullable, true, false));
 		typeMap.put(Integer.valueOf(Types.BLOB), new GenericTypeDescriptor("BYTEA", Types.BLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
@@ -329,7 +329,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
      * create index ddl in postgresql syntax
      */
     @Override
-    public void addIndex(SQLIndex index) throws ArchitectException {
+    public void addIndex(SQLIndex index) throws SQLObjectException {
         
         createPhysicalName(topLevelNames, index);
         println("");
@@ -372,7 +372,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
     }
     
     @Override
-    public void addTable(SQLTable t) throws SQLException, ArchitectException {
+    public void addTable(SQLTable t) throws SQLException, SQLObjectException {
         
         // Create all the sequences that will be needed for auto-increment cols in this table
         for (SQLColumn c : t.getColumns()) {

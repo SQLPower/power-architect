@@ -26,9 +26,6 @@ import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
@@ -36,13 +33,16 @@ import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.sqlobject.SQLColumn;
 
 public class EditSelectedAction extends AbstractArchitectAction implements SelectionListener {
     private ArchitectSwingSession session;
     private PlayPen playpen;
     private static final Logger logger = Logger.getLogger(EditSelectedAction.class);
     
-    public EditSelectedAction(ArchitectSwingSession session) throws ArchitectException {
+    public EditSelectedAction(ArchitectSwingSession session) throws SQLObjectException {
         super(session, Messages.getString("EditSelectedAction.name"), Messages.getString("EditSelectedAction.description"), "edit_selected"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         
         this.session = session;
@@ -79,16 +79,16 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
     public void itemSelected(SelectionEvent e) {
         try {
             setupAction(playpen.getSelectedItems());
-        } catch (ArchitectException e1) {
-            throw new ArchitectRuntimeException(e1);
+        } catch (SQLObjectException e1) {
+            throw new SQLObjectRuntimeException(e1);
         }
     }
 
     public void itemDeselected(SelectionEvent e) {
         try {
             setupAction(playpen.getSelectedItems());
-        } catch (ArchitectException e1) {
-            throw new ArchitectRuntimeException(e1);
+        } catch (SQLObjectException e1) {
+            throw new SQLObjectRuntimeException(e1);
         }
     }
 
@@ -97,9 +97,9 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
      * Updates the tooltip and enabledness of this action based on how
      * many items are in the selection list.  If there is only one
      * selected item, tries to put its name in the tooltip too!
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    private void setupAction(List selectedItems) throws ArchitectException {
+    private void setupAction(List selectedItems) throws SQLObjectException {
         String description;
         if (selectedItems.size() == 0) {
             setEnabled(false);
@@ -118,7 +118,7 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
                         } else {
                             name = tp.getModel().getColumn(tp.getSelectedItemIndex()).getName();
                         }
-                    } catch (ArchitectException ex) {
+                    } catch (SQLObjectException ex) {
                         logger.error("Couldn't get selected column name", ex); //$NON-NLS-1$
                     }
                 } else {

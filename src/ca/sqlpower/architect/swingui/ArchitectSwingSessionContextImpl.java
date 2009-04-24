@@ -19,7 +19,13 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Component;
+import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -32,13 +38,14 @@ import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.db.DataSourceDialogFactory;
 import ca.sqlpower.swingui.db.DataSourceTypeDialogFactory;
@@ -54,11 +61,41 @@ import ca.sqlpower.swingui.event.SessionLifecycleListener;
  * It may one day be desirable for this to be an interface, but there didn't seem
  * to be a need for it when we first created this class.
  */
-public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionContext {
+public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionContext, ClipboardOwner {
     
     private static final Logger logger = Logger.getLogger(ArchitectSwingSessionContextImpl.class);
     
     private static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x")); //$NON-NLS-1$ //$NON-NLS-2$
+    
+    /**
+     * This dummy transferable is placed on the local clipboard if the system 
+     * clipboard is lost. This is used instead of a null value as setting
+     * the local clipboard to have null as its content causes an NPE.
+     */
+    private class DummyTransferable implements Transferable {
+
+        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        public DataFlavor[] getTransferDataFlavors() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        public boolean isDataFlavorSupported(DataFlavor flavor) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+        
+    }
+    
+    /**
+     * The dummy transferable to place on the local clipboard to avoid an
+     * NPE when setting the contents to null.
+     */
+    private final Transferable dummyTransferable = new DummyTransferable();
     
     /**
      * A more structured interface to the prefs node.  Might be going away soon.
@@ -80,6 +117,13 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * The Preferences editor for this application context.
      */
     private final PreferencesEditor prefsEditor;
+    
+    /**
+     * This internal clipboard allows copying and pasting objects within
+     * the app to stay as objects. The system clipboard throws modification
+     * exceptions when it is used with SQLObjects.
+     */
+    private final Clipboard clipboard = new Clipboard("Internal clipboard");
     
     /**
      * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, SPDataSource, Runnable)}
@@ -110,9 +154,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * Important note: This constructor must be called on the Swing Event Dispatch
      * Thread.  See SwingUtilities.invokeLater() for a way of ensuring this method
      * is called on the proper thread.
-     * @throws ArchitectException 
+     * @throws SQLObjectException 
      */
-    ArchitectSwingSessionContextImpl() throws ArchitectException {
+    ArchitectSwingSessionContextImpl() throws SQLObjectException {
         delegateContext = new ArchitectSessionContextImpl();
         
         System.setProperty("apple.laf.useScreenMenuBar", "true"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -133,6 +177,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         // sets the icon so exception dialogs handled by SPSUtils instead
         // of ASUtils can still have the correct icon
         SPSUtils.setMasterIcon(new ImageIcon(ASUtils.getFrameIconImage()));
+        
+        logger.debug("toolkit has system clipboard " + Toolkit.getDefaultToolkit().getSystemClipboard());
+        clipboard.setContents(dummyTransferable, this);
     }
     
     /**
@@ -145,11 +192,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * then call {@link ArchitectSwingSession#initGUI()} on the returned
      * session using the event dispatch thread some time later on.
      * @throws IOException If the file is not found or can't be read.
-     * @throws ArchitectException if there is some problem with the file
+     * @throws SQLObjectException if there is some problem with the file
      * @throws IllegalStateException if showGUI==true and this method was
      * not called on the Event Dispatch Thread.
      */
-    public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, IOException {
+    public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws SQLObjectException, IOException {
         ArchitectSwingSession session = createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.projectLoadingDialogTitle"), false, null); //$NON-NLS-1$
         
         try {
@@ -160,7 +207,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             }
         
             return session;
-        } catch (ArchitectException ex) {
+        } catch (SQLObjectException ex) {
             try {
                 session.close();
             } catch (Exception e) {
@@ -185,21 +232,21 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     }
     
     /* javadoc inherited from interface */
-    public ArchitectSwingSession createSession() throws ArchitectException {
+    public ArchitectSwingSession createSession() throws SQLObjectException {
         return createSession(true);
     }
 
     /* javadoc inherited from interface */
-    public ArchitectSwingSession createSession(boolean showGUI) throws ArchitectException {
+    public ArchitectSwingSession createSession(boolean showGUI) throws SQLObjectException {
         return createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.defaultNewProjectName"), showGUI, null); //$NON-NLS-1$
     }
     
     /* javadoc inherited from interface */
-    public ArchitectSwingSession createSession(InputStream in) throws ArchitectException, IOException {
+    public ArchitectSwingSession createSession(InputStream in) throws SQLObjectException, IOException {
         return createSession(in, true);
     }
 
-    public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws ArchitectException {
+    public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws SQLObjectException {
         return createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.defaultNewProjectName"), true, openingSession); //$NON-NLS-1$
     }
 
@@ -220,12 +267,12 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      *            positions the new windows according to the most recently
      *            stored user preference.
      * @return An new ArchitectSwingSession with the given project name.
-     * @throws ArchitectException
+     * @throws SQLObjectException
      * @throws IllegalStateException
      *             if showGUI==true and this method was not called on the Event
      *             Dispatch Thread.
      */
-    private ArchitectSwingSession createSessionImpl(String projectName, boolean showGUI, ArchitectSwingSession openingSession) throws ArchitectException {
+    private ArchitectSwingSession createSessionImpl(String projectName, boolean showGUI, ArchitectSwingSession openingSession) throws SQLObjectException {
         logger.debug("About to create a new session for project \"" + projectName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
         ArchitectSwingSession session = new ArchitectSwingSessionImpl(this, projectName);
         getSessions().add(session);
@@ -261,7 +308,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * Defaults to false, which is required by the interface spec.
      */
     private boolean exitAfterAllSessionsClosed = false;
-    
+
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#isMacOSX()
      */
@@ -339,5 +386,33 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
     public void setPlDotIniPath(String plDotIniPath) {
         delegateContext.setPlDotIniPath(plDotIniPath);
+    }
+    
+    public Transferable getClipboardContents() {
+        logger.debug("local clipboard contents are " + clipboard.getContents(null));
+        if (clipboard.getContents(null) != dummyTransferable) {
+            logger.debug("Getting clipboard contents from local clipboard");
+            return clipboard.getContents(null);
+        }
+        logger.debug("Getting clipboard contents from system");
+        return Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+    }
+    
+    public void setClipboardContents(Transferable t) {
+        clipboard.setContents(t, this);
+        logger.debug("Setting local clipboard contents");
+        if (t instanceof SQLObjectSelection) {
+            ((SQLObjectSelection) t).setLocal(false);
+        }
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(t, this);
+        logger.debug("toolkit pasting to system clipboard " + Toolkit.getDefaultToolkit().getSystemClipboard());
+        if (t instanceof SQLObjectSelection) {
+            ((SQLObjectSelection) t).setLocal(true);
+        }
+    }
+
+    public void lostOwnership(Clipboard clipboard, Transferable contents) {
+        this.clipboard.setContents(dummyTransferable, this);
+        logger.debug("Context lost clipboard ownership");
     }
 }

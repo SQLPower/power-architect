@@ -24,14 +24,16 @@ import java.util.List;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
@@ -141,11 +143,11 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * Initializes the GUI components for this session. Call this only if you need a GUI.
      * This method must be called on the Swing Event Dispatch Thread.
      * 
-     * @throws ArchitectException
+     * @throws SQLObjectException
      * @throws IllegalStateException if showGUI==true and this method was
      * not called on the Event Dispatch Thread.
      */
-    public void initGUI() throws ArchitectException;
+    public void initGUI() throws SQLObjectException;
 
     /**
      * Like initGUI(), this method initializes the GUI components for this
@@ -157,12 +159,12 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * @param openingSession
      *            The ArchitectSwingSession to which this session's GUI
      *            components will be positioned relative to
-     * @throws ArchitectException
+     * @throws SQLObjectException
      * @throws IllegalStateException
      *             if showGUI==true and this method was not called on the Event
      *             Dispatch Thread.
      */
-    public void initGUI(ArchitectSwingSession openingSession) throws ArchitectException;
+    public void initGUI(ArchitectSwingSession openingSession) throws SQLObjectException;
     
     /**
      * Returns true if the session contains a completely new and unmodified project.
@@ -188,6 +190,31 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * in this session's play pen to have their line style updated.
      */
     public void setRelationshipLinesDirect(boolean direct);
+    
+    /**
+     * Boolean to decide whether to display the logical names or the physical names
+     * for columns and tables.
+     */
+    public boolean isUsingLogicalNames();
+    
+    /**
+     * To use logical names or not: True, if the logical names are to be displayed. False, if the
+     * physical names are to be displayed.
+     */
+    public void setUsingLogicalNames(boolean usingLogicalNames);
+
+    /**
+     * Relationship Label: True means display the relationship label; false
+     * means hide the relationship label.
+     */
+    public boolean isDisplayRelationshipLabel();
+
+    /**
+     * Relationship Label: True means display the relationship label; false
+     * means hide the relationship label. Updating this will hide or display all
+     * the relationship labels in this session's play pen.
+     */
+    public void setDisplayRelationshipLabel(boolean displayRelationshipLabel);
     
     /**
      * Returns whether the PK Tags will be shown
@@ -218,56 +245,19 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * Sets whether the AK Tags will be shown
      */
     public void setShowAkTag(boolean showAkTag);
-   
-    /**
-     * Indicates whether PK Columns will be shown. 
-     */
-    public boolean isShowPrimary();
     
     /**
-     * Sets whether PK Columns should be shown.
+     * Sets the choice of what columns to show
+     * @param choice The choice user made on how
+     * to show columns.
      */
-    public void setShowPrimary(boolean showPrimary);
+    public void setColumnVisibility(ColumnVisibility choice);
     
     /**
-     * Indicates whether FK Columns will be shown. 
+     * 
+     * @return the choice of how to show columns.
      */
-    public boolean isShowForeign();
-    
-    /**
-     * Sets whether FK Columns should be shown.
-     */
-    public void setShowForeign(boolean showForeign);
-    
-    /**
-     * Indicates whether Unique Columns will be shown. 
-     */
-    public boolean isShowUnique();
-    
-    /**
-     * Sets whether Unique Columns should be shown.
-     */
-    public void setShowUnique(boolean showUnique);
-    
-    /**
-     * Indicates whether Indexed Columns will be shown. 
-     */
-    public boolean isShowIndexed();
-    
-    /**
-     * Sets whether Indexed Columns should be shown.
-     */
-    public void setShowIndexed(boolean showIndexed);
-    
-    /**
-     * Indicates whether Columns that are not PK, FK, Unique or Indexed will be shown. 
-     */
-    public boolean isShowTheRest();
-    
-    /**
-     * Sets whether Columns that are not PK, FK, Unique or Indexed should be shown.
-     */
-    public void setShowTheRest(boolean showTheRest);
+    public ColumnVisibility getColumnVisibility();
     
     /**
      * Shows the schema manager dialog for this session's OLAP Schemas. 

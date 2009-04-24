@@ -22,6 +22,7 @@ package ca.sqlpower.architect.swingui.dbtree;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,15 +32,16 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLIndex.Column;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLIndex.Column;
+import ca.sqlpower.swingui.ComposedIcon;
 
 /**
  * The DBTreeCellRenderer renders nodes of a JTree which are of
@@ -67,7 +69,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
     public static final ImageIcon PK_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_key16.png"));
     public static final ImageIcon UNIQUE_INDEX_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_unique16.png"));
     public static final ImageIcon COLUMN_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Column16.png"));
-    public static final ImageIcon ERROR_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/stop16.png"));
+    public static final ImageIcon ERROR_BADGE = new ImageIcon(DBTreeCellRenderer.class.getResource("/icons/parts/noAccess.png"));
    
     private final List<IconFilter> iconFilterChain = new ArrayList<IconFilter>();
     
@@ -85,11 +87,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 		setText(value.toString());
 	    setToolTipText(getText());
 	    
-        if (value instanceof SQLObject && ((SQLObject) value).getChildrenInaccessibleReason() != null) {
-            logger.debug("Children are not accessible from the node " + ((SQLObject) value).getName());
-            setIcon(ERROR_ICON);
-            setToolTipText("Inaccessible: " + ((SQLObject) value).getChildrenInaccessibleReason());
-        } else if (value instanceof SQLDatabase) {
+        if (value instanceof SQLDatabase) {
 			SQLDatabase db = (SQLDatabase) value;
 			if (db.isPlayPenDatabase()) {
 				setIcon(TARGET_DB_ICON);
@@ -151,6 +149,16 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
         } else {
 			setIcon(null);
 		}
+        
+        if (value instanceof SQLObject && ((SQLObject) value).getChildrenInaccessibleReason() != null) {
+            logger.debug("Children are not accessible from the node " + ((SQLObject) value).getName());
+            if (getIcon() == null) {
+                setIcon(ERROR_BADGE);
+            } else {
+                setIcon(new ComposedIcon(Arrays.asList(getIcon(), ERROR_BADGE)));
+            }
+            setToolTipText("Inaccessible: " + ((SQLObject) value).getChildrenInaccessibleReason());
+        }
 
 		this.selected = sel;
 		this.hasFocus = hasFocus;

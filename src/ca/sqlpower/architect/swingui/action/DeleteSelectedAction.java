@@ -35,17 +35,17 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.LockedColumnException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.LockedColumnException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLIndex.Column;
 
 public class DeleteSelectedAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(DeleteSelectedAction.class);
@@ -57,10 +57,10 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
     
     private TreeSelectionHandler treeSelectionHandler = new TreeSelectionHandler();
 
-    public DeleteSelectedAction(ArchitectSwingSession session) throws ArchitectException {
+    public DeleteSelectedAction(ArchitectSwingSession session) throws SQLObjectException {
         super(session, Messages.getString("DeleteSelectedAction.name"), Messages.getString("DeleteSelectedAction.description"), "delete"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
-        putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        putValue(ACTION_COMMAND_KEY, PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
 
         dbt = frame.getDbTree();
         dbt.addTreeSelectionListener(treeSelectionHandler);
@@ -83,7 +83,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
             return;
         }
         
-        List<SQLObject> deleteItems = getDeletableItems();
+        List<SQLObject> deleteItems = retrieveDeletableItems();
 
         int tCount = 0;
         int rCount = 0;
@@ -156,7 +156,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                     if (decision == JOptionPane.NO_OPTION) {
                         return;
                     }
-                } catch (ArchitectException e) {
+                } catch (SQLObjectException e) {
                     throw new RuntimeException(e);
                 } 
             }
@@ -170,8 +170,9 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
     /**
      * Extracts the list of items we should try to delete from the DBTree's
      * selection list.
+     * Package private for testing.
      */
-    private List<SQLObject> getDeletableItems() {
+    List<SQLObject> retrieveDeletableItems() {
         TreePath[] selectionPaths = dbt.getSelectionPaths();
         if (selectionPaths == null) return Collections.emptyList();
         List <SQLObject> deleteItems = new ArrayList<SQLObject>(selectionPaths.length);
@@ -229,7 +230,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
      */
     private void setupAction() {
         String description;
-        List<SQLObject> deletableItems = getDeletableItems();
+        List<SQLObject> deletableItems = retrieveDeletableItems();
         if (deletableItems.size() == 0) {
             setEnabled(false);
             description = Messages.getString("DeleteSelectedAction.deleteSelected"); //$NON-NLS-1$

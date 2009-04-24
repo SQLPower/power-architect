@@ -30,9 +30,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.etl.ETLUtils;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class MappingReport {
     private int sourceTargetGap = 100;
@@ -44,7 +44,7 @@ public class MappingReport {
     int maxSourceWidth = 0;
     int maxTargetWidth = 0;
 
-    public MappingReport(ArchitectSwingSession session, Collection<SQLTable> targetTables) throws ArchitectException {
+    public MappingReport(ArchitectSwingSession session, Collection<SQLTable> targetTables) throws SQLObjectException {
         PlayPen pp = new PlayPen(session);
         mappings = ETLUtils.findTableLevelMappings(targetTables);
         for (SQLTable sourceTable : mappings.keySet()) {
@@ -66,7 +66,7 @@ public class MappingReport {
         pp.destroy();
     }
 
-    public Dimension drawHighLevelReport(Graphics2D g, Dimension pageSize) throws ArchitectException {
+    public Dimension drawHighLevelReport(Graphics2D g, Dimension pageSize) throws SQLObjectException {
 
         int y = 0;
         for (Map.Entry<SQLTable, Collection<SQLTable>> entry : mappings.entrySet()) {
@@ -131,7 +131,7 @@ public class MappingReport {
         return sy;
     }
 
-    public Dimension getRequiredSize() throws ArchitectException {
+    public Dimension getRequiredSize() throws SQLObjectException {
         return drawHighLevelReport(null,null);
     }
 

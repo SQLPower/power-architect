@@ -19,8 +19,6 @@
 
 package ca.sqlpower.architect.swingui.olap.action;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -28,6 +26,8 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.MeasureEditPanel;
 import ca.sqlpower.architect.swingui.olap.OSUtils;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CreateMeasureAction extends CreateOLAPChildAction<CubePane, Measure> {
@@ -60,8 +60,8 @@ public class CreateMeasureAction extends CreateOLAPChildAction<CubePane, Measure
                     return applied;
                 }
             };
-        } catch (ArchitectException e) {
-            throw new ArchitectRuntimeException(e);
+        } catch (SQLObjectException e) {
+            throw new SQLObjectRuntimeException(e);
         }
     }
     

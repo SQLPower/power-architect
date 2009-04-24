@@ -29,18 +29,20 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreePath;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.ArchitectSessionImpl;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestDBTreeModel extends TestCase {
 
+    private ArchitectSession session;
+    
     private static class LoggingSwingTreeModelListener implements TreeModelListener {
 
         private int changeCount;
@@ -100,12 +102,12 @@ public class TestDBTreeModel extends TestCase {
     private DBTreeModel tm;
 
     protected void setUp() throws Exception {
-        ArchitectSessionImpl session = new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "TestSession");
+        session = new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "TestSession");
         tm = new DBTreeModel(session.getRootObject());
         tm.setTestMode(true);
 	}
 	
-    public void testRefireRelationshipMappingEvents() throws ArchitectException {
+    public void testRefireRelationshipMappingEvents() throws SQLObjectException {
         SQLObject treeRoot = (SQLObject) tm.getRoot();
         SQLDatabase db = new SQLDatabase();
         db.setName("test database");
@@ -143,5 +145,13 @@ public class TestDBTreeModel extends TestCase {
 
         assertTrue(actualPaths.contains(expectFkPath));
         assertTrue(actualPaths.contains(expectPkPath));
+    }
+    
+    public void testDBTreeRootParentNull() throws Exception {
+        assertNull(((SQLObject)tm.getRoot()).getParent());
+    }
+    
+    public void testDBTreeRootMatchesSessionRoot() throws Exception {
+        assertEquals(session.getRootObject(), tm.getRoot());
     }
 }

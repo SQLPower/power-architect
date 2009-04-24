@@ -42,13 +42,13 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.util.TableOrder;
 
-import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 import ca.sqlpower.architect.swingui.table.FreqValueCountTableModel;
 import ca.sqlpower.architect.swingui.table.FreqValueTable;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.swingui.table.TableModelSortDecorator;
 
 import com.jgoodies.forms.builder.PanelBuilder;

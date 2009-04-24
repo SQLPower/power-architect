@@ -44,18 +44,8 @@ import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.CoreProject;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UnclosableInputStream;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.olap.MondrianXMLReader;
@@ -70,6 +60,7 @@ import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
@@ -79,6 +70,16 @@ import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLSchema;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.ExceptionReport;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.xml.XMLHelper;
@@ -133,7 +134,7 @@ public class SwingUIProject extends CoreProject {
      * loading into and saving out from.
      * @throws NullPointerException if the given session is null
      */
-    public SwingUIProject(ArchitectSwingSession session) throws ArchitectException {
+    public SwingUIProject(ArchitectSwingSession session) throws SQLObjectException {
         super(session);
         
         if (session == null) {
@@ -156,7 +157,7 @@ public class SwingUIProject extends CoreProject {
     
     // ------------- READING THE PROJECT FILE ---------------
 
-    public void load(InputStream in, DataSourceCollection dataSources) throws IOException, ArchitectException {
+    public void load(InputStream in, DataSourceCollection dataSources) throws IOException, SQLObjectException {
         olapPaneLoadIdMap = new HashMap<String, OLAPPane<?, ?>>();
         
         UnclosableInputStream uin = new UnclosableInputStream(in);
@@ -179,10 +180,10 @@ public class SwingUIProject extends CoreProject {
                 MondrianXMLReader.parse(uin, getSession().getOLAPRootObject(), sessionDbMap, olapObjectLoadIdMap);
             } catch (SAXException e) {
                 logger.error("Error parsing project file's olap schemas!", e);
-                throw new ArchitectException("SAX Exception in project file olap schemas parse!", e);
+                throw new SQLObjectException("SAX Exception in project file olap schemas parse!", e);
             } catch (Exception ex) {
                 logger.error("General Exception in project file olap schemas parse!", ex);
-                throw new ArchitectException("Unexpected Exception", ex);
+                throw new SQLObjectException("Unexpected Exception", ex);
             }
             
             in.reset();
@@ -289,24 +290,10 @@ public class SwingUIProject extends CoreProject {
         	setupGenericPlayPen(pp, attributes);
         	
         	// default values in playpen are true
-        	String showPrimary = attributes.getValue("showPrimary"); //$NON-NLS-1$
-        	if (showPrimary != null) {
-        	    getSession().setShowPrimary(Boolean.valueOf(showPrimary));
-        	}
-        	String showForeign = attributes.getValue("showForeign"); //$NON-NLS-1$
-        	if (showForeign != null) {
-        	    getSession().setShowForeign(Boolean.valueOf(showForeign));        	}
-        	String showIndexed = attributes.getValue("showIndexed"); //$NON-NLS-1$
-        	if (showIndexed != null) {
-        	    getSession().setShowIndexed(Boolean.valueOf(showIndexed));
-        	}
-        	String showUnique = attributes.getValue("showUnique"); //$NON-NLS-1$
-        	if (showUnique != null) {
-        	    getSession().setShowUnique(Boolean.valueOf(showUnique));
-        	}
-        	String showTheRest = attributes.getValue("showTheRest"); //$NON-NLS-1$
-        	if (showTheRest != null) {
-        	    getSession().setShowTheRest(Boolean.valueOf(showTheRest));
+        	
+        	String columnVisibility = attributes.getValue("columnVisibility"); //$NON-NLS-1$
+        	if (columnVisibility != null) {
+        	    getSession().setColumnVisibility(ColumnVisibility.valueOf(columnVisibility));
         	}
         	
         	String showPrimaryTag = attributes.getValue("showPrimaryTag"); //$NON-NLS-1$
@@ -335,7 +322,25 @@ public class SwingUIProject extends CoreProject {
             } else {
                 getSession().setShowAkTag(true);
             }
+            
+            String usingLogicalNames = attributes.getValue("names-displayLogicalNames"); //$NON-NLS-1$
+            if (usingLogicalNames == null) {
+                getSession().setUsingLogicalNames(true);
+            } else if (!Boolean.valueOf(usingLogicalNames)) {
+                getSession().setUsingLogicalNames(false);
+            } else {
+                getSession().setUsingLogicalNames(true);
+            }
         	
+            String relationshipLabelVisibility = attributes.getValue("relationshipLabelVisibility"); //$NON-NLS-1$
+            if (relationshipLabelVisibility == null) {
+                getSession().setDisplayRelationshipLabel(true);
+            } else if (!Boolean.valueOf(relationshipLabelVisibility)) {
+                getSession().setDisplayRelationshipLabel(false);
+            } else {
+                getSession().setDisplayRelationshipLabel(true);
+            }
+            
         	String relStyle = attributes.getValue("relationship-style"); //$NON-NLS-1$
             boolean direct;
             if (relStyle == null) {
@@ -520,7 +525,22 @@ public class SwingUIProject extends CoreProject {
                 ((RelationshipUI) r.getUI()).setOrientation(orientation);
                 r.setPkConnectionPoint(new Point(pkx, pky));
                 r.setFkConnectionPoint(new Point(fkx, fky));
-            } catch (ArchitectException e) {
+                
+                String rLineColor = attributes.getValue("rLineColor"); //$NON-NLS-1$
+                if (rLineColor != null) {
+                    Color relationshipLineColor = Color.decode(rLineColor);
+                    r.setForegroundColor(relationshipLineColor);
+                }
+                String pkLabelText = attributes.getValue("pkLabelText");
+                if (pkLabelText != null) {
+                    r.setTextForParentLabel(pkLabelText);
+                }
+                String fkLabelText = attributes.getValue("fkLabelText");
+                if (fkLabelText != null) {
+                    r.setTextForChildLabel(fkLabelText);
+                }
+                
+            } catch (SQLObjectException e) {
                 logger.error("Couldn't create relationship component", e); //$NON-NLS-1$
             } catch (NumberFormatException e) {
                 logger.warn("Didn't set connection points because of integer parse error"); //$NON-NLS-1$
@@ -606,12 +626,12 @@ public class SwingUIProject extends CoreProject {
      * periodically during the save operation.  If you use a progress monitor, don't
      * invoke this method on the AWT event dispatch thread!
      */
-    public void save(ProgressMonitor pm) throws IOException, ArchitectException {
+    public void save(ProgressMonitor pm) throws IOException, SQLObjectException {
         // write to temp file and then rename (this preserves old project file
         // when there's problems)
         if (file.exists() && !file.canWrite()) {
             // write problems with architect file will muck up the save process
-            throw new ArchitectException(Messages.getString("SwingUIProject.errorSavingProject", file.getAbsolutePath())); //$NON-NLS-1$
+            throw new SQLObjectException(Messages.getString("SwingUIProject.errorSavingProject", file.getAbsolutePath())); //$NON-NLS-1$
         }
 
         File backupFile = new File (file.getParent(), file.getName()+"~"); //$NON-NLS-1$
@@ -627,7 +647,7 @@ public class SwingUIProject extends CoreProject {
             // If creating this temp file fails, feed the user back a more explanatory message
             out = new PrintWriter(tempFile,encoding);
         } catch (IOException e) {
-            throw new ArchitectException(Messages.getString("SwingUIProject.cannotCreateOutputFile") + e, e); //$NON-NLS-1$
+            throw new SQLObjectException(Messages.getString("SwingUIProject.cannotCreateOutputFile") + e, e); //$NON-NLS-1$
         }
 
         progress = 0;
@@ -636,9 +656,9 @@ public class SwingUIProject extends CoreProject {
             int pmMax = 0;
             pm.setMinimum(0);
             if (getSession().isSavingEntireSource()) {
-                pmMax = ArchitectUtils.countTablesSnapshot((SQLObject) getSession().getSourceDatabases().getModel().getRoot());
+                pmMax = SQLObjectUtils.countTablesSnapshot((SQLObject) getSession().getSourceDatabases().getModel().getRoot());
             } else {
-                pmMax = ArchitectUtils.countTables((SQLObject) getSession().getSourceDatabases().getModel().getRoot());
+                pmMax = SQLObjectUtils.countTables((SQLObject) getSession().getSourceDatabases().getModel().getRoot());
             }
             logger.debug("Setting progress monitor maximum to "+pmMax); //$NON-NLS-1$
             pm.setMaximum(pmMax);
@@ -665,13 +685,13 @@ public class SwingUIProject extends CoreProject {
             fstatus = file.renameTo(backupFile);
             logger.debug("rename current file to backupFile: " + fstatus); //$NON-NLS-1$
             if (!fstatus) {
-                throw new ArchitectException((
+                throw new SQLObjectException((
                         Messages.getString("SwingUIProject.couldNotRenameFile", tempFile.toString(), file.toString()))); //$NON-NLS-1$
             }
         }
         fstatus = tempFile.renameTo(file);
         if (!fstatus) {
-            throw new ArchitectException((
+            throw new SQLObjectException((
                     Messages.getString("SwingUIProject.couldNotRenameTempFile", tempFile.toString(), file.toString()))); //$NON-NLS-1$
         }
         logger.debug("rename tempFile to current file: " + fstatus); //$NON-NLS-1$
@@ -684,9 +704,9 @@ public class SwingUIProject extends CoreProject {
      * @param out - the file to write to
      * @return True iff the save completed OK
      * @throws IOException
-     * @throws ArchitectException
+     * @throws SQLObjectException
      */
-    public void save(PrintWriter out, String encoding) throws IOException, ArchitectException {
+    public void save(PrintWriter out, String encoding) throws IOException, SQLObjectException {
         sqlObjectSaveIdMap = new IdentityHashMap<SQLObject, String>();
         olapObjectSaveIdMap = new IdentityHashMap<OLAPObject, String>();
         dbcsSaveIdMap = new HashMap<SPDataSource, String>();
@@ -696,7 +716,7 @@ public class SwingUIProject extends CoreProject {
 
         try {
             ioo.println(out, "<?xml version=\"1.0\" encoding=\""+encoding+"\"?>"); //$NON-NLS-1$ //$NON-NLS-2$
-            ioo.println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectVersion.APP_VERSION+"\">"); //$NON-NLS-1$ //$NON-NLS-2$
+            ioo.println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectVersion.APP_FULL_VERSION+"\">"); //$NON-NLS-1$ //$NON-NLS-2$
             ioo.indent++;
             ioo.println(out, "<project-name>"+SQLPowerUtils.escapeXML(getSession().getName())+"</project-name>"); //$NON-NLS-1$ //$NON-NLS-2$
             savePrintSettings(out, getSession().getPrintSettings());
@@ -720,20 +740,20 @@ public class SwingUIProject extends CoreProject {
                 oSession.saveNotify();
             }
         } catch (IOException e) {
-            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_VERSION.toString(), "Architect").toXML());
+            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_FULL_VERSION.toString(), "Architect").toXML());
             throw e;
-        } catch (ArchitectException e) {
-            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_VERSION.toString(), "Architect").toXML());
+        } catch (SQLObjectException e) {
+            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_FULL_VERSION.toString(), "Architect").toXML());
             throw e;
         } catch (RuntimeException e) {
-            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_VERSION.toString(), "Architect").toXML());
+            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_FULL_VERSION.toString(), "Architect").toXML());
             throw e;
         } finally {
             if (out != null) out.close();
         }
     }
 
-    public void save(OutputStream out, String encoding) throws IOException, ArchitectException {
+    public void save(OutputStream out, String encoding) throws IOException, SQLObjectException {
         save(new PrintWriter(new OutputStreamWriter(out, encoding)), encoding);
     }
     
@@ -787,7 +807,7 @@ public class SwingUIProject extends CoreProject {
         ioo.indent--;
     }
     
-    private void saveDataSources(PrintWriter out) throws IOException, ArchitectException {
+    private void saveDataSources(PrintWriter out) throws IOException, SQLObjectException {
         // FIXME this needs work.  It should include everything we need in order to build
         //       the referenced parent type from scratch (except the jdbc driver path)
         //       and the code that loads a project should check if the referenced parent
@@ -898,7 +918,7 @@ public class SwingUIProject extends CoreProject {
      * or more &lt;database&gt; elements.
      * @param out2
      */
-    private void saveSourceDatabases(PrintWriter out) throws IOException, ArchitectException {
+    private void saveSourceDatabases(PrintWriter out) throws IOException, SQLObjectException {
         ioo.println(out, "<source-databases>"); //$NON-NLS-1$
         ioo.indent++;
         SQLObject dbTreeRoot = (SQLObject) getSession().getSourceDatabases().getModel().getRoot();
@@ -917,7 +937,7 @@ public class SwingUIProject extends CoreProject {
      * Recursively walks through the children of db, writing to the
      * output file all SQLRelationship objects encountered.
      */
-    private void saveRelationships(PrintWriter out, SQLDatabase db) throws ArchitectException, IOException {
+    private void saveRelationships(PrintWriter out, SQLDatabase db) throws SQLObjectException, IOException {
         ioo.println(out, "<relationships>"); //$NON-NLS-1$
         ioo.indent++;
         Iterator it = db.getChildren().iterator();
@@ -931,7 +951,7 @@ public class SwingUIProject extends CoreProject {
     /**
      * The recursive subroutine of saveRelationships.
      */
-    private void saveRelationshipsRecurse(PrintWriter out, SQLObject o) throws ArchitectException, IOException {
+    private void saveRelationshipsRecurse(PrintWriter out, SQLObject o) throws SQLObjectException, IOException {
         if ( (!getSession().isSavingEntireSource()) && (!o.isPopulated()) ) {
             return;
         } else if (o instanceof SQLRelationship) {
@@ -944,7 +964,7 @@ public class SwingUIProject extends CoreProject {
         }
     }
 
-    private void saveTargetDatabase(PrintWriter out) throws IOException, ArchitectException {
+    private void saveTargetDatabase(PrintWriter out) throws IOException, SQLObjectException {
         SQLDatabase db = (SQLDatabase) getSession().getTargetDatabase();
         ioo.println(out, "<target-database id=\"ppdb\" dbcs-ref="+ //$NON-NLS-1$
                 quote(dbcsSaveIdMap.get(db.getDataSource()))+ ">"); //$NON-NLS-1$
@@ -969,14 +989,12 @@ public class SwingUIProject extends CoreProject {
             String relStyle = getSession().getRelationshipLinesDirect() ?
                     RELATIONSHIP_STYLE_DIRECT : RELATIONSHIP_STYLE_RECTILINEAR;
             tagText.append(" relationship-style=").append(quote(relStyle)); //$NON-NLS-1$
+            tagText.append(" names-displayLogicalNames=\"").append(getSession().isUsingLogicalNames()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" showPrimaryTag=\"").append(getSession().isShowPkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" showForeignTag=\"").append(getSession().isShowFkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" showAlternateTag=\"").append(getSession().isShowAkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showPrimary=\"").append(getSession().isShowPrimary()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showForeign=\"").append(getSession().isShowForeign()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showIndexed=\"").append(getSession().isShowIndexed()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showUnique=\"").append(getSession().isShowUnique()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-            tagText.append(" showTheRest=\"").append(getSession().isShowTheRest()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" columnVisibility=\"").append(getSession().getColumnVisibility()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" relationshipLabelVisibility=\"").append(getSession().isDisplayRelationshipLabel()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
         }
         tagText.append(">"); //$NON-NLS-1$
         ioo.println(out, tagText.toString());
@@ -1054,11 +1072,18 @@ public class SwingUIProject extends CoreProject {
         for (PlayPenComponent ppc : ppcs) {
             if (ppc instanceof Relationship) {
                 Relationship r = (Relationship) ppc;
+                
+                Color relationshipLineColor = r.getForegroundColor();                
+                String rColorString = String.format("0x%02x%02x%02x", relationshipLineColor.getRed(), relationshipLineColor.getGreen(), relationshipLineColor.getBlue()); //$NON-NLS-1$
+                
                 ioo.println(out, "<table-link relationship-ref="+quote(sqlObjectSaveIdMap.get(r.getModel())) //$NON-NLS-1$
                         +" pk-x=\""+r.getPkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" pk-y=\""+r.getPkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" fk-x=\""+r.getFkConnectionPoint().x+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" fk-y=\""+r.getFkConnectionPoint().y+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" rLineColor="+quote(rColorString) //$NON-NLS-1$
+                        +" pkLabelText="+quote(r.getTextForParentLabel()) //$NON-NLS-1$
+                        +" fkLabelText="+quote(r.getTextForChildLabel()) //$NON-NLS-1$
                         +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$
             } else if (ppc instanceof UsageComponent) {
                 UsageComponent usageComp = (UsageComponent) ppc;
@@ -1177,7 +1202,7 @@ public class SwingUIProject extends CoreProject {
      * is responsible for deferencing the attribute and setting the
      * property manually.
      */
-    private void saveSQLObject(PrintWriter out, SQLObject o) throws IOException, ArchitectException {
+    private void saveSQLObject(PrintWriter out, SQLObject o) throws IOException, SQLObjectException {
         String id = sqlObjectSaveIdMap.get(o);
         if (id != null) {
             ioo.println(out, "<reference ref-id=\""+SQLPowerUtils.escapeXML(id)+"\" />"); //$NON-NLS-1$ //$NON-NLS-2$

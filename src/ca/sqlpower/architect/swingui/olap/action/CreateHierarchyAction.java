@@ -19,8 +19,6 @@
 
 package ca.sqlpower.architect.swingui.olap.action;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -28,6 +26,8 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.HierarchyEditPanel;
 import ca.sqlpower.architect.swingui.olap.OSUtils;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 /**
@@ -58,8 +58,8 @@ public class CreateHierarchyAction extends CreateOLAPChildAction<DimensionPane, 
     protected DataEntryPanel createDataEntryPanel(Hierarchy model) {
         try {
             return new HierarchyEditPanel(model);
-        } catch (ArchitectException ex) {
-            throw new ArchitectRuntimeException(ex);
+        } catch (SQLObjectException ex) {
+            throw new SQLObjectRuntimeException(ex);
         }
     }
     

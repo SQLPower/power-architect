@@ -18,7 +18,7 @@
  */
 package ca.sqlpower.architect.etl;
 
-public class UnknownDatabaseTypeException extends ca.sqlpower.architect.ArchitectException {
+public class UnknownDatabaseTypeException extends ca.sqlpower.sqlobject.SQLObjectException {
 	public UnknownDatabaseTypeException(String type) {
 		super(type);
 	}

@@ -22,17 +22,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import prefs.AllPrefsTests;
-import ca.sqlpower.architect.TestFolder;
-import ca.sqlpower.architect.TestSQLCatalog;
-import ca.sqlpower.architect.TestSQLColumn;
-import ca.sqlpower.architect.TestSQLDatabase;
-import ca.sqlpower.architect.TestSQLIndex;
-import ca.sqlpower.architect.TestSQLIndexColumn;
-import ca.sqlpower.architect.TestSQLRelationship;
-import ca.sqlpower.architect.TestSQLSchema;
-import ca.sqlpower.architect.TestSQLTable;
 import ca.sqlpower.architect.ddl.TestDDLUtils;
-import ca.sqlpower.architect.undo.TestSQLObjectChildrenInsert;
 
 /**
  * This suite consists of the business tests whose class names do not
@@ -48,18 +38,7 @@ public class ArchitectBusinessTestSuite extends TestCase {
 
 		//$JUnit-BEGIN$
 		suite.addTest(AllPrefsTests.suite());
-		suite.addTest(TestSQLDatabase.suite());
-		suite.addTestSuite(TestSQLCatalog.class);
-        suite.addTest(TestFolder.suite());
-		suite.addTest(TestSQLTable.suite());
-		suite.addTest(TestSQLColumn.suite());
-        suite.addTestSuite(TestSQLIndex.class);
-        suite.addTestSuite(TestSQLIndexColumn.class);
-		suite.addTestSuite(TestSQLRelationship.class);
-		suite.addTestSuite(TestSQLSchema.class);
-		suite.addTestSuite(TestSQLTable.class);
 		suite.addTestSuite(TestDDLUtils.class);
-		suite.addTestSuite(TestSQLObjectChildrenInsert.class);
         
 
 		//$JUnit-END$

@@ -277,7 +277,7 @@
 			classpath="${pmd.jar}"/>
 		<property name="pmd-results" value="${reports}/pmd-ant-results.${pmd.report.format}"/>
 		<pmd shortFilenames="true" targetjdk="1.5">
-			<ruleset>basic,codesize,design,strings,imports</ruleset>
+			<ruleset>basic,imports</ruleset>
 			<formatter type="${pmd.report.format}" toFile="${pmd-results}"/>
 			<fileset dir="${src}">
 				<include name="**/*.java"/>
@@ -399,18 +399,10 @@
 	<target name="dbtree_library.jar" depends="library.jar">
 		<!-- TODO a manifest with author, version, and license info in it -->
 		<jar jarfile="${build}/architect_dbtree_lib.jar" basedir="${build}"
-			includes="ca/sqlpower/architect/swingui/dbtree/**">
+			includes="ca/sqlpower/architect/swingui/dbtree/**,
+			          icons/parts/**">
 		</jar>
 	</target>
-	
-   <!-- This target is used to make a testing utility library jar to embed
-    in other applications (the testing utility library depends on the architect library) -->
-    <target name="test_util_library.jar" depends="library.jar">
-        <!-- TODO a manifest with author, version, and license info in it -->
-        <jar jarfile="${build}/architect_test_util_lib.jar" basedir="${build}"
-            includes="ca/sqlpower/architect/util/**">
-        </jar>
-    </target>
 
 	<!-- DOCUMENTATION
 		There are THREE main documentation targets, all built from the
@@ -651,7 +643,7 @@
 
     	<jar destfile="${staging.dir}/architect.jar" update="no"
     				basedir="${build}" 
-    				includes="ca/** icons/** log4j.properties default_database_types.ini"
+    				includes="ca/** icons/** sounds/** xsltStylesheets/** log4j.properties default_database_types.ini"
     				manifest="${build}/manifest">
     	</jar>
 		<copy todir="${staging.dir}/jdbc">
@@ -1166,17 +1158,16 @@
 	<target name="osx_tgz" depends="osx_dist" if="isNotMac">
 		<tar destfile="${dist.dir}/Architect-OSX-${app.version}.tar.gz"
 					compression="gzip">
-			<tarfileset dir="${staging.dir}" includes="Power Architect.app/**"/>
-			<tarfileset dir="${staging.dir}" includes="jdbc/*.ini"/>
+			<tarfileset dir="${staging.dir}" includes="Power*Architect.app/**"/>
 		</tar>
 	</target>
 
 	<target name="osx_jdbc_tgz" depends="osx_jdbc_dist" if="isNotMac">
-		<tar destfile="${dist.dir}/Architect-OSX-jdbc-${app.version}.tar.gz"
-					compression="gzip">
-			<tarfileset dir="${staging.dir}" includes="Power Architect JDBC.app/**"/>
-			<tarfileset dir="${staging.dir}" includes="jdbc/*"/>
-		</tar>
+		<exec executable="tar" dir="${staging.dir}">
+			<arg value="-cpzf" />
+			<arg value="../${dist.dir}/Architect-OSX-${app.version}.tar.gz"/>
+			<arg value="Power Architect JDBC.app"/>
+		</exec>
 	</target>
 
 	<!-- Build a "generic" (e.g., UNIX) install that users will just un-tar -->
@@ -1240,7 +1231,7 @@
 	<target name="jdbc_dist" depends="windows_jdbc_exe_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
 	<target name="no_jdbc_dist" depends="windows_exe_installer,generic_install,osx_tgz,osx_dmg" />
 
-	<target name="dist" depends="pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,source_only_tgz, architect.version.properties"
+	<target name="dist" depends="pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,source_only_tgz, architect.version.properties,downloadpage"
 	        description="Builds Architect Distribution for all supported platforms to dist/architect-version/*">
 		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
 		<mkdir dir="${dist.dir}/doc"/>
@@ -1254,6 +1245,13 @@
 				<include name="*-${app.version}.pdf"/>
 			</fileset>
 		</copy>
+		<echo>Did you forget to turn off all the debugging in log4j.properties?!</echo>
+	</target>
+
+	<!-- ================================= 
+          target: downloadpage              
+         ================================= -->
+    <target name="downloadpage" depends="init">
 	    <get dest="${dist.dir}/index.html" src="http://www.sqlpower.ca/page/architect_download_template"/>
 		<replace file="${dist.dir}/index.html">
 			<replacefilter token="&lt;head&gt;" value="&lt;head&gt;&lt;base href=&quot;http://www.sqlpower.ca/page/&quot;&gt;"/>
@@ -1261,9 +1259,8 @@
 			<replacefilter token="@@downloadLinkBase" value="${downloadLinkBase}"/>
 			<replacefilter token="@@docLinkBase" value="${docLinkBase}"/>
 		</replace>
-		<echo>Did you forget to turn off all the debugging in log4j.properties?!</echo>
-	</target>
-		
+    </target>
+
 	<!-- Some of the Ant targets in this build.xml require Ant 1.7. 
 		 To upgrade if using Eclipse 3.x,
 	     1. Download the latest Ant from http://ant.apache.org/bindownload.cgi

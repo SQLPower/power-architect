@@ -21,8 +21,8 @@ package ca.sqlpower.architect.profile;
 import java.util.Date;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 
 public class AbstractProfileResultTest extends TestCase {
     private class TestingAbstractProfileResult extends AbstractProfileResult<SQLObject> {

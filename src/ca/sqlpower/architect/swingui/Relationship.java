@@ -23,13 +23,17 @@ import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -41,21 +45,35 @@ import javax.swing.event.MouseInputAdapter;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
+import ca.sqlpower.swingui.ColorIcon;
+import ca.sqlpower.swingui.ColourScheme;
+import ca.sqlpower.util.WebColour;
 
 public class Relationship extends PlayPenComponent implements SQLObjectListener, LayoutEdge {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
+	
+	public static final String PAREENT_TO_CHILD = "receives";
+	public static final String CHILD_TO_PARENT = "is received by";
 
-	private SQLRelationship model;
+	public static final WebColour[] SUGGESTED_COLOURS;
+	static {
+	    List<WebColour> l = new ArrayList<WebColour>();
+	    l.addAll(ColourScheme.BREWER_SET19);
+	    l.add(new WebColour(0, 0, 0));
+	    SUGGESTED_COLOURS = l.toArray(new WebColour[l.size()]);
+	}
+	
+    private SQLRelationship model;
 	private TablePane pkTable;
 	private TablePane fkTable;
 
@@ -68,7 +86,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
     /**
 	 * The colour to highlight related columns with when this relationship is selected.
 	 */
-    private Color columnHighlightColour = Color.red;
+    private Color columnHighlightColour = ColourScheme.SQLPOWER_ORANGE;
  
     /**
      * This constructor is only for making a copy of an existing relationship component.
@@ -109,7 +127,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 	 * the given SQLRelationship and adds it to the playpen.  It
 	 * doesn't maniuplate the model at all.
 	 */
-	public Relationship(SQLRelationship model, PlayPenContentPane parent) throws ArchitectException {
+	public Relationship(SQLRelationship model, PlayPenContentPane parent) throws SQLObjectException {
 		super(parent);
 		this.model = model;
 		setPkTable(getPlayPen().findTablePane(model.getPkTable()));
@@ -141,19 +159,36 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
         JMenu setFocusToRelatedTables = new JMenu(Messages.getString("Relationship.setFocusMenu")); //$NON-NLS-1$
         mi = new JMenuItem();
         mi.setAction(af.getFocusToParentAction()); 
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         setFocusToRelatedTables.add(mi);
         mi = new JMenuItem();
         mi.setAction(af.getFocusToChildAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         setFocusToRelatedTables.add(mi);
         popup.add(setFocusToRelatedTables);
+        
+        JMenu setRelationshipLineColor = new JMenu(Messages.getString("Relationship.relationshipLineColor")); //$NON-NLS-1$
+        for (final Color color : SUGGESTED_COLOURS) {
+            Icon icon = new ColorIcon(60, 25, color);
+            mi = new JMenuItem(icon);
+            mi.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    getPlayPen().startCompoundEdit("Set relationship line colour");
+                    for (Relationship r : getPlayPen().getSelectedRelationShips()) {
+                        r.setForegroundColor(color);
+                    }
+                    getPlayPen().endCompoundEdit("Set relationship line colour");
+                }
+            });
+            setRelationshipLineColor.add(mi);
+        }
+        popup.add(setRelationshipLineColor);
         
         mi = new JMenuItem(af.getReverseRelationshipAction());
         popup.add(mi);
         
         mi = new JMenuItem(af.getEditRelationshipAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         popup.add(mi);
         
         if (logger.isDebugEnabled()) {
@@ -174,7 +209,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
         
         popup.addSeparator();
         mi = new JMenuItem(af.getDeleteSelectedAction());
-        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         popup.add(mi);
 	}
 
@@ -213,7 +248,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
                         fkTable.removeColumnHighlight(m.getFkColumn(), columnHighlightColour);
                     }
 		        }
-		    } catch (ArchitectException e) {
+		    } catch (SQLObjectException e) {
 		        logger.error("Couldn't modify highlights for columns in the mapping", e); //$NON-NLS-1$
 		    }
 			selected = isSelected;
@@ -413,6 +448,15 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 		}
 	}
 
+    /**
+     * Returns the colour that will be used to highlight columns participating
+     * in this relationship when this relationship is selected.
+     * 
+     * @return
+     */
+	public Color getColumnHighlightColour() {
+        return columnHighlightColour;
+    }
 
 	// ------------------ sqlobject listener ----------------
 	public void dbChildrenInserted(SQLObjectEvent e) {
@@ -445,10 +489,6 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 				repaint();
 			}
 		}
-	}
-
-	public void dbStructureChanged(SQLObjectEvent e) {
-        // not sure if this ever happens!
 	}
 
     /**
@@ -494,6 +534,17 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
         return false;
     }
 
+    public boolean displayRelationshipLabel() {
+        PlayPen pp = getPlayPen();
+        if (pp != null) {
+            ArchitectSwingSession session = pp.getSession();
+            if (session != null) {
+                return session.isDisplayRelationshipLabel();
+            }
+        }
+        return false;
+    }
+    
     /**
      * Sets the connectionPoints of the relationship from an array of
      * points. Currently, it's only accessed when undo/redo movement
@@ -525,7 +576,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
                 session.getArchitectFrame().getEditRelationshipAction().actionPerformed
                 (new ActionEvent(evt.getSource(),
                         ActionEvent.ACTION_PERFORMED,
-                        ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+                        PlayPen.ACTION_COMMAND_SRC_PLAYPEN));
             } else if (evt.getClickCount() == 1 && evt.getButton() == MouseEvent.BUTTON1){
                 if (isSelected() && componentPreviouslySelected) {
                     setSelected(false, SelectionEvent.SINGLE_SELECT);
@@ -563,5 +614,21 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
             // relationship is non-rectangular so we can't use getBounds for intersection testing
             setSelected(intersects(pp.rubberBand),SelectionEvent.SINGLE_SELECT);
         } 
+    }
+
+    public void setTextForParentLabel(String textForParentLabel) {
+        model.setTextForParentLabel(textForParentLabel);
+    }
+
+    public String getTextForParentLabel() {
+        return model.getTextForParentLabel();
+    }
+
+    public void setTextForChildLabel(String textForChildLabel) {
+        model.setTextForChildLabel(textForChildLabel);
+    }
+
+    public String getTextForChildLabel() {
+        return model.getTextForChildLabel();
     }
 }

@@ -23,9 +23,9 @@ import java.util.Collections;
 import java.util.EventObject;
 import java.util.List;
 
-import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
+import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * The ProfileChangeEvent represents a change in the contents of a

@@ -26,10 +26,10 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 
 public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 
@@ -65,7 +65,7 @@ public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 				sourceColPk.add(cm.getPkColumn());
 				sourceColFk.add(cm.getFkColumn());
 			}
-		} catch (ArchitectException e) {
+		} catch (SQLObjectException e) {
 			logger
 					.debug("The source columnMapping has no PK Columns!  Shouldn't happen!"
 							+ e);
@@ -76,7 +76,7 @@ public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 				targetColPk.add(cm.getPkColumn());
 				targetColFk.add(cm.getFkColumn());
 			}
-		} catch (ArchitectException e) {
+		} catch (SQLObjectException e) {
 			logger
 					.debug("The target columnMapping has no PK Columns!  Shouldn't happen!"
 							+ e);
