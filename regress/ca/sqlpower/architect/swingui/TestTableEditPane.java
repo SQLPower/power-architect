@@ -50,28 +50,25 @@ public class TestTableEditPane extends TestCase {
         assertEquals ("New Name", t.getName());     
     }
     
-    public void testChangePhysicalName(){
-        tep.setPhysicalNameText("New_Name");
-        tep.applyChanges();
-        assertEquals("New_Name", t.getPhysicalName());
-    }
-
     public void testPrimaryNameChangeUpdatesPk() throws Exception {
         assertEquals("Test_Table_1_pk", t.getPrimaryKeyName());
-        tep.setPhysicalNameText("New Name");
+        tep.setNameText("New Name");
         tep.applyChanges();
         assertEquals ("New Name_pk", t.getPrimaryKeyName());     
     }
 
     public void testNameChangeDoesNotUpdatePK() throws Exception {
+        t.getPrimaryKeyIndex().setName("my_pk_name");
+        tep.setPkNameText("my_pk_name");
         tep.setNameText("New Table Name");
         tep.applyChanges();
-        assertEquals("Test_Table_1_pk", t.getPrimaryKeyName());
+        assertEquals("table phys: " + t.getPhysicalName() + "; table log: " + t.getName() + "; pk phys: " + t.getPrimaryKeyIndex().getPhysicalName() + "; pk log: " + t.getPrimaryKeyIndex().getName(),
+                "my_pk_name", t.getPrimaryKeyName());
     }
     
     public void testPhysicalNameChangeDoesNotUpdatePkWhenPkNameAlsoChanged() throws Exception {
         assertEquals("Test_Table_1_pk", t.getPrimaryKeyName());
-        tep.setPhysicalNameText("New Name");
+        tep.setNameText("New Name");
         tep.setPkNameText("New PK Name");
         tep.applyChanges();
         assertEquals ("New PK Name", t.getPrimaryKeyName());     

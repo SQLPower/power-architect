@@ -129,7 +129,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 					 new Callable<Boolean>(){
 						public Boolean call() {
 						    if (addToTable) {
-						        tp.getModel().startCompoundEdit("adding a new column '" + columnEditPanel.getColPhysicalName().getText() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
+						        tp.getModel().startCompoundEdit("add column '" + column.getName() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 							    try {
 							        tp.getModel().addColumn(colIdx, column);
 							        tp.selectNone();
@@ -140,7 +140,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 							}
 	                        Boolean ret = Boolean.valueOf(columnEditPanel.applyChanges());
 	                        if (addToTable) {
-	                            tp.getModel().endCompoundEdit("adding a new column '" + columnEditPanel.getColPhysicalName().getText() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
+	                            tp.getModel().endCompoundEdit("adding column '" + column.getName() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 						    }
 							return ret;
 						}

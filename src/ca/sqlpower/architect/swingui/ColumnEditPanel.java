@@ -108,8 +108,6 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
 
     private final JTextField colLogicalName;
     
-    private final JTextField colPhysicalName;
-
     private final JComboBox colType;
 
     private final JSpinner colScale;
@@ -207,34 +205,6 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                     logger.debug("focus Gained : " + e);
                 }
                 colLogicalName.selectAll();
-            }
-        });
-
-        layout.appendRow(RowSpec.decode("5dlu"));
-        row++;
-
-        layout.appendRow(RowSpec.decode("p"));
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.physicalName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(RowSpec.decode("p"));
-        cb = new JCheckBox();
-        if (cols.size() > 1) {
-            panel.add(cb, cc.xy(1, row));
-        }
-        panel.add(colPhysicalName = new JTextField(), cc.xyw(2, row++, 4));
-        componentEnabledMap.put(colPhysicalName, cb);
-        colPhysicalName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
-        colPhysicalName.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentShown(ComponentEvent e) {
-                colPhysicalName.requestFocusInWindow();
-            }
-        });
-        colPhysicalName.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent e) {
-                if(logger.isDebugEnabled()) {
-                    logger.debug("focus Gained : " + e);
-                }
-                colPhysicalName.selectAll();
             }
         });
 
@@ -346,7 +316,6 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
             }
         };
         // Listener to update the sequence name when the column name changes
-        colPhysicalName.getDocument().addDocumentListener(listener);
         colLogicalName.getDocument().addDocumentListener(listener);
 
         // Listener to rediscover the sequence naming convention, and reset the
@@ -360,18 +329,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                     // because sequence names have to be unique
                     SQLColumn column = columns.iterator().next();
                     colAutoIncSequenceName.setText(column.getAutoIncrementSequenceName());
-                    if (column.getPhysicalName() != null && !column.getPhysicalName().trim().equals("")) {
-                        discoverSequenceNamePattern(column.getPhysicalName());
-                    } else {
-                        discoverSequenceNamePattern(column.getName());
-                    }
+                    discoverSequenceNamePattern(column.getName());
                     syncSequenceName();
                 } else {
-                    if (colPhysicalName.getText() != null && !colPhysicalName.getText().trim().equals("")) {
-                        discoverSequenceNamePattern(colPhysicalName.getText());
-                    } else {
-                        discoverSequenceNamePattern(colLogicalName.getText());
-                    }
+                    discoverSequenceNamePattern(colLogicalName.getText());
                 }
             }
         });
@@ -421,8 +382,8 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         }
 
 //         TODO only give focus to column name if it's enabled?
-        colPhysicalName.requestFocus();
-        colPhysicalName.selectAll();
+        colLogicalName.requestFocus();
+        colLogicalName.selectAll();
         
         SQLObjectUtils.listenToHierarchy(obsolesenceListener, session.getRootObject());
         panel.addAncestorListener(cleanupListener);
@@ -466,7 +427,6 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         }
         
         updateComponent(colLogicalName, col.getName());
-        updateComponent(colPhysicalName, col.getPhysicalName());
         updateComponent(colType, SQLType.getType(col.getType()));
         
         updateComponent(colScale, Integer.valueOf(col.getScale()));
@@ -495,11 +455,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
 
         logger.info("The seq name is: " + col.getAutoIncrementSequenceName());
         updateComponents();
-        if (col.getPhysicalName() != null && !col.getPhysicalName().trim().equals("")) {
-            discoverSequenceNamePattern(col.getPhysicalName());
-        } else {
-            discoverSequenceNamePattern(col.getName());
-        }
+        discoverSequenceNamePattern(col.getName());
     }
 
     /** Subroutine of {@link #updateComponents(SQLColumn)}. */
@@ -561,8 +517,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
     private void syncSequenceName() {
         if (seqNamePrefix != null && seqNameSuffix != null) {
             String newName = seqNamePrefix;
-            newName += (colPhysicalName.getText() == null || colPhysicalName.getText().trim().equals("")) ? 
-                    colLogicalName.getText() : colPhysicalName.getText();
+            newName += colLogicalName.getText();
             newName += seqNameSuffix;
             colAutoIncSequenceName.setText(newName);
         }
@@ -633,9 +588,6 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                         column.setName(colLogicalName.getText());
                     }
                 }
-                if (componentEnabledMap.get(colPhysicalName).isSelected()) {
-                    column.setPhysicalName(colPhysicalName.getText());
-                }                
                 if (componentEnabledMap.get(colType).isSelected()) {
                     column.setType(((SQLType) colType.getSelectedItem()).getType());
                 }
@@ -733,11 +685,6 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
     /** Only for testing. Normal client code should not need to call this. */
     public JTextField getColLogicalName() {
         return colLogicalName;
-    }
-    
-    /** Only for testing. Normal client code should not need to call this. */
-    public JTextField getColPhysicalName() {
-        return colPhysicalName;
     }
 
     /** Only for testing. Normal client code should not need to call this. */
