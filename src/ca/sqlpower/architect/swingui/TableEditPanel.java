@@ -53,7 +53,6 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
     private JDialog editDialog;
 	protected SQLTable table;
 	JTextField logicalName;
-	JTextField physicalName;
 	JTextField pkName;
 	JTextArea remarks;
 	private JComboBox bgColor;
@@ -70,8 +69,6 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		this.tp = session.getPlayPen().findTablePane(t);
         add(new JLabel(Messages.getString("TableEditPanel.tableLogicalNameLabel"))); //$NON-NLS-1$
         add(logicalName = new JTextField("", 30)); //$NON-NLS-1$
-        add(new JLabel(Messages.getString("TableEditPanel.tablePhysicalNameLabel"))); //$NON-NLS-1$
-        add(physicalName = new JTextField("", 30)); //$NON-NLS-1$
 		add(new JLabel(Messages.getString("TableEditPanel.primaryKeyNameLabel"))); //$NON-NLS-1$
 		add(pkName = new JTextField("", 30)); //$NON-NLS-1$
 		add(new JLabel(Messages.getString("TableEditPanel.remarksLabel"))); //$NON-NLS-1$
@@ -103,7 +100,6 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 	private void editTable(SQLTable t) {
 		table = t;
 		logicalName.setText(t.getName());
-		physicalName.setText(t.getPhysicalName());
         try {
             if (t.getPrimaryKeyIndex() == null) {
                 pkName.setEnabled(false);
@@ -161,7 +157,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                 }
                 
                 table.setName(logicalName.getText());
-                table.setPhysicalName(physicalName.getText());
+                table.setPhysicalName(logicalName.getText());
                 table.setRemarks(remarks.getText());   
                 
                 if (tp != null) {
@@ -233,22 +229,6 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
      */
     public void setPkNameText(String newPkName) {
         pkName.setText(newPkName);
-    }
-    
-    /**
-     * For testing only
-     * @return the String currently in the physicalName textField
-     */
-    public String getPhysicalNameTest() {
-        return physicalName.getText();
-    }
-    
-    /**
-     * For testing only
-     * @param newPhysicalName new physical name for the table
-     */
-    public void setPhysicalNameText(String newPhysicalName) {
-        physicalName.setText(newPhysicalName);
     }
     
     public boolean hasUnsavedChanges() {

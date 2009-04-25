@@ -50,7 +50,6 @@ public class TestColumnEditPanel extends TestCase {
 		col3 = new SQLColumn(null,"Column 3",1,2,3);
 		col4 = new SQLColumn(null,"Column 4",1,2,3);	
 		
-		col2.setPhysicalName("Physical Name 2");
 		col2.setAutoIncrement(false);
 		col2.setNullable(DatabaseMetaData.columnNoNulls);
 		col2.setPrimaryKeySeq(0);
@@ -105,7 +104,6 @@ public class TestColumnEditPanel extends TestCase {
 
 	public void testApplyChanges() {
 
-		panel.getColPhysicalName().setText("CHANGED");
 		panel.getColLogicalName().setText("Easier Use Column Name");
 		panel.getColPrec().setValue(new Integer(1234));
 		panel.getColType().setSelectedIndex(5);
@@ -118,7 +116,6 @@ public class TestColumnEditPanel extends TestCase {
 		
 		panel.applyChanges();
 		assertEquals("Panel check boxes borked",true,panel.getColAutoInc().getModel().isSelected());
-		assertEquals("Wrong column physical name","CHANGED",col2.getPhysicalName());
 		assertEquals("Wrong column logical name","Easier Use Column Name",col2.getName());
 		assertEquals("Wrong Precision",1234,col2.getPrecision());
 		assertEquals("Wrong type",16,col2.getType());
@@ -129,7 +126,6 @@ public class TestColumnEditPanel extends TestCase {
 	}
 
 	public void testDiscardChanges() {
-		panel.getColPhysicalName().setText("CHANGED");
 		panel.getColLogicalName().setText("Easier Use Column Name");
 		panel.getColPrec().setValue(new Integer(1234));
 		panel.getColType().setSelectedIndex(5);
@@ -139,7 +135,6 @@ public class TestColumnEditPanel extends TestCase {
 		panel.getColNullable().getModel().setSelected(true);
 		panel.discardChanges();
 		
-		assertEquals("Wrong column physical name","Physical Name 2",col2.getPhysicalName());
 		assertEquals("Wrong column logical name","Column 2",col2.getName());
 		assertEquals("Wrong Precision",3,col2.getPrecision());
 		assertEquals("Wrong type",2,col2.getType());
