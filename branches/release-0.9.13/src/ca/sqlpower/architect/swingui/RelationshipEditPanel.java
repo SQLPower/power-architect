@@ -121,12 +121,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         relationshipLines = session.getPlayPen().getSelectedRelationShips();
         //Since now can only select one relationship to edit at the same time,
         //so the number of selected relationships is only 1. 
-        for(Relationship r: relationshipLines) {
-            if(logger.isDebugEnabled()) {
-                logger.debug("This relationship is : " + r); //$NON-NLS-1$
-            }
-            this.color = r.getForegroundColor();
-        }
+        this.color = relationshipLines.get(0).getForegroundColor();
         
         FormLayout layout = new FormLayout("pref, 4dlu, pref:grow, 4dlu, pref, 4dlu, pref:grow"); //$NON-NLS-1$
         layout.setColumnGroups(new int[][] { { 3, 7 } });
