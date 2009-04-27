@@ -28,9 +28,8 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
@@ -65,13 +64,12 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 	public static final String PAREENT_TO_CHILD = "receives";
 	public static final String CHILD_TO_PARENT = "is received by";
 
-	public static final WebColour[] SUGGESTED_COLOURS;
-	static {
-	    List<WebColour> l = new ArrayList<WebColour>();
-	    l.addAll(ColourScheme.BREWER_SET19);
-	    l.add(new WebColour(0, 0, 0));
-	    SUGGESTED_COLOURS = l.toArray(new WebColour[l.size()]);
-	}
+    public static final Vector<Color> SUGGESTED_COLOURS;
+    static {
+        SUGGESTED_COLOURS = new Vector<Color>();
+        SUGGESTED_COLOURS.addAll(ColourScheme.BREWER_SET19);
+        SUGGESTED_COLOURS.add(new WebColour(0, 0, 0));
+    }
 	
     private SQLRelationship model;
 	private TablePane pkTable;
@@ -146,8 +144,21 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 		model.addSQLObjectListener(this);
 		setToolTipText(model.getName());
 		
-		// requires pkTable and fkTable to be initialized
-		//ui.bestConnectionPoints(); // breaks when loading a new project?
+		// Check whether the foreground color of this machine is in the 
+        // set of our color set. Add the color if it is not included,
+        // do nothing otherwise.
+        boolean containForegroundColor = false;
+        for (final Color color : SUGGESTED_COLOURS) {
+            if (color.equals(this.getForegroundColor())) {
+                containForegroundColor = true;
+        }
+        }
+        if (!containForegroundColor) {
+            SUGGESTED_COLOURS.add(this.getForegroundColor());
+        }
+        
+        // requires pkTable and fkTable to be initialized
+        //ui.bestConnectionPoints(); // breaks when loading a new project?
 	}
 
 	protected void createPopup() {
