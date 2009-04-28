@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect;
 
+import java.awt.Color;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
@@ -99,5 +100,11 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
      * Sets the new DDL Generator currently in use for this session.
      */
     public void setDDLGenerator(DDLGenerator generator);
+
+    /**
+     * Opens a dialog for the user to choose a custom colour.
+     * Returns the choosen colour.
+     */
+    public Color getCustomColour(Color foregroundColor);
 
 }

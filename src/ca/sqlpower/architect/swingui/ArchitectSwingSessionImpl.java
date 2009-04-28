@@ -18,12 +18,16 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.Action;
+import javax.swing.JColorChooser;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
@@ -177,6 +182,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * for Architect.
      */
     private final SwingUIUserPrompterFactory swinguiUserPrompterFactory;
+    
+    /**
+     * A colour chooser used by the MungeProcessEditor to set custom colours.
+     * It has been created within a swing session to share recent colours amongst
+     * different match rule sets.
+     */
+    private final JColorChooser colourChooser = new JColorChooser();
 
     /**
      * Creates a new swing session, including a new visible architect frame, with
@@ -947,5 +959,38 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     public void setDisplayRelationshipLabel(boolean displayRelationshipLabel) {
         this.displayRelationshipLabel = displayRelationshipLabel;
+    }
+    
+    public Color getCustomColour(Color initial) {
+        if (initial == null) {
+            initial = Color.BLACK;
+        }
+        colourChooser.setColor(initial);
+        ColorTracker ok = new ColorTracker(colourChooser);
+        JDialog dialog = JColorChooser.createDialog(frame, "Choose a custom colour", true, colourChooser, ok, null);
+
+        dialog.setVisible(true); 
+
+        return ok.getColor();
+    }
+    
+    /**
+     * Action Listener used by the custom colour dialog.
+     */
+    class ColorTracker implements ActionListener, Serializable {
+        JColorChooser chooser;
+        Color color;
+
+        public ColorTracker(JColorChooser c) {
+            chooser = c;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            color = chooser.getColor();
+        }
+
+        public Color getColor() {
+            return color;
+        }
     }
 }

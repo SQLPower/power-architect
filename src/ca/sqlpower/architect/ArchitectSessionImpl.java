@@ -19,6 +19,7 @@
 package ca.sqlpower.architect;
 
 
+import java.awt.Color;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -188,6 +189,11 @@ public class ArchitectSessionImpl implements ArchitectSession {
         } catch (SQLObjectException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Color getCustomColour(Color foregroundColor) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

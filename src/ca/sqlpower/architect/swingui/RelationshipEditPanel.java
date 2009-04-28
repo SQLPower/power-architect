@@ -19,9 +19,14 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.Vector;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -133,6 +138,11 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         fb.append(Messages.getString("RelationshipEditPanel.lineColour"), relationLineColor = new JComboBox(Relationship.SUGGESTED_COLOURS)); //$NON-NLS-1$
         ColorCellRenderer renderer = new ColorCellRenderer(40, 20);
         relationLineColor.setRenderer(renderer);
+        if (!containsColor(Relationship.SUGGESTED_COLOURS, color)) {
+            relationLineColor.addItem(color);
+            relationLineColor.setSelectedItem(color);
+        }
+        fb.append(new JButton(customColour));
         
         fb.nextLine();
         fb.append(Messages.getString("RelationshipEditPanel.pkLabel"), pkLabelTextField = new JTextField());
@@ -427,5 +437,24 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
     public void setEditDialog(JDialog editDialog) {
         this.editDialog = editDialog;
     }
-	
+    
+    Action customColour = new AbstractAction("Custom Colour...") {
+        public void actionPerformed(ActionEvent arg0) {
+            Color colour = session.getCustomColour(relationshipLines.get(0).getForegroundColor());
+            if (colour != null && !containsColor(Relationship.SUGGESTED_COLOURS, colour)) {
+                relationLineColor.addItem(colour);
+                relationLineColor.setSelectedItem(colour);
+            }
+        }
+    };
+
+	private boolean containsColor(Vector<Color> colorSet, Color color) {
+	    boolean contains = false;
+	    for (Color eachColor : colorSet) {
+	        if (eachColor.equals(color)) {
+	            contains = true;
+	        }
+	    }
+	    return contains;
+	}
 }
