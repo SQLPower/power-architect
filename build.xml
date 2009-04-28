@@ -48,6 +48,12 @@
 	<!-- Base directory for the izpack (Windows) installer output -->
 	<property name="installer.dir" value="installer"/>
 
+	<property name="launch4j.dir" location="ext-tools-home/launch4j" />
+	<taskdef name="launch4j"
+	    classname="net.sf.launch4j.ant.Launch4jTask"
+	    classpath="${launch4j.dir}/launch4j.jar
+	        :${launch4j.dir}/lib/xstream.jar" />
+	
 	<!-- OS X .app bundling tool: jarbundler -->
 	<taskdef name="jarbundler" 
 		classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar"
@@ -987,6 +993,30 @@
 	    <arg value="--no-upx"/>
 	  	<arg value="--output=..\..\..\..\${dist.dir}\Architect-Setup-Windows-jdbc-${app.version}.exe"/>
 	  </exec>
+	</target>
+	
+
+
+	<target name="windows_jdbc_exe_installer_launch4j" depends="windows_jdbc_installer">
+		<launch4j>
+			<config dontwrapjar="false" 
+					headertype="gui"
+					jar="${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"
+					outfile="${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.exe"
+					errtitle="Java Runtime Required"
+					priority="normal"
+					downloadurl="http://java.com/download"
+					supporturl="http://www.sqlpower.ca/forum"
+					customprocname="false"
+					stayalive="false"
+					icon="src/icons/architect.ico">
+				<singleInstance
+					mutexName="Power*Architect Installer"
+					windowTitle="Power*Architect Installer"
+				/>
+				<jre minVersion="1.5.0"/>
+			</config>
+		</launch4j>
 	</target>
 	
 	<target name="osx_adapter_jar" depends="checkBuildPath"
