@@ -131,6 +131,8 @@ public class BasicRelationshipUI extends RelationshipUI
 		logger.debug("BasicRelationshipUI is painting");
 		Relationship r = (Relationship) c;
 		Graphics2D g2 = (Graphics2D) g;
+		childToParent.setFont(g2.getFont());
+		parentToChild.setFont(g2.getFont());
 		logger.debug("orientation is: " + orientation);
 		if (g2 == null)
 		{
