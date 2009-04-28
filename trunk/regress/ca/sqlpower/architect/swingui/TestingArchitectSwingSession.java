@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Color;
 import java.awt.Window;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -366,5 +367,10 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     public void setDisplayRelationshipLabel(boolean displayRelationshipLabel) {
         this.displayRelationshipLabel = displayRelationshipLabel;
+    }
+
+    public Color getCustomColour(Color foregroundColor) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

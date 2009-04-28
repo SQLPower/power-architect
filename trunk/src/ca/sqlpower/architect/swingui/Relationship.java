@@ -143,21 +143,8 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 		setBackgroundColor(Color.green);
 		model.addSQLObjectListener(this);
 		setToolTipText(model.getName());
-		
-		// Check whether the foreground color of this machine is in the 
-        // set of our color set. Add the color if it is not included,
-        // do nothing otherwise.
-        boolean containForegroundColor = false;
-        for (final Color color : SUGGESTED_COLOURS) {
-            if (color.equals(this.getForegroundColor())) {
-                containForegroundColor = true;
-        }
-        }
-        if (!containForegroundColor) {
-            SUGGESTED_COLOURS.add(this.getForegroundColor());
-        }
-        
-        // requires pkTable and fkTable to be initialized
+
+		// requires pkTable and fkTable to be initialized
         //ui.bestConnectionPoints(); // breaks when loading a new project?
 	}
 
