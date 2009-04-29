@@ -47,31 +47,7 @@
 
 	<!-- Base directory for the izpack (Windows) installer output -->
 	<property name="installer.dir" value="installer"/>
-
-	<property name="launch4j.dir" location="ext-tools-home/launch4j" />
-	<taskdef name="launch4j"
-	    classname="net.sf.launch4j.ant.Launch4jTask"
-	    classpath="${launch4j.dir}/launch4j.jar
-	        :${launch4j.dir}/lib/xstream.jar" />
 	
-	<!-- OS X .app bundling tool: jarbundler -->
-	<taskdef name="jarbundler" 
-		classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar"
-		classname="net.sourceforge.jarbundler.JarBundler"/>
-
-	<!-- findbugs code checking tool -->
-	<property name="findbugs.home" value="ext-tools-home/findbugs"/>
-	<property name="findbugs-ant.jar" value="${findbugs.home}/lib/findbugs-ant.jar"/>
-
-	<!-- pmd code checking tool and its helper jar files -->
-	<property name="pmd.home" value="ext-tools-home/pmd"/>
-	<property name="pmd.jar" value="${pmd.home}/lib/pmd-4.2.jar"/>
-
-	<!-- clover test coverage tool -->
-	<property name="clover.home" value="ext-tools-home/clover"/>
-	<taskdef resource="clovertasks"/>
-	<typedef resource="clovertypes"/>
-
 	<!-- When the build runs on a Mac, we can create the .dmg disk image
 	     using the native hdiutil program.  Otherwise, we just make a .tar.gz.
 	-->
@@ -98,6 +74,53 @@
 			<os family="windows"/>
 		</not>
 	</condition>
+
+	<!-- 
+		Actually, I wanted to test for if this is Linux so to know which
+		launch4j binaries to use, but unfortunately, there is no 'linux' 
+		value, just unix. So if it's unix, then we will try to use the linux binary.
+	-->
+	<condition property="isUnix">
+		<os family="unix"/>
+	</condition>
+
+	<condition property="isNotUnix">
+		<not>
+			<os family="unix"/>
+		</not>
+	</condition>
+	
+	<condition property="launch4j.dir" value="ext-tools-home/launch4j/launch4j-macosx" >
+		<isset property="isMac"/>
+	</condition>
+	
+	<condition property="launch4j.dir" value="ext-tools-home/launch4j/launch4j-linux" >
+		<isset property="isUnix"/>
+	</condition>
+	
+	<property name="launch4j.dir" location="ext-tools-home/launch4j" />
+	<taskdef name="launch4j"
+	    classname="net.sf.launch4j.ant.Launch4jTask"
+	    classpath="${launch4j.dir}/launch4j.jar
+	        :${launch4j.dir}/lib/xstream.jar" />
+	
+	<!-- OS X .app bundling tool: jarbundler -->
+	<taskdef name="jarbundler" 
+		classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar"
+		classname="net.sourceforge.jarbundler.JarBundler"/>
+
+	<!-- findbugs code checking tool -->
+	<property name="findbugs.home" value="ext-tools-home/findbugs"/>
+	<property name="findbugs-ant.jar" value="${findbugs.home}/lib/findbugs-ant.jar"/>
+
+	<!-- pmd code checking tool and its helper jar files -->
+	<property name="pmd.home" value="ext-tools-home/pmd"/>
+	<property name="pmd.jar" value="${pmd.home}/lib/pmd-4.2.jar"/>
+
+	<!-- clover test coverage tool -->
+	<property name="clover.home" value="ext-tools-home/clover"/>
+	<taskdef resource="clovertasks"/>
+	<typedef resource="clovertypes"/>
 
 	<!-- 
 		Sets if we want to actually run a build on the SQL Power Library.
