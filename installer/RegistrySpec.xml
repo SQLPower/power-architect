@@ -35,7 +35,7 @@
         <value 	name=""
 			   	keypath="architect_auto_file\shell\open\command"
 			   	root="HKCR"
-		       	string="javaw -Xmx600M -jar &quot;$INSTALL_PATH\architect.jar&quot; &quot;%1&quot; %*"/>
+		       	string="&quot;$INSTALL_PATH\architect.exe&quot; &quot;%1&quot; %*"/>
     </pack>
 </registry>
 

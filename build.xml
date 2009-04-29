@@ -652,6 +652,25 @@
     				includes="ca/** icons/** sounds/** xsltStylesheets/** log4j.properties default_database_types.ini"
     				manifest="${build}/manifest">
     	</jar>
+    	
+    	<launch4j>
+			<config dontwrapjar="true" 
+					headertype="gui"
+					jarpath="architect.jar"
+					outfile="${staging.dir}/architect.exe"
+					errtitle="Java Runtime Required"
+					priority="normal"
+					downloadurl="http://java.com/download"
+					supporturl="http://www.sqlpower.ca/forum"
+					customprocname="false"
+					stayalive="false"
+					icon="src/icons/architect.ico">
+				<jre minVersion="1.5.0"
+					 maxHeapSize="600"
+				/>
+			</config>
+		</launch4j>
+    	
 		<copy todir="${staging.dir}/jdbc">
 		    <fileset dir="jdbc_drivers" includes="*.jar"/>
 			<fileset dir="src" includes="default_database_types.ini"/>
@@ -905,6 +924,7 @@
 							<description>Architect Core Files</description>
 							<fileset dir="../staging/" targetdir="$INSTALL_PATH">
 								<include name="architect.jar"/>
+								<include name="architect.exe"/>
 							</fileset>
 							<fileset dir="../staging/lib" targetdir="$INSTALL_PATH/lib">
 								<include name="*.jar"/>
