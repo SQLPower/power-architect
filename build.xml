@@ -1008,7 +1008,7 @@
 	  </exec>
 	</target>
 	
-	<target name="windows_jdbc_exe_installer" depends="windows_jdbc_exe_installer_with_python, windows_jdbc_exe_installer_without_python"/>
+	<target name="windows_jdbc_exe_installer" depends="windows_jdbc_exe_installer_launch4j"/>
 	
 	<!-- 
 		Uses izpack python script to convert the Windows JDBC JAR installer into EXE executables
