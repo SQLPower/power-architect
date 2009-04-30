@@ -98,6 +98,10 @@
 		<isset property="isUnix"/>
 	</condition>
 	
+	<condition property="launch4j.dir" value="ext-tools-home/launch4j/launch4j-win32" >
+		<isset property="isWindows"/>
+	</condition>
+	
 	<property name="launch4j.dir" location="ext-tools-home/launch4j" />
 	<taskdef name="launch4j"
 	    classname="net.sf.launch4j.ant.Launch4jTask"
