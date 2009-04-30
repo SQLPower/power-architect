@@ -455,7 +455,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         this.editDialog = editDialog;
     }
     
-    Action customColour = new AbstractAction("Customize") {
+    Action customColour = new AbstractAction("Custom...") {
         public void actionPerformed(ActionEvent arg0) {
             Color colour = session.getCustomColour(relationshipLines.get(0).getForegroundColor());
             if (colour != null) {
