@@ -63,17 +63,17 @@ public class CreateEnergonCubeAction extends AbstractArchitectAction {
     public CreateEnergonCubeAction(ArchitectSwingSession session, PlayPen pp) {
         super(
             session, pp, "New Energon Cube...", "Create a new Energon Cube",
-            new ImageIcon(CreateEnergonCubeAction.class.getResource("/icons/olap/energonCubeAdd.png")));
+            new ImageIcon(CreateEnergonCubeAction.class.getResource("energonCubeAdd.png")));
     }
 
     public void actionPerformed(ActionEvent e) {
         if (bg == null) {
-            bg = new ImageIcon(getClass().getResource("/icons/olap/energonCube_background.jpg"));
+            bg = new ImageIcon(getClass().getResource("energonCube_background.jpg"));
         }
         if (frames == null) {
             frames = new Icon[15];
             for (int i = 0; i < frames.length; i++) {
-                frames[i] = new ImageIcon(getClass().getResource("/icons/olap/energonCube_anim_"+(i+1)+".png"));
+                frames[i] = new ImageIcon(getClass().getResource("energonCube_anim_"+(i+1)+".png"));
             }
         }        
         final JLabel energon = new JLabel(bg);
