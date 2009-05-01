@@ -36,6 +36,7 @@ import java.util.Set;
 
 import javax.swing.Action;
 import javax.swing.JColorChooser;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
@@ -182,13 +183,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * for Architect.
      */
     private final SwingUIUserPrompterFactory swinguiUserPrompterFactory;
-    
+
     /**
-     * A colour chooser used by the MungeProcessEditor to set custom colours.
-     * It has been created within a swing session to share recent colours amongst
-     * different match rule sets.
+     * A colour chooser used by the {@link RelationshipEditPanel}, and possibly
+     * others, to set custom colours. It has been created within a swing session
+     * to share recent colours amongst different objects.
      */
-    private final JColorChooser colourChooser = new JColorChooser();
+    private static final JColorChooser colourChooser = new JColorChooser();
 
     /**
      * Creates a new swing session, including a new visible architect frame, with
@@ -960,14 +961,22 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public void setDisplayRelationshipLabel(boolean displayRelationshipLabel) {
         this.displayRelationshipLabel = displayRelationshipLabel;
     }
-    
-    public Color getCustomColour(Color initial) {
+
+    /**
+     * This method will let users select a custom colour from a colour chooser
+     * and then return the colour.
+     * 
+     * @param initial
+     *            The initial colour to have selected in the colour chooser.
+     * @return The colour selected or created by the user.
+     */
+    public static Color getCustomColour(Color initial, JComponent parent) {
         if (initial == null) {
             initial = Color.BLACK;
         }
         colourChooser.setColor(initial);
         ColorTracker ok = new ColorTracker(colourChooser);
-        JDialog dialog = JColorChooser.createDialog(frame, "Choose a custom colour", true, colourChooser, ok, null);
+        JDialog dialog = JColorChooser.createDialog(parent, "Choose a custom colour", true, colourChooser, ok, null);
 
         dialog.setVisible(true); 
 
@@ -975,9 +984,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
     
     /**
-     * Action Listener used by the custom colour dialog.
+     * Action Listener used by the custom colour dialog created in the
+     * getCustomColour method.
      */
-    class ColorTracker implements ActionListener, Serializable {
+    private static class ColorTracker implements ActionListener, Serializable {
         JColorChooser chooser;
         Color color;
 

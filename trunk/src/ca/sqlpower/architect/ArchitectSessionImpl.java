@@ -19,7 +19,6 @@
 package ca.sqlpower.architect;
 
 
-import java.awt.Color;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -27,9 +26,9 @@ import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.util.DefaultUserPrompterFactory;
 import ca.sqlpower.util.UserPrompter;
@@ -189,11 +188,6 @@ public class ArchitectSessionImpl implements ArchitectSession {
         } catch (SQLObjectException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public Color getCustomColour(Color foregroundColor) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
 }
