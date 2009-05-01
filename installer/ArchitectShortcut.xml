@@ -10,7 +10,7 @@
 		startMenu="yes">
 	</shortcut>
 	
-	<shortcut name="Uninstall Power Architect" target="$INSTALL_PATH/uninstaller/uninstaller.jar"
+	<shortcut name="Uninstall Power Architect" target="$INSTALL_PATH/uninstaller/uninstaller.exe"
 		programGroup="yes"
 		description="Remove the Power Architect Modeling Tool"
 		iconFile="$INSTALL_PATH/uninstall.ico" desktop="no" >
