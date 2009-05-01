@@ -102,7 +102,6 @@
 		<isset property="isWindows"/>
 	</condition>
 	
-	<property name="launch4j.dir" location="ext-tools-home/launch4j" />
 	<taskdef name="launch4j"
 	    classname="net.sf.launch4j.ant.Launch4jTask"
 	    classpath="${launch4j.dir}/launch4j.jar
@@ -698,6 +697,26 @@
 			</config>
 		</launch4j>
     	
+    	<launch4j>
+			<config dontwrapjar="true" 
+					headertype="gui"
+					jarpath="uninstaller.jar"
+					outfile="${staging.dir}/uninstaller.exe"
+					errtitle="Java Runtime Required"
+					priority="normal"
+					downloadurl="http://java.com/download"
+					supporturl="http://www.sqlpower.ca/forum"
+					customprocname="false"
+					stayalive="false"
+					icon="installer/uninstall.ico">
+				<singleInstance
+					mutexName="Power*Architect Uninstaller"
+					windowTitle="Power*Architect Uninstaller"
+				/>
+				<jre minVersion="1.5.0"/>
+			</config>
+		</launch4j>
+    	
 		<copy todir="${staging.dir}/jdbc">
 		    <fileset dir="jdbc_drivers" includes="*.jar"/>
 			<fileset dir="src" includes="default_database_types.ini"/>
@@ -833,6 +852,8 @@
 					<appversion>@{app.version}</appversion>
 					<url>http://www.sqlpower.ca/</url>
 					<javaversion>1.5</javaversion>
+					<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
+					<!-- <pack200/> -->
 				</info>
 				<guiprefs height="600" resizable="yes" width="800">
 					<laf name="metouia">
@@ -847,7 +868,15 @@
 					<res id="Installer.image" src="../src/icons/architect.png"/>
 					<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
 					<res id="LicencePanel.licence" src="../LICENSE" />
+					<res src="RegistrySpec.xml" id="RegistrySpec.xml"/>
 				</resources>
+				<listeners>
+					<listener installer="SummaryLoggerInstallerListener"/>
+			       	<listener installer="RegistryInstallerListener"
+							  uninstaller="RegistryUninstallerListener">
+			          <os family="windows"/>
+			       </listener>
+				</listeners>
 				<panels>
 					<panel classname="HelloPanel"/>
 					<panel classname="LicencePanel"/>
@@ -861,38 +890,28 @@
 						<description>Architect Core Files</description>
 						<fileset dir="../staging/" targetdir="$INSTALL_PATH">
 							<include name="architect.jar"/>
+							<include name="architect.exe"/>
 						</fileset>
 						<fileset dir="../staging/lib" targetdir="$INSTALL_PATH/lib">
 							<include name="*.jar"/>
 						</fileset>
+						<!-- the directory jdbc is referenced in the manifest as well as
+							various targets. -->
 						<fileset dir="../staging/jdbc" targetdir="$INSTALL_PATH/jdbc">
 							<include name="*.ini"/>
 						</fileset>
-						<fileset dir=".." targetdir="$INSTALL_PATH">
-							<include name="../staging/LICENSE"/>
-						</fileset>
-						<fileset dir="." targetdir="$INSTALL_PATH">
-							<include name="*.reg"/>
+						<fileset dir="../staging/" targetdir="$INSTALL_PATH">
+							<include name="LICENSE"/>
 						</fileset>
 						<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 							<include name="*.ico"/>
 						</fileset>
-						<parsable targetfile="${INSTALL_PATH}/architect_file_association.reg"/>
-						<executable targetfile="regedit.exe" stage="postinstall" keep="true">
-						   <args>
-						     <arg value="\/s"/>
-						     <arg value="$INSTALL_PATH/architect_file_association.reg"/>
-					      </args>
-					   </executable>
-						<executable targetfile="regedit.exe" stage="uninstall" keep="true">
-						   <args>
-						     <arg value="\/s"/>
-						     <arg value="$INSTALL_PATH/uninstall.reg"/>
-					      </args>
-					   </executable>
 					</pack>
 				</packs>
 				<native type="izpack" name="ShellLink.dll"/>
+				<native type="3rdparty" name="COIOSHelper.dll" stage="both">
+			        <os family="windows"/>
+			    </native>
 			</installation>
 			]]>
 		</config>
@@ -967,6 +986,9 @@
 							</fileset>
 							<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 								<include name="*.ico"/>
+							</fileset>
+							<fileset dir="../staging/" targetdir="$INSTALL_PATH/uninstaller">
+								<include name="uninstaller.exe"/>
 							</fileset>
 						</pack>
 					</packs>
