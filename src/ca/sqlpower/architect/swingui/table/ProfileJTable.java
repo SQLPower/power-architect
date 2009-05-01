@@ -29,9 +29,9 @@ import ca.sqlpower.architect.profile.output.ProfileColumn;
 import ca.sqlpower.swingui.table.DateTableCellRenderer;
 import ca.sqlpower.swingui.table.DecimalTableCellRenderer;
 import ca.sqlpower.swingui.table.PercentTableCellRenderer;
-import ca.sqlpower.swingui.table.TableModelSearchDecorator;
 import ca.sqlpower.swingui.table.TableModelSortDecorator;
 import ca.sqlpower.swingui.table.TableTextConverter;
+import ca.sqlpower.swingui.table.TableUtils;
 
 /**
  * Override JTable methods that control cell formatting, because we want
@@ -88,10 +88,7 @@ public class ProfileJTable extends JTable implements TableTextConverter {
     }
     
     public TableModel getDataTableModel() {
-        TableModelSortDecorator m1 = (TableModelSortDecorator) getModel();
-        TableModelSearchDecorator m2 = (TableModelSearchDecorator) m1.getTableModel();
-        ProfileTableModel m3 = (ProfileTableModel) m2.getTableModel();
-        return m3;
+        return TableUtils.unwrap(getModel());
     }
     
     public int modelIndex(int viewIndex) {
