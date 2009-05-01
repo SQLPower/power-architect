@@ -1,5 +1,5 @@
 The Power*Architect program source code, documentation, and binary
-packages are Copyright 2008 SQL Power Group Inc. All rights reserved.
+packages are Copyright 2009 SQL Power Group Inc. All rights reserved.
 
 The Architect relies on a number of third-party libraries, most
 of which are bundled with both the source and binary distributions.
@@ -8,7 +8,7 @@ which are outlined in the user guide.  See the user guide (or its
 source file, doc/PowerArchitectUserGuide.xml) for details on the
 third-party libraries and their respective licences.
 
-Copyright 2008 SQL Power Group Inc. All rights reserved.
+Copyright 2009 SQL Power Group Inc. All rights reserved.
 
 Power*Architect is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -44,7 +44,10 @@ whether or not they are licensed compatibly with the GPL.
 
 As a final special exception, SQL Power gives you permission to use
 Power*Architect together with any release of the JUnit test
-framework, which is licensed under the Common Public License (CPL).
+framework, and the Mondrian OLAP analysis engine, which are licensed
+under the Common Public License (CPL). The terms of the CPL govern
+our use and redistribution of these projects to you, and we do not
+extend any incompatible provisions of the GPL onto those packages.
 
 Note that people who make modified versions of Power*Architect are
 not obligated to grant this special exception for their modified
