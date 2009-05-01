@@ -32,7 +32,6 @@
 
 package ca.sqlpower.architect;
 
-import java.awt.Color;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
@@ -135,8 +134,4 @@ public class TestingArchitectSession implements ArchitectSession {
         return null;
     }
 
-    public Color getCustomColour(Color foregroundColor) {
-        // TODO Auto-generated method stub
-        return null;
-    }
 }

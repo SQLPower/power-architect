@@ -457,7 +457,7 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
     
     Action customColour = new AbstractAction("Custom...") {
         public void actionPerformed(ActionEvent arg0) {
-            Color colour = session.getCustomColour(relationshipLines.get(0).getForegroundColor());
+            Color colour = ArchitectSwingSessionImpl.getCustomColour(relationshipLines.get(0).getForegroundColor(), panel);
             if (colour != null) {
                 if (!containsColor(Relationship.SUGGESTED_COLOURS, colour)) {
                     relationLineColor.addItem(colour);
