@@ -40,8 +40,8 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
-import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
+import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
 import ca.sqlpower.swingui.event.TaskTerminationEvent;
 import ca.sqlpower.swingui.event.TaskTerminationListener;
@@ -55,7 +55,7 @@ public class RefreshAction extends AbstractArchitectAction {
      * This will refresh all of the databases on a different thread and
      * allows the refresh to be monitorable.
      */
-    private class RefreshMonitorableWorker extends MonitorableWorker {
+    private class RefreshMonitorableWorker extends SPSwingWorker {
         
         private final Set<SQLDatabase> databasesToRefresh = new HashSet<SQLDatabase>();
         private final Component parent;
@@ -146,7 +146,7 @@ public class RefreshAction extends AbstractArchitectAction {
             return;
         }
 
-        final MonitorableWorker worker = new RefreshMonitorableWorker(session, session.getArchitectFrame(), databasesToRefresh);
+        final SPSwingWorker worker = new RefreshMonitorableWorker(session, session.getArchitectFrame(), databasesToRefresh);
         final Thread thread = new Thread(worker, "Refresh database worker");
         JProgressBar progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);

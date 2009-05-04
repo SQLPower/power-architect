@@ -59,11 +59,11 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
-import ca.sqlpower.swingui.MonitorableWorker;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.SPSUtils.FileExtensionFilter;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -99,7 +99,7 @@ public class SQLScriptDialog extends JDialog {
     
     private ArchitectSwingSession session;
 
-	private MonitorableWorker executeTask;
+	private SPSwingWorker executeTask;
 
     /**
      * Creates and packs a new SQL script dialog, but does not display it. Call
@@ -255,7 +255,7 @@ public class SQLScriptDialog extends JDialog {
 		return pb.getPanel();
 	}
 
-	public MonitorableWorker getExecuteTask() {
+	public SPSwingWorker getExecuteTask() {
 		return executeTask;
 	}
 
@@ -267,7 +267,7 @@ public class SQLScriptDialog extends JDialog {
 	 *
 	 * @param v The task to execute when the "execute" button is clicked.
 	 */
-	public void setExecuteTask(MonitorableWorker v) {
+	public void setExecuteTask(SPSwingWorker v) {
 		executeTask = v;
 	}
 
@@ -320,7 +320,7 @@ public class SQLScriptDialog extends JDialog {
 		}
 	}
 
-	private class ExecuteSQLScriptWorker extends MonitorableWorker {
+	private class ExecuteSQLScriptWorker extends SPSwingWorker {
 
         private int stmtsTried = 0;
 		private int stmtsCompleted = 0;

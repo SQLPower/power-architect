@@ -74,9 +74,9 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.ConnectionComboBoxModel;
-import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.validation.Status;
 import ca.sqlpower.validation.ValidateResult;
 import ca.sqlpower.validation.swingui.StatusComponent;
@@ -632,7 +632,7 @@ public class CompareDMPanel extends JPanel {
 		    
 	    // -------------- Small class for monitoring populate progress -----------------
 	    // TODO Document this class!!!!
-	    private abstract class PopulateProgressMonitorableWorker extends MonitorableWorker {
+	    private abstract class PopulateProgressMonitorableWorker extends SPSwingWorker {
 	        
 	        boolean started = false;
 	        boolean finished = false;
@@ -1250,7 +1250,7 @@ public class CompareDMPanel extends JPanel {
 	             reenableGUIComponents();
 			}
 			
-			MonitorableWorker compareWorker = new MonitorableWorker(session) {
+			SPSwingWorker compareWorker = new SPSwingWorker(session) {
 
 				private List<DiffChunk<SQLObject>> diff;
 				private List<DiffChunk<SQLObject>> diff1;
