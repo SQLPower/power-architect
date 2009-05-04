@@ -48,11 +48,11 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
 import ca.sqlpower.architect.swingui.SQLScriptDialog;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
-import ca.sqlpower.swingui.MonitorableWorker;
+import ca.sqlpower.swingui.SPSwingWorker;
 
 public class ExportDDLAction extends AbstractArchitectAction {
 
@@ -177,7 +177,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                     ppdb.getDataSource(),
                                     true,
                                     session);
-                        MonitorableWorker scriptWorker = ssd.getExecuteTask();
+                        SPSwingWorker scriptWorker = ssd.getExecuteTask();
                         ConflictFinderProcess cfp = new ConflictFinderProcess(ssd, ppdb, ddlg, ddlg.getDdlStatements(), session);
                         ConflictResolverProcess crp = new ConflictResolverProcess(ssd, cfp, session);
                         cfp.setNextProcess(crp);
@@ -222,7 +222,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 	 *
 	 * @author fuerth
 	 */
-	public class ConflictFinderProcess extends MonitorableWorker {
+	public class ConflictFinderProcess extends SPSwingWorker {
 
 		JDialog parentDialog;
 		SQLDatabase target;
@@ -387,7 +387,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 	 * @author fuerth
 	 * @version $Id$
 	 */
-	public class ConflictResolverProcess extends MonitorableWorker {
+	public class ConflictResolverProcess extends SPSwingWorker {
 
 		private JDialog parentDialog;
 		private ConflictFinderProcess conflictFinder;

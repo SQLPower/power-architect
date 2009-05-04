@@ -137,7 +137,6 @@ import ca.sqlpower.sqlobject.undo.CompoundEvent;
 import ca.sqlpower.sqlobject.undo.CompoundEventListener;
 import ca.sqlpower.sqlobject.undo.CompoundEvent.EventTypes;
 import ca.sqlpower.swingui.CursorManager;
-import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
 
@@ -1436,7 +1435,7 @@ public class PlayPen extends JPanel
 		new Thread(t, "Objects-Adder").start(); //$NON-NLS-1$
 	}
 
-	protected class AddObjectsTask extends MonitorableWorker {
+	protected class AddObjectsTask extends SPSwingWorker {
 		
         private List<SQLObject> sqlObjects;
 		private Point preferredLocation;
