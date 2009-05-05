@@ -355,24 +355,28 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		}
 
 
-
-		public Integer getJobSize() {
+		@Override
+		protected Integer getJobSizeImpl() {
 			return cr.getJobSize();
 		}
 
-		public String getMessage() {
+		@Override
+		protected String getMessageImpl() {
 			return cr.getMessage();
 		}
 
-		public int getProgress() {
+		@Override
+		protected int getProgressImpl() {
 			return cr.getProgress();
 		}
 
-		public boolean hasStarted() {
+		@Override
+		protected boolean hasStartedImpl() {
 			return cr.hasStarted();
 		}
 
-		public boolean isFinished() {
+		@Override
+		protected boolean isFinishedImpl() {
 			return cr.isFinished();
 		}
 
@@ -437,23 +441,28 @@ public class ExportDDLAction extends AbstractArchitectAction {
 			}
 		}
 
-		public Integer getJobSize() {
+		@Override
+		protected Integer getJobSizeImpl() {
 			return cr.getJobSize();
 		}
 
-		public String getMessage() {
+		@Override
+		protected String getMessageImpl() {
 			return cr.getMessage();
 		}
 
-		public int getProgress() {
+		@Override
+		protected int getProgressImpl() {
 			return cr.getProgress();
 		}
 
-		public boolean hasStarted() {
+		@Override
+		protected boolean hasStartedImpl() {
 			return cr.hasStarted();
 		}
 
-		public boolean isFinished() {
+		@Override
+		protected boolean isFinishedImpl() {
 			return cr.isFinished();
 		}
 

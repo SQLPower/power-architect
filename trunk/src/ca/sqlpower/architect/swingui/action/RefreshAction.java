@@ -59,52 +59,31 @@ public class RefreshAction extends AbstractArchitectAction {
         
         private final Set<SQLDatabase> databasesToRefresh = new HashSet<SQLDatabase>();
         private final Component parent;
-        private int progress;
-        private boolean hasStarted;
-        private boolean isFinished;
         private SQLDatabase dbBeingRefreshed;
         
         public RefreshMonitorableWorker(SwingWorkerRegistry registry, Component parent, Set<SQLDatabase> dbs) {
             super(registry);
             this.parent = parent;
             this.databasesToRefresh.addAll(dbs);
-            hasStarted = false;
-            isFinished = false;
+            setJobSize(null);
         }
         
-        public boolean isFinished() {
-            return isFinished;
-        }
-    
-        public boolean hasStarted() {
-            return hasStarted;
-        }
-    
-        public int getProgress() {
-            return progress;
-        }
-    
-        public String getMessage() {
+        @Override
+        protected String getMessageImpl() {
             if (dbBeingRefreshed == null) {
                 return "Refreshing selected databases.";
             }
             return "Refreshing database " + dbBeingRefreshed.getName();
         }
     
-        public Integer getJobSize() {
-            return null;
-        }
-    
         @Override
         public void doStuff() throws Exception {
-            hasStarted = true;
-            isFinished = false;
-            progress = 0;
+            setProgress(0);
             try {
                 for (SQLDatabase db : databasesToRefresh) {
                     dbBeingRefreshed = db;
                     db.refresh();
-                    progress++;
+                    increaseProgress();
                 }
             } catch (SQLObjectException ex) {
                 setDoStuffException(ex);
@@ -115,7 +94,6 @@ public class RefreshAction extends AbstractArchitectAction {
     
         @Override
         public void cleanup() throws Exception {
-            isFinished = true;
             if (getDoStuffException() != null) {
                 ASUtils.showExceptionDialogNoReport(parent, "Refresh failed", getDoStuffException());
             }

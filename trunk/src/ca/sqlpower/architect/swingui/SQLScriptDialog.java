@@ -322,13 +322,16 @@ public class SQLScriptDialog extends JDialog {
 
 	private class ExecuteSQLScriptWorker extends SPSwingWorker {
 
-        private int stmtsTried = 0;
 		private int stmtsCompleted = 0;
-		private boolean finished = false;
-		private boolean hasStarted = false;
 
         public ExecuteSQLScriptWorker(ArchitectSwingSession session) {
 		    super(session);
+		    setMessage(null);
+		    if (statements != null) {
+                setJobSize(new Integer(statements.size()));
+            } else {
+                setJobSize(null);
+            }
 		}
 
 		/**
@@ -336,14 +339,12 @@ public class SQLScriptDialog extends JDialog {
 		 */
 		public void doStuff() {
 
-			finished = false;
 			setCancelled(false);
-			hasStarted = true;
-			if (isCancelled() || finished) return;
+			if (isCancelled() || isFinished()) return;
 
 			SQLDatabase target = new SQLDatabase(targetDataSource);
 			statusLabel.setText(Messages.getString("SQLScriptDialog.creatingObjectsInTargetDb") + target.getDataSource() ); //$NON-NLS-1$
-			stmtsTried = 0;
+			setProgress(0);
 			stmtsCompleted = 0;
 
 			logger.debug("the Target Database is: " + target.getDataSource()); //$NON-NLS-1$
@@ -354,11 +355,11 @@ public class SQLScriptDialog extends JDialog {
 			try {
 				con = target.getConnection();
 			} catch (SQLObjectException ex) {
-				finished = true;
+				setFinished(true);
 				throw new RuntimeException(
 						Messages.getString("SQLScriptDialog.couldNotConnectToTargetDb", ex.getMessage()), ex); //$NON-NLS-1$
 			} catch (Exception ex) {
-				finished = true;
+				setFinished(true);
 				logger.error("Unexpected exception in DDL generation", ex); //$NON-NLS-1$
 				throw new RuntimeException(Messages.getString("SQLScriptDialog.specifyATargetDb")); //$NON-NLS-1$
 			}
@@ -367,7 +368,7 @@ public class SQLScriptDialog extends JDialog {
 				logger.debug("the connection thinks it is: " + con.getMetaData().getURL()); //$NON-NLS-1$
 				stmt = con.createStatement();
 			} catch (SQLException ex) {
-				finished = true;
+				setFinished(true);
 				throw new RuntimeException(Messages.getString("SQLScriptDialog.couldNotGenerateDDL", ex.getMessage())); //$NON-NLS-1$
 			}
 
@@ -376,10 +377,10 @@ public class SQLScriptDialog extends JDialog {
 				logger.info("Database Target: " + target.getDataSource()); //$NON-NLS-1$
 				logger.info("Playpen Dump: " + target.getDataSource()); //$NON-NLS-1$
 				Iterator<DDLStatement> it = statements.iterator();
-				while (it.hasNext() && !finished && !isCancelled()) {
+				while (it.hasNext() && !isFinished() && !isCancelled()) {
 					DDLStatement ddlStmt = it.next();
 					try {
-						stmtsTried++;
+						increaseProgress();
 						logger.info("executing: " + ddlStmt.getSQLText()); //$NON-NLS-1$
 						stmt.executeUpdate(ddlStmt.getSQLText());
 						stmtsCompleted++;
@@ -414,7 +415,7 @@ public class SQLScriptDialog extends JDialog {
 						}
 
 						if (isCancelled()) {
-							finished = true;
+							setFinished(true);
 							// don't return, we might as well display how many statements ended up being processed...
 						}
 					}
@@ -428,8 +429,8 @@ public class SQLScriptDialog extends JDialog {
 						exc);
 			} finally {
 				final String resultsMessage =
-					(stmtsCompleted == 0 ? Messages.getString("SQLScriptDialog.didNotExecute", String.valueOf(stmtsTried)) : //$NON-NLS-1$
-						Messages.getString("SQLScriptDialog.successfullyExecuted", String.valueOf(stmtsCompleted), String.valueOf(stmtsTried))); //$NON-NLS-1$
+					(stmtsCompleted == 0 ? Messages.getString("SQLScriptDialog.didNotExecute", String.valueOf(getProgress())) : //$NON-NLS-1$
+						Messages.getString("SQLScriptDialog.successfullyExecuted", String.valueOf(stmtsCompleted), String.valueOf(getProgress()))); //$NON-NLS-1$
 				logger.info(resultsMessage);
 				JOptionPane.showMessageDialog(SQLScriptDialog.this, resultsMessage);
 				// flush and close the LogWriter
@@ -444,8 +445,6 @@ public class SQLScriptDialog extends JDialog {
 					logger.error("Couldn't close connection", ex); //$NON-NLS-1$
 				}
 			}
-
-			finished = true;
 
 		}
 
@@ -462,38 +461,10 @@ public class SQLScriptDialog extends JDialog {
 
 		// ============= Monitorable Interface =============
 
-		public Integer getJobSize() {
-			if (statements != null) {
-				return new Integer(statements.size());
-			} else {
-				return null;
-			}
-		}
-
-		public int getProgress() {
-			return stmtsTried;
-		}
-
-		public boolean isFinished() {
-			return finished;
-		}
-
-		public String getMessage() {
-			return null;
-		}
-
 		public void cancelJob() {
 			this.setCancelled(true);
-			finished = true;
+			setFinished(true);
 		}
 
-
-		public boolean hasStarted() {
-			return hasStarted;
-		}
-
-		public void setHasStarted(boolean hasStarted) {
-			this.hasStarted = hasStarted;
-		}
 	}
 }

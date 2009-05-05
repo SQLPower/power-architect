@@ -367,7 +367,6 @@ public class CompareDMPanel extends JPanel {
 				try {
 					ProgressWatcher.watchProgress(progressBar, this);
 
-					started = true;
 					db.populate();
 
 				} catch (SQLObjectException e) {
@@ -453,9 +452,7 @@ public class CompareDMPanel extends JPanel {
 							ProgressWatcher.watchProgress(progressBar, this);
 							// this populates the schema parent (populate is not
 							// visible here)
-							started = true;
 							finalSchemaParent.getChildren();
-							finished = true;
 						}
 
 						/**
@@ -514,8 +511,8 @@ public class CompareDMPanel extends JPanel {
 		        catalogSelect = null;
 			}
 
-			// Overriding isFinished to be based on the state of db.
-            public boolean isFinished() {
+			@Override
+            protected boolean isFinishedImpl() {
                 if (db != null) {
                     return db.isPopulated();
                 }
@@ -577,11 +574,9 @@ public class CompareDMPanel extends JPanel {
 			public void doStuff() throws SQLObjectException {
 				logger.debug("SCHEMA POPULATOR IS STARTED..."); //$NON-NLS-1$
 				ProgressWatcher.watchProgress(progressBar, this);
-				started = true;
 				SQLCatalog catToPopulate = (SQLCatalog) catalogDropdown
 						.getSelectedItem();
 				catToPopulate.populate(); // this might take a while
-				finished = true;
 			}
 
 			/**
@@ -634,38 +629,13 @@ public class CompareDMPanel extends JPanel {
 	    // TODO Document this class!!!!
 	    private abstract class PopulateProgressMonitorableWorker extends SPSwingWorker {
 	        
-	        boolean started = false;
-	        boolean finished = false;
-	        
 	        public PopulateProgressMonitorableWorker(ArchitectSwingSession session) {
                 super(session);
+                setJobSize(null);
+                setProgress(0);
+                setMessage(Messages.getString("CompareDMPanel.connectingToDatabase")); //$NON-NLS-1$
             }
 	        	        
-	        /**
-	         * Returns null, which will keep the monitor in indeterminate mode.
-	         */
-	        public Integer getJobSize() {
-	            return null;
-	        }
-	        
-	        /**
-	         * Cannot measure progress of connecting to the database, so always return 0
-	         */
-	        public int getProgress() {
-	            return 0;
-	        }
-	        
-	        public boolean isFinished() {
-	            return finished;
-	        }
-
-	        public String getMessage() {
-	            return Messages.getString("CompareDMPanel.connectingToDatabase"); //$NON-NLS-1$
-	        }
-
-	        public boolean hasStarted() {
-	            return started;
-	        }
 	    }
 		
 		public synchronized JDialog getNewConnectionDialog() {
@@ -1256,12 +1226,8 @@ public class CompareDMPanel extends JPanel {
 				private List<DiffChunk<SQLObject>> diff1;
 
 				private String message;
-				private boolean started = false;
-				private boolean finished = false;
-				Integer jobSize = null;
 				
 				public void doStuff() throws SQLObjectException {
-				    started = true;
 	                if (source.physicalRadio.isSelected()) {
 	                    message = "Refreshing older database";
 	                    logger.debug(message);
@@ -1272,7 +1238,7 @@ public class CompareDMPanel extends JPanel {
                         logger.debug(message);
 	                    target.getDatabase().refresh();
 	                }
-	                jobSize = sourceComp.getJobSize() + targetComp.getJobSize();
+	                setJobSize(sourceComp.getJobSize() + targetComp.getJobSize());
 	                logger.debug("Generating TableDiffs for source");
 					diff = sourceComp.generateTableDiffs();
 					logger.debug("Generating TableDiffs for target");
@@ -1282,7 +1248,6 @@ public class CompareDMPanel extends JPanel {
 				}
 
 				public void cleanup() {
-				    finished = true;
 				    reenableGUIComponents();
                     if (getDoStuffException() != null) {
                         Throwable exc = getDoStuffException();
@@ -1297,11 +1262,8 @@ public class CompareDMPanel extends JPanel {
                     logger.debug("cleanup finished"); //$NON-NLS-1$
 				}
 
-                public Integer getJobSize() {
-                    return jobSize;
-                }
-
-                public String getMessage() {
+				@Override
+                protected String getMessageImpl() {
                     if (sourceComp.hasStarted() && !sourceComp.isFinished()) {
                         return sourceComp.getMessage();
                     } else if (targetComp.hasStarted() && !targetComp.isFinished()) {
@@ -1311,16 +1273,9 @@ public class CompareDMPanel extends JPanel {
                     }
                 }
 
-                public int getProgress() {
+                @Override
+                protected int getProgressImpl() {
                     return sourceComp.getProgress() + targetComp.getProgress();
-                }
-
-                public boolean hasStarted() {
-                    return started;
-                }
-
-                public boolean isFinished() {
-                    return finished;
                 }
 
 			};
