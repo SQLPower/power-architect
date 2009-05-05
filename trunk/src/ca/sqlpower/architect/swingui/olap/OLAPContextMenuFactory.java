@@ -102,6 +102,7 @@ public class OLAPContextMenuFactory implements PopupMenuFactory {
             m.add(new EditMeasureAction(session, (Measure) obj, oSession.getOlapPlayPen()));
         } else if (obj instanceof Hierarchy) {
             m.add(new EditHierarchyAction(session, (Hierarchy) obj, oSession.getOlapPlayPen()));
+            m.add(oSession.getCreateLevelAction());
         } else if (obj instanceof Level) {
             m.add(new EditLevelAction(session, (Level) obj, oSession.getOlapPlayPen()));
         }
