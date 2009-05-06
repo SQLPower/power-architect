@@ -21,12 +21,15 @@ package ca.sqlpower.architect.swingui.olap.action;
 
 import java.util.List;
 
+import javax.swing.KeyStroke;
+
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.LevelEditPanel;
 import ca.sqlpower.architect.swingui.olap.OSUtils;
@@ -40,6 +43,19 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
         super(session, olapPlayPen, "Level", DimensionPane.class, "Hierarchy", 'l', OSUtils.LEVEL_ADD_ICON);
     }
 
+    /**
+     * Describes the location where the new level should be added.
+     */
+    private static class AddLocation {
+        private final Hierarchy newParent;
+        private final int newIndex;
+
+        public AddLocation(Hierarchy newParent, int newIndex) {
+            this.newParent = newParent;
+            this.newIndex = newIndex;
+        }
+    }
+    
     @Override
     protected Level addNewChild(DimensionPane pane) {
         // first, we have to find or make the parent hierarchy 
@@ -50,9 +66,23 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
             d.addHierarchy(h);
         }
         
+        AddLocation addLocation = chooseAddLocation(pane);
+        
+        Level l = new Level();
+        int count = 1;
+        while (!OLAPUtil.isNameUnique(addLocation.newParent, Level.class, "New Level " + count)) {
+            count++;
+        }
+        l.setName("New Level " + count);
+        
+        addLocation.newParent.addLevel(addLocation.newIndex, l);
+        return l;
+    }
+
+    private AddLocation chooseAddLocation(DimensionPane pane) {
         Hierarchy newParent;
         int newIndex;
-        
+
         // If there are levels selected, we'll add after the last one
         List<Level> levels = pane.getSelectedLevels();
         if (!levels.isEmpty()) {
@@ -63,6 +93,7 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
         } else {
             // no levels were selected, so we'll add to the end of the selected section
             // (or the first section if nothing was selected at all)
+            Dimension d = pane.getModel();
             newParent = d.getHierarchies().get(0);
             for (int i = 0; i < d.getHierarchies().size(); i++) {
                 if (pane.isSectionSelected(pane.getSections().get(i))) {
@@ -72,17 +103,8 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
             }
             newIndex = newParent.getLevels().size();
         }
-        
-        Level l = new Level();
 
-        int count = 1;
-        while (!OLAPUtil.isNameUnique(newParent, Level.class, "New Level " + count)) {
-            count++;
-        }
-        l.setName("New Level " + count);
-        
-        newParent.addLevel(newIndex, l);
-        return l;
+        return new AddLocation(newParent, newIndex);
     }
 
     @Override
@@ -94,4 +116,20 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
         }
     }
 
+    @Override
+    protected void updateActionState() {
+        List<PlayPenComponent> selectedItems = playpen.getSelectedItems();
+        String description;
+        if (selectedItems.size() == 1 && selectedItems.get(0) instanceof DimensionPane) {
+            setEnabled(true);
+            DimensionPane pane = (DimensionPane) selectedItems.get(0);
+            AddLocation addLocation = chooseAddLocation(pane);
+            description = "Add Level to " + addLocation.newParent.getName();
+        } else {
+            setEnabled(false);
+            description = "Add Level to selected Hierarchy" + 
+            " (" + ((KeyStroke) getValue(ACCELERATOR_KEY)).getKeyChar() + ")";
+        }
+        putValue(SHORT_DESCRIPTION, description);
+    }
 }
