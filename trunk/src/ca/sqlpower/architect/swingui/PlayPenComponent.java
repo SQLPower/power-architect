@@ -135,7 +135,7 @@ public abstract class PlayPenComponent implements Selectable {
      *            show it at.
      */
     public void showPopup(Point p) {
-    	JPopupMenu menu = getPopup();
+    	JPopupMenu menu = getPopup(new Point(p));
         if (menu != null) {
             final int xAdjust = 5;  // ensure menu doesn't appear directly under pointer
             p.translate(getX(), getY());
@@ -148,7 +148,7 @@ public abstract class PlayPenComponent implements Selectable {
      * Returns a component specific popup menu. Defaulted here to null
      * so components that have popup menus must override this class. 
      */
-    public JPopupMenu getPopup() {
+    public JPopupMenu getPopup(Point p) {
         return null;
     }
     

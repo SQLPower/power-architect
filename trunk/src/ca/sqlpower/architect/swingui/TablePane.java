@@ -1007,7 +1007,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
      * manipulating tablepanes.
      */
     @Override
-    public JPopupMenu getPopup() {
+    public JPopupMenu getPopup(Point p) {
         ArchitectFrame af = getPlayPen().getSession().getArchitectFrame();
         JPopupMenu tablePanePopup = new JPopupMenu();
         
