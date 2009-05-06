@@ -56,29 +56,12 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
      */
     private class PlayPenWatcher implements SelectionListener {
         
-        public PlayPenWatcher() {
-        }
-        
-        private void updateStatus() {
-            List<PlayPenComponent> selectedItems = playpen.getSelectedItems();
-            String description;
-            if (selectedItems.size() == 1 && paneClass.isInstance(selectedItems.get(0))) {
-                setEnabled(true);
-                description = "Add " + friendlyChildName + " to " + selectedItems.get(0).getName();
-            } else {
-                setEnabled(false);
-                description = "Add " + friendlyChildName + " to selected " + friendlyParentName + 
-                " (" + ((KeyStroke) getValue(ACCELERATOR_KEY)).getKeyChar() + ")";
-            }
-            putValue(SHORT_DESCRIPTION, description);
-        }
-        
         public void itemDeselected(SelectionEvent e) {
-            updateStatus();
+            updateActionState();
         }
 
         public void itemSelected(SelectionEvent e) {
-            updateStatus();
+            updateActionState();
         }
         
     }
@@ -118,7 +101,7 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(accelKey));
         PlayPenWatcher ppw = new PlayPenWatcher();
         playpen.addSelectionListener(ppw);
-        ppw.updateStatus();
+        updateActionState();
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -172,4 +155,28 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
      * @param model the item that should be edited in the data entry panel
      */
     protected abstract DataEntryPanel createDataEntryPanel(C model);
+ 
+    /**
+     * This method is called whenever the selection changes in the OLAP playpen.
+     * If you override this method, you should call {@link #setEnabled(boolean)}
+     * and {@link #putValue(String, Object)} with a key of SHORT_DESCRIPTION in
+     * order to update the tooltip for this action.
+     * <p>
+     * Note that the default implementation is normally acceptable; there are only
+     * a few cases (such as levels, which get added under hierarchies in dimension
+     * panes) where overriding is necessary.
+     */
+    protected void updateActionState() {
+        List<PlayPenComponent> selectedItems = playpen.getSelectedItems();
+        String description;
+        if (selectedItems.size() == 1 && paneClass.isInstance(selectedItems.get(0))) {
+            setEnabled(true);
+            description = "Add " + friendlyChildName + " to " + selectedItems.get(0).getName();
+        } else {
+            setEnabled(false);
+            description = "Add " + friendlyChildName + " to selected " + friendlyParentName + 
+            " (" + ((KeyStroke) getValue(ACCELERATOR_KEY)).getKeyChar() + ")";
+        }
+        putValue(SHORT_DESCRIPTION, description);
+    }
 }
