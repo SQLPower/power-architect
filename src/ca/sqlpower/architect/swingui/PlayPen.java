@@ -2291,7 +2291,6 @@ public class PlayPen extends JPanel
 
 		public void mousePressed(MouseEvent evt) {
 			requestFocus();
-            maybeShowPopup(evt);
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
@@ -2307,6 +2306,7 @@ public class PlayPen extends JPanel
 					rubberBand = new Rectangle(rubberBandOrigin.x, rubberBandOrigin.y, 0, 0);
 				}
 			}
+			maybeShowPopup(evt);
 		}
 
 		public void mouseReleased(MouseEvent evt) {

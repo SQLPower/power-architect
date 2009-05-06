@@ -511,7 +511,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
     }
 
     @Override
-    public JPopupMenu getPopup() {
+    public JPopupMenu getPopup(Point p) {
         // Lazy load popup if it isn't created
         // We don't create it in the constructor because the
         // ArchitectFrame instance required won't exist at that time.

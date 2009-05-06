@@ -388,7 +388,13 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
         repaint();
     }
     
-    public JPopupMenu getPopup() {
+    @Override
+    public JPopupMenu getPopup(Point p) {
+        PlayPenCoordinate<T, C> pointToPPCoordinate = getUI().pointToPPCoordinate(p);
+        List<OLAPObject> itemsFromPoint = getItemsFromCoordinates((List) Collections.singletonList(pointToPPCoordinate));
+        if (!itemsFromPoint.isEmpty()) {
+            return getPlayPen().getPopupFactory().createPopupMenu(itemsFromPoint.get(0));
+        }
         return getPlayPen().getPopupFactory().createPopupMenu(this.getModel());
     }
     
