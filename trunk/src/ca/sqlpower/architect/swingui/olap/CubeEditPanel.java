@@ -19,7 +19,10 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -27,21 +30,39 @@ import java.util.Vector;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.tree.TreeModel;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
+import ca.sqlpower.architect.olap.MondrianModel.SQL;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
+import ca.sqlpower.architect.olap.MondrianModel.View;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
+import ca.sqlpower.swingui.query.SQLQueryUIComponents;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
 import ca.sqlpower.validation.swingui.StatusComponent;
@@ -52,6 +73,107 @@ import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
 public class CubeEditPanel implements ValidatableDataEntryPanel {
+    
+    /**
+     * This entry panel will create a view builder based on the 
+     * SQLQueryUIComponents in the library.
+     */
+    private class ViewEntryPanel implements DataEntryPanel {
+        
+        /**
+         * The main panel of this data entry panel
+         */
+        private JSplitPane splitPane;
+        
+        /**
+         * The text area users will enter a select statement into.
+         */
+        private RSyntaxTextArea queryArea;
+
+        /**
+         * The query components used to create the view. This needs
+         * to be closed when the entry panel goes away or else connections
+         * will be leaked.
+         */
+        private SQLQueryUIComponents queryComponents;
+
+        public ViewEntryPanel(ArchitectSwingSession session) {
+            DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref, 5dlu:grow, pref, 3dlu, pref", "pref, fill:pref:grow"));
+            
+            SQLDatabase db = OSUtils.getAncestor(CubeEditPanel.this.cube, OLAPSession.class).getDatabase();
+            queryComponents = new SQLQueryUIComponents(session, session.getContext().getPlDotIni(), session, builder.getPanel());
+            queryComponents.getRowLimitSpinner().setValue(Integer.valueOf(1000));
+            queryComponents.getDatabaseComboBox().setSelectedItem(db.getDataSource());
+            
+            JToolBar toolbar = new JToolBar();
+            toolbar.add(queryComponents.getPrevQueryButton());
+            toolbar.add(queryComponents.getNextQueryButton());
+            toolbar.addSeparator();
+            toolbar.add(queryComponents.getExecuteButton());
+            toolbar.add(queryComponents.getStopButton());
+            toolbar.add(queryComponents.getClearButton());
+            toolbar.addSeparator();
+            toolbar.add(queryComponents.getUndoButton());
+            toolbar.add(queryComponents.getRedoButton());
+            toolbar.addSeparator();
+            toolbar.add(new JLabel(db.getName()));
+            builder.append(toolbar);
+            builder.append("Row Limit", queryComponents.getRowLimitSpinner());
+            builder.nextLine();
+            
+            queryArea = queryComponents.getQueryArea();
+            builder.append(new JScrollPane(queryArea), 5);
+            queryArea.setText(selectStatements.getText());
+            
+            JSplitPane rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+            rightSplitPane.setTopComponent(builder.getPanel());
+            rightSplitPane.setBottomComponent(queryComponents.getResultTabPane());
+            rightSplitPane.setPreferredSize(new Dimension((int) Math.max(400, rightSplitPane.getPreferredSize().getWidth()), (int) Math.max(500, rightSplitPane.getPreferredSize().getHeight())));
+            rightSplitPane.setResizeWeight(0.5);
+            
+            SQLObjectRoot root = new SQLObjectRoot();
+            TreeModel treeModel;
+            DBTree tree;
+            try {
+                root.addChild(db);
+                treeModel = new DBTreeModel(root);
+                tree = new DBTree(session);
+            } catch (SQLObjectException e) {
+                throw new RuntimeException(e);
+            }
+            tree.setModel(treeModel);
+            tree.setPopupMenuEnabled(false);
+            
+            splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+            splitPane.setLeftComponent(tree);
+            splitPane.setRightComponent(rightSplitPane);
+            splitPane.setResizeWeight(0.2);
+            
+        }
+
+        public boolean applyChanges() {
+            selectStatements.setText(queryArea.getText());
+            cleanup();
+            return true;
+        }
+
+        public void discardChanges() {
+            cleanup();
+        }
+
+        private void cleanup() {
+            queryComponents.closingDialogOwner();
+        }
+        
+        public JComponent getPanel() {
+            return splitPane;
+        }
+
+        public boolean hasUnsavedChanges() {
+            return true;
+        }
+        
+    }
     
     private final Cube cube;
     private final JPanel panel;
@@ -76,7 +198,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
      * 
      * @param cube The data model of the cube to edit
      */
-    public CubeEditPanel(Cube cube) throws SQLObjectException {
+    public CubeEditPanel(Cube cube, final ArchitectSwingSession session) throws SQLObjectException {
         this.cube = cube;
         
         List<SQLTable> tables = OLAPUtil.getAvailableTables(cube);
@@ -127,11 +249,25 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         builder.append(viewRadioButton, 3); 
         builder.append("Alias", viewAlias = new JTextField());
         builder.append(new JLabel("SELECT Statements"), 3);
-        builder.append(new JScrollPane(selectStatements = new JTextArea("Adding View as a source table in a cube" +
-        		" has not yet been implemented", 4, 30)), 3);
+        builder.append(new JScrollPane(selectStatements = new JTextArea("", 4, 30)), 3);
+        builder.append(new JButton(new AbstractAction("Edit...") {
+            public void actionPerformed(ActionEvent e) {
+                JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(new ViewEntryPanel(session), null, "View Builder", "OK");
+                dialog.pack();
+                dialog.setVisible(true);        
+            }
+        }));
         selectStatements.setLineWrap(true);
+        selectStatements.setEditable(false);
         
-        if (tables.isEmpty()) {
+        if (cube.getFact() instanceof View) {
+            viewRadioButton.doClick();
+            tableRadioButton.setEnabled(false);
+            tableChooser.setEnabled(false);
+            for (SQL sql : ((View) cube.getFact()).getSelects()) {
+                selectStatements.append(sql.getText() + "\n"); 
+            }
+        } else if (tables.isEmpty()) {
             tableChooser.addItem("Database has no tables");
             viewRadioButton.doClick();
             tableRadioButton.setEnabled(false);
@@ -154,6 +290,15 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         handler = new FormValidationHandler(status);
         Validator validator = new OLAPObjectNameValidator(cube.getParent(), cube, false);
         handler.addValidateObject(nameField, validator);
+        
+        selectStatements.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(new ViewEntryPanel(session), null, "View Builder", "OK");
+                dialog.pack();
+                dialog.setVisible(true);
+            }
+        });
     }
 
     public boolean applyChanges() {
@@ -170,10 +315,12 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
                     }
                 }
             } else if (viewRadioButton.isSelected()) {
-                //TODO construct and set up the view
-//                View view = new View();
-//                view.setAlias(viewAlias.getText());
-//                cube.setFact(view);
+                View view = new View();
+                view.setAlias(viewAlias.getText());
+                SQL sql = new SQL();
+                sql.setText(selectStatements.getText());
+                view.addSelect(sql);
+                cube.setFact(view);
             }
             cube.setName(nameField.getText());
             if (!(captionField.getText().equals(""))) {

@@ -20,9 +20,16 @@
 package ca.sqlpower.architect.olap;
 
 import java.beans.PropertyChangeListener;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
@@ -41,9 +48,10 @@ import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.olap.MondrianModel.View;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -52,6 +60,8 @@ import ca.sqlpower.sqlobject.SQLTable;
  * A collection of static utility methods for working with the OLAP classes.
  */
 public class OLAPUtil {
+    
+    private static final Logger logger = Logger.getLogger(OLAPUtil.class);
 
     private OLAPUtil() {
         throw new AssertionError("Don't instantiate this class");
@@ -310,7 +320,55 @@ public class OLAPUtil {
         } else if (relation instanceof Table) {
             return getSQLTableFromOLAPTable(database, (Table) relation);
         } else if (relation instanceof View) {
-            throw new UnsupportedOperationException("Views not implemented yet");
+            if (((View) relation).getSelects().isEmpty()) {
+                return null;
+            }
+            String sql = ((View) relation).getSelects().get(0).getText(); //TODO: Handle having multiple selects in one relation.
+            Connection con = null;
+            Statement stmt = null;
+            ResultSet rs = null;
+            try {
+                con = database.getConnection();
+                stmt = con.createStatement();
+                stmt.setMaxRows(0);
+                rs = stmt.executeQuery(sql);
+                SQLTable table = new SQLTable(database, true);
+                ResultSetMetaData rsmd = rs.getMetaData();
+                
+                for (int i = 1; i <= rsmd.getColumnCount(); i++) {
+                    SQLColumn column = new SQLColumn(table, 
+                            rsmd.getColumnLabel(i), rsmd.getColumnType(i), 
+                            rsmd.getPrecision(i), rsmd.getScale(i));
+                    table.addColumn(column);
+                }
+                
+                return table;
+            } catch (SQLException e) {
+                logger.error("Creating a view on the database " + database.getName() + " running the statement " + sql + " caused an exception.", e);
+                throw new RuntimeException("Creating a view on the database " + database.getName() + " caused an exception.", e);
+            } finally {
+                if (rs != null) {
+                    try {
+                        rs.close();
+                    } catch (SQLException e) {
+                        logger.error("Exception while trying to close a result set used to create a view's table.", e);
+                    }
+                }
+                if (stmt != null) {
+                    try {
+                        stmt.close();
+                    } catch (SQLException e) {
+                        logger.error("Exception while trying to close a statement used to create a view's table.", e);
+                    }
+                }
+                if (con != null) {
+                    try {
+                        con.close();
+                    } catch (SQLException e) {
+                        logger.error("Exception while trying to close a connection used to create a view's table.", e);
+                    }
+                }
+            }
         } else if (relation instanceof InlineTable) {
             throw new UnsupportedOperationException("Inline tables not implemented yet");
         } else if (relation instanceof Join) {

@@ -105,6 +105,11 @@ public class DBTree extends JTree implements DragSourceListener {
     protected Action expandAllAction;
 	protected SetConnAsTargetDB setConnAsTargetDB;
 	protected SelectAllChildTablesAction selectAllChildTablesAction;
+	/**
+	 * A flag that if true, then popup menus will be displayed
+	 * when DBTree is right-clicked.
+	 */
+	private boolean popupMenuEnabled = true;
     
     /**
      * The architect session, so we can access common objects
@@ -330,9 +335,11 @@ public class DBTree extends JTree implements DragSourceListener {
 				    setSelectionPath(p);
 				}
 				
-				popup = refreshMenu(p);
-                popup.show(e.getComponent(),
-                           e.getX(), e.getY());
+				if (popupMenuEnabled) {
+    				popup = refreshMenu(p);
+                    popup.show(e.getComponent(),
+                               e.getX(), e.getY());
+				}
             } else {
                 if ( p == null && !isPress && e.getButton() == MouseEvent.BUTTON1 )
                     setSelectionPath(null);
@@ -1059,6 +1066,16 @@ public class DBTree extends JTree implements DragSourceListener {
         return new TreePath(path.toArray());
     }
     
+    public void setPopupMenuEnabled(boolean popupMenuEnabled) {
+        this.popupMenuEnabled = popupMenuEnabled;
+    }
+
+    public boolean isPopupMenuEnabled() {
+        return popupMenuEnabled;
+    }
+
+
+
     protected class ShowInPlayPenAction extends AbstractAction {
         public ShowInPlayPenAction() {
             super(Messages.getString("DBTree.showInPlaypenAction")); //$NON-NLS-1$
