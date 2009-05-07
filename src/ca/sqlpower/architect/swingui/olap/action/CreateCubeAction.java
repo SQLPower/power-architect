@@ -84,7 +84,7 @@ public class CreateCubeAction extends AbstractArchitectAction {
             playpen.addPlayPenComponent(cp, p);
             cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 
-            CubeEditPanel editPanel = new CubeEditPanel(cp.getModel()) {
+            CubeEditPanel editPanel = new CubeEditPanel(cp.getModel(), cp.getParent().getOwner().getSession()) {
                 @Override
                 public void discardChanges() {
                     schema.removeCube(cp.getModel());
