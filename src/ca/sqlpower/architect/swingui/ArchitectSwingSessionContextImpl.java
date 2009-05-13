@@ -42,7 +42,6 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -50,6 +49,7 @@ import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.db.DataSourceDialogFactory;
 import ca.sqlpower.swingui.db.DataSourceTypeDialogFactory;
 import ca.sqlpower.swingui.db.DatabaseConnectionManager;
+import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
