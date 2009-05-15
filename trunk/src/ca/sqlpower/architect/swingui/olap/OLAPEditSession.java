@@ -22,6 +22,7 @@ package ca.sqlpower.architect.swingui.olap;
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFrame;
@@ -76,6 +77,16 @@ public class OLAPEditSession implements OLAPChildListener {
      * The frame this edit session lives in.
      */
     private JFrame frame;
+    
+    /**
+     * The preferences node for OLAP user settings.
+     */
+    private final Preferences prefs = Preferences.userNodeForPackage(OLAPEditSession.class);
+    
+    private static enum PrefKeys {
+        /** The current split pane divider location. */
+        DIVIDER_LOCATION
+    }
     
     /**
      * The scroll pane of which the PlayPen is in.
@@ -227,12 +238,17 @@ public class OLAPEditSession implements OLAPChildListener {
         
         ppScrollPane = new JScrollPane(pp);
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(
-                new JSplitPane(
-                        JSplitPane.HORIZONTAL_SPLIT,
-                        new JScrollPane(tree),
-                        ppScrollPane),
-                BorderLayout.CENTER);
+        final JSplitPane splitPane = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                new JScrollPane(tree),
+                ppScrollPane);
+        splitPane.setDividerLocation(prefs.getInt(PrefKeys.DIVIDER_LOCATION.name(), 240));
+        splitPane.addPropertyChangeListener("dividerLocation", new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent evt) {
+                prefs.putInt(PrefKeys.DIVIDER_LOCATION.name(), splitPane.getDividerLocation());
+            }
+        });
+        panel.add(splitPane, BorderLayout.CENTER);
         panel.add(toolbar, BorderLayout.EAST);
         
         frame = new JFrame(generateDialogTitle());
