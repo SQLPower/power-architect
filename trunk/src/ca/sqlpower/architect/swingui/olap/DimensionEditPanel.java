@@ -74,7 +74,7 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
         builder.append(status, 3);
         builder.append("Name", nameField = new JTextField(dimension.getName()));
         builder.append("Caption", captionField = new JTextField(dimension.getCaption()));
-        builder.append("Type", typeBox = new JComboBox(DimensionType.values()));
+        builder.append("Type", typeBox = new JComboBox(new DimensionType[] { DimensionType.StandardDimension, DimensionType.TimeDimension }));
         
         if (dimension.getType() != null) {
             typeBox.setSelectedItem(DimensionType.valueOf(dimension.getType()));
