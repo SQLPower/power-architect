@@ -30,7 +30,6 @@
 	<classpathentry kind="lib" path="osx_packaging_utils/osx_adapter.jar"/>
 	<classpathentry kind="lib" path="lib/spring-core.jar"/>
 	<classpathentry kind="lib" path="lib/iText-2.0.8.jar"/>
-	<classpathentry kind="lib" path="lib/mondrian.jar"/>
 	<classpathentry kind="lib" path="lib/eigenbase-properties.jar"/>
 	<classpathentry kind="lib" path="lib/annotations.jar"/>
 	<classpathentry kind="lib" path="lib/opencsv-1.8.jar"/>

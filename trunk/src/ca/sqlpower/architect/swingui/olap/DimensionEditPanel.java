@@ -24,7 +24,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import mondrian.olap.DimensionType;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
@@ -44,6 +43,15 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class DimensionEditPanel implements ValidatableDataEntryPanel {
 
+    /**
+     * An enumeration of the dimension types that you can create in the OLAP
+     * editor.
+     */
+    private enum DimensionType {
+        StandardDimension,
+        TimeDimension;
+    }
+    
     private final Dimension dimension;
     private final JPanel panel;
     private JTextField nameField;
@@ -74,7 +82,7 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
         builder.append(status, 3);
         builder.append("Name", nameField = new JTextField(dimension.getName()));
         builder.append("Caption", captionField = new JTextField(dimension.getCaption()));
-        builder.append("Type", typeBox = new JComboBox(new DimensionType[] { DimensionType.StandardDimension, DimensionType.TimeDimension }));
+        builder.append("Type", typeBox = new JComboBox(DimensionType.values()));
         
         if (dimension.getType() != null) {
             typeBox.setSelectedItem(DimensionType.valueOf(dimension.getType()));
