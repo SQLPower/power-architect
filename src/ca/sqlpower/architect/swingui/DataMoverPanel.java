@@ -282,11 +282,15 @@ public class DataMoverPanel {
                 DDLGenerator ddlg = DDLUtils.createDDLGenerator(destDB.getDataSource());
                 ddlg.generateDDLStatements(Collections.singletonList(destTable));
                 Statement stmt = null;
+                String sql = null;
                 try {
                     stmt = destCon.createStatement();
                     for (DDLStatement ddlstmt : ddlg.getDdlStatements()) {
-                        stmt.executeUpdate(ddlstmt.getSQLText());
+                        sql = ddlstmt.getSQLText();
+                        stmt.executeUpdate(sql);
                     }
+                } catch (SQLException ex) {
+                    throw new RuntimeException("DDL statement failed: " + sql, ex);
                 } finally {
                     if (stmt != null) stmt.close();
                 }
