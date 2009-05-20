@@ -21,8 +21,6 @@ package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -191,7 +189,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
     
     private JTextArea selectStatements;
     private JTextField viewAlias;
-    private JTextArea joinXMLString;
+    private JTextArea joinTablesString;
     
     /**
      * Validation handler for errors in the dialog
@@ -262,13 +260,18 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         builder.appendSeparator("Fact Table");
         tableChooser = new JComboBox(new Vector<SQLTable>(tables));
 
+        final JScrollPane selectStatementsPane = new JScrollPane(selectStatements = new JTextArea("", 4, 30));
+        joinTablesString = new JTextArea("", 4, 30);
+        final JScrollPane joinTablesPane = new JScrollPane(joinTablesString);
+        
         Action radioButtonsAction = new AbstractAction() {
             public void actionPerformed(ActionEvent arg0) {
                 tableChooser.setEnabled(tableRadioButton.isSelected());
-                selectStatements.setEnabled(viewRadioButton.isSelected());
+                selectStatementsPane.setEnabled(viewRadioButton.isSelected());
                 viewAlias.setEnabled(viewRadioButton.isSelected());
                 viewEditButton.setEnabled(viewRadioButton.isSelected());
                 joinEditButton.setEnabled(joinRadioButton.isSelected());
+                joinTablesPane.setEnabled(joinRadioButton.isSelected());
             }
         };
         
@@ -287,24 +290,26 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         buttonGroup.add(viewRadioButton);
         buttonGroup.add(joinRadioButton);
         
-        builder.append(tableRadioButton, 3); 
-        builder.append(tableChooser, 3);
-        builder.append(viewRadioButton, 3); 
-        builder.append("Alias", viewAlias = new JTextField());
-        builder.append(new JLabel("SELECT Statements"), 3);
-        builder.append(new JScrollPane(selectStatements = new JTextArea("", 4, 30)), 3);
+        DefaultFormBuilder factBuilder = new DefaultFormBuilder(new FormLayout("9dlu, 3dlu, pref, 3dlu, pref:grow"));
+        builder.append(factBuilder.getPanel(), 3);
         
-        builder.append(viewEditButton);
-        builder.nextLine();
-        builder.append(joinRadioButton, 3);
+        factBuilder.append(tableRadioButton, 5);
+        factBuilder.append("", tableChooser, 3);
+        factBuilder.append(viewRadioButton, 5); 
+        factBuilder.append("", new JLabel("Alias"), viewAlias = new JTextField());
+        factBuilder.append("", new JLabel("SELECT Statements"), 3);
+        factBuilder.append("", selectStatementsPane, 3);
         
-        builder.append(new JLabel("Tables in the join"), 3);
-        joinXMLString = new JTextArea("", 4, 30);
-        joinXMLString.setEditable(false);
-        builder.append(new JScrollPane(joinXMLString), 3);
+        factBuilder.append("", viewEditButton);
+        factBuilder.nextLine();
+        factBuilder.append(joinRadioButton, 5);
         
-        builder.append(joinEditButton);
-        builder.nextLine();
+        factBuilder.append("", new JLabel("Tables in the join"), 3);
+        joinTablesString.setEditable(false);
+        factBuilder.append("", joinTablesPane, 3);
+        
+        factBuilder.append("", joinEditButton);
+        factBuilder.nextLine();
         selectStatements.setLineWrap(true);
         selectStatements.setEditable(false);
         
@@ -338,15 +343,6 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         handler = new FormValidationHandler(status);
         Validator validator = new OLAPObjectNameValidator(cube.getParent(), cube, false);
         handler.addValidateObject(nameField, validator);
-        
-        selectStatements.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(new ViewEntryPanel(playPen.getSession()), playPen.getDialogOwner(), "View Builder", "OK");
-                dialog.pack();
-                dialog.setVisible(true);
-            }
-        });
     }
 
     public boolean applyChanges() {
@@ -411,7 +407,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
 
     public void setJoinFact(Join joinFact) {
         this.joinFact = joinFact;
-        joinXMLString.setText(createJoinString(joinFact));
+        joinTablesString.setText(createJoinString(joinFact));
     }
     
     /**
