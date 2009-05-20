@@ -81,7 +81,7 @@ public class OLAPPlayPenFactory {
             throw new NullPointerException("Null oSession");
         }
         
-        PlayPen pp = new PlayPen(session);
+        PlayPen pp = new PlayPen(session, oSession.getFrame());
         OLAPModelListener ppcl = new OLAPModelListener(pp, oSession);
         pp.addPlayPenLifecycleListener(ppcl);
         

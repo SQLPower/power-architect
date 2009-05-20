@@ -93,7 +93,7 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
         DataEntryPanel panel;
         // TODO add getName() method to DataEntryPanel.
         if (coord.getIndex() == PlayPenCoordinate.ITEM_INDEX_TITLE) {
-            panel = new CubeEditPanel(model, getParent().getOwner().getSession());
+            panel = new CubeEditPanel(model, getPlayPen(), getPlayPen().getSession());
         } else if (coord.getIndex() == PlayPenCoordinate.ITEM_INDEX_SECTION_TITLE) {
             panel = null;
         } else if (coord.getIndex() > PlayPenCoordinate.ITEM_INDEX_TITLE){

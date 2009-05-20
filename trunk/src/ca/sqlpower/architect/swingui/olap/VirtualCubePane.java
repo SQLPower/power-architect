@@ -112,7 +112,7 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
                 CubeUsage cu = (CubeUsage) coord.getItem();
                 Cube c = OLAPUtil.findReferencedCube(model, cu);
                 if (c == null) throw new NullPointerException("Couldn't find cube!");
-                panel = new CubeEditPanel(c, getParent().getOwner().getSession());
+                panel = new CubeEditPanel(c, getPlayPen(), getPlayPen().getSession());
             } else if (coord.getItem() instanceof VirtualCubeDimension) {
                 VirtualCubeDimension vcd = (VirtualCubeDimension) coord.getItem();
                 Dimension d = OLAPUtil.findReferencedDimension(vcd);

@@ -138,7 +138,7 @@ public class TestArchitectUndoManager extends TestCase {
         System.out.println("-----------------Start setup for "+getName()+"----------------");
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         session = context.createSession();
-        pp = new PlayPen(session);
+        pp = new PlayPen(session, session.getArchitectFrame());
         SQLDatabase db = session.getTargetDatabase();
         fkTable = new SQLTable(db,true);
         fkTable.setName("child");
@@ -243,7 +243,7 @@ public class TestArchitectUndoManager extends TestCase {
     }
     
     public void testMove() throws SQLObjectException, IOException {
-        PlayPen pp = new PlayPen(session);
+        PlayPen pp = new PlayPen(session, session.getArchitectFrame());
         SQLTable table = new SQLTable(session.getTargetDatabase(),true);
         TablePane tp = new TablePane(table,pp.getContentPane());
         pp.addTablePane(tp, new Point());
@@ -268,7 +268,7 @@ public class TestArchitectUndoManager extends TestCase {
     
     public void testMultiMove() throws SQLObjectException 
     {
-        PlayPen pp = new PlayPen(session);
+        PlayPen pp = new PlayPen(session, session.getArchitectFrame());
         SQLDatabase db = session.getTargetDatabase();
         SQLTable table = new SQLTable(db,true);
         TablePane tp = new TablePane(table,pp.getContentPane());
@@ -308,7 +308,7 @@ public class TestArchitectUndoManager extends TestCase {
     }
     
     public void testCompoundEditEvent() throws SQLObjectException{
-        PlayPen pp = new PlayPen(session);
+        PlayPen pp = new PlayPen(session, session.getArchitectFrame());
         ArchitectUndoManager manager = new ArchitectUndoManager(pp);
         pp.getPlayPenContentPane().addPropertyChangeListener("location", manager.getEventAdapter());
         pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", manager.getEventAdapter());

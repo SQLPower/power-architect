@@ -44,19 +44,24 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.tree.TreeModel;
 
+import org.apache.log4j.Logger;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.Join;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
+import ca.sqlpower.architect.olap.MondrianModel.Relation;
 import ca.sqlpower.architect.olap.MondrianModel.SQL;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.olap.MondrianModel.View;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLDatabaseMapping;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -73,6 +78,8 @@ import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
 public class CubeEditPanel implements ValidatableDataEntryPanel {
+    
+    private static final Logger logger = Logger.getLogger(CubeEditPanel.class);
     
     /**
      * This entry panel will create a view builder based on the 
@@ -100,7 +107,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         public ViewEntryPanel(ArchitectSwingSession session) {
             DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref, 5dlu:grow, pref, 3dlu, pref", "pref, fill:pref:grow"));
             
-            SQLDatabase db = OSUtils.getAncestor(CubeEditPanel.this.cube, OLAPSession.class).getDatabase();
+            SQLDatabase db = getDatabase();
             queryComponents = new SQLQueryUIComponents(session, session.getContext().getPlDotIni(), session, builder.getPanel());
             queryComponents.getRowLimitSpinner().setValue(Integer.valueOf(1000));
             queryComponents.getDatabaseComboBox().setSelectedItem(db.getDataSource());
@@ -184,6 +191,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
     
     private JTextArea selectStatements;
     private JTextField viewAlias;
+    private JTextArea joinXMLString;
     
     /**
      * Validation handler for errors in the dialog
@@ -192,13 +200,25 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
     private StatusComponent status = new StatusComponent();
     private JRadioButton tableRadioButton;
     private JRadioButton viewRadioButton;
+    private final JRadioButton joinRadioButton;
+
+    /**
+     * This will store a Join Mondrian model if it is to be used for a cube
+     * definition.
+     */
+    private Join joinFact;
     
     /**
-     * Creates a new property editor for the given OLAP Cube. 
+     * Creates a new property editor for the given OLAP Cube.
      * 
-     * @param cube The data model of the cube to edit
+     * TODO remove the dbMapping if it is no longer needed as the session will
+     * be used from the playpen or remove the session from the view and join
+     * entry panel constructors and pass a dbMapping as required instead.
+     * 
+     * @param cube
+     *            The data model of the cube to edit
      */
-    public CubeEditPanel(Cube cube, final ArchitectSwingSession session) throws SQLObjectException {
+    public CubeEditPanel(Cube cube, final PlayPen playPen, final SQLDatabaseMapping dbMapping) throws SQLObjectException {
         this.cube = cube;
         
         List<SQLTable> tables = OLAPUtil.getAvailableTables(cube);
@@ -222,6 +242,23 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
             }
         }
         
+        final JButton viewEditButton = new JButton(new AbstractAction("Edit...") {
+            public void actionPerformed(ActionEvent e) {
+                logger.debug("The dialog owner is " + playPen.getDialogOwner());
+                JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(new ViewEntryPanel(playPen.getSession()), playPen.getDialogOwner(), "View Builder", "OK");
+                dialog.pack();
+                dialog.setVisible(true);        
+            }
+        });
+        final JButton joinEditButton = new JButton(new AbstractAction("Edit...") {
+            public void actionPerformed(ActionEvent e) {
+                JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(new JoinEntryPanel(playPen.getSession(), getDatabase(), CubeEditPanel.this, joinFact), playPen.getDialogOwner(), "Join Builder", "OK");
+                dialog.pack();
+                
+                dialog.setVisible(true); 
+            }
+        });
+        
         builder.appendSeparator("Fact Table");
         tableChooser = new JComboBox(new Vector<SQLTable>(tables));
 
@@ -230,6 +267,8 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
                 tableChooser.setEnabled(tableRadioButton.isSelected());
                 selectStatements.setEnabled(viewRadioButton.isSelected());
                 viewAlias.setEnabled(viewRadioButton.isSelected());
+                viewEditButton.setEnabled(viewRadioButton.isSelected());
+                joinEditButton.setEnabled(joinRadioButton.isSelected());
             }
         };
         
@@ -239,10 +278,14 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         viewRadioButton = new JRadioButton();
         viewRadioButton.setAction(radioButtonsAction);
         viewRadioButton.setText("Use View");
+        joinRadioButton = new JRadioButton();
+        joinRadioButton.setAction(radioButtonsAction);
+        joinRadioButton.setText("Use Join");
         
         ButtonGroup buttonGroup = new ButtonGroup();
         buttonGroup.add(tableRadioButton);
         buttonGroup.add(viewRadioButton);
+        buttonGroup.add(joinRadioButton);
         
         builder.append(tableRadioButton, 3); 
         builder.append(tableChooser, 3);
@@ -250,13 +293,18 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         builder.append("Alias", viewAlias = new JTextField());
         builder.append(new JLabel("SELECT Statements"), 3);
         builder.append(new JScrollPane(selectStatements = new JTextArea("", 4, 30)), 3);
-        builder.append(new JButton(new AbstractAction("Edit...") {
-            public void actionPerformed(ActionEvent e) {
-                JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(new ViewEntryPanel(session), null, "View Builder", "OK");
-                dialog.pack();
-                dialog.setVisible(true);        
-            }
-        }));
+        
+        builder.append(viewEditButton);
+        builder.nextLine();
+        builder.append(joinRadioButton, 3);
+        
+        builder.append(new JLabel("Tables in the join"), 3);
+        joinXMLString = new JTextArea("", 4, 30);
+        joinXMLString.setEditable(false);
+        builder.append(new JScrollPane(joinXMLString), 3);
+        
+        builder.append(joinEditButton);
+        builder.nextLine();
         selectStatements.setLineWrap(true);
         selectStatements.setEditable(false);
         
@@ -294,7 +342,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         selectStatements.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(new ViewEntryPanel(session), null, "View Builder", "OK");
+                JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(new ViewEntryPanel(playPen.getSession()), playPen.getDialogOwner(), "View Builder", "OK");
                 dialog.pack();
                 dialog.setVisible(true);
             }
@@ -322,6 +370,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
                 view.addSelect(sql);
                 cube.setFact(view);
             }
+            
             cube.setName(nameField.getText());
             if (!(captionField.getText().equals(""))) {
                 cube.setCaption(captionField.getText());
@@ -350,5 +399,42 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
 
     public ValidationHandler getValidationHandler() {
         return handler;
+    }
+    
+    /**
+     * This is the database that is being used in the session. The
+     * cube can be made from tables in this database.
+     */
+    private SQLDatabase getDatabase() {
+        return OSUtils.getAncestor(CubeEditPanel.this.cube, OLAPSession.class).getDatabase();
+    }
+
+    public void setJoinFact(Join joinFact) {
+        this.joinFact = joinFact;
+        joinXMLString.setText(createJoinString(joinFact));
+    }
+    
+    /**
+     * This will recursively create a list of the table names in the join.
+     */
+    private String createJoinString(Join join) {
+        if (join == null) return null;
+        
+        String joinString;
+        if (join.getLeft() instanceof Join) {
+            joinString = createJoinString((Join) join.getLeft());
+        } else {
+            joinString = ((Relation) join.getLeft()).getName() + "\n"; 
+        }
+        if (join.getRight() instanceof Join) {
+            joinString = joinString + createJoinString((Join) join.getRight());
+        } else {
+            joinString = joinString + ((Relation) join.getRight()).getName() + "\n"; 
+        }
+        return joinString;
+    }
+
+    public Join getJoinFact() {
+        return joinFact;
     }
 }
