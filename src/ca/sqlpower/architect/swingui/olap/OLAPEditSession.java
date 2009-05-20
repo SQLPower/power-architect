@@ -76,7 +76,7 @@ public class OLAPEditSession implements OLAPChildListener {
     /**
      * The frame this edit session lives in.
      */
-    private JFrame frame;
+    private final JFrame frame;
     
     /**
      * The preferences node for OLAP user settings.
@@ -149,8 +149,6 @@ public class OLAPEditSession implements OLAPChildListener {
         tree = new OLAPTree(swingSession, this, olapSession.getSchema());
         tree.setCellRenderer(new OLAPTreeCellRenderer());
         undoManager = new OLAPUndoManager(olapSession);
-        pp = OLAPPlayPenFactory.createPlayPen(swingSession, this, undoManager);
-        
         undoManager.addChangeListener(new ChangeListener() {           
             public void stateChanged(ChangeEvent e) {
                 // this can be called before initGUI() has had a chance to create the frame
@@ -159,13 +157,16 @@ public class OLAPEditSession implements OLAPChildListener {
                 }
             }
         });
+        frame = new JFrame(generateDialogTitle());
+        pp = OLAPPlayPenFactory.createPlayPen(swingSession, this, undoManager);
+        
         
         swingSession.addSessionLifecycleListener(new SessionLifecycleListener<ArchitectSwingSession>() {
             public void sessionClosing(SessionLifecycleEvent<ArchitectSwingSession> e) {
                 close();
             }
         });
-        // Don't create actions here. PlayPen is currently null.
+        initGUI();
     }
     
     /**
@@ -173,9 +174,6 @@ public class OLAPEditSession implements OLAPChildListener {
      * visibility set.
      */
     public JFrame getFrame() {
-        if (frame == null) {
-            initGUI();
-        }
         return frame;
     }
     
@@ -251,7 +249,6 @@ public class OLAPEditSession implements OLAPChildListener {
         panel.add(splitPane, BorderLayout.CENTER);
         panel.add(toolbar, BorderLayout.EAST);
         
-        frame = new JFrame(generateDialogTitle());
         olapSession.getSchema().addPropertyChangeListener(new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
                 if (evt.getPropertyName().equals("name")) {

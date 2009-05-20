@@ -105,7 +105,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 		setOpaque(true);
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         this.session = session;
-		this.pp = new PlayPen(session, session.getPlayPen());
+		this.pp = new PlayPen(session, session.getPlayPen(), session.getPlayPen().getDialogOwner());
 		
         // don't need this playpen to be interactive or respond to SQLObject changes
         pp.destroy();
