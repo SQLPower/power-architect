@@ -33,6 +33,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -52,7 +53,7 @@ import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.query.Container;
 import ca.sqlpower.query.Item;
 import ca.sqlpower.query.ItemContainer;
-import ca.sqlpower.query.QueryData;
+import ca.sqlpower.query.Query;
 import ca.sqlpower.query.SQLJoin;
 import ca.sqlpower.query.StringItem;
 import ca.sqlpower.query.TableContainer;
@@ -113,7 +114,7 @@ public class JoinEntryPanel implements DataEntryPanel {
         }
     };
     
-    private final QueryData model;
+    private final Query model;
     
     private final ForumAction forumAction = new ForumAction(new ImageIcon(JoinEntryPanel.class.getResource("/icons/architect16.png")), "Help on the forums.");
 
@@ -131,7 +132,7 @@ public class JoinEntryPanel implements DataEntryPanel {
         this.session = session;
         this.db = db;
         this.editPanel = editPanel;
-        model = new QueryData(session);
+        model = new Query(session);
         
         if (join != null) {
             addSQLJoinsToModel(join);
@@ -315,9 +316,11 @@ public class JoinEntryPanel implements DataEntryPanel {
             join = new Join();
             //check if the left side is in the map
             final Container leftContainer = sqlJoin.getLeftColumn().getContainer();
+            Join leftExistingJoin = null;
             if (tableToJoinMap.containsKey(leftContainer)) {
                 //if so get the join the left side is involved with and update the joins in the map accordingly
                 Join existingJoin = tableToJoinMap.get(leftContainer);
+                leftExistingJoin = existingJoin;
                 join.setLeftAlias(leftContainer.getName());
                 join.setLeft(existingJoin);
                 join.setLeftKey(sqlJoin.getLeftColumn().getName());
@@ -340,6 +343,26 @@ public class JoinEntryPanel implements DataEntryPanel {
             if (tableToJoinMap.containsKey(rightContainer)) {
                 //if so get the join the right side is involved with and update the joins in the map accordingly
                 Join existingJoin = tableToJoinMap.get(rightContainer);
+
+                if (leftExistingJoin != null && leftExistingJoin == existingJoin) {
+                    
+                    
+                    String invalidJoinStatement = "<html>The join specified contains cycles and cannot be specified in OLAP.\n" +
+                    "Either the cycle needs to be broken by dragging in the same table to duplicate it\n" +
+                    "or a view can be created to represent this join specification.";
+                    final String invalidJoinDialogHeader = "Invalid join specification";
+                    
+                    int retType = JOptionPane.showOptionDialog(panel, invalidJoinStatement, invalidJoinDialogHeader, 
+                            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, 
+                            new Object[]{"Create View", "Cancel"}, "Create View");
+                    if (retType == JOptionPane.OK_OPTION) {
+                        editPanel.setViewSelected();
+                        editPanel.setSelectText(model.generateQuery());
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
                 join.setRightAlias(rightContainer.getName());
                 join.setRight(existingJoin);
                 join.setRightKey(sqlJoin.getRightColumn().getName());

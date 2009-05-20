@@ -19,7 +19,6 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,14 +35,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JToolBar;
-import javax.swing.tree.TreeModel;
 
 import org.apache.log4j.Logger;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
@@ -54,18 +49,12 @@ import ca.sqlpower.architect.olap.MondrianModel.Relation;
 import ca.sqlpower.architect.olap.MondrianModel.SQL;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.olap.MondrianModel.View;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLDatabaseMapping;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
-import ca.sqlpower.swingui.query.SQLQueryUIComponents;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
 import ca.sqlpower.validation.swingui.StatusComponent;
@@ -78,107 +67,6 @@ import com.jgoodies.forms.layout.FormLayout;
 public class CubeEditPanel implements ValidatableDataEntryPanel {
     
     private static final Logger logger = Logger.getLogger(CubeEditPanel.class);
-    
-    /**
-     * This entry panel will create a view builder based on the 
-     * SQLQueryUIComponents in the library.
-     */
-    private class ViewEntryPanel implements DataEntryPanel {
-        
-        /**
-         * The main panel of this data entry panel
-         */
-        private JSplitPane splitPane;
-        
-        /**
-         * The text area users will enter a select statement into.
-         */
-        private RSyntaxTextArea queryArea;
-
-        /**
-         * The query components used to create the view. This needs
-         * to be closed when the entry panel goes away or else connections
-         * will be leaked.
-         */
-        private SQLQueryUIComponents queryComponents;
-
-        public ViewEntryPanel(ArchitectSwingSession session) {
-            DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref, 5dlu:grow, pref, 3dlu, pref", "pref, fill:pref:grow"));
-            
-            SQLDatabase db = getDatabase();
-            queryComponents = new SQLQueryUIComponents(session, session.getContext().getPlDotIni(), session, builder.getPanel());
-            queryComponents.getRowLimitSpinner().setValue(Integer.valueOf(1000));
-            queryComponents.getDatabaseComboBox().setSelectedItem(db.getDataSource());
-            
-            JToolBar toolbar = new JToolBar();
-            toolbar.add(queryComponents.getPrevQueryButton());
-            toolbar.add(queryComponents.getNextQueryButton());
-            toolbar.addSeparator();
-            toolbar.add(queryComponents.getExecuteButton());
-            toolbar.add(queryComponents.getStopButton());
-            toolbar.add(queryComponents.getClearButton());
-            toolbar.addSeparator();
-            toolbar.add(queryComponents.getUndoButton());
-            toolbar.add(queryComponents.getRedoButton());
-            toolbar.addSeparator();
-            toolbar.add(new JLabel(db.getName()));
-            builder.append(toolbar);
-            builder.append("Row Limit", queryComponents.getRowLimitSpinner());
-            builder.nextLine();
-            
-            queryArea = queryComponents.getQueryArea();
-            builder.append(new JScrollPane(queryArea), 5);
-            queryArea.setText(selectStatements.getText());
-            
-            JSplitPane rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-            rightSplitPane.setTopComponent(builder.getPanel());
-            rightSplitPane.setBottomComponent(queryComponents.getResultTabPane());
-            rightSplitPane.setPreferredSize(new Dimension((int) Math.max(400, rightSplitPane.getPreferredSize().getWidth()), (int) Math.max(500, rightSplitPane.getPreferredSize().getHeight())));
-            rightSplitPane.setResizeWeight(0.5);
-            
-            SQLObjectRoot root = new SQLObjectRoot();
-            TreeModel treeModel;
-            DBTree tree;
-            try {
-                root.addChild(db);
-                treeModel = new DBTreeModel(root);
-                tree = new DBTree(session);
-            } catch (SQLObjectException e) {
-                throw new RuntimeException(e);
-            }
-            tree.setModel(treeModel);
-            tree.setPopupMenuEnabled(false);
-            
-            splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-            splitPane.setLeftComponent(tree);
-            splitPane.setRightComponent(rightSplitPane);
-            splitPane.setResizeWeight(0.2);
-            
-        }
-
-        public boolean applyChanges() {
-            selectStatements.setText(queryArea.getText());
-            cleanup();
-            return true;
-        }
-
-        public void discardChanges() {
-            cleanup();
-        }
-
-        private void cleanup() {
-            queryComponents.closingDialogOwner();
-        }
-        
-        public JComponent getPanel() {
-            return splitPane;
-        }
-
-        public boolean hasUnsavedChanges() {
-            return true;
-        }
-        
-    }
     
     private final Cube cube;
     private final JPanel panel;
@@ -243,7 +131,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         final JButton viewEditButton = new JButton(new AbstractAction("Edit...") {
             public void actionPerformed(ActionEvent e) {
                 logger.debug("The dialog owner is " + playPen.getDialogOwner());
-                JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(new ViewEntryPanel(playPen.getSession()), playPen.getDialogOwner(), "View Builder", "OK");
+                JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(new ViewEntryPanel(playPen.getSession(), getDatabase(), CubeEditPanel.this), playPen.getDialogOwner(), "View Builder", "OK");
                 dialog.pack();
                 dialog.setVisible(true);        
             }
@@ -317,8 +205,17 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
             viewRadioButton.doClick();
             tableRadioButton.setEnabled(false);
             tableChooser.setEnabled(false);
-            for (SQL sql : ((View) cube.getFact()).getSelects()) {
-                selectStatements.append(sql.getText() + "\n"); 
+            
+            //XXX There could be multiple SQL objects in a view but we can only edit one at a time right now.
+            final List<SQL> selects = ((View) cube.getFact()).getSelects();
+            for (SQL sql : selects) {
+                if (sql.getDialect() == null || sql.getDialect().equals("generic")) {
+                    selectStatements.append(sql.getText());
+                    break;
+                }
+            }
+            if (selectStatements.getText().trim().length() == 0 && !selects.isEmpty()) {
+                selectStatements.append(selects.get(0).getText());
             }
         } else if (tables.isEmpty()) {
             tableChooser.addItem("Database has no tables");
@@ -432,5 +329,17 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
 
     public Join getJoinFact() {
         return joinFact;
+    }
+
+    public String getSelectText() {
+        return selectStatements.getText();
+    }
+
+    public void setSelectText(String text) {
+        selectStatements.setText(text);
+    }
+
+    public void setViewSelected() {
+        viewRadioButton.doClick();
     }
 }
