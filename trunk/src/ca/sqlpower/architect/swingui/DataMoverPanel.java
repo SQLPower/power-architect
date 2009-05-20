@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Cursor;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.sql.Connection;
@@ -49,6 +50,7 @@ import ca.sqlpower.sql.DataMover;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -174,9 +176,12 @@ public class DataMoverPanel {
     private Action okAction = new AbstractAction(Messages.getString("DataMoverPanel.okButton")) { //$NON-NLS-1$
         public void actionPerformed(ActionEvent e) {
             try {
+                panel.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 doDataMove();
             } catch (Exception ex) {
                 ASUtils.showExceptionDialog(session, Messages.getString("DataMoverPanel.failedToMoveData"), ex); //$NON-NLS-1$
+            } finally {
+                panel.setCursor(null);
             }
         }
     };
@@ -256,6 +261,19 @@ public class DataMoverPanel {
             needToCreate = true;
             destTable = SQLObjectUtils.addSimulatedTable(
                 destDB, destCatalogName, destSchemaName, destTableName);
+            
+            // setup columns
+            for (SQLColumn srcCol : sourceTable.getColumns()) {
+                destTable.addColumn(new SQLColumn(srcCol));
+            }
+            
+            // setup PK
+            for (SQLColumn srcCol : sourceTable.getColumns()) {
+                SQLColumn destCol = destTable.getColumnByName(srcCol.getName());
+                destCol.setPrimaryKeySeq(srcCol.getPrimaryKeySeq());
+            }
+            
+            // TODO indexes and foriegn keys
         }
         
         Connection sourceCon = null;
@@ -264,20 +282,55 @@ public class DataMoverPanel {
             sourceCon = sourceDB.getConnection();
             destCon = destDB.getConnection();
             
+            String sourceQuoteString = sourceCon.getMetaData().getIdentifierQuoteString();
+            String destQuoteString = destCon.getMetaData().getIdentifierQuoteString();
+
             final String sourceQualifiedName = DDLUtils.toQualifiedName(
                     sourceTable.getCatalogName(),
                     sourceTable.getSchemaName(),
                     sourceTable.getName(),
-                    "\"", "\"");
+                    sourceQuoteString, sourceQuoteString);
             final String destQualifiedName = DDLUtils.toQualifiedName(
                     destTable.getCatalogName(),
                     destTable.getSchemaName(),
                     destTable.getName(),
-                    "\"", "\"");
+                    destQuoteString, destQuoteString);
 
             if (needToCreate) {
-                int choice = JOptionPane.showConfirmDialog(panel, Messages.getString("DataMoverPanel.destinationTableDoesNotExist", destQualifiedName)); //$NON-NLS-1$
-                if (choice != JOptionPane.YES_OPTION) return -1;
+                if (destTable.getColumns().isEmpty()) {
+                    int choice = JOptionPane.showOptionDialog(
+                            panel,
+                            Messages.getString("DataMoverPanel.sourceTableHasNoColumns", sourceQualifiedName),
+                            "Unsupported Source Table Structure",
+                            JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE,
+                            null, new String[] { "Skip", "Abort" }, "Skip");
+                    if (choice == 0) {
+                        return 0; // copied 0 rows
+                    } else {
+                        return -1; // abort
+                    }
+                } else {
+                    int choice = JOptionPane.showConfirmDialog(
+                            panel,
+                            Messages.getString("DataMoverPanel.destinationTableDoesNotExist", destQualifiedName));
+                    if (choice != JOptionPane.YES_OPTION) return -1;
+                }
+                
+                // check for common problems
+                for (SQLColumn destCol : destTable.getColumns()) {
+                    if (destCol.getDefaultValue() != null) {
+                        int choice = JOptionPane.showOptionDialog(
+                                panel,
+                                Messages.getString("DataMoverPanel.sourceColumnHasDefault", sourceQualifiedName),
+                                "Source Table Structure Question",
+                                JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE,
+                                null, new String[] { "Retain Default", "Change Default To Null" }, "Skip");
+                        if (choice == 1) {
+                            destCol.setDefaultValue(null);
+                        }
+                    }
+                }
+                
                 
                 DDLGenerator ddlg = DDLUtils.createDDLGenerator(destDB.getDataSource());
                 ddlg.generateDDLStatements(Collections.singletonList(destTable));
