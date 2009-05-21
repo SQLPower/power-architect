@@ -19,6 +19,10 @@ Sean Oczkowski
 Octavian Sichin
 Jonathan Sweetman
 Kaiyi Li
+Aaron Niedbala
+Dennis Cheng
+Yefei Wang
+Michelle Samuel
 
 ARTWORK
 -------
@@ -29,3 +33,7 @@ INTERNATIONALIZATION
 --------------------
 Young Woo Kim (Korean)
 Misha Sivan (Russian)
+
+DOCUMENTATION
+-------------
+Benjamin Dietz
