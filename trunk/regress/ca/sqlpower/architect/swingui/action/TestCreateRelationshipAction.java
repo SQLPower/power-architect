@@ -43,7 +43,7 @@ public class TestCreateRelationshipAction extends TestCase {
 		SQLDatabase db = new SQLDatabase();
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
-		pp = new PlayPen(session, session.getArchitectFrame());
+		pp = new PlayPen(session);
 		fkTable = new SQLTable(db,true);
 		TablePane tp = new TablePane(fkTable,pp.getContentPane());
 		pp.addTablePane(tp,new Point(1,1));

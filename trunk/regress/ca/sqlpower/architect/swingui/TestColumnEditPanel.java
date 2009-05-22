@@ -176,7 +176,7 @@ public class TestColumnEditPanel extends TestCase {
     public void testColumnStaysSelectedWhenMovedToPK() throws SQLObjectException, IOException {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
-        PlayPen pp = new PlayPen(session, session.getArchitectFrame());        
+        PlayPen pp = new PlayPen(session);        
         TablePane tp = new TablePane(table, pp.getContentPane());
         tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
         tp.selectItem(table.getColumnIndex(col3));
