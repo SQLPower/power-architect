@@ -116,7 +116,7 @@ public class JoinEntryPanel implements DataEntryPanel {
     
     private final Query model;
     
-    private final ForumAction forumAction = new ForumAction(new ImageIcon(JoinEntryPanel.class.getResource("/icons/architect16.png")), "Help on the forums.");
+    private final ForumAction forumAction = new ForumAction(new ImageIcon(JoinEntryPanel.class.getResource("/icons/Architect16.png")), "Help on the forums.");
 
     private final SQLDatabase db;
 
