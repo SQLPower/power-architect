@@ -6131,6 +6131,10 @@
           <listitem>
             <para>log4j.jar</para>
           </listitem>
+          
+           <listitem>
+            <para>opencsv-1.8.jar</para>
+          </listitem>
         </itemizedlist>
 
         <para>Apache License Version 2.0, January 2004</para>
@@ -6953,8 +6957,8 @@
         the Original Code Source Code for Your Modifications.]</para>
       </section>
 
-      <section id="appendices.third_party_licences.JFree">
-        <title>JFree</title>
+      <section id="appendices.third_party_licences.LGPL">
+        <title>GNU LGPL version 3</title>
 
         <para>The Power*Architect team is also grateful to the JFree team for
         their top-notch charting library, which has a nice API as well as
@@ -6970,6 +6974,10 @@
 
           <listitem>
             <para>jfreechart-1.0.1.jar</para>
+          </listitem>
+          
+          <listitem>
+            <para>rsyntaxtextarea.jar</para>
           </listitem>
         </itemizedlist>
 
