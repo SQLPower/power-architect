@@ -321,7 +321,9 @@ public class DataMoverPanel {
                     if (destCol.getDefaultValue() != null) {
                         int choice = JOptionPane.showOptionDialog(
                                 panel,
-                                Messages.getString("DataMoverPanel.sourceColumnHasDefault", sourceQualifiedName),
+                                Messages.getString("DataMoverPanel.sourceColumnHasDefault",
+                                        sourceQualifiedName + "." + destCol.getName(),
+                                        destCol.getDefaultValue()),
                                 "Source Table Structure Question",
                                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE,
                                 null, new String[] { "Retain Default", "Change Default To Null" }, "Skip");
