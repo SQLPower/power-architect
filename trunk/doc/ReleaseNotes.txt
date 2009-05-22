@@ -1,5 +1,12 @@
 Power*Architect Release Notes
 
+0.9.13-release
+
+    * Relationship labels now display vertically if there's not enough room horizontally
+    * An improved installer for Windows that can detect where your Java Runtime is located, and if it is missing, it can point you to a website to download it.
+    * Decreased file size (down to 16 MB from 18 MB) due to cleaning out some unused libraries
+    * A few additional bug fixes
+
 0.9.13-rc2
 
   New Features:
