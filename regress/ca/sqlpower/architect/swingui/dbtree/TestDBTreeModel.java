@@ -104,7 +104,7 @@ public class TestDBTreeModel extends TestCase {
     protected void setUp() throws Exception {
         session = new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "TestSession");
         tm = new DBTreeModel(session.getRootObject());
-        tm.setTestMode(true);
+        tm.setRefireEventsOnAnyThread(true);
 	}
 	
     public void testRefireRelationshipMappingEvents() throws SQLObjectException {
