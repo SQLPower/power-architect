@@ -33,7 +33,6 @@ import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Window;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -314,12 +313,6 @@ public class PlayPen extends JPanel
 	 * Flag to prevent recursive selections for selectObjects()
 	 */
 	private boolean ignoreTreeSelection = false;
-
-	/**
-	 * This window can be used as the parent for dialogs that are created
-	 * from components in this play pen.
-	 */
-    private final Window dialogOwner;
 	
 	/**
      * Creates a play pen with reasonable defaults.  If you are creating
@@ -330,8 +323,7 @@ public class PlayPen extends JPanel
      * @param session
      *            The session this play pen belongs to. Null is not allowed.
      */
-	public PlayPen(ArchitectSwingSession session, Window dialogOwner) {
-        this.dialogOwner = dialogOwner;
+	public PlayPen(ArchitectSwingSession session) {
         if (session == null) throw new NullPointerException("A null session is not allowed here."); //$NON-NLS-1$
 		this.session = session;
 		setDatabase(session.getTargetDatabase());
@@ -370,8 +362,8 @@ public class PlayPen extends JPanel
      * be aware that the underlying SQLObjects will be shared between the two sessions.
 	 * @param pp The playpen to duplicate.
 	 */
-	public PlayPen(ArchitectSwingSession session, PlayPen pp, Window dialogOwner) {
-		this(session, dialogOwner);
+	public PlayPen(ArchitectSwingSession session, PlayPen pp) {
+		this(session);
 		logger.debug("Copying PlayPen@" + System.identityHashCode(pp) + " into " + System.identityHashCode(this));
 		this.antialiasSetting = pp.antialiasSetting;
 		
@@ -3268,7 +3260,4 @@ public class PlayPen extends JPanel
         }
     }
 
-    public Window getDialogOwner() {
-        return dialogOwner;
-    }
 }

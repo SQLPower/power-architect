@@ -318,7 +318,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
     public ColumnMappingPanel(ArchitectSwingSession session, SQLRelationship r) {
         this.session = session;
         this.r = r;
-        PlayPen pp = new PlayPen(session, session.getArchitectFrame());
+        PlayPen pp = new PlayPen(session);
         lhsTable = new TablePane(r.getPkTable(), pp.getContentPane());
         rhsTable = new TablePane(r.getFkTable(), pp.getContentPane());
         

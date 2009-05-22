@@ -119,7 +119,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
     @Override
     public void doStuff(MonitorableImpl monitor, Map<String, Object> properties) {
         logger.debug("Creating PDF of playpen: " + playpen);
-        PlayPen pp = new PlayPen(session, playpen, playpen.getDialogOwner());
+        PlayPen pp = new PlayPen(session, playpen);
         
         // don't need this playpen to be interactive or respond to SQLObject changes
         pp.destroy();

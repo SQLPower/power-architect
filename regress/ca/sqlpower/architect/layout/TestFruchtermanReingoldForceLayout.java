@@ -45,7 +45,7 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 	    context = new TestingArchitectSwingSessionContext();
 		db = new SQLDatabase();
 		final ArchitectSwingSession session = context.createSession();
-        pp = new PlayPen(session, session.getArchitectFrame());
+        pp = new PlayPen(session);
 		table1= new SQLTable(db,true);
 		tp = new TablePane(table1,pp.getContentPane());
 		pp.addTablePane(tp,new Point(10,10));
@@ -60,7 +60,7 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 
 	public void testIsDoneNoElem() throws SQLObjectException {
 		final ArchitectSwingSession session = context.createSession();
-        PlayPen p = new PlayPen(session, session.getArchitectFrame());
+        PlayPen p = new PlayPen(session);
 		layout.setup(p.getTablePanes(),p.getRelationships(),frame);
 		assertTrue(layout.isDone());
 	}

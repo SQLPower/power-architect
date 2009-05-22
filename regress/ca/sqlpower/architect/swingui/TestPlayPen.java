@@ -384,7 +384,7 @@ public class TestPlayPen extends TestCase {
 	        // Second pass get a copy make sure all of 
 	        // the original mutable objects returned from getters are different
 	        // between the two objects, but have the same values. 
-	        PlayPen duplicate = new PlayPen(pp.getSession(), pp, pp.getDialogOwner());
+	        PlayPen duplicate = new PlayPen(pp.getSession(), pp);
 	        for (PropertyDescriptor property : settableProperties) {
 	            if (copyIgnoreProperties.contains(property.getName())) continue;
 	            Object oldVal;

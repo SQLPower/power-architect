@@ -72,7 +72,7 @@ public class RelationalPlayPenFactory {
     private static final Logger logger = Logger.getLogger(RelationalPlayPenFactory.class);
 
     public static PlayPen createPlayPen(ArchitectSwingSession session, DBTree dbTree) {
-        PlayPen pp = new PlayPen(session, session.getArchitectFrame());
+        PlayPen pp = new PlayPen(session);
         pp.setPopupFactory(new RelationalPopupFactory(pp, session));
         SelectionSynchronizer synchronizer = new SelectionSynchronizer(dbTree, pp);
         pp.addSelectionListener(synchronizer);
