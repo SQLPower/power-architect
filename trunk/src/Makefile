@@ -5,6 +5,11 @@ log4j.properties.example: . log4j.properties.tail Makefile
 	echo >> $@
 	echo 'log4j.rootLogger=INFO, R, C' >> $@
 	echo >> $@
+	echo "# Architect" >> $@
 	(cd ../build; find ca -name \*.class | grep -v '\$$' | sort | tr / . | \
+		sed -e 's/^/#log4j.logger./' -e 's/\.class$$/=debug/') >>$@
+	echo >> $@
+	echo "# Library" >> $@
+	(cd ../../sqlpower_library/build; find ca -name \*.class | grep -v '\$$' | sort | tr / . | \
 		sed -e 's/^/#log4j.logger./' -e 's/\.class$$/=debug/') >>$@
 	cat log4j.properties.tail >>$@
