@@ -18,7 +18,6 @@
  */
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.Font;
 import java.awt.Graphics2D;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -157,9 +156,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                     logger.debug("Painting component " + ppc);
                 }
                 g.translate(ppc.getLocation().x, ppc.getLocation().y);
-                Font gFont = g.getFont();
                 ppc.paint(g);
-                g.setFont(gFont);
                 g.translate(-ppc.getLocation().x, -ppc.getLocation().y);
                 monitor.setProgress(j);
                 j++;

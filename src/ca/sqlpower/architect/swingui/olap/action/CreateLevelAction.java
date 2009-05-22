@@ -21,16 +21,12 @@ package ca.sqlpower.architect.swingui.olap.action;
 
 import java.util.List;
 
-import javax.swing.KeyStroke;
-
-import ca.sqlpower.architect.olap.MondrianModel;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.architect.swingui.olap.LevelEditPanel;
 import ca.sqlpower.architect.swingui.olap.OSUtils;
@@ -44,100 +40,49 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
         super(session, olapPlayPen, "Level", DimensionPane.class, "Hierarchy", 'l', OSUtils.LEVEL_ADD_ICON);
     }
 
-    /**
-     * Describes the location where the new level should be added.
-     */
-    private static class AddLocation {
-
-        /**
-         * The hierarchy to add the level into. If the level should be added to
-         * a new hierarchy (normally this is because the dimension has no
-         * hierarchies yet), this value should be null.
-         */
-        private final Hierarchy newParent;
-
-        /**
-         * The index inside the specified hierarchy at which to add the new
-         * level.
-         */
-        private final int newIndex;
-
-        /**
-         * Creates a new add location.
-         * 
-         * @param newParent
-         *            The hierarchy to add the level into. If the level should
-         *            be added to a new hierarchy (normally this is because the
-         *            dimension has no hierarchies yet), this value should be
-         *            null.
-         * @param newIndex
-         *            The index inside the specified hierarchy at which to add
-         *            the new level.
-         */
-        public AddLocation(Hierarchy newParent, int newIndex) {
-            this.newParent = newParent;
-            this.newIndex = newIndex;
-        }
-    }
-    
     @Override
     protected Level addNewChild(DimensionPane pane) {
+        // first, we have to find or make the parent hierarchy 
         Dimension d = pane.getModel();
-        AddLocation addLocation = chooseAddLocation(pane);
-        MondrianModel.Hierarchy newParent;
-        if (addLocation.newParent == null) {
-            newParent = new Hierarchy();
-            newParent.setHasAll(true);
-            newParent.setName(d.getName());
-            d.addHierarchy(newParent);
-            updateActionState(); // otherwise tooltip is stale and still says "new hierarchy"
-        } else {
-            newParent = addLocation.newParent;
+        if (d.getHierarchies().size() == 0) {
+            Hierarchy h = new Hierarchy();
+            h.setHasAll(true);
+            d.addHierarchy(h);
         }
         
-        Level l = new Level();
-        int count = 1;
-        while (!OLAPUtil.isNameUnique(newParent, Level.class, "New Level " + count)) {
-            count++;
-        }
-        l.setName("New Level " + count);
-        
-        newParent.addLevel(addLocation.newIndex, l);
-        
-        return l;
-    }
-
-    private AddLocation chooseAddLocation(DimensionPane pane) {
         Hierarchy newParent;
         int newIndex;
-
+        
         // If there are levels selected, we'll add after the last one
-        List<Level> selectedLevels = pane.getSelectedLevels();
-        if (!selectedLevels.isEmpty()) {
-            Level addAfter = selectedLevels.get(selectedLevels.size() - 1);
+        List<Level> levels = pane.getSelectedLevels();
+        if (!levels.isEmpty()) {
+            Level addAfter = levels.get(levels.size() - 1);
             newParent = (Hierarchy) addAfter.getParent();
             newIndex = newParent.getLevels().indexOf(addAfter) + 1;
 
         } else {
             // no levels were selected, so we'll add to the end of the selected section
             // (or the first section if nothing was selected at all)
-            Dimension d = pane.getModel();
-            if (d.getHierarchies().isEmpty()) {
-                newParent = null;
-                newIndex = 0;
-            } else {
-                newParent = d.getHierarchies().get(0);
-                for (int i = 0; i < d.getHierarchies().size(); i++) {
-                    if (pane.isSectionSelected(pane.getSections().get(i))) {
-                        newParent = d.getHierarchies().get(i);
-                        break;
-                    }
+            newParent = d.getHierarchies().get(0);
+            for (int i = 0; i < d.getHierarchies().size(); i++) {
+                if (pane.isSectionSelected(pane.getSections().get(i))) {
+                    newParent = d.getHierarchies().get(i);
+                    break;
                 }
-                newIndex = newParent.getLevels().size();
             }
+            newIndex = newParent.getLevels().size();
         }
+        
+        Level l = new Level();
 
-        return new AddLocation(newParent, newIndex);
+        int count = 1;
+        while (!OLAPUtil.isNameUnique(newParent, Level.class, "New Level " + count)) {
+            count++;
+        }
+        l.setName("New Level " + count);
+        
+        newParent.addLevel(newIndex, l);
+        return l;
     }
 
     @Override
@@ -149,26 +94,4 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
         }
     }
 
-    @Override
-    protected void updateActionState() {
-        List<PlayPenComponent> selectedItems = playpen.getSelectedItems();
-        String description;
-        if (selectedItems.size() == 1 && selectedItems.get(0) instanceof DimensionPane) {
-            setEnabled(true);
-            DimensionPane pane = (DimensionPane) selectedItems.get(0);
-            AddLocation addLocation = chooseAddLocation(pane);
-            String parentName;
-            if (addLocation.newParent == null) {
-                parentName = "new hierarchy";
-            } else {
-                parentName = addLocation.newParent.getName();
-            }
-            description = "Add Level to " + parentName;
-        } else {
-            setEnabled(false);
-            description = "Add Level to selected Hierarchy" + 
-            " (" + ((KeyStroke) getValue(ACCELERATOR_KEY)).getKeyChar() + ")";
-        }
-        putValue(SHORT_DESCRIPTION, description);
-    }
 }

@@ -322,7 +322,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
                 null, DatabaseMetaData.columnNullable, true, false));
         typeMap.put(Integer.valueOf(Types.TIME), new GenericTypeDescriptor("TIME", Types.TIME, 0, "'", "'",
                 DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(Integer.valueOf(Types.TIMESTAMP), new GenericTypeDescriptor("DATETIME", Types.TIMESTAMP, 0, "'",
+        typeMap.put(Integer.valueOf(Types.TIMESTAMP), new GenericTypeDescriptor("TIMESTAMP", Types.TIMESTAMP, 0, "'",
                 "'", DatabaseMetaData.columnNullable, false, false));
         typeMap.put(Integer.valueOf(Types.TINYINT), new GenericTypeDescriptor("TINYINT", Types.TINYINT, 38, null, null,
                 DatabaseMetaData.columnNullable, true, false));
@@ -492,19 +492,6 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             return super.getUpdateActionClause(r);
         }
     }
-
-	@Override
-	public void addComment(SQLTable t, boolean includeColumns) {
-		print("\nALTER TABLE ");
-		print(toQualifiedName(t));
-		print(" COMMENT '");
-		print(t.getRemarks().replaceAll("'", "''"));
-		print("'");
-		endStatement(DDLStatement.StatementType.ALTER, t);
-		if (includeColumns) {
-			addColumnComments(t);
-		}
-	}
 
     @Override
     public void addColumn(SQLColumn c) {

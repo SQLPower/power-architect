@@ -48,11 +48,11 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
 import ca.sqlpower.architect.swingui.SQLScriptDialog;
-import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
-import ca.sqlpower.swingui.SPSwingWorker;
+import ca.sqlpower.swingui.MonitorableWorker;
 
 public class ExportDDLAction extends AbstractArchitectAction {
 
@@ -177,7 +177,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                     ppdb.getDataSource(),
                                     true,
                                     session);
-                        SPSwingWorker scriptWorker = ssd.getExecuteTask();
+                        MonitorableWorker scriptWorker = ssd.getExecuteTask();
                         ConflictFinderProcess cfp = new ConflictFinderProcess(ssd, ppdb, ddlg, ddlg.getDdlStatements(), session);
                         ConflictResolverProcess crp = new ConflictResolverProcess(ssd, cfp, session);
                         cfp.setNextProcess(crp);
@@ -222,7 +222,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 	 *
 	 * @author fuerth
 	 */
-	public class ConflictFinderProcess extends SPSwingWorker {
+	public class ConflictFinderProcess extends MonitorableWorker {
 
 		JDialog parentDialog;
 		SQLDatabase target;
@@ -355,28 +355,24 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		}
 
 
-		@Override
-		protected Integer getJobSizeImpl() {
+
+		public Integer getJobSize() {
 			return cr.getJobSize();
 		}
 
-		@Override
-		protected String getMessageImpl() {
+		public String getMessage() {
 			return cr.getMessage();
 		}
 
-		@Override
-		protected int getProgressImpl() {
+		public int getProgress() {
 			return cr.getProgress();
 		}
 
-		@Override
-		protected boolean hasStartedImpl() {
+		public boolean hasStarted() {
 			return cr.hasStarted();
 		}
 
-		@Override
-		protected boolean isFinishedImpl() {
+		public boolean isFinished() {
 			return cr.isFinished();
 		}
 
@@ -391,7 +387,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 	 * @author fuerth
 	 * @version $Id$
 	 */
-	public class ConflictResolverProcess extends SPSwingWorker {
+	public class ConflictResolverProcess extends MonitorableWorker {
 
 		private JDialog parentDialog;
 		private ConflictFinderProcess conflictFinder;
@@ -441,28 +437,23 @@ public class ExportDDLAction extends AbstractArchitectAction {
 			}
 		}
 
-		@Override
-		protected Integer getJobSizeImpl() {
+		public Integer getJobSize() {
 			return cr.getJobSize();
 		}
 
-		@Override
-		protected String getMessageImpl() {
+		public String getMessage() {
 			return cr.getMessage();
 		}
 
-		@Override
-		protected int getProgressImpl() {
+		public int getProgress() {
 			return cr.getProgress();
 		}
 
-		@Override
-		protected boolean hasStartedImpl() {
+		public boolean hasStarted() {
 			return cr.hasStarted();
 		}
 
-		@Override
-		protected boolean isFinishedImpl() {
+		public boolean isFinished() {
 			return cr.isFinished();
 		}
 

@@ -22,7 +22,6 @@ package ca.sqlpower.architect.swingui.olap;
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFrame;
@@ -76,17 +75,7 @@ public class OLAPEditSession implements OLAPChildListener {
     /**
      * The frame this edit session lives in.
      */
-    private final JFrame frame;
-    
-    /**
-     * The preferences node for OLAP user settings.
-     */
-    private final Preferences prefs = Preferences.userNodeForPackage(OLAPEditSession.class);
-    
-    private static enum PrefKeys {
-        /** The current split pane divider location. */
-        DIVIDER_LOCATION
-    }
+    private JFrame frame;
     
     /**
      * The scroll pane of which the PlayPen is in.
@@ -149,6 +138,8 @@ public class OLAPEditSession implements OLAPChildListener {
         tree = new OLAPTree(swingSession, this, olapSession.getSchema());
         tree.setCellRenderer(new OLAPTreeCellRenderer());
         undoManager = new OLAPUndoManager(olapSession);
+        pp = OLAPPlayPenFactory.createPlayPen(swingSession, this, undoManager);
+        
         undoManager.addChangeListener(new ChangeListener() {           
             public void stateChanged(ChangeEvent e) {
                 // this can be called before initGUI() has had a chance to create the frame
@@ -157,16 +148,13 @@ public class OLAPEditSession implements OLAPChildListener {
                 }
             }
         });
-        frame = new JFrame(generateDialogTitle());
-        pp = OLAPPlayPenFactory.createPlayPen(swingSession, this, undoManager);
-        
         
         swingSession.addSessionLifecycleListener(new SessionLifecycleListener<ArchitectSwingSession>() {
             public void sessionClosing(SessionLifecycleEvent<ArchitectSwingSession> e) {
                 close();
             }
         });
-        initGUI();
+        // Don't create actions here. PlayPen is currently null.
     }
     
     /**
@@ -174,6 +162,9 @@ public class OLAPEditSession implements OLAPChildListener {
      * visibility set.
      */
     public JFrame getFrame() {
+        if (frame == null) {
+            initGUI();
+        }
         return frame;
     }
     
@@ -236,19 +227,15 @@ public class OLAPEditSession implements OLAPChildListener {
         
         ppScrollPane = new JScrollPane(pp);
         JPanel panel = new JPanel(new BorderLayout());
-        final JSplitPane splitPane = new JSplitPane(
-                JSplitPane.HORIZONTAL_SPLIT,
-                new JScrollPane(tree),
-                ppScrollPane);
-        splitPane.setDividerLocation(prefs.getInt(PrefKeys.DIVIDER_LOCATION.name(), 240));
-        splitPane.addPropertyChangeListener("dividerLocation", new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent evt) {
-                prefs.putInt(PrefKeys.DIVIDER_LOCATION.name(), splitPane.getDividerLocation());
-            }
-        });
-        panel.add(splitPane, BorderLayout.CENTER);
+        panel.add(
+                new JSplitPane(
+                        JSplitPane.HORIZONTAL_SPLIT,
+                        new JScrollPane(tree),
+                        ppScrollPane),
+                BorderLayout.CENTER);
         panel.add(toolbar, BorderLayout.EAST);
         
+        frame = new JFrame(generateDialogTitle());
         olapSession.getSchema().addPropertyChangeListener(new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
                 if (evt.getPropertyName().equals("name")) {

@@ -46,14 +46,11 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	private static Logger logger = Logger.getLogger(DBTreeModel.class);
 
     /**
-     * When this flag is true, the DBTreeModel's protection against firing
-     * TreeModelEvents on the wrong thread are disabled. The only legitimate
-     * use is in the test suite, where we are not on the EDT but we want to
-     * test that the events are being fired correctly. Other uses are highly
-     * suspect, since they will be breaking Swing's rule of only manipulating
-     * components from the designated thread.
+     * Controls this model's "testing" mode.  When in testing mode,
+     * the checks for whether or not events are on the Swing Event Dispatch
+     * Thread are bypassed.
      */
-    private boolean refireOnAnyThread = false;
+    private boolean testMode = false;
     
 	protected SQLObject root;
 
@@ -295,8 +292,8 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			logger.error("Error listening to added object", ex); //$NON-NLS-1$
 		}
 
-        if ((!SwingUtilities.isEventDispatchThread()) && (!refireOnAnyThread)) {
-            logger.debug("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$
+        if ((!SwingUtilities.isEventDispatchThread()) && (!testMode)) {
+            logger.debug("Not refiring because this is not the EDT."); //$NON-NLS-1$
             return;
         }
 
@@ -341,8 +338,8 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			logger.error("Error unlistening to removed object", ex); //$NON-NLS-1$
 		}
 
-        if ((!SwingUtilities.isEventDispatchThread()) && (!refireOnAnyThread)) {
-            logger.debug("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$
+        if ((!SwingUtilities.isEventDispatchThread()) && (!testMode)) {
+            logger.debug("Not refiring because this is not the EDT."); //$NON-NLS-1$
             return;
         }
 
@@ -372,8 +369,8 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	
 	public void dbObjectChanged(SQLObjectEvent e) {
 		logger.debug("dbObjectChanged. source="+e.getSource()); //$NON-NLS-1$
-        if ((!SwingUtilities.isEventDispatchThread()) && (!refireOnAnyThread)) {
-            logger.debug("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$
+        if ((!SwingUtilities.isEventDispatchThread()) && (!testMode)) {
+            logger.debug("Not refiring because this is not the EDT."); //$NON-NLS-1$
             return;
         }
 		if (logger.isDebugEnabled()) logger.debug("dbObjectChanged SQLObjectEvent: "+e); //$NON-NLS-1$
@@ -400,14 +397,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
     }
 
     /**
-     * When this flag is true, the DBTreeModel's protection against firing
-     * TreeModelEvents on the wrong thread are disabled. The only legitimate
-     * use is in the test suite, where we are not on the EDT but we want to
-     * test that the events are being fired correctly. Other uses are highly
-     * suspect, since they will be breaking Swing's rule of only manipulating
-     * components from the designated thread.
+     * Sets the {@link #testMode} flag.
      */
-    public void setRefireEventsOnAnyThread(boolean v) {
-        refireOnAnyThread = v;
+    public void setTestMode(boolean v) {
+        testMode = v;
     }
 }

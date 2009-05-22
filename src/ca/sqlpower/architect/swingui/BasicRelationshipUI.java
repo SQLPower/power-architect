@@ -50,8 +50,6 @@ public class BasicRelationshipUI extends RelationshipUI
 	implements PropertyChangeListener, java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(BasicRelationshipUI.class);
-	
-	private static final double NINETY_DEGREES = Math.toRadians(90.0);
 
 	protected Relationship relationship;
 
@@ -133,8 +131,6 @@ public class BasicRelationshipUI extends RelationshipUI
 		logger.debug("BasicRelationshipUI is painting");
 		Relationship r = (Relationship) c;
 		Graphics2D g2 = (Graphics2D) g;
-		childToParent.setFont(g2.getFont());
-		parentToChild.setFont(g2.getFont());
 		logger.debug("orientation is: " + orientation);
 		if (g2 == null)
 		{
@@ -187,63 +183,25 @@ public class BasicRelationshipUI extends RelationshipUI
 			// XXX: could optimise by checking if PK or FK tables have moved
 			containmentPath = new GeneralPath(GeneralPath.WIND_NON_ZERO, 10);
 			
-			/**
-			 * The proper x-coordinate point for <code>parentToChild</code>.
-			 */
-			float parentToChildLabelStartX = 0;
-			
-			/**
-			 * The proper x-coordinate point for <code>childToParent</code>.
-			 */
-			float childToParentLabelStartX = 0;
-			
-			/**
-			 * The proper x-coordinate point for <code>parentToChild</code>.
-			 */
-			float parentToChildLabelStartY = 0;
-			
-			/**
-			 * The proper x-coordinate point for <code>childToParent</code>.
-			 */
-			float childToParentLabelStartY = 0;
+			float parentToChildLabelStart = 0;
+			float childToParentLabelStart = 0;
 			g2.setColor(r.getForegroundColor());
 			
 			float leftmost = 0;
             float rightmost = 0;
-            /**
-             * The highest point is actually smaller than the lowest point
-             */
-            float highest = 0;
-            /**
-             * The lowest point is actually bigger than the highest point
-             */
-            float lowest = 0;
             if (r.displayRelationshipLabel()) {
                 if (lineStart.x > lineEnd.x) {
-                    logger.debug("Parent is at the right side of child");
+                    logger.debug("Parent is at the right side of children");
                     leftmost = lineEnd.x;
                     rightmost = lineStart.x;
                 } else {
-                    logger.debug("Parent is at the left side of child");
+                    logger.debug("Parent is at the left side of children");
                     leftmost = lineStart.x;
                     rightmost = lineEnd.x;
                 }
-                if (lineStart.y > lineEnd.y) {
-                    logger.debug("Parent is below the child");
-                    highest = lineEnd.y;
-                    lowest = lineStart.y;
-                } else {
-                    logger.debug("Parent is above the child");
-                    highest = lineStart.y;
-                    lowest = lineEnd.y;
-                }
-                parentToChildLabelStartX = calculateRelationshipLabelStart(leftmost, rightmost,
+                parentToChildLabelStart = calculateRelationshipLabelStart(leftmost, rightmost,
                                                 fm.stringWidth(r.getTextForParentLabel()));
-                childToParentLabelStartX = calculateRelationshipLabelStart(leftmost, rightmost,
-                                                fm.stringWidth(r.getTextForChildLabel()));
-                parentToChildLabelStartY = calculateRelationshipLabelStart(highest, lowest,
-                                                fm.stringWidth(r.getTextForParentLabel()));
-                childToParentLabelStartY = calculateRelationshipLabelStart(highest, lowest,
+                childToParentLabelStart = calculateRelationshipLabelStart(leftmost, rightmost,
                                                 fm.stringWidth(r.getTextForChildLabel()));
             }
              
@@ -262,24 +220,22 @@ public class BasicRelationshipUI extends RelationshipUI
                 if (r.displayRelationshipLabel()) {
                     leftmost = lineEnd.x - getTerminationLength();
                     rightmost = lineStart.x;
-                    parentToChildLabelStartX = calculateRelationshipLabelStart(leftmost, rightmost, 
+                    parentToChildLabelStart = calculateRelationshipLabelStart(leftmost, rightmost, 
                                                                         fm.stringWidth(r.getTextForParentLabel()));
-                    childToParentLabelStartX = calculateRelationshipLabelStart(leftmost, rightmost,
+                    childToParentLabelStart = calculateRelationshipLabelStart(leftmost, rightmost,
                                                                         fm.stringWidth(r.getTextForChildLabel()));
-                    logger.debug("relationship label starts at: " + parentToChildLabelStartX);
-                    g2.translate(parentToChildLabelStartX,lineStart.y + getTerminationLength() - fm.getHeight());
-                    parentToChild.setIcon(null);
+                    logger.debug("relationship label starts at: " + parentToChildLabelStart);
+                    g2.translate(parentToChildLabelStart,lineStart.y + getTerminationLength() - fm.getHeight());
                     parentToChild.setText(r.getTextForParentLabel());
                     parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                     parentToChild.paint(g2);
-                    g2.translate(-parentToChildLabelStartX, -(lineStart.y + getTerminationLength()) + fm.getHeight());
+                    g2.translate(-parentToChildLabelStart, -(lineStart.y + getTerminationLength()) + fm.getHeight());
                     
-                    g2.translate(childToParentLabelStartX,lineStart.y + getTerminationLength());
-                    childToParent.setIcon(null);
+                    g2.translate(childToParentLabelStart,lineStart.y + getTerminationLength());
                     childToParent.setText(r.getTextForChildLabel());
                     childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                     childToParent.paint(g2);
-                    g2.translate(-childToParentLabelStartX, -(lineStart.y + getTerminationLength()));
+                    g2.translate(-childToParentLabelStart, -(lineStart.y + getTerminationLength()));
                 }
 				
 				containmentPath.lineTo(lineEnd.x - getTerminationLength(), lineEnd.y);
@@ -306,144 +262,62 @@ public class BasicRelationshipUI extends RelationshipUI
 				// draw relationship labels
 				if (r.displayRelationshipLabel()) {
     				if ((orientation & PARENT_FACES_LEFT) != 0) {
+    				    logger.debug("The startpoint is : " + lineStart + ";  The endpoint is: " + lineEnd);
     				    if (lineStart.y < lineEnd.y) {
     				        logger.debug("pk table is at right and higher");
     				        
-    				        if ((lineStart.x - lineEnd.x) > (lineEnd.y - lineStart.y)) {
-        				        g2.translate(parentToChildLabelStartX, lineEnd.y);
-        				        parentToChild.setIcon(null);
-                                parentToChild.setText(r.getTextForParentLabel());
-        	                    parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
-        	                    parentToChild.paint(g2);
-        	                    g2.translate(-parentToChildLabelStartX, -lineEnd.y);
-        	                    
-        	                    g2.translate(childToParentLabelStartX, lineStart.y - fm.getHeight());
-        	                    childToParent.setIcon(null);
-                                childToParent.setText(r.getTextForChildLabel());
-                                childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
-                                childToParent.paint(g2);
-                                g2.translate(-childToParentLabelStartX, -(lineStart.y - fm.getHeight()));
-    				        } else {
-    				            g2.translate(midx + fm.getHeight() + fm.getDescent(), parentToChildLabelStartY);
-    				            g2.rotate(NINETY_DEGREES);
-    				            parentToChild.setText(r.getTextForParentLabel());
-                                parentToChild.setBounds(0, 0, (int)(lowest - highest), fm.getHeight());
-                                parentToChild.paint(g2);
-                                g2.rotate(-NINETY_DEGREES);
-                                g2.translate(-midx - fm.getHeight() - fm.getDescent(), -parentToChildLabelStartY);
-                                
-                                g2.translate(midx, childToParentLabelStartY);
-                                g2.rotate(NINETY_DEGREES);
-                                childToParent.setText(r.getTextForChildLabel());
-                                childToParent.setBounds(0, 0, (int)(lowest - highest), fm.getHeight());
-                                childToParent.paint(g2);
-                                g2.rotate(-NINETY_DEGREES);
-                                g2.translate(-midx, -childToParentLabelStartY);
-    				        }
+    				        g2.translate(parentToChildLabelStart,lineEnd.y);
+    	                    parentToChild.setText(r.getTextForParentLabel());
+    	                    parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
+    	                    parentToChild.paint(g2);
+    	                    g2.translate(-parentToChildLabelStart, -lineEnd.y);
+    	                    
+    	                    g2.translate(childToParentLabelStart,lineStart.y - fm.getHeight());
+    	                    childToParent.setText(r.getTextForChildLabel());
+    	                    childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
+    	                    childToParent.paint(g2);
+    	                    g2.translate(-childToParentLabelStart, -(lineStart.y - fm.getHeight()));
     				    } else {
     				        logger.debug("pk table is at right and lower");
-    				        
-    				        if ((lineStart.x - lineEnd.x) > (lineStart.y - lineEnd.y)) {
-        				        g2.translate(parentToChildLabelStartX,lineStart.y);
-        				        parentToChild.setIcon(null);
-                                parentToChild.setText(r.getTextForParentLabel());
-                                parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
-                                parentToChild.paint(g2);
-                                g2.translate(-parentToChildLabelStartX, -lineStart.y);
-                                
-                                g2.translate(childToParentLabelStartX,lineEnd.y - fm.getHeight());
-                                childToParent.setIcon(null);
-                                childToParent.setText(r.getTextForChildLabel());
-                                childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
-                                childToParent.paint(g2);
-                                g2.translate(-childToParentLabelStartX, -(lineEnd.y - fm.getHeight()));
-    				        } else {
-    				            g2.translate(midx, parentToChildLabelStartY);
-                                g2.rotate(NINETY_DEGREES);
-                                parentToChild.setText(r.getTextForParentLabel());
-                                parentToChild.setBounds(0, 0, (int)(lowest - highest), fm.getHeight());
-                                parentToChild.paint(g2);
-                                g2.rotate(-NINETY_DEGREES);
-                                g2.translate(-midx, -parentToChildLabelStartY);
-                                
-                                g2.translate(midx + fm.getHeight() + fm.getDescent(), childToParentLabelStartY);
-                                g2.rotate(NINETY_DEGREES);
-                                childToParent.setText(r.getTextForChildLabel());
-                                childToParent.setBounds(0, 0, (int)(lowest - highest), fm.getHeight());
-                                childToParent.paint(g2);
-                                g2.rotate(-NINETY_DEGREES);
-                                g2.translate(-midx - fm.getHeight() - fm.getDescent(), -childToParentLabelStartY);
-    				        }
+    				        g2.translate(parentToChildLabelStart,lineStart.y);
+                            parentToChild.setText(r.getTextForParentLabel());
+                            parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
+                            parentToChild.paint(g2);
+                            g2.translate(-parentToChildLabelStart, -lineStart.y);
+                            
+                            g2.translate(childToParentLabelStart,lineEnd.y - fm.getHeight());
+                            childToParent.setText(r.getTextForChildLabel());
+                            childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
+                            childToParent.paint(g2);
+                            g2.translate(-childToParentLabelStart, -(lineEnd.y - fm.getHeight()));
     				    }
     				} else {
     				    if (lineStart.y < lineEnd.y) {
     				        logger.debug("pk table is at left and higher");
-    				        
-    				        if ((lineEnd.x - lineStart.x) > (lineEnd.y - lineStart.y)) {
-        				        g2.translate(parentToChildLabelStartX,lineStart.y - fm.getHeight());
-        				        parentToChild.setIcon(null);
-        				        parentToChild.setText(r.getTextForParentLabel());
-                                parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
-                                parentToChild.paint(g2);
-                                g2.translate(-parentToChildLabelStartX, -(lineStart.y - fm.getHeight()));
-                                
-                                g2.translate(childToParentLabelStartX,lineEnd.y);
-                                childToParent.setIcon(null);
-                                childToParent.setText(r.getTextForChildLabel());
-                                childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
-                                childToParent.paint(g2);
-                                g2.translate(-childToParentLabelStartX, -lineEnd.y);
-    				        } else {
-    				            g2.translate(midx + fm.getHeight() + fm.getDescent(), parentToChildLabelStartY);
-                                g2.rotate(NINETY_DEGREES);
-                                parentToChild.setText(r.getTextForParentLabel());
-                                parentToChild.setBounds(0, 0, (int)(lowest - highest), fm.getHeight());
-                                parentToChild.paint(g2);
-                                g2.rotate(-NINETY_DEGREES);
-                                g2.translate(-midx - fm.getHeight() - fm.getDescent(), -parentToChildLabelStartY);
-                                
-                                g2.translate(midx, childToParentLabelStartY);
-                                g2.rotate(NINETY_DEGREES);
-                                childToParent.setText(r.getTextForChildLabel());
-                                childToParent.setBounds(0, 0, (int)(lowest - highest), fm.getHeight());
-                                childToParent.paint(g2);
-                                g2.rotate(-NINETY_DEGREES);
-                                g2.translate(-midx, -childToParentLabelStartY);
-    				        }
+    				        g2.translate(parentToChildLabelStart,lineStart.y - fm.getHeight());
+                            parentToChild.setText(r.getTextForParentLabel());
+                            parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
+                            parentToChild.paint(g2);
+                            g2.translate(-parentToChildLabelStart, -(lineStart.y - fm.getHeight()));
+                            
+                            g2.translate(childToParentLabelStart,lineEnd.y);
+                            childToParent.setText(r.getTextForChildLabel());
+                            childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
+                            childToParent.paint(g2);
+                            g2.translate(-childToParentLabelStart, -lineEnd.y);
                         } else {
                             logger.debug("pk table is at left and lower");
+                            g2.translate(parentToChildLabelStart,lineEnd.y - fm.getHeight());
+                            parentToChild.setText(r.getTextForParentLabel());
+                            parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
+                            parentToChild.paint(g2);
+                            g2.translate(-parentToChildLabelStart, -(lineEnd.y - fm.getHeight()));
                             
-                            if ((lineEnd.x - lineStart.x) > (lineStart.y - lineEnd.y)) {
-                                g2.translate(parentToChildLabelStartX,lineEnd.y - fm.getHeight());
-                                parentToChild.setIcon(null);
-                                parentToChild.setText(r.getTextForParentLabel());
-                                parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
-                                parentToChild.paint(g2);
-                                g2.translate(-parentToChildLabelStartX, -(lineEnd.y - fm.getHeight()));
-                                
-                                g2.translate(childToParentLabelStartX,lineStart.y);
-                                childToParent.setIcon(null);
-                                childToParent.setText(r.getTextForChildLabel());
-                                childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
-                                childToParent.paint(g2);
-                                g2.translate(-childToParentLabelStartX, -lineStart.y);
-                            } else {
-                                g2.translate(midx, parentToChildLabelStartY);
-                                g2.rotate(NINETY_DEGREES);
-                                parentToChild.setText(r.getTextForParentLabel());
-                                parentToChild.setBounds(0, 0, (int)(lowest - highest), fm.getHeight());
-                                parentToChild.paint(g2);
-                                g2.rotate(-NINETY_DEGREES);
-                                g2.translate(-midx, -parentToChildLabelStartY);
-                                
-                                g2.translate(midx + fm.getHeight() + fm.getDescent(), childToParentLabelStartY);
-                                g2.rotate(NINETY_DEGREES);
-                                childToParent.setText(r.getTextForChildLabel());
-                                childToParent.setBounds(0, 0, (int)(lowest - highest), fm.getHeight());
-                                childToParent.paint(g2);
-                                g2.rotate(-NINETY_DEGREES);
-                                g2.translate(-midx - fm.getHeight() - fm.getDescent(), -childToParentLabelStartY);
-                            }
+                            g2.translate(childToParentLabelStart,lineStart.y);
+                            childToParent.setText(r.getTextForChildLabel());
+                            childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
+                            childToParent.paint(g2);
+                            g2.translate(-childToParentLabelStart, -lineStart.y);
                         }
     				}
 				}
@@ -463,34 +337,32 @@ public class BasicRelationshipUI extends RelationshipUI
 				path = new GeneralPath(containmentPath);
 				// draw relationship labels
 				if (r.displayRelationshipLabel()) {
-				    parentToChild.setIcon(null);
-				    childToParent.setIcon(null);
                     if (lineStart.x > lineEnd.x) {
                         logger.debug("TOP-BOTTOM : pk table is at right");
-                        g2.translate(parentToChildLabelStartX,midy);
+                        g2.translate(parentToChildLabelStart,midy);
                         parentToChild.setText(r.getTextForParentLabel());
                         parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         parentToChild.paint(g2);
-                        g2.translate(-parentToChildLabelStartX, -midy);
+                        g2.translate(-parentToChildLabelStart, -midy);
                         
-                        g2.translate(childToParentLabelStartX, midy - fm.getHeight());
+                        g2.translate(childToParentLabelStart, midy - fm.getHeight());
                         childToParent.setText(r.getTextForChildLabel());
                         childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         childToParent.paint(g2);
-                        g2.translate(-childToParentLabelStartX, -(midy - fm.getHeight()));
+                        g2.translate(-childToParentLabelStart, -(midy - fm.getHeight()));
                     } else {
                         logger.debug("TOP-BOTTOM : pk table is at left");
-                        g2.translate(parentToChildLabelStartX,midy - fm.getHeight());
+                        g2.translate(parentToChildLabelStart,midy - fm.getHeight());
                         parentToChild.setText(r.getTextForParentLabel());
                         parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         parentToChild.paint(g2);
-                        g2.translate(-parentToChildLabelStartX, -(midy - fm.getHeight()));
+                        g2.translate(-parentToChildLabelStart, -(midy - fm.getHeight()));
                         
-                        g2.translate(childToParentLabelStartX, midy);
+                        g2.translate(childToParentLabelStart, midy);
                         childToParent.setText(r.getTextForChildLabel());
                         childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         childToParent.paint(g2);
-                        g2.translate(-childToParentLabelStartX, -midy);
+                        g2.translate(-childToParentLabelStart, -midy);
                     }
 				}
 				
@@ -507,34 +379,32 @@ public class BasicRelationshipUI extends RelationshipUI
 				path = new GeneralPath(containmentPath);
 				// draw relationship labels
 				if (r.displayRelationshipLabel()) {
-				    parentToChild.setIcon(null);
-                    childToParent.setIcon(null);
     				if ((orientation & PARENT_FACES_LEFT) != 0) {
                         logger.debug("pk table is at right");
-                        g2.translate(parentToChildLabelStartX,lineStart.y);
+                        g2.translate(parentToChildLabelStart,lineStart.y);
                         parentToChild.setText(r.getTextForParentLabel());
                         parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         parentToChild.paint(g2);
-                        g2.translate(-parentToChildLabelStartX, -lineStart.y);
+                        g2.translate(-parentToChildLabelStart, -lineStart.y);
                         
-                        g2.translate(childToParentLabelStartX,lineStart.y - fm.getHeight());
+                        g2.translate(childToParentLabelStart,lineStart.y - fm.getHeight());
                         childToParent.setText(r.getTextForChildLabel());
                         childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         childToParent.paint(g2);
-                        g2.translate(-childToParentLabelStartX, -(lineStart.y - fm.getHeight()));
+                        g2.translate(-childToParentLabelStart, -(lineStart.y - fm.getHeight()));
                     } else {
                         logger.debug("pk table is at left");
-                        g2.translate(parentToChildLabelStartX,lineStart.y - fm.getHeight());
+                        g2.translate(parentToChildLabelStart,lineStart.y - fm.getHeight());
                         parentToChild.setText(r.getTextForParentLabel());
                         parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         parentToChild.paint(g2);
-                        g2.translate(-parentToChildLabelStartX, -(lineStart.y - fm.getHeight()));
+                        g2.translate(-parentToChildLabelStart, -(lineStart.y - fm.getHeight()));
                         
-                        g2.translate(childToParentLabelStartX,lineStart.y);
+                        g2.translate(childToParentLabelStart,lineStart.y);
                         childToParent.setText(r.getTextForChildLabel());
                         childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         childToParent.paint(g2);
-                        g2.translate(-childToParentLabelStartX, -lineStart.y);
+                        g2.translate(-childToParentLabelStart, -lineStart.y);
                     }
 				}
 				
@@ -550,34 +420,32 @@ public class BasicRelationshipUI extends RelationshipUI
 				path = new GeneralPath(containmentPath);
 				// draw relationship labels
 				if (r.displayRelationshipLabel()) {
-				    parentToChild.setIcon(null);
-                    childToParent.setIcon(null);
                     if (lineStart.x > lineEnd.x) {
                         logger.debug("TOP_BOTTOM--LEFT_RIGHT pk table is at right");
-                        g2.translate(parentToChildLabelStartX,lineEnd.y);
+                        g2.translate(parentToChildLabelStart,lineEnd.y);
                         parentToChild.setText(r.getTextForParentLabel());
                         parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         parentToChild.paint(g2);
-                        g2.translate(-parentToChildLabelStartX, -lineEnd.y);
+                        g2.translate(-parentToChildLabelStart, -lineEnd.y);
                         
-                        g2.translate(childToParentLabelStartX,lineEnd.y - fm.getHeight());
+                        g2.translate(childToParentLabelStart,lineEnd.y - fm.getHeight());
                         childToParent.setText(r.getTextForChildLabel());
                         childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         childToParent.paint(g2);
-                        g2.translate(-childToParentLabelStartX, -(lineEnd.y - fm.getHeight()));
+                        g2.translate(-childToParentLabelStart, -(lineEnd.y - fm.getHeight()));
                     } else {
                         logger.debug("TOP_BOTTOM--LEFT_RIGHT pk table is at left");
-                        g2.translate(parentToChildLabelStartX,lineEnd.y - fm.getHeight());
+                        g2.translate(parentToChildLabelStart,lineEnd.y - fm.getHeight());
                         parentToChild.setText(r.getTextForParentLabel());
                         parentToChild.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         parentToChild.paint(g2);
-                        g2.translate(-parentToChildLabelStartX, -(lineEnd.y - fm.getHeight()));
+                        g2.translate(-parentToChildLabelStart, -(lineEnd.y - fm.getHeight()));
                         
-                        g2.translate(childToParentLabelStartX,lineEnd.y);
+                        g2.translate(childToParentLabelStart,lineEnd.y);
                         childToParent.setText(r.getTextForChildLabel());
                         childToParent.setBounds(0, 0, (int) (rightmost - leftmost), fm.getHeight());
                         childToParent.paint(g2);
-                        g2.translate(-childToParentLabelStartX, -lineEnd.y);
+                        g2.translate(-childToParentLabelStart, -lineEnd.y);
                     }
 				}
 				
@@ -591,9 +459,6 @@ public class BasicRelationshipUI extends RelationshipUI
                 containmentPath.lineTo(lineEnd.x, lineEnd.y);
                 containmentPath.lineTo(end.x, end.y);
                 path = new GeneralPath(containmentPath);
-                
-                parentToChild.setIcon(null);
-                childToParent.setIcon(null);
 			}
 			if (!r.isSelected()) {
 				g2.setColor(r.getForegroundColor());
@@ -1290,10 +1155,8 @@ public class BasicRelationshipUI extends RelationshipUI
 					fkLimits.x),
 					Math.max(pkLimits.y,
 							fkLimits.y));
-			computedBounds = new Rectangle(topLeft.x - fm.getHeight(), 
-			                               topLeft.y - fm.getAscent(),
-			                               bottomRight.x - topLeft.x + 2*fm.getHeight(), 
-			                               bottomRight.y - topLeft.y + fm.getHeight() + fm.getDescent());
+			computedBounds = new Rectangle(topLeft.x, topLeft.y - fm.getAscent(),
+					bottomRight.x - topLeft.x, bottomRight.y - topLeft.y + fm.getHeight() + fm.getDescent());
 			if (logger.isDebugEnabled()) {
 				logger.debug("Updating bounds to "+computedBounds
 						+" (topleft="+topLeft+"; bottomRight="+bottomRight+")");
@@ -1512,16 +1375,16 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	/**
 	 * Calculate and return the appropriate x-position for relationship label.
-	 * @param smaller The leftmost x coordinate or highest y coordinate of the relationship line 
-	 * @param bigger The rightmost x coordinate or lowest y coordinate of the relationship line
+	 * @param leftmost The leftmost x coordinate of the relationship line 
+	 * @param rightmost The rightmost x coordinate of the relationship line
 	 * @param StringWidth The width of the display string under the specified fontMetrics 
 	 */
-	private float calculateRelationshipLabelStart(float smaller, float bigger, float StringWidth) {
+	private float calculateRelationshipLabelStart(float leftmost, float rightmost, float StringWidth) {
 	    float x;
-	    if (bigger - smaller - StringWidth >= 0) {
-	        x = smaller + (bigger - smaller - StringWidth)/2;
+	    if (rightmost - leftmost - StringWidth >= 0) {
+	        x = leftmost + (rightmost - leftmost - StringWidth)/2;
 	    } else {
-	        x = smaller;
+	        x = leftmost;
 	    }
 	    return x;
 	}

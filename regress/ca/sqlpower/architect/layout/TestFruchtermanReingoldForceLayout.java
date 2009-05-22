@@ -23,7 +23,6 @@ import java.awt.Rectangle;
 import java.io.IOException;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.TablePane;
@@ -44,8 +43,7 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 	public void setUp() throws SQLObjectException, IOException {
 	    context = new TestingArchitectSwingSessionContext();
 		db = new SQLDatabase();
-		final ArchitectSwingSession session = context.createSession();
-        pp = new PlayPen(session);
+		pp = new PlayPen(context.createSession());
 		table1= new SQLTable(db,true);
 		tp = new TablePane(table1,pp.getContentPane());
 		pp.addTablePane(tp,new Point(10,10));
@@ -59,8 +57,7 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 	}
 
 	public void testIsDoneNoElem() throws SQLObjectException {
-		final ArchitectSwingSession session = context.createSession();
-        PlayPen p = new PlayPen(session);
+		PlayPen p = new PlayPen(context.createSession());
 		layout.setup(p.getTablePanes(),p.getRelationships(),frame);
 		assertTrue(layout.isDone());
 	}

@@ -28,8 +28,9 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
@@ -64,12 +65,13 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 	public static final String PAREENT_TO_CHILD = "receives";
 	public static final String CHILD_TO_PARENT = "is received by";
 
-    public static final Vector<Color> SUGGESTED_COLOURS;
-    static {
-        SUGGESTED_COLOURS = new Vector<Color>();
-        SUGGESTED_COLOURS.addAll(ColourScheme.BREWER_SET19);
-        SUGGESTED_COLOURS.add(new WebColour(0, 0, 0));
-    }
+	public static final WebColour[] SUGGESTED_COLOURS;
+	static {
+	    List<WebColour> l = new ArrayList<WebColour>();
+	    l.addAll(ColourScheme.BREWER_SET19);
+	    l.add(new WebColour(0, 0, 0));
+	    SUGGESTED_COLOURS = l.toArray(new WebColour[l.size()]);
+	}
 	
     private SQLRelationship model;
 	private TablePane pkTable;
@@ -143,9 +145,9 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 		setBackgroundColor(Color.green);
 		model.addSQLObjectListener(this);
 		setToolTipText(model.getName());
-
+		
 		// requires pkTable and fkTable to be initialized
-        //ui.bestConnectionPoints(); // breaks when loading a new project?
+		//ui.bestConnectionPoints(); // breaks when loading a new project?
 	}
 
 	protected void createPopup() {
@@ -511,7 +513,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
     }
 
     @Override
-    public JPopupMenu getPopup(Point p) {
+    public JPopupMenu getPopup() {
         // Lazy load popup if it isn't created
         // We don't create it in the constructor because the
         // ArchitectFrame instance required won't exist at that time.

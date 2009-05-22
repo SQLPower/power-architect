@@ -133,5 +133,4 @@ public class TestingArchitectSession implements ArchitectSession {
         // TODO Auto-generated method stub
         return null;
     }
-
 }

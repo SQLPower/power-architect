@@ -106,6 +106,7 @@ import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.action.CancelAction;
+import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -136,9 +137,9 @@ import ca.sqlpower.sqlobject.undo.CompoundEvent;
 import ca.sqlpower.sqlobject.undo.CompoundEventListener;
 import ca.sqlpower.sqlobject.undo.CompoundEvent.EventTypes;
 import ca.sqlpower.swingui.CursorManager;
+import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
-import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
 
 
 /**
@@ -1435,10 +1436,15 @@ public class PlayPen extends JPanel
 		new Thread(t, "Objects-Adder").start(); //$NON-NLS-1$
 	}
 
-	protected class AddObjectsTask extends SPSwingWorker {
+	protected class AddObjectsTask extends MonitorableWorker {
 		
         private List<SQLObject> sqlObjects;
 		private Point preferredLocation;
+		private boolean hasStarted = false;
+		private boolean finished = false;
+		private String message = null;
+		private int progress = 0;
+		private Integer jobSize = null;
 		private String errorMessage = null;
 		private ProgressMonitor pm;
 
@@ -1453,8 +1459,25 @@ public class PlayPen extends JPanel
 			this.sqlObjects = sqlObjects;
 			this.preferredLocation = preferredLocation;
             this.transferStyle = transferStyle;
+			finished = false;
 			ProgressWatcher.watchProgress(pm, this);
 			this.pm = pm;
+		}
+
+		public int getProgress() {
+			return progress;
+		}
+
+		public Integer getJobSize() {
+			return jobSize;
+		}
+
+		public boolean isFinished() {
+			return finished;
+		}
+
+		public String getMessage() {
+			return message;
 		}
 
 		/**
@@ -1473,6 +1496,7 @@ public class PlayPen extends JPanel
 			logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName()); //$NON-NLS-1$
 			session.getArchitectFrame().getContentPane().setCursor(new Cursor(Cursor.WAIT_CURSOR));
 			try {
+				hasStarted = true;
 				int tableCount = 0;
 				
 				Iterator<SQLObject> soIt = sqlObjects.iterator();
@@ -1481,7 +1505,7 @@ public class PlayPen extends JPanel
 					SQLObject so = soIt.next();
                     tableCount += SQLObjectUtils.countTablesSnapshot(so);
 				}
-				setJobSize(new Integer(tableCount));
+				jobSize = new Integer(tableCount);
 
 				ensurePopulated(sqlObjects);
 				
@@ -1505,7 +1529,7 @@ public class PlayPen extends JPanel
 			for (SQLObject so : soList) {
 				if (isCancelled()) break;
 				try {
-					if (so instanceof SQLTable) setProgress(getProgress() + 1);
+					if (so instanceof SQLTable) progress++;
 					ensurePopulated(so.getChildren());
 				} catch (SQLObjectException e) {
                     errorMessage = "Couldn't get children of " + so; //$NON-NLS-1$
@@ -1548,19 +1572,19 @@ public class PlayPen extends JPanel
 					
 					if (someData instanceof SQLTable) {
 						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation, duplicateProperties);
-						setMessage(ArchitectUtils.truncateString(((SQLTable)someData).getName()));
+						message = ArchitectUtils.truncateString(((SQLTable)someData).getName());
                         preferredLocation.x += tp.getPreferredSize().width + 5;
-                        increaseProgress();
+						progress++;
 					} else if (someData instanceof SQLSchema) {
 						SQLSchema sourceSchema = (SQLSchema) someData;
 						Iterator it = sourceSchema.getChildren().iterator();
 						while (it.hasNext() && !isCancelled()) {
                             Object nextTable = it.next();
 							SQLTable sourceTable = (SQLTable) nextTable;
-							setMessage(ArchitectUtils.truncateString(sourceTable.getName()));
+							message = ArchitectUtils.truncateString(sourceTable.getName());
 							TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties);
 							preferredLocation.x += tp.getPreferredSize().width + 5;
-							increaseProgress();
+							progress++;
 						}
 					} else if (someData instanceof SQLCatalog) {
 						SQLCatalog sourceCatalog = (SQLCatalog) someData;
@@ -1572,20 +1596,20 @@ public class PlayPen extends JPanel
 								while (it.hasNext() && !isCancelled()) {
 									Object nextTable = it.next();
                                     SQLTable sourceTable = (SQLTable) nextTable;
-									setMessage(ArchitectUtils.truncateString(sourceTable.getName()));
+									message = ArchitectUtils.truncateString(sourceTable.getName());
 									TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties);
 									preferredLocation.x += tp.getPreferredSize().width + 5;
-									increaseProgress();
+									progress++;
 								}
 							}
 						} else {
 							while (cit.hasNext() && !isCancelled()) {
                                 Object nextTable = cit.next();
 								SQLTable sourceTable = (SQLTable) nextTable;
-								setMessage(ArchitectUtils.truncateString(sourceTable.getName()));
+								message = ArchitectUtils.truncateString(sourceTable.getName());
 								TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties);
 								preferredLocation.x += tp.getPreferredSize().width + 5;
-								increaseProgress();
+								progress++;
 							}
 						}
 					} else {
@@ -1596,12 +1620,14 @@ public class PlayPen extends JPanel
 				ASUtils.showExceptionDialog(session,
                     "Unexpected Exception During Import", e); //$NON-NLS-1$
 			} finally {
+				finished = true;
 				session.getArchitectFrame().getContentPane().setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+				hasStarted = false;
 				session.getPlayPen().endCompoundEdit("Ending multi-select"); //$NON-NLS-1$
 			}
 			
 			// deals with bug 1333, when the user tries to add inaccessible objects to the PlayPen
-			if (getJobSize() == 0) { 
+			if (jobSize == 0) { 
 	            SwingUtilities.invokeLater(new Runnable() {
 	                public void run() {
 	                    JOptionPane.showMessageDialog(session.getArchitectFrame(),
@@ -1612,6 +1638,9 @@ public class PlayPen extends JPanel
 	        }
 		}
 
+		public boolean hasStarted () {
+			return hasStarted;
+		}
 	}
 
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
@@ -2291,6 +2320,7 @@ public class PlayPen extends JPanel
 
 		public void mousePressed(MouseEvent evt) {
 			requestFocus();
+            maybeShowPopup(evt);
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
@@ -2306,7 +2336,6 @@ public class PlayPen extends JPanel
 					rubberBand = new Rectangle(rubberBandOrigin.x, rubberBandOrigin.y, 0, 0);
 				}
 			}
-			maybeShowPopup(evt);
 		}
 
 		public void mouseReleased(MouseEvent evt) {
@@ -3259,5 +3288,4 @@ public class PlayPen extends JPanel
             lifecycleListeners.get(i).PlayPenLifeEnding(evt);
         }
     }
-
 }

@@ -58,6 +58,7 @@ import ca.sqlpower.architect.InsertionPointWatcher;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
+import ca.sqlpower.architect.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.sqlobject.LockedColumnException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
@@ -73,7 +74,6 @@ import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.SPSUtils;
-import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
 
 public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
@@ -1007,7 +1007,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
      * manipulating tablepanes.
      */
     @Override
-    public JPopupMenu getPopup(Point p) {
+    public JPopupMenu getPopup() {
         ArchitectFrame af = getPlayPen().getSession().getArchitectFrame();
         JPopupMenu tablePanePopup = new JPopupMenu();
         

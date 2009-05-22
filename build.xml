@@ -47,7 +47,25 @@
 
 	<!-- Base directory for the izpack (Windows) installer output -->
 	<property name="installer.dir" value="installer"/>
-	
+
+	<!-- OS X .app bundling tool: jarbundler -->
+	<taskdef name="jarbundler" 
+		classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar"
+		classname="net.sourceforge.jarbundler.JarBundler"/>
+
+	<!-- findbugs code checking tool -->
+	<property name="findbugs.home" value="ext-tools-home/findbugs"/>
+	<property name="findbugs-ant.jar" value="${findbugs.home}/lib/findbugs-ant.jar"/>
+
+	<!-- pmd code checking tool and its helper jar files -->
+	<property name="pmd.home" value="ext-tools-home/pmd"/>
+	<property name="pmd.jar" value="${pmd.home}/lib/pmd-4.2.jar"/>
+
+	<!-- clover test coverage tool -->
+	<property name="clover.home" value="ext-tools-home/clover"/>
+	<taskdef resource="clovertasks"/>
+	<typedef resource="clovertypes"/>
+
 	<!-- When the build runs on a Mac, we can create the .dmg disk image
 	     using the native hdiutil program.  Otherwise, we just make a .tar.gz.
 	-->
@@ -74,56 +92,6 @@
 			<os family="windows"/>
 		</not>
 	</condition>
-
-	<!-- 
-		Actually, I wanted to test for if this is Linux so to know which
-		launch4j binaries to use, but unfortunately, there is no 'linux' 
-		value, just unix. So if it's unix, then we will try to use the linux binary.
-	-->
-	<condition property="isUnix">
-		<os family="unix"/>
-	</condition>
-
-	<condition property="isNotUnix">
-		<not>
-			<os family="unix"/>
-		</not>
-	</condition>
-	
-	<condition property="launch4j.dir" value="ext-tools-home/launch4j/launch4j-macosx" >
-		<isset property="isMac"/>
-	</condition>
-	
-	<condition property="launch4j.dir" value="ext-tools-home/launch4j/launch4j-linux" >
-		<isset property="isUnix"/>
-	</condition>
-	
-	<condition property="launch4j.dir" value="ext-tools-home/launch4j/launch4j-win32" >
-		<isset property="isWindows"/>
-	</condition>
-	
-	<taskdef name="launch4j"
-	    classname="net.sf.launch4j.ant.Launch4jTask"
-	    classpath="${launch4j.dir}/launch4j.jar
-	        :${launch4j.dir}/lib/xstream.jar" />
-	
-	<!-- OS X .app bundling tool: jarbundler -->
-	<taskdef name="jarbundler" 
-		classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar"
-		classname="net.sourceforge.jarbundler.JarBundler"/>
-
-	<!-- findbugs code checking tool -->
-	<property name="findbugs.home" value="ext-tools-home/findbugs"/>
-	<property name="findbugs-ant.jar" value="${findbugs.home}/lib/findbugs-ant.jar"/>
-
-	<!-- pmd code checking tool and its helper jar files -->
-	<property name="pmd.home" value="ext-tools-home/pmd"/>
-	<property name="pmd.jar" value="${pmd.home}/lib/pmd-4.2.jar"/>
-
-	<!-- clover test coverage tool -->
-	<property name="clover.home" value="ext-tools-home/clover"/>
-	<taskdef resource="clovertasks"/>
-	<typedef resource="clovertypes"/>
 
 	<!-- 
 		Sets if we want to actually run a build on the SQL Power Library.
@@ -678,45 +646,6 @@
     				includes="ca/** icons/** sounds/** xsltStylesheets/** log4j.properties default_database_types.ini"
     				manifest="${build}/manifest">
     	</jar>
-    	
-    	<launch4j>
-			<config dontwrapjar="true" 
-					headertype="gui"
-					jarpath="architect.jar"
-					outfile="${staging.dir}/architect.exe"
-					errtitle="Java Runtime Required"
-					priority="normal"
-					downloadurl="http://java.com/download"
-					supporturl="http://www.sqlpower.ca/forum"
-					customprocname="false"
-					stayalive="false"
-					icon="src/icons/architect.ico">
-				<jre minVersion="1.5.0"
-					 maxHeapSize="600"
-				/>
-			</config>
-		</launch4j>
-    	
-    	<launch4j>
-			<config dontwrapjar="true" 
-					headertype="gui"
-					jarpath="uninstaller.jar"
-					outfile="${staging.dir}/uninstaller.exe"
-					errtitle="Java Runtime Required"
-					priority="normal"
-					downloadurl="http://java.com/download"
-					supporturl="http://www.sqlpower.ca/forum"
-					customprocname="false"
-					stayalive="false"
-					icon="installer/uninstall.ico">
-				<singleInstance
-					mutexName="Power*Architect Uninstaller"
-					windowTitle="Power*Architect Uninstaller"
-				/>
-				<jre minVersion="1.5.0"/>
-			</config>
-		</launch4j>
-    	
 		<copy todir="${staging.dir}/jdbc">
 		    <fileset dir="jdbc_drivers" includes="*.jar"/>
 			<fileset dir="src" includes="default_database_types.ini"/>
@@ -852,8 +781,6 @@
 					<appversion>@{app.version}</appversion>
 					<url>http://www.sqlpower.ca/</url>
 					<javaversion>1.5</javaversion>
-					<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
-					<!-- <pack200/> -->
 				</info>
 				<guiprefs height="600" resizable="yes" width="800">
 					<laf name="metouia">
@@ -868,15 +795,7 @@
 					<res id="Installer.image" src="../src/icons/architect.png"/>
 					<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
 					<res id="LicencePanel.licence" src="../LICENSE" />
-					<res src="RegistrySpec.xml" id="RegistrySpec.xml"/>
 				</resources>
-				<listeners>
-					<listener installer="SummaryLoggerInstallerListener"/>
-			       	<listener installer="RegistryInstallerListener"
-							  uninstaller="RegistryUninstallerListener">
-			          <os family="windows"/>
-			       </listener>
-				</listeners>
 				<panels>
 					<panel classname="HelloPanel"/>
 					<panel classname="LicencePanel"/>
@@ -890,28 +809,38 @@
 						<description>Architect Core Files</description>
 						<fileset dir="../staging/" targetdir="$INSTALL_PATH">
 							<include name="architect.jar"/>
-							<include name="architect.exe"/>
 						</fileset>
 						<fileset dir="../staging/lib" targetdir="$INSTALL_PATH/lib">
 							<include name="*.jar"/>
 						</fileset>
-						<!-- the directory jdbc is referenced in the manifest as well as
-							various targets. -->
 						<fileset dir="../staging/jdbc" targetdir="$INSTALL_PATH/jdbc">
 							<include name="*.ini"/>
 						</fileset>
-						<fileset dir="../staging/" targetdir="$INSTALL_PATH">
-							<include name="LICENSE"/>
+						<fileset dir=".." targetdir="$INSTALL_PATH">
+							<include name="../staging/LICENSE"/>
+						</fileset>
+						<fileset dir="." targetdir="$INSTALL_PATH">
+							<include name="*.reg"/>
 						</fileset>
 						<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 							<include name="*.ico"/>
 						</fileset>
+						<parsable targetfile="${INSTALL_PATH}/architect_file_association.reg"/>
+						<executable targetfile="regedit.exe" stage="postinstall" keep="true">
+						   <args>
+						     <arg value="\/s"/>
+						     <arg value="$INSTALL_PATH/architect_file_association.reg"/>
+					      </args>
+					   </executable>
+						<executable targetfile="regedit.exe" stage="uninstall" keep="true">
+						   <args>
+						     <arg value="\/s"/>
+						     <arg value="$INSTALL_PATH/uninstall.reg"/>
+					      </args>
+					   </executable>
 					</pack>
 				</packs>
 				<native type="izpack" name="ShellLink.dll"/>
-				<native type="3rdparty" name="COIOSHelper.dll" stage="both">
-			        <os family="windows"/>
-			    </native>
 			</installation>
 			]]>
 		</config>
@@ -919,10 +848,10 @@
 	</target>
 
 	<target name="windows_jdbc_installer" depends="stage">
-			<izpack output="${basedir}/${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"
+			<izpack output="${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"
 			        installerType="standard"
-				    basedir="${basedir}/${installer.dir}"
-			        izPackDir="${basedir}/${izpack.dir}/">
+				    basedir="${installer.dir}"
+			        izPackDir="${izpack.dir}/">
 
 			<config><![CDATA[
 				<installation version="1.0">
@@ -970,7 +899,6 @@
 							<description>Architect Core Files</description>
 							<fileset dir="../staging/" targetdir="$INSTALL_PATH">
 								<include name="architect.jar"/>
-								<include name="architect.exe"/>
 							</fileset>
 							<fileset dir="../staging/lib" targetdir="$INSTALL_PATH/lib">
 								<include name="*.jar"/>
@@ -987,9 +915,6 @@
 							<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 								<include name="*.ico"/>
 							</fileset>
-							<fileset dir="../staging/" targetdir="$INSTALL_PATH/uninstaller">
-								<include name="uninstaller.exe"/>
-							</fileset>
 						</pack>
 					</packs>
 					<native type="izpack" name="ShellLink.dll"/>
@@ -1004,52 +929,64 @@
 	
 	<property name="izpack2exe.dir" value="${izpack.dir}/utils/izpack2exe"/>
 	
-	<target name="windows_exe_installer" depends="windows_exe_installer_launch4j"/>
-		
-	<target name="windows_exe_installer_launch4j" depends="windows_jdbc_installer">
-		<launch4j>
-			<config dontwrapjar="false" 
-					headertype="gui"
-					jar="${dist.dir}/Architect-Setup-Windows-${app.version}.jar"
-					outfile="${dist.dir}/Architect-Setup-Windows-${app.version}.exe"
-					errtitle="Java Runtime Required"
-					priority="normal"
-					downloadurl="http://java.com/download"
-					supporturl="http://www.sqlpower.ca/forum"
-					customprocname="false"
-					stayalive="false"
-					icon="src/icons/architect.ico">
-				<singleInstance
-					mutexName="Power*Architect Installer"
-					windowTitle="Power*Architect Installer"
-				/>
-				<jre minVersion="1.5.0"/>
-			</config>
-		</launch4j>
+	<target name="windows_exe_installer" depends="windows_exe_installer_with_python, windows_exe_installer_without_python"/>
+	
+	<!-- 
+		Uses izpack python script to convert the Windows JAR installer nto EXE executables
+		Note that this target requires the python command to be in your PATH
+	 -->
+	<target name="windows_exe_installer_with_python" depends="windows_installer" if="isNotWindows">
+	  <exec executable="python" dir="${izpack2exe.dir}">
+	    <arg value="izpack2exe.py"/>
+	    <arg value="--file=../../../../${dist.dir}/Architect-Setup-Windows-${app.version}.jar"/>
+	    <arg value="--no-upx"/>
+	  	<arg value="--output=../../../../${dist.dir}/Architect-Setup-Windows-${app.version}.exe"/>
+	  	<arg value="--with-7z=./7za"/>
+	  </exec>
 	</target>
 	
-	<target name="windows_jdbc_exe_installer" depends="windows_jdbc_exe_installer_launch4j"/>
+	<!-- 
+		Uses izpack2exe executable to convert the Windows JDBC JAR installer into EXE executables
+		Note that this target is designed to work only on Windows
+	 -->
+	<target name="windows_exe_installer_without_python" depends="windows_installer" if="isWindows">
+	  <exec executable="cmd" dir="${izpack2exe.dir}">
+  	    <arg value="/c"/>
+  	    <arg value="izpack2exe.exe"/>
+	    <arg value="--file=..\..\..\..\${dist.dir}\Architect-Setup-Windows-${app.version}.jar"/>
+	    <arg value="--no-upx"/>
+	  	<arg value="--output=..\..\..\..\${dist.dir}\Architect-Setup-Windows-${app.version}.exe"/>
+	  </exec>
+	</target>
 	
-	<target name="windows_jdbc_exe_installer_launch4j" depends="windows_jdbc_installer">
-		<launch4j>
-			<config dontwrapjar="false" 
-					headertype="gui"
-					jar="${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"
-					outfile="${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.exe"
-					errtitle="Java Runtime Required"
-					priority="normal"
-					downloadurl="http://java.com/download"
-					supporturl="http://www.sqlpower.ca/forum"
-					customprocname="false"
-					stayalive="false"
-					icon="src/icons/architect.ico">
-				<singleInstance
-					mutexName="Power*Architect Installer"
-					windowTitle="Power*Architect Installer"
-				/>
-				<jre minVersion="1.5.0"/>
-			</config>
-		</launch4j>
+	<target name="windows_jdbc_exe_installer" depends="windows_jdbc_exe_installer_with_python, windows_jdbc_exe_installer_without_python"/>
+	
+	<!-- 
+		Uses izpack python script to convert the Windows JDBC JAR installer into EXE executables
+		Note that this target requires the python command to be in your PATH
+	 -->
+	<target name="windows_jdbc_exe_installer_with_python" depends="windows_jdbc_installer" if="isNotWindows">
+	  <exec executable="python" dir="${izpack2exe.dir}">
+	    <arg value="izpack2exe.py"/>
+	    <arg value="--file=../../../../${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"/>
+	    <arg value="--no-upx"/>
+	  	<arg value="--output=../../../../${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.exe"/>
+	  	<arg value="--with-7z=./7za"/>
+	  </exec>
+	</target>
+	
+	<!-- 
+		Uses izpack2exe executable to convert the Windows JDBC JAR installer into EXE executables
+		Note that this target is designed to work only on Windows
+	 -->
+	<target name="windows_jdbc_exe_installer_without_python" depends="windows_jdbc_installer" if="isWindows">
+	  <exec executable="cmd" dir="${izpack2exe.dir}">
+  	    <arg value="/c"/>
+  	    <arg value="izpack2exe.exe"/>
+	    <arg value="--file=..\..\..\..\${dist.dir}\Architect-Setup-Windows-jdbc-${app.version}.jar"/>
+	    <arg value="--no-upx"/>
+	  	<arg value="--output=..\..\..\..\${dist.dir}\Architect-Setup-Windows-jdbc-${app.version}.exe"/>
+	  </exec>
 	</target>
 	
 	<target name="osx_adapter_jar" depends="checkBuildPath"

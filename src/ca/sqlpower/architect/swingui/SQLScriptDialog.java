@@ -59,11 +59,11 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
-import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.SPSUtils.FileExtensionFilter;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -99,7 +99,7 @@ public class SQLScriptDialog extends JDialog {
     
     private ArchitectSwingSession session;
 
-	private SPSwingWorker executeTask;
+	private MonitorableWorker executeTask;
 
     /**
      * Creates and packs a new SQL script dialog, but does not display it. Call
@@ -255,7 +255,7 @@ public class SQLScriptDialog extends JDialog {
 		return pb.getPanel();
 	}
 
-	public SPSwingWorker getExecuteTask() {
+	public MonitorableWorker getExecuteTask() {
 		return executeTask;
 	}
 
@@ -267,7 +267,7 @@ public class SQLScriptDialog extends JDialog {
 	 *
 	 * @param v The task to execute when the "execute" button is clicked.
 	 */
-	public void setExecuteTask(SPSwingWorker v) {
+	public void setExecuteTask(MonitorableWorker v) {
 		executeTask = v;
 	}
 
@@ -320,18 +320,15 @@ public class SQLScriptDialog extends JDialog {
 		}
 	}
 
-	private class ExecuteSQLScriptWorker extends SPSwingWorker {
+	private class ExecuteSQLScriptWorker extends MonitorableWorker {
 
+        private int stmtsTried = 0;
 		private int stmtsCompleted = 0;
+		private boolean finished = false;
+		private boolean hasStarted = false;
 
         public ExecuteSQLScriptWorker(ArchitectSwingSession session) {
 		    super(session);
-		    setMessage(null);
-		    if (statements != null) {
-                setJobSize(new Integer(statements.size()));
-            } else {
-                setJobSize(null);
-            }
 		}
 
 		/**
@@ -339,12 +336,14 @@ public class SQLScriptDialog extends JDialog {
 		 */
 		public void doStuff() {
 
+			finished = false;
 			setCancelled(false);
-			if (isCancelled() || isFinished()) return;
+			hasStarted = true;
+			if (isCancelled() || finished) return;
 
 			SQLDatabase target = new SQLDatabase(targetDataSource);
 			statusLabel.setText(Messages.getString("SQLScriptDialog.creatingObjectsInTargetDb") + target.getDataSource() ); //$NON-NLS-1$
-			setProgress(0);
+			stmtsTried = 0;
 			stmtsCompleted = 0;
 
 			logger.debug("the Target Database is: " + target.getDataSource()); //$NON-NLS-1$
@@ -355,11 +354,11 @@ public class SQLScriptDialog extends JDialog {
 			try {
 				con = target.getConnection();
 			} catch (SQLObjectException ex) {
-				setFinished(true);
+				finished = true;
 				throw new RuntimeException(
 						Messages.getString("SQLScriptDialog.couldNotConnectToTargetDb", ex.getMessage()), ex); //$NON-NLS-1$
 			} catch (Exception ex) {
-				setFinished(true);
+				finished = true;
 				logger.error("Unexpected exception in DDL generation", ex); //$NON-NLS-1$
 				throw new RuntimeException(Messages.getString("SQLScriptDialog.specifyATargetDb")); //$NON-NLS-1$
 			}
@@ -368,7 +367,7 @@ public class SQLScriptDialog extends JDialog {
 				logger.debug("the connection thinks it is: " + con.getMetaData().getURL()); //$NON-NLS-1$
 				stmt = con.createStatement();
 			} catch (SQLException ex) {
-				setFinished(true);
+				finished = true;
 				throw new RuntimeException(Messages.getString("SQLScriptDialog.couldNotGenerateDDL", ex.getMessage())); //$NON-NLS-1$
 			}
 
@@ -377,10 +376,10 @@ public class SQLScriptDialog extends JDialog {
 				logger.info("Database Target: " + target.getDataSource()); //$NON-NLS-1$
 				logger.info("Playpen Dump: " + target.getDataSource()); //$NON-NLS-1$
 				Iterator<DDLStatement> it = statements.iterator();
-				while (it.hasNext() && !isFinished() && !isCancelled()) {
+				while (it.hasNext() && !finished && !isCancelled()) {
 					DDLStatement ddlStmt = it.next();
 					try {
-						increaseProgress();
+						stmtsTried++;
 						logger.info("executing: " + ddlStmt.getSQLText()); //$NON-NLS-1$
 						stmt.executeUpdate(ddlStmt.getSQLText());
 						stmtsCompleted++;
@@ -415,7 +414,7 @@ public class SQLScriptDialog extends JDialog {
 						}
 
 						if (isCancelled()) {
-							setFinished(true);
+							finished = true;
 							// don't return, we might as well display how many statements ended up being processed...
 						}
 					}
@@ -429,8 +428,8 @@ public class SQLScriptDialog extends JDialog {
 						exc);
 			} finally {
 				final String resultsMessage =
-					(stmtsCompleted == 0 ? Messages.getString("SQLScriptDialog.didNotExecute", String.valueOf(getProgress())) : //$NON-NLS-1$
-						Messages.getString("SQLScriptDialog.successfullyExecuted", String.valueOf(stmtsCompleted), String.valueOf(getProgress()))); //$NON-NLS-1$
+					(stmtsCompleted == 0 ? Messages.getString("SQLScriptDialog.didNotExecute", String.valueOf(stmtsTried)) : //$NON-NLS-1$
+						Messages.getString("SQLScriptDialog.successfullyExecuted", String.valueOf(stmtsCompleted), String.valueOf(stmtsTried))); //$NON-NLS-1$
 				logger.info(resultsMessage);
 				JOptionPane.showMessageDialog(SQLScriptDialog.this, resultsMessage);
 				// flush and close the LogWriter
@@ -445,6 +444,8 @@ public class SQLScriptDialog extends JDialog {
 					logger.error("Couldn't close connection", ex); //$NON-NLS-1$
 				}
 			}
+
+			finished = true;
 
 		}
 
@@ -461,10 +462,38 @@ public class SQLScriptDialog extends JDialog {
 
 		// ============= Monitorable Interface =============
 
-		public void cancelJob() {
-			this.setCancelled(true);
-			setFinished(true);
+		public Integer getJobSize() {
+			if (statements != null) {
+				return new Integer(statements.size());
+			} else {
+				return null;
+			}
 		}
 
+		public int getProgress() {
+			return stmtsTried;
+		}
+
+		public boolean isFinished() {
+			return finished;
+		}
+
+		public String getMessage() {
+			return null;
+		}
+
+		public void cancelJob() {
+			this.setCancelled(true);
+			finished = true;
+		}
+
+
+		public boolean hasStarted() {
+			return hasStarted;
+		}
+
+		public void setHasStarted(boolean hasStarted) {
+			this.hasStarted = hasStarted;
+		}
 	}
 }
