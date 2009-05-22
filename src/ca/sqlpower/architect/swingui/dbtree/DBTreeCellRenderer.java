@@ -163,13 +163,17 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 		this.selected = sel;
 		this.hasFocus = hasFocus;
 
-		if (value instanceof SQLObject) {
-		    if (((SQLObject) value).isPopulated()) {
-		        setForeground(Color.black);
-		    } else {
-		        setForeground(Color.lightGray);
-		    }
-		}
+        if (sel) {
+            setForeground(getTextSelectionColor());
+        } else {
+            if (value instanceof SQLObject) {
+                if (((SQLObject) value).isPopulated()) {
+                    setForeground(getTextNonSelectionColor());
+                } else {
+                    setForeground(Color.LIGHT_GRAY);
+                }
+            }
+        }
 	    
 	    if (value instanceof SQLObject || value == null) {
 	        for (IconFilter filter : getIconFilterChain()) {

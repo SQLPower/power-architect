@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ca.sqlpower.architect.ddl;
 
@@ -48,6 +48,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 
 	public static final String GENERATOR_VERSION = "$Revision$";
 	private static final Logger logger = Logger.getLogger(SQLServerDDLGenerator.class);
+	private final String REGEX_CRLF = "(\r\n|\n\r|\r|\n)";
 
 	private static HashSet<String> reservedWords;
 
@@ -368,11 +369,50 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 		}
 	}
 
+	/**
+	 * SQL Server does not really support comments on database objects. There
+	 * seems to be an undocumented sp_addcomment procedure, but I have no idea
+	 * how exactly it works (as it is not documented) and from within Java
+	 * those comments are not accessible anyway.
+	 * So addComment() simply prints out a SQL comment containing the
+	 * remarks from the user.
+	 * @param t
+	 * @param includeColumns
+	 */
+	@Override
+	public void addComment(SQLTable t, boolean includeColumns) {
+		// SQL Server only supports comments in "extended properties" but
+		// they are not read in any of the public APIs anyway so they are more
+		// "write-only" comments.
+		// So we only write a SQL comment with the table's comment here
+
+		if (t.getRemarks() != null && t.getRemarks().trim().length() > 0) {
+			print("\n-- Comment for table [" + t.getPhysicalName() + "]: ");
+			print(t.getRemarks().replaceAll(REGEX_CRLF, "\n-- "));
+			endStatement(DDLStatement.StatementType.COMMENT, t);
+
+			if (includeColumns) {
+				addColumnComments(t);
+			}
+		}
+	}
+
+	@Override
+    public void addComment(SQLColumn c) {
+        if (c.getRemarks() == null || c.getRemarks().trim().length() == 0) return;
+
+        print("\n-- Comment for column [");
+        print(c.getName());
+        print("]: ");
+        print(c.getRemarks().replaceAll(REGEX_CRLF, "\n-- "));
+        endStatement(DDLStatement.StatementType.COMMENT, c);
+    }
+
     @Override
 	public String toIdentifier(String name) {
 		return toIdentifier(name,null);
 	}
-    
+
     /**
      * Adds support for the SQL Server <code>identity</code> feature.
      */
@@ -434,17 +474,17 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         print(" )\n");
         endStatement(DDLStatement.StatementType.CREATE, index);
     }
-    
+
     @Override
     public String getDeferrabilityClause(SQLRelationship r) {
         if (supportsDeferrabilityPolicy(r)) {
             return "";
         } else {
-            throw new UnsupportedOperationException(getName() + " does not support " + 
+            throw new UnsupportedOperationException(getName() + " does not support " +
                     r.getName() + "'s deferrability policy (" + r.getDeferrability() + ").");
         }
     }
-    
+
     @Override
     public boolean supportsDeferrabilityPolicy(SQLRelationship r) {
         if (!Arrays.asList(Deferrability.values()).contains(r.getDeferrability())) {
@@ -453,7 +493,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
             return r.getDeferrability() == Deferrability.NOT_DEFERRABLE;
         }
     }
-    
+
     /**
      * Overrides the syntax to omit the "constraint" keyword.
      */
@@ -468,7 +508,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         }
         endStatement(DDLStatement.StatementType.DROP, t);
     }
-    
+
     @Override
     public String makeDropForeignKeySQL(String fkTable, String fkName) {
         return "\nALTER TABLE "
