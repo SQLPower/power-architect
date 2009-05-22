@@ -364,7 +364,9 @@
 	       		<path path="${build.tests}"/>
 	       </classpath>
 	       <test name="ca.sqlpower.ArchitectBusinessTestSuite" todir="${reports.junit}"/>
+	   	   <test name="ca.sqlpower.ArchitectSwingTestSuite" todir="${reports.junit}"/>
            <test name="ca.sqlpower.ArchitectAutoTests" todir="${reports.junit}"/>
+	   	   <test name="ca.sqlpower.architect.profile.ProfileTests" todir="${reports.junit}"/>
 	   	   <formatter type="xml"/>
 	   </junit>
 		<!-- Generate HTML report -->
