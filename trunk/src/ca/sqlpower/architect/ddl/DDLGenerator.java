@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.ddl;
 
+import ca.sqlpower.sqlobject.SQLObject;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
@@ -75,7 +76,23 @@ public interface DDLGenerator {
      * @throws SQLObjectException If there are problems with the Architect objects.
      */
     public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, SQLObjectException;
-    
+
+
+    /**
+     * Adds a comment (remark) to the passed object (table, column, view, ...)
+     *
+     * @param o the object to add the comment for.
+     */
+    public void addComment(SQLObject o);
+
+    /**
+     * Updates the comment (remark) of the passed object (table, column, view, ...)
+     *
+     * @param o the object to add the comment for.
+     */
+    public void modifyComment(SQLObject o);
+
+
     /**
      * Appends the DDL statement for dropping the given column from its parent
      * table in this DDL Generator's target schema/catalog.

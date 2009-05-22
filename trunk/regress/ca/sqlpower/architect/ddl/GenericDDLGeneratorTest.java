@@ -19,9 +19,12 @@
 
 package ca.sqlpower.architect.ddl;
 
+import ca.sqlpower.sqlobject.SQLColumn;
 import junit.framework.TestCase;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
+import java.sql.Types;
+import java.util.List;
 
 public class GenericDDLGeneratorTest extends TestCase {
 
@@ -42,4 +45,33 @@ public class GenericDDLGeneratorTest extends TestCase {
         
         assertEquals(1, ddl.getWarnings().size());
     }
+
+		public void testGenerateComment() throws Exception {
+        GenericDDLGenerator ddl = new GenericDDLGenerator();
+        SQLTable tbl = new SQLTable();
+				tbl.initFolders(true);
+				tbl.setPhysicalName("test_table");
+				tbl.setRemarks("Test single ' quotes");
+				SQLColumn id = new SQLColumn(tbl, "id", Types.INTEGER, 0, 0);
+				id.setRemarks("The row's primary key");
+				tbl.addColumn(id);
+				SQLColumn name = new SQLColumn(tbl, "name", Types.VARCHAR, 50, 0);
+				name.setRemarks("The person's name");
+				tbl.addColumn(name);
+				ddl.addTable(tbl);
+
+				// the first statement is the CREATE table
+				// second, third and fourth statements should be the COMMENT ON ... statements
+				List<DDLStatement> stmts = ddl.getDdlStatements();
+				assertEquals(4, stmts.size());
+
+				String sql = stmts.get(1).getSQLText().trim();
+				assertEquals("COMMENT ON TABLE test_table IS 'Test single '' quotes'", sql);
+
+				sql = stmts.get(2).getSQLText().trim();
+				assertEquals("COMMENT ON COLUMN test_table.id IS 'The row''s primary key'", sql);
+
+				sql = stmts.get(3).getSQLText().trim();
+				assertEquals("COMMENT ON COLUMN test_table.name IS 'The person''s name'", sql);
+		}
 }

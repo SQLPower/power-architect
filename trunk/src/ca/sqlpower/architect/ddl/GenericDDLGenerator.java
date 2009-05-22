@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ca.sqlpower.architect.ddl;
 
@@ -60,7 +60,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public String getName() {
 	    return "Generic SQL-92";
 	}
-	
+
      /**
      * Check to see if the word word is on the list of reserved words for this database
      * @return
@@ -160,7 +160,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         topLevelNames = new CaseInsensitiveHashMap();  // for tracking dup table/relationship names
         createTypeMap();
     }
-    
+
     /**
      * Creates a new generic DDL generator that's allowed to connect to the target database.
      */
@@ -192,7 +192,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * tables in a target database.  The script will include commands for defining
      * the tables, their primary keys, other indices, and the foreign key relationships
      * between them.
-     * 
+     *
      * @param tables the tables the generated script should create.
      * @return the list of DDL statements in the order they should be executed
 	 * @see ca.sqlpower.architect.ddl.DDLGenerator#generateDDLStatements(Collection)
@@ -211,7 +211,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         List<SQLTable> tableList = new ArrayList<SQLTable>(tables);
         DepthFirstSearch dfs = new DepthFirstSearch(tableList);
         tableList = dfs.getFinishOrder();
-        
+
 		try {
 			if (allowConnection && tableList.size() > 0) {
                 SQLDatabase parentDb = SQLObjectUtils.getAncestor(tableList.get(0), SQLDatabase.class);
@@ -225,13 +225,13 @@ public class GenericDDLGenerator implements DDLGenerator {
 			for (SQLTable t : tableList) {
 
 				addTable(t);
-                
+
                 for (SQLIndex index : (List<SQLIndex>)t.getIndicesFolder().getChildren()) {
                    if (index.isPrimaryKeyIndex()) continue;
                     addIndex(index);
                 }
 			}
-            
+
             for (SQLTable t : tableList) {
 				writeExportedRelationships(t);
 			}
@@ -339,7 +339,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			}
 		}
 		sql.append(")");
-        
+
         sql.append("\nREFERENCES ");
 		sql.append(toQualifiedName(r.getPkTable()));
 		sql.append(" (");
@@ -350,11 +350,11 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    warnings.add(new RelationshipMapsNoColumnsDDLWarning(r.getPkTable(), r.getFkTable()));
 		    errorMsg.append("Warning: Relationship has no columns to map:\n");
 		}
-		
+
 		for (ColumnMapping cm : r.getMappings()) {
 			SQLColumn c = cm.getPkColumn();
 			SQLColumn fkCol = cm.getFkColumn();
-			
+
 			// checks the fk column and pk column are the same type,
 			// generates DDLWarning if not the same.
 			if (ArchitectUtils.columnTypesDiffer(c.getType(), fkCol.getType())) {
@@ -380,7 +380,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    errorMsg.append("Warning: Column types mismatch in the following column mapping(s):\n");
 		    errorMsg.append(typesMismatchMsg.toString());
 		}
-		
+
 		// sanity check for SET NULL and SET DEFAULT delete rules, whether or not DB supports them
         for (SQLRelationship.ColumnMapping cm : r.getMappings()) {
             UpdateDeleteRule deleteRule = r.getDeleteRule();
@@ -395,7 +395,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 		if (supportsDeleteAction(r)) {
 		    String deleteActionClause = getDeleteActionClause(r);
-		    
+
 		    // avoid useless newline for empty clause
 		    if (deleteActionClause.length() > 0) {
 		        sql.append("\n").append(deleteActionClause);
@@ -403,10 +403,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 		} else {
 		    warnings.add(new UnsupportedFeatureDDLWarning(
 		            getName() + " does not support " + r.getName() + "'s delete action", r));
-		    errorMsg.append("Warning: " + getName() + " does not support this relationship's " + 
+		    errorMsg.append("Warning: " + getName() + " does not support this relationship's " +
 		            "delete action (" + r.getDeleteRule() + ").\n");
 		}
-		
+
 		// sanity check for SET NULL and SET DEFAULT update rules, whether or not DB supports them
         for (SQLRelationship.ColumnMapping cm : r.getMappings()) {
             UpdateDeleteRule updateRule = r.getUpdateRule();
@@ -418,10 +418,10 @@ public class GenericDDLGenerator implements DDLGenerator {
                 warnings.add(new SetDefaultOnColumnWithNoDefaultWarning(fkcol));
             }
         }
-		
+
 		if (supportsUpdateAction(r)) {
             String updateActionClause = getUpdateActionClause(r);
-            
+
             // avoid useless newline for empty clause
             if (updateActionClause.length() > 0) {
                 sql.append("\n").append(updateActionClause);
@@ -429,15 +429,15 @@ public class GenericDDLGenerator implements DDLGenerator {
 		} else {
             warnings.add(new UnsupportedFeatureDDLWarning(
                     getName() + " does not support " + r.getName() + "'s update action", r));
-            errorMsg.append("Warning: " + getName() + " does not support this relationship's " + 
+            errorMsg.append("Warning: " + getName() + " does not support this relationship's " +
                     "update action (" + r.getUpdateRule() + ").\n");
 		}
-		
+
 		// adds to error msg if the deferrability was not a supported feature,
 		// add the deferrability clause otherwise.
 		if (supportsDeferrabilityPolicy(r)) {
 		    String deferrabilityClause = getDeferrabilityClause(r);
-		    
+
 		    // avoid useless newline when clause is empty
 		    if (deferrabilityClause.length() > 0) {
 		        sql.append("\n").append(deferrabilityClause);
@@ -445,10 +445,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 		} else {
 		    warnings.add(new UnsupportedFeatureDDLWarning(
                     getName() + " does not support " + r.getName() + "'s deferrability policy", r));
-		    errorMsg.append("Warning: " + getName() + " does not support this relationship's " + 
+		    errorMsg.append("Warning: " + getName() + " does not support this relationship's " +
 		            "deferrability policy (" + r.getDeferrability() + ").\n");
 		}
-             
+
 		// properly comment the relationship create statement,
 		// i.e. entire statement or just the error message.
 		if (errorMsg.length() != 0) {
@@ -459,9 +459,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    }
 		    sql.insert(0, "\n/*\n" + errorMsg.toString());
 		}
-		
+
         print(sql.toString());
-        
+
 		endStatement(DDLStatement.StatementType.CREATE, r);
 
 	}
@@ -482,7 +482,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * <p>
      * If you are overriding this method for a platform-specific DDL generator
      * and you need this clause to be empty, return the empty string--not null.
-     * 
+     *
      * @param r The relationship whose delete action clause to generate
      * @return The delete action clause
      */
@@ -510,7 +510,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         }
         return action;
     }
-    
+
     /**
      * Returns true if this DDL generator supports the given relationship's
      * update action. The generic DDL generator claims to support all update
@@ -527,7 +527,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * <p>
      * If you are overriding this method for a platform-specific DDL generator
      * and you need this clause to be empty, return the empty string--not null.
-     * 
+     *
      * @param r The relationship whose update action clause to generate
      * @return The update action clause
      */
@@ -538,9 +538,9 @@ public class GenericDDLGenerator implements DDLGenerator {
     /**
      * Returns the correct syntax for setting the deferrability of a foreign
      * key relationship on this DDL Generator's target platform. Throws
-     * an {@link UnsupportedOperationException} if the platform does not 
+     * an {@link UnsupportedOperationException} if the platform does not
      * support the given relationship's deferrability policy.
-     * 
+     *
      * @param r The relationship the deferrability clause is for
      * @return The SQL clause for declaring the deferrability policy
      * in r.
@@ -557,11 +557,11 @@ public class GenericDDLGenerator implements DDLGenerator {
                 throw new IllegalArgumentException("Unknown deferrability policy: " + r.getDeferrability());
             }
         } else {
-            throw new UnsupportedOperationException(getName() + " does not support " + 
+            throw new UnsupportedOperationException(getName() + " does not support " +
                     r.getName() + "'s deferrability policy (" + r.getDeferrability() + ").");
         }
     }
-    
+
     /**
      * Returns true if the platform supports the deferrability policy of
      * the given relationship, false otherwise. This generic method assumes
@@ -575,7 +575,70 @@ public class GenericDDLGenerator implements DDLGenerator {
             return true;
         }
     }
-    
+
+    public void addComment(SQLObject o) {
+        // TODO: move remarks storage to SQLObject in order to support comments for all object types
+    }
+
+    public void modifyComment(SQLObject o) {
+        if (o instanceof SQLTable) {
+            addComment((SQLTable)o, false);
+        } else if (o instanceof SQLColumn) {
+            addComment((SQLColumn)o);
+        }
+    }
+
+    public void addComment(SQLColumn c) {
+        if (c.getRemarks() == null || c.getRemarks().trim().length() == 0) return;
+
+        print("COMMENT ON COLUMN ");
+        print(toQualifiedName(c.getParentTable()));
+        print(".");
+        print(c.getName());
+        print(" IS '");
+        print(c.getRemarks().replaceAll("'", "''"));
+        print("'");
+        endStatement(DDLStatement.StatementType.COMMENT, c);
+    }
+
+    /**
+     * Add the SQL to define the comment for the table.
+     *
+     * TODO: [thomas kellerer] currently this is only called from within addTable() as there
+     * is not modifyTable() I don't currently know how to include updated comments
+     * in the SQL when forward engineering a diff between two models.
+     * 
+     * @param t the table for which to add the comment
+     * @param includeColumns if true, column comments will be added for all columns
+     *        by calling addComment(SQLColumn) for each column
+     * @see #addComment(ca.sqlpower.sqlobject.SQLColumn)
+     */
+	public void addComment(SQLTable t, boolean includeColumns) {
+		if (t.getRemarks() != null && t.getRemarks().trim().length() > 0) {
+			print("COMMENT ON TABLE ");
+			print(toQualifiedName(t));
+			print(" IS '");
+			print(t.getRemarks().replaceAll("'", "''"));
+			print("'");
+			endStatement(DDLStatement.StatementType.COMMENT, t);
+		}
+
+		if (includeColumns) {
+			addColumnComments(t);
+		}
+	}
+
+	protected void addColumnComments(SQLTable t) {
+		try {
+			for (SQLColumn col : t.getColumns()) {
+				addComment(col);
+			}
+		} catch (SQLObjectException ex) {
+			logger.error("Could not add column remarks for table " + t, ex);
+		}
+		print("\n");
+	}
+
 	public void addColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();
 		print("\nALTER TABLE ");
@@ -604,7 +667,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(" ALTER COLUMN ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.MODIFY, c);
-
+        addComment(c);
 	}
 
 	public void dropTable(SQLTable t) {
@@ -615,9 +678,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 	/**
 	 * Creates a SQL DDL snippet which consists of the column name, data type,
 	 * default value, and nullability clauses.
-	 * 
+	 *
 	 * @param c The column to generate the DDL snippet for.
-	 * @param colNameMap Dirty hack for coming up with unique physical names. 
+	 * @param colNameMap Dirty hack for coming up with unique physical names.
 	 * The final physical name generated in the SQL snippet will be stored
 	 * in this map. If you don't care about producing unique column names, just
 	 * pass in a freshly-created map. See {@link #createPhysicalName(Map, SQLObject)}
@@ -640,7 +703,7 @@ public class GenericDDLGenerator implements DDLGenerator {
             def.append("DEFAULT ");
             def.append(c.getDefaultValue());
         }
-        
+
         def.append(columnNullability(c));
 
         logger.debug("column definition "+ def.toString());
@@ -706,9 +769,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 		            null, null, c.getNullable(), false, false);
 		    oldType.determineScaleAndPrecision();
 		    TypeMapDDLWarning o = new TypeMapDDLWarning(c, String.format(
-                    "Type '%s' of column '%s' in table '%s' is unknown in the target platform", 
-                    SQLType.getTypeName(c.getType()), 
-                    c.getPhysicalName(), 
+                    "Type '%s' of column '%s' in table '%s' is unknown in the target platform",
+                    SQLType.getTypeName(c.getType()),
+                    c.getPhysicalName(),
                     c.getParentTable().getPhysicalName()), oldType, td);
 		   if (!contains(warnings, o)) {
 		       warnings.add(o);
@@ -716,7 +779,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         }
         return td;
     }
-    
+
     private boolean contains(List list, TypeMapDDLWarning o) {
         Iterator iterator = list.iterator();
         while (iterator.hasNext()) {
@@ -729,7 +792,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         }
         return false;
     }
-    
+
 	public void addTable(SQLTable t) throws SQLException, SQLObjectException {
 		Map colNameMap = new HashMap();  // for detecting duplicate column names
 		// generate a new physical name if necessary
@@ -746,21 +809,22 @@ public class GenericDDLGenerator implements DDLGenerator {
 			print("                ");
 
 			print(columnDefinition(c,colNameMap));
-			
+
 			firstCol = false;
 		}
-		
+
 		SQLIndex pk = t.getPrimaryKeyIndex();
 		if (pk != null) {
 		    print(",\n");
             print("                ");
 		    writePKConstraintClause(pk);
 		}
-		
+
 		print("\n)");
 		endStatement(DDLStatement.StatementType.CREATE, t);
+        addComment(t, true);
 	}
-	
+
 	/**
 	 * Returns the default data type for this platform.  Normally, this can be VARCHAR,
 	 * but if your platform doesn't have a varchar, override this method.
@@ -776,7 +840,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * calling this method.
      * <p>
      * Side effect: the PK object's name will be initialized if necessary.
-     * 
+     *
      * @param pk
      *            The primary key index
      * @throws SQLObjectException
@@ -810,9 +874,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 	    print("ALTER TABLE ");
 	    print( toQualifiedName(t) );
 	    print(" ADD ");
-	    
+
 	    writePKConstraintClause(t.getPrimaryKeyIndex());
-				
+
 	    endStatement(DDLStatement.StatementType.ADD_PK, t);
 	}
 
@@ -904,7 +968,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public String toQualifiedName(SQLTable t) {
 		return toQualifiedName(t.getPhysicalName());
 	}
-	
+
 	/**
 	 * Creates a qualified name from the physical name of the SQLIndex
 	 */
@@ -1114,7 +1178,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         if (object == null) {
 			dupCheck.put(physicalName2, so);
         } else {
-            
+
             int count = 1;
             String renameTo2;
             SQLObject object2;
@@ -1123,11 +1187,11 @@ public class GenericDDLGenerator implements DDLGenerator {
                 object2 = dupCheck.get(renameTo2);
                 count++;
             } while (object2 != null);
-            
+
             String message;
             if (so instanceof SQLColumn) {
-                message = String.format("Column name %s in table %s already in use", 
-                        so.getPhysicalName(), 
+                message = String.format("Column name %s in table %s already in use",
+                        so.getPhysicalName(),
                         ((SQLColumn) so).getParentTable().getPhysicalName());
             } else {
                 message = String.format("Global name %s already in use", physicalName2);
@@ -1139,19 +1203,19 @@ public class GenericDDLGenerator implements DDLGenerator {
                     Arrays.asList(new SQLObject[] { so }),
                     String.format("Rename %s to %s", physicalName2, renameTo2),
                     so, renameTo2));
-            
+
             dupCheck.put(renameTo2, so);
-                    
+
 		}
 
 		return so.getPhysicalName();
 	}
-	
+
 	/**
      * Generate, set, and return a valid identifier for this SQLSequence.
      * Has a side effect of changing the given SQLColumn's autoIncrementSequenceName.
      * @throws SQLObjectException
-     * 
+     *
      * @param dupCheck  The Map to check for duplicate names
      * @param seq       The SQLSequence to generate, set and return a valid identifier for.
      * @param col       The SQLColumn to where the side effect should occur.
@@ -1189,7 +1253,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         if (object == null) {
             dupCheck.put(physicalName2, seq);
         } else {
-            
+
             int count = 1;
             String renameTo2;
             SQLObject object2;
@@ -1198,7 +1262,7 @@ public class GenericDDLGenerator implements DDLGenerator {
                 object2 = dupCheck.get(renameTo2);
                 count++;
             } while (object2 != null);
-            
+
             String message = String.format("Global name %s already in use", physicalName);
             logger.debug("Rename to : " + renameTo2);
 
@@ -1207,9 +1271,9 @@ public class GenericDDLGenerator implements DDLGenerator {
                     seq, col,
                     String.format("Rename %s to %s", physicalName, renameTo2),
                     renameTo2));
-            
+
             dupCheck.put(renameTo2, seq);
-                    
+
         }
 
         return seq.getPhysicalName();
@@ -1268,7 +1332,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			endStatement(DDLStatement.StatementType.CREATE,t);
 		}
 	}
-    
+
     /**
      * Adds a DDL statement to this generator that will create the
      * given index.
