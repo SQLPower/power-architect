@@ -76,7 +76,7 @@ public class OLAPEditSession implements OLAPChildListener {
     /**
      * The frame this edit session lives in.
      */
-    private final JFrame frame;
+    private JFrame frame;
     
     /**
      * The preferences node for OLAP user settings.
@@ -157,7 +157,6 @@ public class OLAPEditSession implements OLAPChildListener {
                 }
             }
         });
-        frame = new JFrame(generateDialogTitle());
         pp = OLAPPlayPenFactory.createPlayPen(swingSession, this, undoManager);
         
         
@@ -166,7 +165,7 @@ public class OLAPEditSession implements OLAPChildListener {
                 close();
             }
         });
-        initGUI();
+        //Don't initialize GUI here for cases where the Architect's frame has not been created (like loading).
     }
     
     /**
@@ -174,6 +173,9 @@ public class OLAPEditSession implements OLAPChildListener {
      * visibility set.
      */
     public JFrame getFrame() {
+        if (frame == null) {
+            initGUI();
+        }
         return frame;
     }
     
@@ -182,6 +184,7 @@ public class OLAPEditSession implements OLAPChildListener {
      * will not work properly until this has been called.
      */
     private void initGUI() {
+        frame = new JFrame(generateDialogTitle());
         Schema schema = olapSession.getSchema();
         zoomInAction = new ZoomAction(swingSession, pp, ZOOM_STEP);
         zoomOutAction = new ZoomAction(swingSession, pp, ZOOM_STEP * -1.0);
