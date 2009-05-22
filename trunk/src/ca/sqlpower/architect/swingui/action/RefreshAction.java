@@ -36,6 +36,7 @@ import javax.swing.tree.TreePath;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -94,6 +95,27 @@ public class RefreshAction extends AbstractArchitectAction {
     
         @Override
         public void cleanup() throws Exception {
+            // XXX this is not ideal because it collapses all tree nodes after the refresh is done.
+            // However, it is necessary to notify the DBTree (JTree) of the changes, because all the
+            // events that happened during the refresh were not on the Event Dispatch Thread,
+            // and DBTreeModel correctly filtered them out. At this point, it's too late to feed the
+            // piecewise updates to the JTree because they describe interim state that has already
+            // come and gone.
+            //
+            // I believe the best fix for this is to factor out the refresh logic into a separate
+            // class (SQLDatabaseRefresher?) which can be instantiated for any database. It would
+            // walk the tree and do the refresh work, but know enough to perform the actual tree
+            // manipulations on the EDT.
+            //
+            // Another possibility to look into would be to improve the SQLObject event mechanism
+            // with enough locking that it would be possible to use SwingUtilities.invokeAndWait()
+            // to refire the events in the DBTreeModel. The behaviour would be that other threads
+            // trying to mutate anything in the tree which is currently busy firing an event would
+            // block until the event has been delivered to all its listeners. This could probably
+            // deadlock too easily though, since the EDT might already have something in the queue
+            // that would block until the invokeAndWait item has run.
+            ((DBTreeModel) session.getSourceDatabases().getModel()).refreshTreeStructure();
+            
             if (getDoStuffException() != null) {
                 ASUtils.showExceptionDialogNoReport(parent, "Refresh failed", getDoStuffException());
             }
