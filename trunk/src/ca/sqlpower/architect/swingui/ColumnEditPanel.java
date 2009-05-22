@@ -444,15 +444,19 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
     }
 
     /**
-     * TODO update docs to reflect current usage!
      * Updates all the UI components to reflect the given column's properties.
      * <p>
-     * This is just a constructor subroutine which is only called one time per
-     * instance. Once a ColumnEditPanel is constructed, it is forever tied to
-     * the column or columns it was constructed with.
+     * This is a constructor subroutine which is only called one time per
+     * instance per column being edited. Once a ColumnEditPanel is constructed,
+     * it is forever tied to the column or columns it was constructed with. In
+     * the multi-column-edit case, the first call to this method works "as usual,"
+     * meaning that all the fields get set to represent the values of that column.
+     * Subsequent calls end up unchecking the "apply this value" checkboxes beside
+     * each component whenever a difference is discovered between the component's
+     * existing value and the value that would have been set for that subsequent
+     * column.
      * 
-     * @param col
-     *            The column to edit
+     * @param col One of the columns to edit in this dialog.
      */
     private void updateComponents(SQLColumn col) throws SQLObjectException {
         SQLColumn sourceColumn = col.getSourceColumn();
@@ -472,28 +476,26 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         updateComponent(colScale, Integer.valueOf(col.getScale()));
         updateComponent(colPrec, Integer.valueOf(col.getPrecision()));
         
-        // TODO handle checkboxes
-        colNullable.setSelected(col.getNullable() == DatabaseMetaData.columnNullable);
+        updateComponent(colNullable, col.getNullable() == DatabaseMetaData.columnNullable);
         
         updateComponent(colRemarks, col.getRemarks());
         updateComponent(colDefaultValue, col.getDefaultValue());
         
-        // TODO handle checkboxes
+        boolean inPk;
         if (col.getParentTable() == null) {
-            colInPK.setSelected(SQLColumn.isDefaultInPK());
+            inPk = SQLColumn.isDefaultInPK(); // XXX looks fishy--how can a column be in the PK if it has no parent table?
             logger.debug("new constructed column");
         } else {
-            colInPK.setSelected(col.isPrimaryKey());
+            inPk = col.isPrimaryKey();
             logger.debug("existing column");
         }
+        updateComponent(colInPK, inPk);
         logger.debug("Selected" + colInPK.isSelected());
         
-        colAutoInc.setSelected(col.isAutoIncrement());
-        logger.info("col seq name set? " + col.isAutoIncrementSequenceNameSet());
+        updateComponent(colAutoInc, col.isAutoIncrement());
+        
         updateComponent(colAutoIncSequenceName, col.getAutoIncrementSequenceName());
-        logger.info("col seq name set? " + col.isAutoIncrementSequenceNameSet());
 
-        logger.info("The seq name is: " + col.getAutoIncrementSequenceName());
         updateComponents();
         if (col.getPhysicalName() != null && !col.getPhysicalName().trim().equals("")) {
             discoverSequenceNamePattern(col.getPhysicalName());
@@ -504,7 +506,8 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
 
     /** Subroutine of {@link #updateComponents(SQLColumn)}. */
     private void updateComponent(JTextComponent comp, String expectedValue) {
-        if (componentEnabledMap.get(comp).isSelected() && (comp.getText().equals("") || comp.getText().equals(expectedValue))) {
+        boolean unvisited = comp.getText().equals("");
+        if (componentEnabledMap.get(comp).isSelected() && (unvisited || comp.getText().equals(expectedValue))) {
             comp.setText(expectedValue);
         } else {
             comp.setText("");
@@ -514,8 +517,9 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
     
     /** Subroutine of {@link #updateComponents(SQLColumn)}. */
     private void updateComponent(JComboBox comp, Object expectedValue) {
+        boolean unvisited = comp.getSelectedItem() == null;
         if (componentEnabledMap.get(comp).isSelected() &&
-                (comp.getSelectedItem() == null || comp.getSelectedItem().equals(expectedValue))) {
+                (unvisited || comp.getSelectedItem().equals(expectedValue))) {
             comp.setSelectedItem(expectedValue);
         } else {
             comp.setSelectedItem(null);
@@ -525,8 +529,9 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
     
     /** Subroutine of {@link #updateComponents(SQLColumn)}. */
     private void updateComponent(JSpinner comp, Integer expectedValue) {
+        boolean unvisited = comp.getValue().equals(Integer.valueOf(0));
         if (componentEnabledMap.get(comp).isSelected() &&
-                (comp.getValue().equals(Integer.valueOf(0)) || comp.getValue().equals(expectedValue))) {
+                (unvisited || comp.getValue().equals(expectedValue))) {
             comp.setValue(expectedValue);
         } else {
             comp.setValue(Integer.valueOf(0));
@@ -534,6 +539,21 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         }
     }
     
+    /** Subroutine of {@link #updateComponents(SQLColumn)}. */
+    private void updateComponent(JCheckBox comp, boolean expectedValue) {
+        // Checking if a checkbox was visited is not possible just by examining its value,
+        // so we check for (and store) a client property when we visit it
+        final String multiEditVisitedProperty = "ColumnEditPanel.multiEditVisited";
+        boolean unvisited = comp.getClientProperty(multiEditVisitedProperty) == null;
+        if (componentEnabledMap.get(comp).isSelected() && (unvisited || comp.isSelected() == expectedValue)) {
+            comp.setSelected(expectedValue);
+        } else {
+            comp.setSelected(false);
+            componentEnabledMap.get(comp).setSelected(false);
+        }
+        comp.putClientProperty(multiEditVisitedProperty, Boolean.TRUE);
+    }
+
     /**
      * Figures out what the sequence name prefix and suffix strings are, based
      * on the current contents of the sequence name and column name fields.
@@ -777,7 +797,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
 
     /**
      * The one instance of {@link CheckboxEnabler} that handles events from all
-     * components in this panel.
+     * non-text components in this panel.
      */
     private final CheckboxEnabler checkboxEnabler = new CheckboxEnabler();
     
