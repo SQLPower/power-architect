@@ -3,6 +3,11 @@ for platforms that we do not have a specific distribution
 for.  For example, NetBSD, FreeBSD, OpenBSD, Solaris, and
 all flavours of Linux.
 
+COMPATIBILITY NOTE: If you are using Compiz, you will need at
+least JRE 6u1. There is a known compatibility problem with JRE 5.
+See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6429775
+for details.
+
 To launch the Architect from the command line, do the following:
 
 % java -jar $ARCHITECT_HOME/architect.jar
