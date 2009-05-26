@@ -39,6 +39,8 @@ Good luck with the release!
   PostgreSQL, SQL Server)
  *Try adding the Oracle driver to the driver manager then connect to an Oracle
   database
+ *Try adding the DB2 driver to the driver manager then connect to a DB2 database
+  (this broke in 0.9.13 because of a problem with multiple JAR support in our classloader)
  *Try creating a new database type from scratch (it could just be a new config for
   one of the existing types)
  *Ensure the online help is present
