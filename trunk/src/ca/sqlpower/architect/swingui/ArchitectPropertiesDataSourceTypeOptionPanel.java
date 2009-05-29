@@ -58,7 +58,7 @@ import ca.sqlpower.architect.profile.RemoteDatabaseProfileCreator;
 import ca.sqlpower.architect.profile.RemoteDatabaseProfileCreator.AverageSQLFunction;
 import ca.sqlpower.architect.profile.RemoteDatabaseProfileCreator.CaseWhenNullSQLFunction;
 import ca.sqlpower.architect.profile.RemoteDatabaseProfileCreator.StringLengthSQLFunction;
-import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.swingui.AddRemoveIcon;
@@ -261,7 +261,7 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
     
     private JPanel panel;
     
-    private SPDataSourceType currentDSType;
+    private JDBCDataSourceType currentDSType;
     
     private final JTextField averageSQLFunctionField = new JTextField();
     private final JTextField stringLengthSQLFuncField = new JTextField();
@@ -284,7 +284,7 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
         panel = new JPanel(new BorderLayout());
     }
 
-    public void editDsType(SPDataSourceType dsType) {
+    public void editDsType(JDBCDataSourceType dsType) {
         if (dsType == null) {
             panel.removeAll();
             return;
@@ -331,9 +331,9 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
                 } else {
                     throw new IllegalStateException("No editor defined for the data source type property " + property); 
                 }
-            } else if (property.equals(SPDataSourceType.SUPPORTS_UPDATEABLE_RESULT_SETS)) {
+            } else if (property.equals(JDBCDataSourceType.SUPPORTS_UPDATEABLE_RESULT_SETS)) {
                 updatableRSField.setSelected(Boolean.parseBoolean(dsType.getProperty(property)));
-            } else if (property.equals(SPDataSourceType.DDL_GENERATOR)) {
+            } else if (property.equals(JDBCDataSourceType.DDL_GENERATOR)) {
                 ddlGeneratorCombo.setSelectedItem(KnownDDLGenerators.GENERIC);
                 for (KnownDDLGenerators ddlg : KnownDDLGenerators.values()) {
                     if (dsType.getProperty(property).equals(ddlg.getDDLClassName())) {
@@ -423,8 +423,8 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
             return true;
         }
 
-        currentDSType.putProperty(SPDataSourceType.DDL_GENERATOR, ((KnownDDLGenerators) ddlGeneratorCombo.getSelectedItem()).getDDLClassName());
-        currentDSType.putProperty(SPDataSourceType.SUPPORTS_UPDATEABLE_RESULT_SETS, new Boolean(updatableRSField.isSelected()).toString());
+        currentDSType.putProperty(JDBCDataSourceType.DDL_GENERATOR, ((KnownDDLGenerators) ddlGeneratorCombo.getSelectedItem()).getDDLClassName());
+        currentDSType.putProperty(JDBCDataSourceType.SUPPORTS_UPDATEABLE_RESULT_SETS, new Boolean(updatableRSField.isSelected()).toString());
         currentDSType.putProperty(RemoteDatabaseProfileCreator.propName(AverageSQLFunction.class), averageSQLFunctionField.getText());
         currentDSType.putProperty(RemoteDatabaseProfileCreator.propName(StringLengthSQLFunction.class), stringLengthSQLFuncField.getText());
         currentDSType.putProperty(RemoteDatabaseProfileCreator.propName(CaseWhenNullSQLFunction.class), caseWhenNullSQLFuncField.getText());

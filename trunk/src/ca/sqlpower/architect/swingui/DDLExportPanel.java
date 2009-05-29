@@ -39,7 +39,7 @@ import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
-import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 
@@ -79,7 +79,7 @@ public class DDLExportPanel implements DataEntryPanel {
     /**
      * This is the available data sources that can be forward engineered to.
      */
-    private DataSourceCollection plDotIni;
+    private DataSourceCollection<JDBCDataSource> plDotIni;
 
 	public DDLExportPanel(ArchitectSwingSession session) {
 		this.session = session;
@@ -95,7 +95,7 @@ public class DDLExportPanel implements DataEntryPanel {
         panelProperties.add(targetDB = new JComboBox());
         targetDB.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-                SPDataSource dataSource = (SPDataSource) targetDB.getSelectedItem();  
+                JDBCDataSource dataSource = (JDBCDataSource) targetDB.getSelectedItem();  
                 if (dataSource != null) {
                     String generatorClass = dataSource.getParentType().getDDLGeneratorClass();
                     if (generatorClass != null) {
@@ -207,7 +207,7 @@ public class DDLExportPanel implements DataEntryPanel {
 		}
 		if (selectedGeneratorClass == GenericDDLGenerator.class) {
 			ddlg.setAllowConnection(true);
-			SPDataSource dbcs = (SPDataSource)targetDB.getSelectedItem();
+			JDBCDataSource dbcs = (JDBCDataSource)targetDB.getSelectedItem();
 			if (dbcs == null
 				|| dbcs.getDriverClass() == null
 				|| dbcs.getDriverClass().length() == 0) {
@@ -267,8 +267,8 @@ public class DDLExportPanel implements DataEntryPanel {
 		return panel;
 	}
     
-    public SPDataSource getTargetDB(){
-        return (SPDataSource)targetDB.getSelectedItem();
+    public JDBCDataSource getTargetDB(){
+        return (JDBCDataSource)targetDB.getSelectedItem();
     }
 
     public boolean hasUnsavedChanges() {

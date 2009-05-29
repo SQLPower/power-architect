@@ -43,6 +43,7 @@ import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.SPSUtils;
@@ -131,7 +132,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      */
     private final DataSourceDialogFactory dsDialogFactory = new DataSourceDialogFactory() {
 
-        public JDialog showDialog(Window parentWindow, SPDataSource dataSource, Runnable onAccept) {
+        public JDialog showDialog(Window parentWindow, JDBCDataSource dataSource, Runnable onAccept) {
             return ASUtils.showDbcsDialog(parentWindow, dataSource, onAccept);
         }
         
@@ -372,7 +373,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         exitAfterAllSessionsClosed = allowExit;
     }
 
-    public List<SPDataSource> getConnections() {
+    public List<JDBCDataSource> getConnections() {
         return delegateContext.getConnections();
     }
 

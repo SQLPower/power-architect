@@ -41,7 +41,7 @@ import org.apache.log4j.Logger;
 import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 
 import ca.sqlpower.architect.etl.kettle.KettleJob;
-import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -231,7 +231,7 @@ public class KettleJobPanel implements DataEntryPanel {
         reposPropertiesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Window parentWindow = SPSUtils.getWindowInHierarchy(panel);
-                ASUtils.showDbcsDialog(parentWindow, (SPDataSource)reposDB.getSelectedItem(), null);
+                ASUtils.showDbcsDialog(parentWindow, (JDBCDataSource)reposDB.getSelectedItem(), null);
             }
         });
         
@@ -356,7 +356,7 @@ public class KettleJobPanel implements DataEntryPanel {
         settings.setSchemaName(schemaName.getText());
         settings.setKettleJoinType(defaultJoinType.getSelectedIndex());
         settings.setFilePath(filePath.getText());
-        settings.setRepository((SPDataSource)reposDB.getSelectedItem());
+        settings.setRepository((JDBCDataSource)reposDB.getSelectedItem());
         settings.setSavingToFile(isSaveFile());
     }
 

@@ -66,6 +66,7 @@ import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff.SchemaPo
 import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -260,7 +261,7 @@ public class CompareDMPanel extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 
                 final DataSourceCollection plDotIni = session.getContext().getPlDotIni();
-                final SPDataSource dataSource = new SPDataSource(plDotIni);
+                final JDBCDataSource dataSource = new JDBCDataSource(plDotIni);
                 Runnable onAccept = new Runnable() {
                     public void run() {
                         plDotIni.addDataSource(dataSource);
@@ -731,7 +732,7 @@ public class CompareDMPanel extends JPanel {
                     if (!isSource) {
                         return;
                     }
-                    SPDataSource dataSource = (SPDataSource) databaseDropdown.getSelectedItem();  
+                    JDBCDataSource dataSource = (JDBCDataSource) databaseDropdown.getSelectedItem();  
                     if (dataSource != null) {
                         String generatorClass = dataSource.getParentType().getDDLGeneratorClass();
                         if (generatorClass != null) {
@@ -877,7 +878,7 @@ public class CompareDMPanel extends JPanel {
 		 * SQLDatabase instance if necessary.
 		 */
 		public synchronized SQLDatabase getDatabase() {
-			SPDataSource ds = (SPDataSource) databaseDropdown
+			JDBCDataSource ds = (JDBCDataSource) databaseDropdown
 					.getSelectedItem();
 			if (ds == null) {
 				cachedDatabase = null;
@@ -1385,7 +1386,7 @@ public class CompareDMPanel extends JPanel {
 		else if ( rbs == CompareDMSettings.DatastoreType.FILE )
 			stuff.loadRadio.doClick();
 
-		List<SPDataSource> lds = session.getContext().getConnections();
+		List<? extends SPDataSource> lds = session.getContext().getConnections();
 		for (SPDataSource ds : lds){
 			if (ds.getDisplayName().equals(set.getConnectName())){
 				stuff.databaseDropdown.setSelectedItem(ds);

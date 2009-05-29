@@ -68,6 +68,7 @@ import ca.sqlpower.architect.swingui.action.RemoveSourceDBAction;
 import ca.sqlpower.architect.swingui.action.ShowTableContentsAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -80,9 +81,9 @@ import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.swingui.JDBCDataSourcePanel;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
-import ca.sqlpower.swingui.SPDataSourcePanel;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
@@ -96,7 +97,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected DragSource ds;
 	protected JPopupMenu popup;
 	protected JMenu dbcsMenu;
-	protected SPDataSourcePanel spDataSourcePanel;
+	protected JDBCDataSourcePanel spDataSourcePanel;
 	protected NewDataSourceAction newDBCSAction;
 	private DataSourcePropertiesAction dbcsPropertiesAction;
 	private RemoveSourceDBAction removeDBCSAction;
@@ -698,14 +699,17 @@ public class DBTree extends JTree implements DragSourceListener {
 	            logger.warn("database already exists in this project."); //$NON-NLS-1$
 	            JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.connectionAlreadyExists", dbcs.getDisplayName()), //$NON-NLS-1$
 	                    Messages.getString("DBTree.connectionAlreadyExistsDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
-	        } else {
-	            SQLDatabase newDB = new SQLDatabase(dbcs);
+	        } else if (dbcs instanceof JDBCDataSource) {
+	            SQLDatabase newDB = new SQLDatabase((JDBCDataSource) dbcs);
 	            root.addChild(root.getChildCount(), newDB);
 	            session.getProject().setModified(true);
 	            // start a thread to poke the new SQLDatabase object...
 	            logger.debug("start poking database " + newDB.getName()); //$NON-NLS-1$
 	            PokeDBWorker poker = new PokeDBWorker(newDB);
 	            new Thread(poker, "PokeDB: " + newDB.getName()).start(); //$NON-NLS-1$
+	        } else {
+	            JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.cannotAddConnectionType", dbcs.getClass().toString()), 
+	                    Messages.getString("DBTree.cannotAddConnectionTypeTitle"), JOptionPane.INFORMATION_MESSAGE);
 	        }
 	    } catch (SQLObjectException ex) {
 	        logger.warn("Couldn't add new database to tree", ex); //$NON-NLS-1$
@@ -715,9 +719,9 @@ public class DBTree extends JTree implements DragSourceListener {
 	}
     
     protected class SetConnAsTargetDB extends AbstractAction{
-        SPDataSource dbcs;
+        JDBCDataSource dbcs;
 
-        public SetConnAsTargetDB(SPDataSource dbcs){
+        public SetConnAsTargetDB(JDBCDataSource dbcs){
             super(Messages.getString("DBTree.setAsTargetDbActionName")); //$NON-NLS-1$
             this.dbcs  = dbcs;
         }

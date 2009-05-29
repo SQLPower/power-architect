@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 import ca.sqlpower.sql.DataSourceCollection;
-import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLObjectException;
 
 /**
@@ -76,9 +76,9 @@ public interface ArchitectSessionContext {
      * Tries to read the plDotIni if it hasn't been done already.  If it can't be read,
      * returns null and leaves the plDotIni property as null as well. See {@link #plDotIni}.
      */
-    public DataSourceCollection getPlDotIni();
+    public DataSourceCollection<JDBCDataSource> getPlDotIni();
     
-    public List<SPDataSource> getConnections();
+    public List<JDBCDataSource> getConnections();
     
     /**
      * Sets the plDotIniPath property, and nulls out the current plDotIni

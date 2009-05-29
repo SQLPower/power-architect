@@ -67,6 +67,7 @@ import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -950,7 +951,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         return printSettings;
     }
 
-    public SQLDatabase getDatabase(SPDataSource ds) {
+    public SQLDatabase getDatabase(JDBCDataSource ds) {
         return delegateSession.getDatabase(ds);
     }
 

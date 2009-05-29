@@ -28,13 +28,14 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.etl.kettle.KettleOptions;
+import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.DataEntryPanel;
+
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
-
-import ca.sqlpower.architect.etl.kettle.KettleOptions;
-import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sql.SPDataSourceType;
-import ca.sqlpower.swingui.DataEntryPanel;
 
 /**
  * The KettleDataSourceOptionsPanel is an editor for all data source
@@ -67,7 +68,7 @@ public class KettleDataSourceOptionsPanel implements DataEntryPanel {
      * 
      * @param dbcs The data source to edit.  Null is not allowed.
      */
-    public KettleDataSourceOptionsPanel(SPDataSource dbcs) {
+    public KettleDataSourceOptionsPanel(JDBCDataSource dbcs) {
         this.panel = buildKettleOptionsPanel();
         this.dbcs = dbcs;
         
@@ -98,7 +99,7 @@ public class KettleDataSourceOptionsPanel implements DataEntryPanel {
      * Sets each of the database fields to be enabled only if their
      * data doesn't exist in the url.
      */
-    public void parentTypeChanged(SPDataSourceType dsType) {
+    public void parentTypeChanged(JDBCDataSourceType dsType) {
         Map<String, String> map = dsType.retrieveURLDefaults();
         logger.error(" The map is: " + map); //$NON-NLS-1$
         if (map.containsKey(KettleOptions.KETTLE_HOSTNAME)) {

@@ -39,7 +39,7 @@ import org.apache.log4j.Logger;
 
 import sun.font.FontManager;
 import ca.sqlpower.sql.DataSourceCollection;
-import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -501,8 +501,8 @@ public class TestPlayPen extends TestCase {
     public void testPasteTableAcrossSessions() throws Exception {
         ArchitectSwingSessionContext context = pp.getSession().getContext();
         context.setPlDotIniPath("pl.regression.ini");
-        DataSourceCollection pl = context.getPlDotIni();
-        SPDataSource ds = pl.getDataSource("regression_test");
+        DataSourceCollection<JDBCDataSource> pl = context.getPlDotIni();
+        JDBCDataSource ds = pl.getDataSource("regression_test");
         Connection con = ds.createConnection();
         Statement stmt = con.createStatement();
         stmt.execute("Create table newtable (newcol1 varchar(50), newcol2 varchar(50))");

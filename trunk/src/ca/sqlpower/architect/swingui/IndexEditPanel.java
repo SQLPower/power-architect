@@ -33,7 +33,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
-import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -184,8 +184,8 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
      */
     private List<String> getIndexTypes() {
         List<String> indexTypes = new ArrayList<String>();
-        List<SPDataSourceType> dsTypes = this.session.getContext().getPlDotIni().getDataSourceTypes();
-        for (SPDataSourceType dsType : dsTypes) {
+        List<JDBCDataSourceType> dsTypes = this.session.getContext().getPlDotIni().getDataSourceTypes();
+        for (JDBCDataSourceType dsType : dsTypes) {
             for (int dataTypeCount = 0;; dataTypeCount += 1) {
                 String supportedType = dsType.getProperty(SQLIndex.INDEX_TYPE_DESCRIPTOR + "_" + dataTypeCount); //$NON-NLS-1$
                 if (supportedType == null)

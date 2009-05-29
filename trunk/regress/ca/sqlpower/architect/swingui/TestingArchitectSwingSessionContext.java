@@ -32,8 +32,10 @@ import java.util.prefs.Preferences;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.SpecificDataSourceCollection;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.swingui.RecentMenu;
@@ -52,7 +54,7 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
     /**
      * The parsed list of connections.
      */
-    private DataSourceCollection plDotIni;
+    private DataSourceCollection<JDBCDataSource> plDotIni;
     
     /**
      * The location of the PL.INI file.
@@ -152,28 +154,30 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
         // no op
     }
 
-    public List<SPDataSource> getConnections() {
+    public List<JDBCDataSource> getConnections() {
         return getPlDotIni().getConnections();
     }
 
-    public DataSourceCollection getPlDotIni() {
+    public DataSourceCollection<JDBCDataSource> getPlDotIni() {
         String path = getPlDotIniPath();
         if (path == null) return null;
         
         if (plDotIni == null) {
-            plDotIni = new PlDotIni();
+            PlDotIni<SPDataSource> newPlDotIni = new PlDotIni<SPDataSource>(SPDataSource.class);
             try {
-                plDotIni.read(getClass().getClassLoader().getResourceAsStream("ca/sqlpower/sql/default_database_types.ini"));
+                newPlDotIni.read(getClass().getClassLoader().getResourceAsStream("ca/sqlpower/sql/default_database_types.ini"));
             } catch (IOException e) {
                 throw new SQLObjectRuntimeException(new SQLObjectException("Failed to read system resource default_database_types.ini",e));
             }
             try {
-                if (plDotIni != null) {
-                    plDotIni.read(new File(path));
+                if (newPlDotIni != null) {
+                    newPlDotIni.read(new File(path));
                 }
             } catch (IOException e) {
                 throw new SQLObjectRuntimeException(new SQLObjectException("Failed to read pl.ini at \""+getPlDotIniPath()+"\"", e));
             }
+            
+            plDotIni = new SpecificDataSourceCollection<JDBCDataSource>(newPlDotIni, JDBCDataSource.class);
         }
         return plDotIni;
     }

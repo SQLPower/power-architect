@@ -48,15 +48,16 @@ import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sql.SPDataSourceType;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -152,7 +153,7 @@ public class CoreProject {
     /**
      * This map maps String ID codes to DBCS instances used in loading.
      */
-    protected Map<String, SPDataSource> dbcsLoadIdMap;
+    protected Map<String, JDBCDataSource> dbcsLoadIdMap;
     
     /**
      * This holds mappings from DBCS instance to String ID used in saving.
@@ -183,10 +184,10 @@ public class CoreProject {
      * @param dataSources
      *            Collection of the data sources used in the project
      */
-    public void load(InputStream in, DataSourceCollection dataSources) throws IOException, SQLObjectException {
+    public void load(InputStream in, DataSourceCollection<JDBCDataSource> dataSources) throws IOException, SQLObjectException {
         UnclosableInputStream uin = new UnclosableInputStream(in);
         try {
-            dbcsLoadIdMap = new HashMap<String, SPDataSource>();
+            dbcsLoadIdMap = new HashMap<String, JDBCDataSource>();
             sqlObjectLoadIdMap = new HashMap<String, SQLObject>();
             
             Digester digester = null;
@@ -220,10 +221,10 @@ public class CoreProject {
 
             // hook up data source parent types
             for (SQLDatabase db : (List<SQLDatabase>) dbConnectionContainer.getChildren()) {
-                SPDataSource ds = db.getDataSource();
-                String parentTypeId = ds.getPropertiesMap().get(SPDataSource.DBCS_CONNECTION_TYPE);
+                JDBCDataSource ds = db.getDataSource();
+                String parentTypeId = ds.getPropertiesMap().get(JDBCDataSource.DBCS_CONNECTION_TYPE);
                 if (parentTypeId != null) {
-                    for (SPDataSourceType dstype : dataSources.getDataSourceTypes()) {
+                    for (JDBCDataSourceType dstype : dataSources.getDataSourceTypes()) {
                         if (dstype.getName().equals(parentTypeId)) {
                             ds.setParentType(dstype);
                             // TODO unit test that this works
@@ -447,7 +448,7 @@ public class CoreProject {
      */
     private class DBCSFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
-            SPDataSource dbcs = new SPDataSource(getSession().getContext().getPlDotIni());
+            JDBCDataSource dbcs = new JDBCDataSource(getSession().getContext().getPlDotIni());
             
             String id = attributes.getValue("id");
             if (id != null) {

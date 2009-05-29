@@ -37,7 +37,7 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
@@ -129,7 +129,7 @@ public class TestingArchitectSession implements ArchitectSession {
                 defaultResponseType, defaultResponse, buttonNames);
     }
 
-    public SQLDatabase getDatabase(SPDataSource ds) {
+    public SQLDatabase getDatabase(JDBCDataSource ds) {
         // TODO Auto-generated method stub
         return null;
     }

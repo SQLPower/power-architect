@@ -22,12 +22,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -135,7 +135,7 @@ public class ExportCSV {
      * With the headers
      * DISPLAY_NAME,DRIVER_CLASS,JDBC_URL,USERNAME,PASSWORD,DATABASE_TYPE,ODBC_DSN
      */
-    private StringBuffer dsToCSV(SPDataSource ds) {
+    private StringBuffer dsToCSV(JDBCDataSource ds) {
         StringBuffer buf = new StringBuffer();
       
         if (ds != null && ds.getDisplayName() != null) { 

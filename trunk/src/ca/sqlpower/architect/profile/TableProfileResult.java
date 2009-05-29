@@ -29,9 +29,9 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.util.MonitorableImpl;
@@ -180,7 +180,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * @throws SQLObjectException
      */
     public DDLGenerator getDDLGenerator() throws SQLObjectException {
-        SPDataSource ds = getProfiledObject().getParentDatabase().getDataSource();
+        JDBCDataSource ds = getProfiledObject().getParentDatabase().getDataSource();
         try {
             return DDLUtils.createDDLGenerator(ds);
         } catch (InstantiationException ex) {
