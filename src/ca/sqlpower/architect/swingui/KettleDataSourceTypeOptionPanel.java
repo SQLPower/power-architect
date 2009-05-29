@@ -27,7 +27,7 @@ import javax.swing.JPanel;
 
 import ca.sqlpower.architect.etl.kettle.KettleOptions;
 import ca.sqlpower.architect.etl.kettle.KettleUtils;
-import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.swingui.db.DataSourceTypeEditorTabPanel;
 
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -43,7 +43,7 @@ public class KettleDataSourceTypeOptionPanel implements DataSourceTypeEditorTabP
 
     private JPanel panel;
     private JComboBox kettleConnectionType = new JComboBox();
-    private SPDataSourceType dsType;
+    private JDBCDataSourceType dsType;
     
     public KettleDataSourceTypeOptionPanel() {
         PanelBuilder pb = new PanelBuilder(new FormLayout(
@@ -79,7 +79,7 @@ public class KettleDataSourceTypeOptionPanel implements DataSourceTypeEditorTabP
         return panel;
     }
 
-    public void editDsType(SPDataSourceType dsType) {
+    public void editDsType(JDBCDataSourceType dsType) {
         this.dsType = dsType;
         if (dsType != null && dsType.getKettleNames().size() > 0) {
             kettleConnectionType.setSelectedItem

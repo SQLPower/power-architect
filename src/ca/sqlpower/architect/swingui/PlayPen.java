@@ -118,7 +118,7 @@ import ca.sqlpower.architect.swingui.olap.PaneSection;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
-import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -446,7 +446,7 @@ public class PlayPen extends JPanel
 		// And you get fireworks if you call setDataSource() on a non-playpen connection
 		newdb.setPlayPenDatabase(true);
 
-		SPDataSource dbcs = new SPDataSource(session.getContext().getPlDotIni());
+		JDBCDataSource dbcs = new JDBCDataSource(session.getContext().getPlDotIni());
         newdb.setDataSource(dbcs);
 
 		try {
@@ -457,8 +457,8 @@ public class PlayPen extends JPanel
 		tableNames = new HashSet<String>();
 	}
 
-    public void setDatabaseConnection(SPDataSource dbcs){
-        SPDataSource tSpec = session.getTargetDatabase().getDataSource();
+    public void setDatabaseConnection(JDBCDataSource dbcs){
+        JDBCDataSource tSpec = session.getTargetDatabase().getDataSource();
         tSpec.setDisplayName(dbcs.getDisplayName());
         tSpec.getParentType().setJdbcDriver(dbcs.getDriverClass());
         tSpec.setUrl(dbcs.getUrl());

@@ -25,7 +25,7 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
-import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -172,7 +172,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
         userPrompterFactory = upFactory; 
     }
 
-    public SQLDatabase getDatabase(SPDataSource ds) {
+    public SQLDatabase getDatabase(JDBCDataSource ds) {
         try {
             for (SQLObject obj : (List<SQLObject>) rootObject.getChildren()) {
                 if (((SQLDatabase) obj).getDataSource().equals(ds)) {

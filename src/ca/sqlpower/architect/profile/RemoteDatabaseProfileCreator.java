@@ -29,7 +29,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -52,7 +52,7 @@ import ca.sqlpower.util.MonitorableImpl;
  * column will be calculated; if the remote database is Oracle, the average date
  * will not be calculated. This class looks for the configuration of which
  * aggregate functions work with which data types in the SPDataSourceType of the
- * given SQLTable's data source.  See {@link #createProfileFunctions(SPDataSourceType)}
+ * given SQLTable's data source.  See {@link #createProfileFunctions(JDBCDataSourceType)}
  * for details.
  * <p>
  * For a profiler better suited for use on large tables, see
@@ -210,7 +210,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
             doTableProfile(tpr);
             
             SQLTable table = tpr.getProfiledObject();
-            SPDataSourceType dsType = table.getParentDatabase().getDataSource().getParentType();
+            JDBCDataSourceType dsType = table.getParentDatabase().getDataSource().getParentType();
             createProfileFunctions(dsType);
             for (SQLColumn col : table.getColumns()) {
                 ColumnProfileResult columnResult = new ColumnProfileResult(col, tpr);
@@ -572,7 +572,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
      * function, and case when null SQL function as they are also database
      * specific.
      */
-    private void createProfileFunctions(SPDataSourceType dsType) {
+    private void createProfileFunctions(JDBCDataSourceType dsType) {
         
         profileFunctionMap = new HashMap<String, ProfileFunctionDescriptor>();
         logger.debug("The property to retrieve is " + ProfileFunctionDescriptor.class.getName() + "_(number)");

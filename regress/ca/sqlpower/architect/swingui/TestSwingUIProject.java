@@ -57,15 +57,15 @@ import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
+import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.PlDotIni;
-import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sql.SPDataSourceType;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
@@ -82,7 +82,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	private SwingUIProject project;
 	private static final String ENCODING="UTF-8";
 	private boolean deleteOnExit = false;
-	private PlDotIni plIni;
+	private PlDotIni<JDBCDataSource> plIni;
     private ArchitectSwingSession session;
     private TestingArchitectSwingSessionContext context;
     
@@ -93,7 +93,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         context = new TestingArchitectSwingSessionContext();
         session = context.createSession(false);
         project = session.getProject();
-        plIni = new PlDotIni();
+        plIni = new PlDotIni<JDBCDataSource>(JDBCDataSource.class);
         // TODO add some database types and a test that loading the project finds them
 	}
 
@@ -382,7 +382,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		SPDataSource fakeDataSource = new SPDataSource(new PlDotIni());
+		JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
 		SQLDatabase db = new SQLDatabase() {
 			@Override
 			public Connection getConnection() throws SQLObjectException {
@@ -445,8 +445,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	
 
 	public void testSaveCoversAllCatalogProperties() throws Exception {
-		SPDataSourceType mockType = new SPDataSourceType();
-		SPDataSource ds = new SPDataSource(new PlDotIni());
+		JDBCDataSourceType mockType = new JDBCDataSourceType();
+		JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
         ds.setParentType(mockType);
 		ds.setDisplayName("Schemaless Database");
 		ds.getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
@@ -517,7 +517,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		SPDataSource fakeDataSource = new SPDataSource(new PlDotIni());
+		JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
 		SQLDatabase db = new SQLDatabase();
 		db.setDataSource(fakeDataSource);
 		db.setPopulated(true);
@@ -571,7 +571,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		SPDataSource fakeDataSource = new SPDataSource(new PlDotIni());
+		JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
 		SQLDatabase db = new SQLDatabase();
 		db.setDataSource(fakeDataSource);
 		db.setPopulated(true);
@@ -654,7 +654,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 			DBTree dbTree = session.getSourceDatabases();
 			DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 			
-			SPDataSource fakeDataSource = new SPDataSource(new PlDotIni());
+			JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
 			SQLDatabase db = new SQLDatabase();
 			db.setDataSource(fakeDataSource);
 			db.setPopulated(true);
@@ -1075,7 +1075,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
-        SPDataSource ds = new SPDataSource(new PlDotIni());
+        JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
         ds.setDisplayName("test_database");
         ds.getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
         ds.setUser("fake");
@@ -1101,7 +1101,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
-        SPDataSource ds = new SPDataSource(new PlDotIni());
+        JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
         ds.setDisplayName("test_database");
         ds.getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
         ds.setUser("fake");

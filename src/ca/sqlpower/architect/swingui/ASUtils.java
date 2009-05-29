@@ -46,8 +46,9 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sql.SPDataSourceType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -58,7 +59,7 @@ import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
-import ca.sqlpower.swingui.SPDataSourcePanel;
+import ca.sqlpower.swingui.JDBCDataSourcePanel;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.ExceptionReport;
 
@@ -131,9 +132,9 @@ public class ASUtils {
      */
 	public static void setupTargetDBComboBox(final ArchitectSwingSession session, final JComboBox targetDB) {
         JComboBox newTargetDB = new JComboBox();
-        SPDataSource currentTarget = session.getTargetDatabase().getDataSource();
+        JDBCDataSource currentTarget = session.getTargetDatabase().getDataSource();
         newTargetDB.addItem(currentTarget);
-        for (SPDataSource dbcs : session.getContext().getConnections()) {
+        for (JDBCDataSource dbcs : session.getContext().getConnections()) {
             if(!dbcs.equals(currentTarget)) {
                 newTargetDB.addItem(dbcs);
             }
@@ -142,8 +143,8 @@ public class ASUtils {
         targetDB.setModel(newTargetDB.getModel());
         targetDB.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                SPDataSource projectDS = session.getTargetDatabase().getDataSource();
-                SPDataSource comboBoxDS = (SPDataSource)((JComboBox)e.getSource()).getSelectedItem();
+                JDBCDataSource projectDS = session.getTargetDatabase().getDataSource();
+                JDBCDataSource comboBoxDS = (JDBCDataSource)((JComboBox)e.getSource()).getSelectedItem();
                 if(!projectDS.equals(comboBoxDS)) {
                     projectDS.copyFrom(comboBoxDS);
                 }
@@ -187,7 +188,7 @@ public class ASUtils {
      */
     public static JDialog showDbcsDialog(
             Window parentWindow,
-            SPDataSource dataSource,
+            JDBCDataSource dataSource,
             final Runnable onAccept) {
         
         final DataEntryPanel dbcsPanel = createDataSourceOptionsPanel(dataSource);
@@ -230,8 +231,8 @@ public class ASUtils {
      * 
      * @param ds The data source to edit
      */
-    public static DataEntryPanel createDataSourceOptionsPanel(SPDataSource ds) {
-        final SPDataSourcePanel generalPanel = new SPDataSourcePanel(ds);
+    public static DataEntryPanel createDataSourceOptionsPanel(JDBCDataSource ds) {
+        final JDBCDataSourcePanel generalPanel = new JDBCDataSourcePanel(ds);
         final KettleDataSourceOptionsPanel kettlePanel = new KettleDataSourceOptionsPanel(ds);
 
         TabbedDataEntryPanel p = new TabbedDataEntryPanel();
@@ -242,7 +243,7 @@ public class ASUtils {
         generalPanel.getDataSourceTypeBox().addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
                 JComboBox cb = (JComboBox) e.getSource();
-                SPDataSourceType parentType = (SPDataSourceType) cb.getSelectedItem();
+                JDBCDataSourceType parentType = (JDBCDataSourceType) cb.getSelectedItem();
                 kettlePanel.parentTypeChanged(parentType);
             }
         });

@@ -27,9 +27,9 @@ import org.pentaho.di.core.database.DatabaseMeta;
 
 import ca.sqlpower.architect.etl.kettle.KettleOptions;
 import ca.sqlpower.architect.etl.kettle.KettleUtils;
+import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.PlDotIni;
-import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sql.SPDataSourceType;
 
 public class KettleUtilsTest extends TestCase {
 
@@ -47,11 +47,11 @@ public class KettleUtilsTest extends TestCase {
     }
     
     public void testCreateDatabaseMetaUsingURL() {
-        SPDataSource ds = new SPDataSource(new PlDotIni());
+        JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
         ds.setName("DataSource for Testing");
         ds.setUser("Guest");
         ds.setPass("Guest");
-        SPDataSourceType dsType = ds.getParentType();
+        JDBCDataSourceType dsType = ds.getParentType();
         dsType.setJdbcUrl("<Hostname>:<Port>:<Database>");
         dsType.putProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY, "oracle");
         ds.setUrl("hostname:1234:database");
@@ -68,14 +68,14 @@ public class KettleUtilsTest extends TestCase {
     }
     
     public void testCreateDatabaseMetaUsingProperties() {
-        SPDataSource ds = new SPDataSource(new PlDotIni());
+        JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
         ds.setName("DataSource for Testing");
         ds.setUser("Guest");
         ds.setPass("Guest");
         ds.put(KettleOptions.KETTLE_HOSTNAME_KEY, "Hostname");
         ds.put(KettleOptions.KETTLE_PORT_KEY, "1234");
         ds.put(KettleOptions.KETTLE_DATABASE_KEY, "Database");
-        SPDataSourceType dsType = ds.getParentType();
+        JDBCDataSourceType dsType = ds.getParentType();
         dsType.putProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY, "oracle");
         DatabaseMeta dbMeta = null;
         // If something goes wrong this will throw a RuntimeException
@@ -90,11 +90,11 @@ public class KettleUtilsTest extends TestCase {
     }
     
     public void testCreateDatabaseMetaUsingNulls() {
-        SPDataSource ds = new SPDataSource(new PlDotIni());
+        JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
         ds.setName("DataSource for Testing");
         ds.setUser("Guest");
         ds.setPass("Guest");
-        SPDataSourceType dsType = ds.getParentType();
+        JDBCDataSourceType dsType = ds.getParentType();
         dsType.putProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY, "oracle");
         DatabaseMeta dbMeta = null;
         // If something goes wrong this will throw a RuntimeException

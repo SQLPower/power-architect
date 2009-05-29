@@ -53,12 +53,12 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.TestingArchitectSession;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
+import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.PlDotIni;
-import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sql.SPDataSourceType;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
@@ -113,24 +113,24 @@ public class CreateKettleJobTest extends TestCase {
         session = new TestingArchitectSession(new TestingArchitectSessionContext());
         target = new SQLDatabase();
         target.setName("Target for Testing");
-        SPDataSource ds = new SPDataSource(new PlDotIni());
+        JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
         target.setDataSource(ds);
         ds.setName("Target Data Source for Testing");
         ds.setUser("Guest");
         ds.setPass("Guest");
-        SPDataSourceType dsType = ds.getParentType();
+        JDBCDataSourceType dsType = ds.getParentType();
         dsType.setJdbcUrl("<Hostname>:<Port>:<Database>");
         dsType.putProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY, "oracle");
         ds.setUrl("hostname:1234:database");
         
         SQLDatabase source = new SQLDatabase();
         source.setName("Source for Testing");
-        SPDataSource sourceDS = new SPDataSource(new PlDotIni());
+        JDBCDataSource sourceDS = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
         source.setDataSource(sourceDS);
         sourceDS.setName("Source Data Source for Testing");
         sourceDS.setUser("Guest");
         sourceDS.setPass("Guest");
-        SPDataSourceType sourceDSType = sourceDS.getParentType();
+        JDBCDataSourceType sourceDSType = sourceDS.getParentType();
         sourceDSType.setJdbcUrl("<Hostname>:<Port>:<Database>");
         sourceDSType.putProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY, "oracle");
         sourceDS.setUrl("hostname:1234:database");
@@ -231,7 +231,7 @@ public class CreateKettleJobTest extends TestCase {
         Map<String, DatabaseMeta> databaseNames = new LinkedHashMap<String, DatabaseMeta>();
         KettleJob job = new KettleJob(session);
         try {
-            job.addDatabaseConnection(databaseNames, new SPDataSource(new PlDotIni()));
+            job.addDatabaseConnection(databaseNames, new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class)));
             fail("A runtime exception was not thrown when an invalid data source was passed in");
         } catch (RuntimeException re) {
             assertEquals(1, job.getTasksToDo().size());
@@ -332,7 +332,7 @@ public class CreateKettleJobTest extends TestCase {
     
     public void testCreateRepository() {
         KettleJob job = new KettleJob(session);
-        SPDataSource architectDS = target.getDataSource();
+        JDBCDataSource architectDS = target.getDataSource();
         job.setRepository(architectDS);
         Repository rep = job.createRepository();
         DatabaseMeta dbMeta = rep.getDatabase().getDatabaseMeta();
@@ -659,10 +659,10 @@ public class CreateKettleJobTest extends TestCase {
      * This is a data source that will always return null when it 
      * tries to create a connection. Otherwise it is fully functional.
      */
-    private class ArchitectDataSourceStub extends SPDataSource {
+    private class ArchitectDataSourceStub extends JDBCDataSource {
         
         public ArchitectDataSourceStub() {
-            super(new PlDotIni());
+            super(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
         }
 
         public Connection createConnection() {

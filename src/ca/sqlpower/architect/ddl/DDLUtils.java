@@ -24,8 +24,8 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.sql.DataSourceCollection;
-import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLTable;
 
 /**
@@ -148,9 +148,9 @@ public class DDLUtils {
     /**
      * Finds all DDL Generators configured in the given data source collection.
      */
-    public static Vector<Class<? extends DDLGenerator>> getDDLTypes(DataSourceCollection dsc) {
+    public static Vector<Class<? extends DDLGenerator>> getDDLTypes(DataSourceCollection<JDBCDataSource> dsc) {
         Vector<Class<? extends DDLGenerator>> dbTypeList = new Vector<Class<? extends DDLGenerator>>();
-        for (SPDataSourceType dst : dsc.getDataSourceTypes()) {
+        for (JDBCDataSourceType dst : dsc.getDataSourceTypes()) {
             if (dst.getDDLGeneratorClass() != null) {
                 try {
                     Class<?> loadedClass = Class.forName(dst.getDDLGeneratorClass());
@@ -168,7 +168,7 @@ public class DDLUtils {
 		return dbTypeList;
     }
 
-    public static DDLGenerator createDDLGenerator(SPDataSource ads)
+    public static DDLGenerator createDDLGenerator(JDBCDataSource ads)
                         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 
         Class generatorClass;

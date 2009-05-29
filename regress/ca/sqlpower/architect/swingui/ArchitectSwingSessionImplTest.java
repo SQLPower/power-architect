@@ -27,13 +27,13 @@ import java.sql.Types;
 import java.util.Collections;
 
 import junit.framework.TestCase;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.PlDotIni;
-import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -169,7 +169,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         assertTrue(session.isNew());
         
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
-        session.getProject().load(r, new PlDotIni());
+        session.getProject().load(r, new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
         assertFalse(session.isNew());
     }
     
@@ -215,7 +215,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
     public void testSaveAndLoadRelationshipLineType() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
         ArchitectSwingSession session = context.createSession(false);
-        session.getProject().load(new ByteArrayInputStream(testData.getBytes()), new PlDotIni());
+        session.getProject().load(new ByteArrayInputStream(testData.getBytes()), new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
         
         boolean newValueForStraightLines = !session.getRelationshipLinesDirect();
         session.setRelationshipLinesDirect(newValueForStraightLines);
@@ -224,7 +224,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         session.getProject().save(out, "utf-8");
         
         ArchitectSwingSession loadedSession = context.createSession(false);
-        loadedSession.getProject().load(new ByteArrayInputStream(out.toByteArray()), new PlDotIni());
+        loadedSession.getProject().load(new ByteArrayInputStream(out.toByteArray()), new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
         assertEquals(newValueForStraightLines, loadedSession.getRelationshipLinesDirect());
         
         for (Relationship r : loadedSession.getPlayPen().getRelationships()) {
@@ -235,7 +235,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
     public void testDBTreeChangeUpdatesIsNew() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
         ArchitectSwingSession session = context.createSession(false);
-        session.getSourceDatabases().addSourceConnection(new SPDataSource(context.getPlDotIni()));
+        session.getSourceDatabases().addSourceConnection(new JDBCDataSource(context.getPlDotIni()));
         assertEquals(2, session.getSourceDatabases().getDatabaseList().size());
         assertFalse(session.isNew());
     }

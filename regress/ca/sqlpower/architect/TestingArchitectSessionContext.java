@@ -28,13 +28,13 @@ import java.util.prefs.Preferences;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl;
 import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.PlDotIni;
-import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLObjectException;
 
 public class TestingArchitectSessionContext implements ArchitectSessionContext {
 
-    private DataSourceCollection emptyPlDotIni = new PlDotIni();
+    private DataSourceCollection<JDBCDataSource> emptyPlDotIni = new PlDotIni<JDBCDataSource>(JDBCDataSource.class);
     private Preferences prefs = Preferences.userNodeForPackage(ArchitectSwingSessionContextImpl.class);
 
     public ArchitectSession createSession() throws SQLObjectException {
@@ -47,11 +47,11 @@ public class TestingArchitectSessionContext implements ArchitectSessionContext {
         return s;
     }
 
-    public List<SPDataSource> getConnections() {
+    public List<JDBCDataSource> getConnections() {
         return Collections.emptyList();
     }
 
-    public DataSourceCollection getPlDotIni() {
+    public DataSourceCollection<JDBCDataSource> getPlDotIni() {
         return emptyPlDotIni ;
     }
 

@@ -8,7 +8,7 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.sql.DataSourceCollection;
-import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.JDBCDataSource;
 
 /**
  * When invoked, this action creates a new data source and pops up the
@@ -28,7 +28,7 @@ public class NewDataSourceAction extends AbstractAction {
 
 	public void actionPerformed(ActionEvent e) {
         final DataSourceCollection plDotIni = session.getContext().getPlDotIni();
-        final SPDataSource dataSource = new SPDataSource(plDotIni);
+        final JDBCDataSource dataSource = new JDBCDataSource(plDotIni);
         Runnable onAccept = new Runnable() {
             public void run() {
                 session.getSourceDatabases().addSourceConnection(dataSource);

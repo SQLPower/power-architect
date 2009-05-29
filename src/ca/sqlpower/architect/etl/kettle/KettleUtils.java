@@ -26,8 +26,8 @@ import org.apache.log4j.Logger;
 import org.pentaho.di.core.database.DatabaseInterface;
 import org.pentaho.di.core.database.DatabaseMeta;
 
-import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
 
 public class KettleUtils {
 
@@ -50,13 +50,13 @@ public class KettleUtils {
      * @param target The target datasource to create the DatabaseMeta upon,
      *               can not be null.
      */
-    public static DatabaseMeta createDatabaseMeta(SPDataSource target) {
+    public static DatabaseMeta createDatabaseMeta(JDBCDataSource target) {
         DatabaseMeta databaseMeta;
         
         String databaseName = target.getName();
         String username = target.getUser();
         String password = target.getPass();
-        SPDataSourceType targetType = target.getParentType();
+        JDBCDataSourceType targetType = target.getParentType();
         String connectionType = "";
         if (targetType.getKettleNames().size() > 0) {
             connectionType = targetType.getKettleNames().get(0);

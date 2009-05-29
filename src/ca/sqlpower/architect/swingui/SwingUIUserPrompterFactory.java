@@ -45,7 +45,7 @@ public class SwingUIUserPrompterFactory implements UserPrompterFactory {
         switch (responseType) {
             case BOOLEAN :
                 return new ModalDialogUserPrompter(optionType, defaultResponseType, owner, question, buttonNames);
-            case DATA_SOURCE:
+            case JDBC_DATA_SOURCE:
                 return new DataSourceUserPrompter(optionType, defaultResponseType, (SPDataSource) defaultResponse, owner, question, dsCollection, buttonNames);
             default :
                 throw new UnsupportedOperationException("User prompt type " + responseType + " is unknown.");

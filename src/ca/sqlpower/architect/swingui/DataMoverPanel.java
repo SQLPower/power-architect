@@ -49,6 +49,7 @@ import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.sql.DataMover;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -169,7 +170,7 @@ public class DataMoverPanel {
             }
         }
         for (SPDataSource ds : session.getContext().getConnections()) {
-            treeRoot.addChild(new SQLDatabase(ds));
+            treeRoot.addChild(new SQLDatabase((JDBCDataSource) ds));
         }
     }
     

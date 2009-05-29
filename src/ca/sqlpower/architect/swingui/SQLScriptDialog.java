@@ -58,7 +58,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
-import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.ProgressWatcher;
@@ -90,7 +90,7 @@ public class SQLScriptDialog extends JDialog {
 
 	private JLabel statusLabel;
 
-	private SPDataSource targetDataSource;
+	private JDBCDataSource targetDataSource;
 
 	private JTextPane sqlScriptArea;
 	private AbstractDocument sqlDoc;
@@ -134,7 +134,7 @@ public class SQLScriptDialog extends JDialog {
      *            XXX: this should be specified as a SwingWorkerRegistry
      */
 	public SQLScriptDialog(Dialog owner, String title, String header, boolean modal,
-			DDLGenerator gen, SPDataSource targetDataSource,
+			DDLGenerator gen, JDBCDataSource targetDataSource,
 			boolean closeParent, ArchitectSwingSession session )
 			throws HeadlessException {
 		super(owner, title, modal);
@@ -189,7 +189,7 @@ public class SQLScriptDialog extends JDialog {
 		
 		execute = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
-			    if (targetDataSource.get(SPDataSource.PL_UID) != null) {
+			    if (targetDataSource.get(JDBCDataSource.PL_UID) != null) {
 			        new Thread(executeTask).start();
 			        ProgressWatcher.watchProgress(progressBar, executeTask, statusLabel);
 			    } else {

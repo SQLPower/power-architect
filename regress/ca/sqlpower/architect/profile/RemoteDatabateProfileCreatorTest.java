@@ -39,9 +39,9 @@ import java.util.Collection;
 
 import junit.framework.TestCase;
 import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.PlDotIni;
-import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sql.SPDataSourceType;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -54,18 +54,18 @@ public class RemoteDatabateProfileCreatorTest extends TestCase {
      * A pl.ini instance initialized from the "pl.regression.ini" file.
      * Gets created by setUp().
      */
-    private DataSourceCollection plini;
+    private DataSourceCollection<JDBCDataSource> plini;
     
     /**
      * The testing data source "regression_test" from the plini.
      * Gets created by setUp().
      */
-    private SPDataSource ds; 
+    private JDBCDataSource ds; 
     
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        plini = new PlDotIni();
+        plini = new PlDotIni<JDBCDataSource>(JDBCDataSource.class);
         plini.read(new File("pl.regression.ini"));
         ds = plini.getDataSource("regression_test");
     }
@@ -77,7 +77,7 @@ public class RemoteDatabateProfileCreatorTest extends TestCase {
      * profile function descriptor can succeed.
      */
     public void testDiscoverVarcharFunctionDescriptor() throws Exception {
-        SPDataSourceType dsType = ds.getParentType();
+        JDBCDataSourceType dsType = ds.getParentType();
         clearProfileFunctionDescriptors(dsType);
         
         Connection con = null;
@@ -116,7 +116,7 @@ public class RemoteDatabateProfileCreatorTest extends TestCase {
     /**
      * Removes all ProfileFunctionDescriptor entries from the given database type.
      */
-    private void clearProfileFunctionDescriptors(SPDataSourceType dsType) {
+    private void clearProfileFunctionDescriptors(JDBCDataSourceType dsType) {
         for (int i = 0; ; i++) {
             String key = ProfileFunctionDescriptor.class.getName() + "_" + i;
             String pfd = dsType.getProperty(key);

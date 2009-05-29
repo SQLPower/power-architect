@@ -55,17 +55,18 @@ import org.pentaho.di.trans.steps.tableoutput.TableOutputMeta;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.util.MonitorableImpl;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
-import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLColumn;
-import ca.sqlpower.sqlobject.SQLDatabase;
-import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * This class stores the settings for creating Kettle jobs. This class also creates
@@ -122,7 +123,7 @@ public class KettleJob implements Monitorable {
     /**
      * The SPDataSource representation of the database with the Kettle repository we want to save to
      */
-    private SPDataSource repository;
+    private JDBCDataSource repository;
     
     /**
      * The repository directory chooser that will select, or allow the user to select, the directory to save
@@ -186,7 +187,7 @@ public class KettleJob implements Monitorable {
                 transMeta.setName(table.getName());
                 tableMapping = new LinkedHashMap<SQLTable, StringBuffer>();
 
-                SPDataSource target = targetDB.getDataSource();
+                JDBCDataSource target = targetDB.getDataSource();
                 DatabaseMeta targetDatabaseMeta = addDatabaseConnection(databaseNames, target);
                 transMeta.addDatabase(targetDatabaseMeta);
 
@@ -241,7 +242,7 @@ public class KettleJob implements Monitorable {
                 }
 
                 for (SQLTable sourceTable: tableMapping.keySet()) {
-                    SPDataSource source = sourceTable.getParentDatabase().getDataSource();
+                    JDBCDataSource source = sourceTable.getParentDatabase().getDataSource();
                     DatabaseMeta databaseMeta = addDatabaseConnection(databaseNames, source);
                     transMeta.addDatabase(databaseMeta);
 
@@ -356,7 +357,7 @@ public class KettleJob implements Monitorable {
      * the databaseNames mapping if it does not already exist in the databaseNames.
      * This method is package private for testing
      */
-    DatabaseMeta addDatabaseConnection(Map<String, DatabaseMeta> databaseNames, SPDataSource dataSource) throws RuntimeException {
+    DatabaseMeta addDatabaseConnection(Map<String, DatabaseMeta> databaseNames, JDBCDataSource dataSource) throws RuntimeException {
         DatabaseMeta databaseMeta;
         if (!databaseNames.containsKey(dataSource.getName())) {
             try {
@@ -717,7 +718,7 @@ public class KettleJob implements Monitorable {
         this.savingToFile = savingToFile;
     }
 
-    public void setRepository(SPDataSource source) {
+    public void setRepository(JDBCDataSource source) {
         this.repository = source;
     }
 
