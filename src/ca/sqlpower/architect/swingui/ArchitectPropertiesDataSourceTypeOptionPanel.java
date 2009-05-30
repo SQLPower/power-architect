@@ -424,7 +424,7 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
         }
 
         currentDSType.putProperty(JDBCDataSourceType.DDL_GENERATOR, ((KnownDDLGenerators) ddlGeneratorCombo.getSelectedItem()).getDDLClassName());
-        currentDSType.putProperty(JDBCDataSourceType.SUPPORTS_UPDATEABLE_RESULT_SETS, new Boolean(updatableRSField.isSelected()).toString());
+        currentDSType.putProperty(JDBCDataSourceType.SUPPORTS_UPDATEABLE_RESULT_SETS, String.valueOf(updatableRSField.isSelected()));
         currentDSType.putProperty(RemoteDatabaseProfileCreator.propName(AverageSQLFunction.class), averageSQLFunctionField.getText());
         currentDSType.putProperty(RemoteDatabaseProfileCreator.propName(StringLengthSQLFunction.class), stringLengthSQLFuncField.getText());
         currentDSType.putProperty(RemoteDatabaseProfileCreator.propName(CaseWhenNullSQLFunction.class), caseWhenNullSQLFuncField.getText());
