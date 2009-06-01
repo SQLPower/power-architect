@@ -113,7 +113,7 @@ public class CreateKettleJobTest extends TestCase {
         session = new TestingArchitectSession(new TestingArchitectSessionContext());
         target = new SQLDatabase();
         target.setName("Target for Testing");
-        JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+        JDBCDataSource ds = new JDBCDataSource(new PlDotIni());
         target.setDataSource(ds);
         ds.setName("Target Data Source for Testing");
         ds.setUser("Guest");
@@ -125,7 +125,7 @@ public class CreateKettleJobTest extends TestCase {
         
         SQLDatabase source = new SQLDatabase();
         source.setName("Source for Testing");
-        JDBCDataSource sourceDS = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+        JDBCDataSource sourceDS = new JDBCDataSource(new PlDotIni());
         source.setDataSource(sourceDS);
         sourceDS.setName("Source Data Source for Testing");
         sourceDS.setUser("Guest");
@@ -231,7 +231,7 @@ public class CreateKettleJobTest extends TestCase {
         Map<String, DatabaseMeta> databaseNames = new LinkedHashMap<String, DatabaseMeta>();
         KettleJob job = new KettleJob(session);
         try {
-            job.addDatabaseConnection(databaseNames, new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class)));
+            job.addDatabaseConnection(databaseNames, new JDBCDataSource(new PlDotIni()));
             fail("A runtime exception was not thrown when an invalid data source was passed in");
         } catch (RuntimeException re) {
             assertEquals(1, job.getTasksToDo().size());
@@ -662,7 +662,7 @@ public class CreateKettleJobTest extends TestCase {
     private class ArchitectDataSourceStub extends JDBCDataSource {
         
         public ArchitectDataSourceStub() {
-            super(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+            super(new PlDotIni());
         }
 
         public Connection createConnection() {

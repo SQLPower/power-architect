@@ -33,6 +33,7 @@ import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -98,9 +99,9 @@ public abstract class TestProfileBase extends TestCase {
     public void setUp() throws Exception {
         System.out.println("TestProfileBase.testProfileManager()");
 
-        DataSourceCollection<JDBCDataSource> plini = new PlDotIni<JDBCDataSource>(JDBCDataSource.class);
+        DataSourceCollection<SPDataSource> plini = new PlDotIni();
         plini.read(new File("pl.regression.ini"));
-        JDBCDataSource ds = plini.getDataSource("regression_test");
+        JDBCDataSource ds = plini.getDataSource("regression_test", JDBCDataSource.class);
 
         mydb = new SQLDatabase(ds);
         Connection conn = null;

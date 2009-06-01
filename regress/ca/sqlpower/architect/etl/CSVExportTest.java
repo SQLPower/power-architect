@@ -25,6 +25,7 @@ import junit.framework.TestCase;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -39,7 +40,7 @@ public class CSVExportTest extends TestCase {
     
     protected void setUp() throws Exception {
         super.setUp();
-        DataSourceCollection<JDBCDataSource> plIni = new PlDotIni<JDBCDataSource>(JDBCDataSource.class);
+        DataSourceCollection<SPDataSource> plIni = new PlDotIni();
         JDBCDataSource ds = new JDBCDataSource(plIni);
         SQLDatabase db1 = new SQLDatabase(ds);
         db1.setPhysicalName("db1");

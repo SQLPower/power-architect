@@ -149,7 +149,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
         if (path == null) return null;
         
         if (plDotIni == null) {
-            DataSourceCollection<SPDataSource> newPlDotIni = new PlDotIni<SPDataSource>(SPDataSource.class);
+            DataSourceCollection<SPDataSource> newPlDotIni = new PlDotIni();
             try {
                 logger.debug("Reading PL.INI defaults");
                 newPlDotIni.read(getClass().getClassLoader().getResourceAsStream("ca/sqlpower/sql/default_database_types.ini"));

@@ -44,6 +44,7 @@ import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.Olap4jDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.SPSUtils;
@@ -134,6 +135,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
         public JDialog showDialog(Window parentWindow, JDBCDataSource dataSource, Runnable onAccept) {
             return ASUtils.showDbcsDialog(parentWindow, dataSource, onAccept);
+        }
+
+        public JDialog showDialog(Window parentWindow, Olap4jDataSource dataSource,
+                DataSourceCollection<? super JDBCDataSource> dsCollection, Runnable onAccept) {
+            throw new UnsupportedOperationException("There is no editor dialog for Olap4j connections in Architect.");
         }
         
     };

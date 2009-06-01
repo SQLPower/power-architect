@@ -30,11 +30,12 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SpecificDataSourceCollection;
 import ca.sqlpower.sqlobject.SQLObjectException;
 
 public class TestingArchitectSessionContext implements ArchitectSessionContext {
 
-    private DataSourceCollection<JDBCDataSource> emptyPlDotIni = new PlDotIni<JDBCDataSource>(JDBCDataSource.class);
+    private DataSourceCollection<JDBCDataSource> emptyPlDotIni = new SpecificDataSourceCollection<JDBCDataSource>(new PlDotIni(), JDBCDataSource.class);
     private Preferences prefs = Preferences.userNodeForPackage(ArchitectSwingSessionContextImpl.class);
 
     public ArchitectSession createSession() throws SQLObjectException {

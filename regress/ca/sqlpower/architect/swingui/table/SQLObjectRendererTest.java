@@ -31,7 +31,7 @@ public class SQLObjectRendererTest extends BaseRendererTest {
     /* Test rendering of SQLObjects  */
     public void test5() {
         SQLDatabase db = new SQLDatabase();
-        db.setDataSource(new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class)));
+        db.setDataSource(new JDBCDataSource(new PlDotIni()));
         db.setName("MyName");
 
         // Test with SQLDatabase
