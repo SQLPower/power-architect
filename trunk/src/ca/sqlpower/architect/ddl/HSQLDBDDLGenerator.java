@@ -27,6 +27,7 @@ import java.util.HashMap;
 
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
@@ -41,6 +42,8 @@ import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 public class HSQLDBDDLGenerator extends GenericDDLGenerator {
     
     public static final String GENERATOR_VERSION = "$Revision: 2933 $";
+    
+    private final String REGEX_CRLF = "(\r\n|\n\r|\r|\n)";
 
     public HSQLDBDDLGenerator() throws SQLException {
         super();
@@ -148,5 +151,48 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
     @Override
     public String toString() {
         return "SQL Power HSQLDB DDL Generator " + GENERATOR_VERSION;
+    }
+
+    /**
+     * HSQLDB (as of version 1.8.0.10) does not appear to support remarks. So
+     * addComment() simply prints out a SQL comment containing the remarks from
+     * the user.
+     * 
+     * @param t
+     *            The table to add the comments/remarks to
+     * @param includeColumns
+     *            If true, then remarks for the columns defined in the given
+     *            table will also be printed
+     */
+    @Override
+    public void addComment(SQLTable t, boolean includeColumns) {
+        if (t.getRemarks() != null && t.getRemarks().trim().length() > 0) {
+            print("\n-- Comment for table [" + t.getPhysicalName() + "]: ");
+            print(t.getRemarks().replaceAll(REGEX_CRLF, "\n-- "));
+            endStatement(DDLStatement.StatementType.COMMENT, t);
+
+            if (includeColumns) {
+                addColumnComments(t);
+            }
+        }
+    }
+    
+   /**
+     * HSQLDB (as of version 1.8.0.10) does not appear to support remarks. So
+     * addComment() simply prints out a SQL comment containing the remarks from
+     * the user.
+     * 
+     * @param c
+     *            The {@link SQLColumn} to add the comment/remarks to
+     */
+    @Override
+    public void addComment(SQLColumn c) {
+        if (c.getRemarks() == null || c.getRemarks().trim().length() == 0) return;
+
+        print("\n-- Comment for column [");
+        print(c.getName());
+        print("]: ");
+        print(c.getRemarks().replaceAll(REGEX_CRLF, "\n-- "));
+        endStatement(DDLStatement.StatementType.COMMENT, c);
     }
 }
