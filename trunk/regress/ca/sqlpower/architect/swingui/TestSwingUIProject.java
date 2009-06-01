@@ -82,7 +82,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	private SwingUIProject project;
 	private static final String ENCODING="UTF-8";
 	private boolean deleteOnExit = false;
-	private PlDotIni<JDBCDataSource> plIni;
+	private PlDotIni plIni;
     private ArchitectSwingSession session;
     private TestingArchitectSwingSessionContext context;
     
@@ -93,7 +93,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         context = new TestingArchitectSwingSessionContext();
         session = context.createSession(false);
         project = session.getProject();
-        plIni = new PlDotIni<JDBCDataSource>(JDBCDataSource.class);
+        plIni = new PlDotIni();
         // TODO add some database types and a test that loading the project finds them
 	}
 
@@ -382,7 +382,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+		JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni());
 		SQLDatabase db = new SQLDatabase() {
 			@Override
 			public Connection getConnection() throws SQLObjectException {
@@ -446,7 +446,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
 	public void testSaveCoversAllCatalogProperties() throws Exception {
 		JDBCDataSourceType mockType = new JDBCDataSourceType();
-		JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+		JDBCDataSource ds = new JDBCDataSource(new PlDotIni());
         ds.setParentType(mockType);
 		ds.setDisplayName("Schemaless Database");
 		ds.getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
@@ -517,7 +517,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+		JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni());
 		SQLDatabase db = new SQLDatabase();
 		db.setDataSource(fakeDataSource);
 		db.setPopulated(true);
@@ -571,7 +571,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+		JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni());
 		SQLDatabase db = new SQLDatabase();
 		db.setDataSource(fakeDataSource);
 		db.setPopulated(true);
@@ -654,7 +654,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 			DBTree dbTree = session.getSourceDatabases();
 			DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 			
-			JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+			JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni());
 			SQLDatabase db = new SQLDatabase();
 			db.setDataSource(fakeDataSource);
 			db.setPopulated(true);
@@ -1075,7 +1075,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
-        JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+        JDBCDataSource ds = new JDBCDataSource(new PlDotIni());
         ds.setDisplayName("test_database");
         ds.getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
         ds.setUser("fake");
@@ -1101,7 +1101,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
-        JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+        JDBCDataSource ds = new JDBCDataSource(new PlDotIni());
         ds.setDisplayName("test_database");
         ds.getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
         ds.setUser("fake");

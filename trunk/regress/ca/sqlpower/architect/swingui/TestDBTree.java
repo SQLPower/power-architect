@@ -44,8 +44,8 @@ public class TestDBTree extends TestCase {
 	JDBCDataSource ds;
 	JDBCDataSource db2ds;
 	protected void setUp() throws Exception {
-		ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
-		db2ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+		ds = new JDBCDataSource(new PlDotIni());
+		db2ds = new JDBCDataSource(new PlDotIni());
 
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
@@ -55,7 +55,7 @@ public class TestDBTree extends TestCase {
 	}
 	
 	public void testdbcsAlreadyExists() throws SQLObjectException {
-	    JDBCDataSource ds2 = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+	    JDBCDataSource ds2 = new JDBCDataSource(new PlDotIni());
 		assertTrue("ds2 must .equals ds for this test to work", ds.equals(ds2));
 		assertFalse("dbcsAlreadyExists Should not find ds2", dbTree.dbcsAlreadyExists(ds2));
 		assertTrue("db2ds should be in the list",dbTree.dbcsAlreadyExists(db2ds));
@@ -187,9 +187,9 @@ public class TestDBTree extends TestCase {
 	 * the copy selection list.
 	 */
     public void testTableAddedToCopy() throws Exception {
-        PlDotIni<JDBCDataSource> plIni = new PlDotIni<JDBCDataSource>(JDBCDataSource.class);
+        PlDotIni plIni = new PlDotIni();
         plIni.read(new File("pl.regression.ini"));
-        JDBCDataSource dbcs = plIni.getDataSource("regression_test");
+        JDBCDataSource dbcs = plIni.getDataSource("regression_test", JDBCDataSource.class);
         Connection con = dbcs.createConnection();
         Statement stmt = con.createStatement();
         stmt.execute("CREATE TABLE test1 (col1 varchar(50), col2 varchar(50))");
@@ -215,9 +215,9 @@ public class TestDBTree extends TestCase {
      * the copy selection list even if the table is selected.
      */
     public void testColumnsAddedToCopy() throws Exception {
-        PlDotIni<JDBCDataSource> plIni = new PlDotIni<JDBCDataSource>(JDBCDataSource.class);
+        PlDotIni plIni = new PlDotIni();
         plIni.read(new File("pl.regression.ini"));
-        JDBCDataSource dbcs = plIni.getDataSource("regression_test");
+        JDBCDataSource dbcs = plIni.getDataSource("regression_test", JDBCDataSource.class);
         Connection con = dbcs.createConnection();
         Statement stmt = con.createStatement();
         stmt.execute("CREATE TABLE test2 (col1 varchar(50), col2 varchar(50))");
@@ -251,9 +251,9 @@ public class TestDBTree extends TestCase {
      * added to the copy list.
      */
     public void testCopyTablesWithColumnsSelected() throws Exception {
-        PlDotIni<JDBCDataSource> plIni = new PlDotIni<JDBCDataSource>(JDBCDataSource.class);
+        PlDotIni plIni = new PlDotIni();
         plIni.read(new File("pl.regression.ini"));
-        JDBCDataSource dbcs = plIni.getDataSource("regression_test");
+        JDBCDataSource dbcs = plIni.getDataSource("regression_test", JDBCDataSource.class);
         Connection con = dbcs.createConnection();
         Statement stmt = con.createStatement();
         stmt.execute("CREATE TABLE test3 (col1 varchar(50), col2 varchar(50))");

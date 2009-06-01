@@ -34,7 +34,6 @@ import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.PlDotIni;
-import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SpecificDataSourceCollection;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
@@ -163,7 +162,7 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
         if (path == null) return null;
         
         if (plDotIni == null) {
-            PlDotIni<SPDataSource> newPlDotIni = new PlDotIni<SPDataSource>(SPDataSource.class);
+            PlDotIni newPlDotIni = new PlDotIni();
             try {
                 newPlDotIni.read(getClass().getClassLoader().getResourceAsStream("ca/sqlpower/sql/default_database_types.ini"));
             } catch (IOException e) {

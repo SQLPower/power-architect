@@ -47,7 +47,7 @@ public class KettleUtilsTest extends TestCase {
     }
     
     public void testCreateDatabaseMetaUsingURL() {
-        JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+        JDBCDataSource ds = new JDBCDataSource(new PlDotIni());
         ds.setName("DataSource for Testing");
         ds.setUser("Guest");
         ds.setPass("Guest");
@@ -68,7 +68,7 @@ public class KettleUtilsTest extends TestCase {
     }
     
     public void testCreateDatabaseMetaUsingProperties() {
-        JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+        JDBCDataSource ds = new JDBCDataSource(new PlDotIni());
         ds.setName("DataSource for Testing");
         ds.setUser("Guest");
         ds.setPass("Guest");
@@ -90,7 +90,7 @@ public class KettleUtilsTest extends TestCase {
     }
     
     public void testCreateDatabaseMetaUsingNulls() {
-        JDBCDataSource ds = new JDBCDataSource(new PlDotIni<JDBCDataSource>(JDBCDataSource.class));
+        JDBCDataSource ds = new JDBCDataSource(new PlDotIni());
         ds.setName("DataSource for Testing");
         ds.setUser("Guest");
         ds.setPass("Guest");
