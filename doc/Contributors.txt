@@ -23,6 +23,8 @@ Aaron Niedbala
 Dennis Cheng
 Yefei Wang
 Michelle Samuel
+Michael Hughes
+Thomas Kellerer
 
 ARTWORK
 -------
