@@ -223,24 +223,16 @@ public class DDLExportPanel implements DataEntryPanel {
 			ddlg.setAllowConnection(false);
 		}
 
-		if (catalogField.isEnabled()) {
-			if (catalogField.getText() == null || catalogField.getText().trim().length() == 0) {
-				JOptionPane.showMessageDialog
-				(panel, Messages.getString("DDLExportPanel.provideValidCatalog")); //$NON-NLS-1$
-				return false;
-			} else {	
-				ddlg.setTargetCatalog(catalogField.getText());
-			}
+		if (catalogField.isEnabled() && 
+			catalogField.getText() != null & catalogField.getText().trim().length() > 0) {
+			
+			ddlg.setTargetCatalog(catalogField.getText().trim());
 		}
 		
-		if (schemaField.isEnabled()) {
-			if (schemaField.getText() == null || schemaField.getText().trim().length() == 0) {
-				JOptionPane.showMessageDialog
-				(panel, Messages.getString("DDLExportPanel.provideValidSchema")); //$NON-NLS-1$
-				return false;
-			} else {	
-				ddlg.setTargetSchema(schemaField.getText());
-			}
+		if (schemaField.isEnabled() &&
+			schemaField.getText() != null && schemaField.getText().trim().length() > 0) {
+
+			ddlg.setTargetSchema(schemaField.getText().trim());
 		}
 			
 		return true;
