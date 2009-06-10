@@ -4098,12 +4098,20 @@
 
               <row>
                 <entry>
-                  <para>All remaining fields</para>
+                  <para>All remaining fields (Catalog, Database, Schema, Owner, ...)</para>
                 </entry>
 
                 <entry>
-                  <para>Enter information appropriate to the database type you
-                  selected.</para>
+                  <para>Exactly which fields appear here depends on which target database platform
+                  you choose in the "Generate DDL for Database Type" field. Different database
+                  platforms organize tables in different hierarchies. You can experiment with
+                  choosing different target platform types to see which combinations exist.</para>
+                  
+                  <para>The names you enter here determine the qualifiers that will come before
+                  the names of the tables the script creates and alters.</para>
+                  
+                  <para>In any case, you can choose to leave these fields blank if you wish your
+                  create script to refer to tables (and other objects) by unqualified names.</para>
                 </entry>
               </row>
             </tbody>
