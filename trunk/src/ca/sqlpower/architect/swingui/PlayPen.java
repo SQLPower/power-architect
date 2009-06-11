@@ -139,13 +139,17 @@ import ca.sqlpower.swingui.CursorManager;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 
 /**
  * The PlayPen is the main GUI component of the SQL*Power Architect.
  */
+@SuppressWarnings(
+        justification = "PlayPen is not meant to be serializable",
+        value = {"SE_BAD_FIELD"})
 public class PlayPen extends JPanel
-	implements java.io.Serializable, SQLObjectListener, SelectionListener, Scrollable {
+	implements SQLObjectListener, SelectionListener, Scrollable {
 
     public interface CancelableListener {
 
@@ -1921,7 +1925,7 @@ public class PlayPen extends JPanel
 	 * at the current mouse position.  Also retargets drops to the
 	 * TablePanes when necessary.
 	 */
-	public class PlayPenDropListener implements DropTargetListener {
+	private static class PlayPenDropListener implements DropTargetListener {
 
 		/**
 		 * When the user moves over a container pane, its drop target's
@@ -1930,7 +1934,7 @@ public class PlayPen extends JPanel
 		 * dragExit method will be called, and this variable will
 		 * reference null (or a different table pane).
 		 */
-		protected ContainerPane<?,?> tpTarget;
+		private ContainerPane<?,?> tpTarget;
 
 		/**
 		 * Called while a drag operation is ongoing, when the mouse
@@ -2029,8 +2033,6 @@ public class PlayPen extends JPanel
 			    dtde.rejectDrop();
 			}
 		}
-
-
 
 		/**
 		 * Called if the user has modified the current drop gesture.
@@ -2228,7 +2230,7 @@ public class PlayPen extends JPanel
 	/**
 	 * A nice multi-line translucent label that produces a good drag-and-drop image.
 	 */
-	private class DnDLabel extends JTextArea {
+	private static class DnDLabel extends JTextArea {
 	
         private static final int BORDER_WIDTH = 5;
 
