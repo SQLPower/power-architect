@@ -1076,6 +1076,7 @@ public class PlayPen extends JPanel
 	 * function correctly.  You probably want to use
 	 * getPPComponentCount instead.
 	 */
+    @Deprecated
 	public int getComponentCount() {
 		return super.getComponentCount();
 	}
@@ -1090,6 +1091,7 @@ public class PlayPen extends JPanel
 	 * #findTablePane}, {@link #getRelationships}, or {@link
 	 * #getTablePanes} instead.
 	 */
+    @Deprecated
 	public Component getComponent(int i) {
 		return super.getComponent(i);
 	}
