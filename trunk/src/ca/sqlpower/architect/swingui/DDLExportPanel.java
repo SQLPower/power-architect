@@ -224,7 +224,7 @@ public class DDLExportPanel implements DataEntryPanel {
 		}
 
 		if (catalogField.isEnabled() && 
-			catalogField.getText() != null & catalogField.getText().trim().length() > 0) {
+			catalogField.getText() != null && catalogField.getText().trim().length() > 0) {
 			
 			ddlg.setTargetCatalog(catalogField.getText().trim());
 		}
