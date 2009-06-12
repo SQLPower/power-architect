@@ -163,7 +163,7 @@ public class ASUtils {
             final ArchitectSwingSession session,
             final JComboBox targetDB) {
         
-        JDialog d = showDbcsDialog(parentWindow, session.getTargetDatabase().getDataSource(), null);
+        JDialog d = showDbcsDialog(parentWindow, session.getTargetDatabase().getDataSource(), null, false);
         
         d.addWindowListener(new WindowAdapter(){
                 public void windowClosed(WindowEvent e){
@@ -174,8 +174,8 @@ public class ASUtils {
     }
     
     /**
-     * Pops up a dialog box that lets the user inspect and change the given db's
-     * connection spec.
+     * Works like the 4-argument version of showDbcsDialog where the last argument
+     * (enforceUniqueName) is true.
      * 
      * @param parentWindow
      *            The window that owns the dialog
@@ -190,8 +190,34 @@ public class ASUtils {
             Window parentWindow,
             JDBCDataSource dataSource,
             final Runnable onAccept) {
-        
-        final DataEntryPanel dbcsPanel = createDataSourceOptionsPanel(dataSource);
+        return showDbcsDialog(parentWindow, dataSource, onAccept, true);
+    }
+
+    /**
+     * Pops up a dialog box that lets the user inspect and change the given db's
+     * connection spec.
+     * 
+     * @param parentWindow
+     *            The window that owns the dialog
+     * @param dataSource
+     *            the data source to edit (null not allowed)
+     * @param onAccept
+     *            this runnable will be invoked if the user OKs the dialog and
+     *            validation succeeds. If you don't need to do anything in this
+     *            situation, just pass in null for this parameter.
+     * @param enforceUniqueName
+     *            controls whether or not the dialog will apply its changes when
+     *            the new name for the data source is the same as some other
+     *            name in the session context's list of data sources. You almost always
+     *            want this to be true.
+     */
+    public static JDialog showDbcsDialog(
+            Window parentWindow,
+            JDBCDataSource dataSource,
+            final Runnable onAccept,
+            boolean enforceUniqueName) {
+    
+        final DataEntryPanel dbcsPanel = createDataSourceOptionsPanel(dataSource, enforceUniqueName);
         
         Callable<Boolean> okCall = new Callable<Boolean>() {
             public Boolean call() {
@@ -226,13 +252,20 @@ public class ASUtils {
     }
 
     /**
-     * Creates a tabbed panel for editing various aspects of the given data source.
-     * Currently, the tabs are for General Options and Kettle Options.
+     * Creates a tabbed panel for editing various aspects of the given data
+     * source. Currently, the tabs are for General Options and Kettle Options.
      * 
-     * @param ds The data source to edit
+     * @param ds
+     *            The data source to edit
+     * @param enforceUniqueName
+     *            controls whether or not the dialog will apply its changes when
+     *            the new name for the data source is the same as some other
+     *            name in the session context's list of data sources. You almost
+     *            always want this to be true.
      */
-    public static DataEntryPanel createDataSourceOptionsPanel(JDBCDataSource ds) {
+    public static DataEntryPanel createDataSourceOptionsPanel(JDBCDataSource ds, boolean enforceUniqueName) {
         final JDBCDataSourcePanel generalPanel = new JDBCDataSourcePanel(ds);
+        generalPanel.setEnforcingUniqueName(enforceUniqueName);
         final KettleDataSourceOptionsPanel kettlePanel = new KettleDataSourceOptionsPanel(ds);
 
         TabbedDataEntryPanel p = new TabbedDataEntryPanel();
@@ -256,11 +289,11 @@ public class ASUtils {
 	}
 
 	/**
-	 *
-	 *
-	 */
-	public static List <Point2D.Double> getIntersectPoints(Shape s1, Shape s2) {
-		List <Point2D.Double>list   = new ArrayList();
+     * Returns a list of all the points where line segments of the shapes s1 and
+     * s2 intersect.
+     */
+	public static List<Point2D.Double> getIntersectPoints(Shape s1, Shape s2) {
+		List<Point2D.Double> list = new ArrayList<Point2D.Double>();
 		PathIterator myPI = s1.getPathIterator(null);
 		Line2D.Double myLine = new Line2D.Double();
 		float[] myCoords = new float[6];
