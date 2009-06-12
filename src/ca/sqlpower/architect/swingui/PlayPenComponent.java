@@ -39,6 +39,7 @@ import javax.swing.JPopupMenu;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
@@ -433,12 +434,10 @@ public abstract class PlayPenComponent implements Selectable {
     }
 
     public void setToolTipText(String toolTipText) {
-        if ((toolTipText == null && this.toolTipText == null) 
-                || (toolTipText != null && toolTipText.equals(this.toolTipText))) {
-            return;
+        if (!ArchitectUtils.areEqual(toolTipText, this.toolTipText)) {
+            this.toolTipText = toolTipText;
+            logger.debug("ToolTipText changed to "+toolTipText); //$NON-NLS-1$
         }
-        this.toolTipText = toolTipText;
-        logger.debug("ToolTipText changed to "+toolTipText); //$NON-NLS-1$
     }
 
     public Font getFont() {
