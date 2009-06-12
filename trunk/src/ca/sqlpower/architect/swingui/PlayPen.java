@@ -1116,7 +1116,6 @@ public class PlayPen extends JPanel
 	 * @return A reference to the TablePane that has t as a model, or
 	 * null if no such TablePane is in the play pen.
 	 */
-	@Deprecated
 	public TablePane findTablePane(SQLTable t) {
 		return (TablePane) findPPComponent(t);
 	}
@@ -1172,7 +1171,6 @@ public class PlayPen extends JPanel
 	 * @return A reference to the Relationsip that has r as a model, or
 	 * null if no such Relationship is in the play pen.
 	 */
-	@Deprecated
 	public Relationship findRelationship(SQLRelationship r) {
 		return (Relationship) findPPComponent(r);
 	}
