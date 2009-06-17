@@ -28,6 +28,7 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -96,9 +97,13 @@ public class ExportCSV {
                 } else if (parent instanceof SQLTable){
                     table.append(parent.getPhysicalName());
                 } else if (parent instanceof SQLTable.Folder){
-                    
+                    // no op
+                } else if (parent instanceof SQLObjectRoot){
+                    // no op
                 } else{
-                    throw new SQLObjectException("Invalid object tree, parent should be a database, schema or catalog");
+                    throw new SQLObjectException(
+                            "Unexpected ancestor type " + parent.getClass().getName() +
+                            " for object " + c + ".");
                 }
                 parent = parent.getParent();
             }
