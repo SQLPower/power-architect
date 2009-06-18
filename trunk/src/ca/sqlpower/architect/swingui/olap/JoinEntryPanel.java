@@ -244,7 +244,7 @@ public class JoinEntryPanel implements DataEntryPanel {
             } catch (SQLObjectException e) {
                 throw new RuntimeException(e);
             } //XXX Can't get the catalog from the table so we are currently only looking by name and schema
-            TableContainer container = new TableContainer(model, sqlTable);
+            TableContainer container = new TableContainer(model.getDatabase(), sqlTable);
             model.addTable(container);
             return container;
         } else if (relation instanceof InlineTable) {
