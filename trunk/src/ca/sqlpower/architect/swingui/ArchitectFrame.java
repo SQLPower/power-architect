@@ -55,6 +55,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.tree.TreePath;
@@ -89,8 +90,8 @@ import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.architect.swingui.action.EditTableAction;
 import ca.sqlpower.architect.swingui.action.ExportCSVAction;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction;
-import ca.sqlpower.architect.swingui.action.ExportPlaypenToPDFAction;
 import ca.sqlpower.architect.swingui.action.ExportHTMLReportAction;
+import ca.sqlpower.architect.swingui.action.ExportPlaypenToPDFAction;
 import ca.sqlpower.architect.swingui.action.FocusToChildOrParentTableAction;
 import ca.sqlpower.architect.swingui.action.HelpAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
@@ -799,7 +800,13 @@ public class ArchitectFrame extends JFrame {
 	 */
     @SuppressWarnings("deprecation") //$NON-NLS-1$
 	public static void main(final String args[]) throws SQLObjectException {
-		SwingUtilities.invokeLater(new Runnable() {
+		try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
+        SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
                 try {
                     
