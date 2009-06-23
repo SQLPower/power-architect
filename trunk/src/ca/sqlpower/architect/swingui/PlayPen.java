@@ -2450,7 +2450,7 @@ public class PlayPen extends JPanel
 	    /**
 	     * The max distance from the side the mouse can be to start an auto-scroll
 	     */
-	    private static final int AUTO_SCROLL_INSET = 25; 
+	    private static final int AUTO_SCROLL_INSET = 20; 
 	 
 	    // no of units to be scrolled in each direction 
 	    private Insets scrollUnits = new Insets(AUTO_SCROLL_INSET, AUTO_SCROLL_INSET, AUTO_SCROLL_INSET, AUTO_SCROLL_INSET);
@@ -2516,19 +2516,20 @@ public class PlayPen extends JPanel
 	        pp.revalidate();
 	        Point viewPos = viewport.getViewPosition(); 
 	        Rectangle view = viewport.getViewRect();
-	        int viewHeight = viewport.getExtentSize().height; 
-	        int viewWidth = viewport.getExtentSize().width; 
+	        int viewHeight = viewport.getHeight(); 
+	        int viewWidth = viewport.getWidth(); 
 	        
-	        // performs scrolling 
-	        if ((p.y - viewPos.y) < scrollUnits.top && viewPos.y > 0) { // scroll up 
-	            view.y = cp.getBounds().y;
-	        } if ((viewPos.y + viewHeight - p.y) < scrollUnits.bottom) { // scroll down 
-	            view.y = cp.getBounds().y + cp.getBounds().height - viewHeight;
+	        // performs scrolling
+	        Rectangle bounds = pp.zoomRect(cp.getBounds());
+            if ((p.y - viewPos.y) < scrollUnits.top && viewPos.y > 0) { // scroll up
+                view.y = bounds.y - scrollUnits.top;
+	        } if ((viewPos.y + viewHeight - p.y - bounds.height) < scrollUnits.bottom) { // scroll down 
+	            view.y = bounds.y + bounds.height - viewHeight + scrollUnits.bottom;
 	        } if ((p.x - viewPos.x) < scrollUnits.left && viewPos.x > 0) { // scroll left 
-	            view.x = cp.getBounds().x;
-	        } if ((viewPos.x + viewWidth - p.x) < scrollUnits.right) { // scroll right 
-	            view.x = cp.getBounds().x + cp.getBounds().width - viewWidth;
-	        } 
+	            view.x = bounds.x - scrollUnits.left;
+	        } if ((viewPos.x + viewWidth - p.x - bounds.width) < scrollUnits.right) { // scroll right 
+	            view.x = bounds.x + bounds.width - viewWidth + scrollUnits.right;
+	        }
 	        logger.debug(viewport.getViewPosition());
 	        pp.scrollRectToVisible(view);
 	        // Necessary to stop tables from flashing.
