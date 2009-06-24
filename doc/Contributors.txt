@@ -25,6 +25,7 @@ Yefei Wang
 Michelle Samuel
 Michael Hughes
 Thomas Kellerer
+Israel Rios
 
 ARTWORK
 -------
