@@ -189,10 +189,9 @@ public abstract class PlayPenComponent implements Selectable {
      */
     protected void setBoundsImpl(int x, int y, int width, int height) { 
         Rectangle oldBounds = getBounds(); 
-        PlayPen owner = getPlayPen();
-        if (owner != null) {
-            repaint();
-        }
+        
+        repaint();
+        
         if (logger.isDebugEnabled()) {
             logger.debug("Updating bounds on "+getName() //$NON-NLS-1$
                          +" to ["+x+","+y+","+width+","+height+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
@@ -380,11 +379,21 @@ public abstract class PlayPenComponent implements Selectable {
                         int height) {
         PlayPen owner = getPlayPen();
         if (owner == null) return;
+        
         double zoom = owner.getZoom();
-        owner.repaint((int) Math.floor((double) x * zoom) -1,
-                      (int) Math.floor((double) y * zoom) -1,
-                      (int) Math.ceil((double) width * zoom) + 2,
-                      (int) Math.ceil((double) height * zoom) + 2);
+        
+        int x1 = (int) Math.floor(x * zoom);
+        int y1 = (int) Math.floor(y * zoom);
+        int x2 = (int) Math.ceil((x + width) * zoom);
+        int y2 = (int) Math.ceil((y + height) * zoom);
+        
+        if (owner.isRenderingAntialiased()) {
+            x1--;
+            y1--;
+            x2++;
+            y2++;
+        }
+        owner.repaint(x1, y1, (x2 - x1), (y2 - y1));
     }
     
     public boolean isOpaque() {
