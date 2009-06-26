@@ -1035,14 +1035,14 @@ public static class Cube extends OLAPObject {
                 this is a Table and the schema name is not
                 present, table name is left unqualified.
              */
-    private Relation /* */ fact;
+    private RelationOrJoin /* */ fact;
     
-    public Relation /* */ getFact() {
+    public RelationOrJoin /* */ getFact() {
         return fact;
     }
     
-    public void setFact(Relation /* */ newval) {
-        Relation /* */ oldval = fact;
+    public void setFact(RelationOrJoin /* */ newval) {
+        RelationOrJoin /* */ oldval = fact;
         if (oldval == newval) {
         	return;
         }
@@ -1356,9 +1356,8 @@ public static class Cube extends OLAPObject {
         } else if (child instanceof NamedSet) {
             addNamedSet((NamedSet) child);
         
-        } else if (child instanceof Relation) {
-            setFact((Relation) child);
-        
+        } else if (child instanceof RelationOrJoin) {
+            setFact((RelationOrJoin) child);
         } else {
             super.addChild(child);
         }

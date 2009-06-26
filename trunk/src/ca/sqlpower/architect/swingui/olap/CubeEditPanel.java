@@ -216,6 +216,11 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
             if (selectStatements.getText().trim().length() == 0 && !selects.isEmpty()) {
                 selectStatements.append(selects.get(0).getText());
             }
+        } else if (cube.getFact() instanceof Join) {
+            joinRadioButton.doClick();
+            tableRadioButton.setEnabled(false);
+            tableChooser.setEnabled(false);
+            setJoinFact((Join)cube.getFact());
         } else if (tables.isEmpty()) {
             tableChooser.addItem("Database has no tables");
             viewRadioButton.doClick();
@@ -261,6 +266,8 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
                 sql.setText(selectStatements.getText());
                 view.addSelect(sql);
                 cube.setFact(view);
+            } else if (joinRadioButton.isSelected()) {
+                cube.setFact(joinFact);
             }
             
             cube.setName(nameField.getText());
