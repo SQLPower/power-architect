@@ -299,6 +299,26 @@ public class JoinEntryPanel implements DataEntryPanel {
         
         builder.append(splitPane);
     }
+    
+    /**
+     * This will recursively create a list of the table names in the join.
+     */
+    private List<Relation> getRelationList(Join join) {
+        if (join == null) return null;
+        List<Relation> list = new ArrayList<Relation>();
+        
+        if (join.getLeft() instanceof Join) {
+            list.addAll(getRelationList((Join) join.getLeft()));
+        } else {
+            list.add((Relation) join.getLeft());
+        }
+        if (join.getRight() instanceof Join) {
+            list.addAll(getRelationList((Join) join.getRight()));
+        } else {
+            list.add((Relation) join.getRight());
+        }
+        return list;
+    }
 
     public boolean applyChanges() {
         List<SQLJoin> joins = new ArrayList<SQLJoin>(model.getJoins());
@@ -343,26 +363,6 @@ public class JoinEntryPanel implements DataEntryPanel {
             if (tableToJoinMap.containsKey(rightContainer)) {
                 //if so get the join the right side is involved with and update the joins in the map accordingly
                 Join existingJoin = tableToJoinMap.get(rightContainer);
-
-                if (leftExistingJoin != null && leftExistingJoin == existingJoin) {
-                    
-                    
-                    String invalidJoinStatement = "<html>The join specified contains cycles and cannot be specified in OLAP.\n" +
-                    "Either the cycle needs to be broken by dragging in the same table to duplicate it\n" +
-                    "or a view can be created to represent this join specification.";
-                    final String invalidJoinDialogHeader = "Invalid join specification";
-                    
-                    int retType = JOptionPane.showOptionDialog(panel, invalidJoinStatement, invalidJoinDialogHeader, 
-                            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, 
-                            new Object[]{"Create View", "Cancel"}, "Create View");
-                    if (retType == JOptionPane.OK_OPTION) {
-                        editPanel.setViewSelected();
-                        editPanel.setSelectText(model.generateQuery());
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
                 join.setRightAlias(rightContainer.getName());
                 join.setRight(existingJoin);
                 join.setRightKey(sqlJoin.getRightColumn().getName());
@@ -382,7 +382,35 @@ public class JoinEntryPanel implements DataEntryPanel {
             
         }
         
+        
+        
         if (join != null) {
+            List<Relation> list = getRelationList(join);
+            //search the list for duplicate
+            for (int i = 0; i < list.size(); i++) {
+                Relation relation = list.remove(i);
+                
+                //There is a cycle in the join and therefore mondrian cannot display it properly
+                if (list.indexOf(relation) >= 0) {
+                    String invalidJoinStatement = "<html>The join specified contains cycles and cannot be specified in OLAP.\n" +
+                    "Either the cycle needs to be broken by dragging in the same table to duplicate it\n" +
+                    "or a view can be created to represent this join specification.";
+                    final String invalidJoinDialogHeader = "Invalid join specification";
+                    
+                    int retType = JOptionPane.showOptionDialog(panel, invalidJoinStatement, invalidJoinDialogHeader, 
+                            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, 
+                            new Object[]{"Create View", "Cancel"}, "Create View");
+                    if (retType == JOptionPane.OK_OPTION) {
+                        editPanel.setViewSelected();
+                        editPanel.setSelectText(model.generateQuery());
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+                
+                list.add(i, relation);
+            }
             editPanel.setJoinFact(join);
         }
         return true;
