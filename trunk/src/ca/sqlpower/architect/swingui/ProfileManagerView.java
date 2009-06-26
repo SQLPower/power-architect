@@ -125,6 +125,11 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
      * This is the last value given to doSearch() for the matchExactly property.
      */
     private boolean lastMatchExactValue;
+    
+    /**
+     * True if there is a selected row in showingRows.
+     */
+    private boolean hasProfileSelected = false;
 
     private class ResultListPanel extends JPanel implements Scrollable, SelectionListener {
         
@@ -272,6 +277,15 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
             }
             ignoreSelectionEvents = true;
             
+            hasProfileSelected = false;
+            for (ProfileRowComponent row : showingRows) {
+                if (row.isSelected()) {
+                    hasProfileSelected = true;
+                    break;
+                }
+            }
+            updateSelection();
+            
             ignoreSelectionEvents = false;
         }
 
@@ -280,6 +294,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
                 return;
             }
             ignoreSelectionEvents = true;
+            hasProfileSelected = true;
             ProfileRowComponent selectedRow = (ProfileRowComponent) e.getSource();
             if (e.getMultiselectType() == SelectionEvent.SINGLE_SELECT) {
                 lastSelectedRow = selectedRow;
@@ -304,6 +319,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
                 }
                 showingRows.get(selectedRowIndex).setSelected(true, SelectionEvent.SINGLE_SELECT);
             }
+            updateSelection();
             ignoreSelectionEvents = false;
         }
     }
@@ -379,6 +395,35 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
         }            
     };
 
+    private Action viewAllAction = new AbstractAction(Messages.getString("ProfileManagerView.viewAllActionName")) { //$NON-NLS-1$
+        public void actionPerformed(ActionEvent e) {
+            ProfileResultsViewer profileResultsViewer = 
+                new ProfileResultsViewer(pm);
+            profileResultsViewer.clearScanList();
+            for (ProfileRowComponent rowComp : showingRows) {
+                TableProfileResult result = rowComp.getResult();
+                profileResultsViewer.addTableProfileResultToScan(result);
+                profileResultsViewer.addTableProfileResult(result);
+            }
+            profileResultsViewer.getDialog().setVisible(true);
+        }           
+    };
+    
+    private Action deleteAllAction = new AbstractAction(Messages.getString("ProfileManagerView.deleteAllActionName")) { //$NON-NLS-1$
+        public void actionPerformed(ActionEvent e) {
+            int confirm = JOptionPane.showConfirmDialog(scrollPane,
+                    Messages.getString("ProfileManagerView.confirmDeleteProfileData"), //$NON-NLS-1$
+                    Messages.getString("ProfileManagerView.deleteAllButton") , JOptionPane.YES_NO_OPTION); //$NON-NLS-1$
+            if (confirm == 0) { // 0 == the first Option, which is Yes
+                resultListPanel.removeAll();
+                list.clear();
+                showingRows.clear();
+                pm.clear();
+                resultListPanel.revalidate();
+            }
+        }
+    };
+    
     public ProfileManagerView(final ProfileManager pm) {
         super();
         this.pm = pm;
@@ -453,21 +498,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
         
         JPanel bottomPanel = new JPanel();
         add(bottomPanel, BorderLayout.SOUTH);
-        
  
-        Action viewAllAction = new AbstractAction(Messages.getString("ProfileManagerView.viewAllActionName")) { //$NON-NLS-1$
-            public void actionPerformed(ActionEvent e) {
-                ProfileResultsViewer profileResultsViewer = 
-                    new ProfileResultsViewer(pm);
-                profileResultsViewer.clearScanList();
-                for (ProfileRowComponent rowComp : showingRows) {
-                    TableProfileResult result = rowComp.getResult();
-                    profileResultsViewer.addTableProfileResultToScan(result);
-                    profileResultsViewer.addTableProfileResult(result);
-                }
-                profileResultsViewer.getDialog().setVisible(true);
-            }           
-        };
         bottomPanel.add(new JButton(viewAllAction));
         
         bottomPanel.add(new JButton(viewSelectedAction));
@@ -475,21 +506,6 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
         statusText = new JLabel();
         updateStatus();
         bottomPanel.add(statusText);
-
-        Action deleteAllAction = new AbstractAction(Messages.getString("ProfileManagerView.deleteAllActionName")) { //$NON-NLS-1$
-            public void actionPerformed(ActionEvent e) {
-                int confirm = JOptionPane.showConfirmDialog(scrollPane,
-                        Messages.getString("ProfileManagerView.confirmDeleteProfileData"), //$NON-NLS-1$
-                        Messages.getString("ProfileManagerView.deleteAllButton") , JOptionPane.YES_NO_OPTION); //$NON-NLS-1$
-                if (confirm == 0) { // 0 == the first Option, which is Yes
-                    resultListPanel.removeAll();
-                    list.clear();
-                    showingRows.clear();
-                    pm.clear();
-                    resultListPanel.revalidate();
-                }
-            }
-        };
         bottomPanel.add(new JButton(deleteAllAction));
 
         JButton closeButton = new JButton(Messages.getString("ProfileManagerView.closeButton")); //$NON-NLS-1$
@@ -510,20 +526,34 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
     private void updateStatus() {
         int totalNumber = list.size();
         int numberShowing = showingRows.size();
+        viewAllAction.setEnabled(numberShowing != 0);
+        deleteAllAction.setEnabled(totalNumber != 0);
+        updateSelection();
         statusText.setText(String.format(Messages.getString("ProfileManagerView.profileDisplayStatus"),  //$NON-NLS-1$
                                             numberShowing, 
                                             totalNumber));
     }
     
+    /**
+     * Called when the resultListPanel selection change.
+     */
+    private void updateSelection() {
+        viewSelectedAction.setEnabled(hasProfileSelected);
+    }
+    
     private void updateResultListPanel() {
         resultListPanel.removeAll();
         List<TableProfileResult> tableProfileResults = new ArrayList<TableProfileResult>();
+        hasProfileSelected = false;
         for (ProfileRowComponent r : showingRows) {
             resultListPanel.add(r);
             tableProfileResults.add(r.getResult());
+            if( !hasProfileSelected && r.isSelected() )
+                hasProfileSelected = true;
         }
         pm.setProcessingOrder(tableProfileResults);
         resultListPanel.revalidate();
+        updateSelection();
         logger.debug("Showing rows has contents " + showingRows);
     }
     
@@ -553,7 +583,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener,
         updateStatus();
     }
     
-    private void setComparator(Comparator comparator) {
+    private void setComparator(Comparator<ProfileRowComponent> comparator) {
         this.comparator = comparator;
         doSearch(lastSearchPattern, lastMatchExactValue);
     }
