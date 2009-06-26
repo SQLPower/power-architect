@@ -308,74 +308,79 @@ public class OLAPUtil {
      * Helper method to find the SQLTable that a RelationOrJoin represents.
      * 
      * @param database The database to search for the table in.
-     * @param relation The RelationOrJoin identifying the table.
+     * @param relationOrJoin The RelationOrJoin identifying the table.
      * @return The SQLTable that the given relation represents, or null if non
      *         found.
      * @throws SQLObjectException
      *             if populating the necessary SQLObjects fails
      */
-    private static SQLTable tableForRelationOrJoin(SQLDatabase database, RelationOrJoin relation) throws SQLObjectException {
-        if (relation == null) {
+    private static SQLTable tableForRelationOrJoin(SQLDatabase database, RelationOrJoin relationOrJoin) throws SQLObjectException {
+        if (relationOrJoin == null) {
             return null;
-        } else if (relation instanceof Table) {
-            return getSQLTableFromOLAPTable(database, (Table) relation);
-        } else if (relation instanceof View) {
-            if (((View) relation).getSelects().isEmpty()) {
+        } else if (relationOrJoin instanceof Table) {
+            return getSQLTableFromOLAPTable(database, (Table) relationOrJoin);
+        } else if (relationOrJoin instanceof View) {
+            if (((View) relationOrJoin).getSelects().isEmpty()) {
                 return null;
             }
-            String sql = ((View) relation).getSelects().get(0).getText(); //TODO: Handle having multiple selects in one relation.
-            Connection con = null;
-            Statement stmt = null;
-            ResultSet rs = null;
-            try {
-                con = database.getConnection();
-                stmt = con.createStatement();
-                stmt.setMaxRows(0);
-                rs = stmt.executeQuery(sql);
-                SQLTable table = new SQLTable(database, true);
-                ResultSetMetaData rsmd = rs.getMetaData();
-                
-                for (int i = 1; i <= rsmd.getColumnCount(); i++) {
-                    SQLColumn column = new SQLColumn(table, 
-                            rsmd.getColumnLabel(i), rsmd.getColumnType(i), 
-                            rsmd.getPrecision(i), rsmd.getScale(i));
-                    table.addColumn(column);
-                }
-                
-                return table;
-            } catch (SQLException e) {
-                logger.error("Creating a view on the database " + database.getName() + " running the statement " + sql + " caused an exception.", e);
-                throw new RuntimeException("Creating a view on the database " + database.getName() + " caused an exception.", e);
-            } finally {
-                if (rs != null) {
-                    try {
-                        rs.close();
-                    } catch (SQLException e) {
-                        logger.error("Exception while trying to close a result set used to create a view's table.", e);
-                    }
-                }
-                if (stmt != null) {
-                    try {
-                        stmt.close();
-                    } catch (SQLException e) {
-                        logger.error("Exception while trying to close a statement used to create a view's table.", e);
-                    }
-                }
-                if (con != null) {
-                    try {
-                        con.close();
-                    } catch (SQLException e) {
-                        logger.error("Exception while trying to close a connection used to create a view's table.", e);
-                    }
-                }
-            }
-        } else if (relation instanceof InlineTable) {
+            String sql = ((View) relationOrJoin).getSelects().get(0).getText(); //TODO: Handle having multiple selects in one relation.
+            return getSQLTableFromSQLString(database, sql);
+        } else if (relationOrJoin instanceof InlineTable) {
             throw new UnsupportedOperationException("Inline tables not implemented yet");
-        } else if (relation instanceof Join) {
-            throw new UnsupportedOperationException("Join not implemented yet");
+        } else if (relationOrJoin instanceof Join) {
+            Join join = (Join) relationOrJoin;
+            return getSQLTableFromSQLString(database, generateSQLFromJoin(join));
         } else {
             throw new IllegalStateException("Can't produce SQLTable for unknown Relation type " +
-                    relation.getClass().getName());
+                    relationOrJoin.getClass().getName());
+        }
+    }
+
+    private static SQLTable getSQLTableFromSQLString(SQLDatabase database, String sql) throws SQLObjectException {
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            con = database.getConnection();
+            stmt = con.createStatement();
+            stmt.setMaxRows(0);
+            rs = stmt.executeQuery(sql);
+            SQLTable table = new SQLTable(database, true);
+            ResultSetMetaData rsmd = rs.getMetaData();
+            
+            for (int i = 1; i <= rsmd.getColumnCount(); i++) {
+                SQLColumn column = new SQLColumn(table, 
+                        rsmd.getColumnLabel(i), rsmd.getColumnType(i), 
+                        rsmd.getPrecision(i), rsmd.getScale(i));
+                table.addColumn(column);
+            }
+            
+            return table;
+        } catch (SQLException e) {
+            logger.error("Running the statement " + sql + " on the database " + database.getName() + " caused an exception.", e);
+            throw new RuntimeException("Creating a view on the database " + database.getName() + " caused an exception.", e);
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    logger.error("Exception while trying to close a result set used to create a view's table.", e);
+                }
+            }
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    logger.error("Exception while trying to close a statement used to create a view's table.", e);
+                }
+            }
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                    logger.error("Exception while trying to close a connection used to create a view's table.", e);
+                }
+            }
         }
     }
 
@@ -597,5 +602,66 @@ public class OLAPUtil {
             }
         }
         return true;
+    }
+    
+    
+    
+    public static String generateSQLFromJoin(Join join) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM ");
+        
+        if (join.getLeft() instanceof Table) {
+            Table leftTable = (Table) join.getLeft();
+            if (leftTable.getSchema() != null) {
+                sql.append(leftTable.getSchema()).append(".");
+            }
+            sql.append(leftTable.getName());
+            sql.append(" ");
+            if (leftTable.getAlias() != null) {
+                sql.append(leftTable.getAlias());
+            }
+        } else if (join.getLeft() instanceof Join) {
+            sql.append("(");
+            sql.append(generateSQLFromJoin((Join)join.getLeft()));
+            sql.append(") AS ").append(join.getLeftAlias());
+        } else {
+            throw new UnsupportedOperationException("Join on a " + join.getLeft().getClass() + " is not supported");
+        }
+        
+        sql.append(" JOIN ");
+        
+        if (join.getRight() instanceof Table) {
+            Table rightTable = (Table) join.getRight();
+            if (rightTable.getSchema() != null) {
+                sql.append(rightTable.getSchema()).append(".");
+            }
+            sql.append(rightTable.getName());
+            sql.append(" ");
+            if (rightTable.getAlias() != null) {
+                sql.append(rightTable.getAlias());
+            }
+        } else if (join.getRight() instanceof Join) {
+            sql.append("(");
+            sql.append(generateSQLFromJoin((Join)join.getRight()));
+            sql.append(") AS ").append(join.getRightAlias());
+        } else {
+            throw new UnsupportedOperationException("Join on a " + join.getRight().getClass() + " is not supported");
+        }
+        
+        sql.append(" ON ");
+        if (join.getLeftAlias() != null) {
+            sql.append(join.getLeftAlias()).append(".");
+        } else if (join.getLeft() instanceof Table && ((Table)join.getLeft()).getName() != null) {
+            sql.append(((Table)join.getLeft()).getName()).append(".");
+        }
+        sql.append(join.getLeftKey());
+        sql.append("=");
+        if (join.getRightAlias() != null) {
+            sql.append(join.getRightAlias()).append(".");
+        } else if (join.getRight() instanceof Table && ((Table)join.getRight()).getName() != null) {
+            sql.append(((Table)join.getRight()).getName()).append(".");
+        }
+        sql.append(join.getRightKey());
+        
+        return sql.toString();
     }
 }
