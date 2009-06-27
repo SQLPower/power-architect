@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
-
 package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.Component;
@@ -28,23 +27,28 @@ import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 
 public class OLAPTreeCellRenderer extends DefaultTreeCellRenderer {
-    
-    public OLAPTreeCellRenderer(){
-        super();
-    }
 
-    public Component getTreeCellRendererComponent(JTree tree,
-                                                  Object value,
-                                                  boolean sel,
-                                                  boolean expanded,
-                                                  boolean leaf,
-                                                  int row,
-                                                  boolean hasFocus) {
-        setText(OLAPUtil.nameFor((OLAPObject) value));
-        setIcon(OSUtils.iconFor((OLAPObject) value));
-        this.selected = sel;
-        this.hasFocus = hasFocus;
+	public OLAPTreeCellRenderer() {
+		super();
+	}
 
-        return this;
-    }
+	public Component getTreeCellRendererComponent(JTree tree,
+			Object value,
+			boolean sel,
+			boolean expanded,
+			boolean leaf,
+			int row,
+			boolean hasFocus) {
+		setText(OLAPUtil.nameFor((OLAPObject) value));
+		setIcon(OSUtils.iconFor((OLAPObject) value));
+		this.selected = sel;
+		this.hasFocus = hasFocus;
+		
+		if (sel) {
+			setForeground(getTextSelectionColor());
+		} else {
+			setForeground(getTextNonSelectionColor());
+		}
+		return this;
+	}
 }
