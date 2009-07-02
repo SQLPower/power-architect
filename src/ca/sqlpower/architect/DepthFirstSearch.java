@@ -27,8 +27,9 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -157,7 +158,7 @@ public class DepthFirstSearch {
     
     public DepthFirstSearch(SQLDatabase db) throws SQLObjectException {
         List<SQLTable> tables = new ArrayList<SQLTable>();
-        ArchitectUtils.findDescendentsByClass(db, SQLTable.class, tables);
+        SQLObjectUtils.findDescendentsByClass(db, SQLTable.class, tables);
         performSearch(tables);
     }
     

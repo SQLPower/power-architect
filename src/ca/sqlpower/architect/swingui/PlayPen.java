@@ -438,7 +438,7 @@ public class PlayPen extends JPanel
      */
     public List<SQLTable> getTables() throws SQLObjectException {
         List<SQLTable> tables = new ArrayList<SQLTable>();
-        ArchitectUtils.findDescendentsByClass(session.getTargetDatabase(), SQLTable.class, tables);
+        SQLObjectUtils.findDescendentsByClass(session.getTargetDatabase(), SQLTable.class, tables);
         return tables;
 
     }

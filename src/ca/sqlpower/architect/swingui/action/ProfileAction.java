@@ -29,7 +29,6 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -124,7 +123,7 @@ public class ProfileAction extends AbstractArchitectAction {
                     if ( db != null && sqlObject.contains(db))
                         sqlObject.remove(db);
                 } else if ( tp.getLastPathComponent() instanceof SQLTable.Folder ) {
-                    SQLTable tab = SQLObjectUtils.getAncestor((Folder)tp.getLastPathComponent(),SQLTable.class);
+                    SQLTable tab = SQLObjectUtils.getAncestor((Folder<?>) tp.getLastPathComponent(),SQLTable.class);
                     sqlObject.add(tab);
                     SQLSchema sch = SQLObjectUtils.getAncestor(tab,SQLSchema.class);
                     if ( sch != null && sqlObject.contains(sch))
@@ -156,7 +155,7 @@ public class ProfileAction extends AbstractArchitectAction {
                 if ( o instanceof SQLColumn){
                     tables.add(((SQLColumn)o).getParentTable());
                 } else {
-                    tables.addAll(ArchitectUtils.findDescendentsByClass(o, SQLTable.class, new ArrayList<SQLTable>()));
+                    tables.addAll(SQLObjectUtils.findDescendentsByClass(o, SQLTable.class, new ArrayList<SQLTable>()));
                 }
             }
 
