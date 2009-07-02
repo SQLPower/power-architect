@@ -442,16 +442,15 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			
 			logger.debug("Painting print preview: play pen zoom " + zoom + ", print panel zoom " + PrintPanel.this.zoom + ", page width " + iW);
 
-			g2.scale(zoom, zoom);
 			g2.scale(1/PrintPanel.this.zoom, 1/PrintPanel.this.zoom);
 			g2.setColor(pp.getForeground());
 			for (int i = 0; i <= pagesAcross; i++) {
-				g2.drawLine((int) (i * iW), 0, (int) (i * iW), (int) (scaledHeight*PrintPanel.this.zoom));
+				g2.drawLine((int) (i * iW * zoom), 0, (int) (i * iW * zoom), (int) (scaledHeight*PrintPanel.this.zoom * zoom));
 				if (logger.isDebugEnabled()) logger.debug("Drew page separator at x="+(i*iW)); //$NON-NLS-1$
 			}
 
 			for (int i = 0; i <= pagesDown; i++) {
-				g2.drawLine(0, (int) (i * iH), (int) (scaledWidth*PrintPanel.this.zoom), (int) (i * iH));
+				g2.drawLine(0, (int) (i * iH * zoom), (int) (scaledWidth*PrintPanel.this.zoom * zoom), (int) (i * iH * zoom));
 				if (logger.isDebugEnabled()) logger.debug("Drew page separator at y="+(i*iH)); //$NON-NLS-1$
 			}		
 		}
