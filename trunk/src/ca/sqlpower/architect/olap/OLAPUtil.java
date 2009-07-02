@@ -31,7 +31,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
@@ -427,7 +426,7 @@ public class OLAPUtil {
         SQLDatabase db = osession.getDatabase();
         List<SQLTable> tables;
         if (db != null) {
-            tables = ArchitectUtils.findDescendentsByClass(db, SQLTable.class, new ArrayList<SQLTable>());
+            tables = SQLObjectUtils.findDescendentsByClass(db, SQLTable.class, new ArrayList<SQLTable>());
         } else {
             tables = Collections.emptyList();
         }

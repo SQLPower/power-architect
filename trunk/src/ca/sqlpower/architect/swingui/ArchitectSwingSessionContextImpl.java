@@ -161,9 +161,10 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * Important note: This constructor must be called on the Swing Event Dispatch
      * Thread.  See SwingUtilities.invokeLater() for a way of ensuring this method
      * is called on the proper thread.
+     * 
      * @throws SQLObjectException 
      */
-    ArchitectSwingSessionContextImpl() throws SQLObjectException {
+    public ArchitectSwingSessionContextImpl() throws SQLObjectException {
         delegateContext = new ArchitectSessionContextImpl();
         
         System.setProperty("apple.laf.useScreenMenuBar", "true"); //$NON-NLS-1$ //$NON-NLS-2$

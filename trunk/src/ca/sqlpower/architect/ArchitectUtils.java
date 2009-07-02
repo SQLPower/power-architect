@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Types;
-import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -31,7 +30,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.sqlobject.SQLColumn;
-import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.ExceptionReport;
@@ -85,28 +83,6 @@ public class ArchitectUtils {
 		else if (o1 == null || o2 == null) return false;
 		else return o1.equals(o2);
 	}
-
-    /**
-     * Searches for all SQLObjects under a given starting point which are of the
-     * given type. Keep in mind that if you go after anything lower than
-     * SQLTable, you will invoke many potentially expensive populate() methods.
-     * 
-     * @param source
-     *            the source object (usually the database)
-     */
-	public static <T extends SQLObject>
-	List<T> findDescendentsByClass(SQLObject so, java.lang.Class<T> clazz, List<T> addTo)
-	throws SQLObjectException {
-		if (clazz == so.getClass()) {
-			addTo.add(clazz.cast(so));
-		} else {
-			for (SQLObject child : (List<? extends SQLObject>) so.getChildren()) {
-				findDescendentsByClass(child, clazz, addTo);
-			}
-		}
-		return addTo;
-	}
-
 
 	/**
 	 * Chop long strings down to size for display purposes

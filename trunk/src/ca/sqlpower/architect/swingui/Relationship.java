@@ -575,10 +575,9 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
                 (new ActionEvent(evt.getSource(),
                         ActionEvent.ACTION_PERFORMED,
                         PlayPen.ACTION_COMMAND_SRC_PLAYPEN));
-            } else if (evt.getClickCount() == 1 && evt.getButton() == MouseEvent.BUTTON1){
-                if (isSelected() && componentPreviouslySelected) {
-                    setSelected(false, SelectionEvent.SINGLE_SELECT);
-                }
+            } else if (evt.getClickCount() == 1 && evt.getButton() == MouseEvent.BUTTON1 &&
+                    isSelected() && componentPreviouslySelected) {
+                setSelected(false, SelectionEvent.SINGLE_SELECT);
             }
             session.getArchitectFrame().getCreateIdentifyingRelationshipAction().cancel();
             session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
