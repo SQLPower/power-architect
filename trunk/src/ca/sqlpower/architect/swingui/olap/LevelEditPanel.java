@@ -20,7 +20,6 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -51,15 +50,17 @@ import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
 import ca.sqlpower.architect.olap.MondrianModel.Property;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
+import ca.sqlpower.architect.olap.MondrianModel.Level.LevelType;
 import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.table.EditableJTable;
 import ca.sqlpower.validation.Status;
@@ -83,6 +84,13 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
     private JTextField captionField;
     private JComboBox columnChooser;
     private JCheckBox uniqueMembers;
+    
+    /**
+     * A combo box used to select level type. Since the LevelType attribute is
+     * only currently being used in Mondrian for Time Dimensions, it will only
+     * appear if the parent Dimension is of type TimeDimension.
+     */
+    private JComboBox levelType;
     
     private PropertiesEditPanel propertiesPanel;
 
@@ -119,6 +127,19 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
         }
  
         Hierarchy hierarchy = (Hierarchy) level.getParent();
+
+        Dimension dimension = (Dimension) hierarchy.getParent();
+        
+        // Currently, the levelType attribute appears to only apply to Time Dimensions
+        if (dimension.getType().equals("TimeDimension")) {
+            builder.append("Level Type", levelType = new JComboBox(LevelType.values()));
+            if (level.getLevelType() != null) {
+                levelType.setSelectedItem(LevelType.valueOf(level.getLevelType()));
+            } else {
+                levelType.setSelectedItem(LevelType.values()[0]);
+            }
+        }
+        
         SQLTable dimensionTable = OLAPUtil.tableForHierarchy(hierarchy);
         
         // if the hierarchy's table was not set, then we try to find it from elsewhere.
@@ -217,6 +238,16 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
         }else{
             level.setUniqueMembers(false);        
         }
+        if (levelType != null) {
+            LevelType newType = (LevelType) levelType.getSelectedItem();
+            if (newType != null) {
+                level.setLevelType(newType.toString());
+            } else {
+                level.setLevelType(LevelType.values()[0].toString());
+            }
+        } else {
+            level.setLevelType(null);
+        }
         level.endCompoundEdit();
         return true;
     }
@@ -304,7 +335,7 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
             handler.addValidateObject(propertiesTab, new PropertiesTableNameValidator());
             
             JScrollPane sp = new JScrollPane(propertiesTab);
-            sp.setPreferredSize(new Dimension(200, 200));
+            sp.setPreferredSize(new java.awt.Dimension(200, 200));
             add(sp, BorderLayout.CENTER);
             
             ButtonStackBuilder bsb = new ButtonStackBuilder();
