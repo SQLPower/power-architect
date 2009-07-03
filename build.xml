@@ -22,7 +22,7 @@
 	<property name="lib" value="lib"/>
 	
 	<!-- The target build directory for compiled classes, docs,
-	     tests, and more. The contents of this dir will eventually
+	     resources, and more. The contents of this dir will eventually
 	     get added to the architect.jar file. -->
 	<property name="build" value="build"/>
 	
@@ -30,8 +30,12 @@
 	
 	<!-- The target build directory for compiled test classes.
 		 The contents of this directory will get excluded form the architect.jar. -->
-	<property name="build.tests" value="${build}/tests"/>
-	
+	<property name="build.tests" value="build_tests"/>
+
+	<!-- The target build directory for compiled example classes.
+		 The contents of this directory will get excluded form the architect.jar. -->
+	<property name="build.examples" value="build_examples"/>
+
 	<!-- The java compiler to use. See Ant docs for details. -->
 	<property name="build.compiler" value="modern"/>
 
@@ -385,8 +389,8 @@
 			debug="true"/>
 	</target>
 	
-	<!-- Compiles the regression test suite -->
-	<target name="compile-tests" depends="compile">
+	<target name="compile-tests" depends="compile"
+		description="Compiles the regression test suite">
 		<ant dir="${sqlpower.library.home}" target="compile-tests">
 			<property name="build" value="${sqlpower.library.home}/build"/>
 		</ant>
@@ -396,8 +400,17 @@
 			debug="true"/>
 	</target>
 
-    <!-- copies non-source files that need to be in the architect.jar. -->
-	<target name="copyfiles" depends="init, architect.version.properties">
+	<!-- This target is run as part of the CI build in order to validate the example code -->
+	<target name="compile-examples" depends="compile"
+		description="Compiles the example code that demonstrates use of the API">
+		<mkdir dir="${build.examples}"/>
+		<javac srcdir="example_code" destdir="${build.examples}"
+			classpathref="test.classpath"
+			debug="true"/>
+	</target>
+
+	<target name="copyfiles" depends="init, architect.version.properties"
+		description="Copies non-source files that need to be in the architect.jar">
         <copy todir="${build}">
 			<fileset dir="src/">
 				<include name="**"/>
@@ -748,6 +761,8 @@
 
 	<target name="clean" depends="init">
 		<delete dir="${build}"/>
+		<delete dir="${build.tests}"/>
+		<delete dir="${build.examples}"/>
 		<delete><fileset dir="${dist.dir}" includes="lib,Power*Architect.app,architect.jar"/></delete>
 		<delete dir="webstart/lib"/>
 		<delete dir="${staging.dir}"/>
@@ -758,7 +773,8 @@
 		<delete dir="${dist.base}" />
 	</target>
 
-	<path id="compile.classpath">
+	<path id="compile.classpath"
+		description="All the build-time dependencies of the Architect code">
 		<fileset dir="lib">
 			<include name="*.jar"/>
 		</fileset>
@@ -770,7 +786,8 @@
 		</fileset>
 	</path>
 
-	<path id="test.classpath">
+	<path id="test.classpath"
+		description="All the run-time dependencies of the Architect code, including the compiles Architect code itself">
 		<pathelement location="${build}"/>
 		<pathelement location="${sqlpower.library.home}/build/tests"/>
 		<fileset dir="lib">
@@ -1296,7 +1313,7 @@
 	<target name="jdbc_dist" depends="windows_jdbc_exe_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
 	<target name="no_jdbc_dist" depends="windows_exe_installer,generic_install,osx_tgz,osx_dmg" />
 
-	<target name="dist" depends="pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,source_only_tgz, architect.version.properties,downloadpage"
+	<target name="dist" depends="compile-examples,pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,source_only_tgz, architect.version.properties,downloadpage"
 	        description="Builds Architect Distribution for all supported platforms to dist/architect-version/*">
 		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
 		<mkdir dir="${dist.dir}/doc"/>
