@@ -18,19 +18,8 @@
  */
 package ca.sqlpower.architect.swingui.action;
 
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.swingui.SPSUtils;
-import ca.sqlpower.util.BrowserUtil;
-import ca.sqlpower.util.XsltTransformation;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.factories.ButtonBarFactory;
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.EventQueue;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Closeable;
@@ -43,6 +32,7 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.prefs.Preferences;
+
 import javax.swing.AbstractAction;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
@@ -57,22 +47,32 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.swingui.JDefaultButton;
+import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.BrowserUtil;
+import ca.sqlpower.util.XsltTransformation;
+
+import com.jgoodies.forms.builder.DefaultFormBuilder;
+import com.jgoodies.forms.debug.FormDebugPanel;
+import com.jgoodies.forms.factories.ButtonBarFactory;
+import com.jgoodies.forms.layout.FormLayout;
 
 /**
- *
  * A panel to select the XSLT stylesheet and the output file to be generated.
- *
+ * <p>
  * The panel has a start and close button so that it is self-contained.
  * showDialog() will display this panel in a non-modal JDialog.
- *
- * The last 15 selected XSLT transformations will be remembered and made available
- * through a dropdown box.
+ * <p>
+ * The last 15 selected XSLT transformations will be remembered and made
+ * available through a dropdown box.
  */
-public class ExportHTMLPanel
-		extends JPanel
-		implements ActionListener {
+public class ExportHTMLPanel {
 
 	private static final Logger logger = Logger.getLogger(ExportHTMLPanel.class);
 	
@@ -87,13 +87,15 @@ public class ExportHTMLPanel
 
 	private JLabel statusBar;
 	
-	private ArchitectSwingSession session;
+	private final ArchitectSwingSession session;
 
 	private JDialog dialog;
 
 	private static final String ENCODING = "UTF-8";
 	private PipedOutputStream xmlOutputStream;
 	private FileOutputStream result;
+
+    private final JPanel panel;
 
 	private static final String PREF_KEY_BUILTIN = "htmlgen.builtin";
 	private static final String PREF_KEY_LAST_XSLT = "htmlgen.lastxslt";
@@ -103,9 +105,14 @@ public class ExportHTMLPanel
 	
 	public ExportHTMLPanel(ArchitectSwingSession architect) {
 
-		super(new BorderLayout());
 		session = architect;
-		JPanel content = new JPanel(new GridBagLayout());
+		FormLayout layout = new FormLayout("10dlu, 3dlu, pref:grow, 3dlu, pref");
+		DefaultFormBuilder builder;
+		if (logger.isDebugEnabled()) {
+		    builder = new DefaultFormBuilder(layout, new FormDebugPanel());
+		} else {
+		    builder = new DefaultFormBuilder(layout);
+		}
 
 		ButtonGroup group = new ButtonGroup();
 		builtin = new JRadioButton(Messages.getString("XSLTSelectionPanel.labelBuiltIn"));
@@ -114,99 +121,68 @@ public class ExportHTMLPanel
 		group.add(external);
 
 		// place Radio buttons
-		GridBagConstraints cc = new GridBagConstraints();
-		cc.gridx = 0;
-		cc.gridy = 0;
-		cc.anchor = GridBagConstraints.WEST;
-		cc.gridwidth = 3;
-		content.add(builtin, cc);
-
-		cc = new GridBagConstraints();
-		cc.gridx = 0;
-		cc.gridy = 1;
-		cc.anchor = GridBagConstraints.WEST;
-		cc.gridwidth = 3;
-		content.add(external, cc);
+		builder.append(builtin, 5);
+		
+		builder.appendUnrelatedComponentsGapRow();
+		builder.nextLine();
+        builder.nextLine();
+		
+		builder.append(external, 5);
 
 		// Selection of XSLT file
-		cc = new java.awt.GridBagConstraints();
-		cc.gridx = 0;
-		cc.gridy = 2;
-		cc.anchor = GridBagConstraints.WEST;
-		content.add(new JLabel(Messages.getString("XSLTSelectionPanel.labelTransformation")), cc);
-		
 		xsltFile = new JComboBox();
 		xsltFile.setRenderer(new ComboTooltipRenderer());
 		xsltFile.setEditable(true);
-		cc = new GridBagConstraints();
-		cc.gridx = 1;
-		cc.gridy = 2;
-		cc.fill = GridBagConstraints.HORIZONTAL;
-		cc.weightx = 1.0;
-		cc.insets = new java.awt.Insets(0, 6, 0, 0);
-		content.add(xsltFile, cc);
 
+		builder.append("");
+		builder.append(xsltFile);
+		
 		selectXslt = new JButton("...");
-		cc = new GridBagConstraints();
-		cc.gridx = 2;
-		cc.gridy = 2;
-		cc.insets = new java.awt.Insets(0, 6, 0, 7);
-		content.add(selectXslt, cc);
+		builder.append(selectXslt);
 
+		builder.appendUnrelatedComponentsGapRow();
+        builder.nextLine();
+        builder.nextLine();
+		
 		// Output selection
-		cc = new java.awt.GridBagConstraints();
-		cc.gridx = 0;
-		cc.gridy = 3;
-		cc.anchor = GridBagConstraints.WEST;
-		content.add(new JLabel(Messages.getString("XSLTSelectionPanel.labelOutput")), cc);
-
+		builder.append(new JLabel(Messages.getString("XSLTSelectionPanel.labelOutput")), 5);
+		builder.nextLine();
+		
 		outputFile = new JTextField(30);
-		cc = new GridBagConstraints();
-		cc.gridx = 1;
-		cc.gridy = 3;
-		cc.fill = GridBagConstraints.HORIZONTAL;
-		cc.weightx = 1.0;
-		cc.insets = new java.awt.Insets(0, 6, 0, 0);
-		content.add(outputFile, cc);
+		builder.append("", outputFile);
 
 		selectOutput = new JButton("...");
-		cc = new GridBagConstraints();
-		cc.gridx = 2;
-		cc.gridy = 3;
-		cc.insets = new java.awt.Insets(0, 6, 0, 7);
-		content.add(selectOutput, cc);
+		builder.append(selectOutput);
 
-		// "Statusbar"
-		cc = new GridBagConstraints();
-		cc.gridx = 0;
-		cc.gridy = 4;
-		cc.gridwidth = 3;
-		cc.fill = java.awt.GridBagConstraints.HORIZONTAL;
-		cc.anchor = java.awt.GridBagConstraints.NORTHWEST;
-		cc.weighty = 1.0;
-		cc.insets = new java.awt.Insets(6, 0, 0, 6);
-		statusBar = new JLabel(" ");
-
-		content.add(statusBar, cc);
+		builder.appendUnrelatedComponentsGapRow();
+        builder.nextLine();
+        builder.nextLine();
 		
-		selectXslt.addActionListener(this);
-		selectOutput.addActionListener(this);
-		builtin.addActionListener(this);
-		external.addActionListener(this);
+		// "Statusbar"
+		statusBar = new JLabel(" ");
+		builder.append(statusBar, 5);
+
+		builder.appendUnrelatedComponentsGapRow();
+        builder.nextLine();
+
+		selectXslt.addActionListener(componentStateHandler);
+		selectOutput.addActionListener(componentStateHandler);
+		builtin.addActionListener(componentStateHandler);
+		external.addActionListener(componentStateHandler);
 		builtin.setSelected(true);
 
-		add(content, BorderLayout.CENTER);
-
-		startButton = new JButton(Messages.getString("XSLTSelectionPanel.startOption"));
-		startButton.addActionListener(this);
+		startButton = new JDefaultButton(Messages.getString("XSLTSelectionPanel.startOption"));
+		startButton.addActionListener(componentStateHandler);
 		
 		closeButton = new JButton(Messages.getString("XSLTSelectionPanel.closeOption"));
-		closeButton.addActionListener(this);
+		closeButton.addActionListener(componentStateHandler);
 
+		builder.nextLine();
 		JPanel bp = ButtonBarFactory.buildRightAlignedBar(startButton, closeButton);
-		add(bp, BorderLayout.SOUTH);
+		builder.append(bp, 5);
 
-		setBorder(Borders.DIALOG_BORDER);
+		builder.setDefaultDialogBorder();
+		panel = builder.getPanel();
 		
 		restoreSettings();
 	}
@@ -229,7 +205,8 @@ public class ExportHTMLPanel
 					closeDialog();
 				}
 			});
-			dialog.setContentPane(this);
+			dialog.setContentPane(panel);
+			dialog.getRootPane().setDefaultButton(startButton);
 			dialog.pack();
 			dialog.setLocationRelativeTo(frame);
 		}
@@ -261,24 +238,26 @@ public class ExportHTMLPanel
 		return outputFile.getText();
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == selectXslt) {
-			selectXslt();
-		} else if (e.getSource() == selectOutput) {
-			selectOutput();
-		} else if (e.getSource() == startButton) {
-			transformFile();
-		} else if (e.getSource() == closeButton) {
-			closeDialog();
-		} else if (e.getSource() == xsltFile) {
-			checkDropDown();
-		} else if (e.getSource() == builtin) {
-			checkDropDown();
-		} else if (e.getSource() == external) {
-			checkDropDown();
-		}
-	}
-
+	private final ActionListener componentStateHandler = new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+	        if (e.getSource() == selectXslt) {
+	            selectXslt();
+	        } else if (e.getSource() == selectOutput) {
+	            selectOutput();
+	        } else if (e.getSource() == startButton) {
+	            transformFile();
+	        } else if (e.getSource() == closeButton) {
+	            closeDialog();
+	        } else if (e.getSource() == xsltFile) {
+	            checkDropDown();
+	        } else if (e.getSource() == builtin) {
+	            checkDropDown();
+	        } else if (e.getSource() == external) {
+	            checkDropDown();
+	        }
+	    }
+	};
+	
 	private void checkDropDown() {
 		File f = this.getXsltFile();
 		if (f == null) {
@@ -390,7 +369,7 @@ public class ExportHTMLPanel
 		JFileChooser chooser = new JFileChooser(session.getProject().getFile());
 		chooser.addChoosableFileFilter(SPSUtils.XSLT_FILE_FILTER);
 		chooser.setDialogTitle(Messages.getString("XSLTSelectionPanel.selectXsltTitle"));
-		int response = chooser.showOpenDialog(session.getArchitectFrame());
+		int response = chooser.showOpenDialog(dialog);
 		if (response != JFileChooser.APPROVE_OPTION) {
 			return;
 		}
