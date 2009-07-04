@@ -189,8 +189,8 @@ public class ExportHTMLPanel {
 
 	/**
 	 * Displays this selection panel to the user.
+	 * The dialog is non-modal
 	 *
-	 * @return true if the user clicked OK, false otherwise
 	 */
 	public void showDialog() {
 
@@ -234,6 +234,10 @@ public class ExportHTMLPanel {
 		return null;
 	}
 
+	/**
+	 * Returns the filename of the (user-selected) output file.
+	 *
+	 */
 	public String getOutputFilename() {
 		return outputFile.getText();
 	}
@@ -249,25 +253,29 @@ public class ExportHTMLPanel {
 	        } else if (e.getSource() == closeButton) {
 	            closeDialog();
 	        } else if (e.getSource() == xsltFile) {
-	            checkDropDown();
+	            updateDropDownToolTip();
 	        } else if (e.getSource() == builtin) {
-	            checkDropDown();
+	            xsltFile.setEnabled(external.isSelected());
 	        } else if (e.getSource() == external) {
-	            checkDropDown();
+	            xsltFile.setEnabled(external.isSelected());
 	        }
 	    }
 	};
 	
-	private void checkDropDown() {
+	private void updateDropDownToolTip() {
 		File f = this.getXsltFile();
-		if (f == null) {
-			builtin.setSelected(true);
-			xsltFile.setEnabled(false);
-		} else {
-			external.setSelected(true);
-			xsltFile.setEnabled(true);
+		if (f != null) {
 			xsltFile.setToolTipText(getFullName(f));
 		}
+	}
+
+	private void setXsltFile(File xslt)	{
+		ComboBoxFile cf = new ComboBoxFile(xslt);
+		external.setSelected(true);
+		xsltFile.setEnabled(true);
+		xsltFile.addItem(cf);
+		xsltFile.setSelectedItem(cf);
+		xsltFile.setToolTipText(getFullName(xslt));
 	}
 
 	private void syncDropDown() {
@@ -297,6 +305,8 @@ public class ExportHTMLPanel {
 		prefs.putBoolean(PREF_KEY_BUILTIN, builtin.isSelected());
 		prefs.put(PREF_KEY_OUTPUT, outputFile.getText());
 
+		// Add any pasted filename to the dropdown's model, so that it
+		// stored correctly in the user preferences
 		syncDropDown();
 		
 		File f = getXsltFile();
@@ -326,8 +336,13 @@ public class ExportHTMLPanel {
 		final boolean useBuiltin = prefs.getBoolean(PREF_KEY_BUILTIN, true);
 		builtin.setSelected(useBuiltin);
 		external.setSelected(!useBuiltin);
-		EventQueue.invokeLater(new Runnable() {
+		xsltFile.setEnabled(!useBuiltin);
 
+		// I'm actively setting the focus, because by default the focus is
+		// set to the "Internal" radio button. I think that initial focus is
+		// a bit confusing when the "external" one is selected.
+
+		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				if (useBuiltin) {
 					builtin.requestFocusInWindow();
@@ -352,12 +367,14 @@ public class ExportHTMLPanel {
 			xsltFile.setSelectedItem(f);
 		}
 		outputFile.setText(prefs.get(PREF_KEY_OUTPUT, ""));
-		checkDropDown();
 	}
 
 	public static String getFullName(File fo) {
 		if (fo == null) return null;
 		try {
+			// The canonical path is a bit more "user-friendly" especially
+			// on Windows. But as it can throw an IOException (why?) I need
+			// to wrap it here
 			return fo.getCanonicalPath();
 		} catch (IOException io) {
 			return fo.getAbsolutePath();
@@ -375,12 +392,8 @@ public class ExportHTMLPanel {
 		}
 
 		File file = chooser.getSelectedFile();
-
-		ComboBoxFile cf = new ComboBoxFile(file);
-		external.setSelected(true);
-		xsltFile.setEnabled(true);
-		xsltFile.addItem(cf);
-		xsltFile.setSelectedItem(cf);
+		dialog.requestFocus();
+		setXsltFile(file);
 	}
 
 	private void closeDialog() {
@@ -412,7 +425,7 @@ public class ExportHTMLPanel {
 		} catch (IOException io) {
 			outputFile.setText(file.getAbsolutePath());
 		}
-
+		dialog.requestFocus();
 	}
 
 	/**
@@ -526,36 +539,49 @@ public class ExportHTMLPanel {
 
 	}
 
-}
-class ComboBoxFile
-	extends File {
+	/**
+	 * A class used for the items in the combobox.
+	 * The only difference to the File class is, that the toString()
+	 * method returns only the file name, not the full path.
+	 * Otherwise the dropdown would be too wide.
+	 *
+	 * A better solution would be a dropdown that displays only the filename
+	 * for the selected file, but shows the full names when it is opened.
+	 * But unfortunately Swing cannot handle a dropdown where the popup is wider
+	 * than the actual component.
+	 */
+	private class ComboBoxFile
+		extends File {
 
-	public ComboBoxFile(File f) {
-		super(f.getAbsolutePath());
-	}
-
-	public ComboBoxFile(String pathname) {
-		super(pathname);
-	}
-
-	public String toString() {
-		return getName();
-	}
-}
-
-class ComboTooltipRenderer extends DefaultListCellRenderer {
-
-	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
-			boolean cellHasFocus) {
-
-		JComponent comp = (JComponent) super.getListCellRendererComponent(list, value, index, isSelected,
-				cellHasFocus);
-
-		if (value instanceof File) {
-			comp.setToolTipText(ExportHTMLPanel.getFullName((File)value));
-		} else {
-			comp.setToolTipText(null);
+		public ComboBoxFile(File f) {
+			super(f.getAbsolutePath());
 		}
-		return comp;
+
+		public ComboBoxFile(String pathname) {
+			super(pathname);
+		}
+
+		public String toString() {
+			return getName();
+		}
+	}
+
+	private class ComboTooltipRenderer extends DefaultListCellRenderer {
+
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+				boolean cellHasFocus) {
+
+			JComponent comp = (JComponent) super.getListCellRendererComponent(list, value, index, isSelected,
+					cellHasFocus);
+
+			if (value instanceof File) {
+				comp.setToolTipText(ExportHTMLPanel.getFullName((File)value));
+			} else {
+				comp.setToolTipText(null);
+			}
+			return comp;
+		}
 	}
 }
+
+
