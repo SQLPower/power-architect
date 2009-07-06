@@ -176,7 +176,7 @@ Revision is $Id: //open/mondrian/src/main/mondrian/olap/Mondrian.xml#71 $
                 realized otherwise it is ignored.
             </Doc>
         </Attribute>
-        <Object name="fact" type="Relation" required="true">
+        <Object name="fact" type="RelationOrJoin" required="true">
             <Doc>
                 The fact table is the source of all measures in this cube. If
                 this is a <code>Table</code> and the schema name is not

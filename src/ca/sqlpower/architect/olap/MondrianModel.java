@@ -1046,13 +1046,13 @@ public static class Cube extends OLAPObject {
         if (oldval == newval) {
         	return;
         }
-        int overallPosition = childPositionOffset(Relation.class);
+        int overallPosition = childPositionOffset(RelationOrJoin.class);
         if (fact != null) {
-            fireChildRemoved(Relation.class, overallPosition, oldval);
+            fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
         }
         fact = newval;
         fact.setParent(this);
-        fireChildAdded(Relation.class, overallPosition, fact);
+        fireChildAdded(RelationOrJoin.class, overallPosition, fact);
 	}
 
     /**  */
@@ -1333,7 +1333,7 @@ public static class Cube extends OLAPObject {
         if (childClass == NamedSet.class) return offset;
         offset += namedSets.size();
         
-        if (childClass == Relation.class) return offset;
+        if (childClass == RelationOrJoin.class) return offset;
         offset += 1;
         
         return offset;
@@ -1358,6 +1358,7 @@ public static class Cube extends OLAPObject {
         
         } else if (child instanceof RelationOrJoin) {
             setFact((RelationOrJoin) child);
+        
         } else {
             super.addChild(child);
         }
@@ -1413,8 +1414,8 @@ public static class Cube extends OLAPObject {
             }
             addNamedSet(index - offset, (NamedSet) child);
         
-        } else if (child instanceof Relation) {
-            setFact((Relation) child);
+        } else if (child instanceof RelationOrJoin) {
+            setFact((RelationOrJoin) child);
         
         } else {
             super.addChild(index, child);
@@ -1440,7 +1441,7 @@ public static class Cube extends OLAPObject {
         } else if (child instanceof NamedSet) {
             return removeNamedSet((NamedSet) child);
         
-        } else if (child instanceof Relation) {
+        } else if (child instanceof RelationOrJoin) {
             setFact(null);
             return true;
         
@@ -3486,29 +3487,6 @@ public static class Hierarchy extends OLAPObject {
 } // end of element Hierarchy
 /**  */
 public static class Level extends OLAPObject {
-
-    /**
-     * An enumeration of possible values for the levelType attribute.
-     * 
-     * There is a 'Regular' levelType that can only be used for Levels in a
-     * StandardDimension, but since it's currently the only option for
-     * StandardDimension Levels, I've left it out.
-     * 
-     * Note that the 'Time' values can only be used for Levels in a
-     * TimeDimension.
-     * 
-     * Currently, we are not simply using the LevelType enumeration in
-     * Mondrian so we do not have to include Mondrian as a dependency.
-     * However, if the need to include Mondrian as a dependency arises, then
-     * we can probably dispose of this enumeration and use the Mondrian one.
-     */
-    public enum LevelType {
-        TimeYears,
-        TimeQuarters,
-        TimeMonths,
-        TimeWeeks,
-        TimeDays,
-    }
     
     /**
      * Creates a new Level with all attributes
