@@ -51,6 +51,7 @@ import ca.sqlpower.architect.swingui.action.UndoAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
+import ca.sqlpower.architect.swingui.olap.action.CreateCalculatedMemberAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateCubeUsageAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateDimensionAction;
@@ -117,6 +118,7 @@ public class OLAPEditSession implements OLAPChildListener {
     private CreateLevelAction createLevelAction;
     private CreateDimensionUsageAction createDimensionUsageAction;
     private CreateCubeUsageAction createCubeUsageAction;
+    private CreateCalculatedMemberAction createCalculatedMemberAction;
     private ExportSchemaAction exportSchemaAction;
     private OLAPDeleteSelectedAction olapDeleteSelectedAction;
     private AutoLayoutAction autoLayoutAction;
@@ -199,6 +201,7 @@ public class OLAPEditSession implements OLAPChildListener {
         createLevelAction = new CreateLevelAction(swingSession, pp);
         createDimensionUsageAction = new CreateDimensionUsageAction(swingSession, pp);
         createCubeUsageAction = new CreateCubeUsageAction(swingSession, pp);
+        createCalculatedMemberAction = new CreateCalculatedMemberAction(swingSession, pp);
         exportSchemaAction = new ExportSchemaAction(swingSession, schema);
         olapDeleteSelectedAction = new OLAPDeleteSelectedAction(swingSession, this);
         autoLayoutAction = new AutoLayoutAction(swingSession, pp, "Automatic Layout", "Automatic Layout", "auto_layout"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -232,6 +235,7 @@ public class OLAPEditSession implements OLAPChildListener {
         toolbar.add(createLevelAction);
         toolbar.add(createDimensionUsageAction);
         toolbar.add(createCubeUsageAction);
+        toolbar.add(createCalculatedMemberAction);
         
         toolbar.addSeparator();
         
@@ -419,5 +423,9 @@ public class OLAPEditSession implements OLAPChildListener {
     
     public CreateCubeUsageAction getCreateCubeUsageAction() {
         return createCubeUsageAction;
+    }
+    
+    public CreateCalculatedMemberAction getCreateCalculatedMemberAction() {
+        return createCalculatedMemberAction;
     }
 }
