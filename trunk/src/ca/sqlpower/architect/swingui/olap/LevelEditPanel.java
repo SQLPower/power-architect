@@ -153,7 +153,7 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
         Dimension dimension = (Dimension) hierarchy.getParent();
         
         // Currently, the levelType attribute appears to only apply to Time Dimensions
-        if (dimension.getType().equals("TimeDimension")) {
+        if (dimension.getType() != null && dimension.getType().equals("TimeDimension")) {
             builder.append("Level Type", levelType = new JComboBox(LevelType.values()));
             if (level.getLevelType() != null) {
                 levelType.setSelectedItem(LevelType.valueOf(level.getLevelType()));
