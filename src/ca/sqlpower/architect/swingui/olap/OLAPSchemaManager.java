@@ -50,6 +50,7 @@ import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.olap.action.ExportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
 import ca.sqlpower.swingui.SPSUtils;
@@ -116,6 +117,16 @@ public class OLAPSchemaManager {
         }
     };
 
+    private final Action exportSchemaAction = new AbstractAction("Export...") {
+        public void actionPerformed(ActionEvent e) {
+            OLAPSession oSession = getSelectedOSession();
+            if (oSession != null) {
+                ExportSchemaAction actualExportAction = new ExportSchemaAction(session, oSession.getSchema());
+                actualExportAction.actionPerformed(e);
+            }
+        }
+    };
+    
     /**
      * The table that contains the list of all schemas in the project.
      */
@@ -215,6 +226,7 @@ public class OLAPSchemaManager {
                 boolean enableActions = getSelectedOSession() != null;
                 removeOLAPSchemaAction.setEnabled(enableActions);
                 editOLAPSchemaAction.setEnabled(enableActions);
+                exportSchemaAction.setEnabled(enableActions);
 
                 if (evt.getClickCount() == 2) {
                     editOLAPSchemaAction.actionPerformed(null);
@@ -236,6 +248,7 @@ public class OLAPSchemaManager {
         JButton importOLAPSchemaButton = new JButton(new ImportSchemaAction(session));
         importOLAPSchemaButton.setText("Import...");
         bsb.addGridded(importOLAPSchemaButton);
+        bsb.addGridded(new JButton(exportSchemaAction));
         bsb.addRelatedGap();
         
         bsb.addGridded(new JButton(editOLAPSchemaAction));
@@ -244,6 +257,7 @@ public class OLAPSchemaManager {
         
         removeOLAPSchemaAction.setEnabled(false);
         editOLAPSchemaAction.setEnabled(false);
+        exportSchemaAction.setEnabled(false);
 
         bsb.addUnrelatedGap();
         bsb.addGridded(new JButton(closeAction));
