@@ -27,6 +27,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
+import ca.sqlpower.architect.olap.MondrianModel.CalculatedMember;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
@@ -67,8 +68,15 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
             }
         };
         
+        PaneSection<CalculatedMember> calculatedMemberSection = new OLAPPaneSection<CalculatedMember>(CalculatedMember.class, model.getCalculatedMembers(), "Calculated Members:") {
+            public void addItem(int idx, CalculatedMember item) {
+                CubePane.this.model.addCalculatedMember(idx, item);
+            }
+        };
+        
         sections.add(dimensionSection);
         sections.add(measureSection);
+        sections.add(calculatedMemberSection);
         updateUI();
     }
     
@@ -105,6 +113,8 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
                 UsageComponent usageComp = (UsageComponent) getPlayPen().findPPComponent(coord.getItem());
                 Dimension dimension = (Dimension) usageComp.getPane1().getModel();
                 panel = new DimensionEditPanel(dimension);
+            } else if (coord.getItem() instanceof CalculatedMember) {
+                panel = new CalculatedMemberEditPanel((CalculatedMember) coord.getItem());
             } else {
                 throw new IllegalArgumentException("Edit dialog for type " + coord.getItem().getClass() + " cannot be created!");
             }
@@ -119,7 +129,7 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
     protected List<OLAPObject> filterDroppableItems(List<OLAPObject> items) {
         List<OLAPObject> filtered = new ArrayList<OLAPObject>();
         for (OLAPObject item : items) {
-            if (item instanceof Measure || item instanceof Dimension || item instanceof DimensionUsage) {
+            if (item instanceof Measure || item instanceof Dimension || item instanceof DimensionUsage || item instanceof CalculatedMember) {
                 filtered.add(item);
             } else {
                 logger.debug(" Ignoring dropped item of type " + item.getClass().getName() );

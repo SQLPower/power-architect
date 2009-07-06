@@ -90,6 +90,7 @@ public class OLAPContextMenuFactory implements PopupMenuFactory {
         } else if (obj instanceof Cube) {
             m.add(oSession.getCreateDimensionAction());
             m.add(oSession.getCreateMeasureAction());
+            m.add(oSession.getCreateCalculatedMemberAction());
             m.addSeparator();
             m.add(new EditCubeAction(session, (Cube)obj, oSession.getOlapPlayPen()));
         } else if (obj instanceof VirtualCube) {
