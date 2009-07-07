@@ -1035,24 +1035,24 @@ public static class Cube extends OLAPObject {
                 this is a Table and the schema name is not
                 present, table name is left unqualified.
              */
-    private RelationOrJoin /* */ fact;
+    private Relation /* */ fact;
     
-    public RelationOrJoin /* */ getFact() {
+    public Relation /* */ getFact() {
         return fact;
     }
     
-    public void setFact(RelationOrJoin /* */ newval) {
-        RelationOrJoin /* */ oldval = fact;
+    public void setFact(Relation /* */ newval) {
+        Relation /* */ oldval = fact;
         if (oldval == newval) {
         	return;
         }
-        int overallPosition = childPositionOffset(RelationOrJoin.class);
+        int overallPosition = childPositionOffset(Relation.class);
         if (fact != null) {
-            fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
+            fireChildRemoved(Relation.class, overallPosition, oldval);
         }
         fact = newval;
         fact.setParent(this);
-        fireChildAdded(RelationOrJoin.class, overallPosition, fact);
+        fireChildAdded(Relation.class, overallPosition, fact);
 	}
 
     /**  */
@@ -1333,7 +1333,7 @@ public static class Cube extends OLAPObject {
         if (childClass == NamedSet.class) return offset;
         offset += namedSets.size();
         
-        if (childClass == RelationOrJoin.class) return offset;
+        if (childClass == Relation.class) return offset;
         offset += 1;
         
         return offset;
@@ -1356,8 +1356,8 @@ public static class Cube extends OLAPObject {
         } else if (child instanceof NamedSet) {
             addNamedSet((NamedSet) child);
         
-        } else if (child instanceof RelationOrJoin) {
-            setFact((RelationOrJoin) child);
+        } else if (child instanceof Relation) {
+            setFact((Relation) child);
         
         } else {
             super.addChild(child);
@@ -1414,8 +1414,8 @@ public static class Cube extends OLAPObject {
             }
             addNamedSet(index - offset, (NamedSet) child);
         
-        } else if (child instanceof RelationOrJoin) {
-            setFact((RelationOrJoin) child);
+        } else if (child instanceof Relation) {
+            setFact((Relation) child);
         
         } else {
             super.addChild(index, child);
@@ -1441,7 +1441,7 @@ public static class Cube extends OLAPObject {
         } else if (child instanceof NamedSet) {
             return removeNamedSet((NamedSet) child);
         
-        } else if (child instanceof RelationOrJoin) {
+        } else if (child instanceof Relation) {
             setFact(null);
             return true;
         
