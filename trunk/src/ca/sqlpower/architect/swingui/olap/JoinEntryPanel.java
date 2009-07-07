@@ -411,7 +411,7 @@ public class JoinEntryPanel implements DataEntryPanel {
                 
                 list.add(i, relation);
             }
-            editPanel.setJoinFact(join);
+//            editPanel.setJoinFact(join);
         }
         return true;
     }

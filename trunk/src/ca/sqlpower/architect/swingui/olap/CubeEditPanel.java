@@ -43,9 +43,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
-import ca.sqlpower.architect.olap.MondrianModel.Join;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
-import ca.sqlpower.architect.olap.MondrianModel.Relation;
 import ca.sqlpower.architect.olap.MondrianModel.SQL;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.olap.MondrianModel.View;
@@ -77,7 +75,6 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
     
     private JTextArea selectStatements;
     private JTextField viewAlias;
-    private JTextArea joinTablesString;
     
     /**
      * Validation handler for errors in the dialog
@@ -86,14 +83,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
     private StatusComponent status = new StatusComponent();
     private JRadioButton tableRadioButton;
     private JRadioButton viewRadioButton;
-    private final JRadioButton joinRadioButton;
 
-    /**
-     * This will store a Join Mondrian model if it is to be used for a cube
-     * definition.
-     */
-    private Join joinFact;
-    
     /**
      * Creates a new property editor for the given OLAP Cube.
      * 
@@ -135,21 +125,11 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
                 dialog.setVisible(true);        
             }
         });
-        final JButton joinEditButton = new JButton(new AbstractAction("Edit...") {
-            public void actionPerformed(ActionEvent e) {
-                JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(new JoinEntryPanel(playPen.getSession(), getDatabase(), CubeEditPanel.this, joinFact), playPen, "Join Builder", "OK");
-                dialog.pack();
-                
-                dialog.setVisible(true); 
-            }
-        });
         
         builder.appendSeparator("Fact Table");
         tableChooser = new JComboBox(new Vector<SQLTable>(tables));
 
         final JScrollPane selectStatementsPane = new JScrollPane(selectStatements = new JTextArea("", 4, 30));
-        joinTablesString = new JTextArea("", 4, 30);
-        final JScrollPane joinTablesPane = new JScrollPane(joinTablesString);
         
         Action radioButtonsAction = new AbstractAction() {
             public void actionPerformed(ActionEvent arg0) {
@@ -157,8 +137,6 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
                 selectStatementsPane.setEnabled(viewRadioButton.isSelected());
                 viewAlias.setEnabled(viewRadioButton.isSelected());
                 viewEditButton.setEnabled(viewRadioButton.isSelected());
-                joinEditButton.setEnabled(joinRadioButton.isSelected());
-                joinTablesPane.setEnabled(joinRadioButton.isSelected());
             }
         };
         
@@ -168,14 +146,10 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         viewRadioButton = new JRadioButton();
         viewRadioButton.setAction(radioButtonsAction);
         viewRadioButton.setText("Use View");
-        joinRadioButton = new JRadioButton();
-        joinRadioButton.setAction(radioButtonsAction);
-        joinRadioButton.setText("Use Join");
         
         ButtonGroup buttonGroup = new ButtonGroup();
         buttonGroup.add(tableRadioButton);
         buttonGroup.add(viewRadioButton);
-        buttonGroup.add(joinRadioButton);
         
         DefaultFormBuilder factBuilder = new DefaultFormBuilder(new FormLayout("9dlu, 3dlu, pref, 3dlu, pref:grow"));
         builder.append(factBuilder.getPanel(), 3);
@@ -188,14 +162,6 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         factBuilder.append("", selectStatementsPane, 3);
         
         factBuilder.append("", viewEditButton);
-        factBuilder.nextLine();
-        factBuilder.append(joinRadioButton, 5);
-        
-        factBuilder.append("", new JLabel("Tables in the join"), 3);
-        joinTablesString.setEditable(false);
-        factBuilder.append("", joinTablesPane, 3);
-        
-        factBuilder.append("", joinEditButton);
         factBuilder.nextLine();
         selectStatements.setLineWrap(true);
         selectStatements.setEditable(false);
@@ -216,11 +182,6 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
             if (selectStatements.getText().trim().length() == 0 && !selects.isEmpty()) {
                 selectStatements.append(selects.get(0).getText());
             }
-        } else if (cube.getFact() instanceof Join) {
-            joinRadioButton.doClick();
-            tableRadioButton.setEnabled(false);
-            tableChooser.setEnabled(false);
-            setJoinFact((Join)cube.getFact());
         } else if (tables.isEmpty()) {
             tableChooser.addItem("Database has no tables");
             viewRadioButton.doClick();
@@ -266,8 +227,6 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
                 sql.setText(selectStatements.getText());
                 view.addSelect(sql);
                 cube.setFact(view);
-            } else if (joinRadioButton.isSelected()) {
-                cube.setFact(joinFact);
             }
             
             cube.setName(nameField.getText());
@@ -306,35 +265,6 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
      */
     private SQLDatabase getDatabase() {
         return OSUtils.getAncestor(CubeEditPanel.this.cube, OLAPSession.class).getDatabase();
-    }
-
-    public void setJoinFact(Join joinFact) {
-        this.joinFact = joinFact;
-        joinTablesString.setText(createJoinString(joinFact));
-    }
-    
-    /**
-     * This will recursively create a list of the table names in the join.
-     */
-    private String createJoinString(Join join) {
-        if (join == null) return null;
-        
-        String joinString;
-        if (join.getLeft() instanceof Join) {
-            joinString = createJoinString((Join) join.getLeft());
-        } else {
-            joinString = ((Relation) join.getLeft()).getName() + "\n"; 
-        }
-        if (join.getRight() instanceof Join) {
-            joinString = joinString + createJoinString((Join) join.getRight());
-        } else {
-            joinString = joinString + ((Relation) join.getRight()).getName() + "\n"; 
-        }
-        return joinString;
-    }
-
-    public Join getJoinFact() {
-        return joinFact;
     }
 
     public String getSelectText() {
