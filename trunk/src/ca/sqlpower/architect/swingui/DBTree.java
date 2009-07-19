@@ -84,6 +84,7 @@ import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.JDBCDataSourcePanel;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
+import ca.sqlpower.swingui.MultiDragTreeUI;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
