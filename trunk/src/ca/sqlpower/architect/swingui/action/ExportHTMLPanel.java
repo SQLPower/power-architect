@@ -24,11 +24,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.prefs.Preferences;
@@ -48,6 +46,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import javax.swing.filechooser.FileFilter;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectFrame;
@@ -56,7 +55,9 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.JDefaultButton;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.BrowserUtil;
-import ca.sqlpower.util.XsltTransformation;
+import ca.sqlpower.util.ReportTransformer;
+import ca.sqlpower.util.TransformerFactory;
+import ca.sqlpower.util.UnknowTemplateTypeException;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -64,7 +65,7 @@ import com.jgoodies.forms.factories.ButtonBarFactory;
 import com.jgoodies.forms.layout.FormLayout;
 
 /**
- * A panel to select the XSLT stylesheet and the output file to be generated.
+ * A panel to select a transformation template (XSLT or Velocity) and the output file to be generated.
  * <p>
  * The panel has a start and close button so that it is self-contained.
  * showDialog() will display this panel in a non-modal JDialog.
@@ -75,18 +76,18 @@ import com.jgoodies.forms.layout.FormLayout;
 public class ExportHTMLPanel {
 
 	private static final Logger logger = Logger.getLogger(ExportHTMLPanel.class);
-	
+
 	private JRadioButton builtin;
 	private JRadioButton external;
-	private JComboBox xsltFile;
-	private JButton selectXslt;
+	private JComboBox templateFile;
+	private JButton selectTemplate;
 	private JButton selectOutput;
 	private JButton startButton;
 	private JButton closeButton;
 	private JTextField outputFile;
 
 	private JLabel statusBar;
-	
+
 	private final ArchitectSwingSession session;
 
 	private JDialog dialog;
@@ -102,7 +103,7 @@ public class ExportHTMLPanel {
 	private static final String PREF_KEY_XSLT_HISTORY = "htmlgen.xslt.recent";
 	private static final String PREF_KEY_OUTPUT = "htmlgen.lastoutput";
 	private static final int MAX_HISTORY_ENTRIES = 15;
-	
+
 	public ExportHTMLPanel(ArchitectSwingSession architect) {
 
 		session = architect;
@@ -122,32 +123,32 @@ public class ExportHTMLPanel {
 
 		// place Radio buttons
 		builder.append(builtin, 5);
-		
+
 		builder.appendUnrelatedComponentsGapRow();
 		builder.nextLine();
         builder.nextLine();
-		
+
 		builder.append(external, 5);
 
 		// Selection of XSLT file
-		xsltFile = new JComboBox();
-		xsltFile.setRenderer(new ComboTooltipRenderer());
-		xsltFile.setEditable(true);
+		templateFile = new JComboBox();
+		templateFile.setRenderer(new ComboTooltipRenderer());
+		templateFile.setEditable(true);
 
 		builder.append("");
-		builder.append(xsltFile);
-		
-		selectXslt = new JButton("...");
-		builder.append(selectXslt);
+		builder.append(templateFile);
+
+		selectTemplate = new JButton("...");
+		builder.append(selectTemplate);
 
 		builder.appendUnrelatedComponentsGapRow();
         builder.nextLine();
         builder.nextLine();
-		
+
 		// Output selection
 		builder.append(new JLabel(Messages.getString("XSLTSelectionPanel.labelOutput")), 5);
 		builder.nextLine();
-		
+
 		outputFile = new JTextField(30);
 		builder.append("", outputFile);
 
@@ -157,7 +158,7 @@ public class ExportHTMLPanel {
 		builder.appendUnrelatedComponentsGapRow();
         builder.nextLine();
         builder.nextLine();
-		
+
 		// "Statusbar"
 		statusBar = new JLabel(" ");
 		builder.append(statusBar, 5);
@@ -165,7 +166,7 @@ public class ExportHTMLPanel {
 		builder.appendUnrelatedComponentsGapRow();
         builder.nextLine();
 
-		selectXslt.addActionListener(componentStateHandler);
+		selectTemplate.addActionListener(componentStateHandler);
 		selectOutput.addActionListener(componentStateHandler);
 		builtin.addActionListener(componentStateHandler);
 		external.addActionListener(componentStateHandler);
@@ -173,7 +174,7 @@ public class ExportHTMLPanel {
 
 		startButton = new JDefaultButton(Messages.getString("XSLTSelectionPanel.startOption"));
 		startButton.addActionListener(componentStateHandler);
-		
+
 		closeButton = new JButton(Messages.getString("XSLTSelectionPanel.closeOption"));
 		closeButton.addActionListener(componentStateHandler);
 
@@ -183,7 +184,7 @@ public class ExportHTMLPanel {
 
 		builder.setDefaultDialogBorder();
 		panel = builder.getPanel();
-		
+
 		restoreSettings();
 	}
 
@@ -220,11 +221,11 @@ public class ExportHTMLPanel {
 	 * @return the filename selected by the user, or null if the internal
 	 *  XSLT should be used.
 	 */
-	public File getXsltFile() {
+	public File getTemplateFile() {
 		if (builtin.isSelected()) {
 			return null;
 		}
-		Object o = xsltFile.getSelectedItem();
+		Object o = templateFile.getSelectedItem();
 		if (o instanceof File) {
 			return (File)o;
 		} else if (o instanceof String) {
@@ -242,61 +243,65 @@ public class ExportHTMLPanel {
 		return outputFile.getText();
 	}
 
+	public File getOutputFile() {
+		return new File(outputFile.getText());
+	}
+
 	private final ActionListener componentStateHandler = new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
-	        if (e.getSource() == selectXslt) {
-	            selectXslt();
+	        if (e.getSource() == selectTemplate) {
+	            selectTemplate();
 	        } else if (e.getSource() == selectOutput) {
 	            selectOutput();
 	        } else if (e.getSource() == startButton) {
 	            transformFile();
 	        } else if (e.getSource() == closeButton) {
 	            closeDialog();
-	        } else if (e.getSource() == xsltFile) {
+	        } else if (e.getSource() == templateFile) {
 	            updateDropDownToolTip();
 	        } else if (e.getSource() == builtin) {
-	            xsltFile.setEnabled(external.isSelected());
+	            templateFile.setEnabled(external.isSelected());
 	        } else if (e.getSource() == external) {
-	            xsltFile.setEnabled(external.isSelected());
+	            templateFile.setEnabled(external.isSelected());
 	        }
 	    }
 	};
-	
+
 	private void updateDropDownToolTip() {
-		File f = this.getXsltFile();
+		File f = this.getTemplateFile();
 		if (f != null) {
-			xsltFile.setToolTipText(getFullName(f));
+			templateFile.setToolTipText(getFullName(f));
 		}
 	}
 
-	private void setXsltFile(File xslt)	{
-		ComboBoxFile cf = new ComboBoxFile(xslt);
+	private void setTemplateFile(File template)	{
+		ComboBoxFile cf = new ComboBoxFile(template);
 		external.setSelected(true);
-		xsltFile.setEnabled(true);
-		xsltFile.addItem(cf);
-		xsltFile.setSelectedItem(cf);
-		xsltFile.setToolTipText(getFullName(xslt));
+		templateFile.setEnabled(true);
+		templateFile.addItem(cf);
+		templateFile.setSelectedItem(cf);
+		templateFile.setToolTipText(getFullName(template));
 	}
 
 	private void syncDropDown() {
 		// if the user pasted the filename into the editable part
 		// of the dropdown, this will not be part of the actual dropdown items
 		// so I'm adding that here "manually"
-		File current = getXsltFile();
+		File current = getTemplateFile();
 
 		if (current == null) return;
 		boolean found = false;
 
-		int numEntries = xsltFile.getItemCount() ;
+		int numEntries = templateFile.getItemCount() ;
 		for (int index = 0; index < numEntries; index++) {
-			if (xsltFile.getItemAt(index).equals(current)) {
+			if (templateFile.getItemAt(index).equals(current)) {
 				found = true;
 				break;
 			}
 		}
 
 		if (!found) {
-			xsltFile.addItem(new ComboBoxFile(current));
+			templateFile.addItem(new ComboBoxFile(current));
 		}
 	}
 
@@ -308,18 +313,18 @@ public class ExportHTMLPanel {
 		// Add any pasted filename to the dropdown's model, so that it
 		// stored correctly in the user preferences
 		syncDropDown();
-		
-		File f = getXsltFile();
+
+		File f = getTemplateFile();
 		if (f != null) {
 			prefs.put(PREF_KEY_LAST_XSLT, getFullName(f));
 		} else {
 			prefs.remove(PREF_KEY_LAST_XSLT);
 		}
 
-		int numEntries = (xsltFile.getItemCount() > MAX_HISTORY_ENTRIES ? MAX_HISTORY_ENTRIES : xsltFile.getItemCount());
-		
+		int numEntries = (templateFile.getItemCount() > MAX_HISTORY_ENTRIES ? MAX_HISTORY_ENTRIES : templateFile.getItemCount());
+
 		for (int i=0; i < numEntries; i++) {
-			Object o = xsltFile.getItemAt(i);
+			Object o = templateFile.getItemAt(i);
 			String key = PREF_KEY_XSLT_HISTORY + "." + i;
 			if (o instanceof File) {
 				prefs.put(key, getFullName((File)o));
@@ -336,7 +341,7 @@ public class ExportHTMLPanel {
 		final boolean useBuiltin = prefs.getBoolean(PREF_KEY_BUILTIN, true);
 		builtin.setSelected(useBuiltin);
 		external.setSelected(!useBuiltin);
-		xsltFile.setEnabled(!useBuiltin);
+		templateFile.setEnabled(!useBuiltin);
 
 		// I'm actively setting the focus, because by default the focus is
 		// set to the "Internal" radio button. I think that initial focus is
@@ -357,14 +362,14 @@ public class ExportHTMLPanel {
 			String fname = prefs.get(PREF_KEY_XSLT_HISTORY + "." + i, null);
 			if (fname == null) break;
 			ComboBoxFile f = new ComboBoxFile(fname);
-			xsltFile.addItem(f);
+			templateFile.addItem(f);
 		}
 
 		// The last used XSLT
 		String file = prefs.get(PREF_KEY_LAST_XSLT, null);
 		if (file != null) {
 			ComboBoxFile f = new ComboBoxFile(file);
-			xsltFile.setSelectedItem(f);
+			templateFile.setSelectedItem(f);
 		}
 		outputFile.setText(prefs.get(PREF_KEY_OUTPUT, ""));
 	}
@@ -382,9 +387,26 @@ public class ExportHTMLPanel {
 	}
 
 
-	private void selectXslt() {
+	private void selectTemplate() {
 		JFileChooser chooser = new JFileChooser(session.getProject().getFile());
+		File tmpl = getTemplateFile();
+		boolean xslt = true;
+		String fname = "";
+		if (tmpl != null) {
+			fname = tmpl.getAbsolutePath().toLowerCase();
+			xslt = fname.endsWith("xslt") || fname.endsWith("xsl");
+		}
+
 		chooser.addChoosableFileFilter(SPSUtils.XSLT_FILE_FILTER);
+		chooser.addChoosableFileFilter(SPSUtils.VELOCITY_FILE_FILTER);
+		if (xslt) {
+			chooser.setFileFilter(SPSUtils.XSLT_FILE_FILTER);
+		} else if (fname.endsWith("vm")){
+			chooser.setFileFilter(SPSUtils.VELOCITY_FILE_FILTER);
+		} else {
+			FileFilter[] filters = chooser.getChoosableFileFilters();
+			chooser.setFileFilter(filters[0]);
+		}
 		chooser.setDialogTitle(Messages.getString("XSLTSelectionPanel.selectXsltTitle"));
 		int response = chooser.showOpenDialog(dialog);
 		if (response != JFileChooser.APPROVE_OPTION) {
@@ -393,7 +415,7 @@ public class ExportHTMLPanel {
 
 		File file = chooser.getSelectedFile();
 		dialog.requestFocus();
-		setXsltFile(file);
+		setTemplateFile(file);
 	}
 
 	private void closeDialog() {
@@ -408,7 +430,7 @@ public class ExportHTMLPanel {
 		JFileChooser chooser = new JFileChooser(session.getProject().getFile());
 		chooser.addChoosableFileFilter(SPSUtils.HTML_FILE_FILTER);
 		chooser.setDialogTitle(Messages.getString("XSLTSelectionPanel.saveAsTitle"));
-		
+
 		int response = chooser.showSaveDialog(session.getArchitectFrame());
 
 		if (response != JFileChooser.APPROVE_OPTION) {
@@ -416,7 +438,10 @@ public class ExportHTMLPanel {
 		}
 
 		File file = chooser.getSelectedFile();
-		if (!file.getPath().endsWith(".html")) { //$NON-NLS-1$
+		// Add the .html extension only if the HTML file filter was selected
+		if (chooser.getFileFilter() == SPSUtils.HTML_FILE_FILTER &&
+			!file.getPath().endsWith(".html")) { //$NON-NLS-1$
+
 			file = new File(file.getPath() + ".html"); //$NON-NLS-1$
 		}
 
@@ -432,7 +457,7 @@ public class ExportHTMLPanel {
 	 * Transforms the current playpen according to the selection that the user made.
 	 * <br/>
 	 * An xml OutputStream(using a {@link PipedOutputStream}) is generated, based on the
-	 * current playPen content and is read by a {@link PipedInputStream} which is used as the xml source. 
+	 * current playPen content and is read by a {@link PipedInputStream} which is used as the xml source.
 	 * <br/>
 	 * The stylesheet and the xml source are passed as parameters to the
 	 * {@link XsltTransformation} methods to generate an HTML report off the content
@@ -441,7 +466,7 @@ public class ExportHTMLPanel {
 	protected void transformFile() {
 
 		File file = new File(outputFile.getText());
-		
+
 		if (file.exists()) {
 			int response = JOptionPane.showConfirmDialog(session.getArchitectFrame(),
 			  Messages.getString("XSLTSelectionPanel.fileAlreadyExists", file.getPath()), //$NON-NLS-1$
@@ -452,7 +477,8 @@ public class ExportHTMLPanel {
 			}
 		}
 
-		statusBar.setText(Messages.getString("XSLTSelectionPanel.msgGenerating"));
+		setStatusBarText(Messages.getString("XSLTSelectionPanel.msgGenerating"));
+
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				_transformFile();
@@ -462,7 +488,7 @@ public class ExportHTMLPanel {
 		t.setDaemon(true);
 		t.start();
 	}
-	
+
 	protected void _transformFile() {
 		PipedInputStream xmlInputStream = new PipedInputStream();
 		try {
@@ -487,47 +513,49 @@ public class ExportHTMLPanel {
 		}
 
 		File file = new File(getOutputFilename());
+
 		try {
 			result = new FileOutputStream(file);
 		} catch (FileNotFoundException e2) {
 			SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "You got an error", e2);
 		}
 
-		XsltTransformation xsltTransform = new XsltTransformation();
-
-		InputStream xsltInput = null;
+		final ReportTransformer transformer;
 		try {
-			File xslt = getXsltFile();
+			transformer = TransformerFactory.getTransformer(getTemplateFile());
+		} catch (UnknowTemplateTypeException e) {
+			SPSUtils.showExceptionDialogNoReport(panel, "Error", e);
+			setStatusBarText("");
+			return;
+		}
+
+		try {
+			File xslt = getTemplateFile();
 			if (xslt == null) {
-				xsltTransform.transform("/xsltStylesheets/architect2html.xslt", xmlInputStream, result);
+				transformer.transform("/xsltStylesheets/architect2html.xslt", getOutputFile(), session);
 			} else {
-				xsltInput = new FileInputStream(xslt);
-				xsltTransform.transform(xsltInput, xmlInputStream, result);
+				transformer.transform(xslt, getOutputFile(), session);
 			}
 
-			EventQueue.invokeLater(new Runnable() {
-
-				public void run() {
-					statusBar.setText(Messages.getString("XSLTSelectionPanel.msgStartingBrowser"));
-				}
-			});
-
 			//Opens up the html file in the default browser
-			BrowserUtil.launch(file.toURI().toString());
+			String fname = getOutputFilename().toLowerCase();
+			if (fname.endsWith("html") || fname.endsWith("htm")) {
+				EventQueue.invokeLater(new Runnable() {
+					public void run() {
+						statusBar.setText(Messages.getString("XSLTSelectionPanel.msgStartingBrowser"));
+					}
+				});
+				BrowserUtil.launch(file.toURI().toString());
+			}
 		} catch (Exception e1) {
-			SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "You got an error", e1);
+			SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "Transformation error", e1);
 		} finally {
 			closeQuietly(result);
 			closeQuietly(xmlInputStream);
 			closeQuietly(xmlOutputStream);
 		}
 
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				statusBar.setText("");
-			}
-		});
-
+		setStatusBarText("");
 	}
 
 	private void closeQuietly(Closeable stream) {
@@ -537,6 +565,13 @@ public class ExportHTMLPanel {
 			logger.error("Error closing file", io);
 		}
 
+	}
+	protected void setStatusBarText(final String text) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				statusBar.setText(text);
+			}
+		});
 	}
 
 	/**
