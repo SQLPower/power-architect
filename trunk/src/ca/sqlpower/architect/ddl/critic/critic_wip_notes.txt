@@ -18,6 +18,10 @@ It is organized into three sections:
  *use this in tablepane renderer as well!
 *Preferences API and GUI for selecting which critics to use (and to configure the ones that need it)
 *disperse classes into the appropriate places (including migrating into library)
+*need a way of silencing a particular warning (for example, a table that has no PK defined
+ on purpose). It would be neat if you could right click a warning and choose "Ignore..." which
+ would bring up a prompt like "Ignore just this instance of the warning, or disable this type
+ of warning for all objects?"
 
 2. Things I'm not sure about:
 
