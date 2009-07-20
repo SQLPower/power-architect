@@ -36,5 +36,7 @@
 	<classpathentry kind="lib" path="lib/opencsv-1.8.jar"/>
 	<classpathentry kind="lib" path="lib/rsyntaxtextarea.jar"/>
 	<classpathentry kind="lib" path="lib/forms-1.2.1.jar" sourcepath="libsrc/forms-1.2.1-src.zip"/>
+	<classpathentry kind="lib" path="lib/velocity-1.6.2.jar"/>
+	<classpathentry kind="lib" path="lib/commons-io-1.4.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
