@@ -45,19 +45,20 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-
 import javax.swing.filechooser.FileFilter;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.transformation.ReportTransformer;
+import ca.sqlpower.architect.transformation.TransformerFactory;
+import ca.sqlpower.architect.transformation.UnknowTemplateTypeException;
+import ca.sqlpower.architect.transformation.XsltTransformation;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.JDefaultButton;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.BrowserUtil;
-import ca.sqlpower.util.ReportTransformer;
-import ca.sqlpower.util.TransformerFactory;
-import ca.sqlpower.util.UnknowTemplateTypeException;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
