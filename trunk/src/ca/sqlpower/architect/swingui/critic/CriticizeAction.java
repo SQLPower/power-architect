@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui.critic;
 
+import ca.sqlpower.architect.swingui.Messages;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,7 @@ import ca.sqlpower.swingui.table.FancyExportableJTable;
 public class CriticizeAction extends AbstractArchitectAction {
 
     public CriticizeAction(ArchitectSwingSession session) {
-        super(session, "Criticize Data Model...", "Evaluates the data model for potential problems and suggests fixes");
+        super(session, Messages.getString("CriticizeAction.name"), Messages.getString("CriticizeAction.description"));
     }
     
     public void actionPerformed(ActionEvent e) {
