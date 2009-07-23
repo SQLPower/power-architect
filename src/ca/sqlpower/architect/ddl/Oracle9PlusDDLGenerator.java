@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.ddl;
 
+import ca.sqlpower.sqlobject.SQLType;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -67,6 +68,9 @@ public class Oracle9PlusDDLGenerator extends OracleDDLGenerator {
         typeMap.put(Integer.valueOf(Types.LONGVARCHAR), new GenericTypeDescriptor("LONG", Types.LONGVARCHAR, 2000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
         typeMap.put(Integer.valueOf(Types.VARBINARY), new GenericTypeDescriptor("LONG RAW", Types.VARBINARY, 2000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
         typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR2", Types.VARCHAR, 4000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(SQLType.NVARCHAR), new GenericTypeDescriptor("NVARCHAR", SQLType.NVARCHAR, 8000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(SQLType.NCHAR), new GenericTypeDescriptor("NCHAR", SQLType.NCHAR, 8000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(SQLType.NCLOB), new GenericTypeDescriptor("NCLOB", SQLType.NCLOB, 2147483647, "'", "'", DatabaseMetaData.columnNullable, true, false));
     }
     
 }

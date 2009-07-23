@@ -35,6 +35,7 @@ import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLType;
 
 /**
  * The base class for version-specific SQL Server DDL generators. This class is
@@ -291,6 +292,9 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 		typeMap.put(Integer.valueOf(Types.TINYINT), new GenericTypeDescriptor("TINYINT", Types.TINYINT, 3, null, null, DatabaseMetaData.columnNullable, false, false));
 		typeMap.put(Integer.valueOf(Types.VARBINARY), new GenericTypeDescriptor("VARBINARY", Types.VARBINARY, 8000, null, null, DatabaseMetaData.columnNullable, true, false));
 		typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 8000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(SQLType.NVARCHAR), new GenericTypeDescriptor("NVARCHAR", SQLType.NVARCHAR, 4000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(SQLType.NCHAR), new GenericTypeDescriptor("NCHAR", SQLType.NCHAR, 4000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(SQLType.NCLOB), new GenericTypeDescriptor("NCLOB", SQLType.NCLOB, 2147483647, "'", "'", DatabaseMetaData.columnNullable, true, false));
 	}
 
     /**
