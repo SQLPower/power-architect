@@ -67,6 +67,7 @@ import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -80,6 +81,7 @@ import ca.sqlpower.swingui.ModalDialogUserPrompter;
 import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
+import ca.sqlpower.swingui.SwingUIUserPrompterFactory;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.UserPrompter;
@@ -202,7 +204,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      */
     ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, String name)
     throws SQLObjectException {
-        swinguiUserPrompterFactory = new SwingUIUserPrompterFactory(null, context.getPlDotIni());
+        DataSourceCollection<SPDataSource> connections = (DataSourceCollection<SPDataSource>) context.getPlDotIni().getConnections();
+        swinguiUserPrompterFactory = new SwingUIUserPrompterFactory(frame, connections);
         this.isNew = true;
         this.context = context;
         this.delegateSession = new ArchitectSessionImpl(context, name);
