@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect.ddl;
 
+import ca.sqlpower.sqlobject.SQLType;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -86,6 +87,7 @@ public class GenericTypeDescriptor {
 		case Types.STRUCT:
 		case Types.TIME:
 		case Types.TIMESTAMP:	
+		case SQLType.NCLOB:
 		default:
 			hasScale = false;
 			hasPrecision = false;
@@ -102,6 +104,8 @@ public class GenericTypeDescriptor {
 		case Types.TINYINT:
 		case Types.VARBINARY:
 		case Types.VARCHAR:
+		case SQLType.NVARCHAR:
+		case SQLType.NCHAR:
 			hasPrecision = true;
 			hasScale = false;
 			break;
