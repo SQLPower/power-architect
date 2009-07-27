@@ -42,7 +42,9 @@ import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
@@ -372,5 +374,13 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public Color getCustomColour(Color foregroundColor) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public UserPrompter createDatabaseUserPrompter(String question, List<Class<? extends SPDataSource>> dsTypes,
+            UserPromptOptions optionType, UserPromptResponse defaultResponseType, Object defaultResponse,
+            DataSourceCollection<SPDataSource> dsCollection, String... buttonNames) {
+        // TODO Auto-generated method stub
+        return new DefaultUserPrompterFactory().createDatabaseUserPrompter(question, dsTypes,
+                optionType, defaultResponseType, defaultResponse, dsCollection, buttonNames);
     }
 }
