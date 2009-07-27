@@ -25,7 +25,9 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -188,6 +190,13 @@ public class ArchitectSessionImpl implements ArchitectSession {
         } catch (SQLObjectException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public UserPrompter createDatabaseUserPrompter(String question, List<Class<? extends SPDataSource>> dsTypes,
+            UserPromptOptions optionType, UserPromptResponse defaultResponseType, Object defaultResponse,
+            DataSourceCollection<SPDataSource> dsCollection, String... buttonNames) {
+        return userPrompterFactory.createDatabaseUserPrompter(question, dsTypes, optionType,
+                defaultResponseType, defaultResponse, dsCollection, buttonNames);
     }
 
 }

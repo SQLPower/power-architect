@@ -204,8 +204,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      */
     ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, String name)
     throws SQLObjectException {
-        DataSourceCollection<SPDataSource> connections = (DataSourceCollection<SPDataSource>) context.getPlDotIni().getConnections();
-        swinguiUserPrompterFactory = new SwingUIUserPrompterFactory(frame, connections);
+
+        swinguiUserPrompterFactory = new SwingUIUserPrompterFactory(frame);
         this.isNew = true;
         this.context = context;
         this.delegateSession = new ArchitectSessionImpl(context, name);
@@ -1006,5 +1006,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         public Color getColor() {
             return color;
         }
+    }
+
+    public UserPrompter createDatabaseUserPrompter(String question, List<Class<? extends SPDataSource>> dsTypes,
+            UserPromptOptions optionType, UserPromptResponse defaultResponseType, Object defaultResponse,
+            DataSourceCollection<SPDataSource> dsCollection, String... buttonNames) {
+        return swinguiUserPrompterFactory.createDatabaseUserPrompter(question, dsTypes, optionType,
+                defaultResponseType, defaultResponse, dsCollection, buttonNames);
     }
 }

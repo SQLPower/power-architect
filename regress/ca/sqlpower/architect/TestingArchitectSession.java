@@ -37,7 +37,9 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
@@ -132,6 +134,13 @@ public class TestingArchitectSession implements ArchitectSession {
     public SQLDatabase getDatabase(JDBCDataSource ds) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public UserPrompter createDatabaseUserPrompter(String question, List<Class<? extends SPDataSource>> dsTypes,
+            UserPromptOptions optionType, UserPromptResponse defaultResponseType, Object defaultResponse,
+            DataSourceCollection<SPDataSource> dsCollection, String... buttonNames) {
+        return defaultUPF.createDatabaseUserPrompter(question, dsTypes, optionType, defaultResponseType,
+                defaultResponse, dsCollection, buttonNames);
     }
 
 }
