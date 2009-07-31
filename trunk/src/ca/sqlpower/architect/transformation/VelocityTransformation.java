@@ -30,6 +30,11 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.sqlobject.SQLType;
+import org.apache.velocity.tools.generic.AlternatorTool;
+import org.apache.velocity.tools.generic.DateTool;
+import org.apache.velocity.tools.generic.NumberTool;
+import org.apache.velocity.tools.generic.SortTool;
 
 /**
  *
@@ -63,7 +68,12 @@ public class VelocityTransformation implements ReportTransformer {
 		VelocityContext context = new VelocityContext();
 		context.put("tables", session.getPlayPen().getTables());
 		context.put("projectName", session.getName());
-
+		context.put("sorter", new SortTool());
+		context.put("dateTool", new DateTool());
+		context.put("numberTool", new NumberTool());
+		context.put("alternator", new AlternatorTool());
+		context.put("sqlTypes", SQLType.class);
+		
 		FileOutputStream out = new FileOutputStream(result);
 		OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
 		try {
