@@ -32,6 +32,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -420,11 +421,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         this.reProfileButton = new JButton(refreshIcon);
         reProfileButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                result.getProgressMonitor().setCancelled(false);
-                ProgressWatcher.watchProgress(progressBar, result.getProgressMonitor());
-                add(progressBar, ComponentType.PROGRESS_BAR);
-                pm.scheduleProfile(result);
-                logger.debug("REFRESH");
+                pm.asynchCreateProfiles(Collections.singletonList(result.getProfiledObject()));
             }
         });
         
