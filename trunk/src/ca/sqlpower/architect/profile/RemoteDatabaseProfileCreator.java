@@ -588,14 +588,35 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
         logger.debug("The property to retrieve is " + propName(StringLengthSQLFunction.class));
         String function = dsType.getProperty(propName(StringLengthSQLFunction.class));
         String[] functionParts = function.split(":");
+        if (functionParts.length != 2) {
+            throw new RuntimeException(
+                "Configuration error in SQL String Length Function Descriptor for " + dsType.getName() + ":\n" +
+                "Function descriptor must have exactly one : character in it (eg. 'LENGTH(:)')\n" +
+                "Current setting for your database is '" + function + "'"
+                );
+        }
         stringLengthSQLFunction = new StringLengthSQLFunction(functionParts[0], functionParts[1]);
         
         function = dsType.getProperty(propName(AverageSQLFunction.class));
         functionParts = function.split(":");
+        if (functionParts.length != 2) {
+            throw new RuntimeException(
+                "Configuration error in SQL Average Function Descriptor for " + dsType.getName() + ":\n" +
+                "Function descriptor must have exactly one : character in it (eg. 'AVG(:)')\n" +
+                "Current setting for your database is '" + function + "'"
+                );
+        }
         averageSQLFunction = new AverageSQLFunction(functionParts[0], functionParts[1]);
         
         function = dsType.getProperty(propName(CaseWhenNullSQLFunction.class));
         functionParts = function.split(":");
+        if (functionParts.length != 3) {
+            throw new RuntimeException(
+                "Configuration error in SQL WHEN NULL Function Descriptor for " + dsType.getName() + ":\n" +
+                "Function descriptor must have exactly two : characters in it (eg. 'CASE WHEN : IS NULL THEN : END')\n" +
+                "Current setting for your database is '" + function + "'"
+                );
+        }
         caseWhenNullSQLFunction = new CaseWhenNullSQLFunction(functionParts[0], functionParts[1], functionParts[2]);
         
     }
