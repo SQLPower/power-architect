@@ -22,8 +22,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,7 +48,6 @@ import javax.swing.event.TableModelListener;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.profile.ColumnProfileResult;
-import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.profile.output.ProfileColumn;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
@@ -64,13 +63,10 @@ import com.jgoodies.forms.layout.FormLayout;
  */
 public class ProfilePanel extends JPanel {
     static Logger logger = Logger.getLogger(ProfilePanel.class);
-    public enum ChartTypes { BAR, PIE }
-
     
     private final ProfileTableModel profileTableModel;
     private JComboBox tableSelector;
     private JList columnSelector;
-    private ChartTypes chartType = ChartTypes.PIE;
     
     private JPanel controlsArea;
     private ProfileGraphPanel displayPanel;
@@ -171,21 +167,18 @@ public class ProfilePanel extends JPanel {
                     logger.debug("Null selection in columnSelector.ListSelectionListener");
                     return;
                 }
-                for (ProfileResult pr : tableModel.getResultList() ) {
-                    if (pr instanceof ColumnProfileResult) {
-                        SQLColumn column = (SQLColumn)pr.getProfiledObject();
-                        if (col == column) {
-                            displayPanel.displayProfile((ColumnProfileResult) pr);
-                            break; 
-                        }
+                for (ColumnProfileResult pr : tableModel.getResultList() ) {
+                    SQLColumn column = (SQLColumn) pr.getProfiledObject();
+                    if (col == column) {
+                        displayPanel.displayProfile((ColumnProfileResult) pr);
+                        break;
                     }
                 }
             }           
         });
-        columnSelector.addMouseListener(new MouseListener() {
-
+        
+        columnSelector.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-
                 if (e.getClickCount() == 2) {
                     SQLColumn col = (SQLColumn)columnSelector.getSelectedValue();
                     for ( int i=0; i<viewTable.getRowCount(); i++ ) {
@@ -198,22 +191,6 @@ public class ProfilePanel extends JPanel {
                     tabPane.setSelectedIndex(0);
                 }                
             }
-
-            public void mousePressed(MouseEvent e) {
-                // don't care
-            }
-
-            public void mouseReleased(MouseEvent e) {
-                // don't care
-            }
-
-            public void mouseEntered(MouseEvent e) {
-                // don't care
-            }
-
-            public void mouseExited(MouseEvent e) {
-                // don't care
-            }
         });
         
 
@@ -225,18 +202,9 @@ public class ProfilePanel extends JPanel {
         pb.add(new JScrollPane(columnSelector), cc.xy(2, 3));
         pb.add(progressBar,cc.xy(2,5));
         this.add(controlsArea, BorderLayout.WEST);
-        displayPanel.setChartType(chartType);
         this.add(displayPanel.getDisplayArea(), BorderLayout.CENTER);
-
     }
 
- 
-    public ChartTypes getChartType() {
-        return chartType;
-    }
-    public void setChartType(ChartTypes chartType) {
-        this.chartType = chartType;
-    }
     public JList getColumnSelector() {
         return columnSelector;
     }
