@@ -36,17 +36,17 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.profile.output.ProfileColumn;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
-import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.swingui.table.CleanupTableModel;
 
-public class ProfileTableModel extends AbstractTableModel {
+public class ProfileTableModel extends AbstractTableModel implements CleanupTableModel {
 
     /**
      * Requesting the value at this column index will give back the
@@ -58,9 +58,12 @@ public class ProfileTableModel extends AbstractTableModel {
      */
     static final int CPR_PSEUDO_COLUMN_INDEX = -1;
 
-    static Logger logger = Logger.getLogger(ProfileTableModel.class);
+    private static final Logger logger = Logger.getLogger(ProfileTableModel.class);
 
-    private ProfileManager profileManager;
+    /**
+     * The source of data for this table model.
+     */
+    private final ProfileManager profileManager;
 
     /**
      * A list of profile results to show in the ProfileResultsViewer
@@ -71,30 +74,39 @@ public class ProfileTableModel extends AbstractTableModel {
      * Only tables in this list will have the results of their columns shown.
      */
     private List<TableProfileResult> tableResultsToScan = new ArrayList<TableProfileResult>();
-    
-    private List<SQLObject> filters;
 
+    /**
+     * Refreshes this table model (possibly firing a table model event) whenever
+     * a change in the profile manager is detected.
+     */
+    private final ProfileChangeListener profileChangeHandler = new ProfileChangeListener() {
+        public void profilesRemoved(ProfileChangeEvent e) { refresh(); }
+        public void profilesAdded(ProfileChangeEvent e) { refresh(); }
+        public void profileListChanged(ProfileChangeEvent e) { refresh(); }
+    };
+
+    /**
+     * Creates a new table model attached to the given profile manager. Be sure
+     * to call {@link #cleanup()} when this table model is no longer needed
+     * (this will be done automatically if you are using a SQLPower enhanced
+     * JTable; see {@link CleanupTableModel} for details).
+     * 
+     * @param profileManager The profile manager this table model is based on.
+     */
     public ProfileTableModel(ProfileManager profileManager) {
-        filters = new ArrayList<SQLObject>();
-        setProfileManager(profileManager);
+        this.profileManager = profileManager;
+        profileManager.addProfileChangeListener(profileChangeHandler);
+        refresh();
     }
     
     /**
-     * removes all filters; this will show all the columns
-     *
+     * De-registers listeners that were installed when this table model was created.
+     * To avoid memory leaks, it is important to call this cleanup method when the
+     * table model is no longer needed.
      */
-    public void removeAllFilters(){
-        filters.clear();
-    }
-
-    public void removeFiltersByRegex(SQLObject sqo) {
-        filters.remove(sqo);
-    }
-    /**
-     *  Adds a new object that passes the filter
-     */
-    public void addFilter(SQLObject sqo){
-        filters.add(sqo);
+    public void cleanup() {
+        logger.debug("Cleaning up...");
+        profileManager.removeProfileChangeListener(profileChangeHandler);
     }
 
     @Override
@@ -209,54 +221,6 @@ public class ProfileTableModel extends AbstractTableModel {
         }
         Collections.sort(resultList);
         fireTableDataChanged();
-    }
-
-    /**
-     * If one of the SQLObjects in filters matches with a sqlobject in the
-     * profile results return true else return false
-     *
-     */
-    private boolean shouldNotBeFilteredOut(ColumnProfileResult result) {
-        for (SQLObject sqo : filters){
-
-            ProfileColumn column;
-            if (sqo instanceof SQLDatabase){
-                 column = ProfileColumn.DATABASE;
-            } else if(sqo instanceof SQLCatalog) {
-                column = ProfileColumn.CATALOG;
-            } else if(sqo instanceof SQLSchema) {
-                column = ProfileColumn.SCHEMA;
-            } else if(sqo instanceof SQLTable) {
-                column = ProfileColumn.TABLE;
-            } else if(sqo instanceof SQLColumn) {
-                column = ProfileColumn.COLUMN;
-            } else {
-                continue;
-
-            }
-            if (sqo.equals(getColumnValueFromProfile(column, result))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void setProfileManager(ProfileManager profileManager) {
-        this.profileManager = profileManager;
-        profileManager.addProfileChangeListener(new ProfileChangeListener(){
-
-            public void profilesRemoved(ProfileChangeEvent e) {
-                refresh();
-            }
-
-            public void profilesAdded(ProfileChangeEvent e) {
-                refresh();
-            }
-
-            public void profileListChanged(ProfileChangeEvent event) {
-                refresh();
-            }});
-        refresh();
     }
 
     @Override
