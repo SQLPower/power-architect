@@ -28,14 +28,15 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
-import ca.sqlpower.sqlobject.SQLColumn;
 
 public class EditSelectedAction extends AbstractArchitectAction implements SelectionListener {
     private ArchitectSwingSession session;
@@ -53,26 +54,39 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
     }
 
     public void actionPerformed(ActionEvent e) {
-        List selection = playpen.getSelectedItems();
-        if (selection.size() == 0) {
-            //no need to bug the user if they pressed enter
-            return;
-        }
-        if (selection.size() < 1) {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.noItemsSelected")); //$NON-NLS-1$
-        } else if (selection.size() > 1) {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.multipleItemsSelected")); //$NON-NLS-1$
-        } else if (selection.get(0) instanceof TablePane) {
-            TablePane tp = (TablePane) selection.get(0);
-            List<SQLColumn> selectedCols = tp.getSelectedItems();
-            if (selectedCols.size() == 0) {
-                //look for the relation ship action commands
-                session.getArchitectFrame().getEditTableAction().actionPerformed(e);
-            } else if (selectedCols.size() >= 1) {
-                session.getArchitectFrame().getEditColumnAction().actionPerformed(e);
+        
+        // Find all selected tables and relationships
+        List<PlayPenComponent> selection = playpen.getSelectedItems();
+        
+        boolean tablesSelected = false;
+        boolean relationshipsSelected = false;
+        boolean columnsSelected = false;
+        
+        for (PlayPenComponent ppc : selection) {
+            if (ppc instanceof TablePane) {
+                tablesSelected = true;
+                
+                TablePane tp = (TablePane) ppc;
+                if (tp.getSelectedItemIndex() >= 0) {
+                    columnsSelected = true;
+                }
+            } else if (ppc instanceof Relationship) {
+                relationshipsSelected = true;
             }
-        } else if (selection.get(0) instanceof Relationship) {
+        }
+
+        if (columnsSelected && !relationshipsSelected) {
+            // note: we expect tables to be selected too in this case, but we ignore that
+            // and let the column selections take precedence
+            session.getArchitectFrame().getEditColumnAction().actionPerformed(e);
+        } else if (tablesSelected && !relationshipsSelected) {
+            session.getArchitectFrame().getEditTableAction().actionPerformed(e);
+        } else if (relationshipsSelected && !tablesSelected) {
             session.getArchitectFrame().getEditRelationshipAction().actionPerformed(e);
+        } else if (selection.size() > 0) {
+            JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.multipleItemsSelected")); //$NON-NLS-1$
+        } else {
+            JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.noItemsSelected")); //$NON-NLS-1$
         }
     }
 
