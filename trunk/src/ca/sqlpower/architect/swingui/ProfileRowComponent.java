@@ -116,7 +116,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
      * dialog.
      */
     private final JLabel statusLabel =
-        new JLabel(String.format(TableProfileResult.TOSTRING_FORMAT, 500, "Mar 9, 2007", 15000));
+        new JLabel(String.format(TableProfileResult.TOSTRING_FORMAT, 500, "Mar 9, 2007", 15000, 10, 10));
 
     private final JButton reProfileButton, cancelButton, deleteButton;
 

@@ -99,13 +99,20 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * made public for use in UI controls that need an approximation
      * of the format for e.g., sizing a JLabel or other text component
      */
-    public static final String TOSTRING_FORMAT = "Rows: %d   %s   Time:  %s";
+    public static final String TOSTRING_FORMAT = "Rows: %d   %s   Time:  %s   Cols: %d/%d";
 
     @Override
     public String toString() {
         DateFormat df = DateFormat.getDateTimeInstance();
         Date date = new Date(getCreateStartTime());
-        return String.format(TOSTRING_FORMAT, rowCount, df.format(date), formatCreateTime());
+        int successfulColCount = 0;
+        for (ColumnProfileResult cpr : columnProfileResults) {
+            if (cpr.getException() == null) {
+                successfulColCount++;
+            }
+        }
+        return String.format(TOSTRING_FORMAT,
+                rowCount, df.format(date), formatCreateTime(), successfulColCount, columnProfileResults.size());
     }
     
     /**

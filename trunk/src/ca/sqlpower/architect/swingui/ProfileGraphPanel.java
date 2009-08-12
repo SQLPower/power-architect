@@ -18,7 +18,10 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -31,11 +34,8 @@ import org.apache.log4j.Logger;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.CategoryAxis;
-import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.PiePlot;
-import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.DefaultKeyedValues;
 import org.jfree.data.category.CategoryToPieDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -45,10 +45,12 @@ import org.jfree.util.TableOrder;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
-import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 import ca.sqlpower.architect.swingui.table.FreqValueCountTableModel;
 import ca.sqlpower.architect.swingui.table.FreqValueTable;
+import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.swingui.table.TableModelSortDecorator;
 
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -77,11 +79,31 @@ public class ProfileGraphPanel {
     private FreqValueTable freqValueTable;
     private JScrollPane freqValueSp;
 
-    ChartTypes chartType = ChartTypes.PIE;
-    JPanel displayArea;
+    /**
+     * A panel that contains both the {@link #validResultsPanel} and
+     * {@link #invalidResultsPanel}, only one of which is visible at a time.
+     */
+    private final JPanel displayArea;
+
+    /**
+     * The panel with the various column stats fields, the top N list, and the
+     * top N chart.
+     */
+    private final JPanel validResultsPanel;
+    
+    /**
+     * The panel with the exception message and any hints on how to rectify the problem.
+     */
+    private final JPanel invalidResultsPanel;
+    
+    /**
+     * A label that fills up the whole invalid results panel.
+     */
+    private JLabel invalidResultsLabel;
+    
     private int rowCount;
     private ChartPanel chartPanel;
-
+    
     private static final Logger logger = Logger.getLogger(ProfileGraphPanel.class);
 
 
@@ -93,16 +115,16 @@ public class ProfileGraphPanel {
                 "4dlu, default, 6dlu"); // rows
         CellConstraints cc = new CellConstraints();
 
-        displayArea = ProfileGraphPanel.logger.isDebugEnabled() ? new FormDebugPanel(displayLayout) : new JPanel(displayLayout);
-        displayArea.setBorder(BorderFactory.createEtchedBorder());
+        validResultsPanel = ProfileGraphPanel.logger.isDebugEnabled() ? new FormDebugPanel(displayLayout) : new JPanel(displayLayout);
+        validResultsPanel.setBorder(BorderFactory.createEtchedBorder());
 
-        Font bodyFont = displayArea.getFont();
+        Font bodyFont = validResultsPanel.getFont();
         Font titleFont = bodyFont.deriveFont(Font.BOLD, bodyFont.getSize() * 1.25F);
 
         title = new JLabel("Column Name");
         title.setFont(titleFont);
 
-        PanelBuilder pb = new PanelBuilder(displayLayout, displayArea);
+        PanelBuilder pb = new PanelBuilder(displayLayout, validResultsPanel);
         pb.add(title, cc.xyw(2, 2, 5));
 
         int row = 4;
@@ -136,10 +158,17 @@ public class ProfileGraphPanel {
         // Now add something to represent the chart
         JFreeChart createPieChart = ChartFactory.createPieChart("",new DefaultPieDataset(new DefaultKeyedValues()),false,false,false);
         chartPanel = new ChartPanel(createPieChart);
-
+        chartPanel.setPreferredSize(new Dimension(300, 300));
+        
         pb.add(chartPanel, cc.xywh(6, 4, 1, row-2));
 
+        
+        invalidResultsPanel = new JPanel(new BorderLayout());
+        invalidResultsLabel = new JLabel("No error message yet");
+        invalidResultsPanel.add(invalidResultsLabel);
 
+        displayArea = new JPanel(new GridLayout(1, 1));
+        displayArea.setPreferredSize(validResultsPanel.getPreferredSize());
     }
 
     public void setTitle(String title) {
@@ -151,23 +180,70 @@ public class ProfileGraphPanel {
         return displayArea;
     }
 
-    public void setDisplayArea(JPanel displayArea) {
-        this.displayArea = displayArea;
-    }
-
     /**
      * Switches the graph to show the value distribution for the given column.
      * 
      * @param cr The profile result to display. Must not be null.
      */
     public void displayProfile(ColumnProfileResult cr) {
-        TableProfileResult tr = (TableProfileResult) cr.getParentResult();
-        
-        if (tr instanceof TableProfileResult) {
-            rowCount = tr.getRowCount();
+        displayArea.removeAll();
+        if (cr.getException() != null) {
+            displayInvalidProfile(cr);
+            displayArea.add(invalidResultsPanel);
         } else {
-            rowCount = 0;
+            displayValidProfile(cr);
+            displayArea.add(validResultsPanel);
         }
+        displayArea.revalidate();
+        displayArea.repaint();
+    }
+    
+    /**
+     * Subroutine of {@link #displayProfile(ColumnProfileResult)}.
+     */
+    private void displayInvalidProfile(ColumnProfileResult cr) {
+        SQLColumn profiledColumn = cr.getProfiledObject();
+
+        String databaseType = null;
+        if (profiledColumn.getParentTable() != null) {
+            SQLDatabase parentDB = profiledColumn.getParentTable().getParentDatabase();
+            if (parentDB != null) {
+                JDBCDataSource ds = parentDB.getDataSource();
+                if (ds != null) {
+                    JDBCDataSourceType parentType = ds.getParentType();
+                    databaseType = parentType.getName();
+                }
+            }
+        }
+        
+        String advice = "";
+        if (databaseType != null) {
+            advice =
+                "You may be able to rectify this situation by visiting the JDBC Drivers " +
+                "configuration panel for " + databaseType + " and modifying the set of profile " +
+                "functions to attempt for type " + profiledColumn.getTypeName() + ".";
+        }
+            
+        invalidResultsLabel.setText(
+                "<html>" +
+                " <table width=100% height=100%>" +
+                "  <tr>" +
+                "   <td>" +
+                "    <h2>Profiler was unable to create a profile for column <i>" + profiledColumn.getName() + "</i></h2>" +
+                "    <p>" + cr.getException() +
+                "    <p><p>" + advice +
+                "   </td>" +
+                "  </tr>" +
+                " </table>" +
+                "</html>");
+    }
+    
+    /**
+     * Subroutine of {@link #displayProfile(ColumnProfileResult)}.
+     */
+    private void displayValidProfile(ColumnProfileResult cr) {
+        TableProfileResult tr = (TableProfileResult) cr.getParentResult();
+        rowCount = tr.getRowCount();
         rowCountDisplay.setText(Integer.toString(rowCount));
 
         StringBuffer sb = new StringBuffer();
@@ -228,50 +304,21 @@ public class ProfileGraphPanel {
             catDataset.addValue(otherDataCount,col.getName(),"Other Values");
         }
 
-        if ( chartType == ChartTypes.BAR ){
-            String chartTitle;
-            if (numberOfTopValues == 10 ) {
-                chartTitle = "Top "+numberOfTopValues+" most common values";
-            } else {
-                chartTitle = "All "+numberOfTopValues+" values";
-            }
-
-            chart = ChartFactory.createBarChart(
-                    chartTitle,
-                    "","",catDataset,PlotOrientation.VERTICAL,
-                    false,true,false);
-
-            final CategoryAxis domainAxis = chart.getCategoryPlot().getDomainAxis();
-            domainAxis.setCategoryLabelPositions(CategoryLabelPositions.DOWN_90);
-        } else if (chartType == ChartTypes.PIE) {
-
-            String chartTitle;
-            if (numberOfTopValues == 10 ) {
-                chartTitle = "Top "+numberOfTopValues+" most common values";
-            } else {
-                chartTitle = "All "+numberOfTopValues+" values";
-            }
-
-            chart = ChartFactory.createPieChart(
-                    chartTitle,
-                    new CategoryToPieDataset(catDataset,TableOrder.BY_ROW,0),
-                    false,true,false);
-            if (chart.getPlot() instanceof PiePlot) {
-                ((PiePlot)chart.getPlot()).setLabelGenerator(new StandardPieSectionLabelGenerator("{0} [{1}]"));
-            }
+        String chartTitle;
+        if (numberOfTopValues == 10 ) {
+            chartTitle = "Top "+numberOfTopValues+" most common values";
         } else {
+            chartTitle = "All "+numberOfTopValues+" values";
+        }
 
-            throw new IllegalStateException("chart type "+chartType+" not recognized");
+        chart = ChartFactory.createPieChart(
+                chartTitle,
+                new CategoryToPieDataset(catDataset,TableOrder.BY_ROW,0),
+                false,true,false);
+        if (chart.getPlot() instanceof PiePlot) {
+            ((PiePlot)chart.getPlot()).setLabelGenerator(new StandardPieSectionLabelGenerator("{0} [{1}]"));
         }
         return chart;
-    }
-
-    public ChartTypes getChartType() {
-        return chartType;
-    }
-
-    public void setChartType(ChartTypes chartType) {
-        this.chartType = chartType;
     }
 
     private String format(double d) {

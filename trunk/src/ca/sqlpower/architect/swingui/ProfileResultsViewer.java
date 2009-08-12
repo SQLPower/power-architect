@@ -25,6 +25,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -50,7 +52,6 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.profile.output.ProfileColumn;
-import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 import ca.sqlpower.architect.swingui.action.SaveProfileAction;
 import ca.sqlpower.architect.swingui.table.ProfileJTable;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
@@ -82,6 +83,9 @@ public class ProfileResultsViewer {
      * The frame all the viewer stuff lives in.  Gets disposed automatically
      * when (and if) all the profiles this component is displaying are removed
      * from the profile manager.
+     * <p>
+     * A listener attached to this frame ensures resources get cleaned up when the
+     * frame is closed.
      */
     private final JFrame frame;
     
@@ -169,11 +173,17 @@ public class ProfileResultsViewer {
     /**
      * Creates but does not show a new profile result viewer dialog.
      */
-    public ProfileResultsViewer(ProfileManager profileManager) {
-        this.profileManager = profileManager;
+    public ProfileResultsViewer(ProfileManager pm) {
+        this.profileManager = pm;
         this.results = new ArrayList<TableProfileResult>();
         this.frame = new JFrame(Messages.getString("ProfileResultsViewer.frameTitle")); //$NON-NLS-1$
         frame.setIconImage(ASUtils.getFrameIconImage());
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosed(WindowEvent e) {
+                tm.cleanup();
+                profileManager.removeProfileChangeListener(profileChangeListener);
+            }
+        });
         
         JTabbedPane tabPane = new JTabbedPane();
 
@@ -231,7 +241,6 @@ public class ProfileResultsViewer {
         
 
         profilePanelMouseListener.setProfilePanel(p);
-        p.setChartType(ChartTypes.PIE);
 
         if ( viewTable.getRowCount() > 0 ) {
             SQLColumn col = (SQLColumn)viewTable.getValueAt(0,
