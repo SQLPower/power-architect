@@ -2367,23 +2367,56 @@
     part of the functionality and is intended for users with experiences in
     building Mondrian OLAP schemas.</para>
 
-    <section id="multi_data_model.new_schema">
-      <title>Creating a new multidimensional Data Model</title>
+    <section id="multi_data_model.schema">
+      <title>Working with multidimensional Schemas</title>
 
-      <para>To create an OLAP schema select OLAP-&gt;Edit Schema-&gt;New
-      Schema. Select the database your schema will be based on and enter a
-      name for the new schema. The list of database connections corresponds to
-      the databases available in the DB Tree in the main Architect frame. If
-      you'd like to base your OLAP schema on an existing database, simply
-      connect to that database in the DB Tree before creating your OLAP
-      schema.</para>
+      <section id="multi_data_model.schema.new">
+        <title>Creating a multidimensional Schema</title>
 
-      <para>Now you can easily add cubes, measures and dimensions to your
-      schema by clicking on the according icon on the right side. The cursor
-      will change to a crosshair. Move the cursor near the left of the Playpen
-      area, and click. The properties box will appear.</para>
+        <para>To create an OLAP schema select OLAP-&gt;Edit Schema-&gt;New
+        Schema. Select the database your schema will be based on and enter a
+        name for the new schema. The list of database connections corresponds
+        to the databases available in the DB Tree in the main Architect frame.
+        If you'd like to base your OLAP schema on an existing database, simply
+        connect to that database in the DB Tree before creating your OLAP
+        schema. Now you can easily add cubes, measures and dimensions to your
+        schema by clicking on the according icon on the right side.</para>
+
+        <para>For more details on multidimensional schemas, please read
+        the<ulink url="http://mondrian.pentaho.org/documentation/schema.php">
+        Mondrian schema specifications.</ulink></para>
+      </section>
+
+      <section id="multi_data_model.schema.import" label="">
+        <title>Importing a multidimensional Data Model</title>
+
+        <para>To import an OLAP schema select OLAP-&gt;Import Schema. After
+        selecting the schema file you can enter the name of the schema and
+        select the related database.</para>
+      </section>
+
+      <section id="multi_data_model.schema.export">
+        <title>Exporting a multidimensional Data Model</title>
+
+        <para>You can export OLAP schemes to PDF and XML with right-clicking
+        on the Playpen in the OLAP Schema Editor. To export it to XML select
+        'Export Schema...', to export it to PDF select 'Export Playpen to
+        PDF'.</para>
+      </section>
 
       <section>
+        <title>OLAP Schema Manager</title>
+
+        <para>The OLAP Schema Manager (OLAP -&gt; OLAP Schema Manager) give
+        the user access to all schemas that are available in the
+        project.</para>
+      </section>
+    </section>
+
+    <section id="multi_data_model.cube">
+      <title>Working with Cubes</title>
+
+      <section id="multi_data_model.cube.add">
         <title>Adding a Cube</title>
 
         <para>To add a cube:</para>
@@ -2479,86 +2512,28 @@
         </orderedlist>
       </section>
 
-      <section>
-        <title>Adding a Dimension</title>
+      <section id="multi_data_model.cube.addVirtual">
+        <title>Adding a Virtual Cube</title>
 
-        <para>To add a shared dimension:</para>
-
-        <orderedlist>
-          <listitem>
-            <para>Click on <inlinemediaobject>
-                <imageobject>
-                  <imagedata fileref="../sqlpower_library/src/ca/sqlpower/swingui/olap/dimensionAdd.png"
-                             format="PNG" width="" />
-                </imageobject>
-              </inlinemediaobject> to create a new dimension.</para>
-          </listitem>
-
-          <listitem>
-            <para>The cursor will change to a crosshair. Move the cursor near
-            the left of the Playpen area, and click.</para>
-          </listitem>
-
-          <listitem>
-            <para>The dimension properties dialog box appears.</para>
-          </listitem>
-
-          <listitem>
-            <para>Enter the following information:</para>
-
-            <informaltable frame="all">
-              <tgroup cols="2">
-                <thead>
-                  <row>
-                    <entry>
-                      <para>In this field ...</para>
-                    </entry>
-
-                    <entry>
-                      <para>Do this ...</para>
-                    </entry>
-                  </row>
-                </thead>
-
-                <tbody>
-                  <row>
-                    <entry>
-                      <para>Name</para>
-                    </entry>
-
-                    <entry>
-                      <para>Enter the dimension name.</para>
-                    </entry>
-                  </row>
-
-                  <row>
-                    <entry>
-                      <para>Caption</para>
-                    </entry>
-
-                    <entry>
-                      <para>Enter the dimension caption.</para>
-                    </entry>
-                  </row>
-
-                  <row>
-                    <entry>
-                      <para>Type</para>
-                    </entry>
-
-                    <entry>
-                      <para>Select if your dimension is a standard dimension
-                      or a time related dimension.</para>
-                    </entry>
-                  </row>
-                </tbody>
-              </tgroup>
-            </informaltable>
-          </listitem>
-        </orderedlist>
+        <para>Virtual cubes are not supported yet.</para>
       </section>
 
       <section>
+        <title>Adding a Dimension to a Cube</title>
+
+        <para>To add a dimension to a cube please read<xref
+        linkend="multi_data_model.dimension.addUsage" />.</para>
+      </section>
+    </section>
+
+    <section id="multi_data_model.measure">
+      <title>Working with Measures</title>
+
+      <para>Every cube can contain several measures. A measure can either be
+      derived from a column of the fact table or from a MDX formula, further
+      referenced as calculated member.</para>
+
+      <section id="multi_data_model.measure.add">
         <title>Adding a Measure</title>
 
         <para>To add a measure:</para>
@@ -2643,28 +2618,480 @@
         </orderedlist>
       </section>
 
-      <section>
-        <title>Adding a Role</title>
+      <section id="multi_data_model.measure.addCalculated">
+        <title>Adding a Calculated Member</title>
 
-        <para>The creation and editing of roles is not supported yet.</para>
+        <para>To add a calculated member:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Select the cube you want to add the measure to.</para>
+          </listitem>
+
+          <listitem>
+            <para>Click on<inlinemediaobject>
+                <imageobject>
+                  <imagedata fileref="../sqlpower_library/src/ca/sqlpower/swingui/olap/formulaAdd.png"
+                             format="PNG" width="" />
+                </imageobject>
+              </inlinemediaobject> to add a calculated member to the
+            cube.</para>
+          </listitem>
+
+          <listitem>
+            <para>Enter the following information:</para>
+
+            <informaltable frame="all">
+              <tgroup cols="2">
+                <thead>
+                  <row>
+                    <entry>
+                      <para>In this field ...</para>
+                    </entry>
+
+                    <entry>
+                      <para>Do this ...</para>
+                    </entry>
+                  </row>
+                </thead>
+
+                <tbody>
+                  <row>
+                    <entry>
+                      <para>Name</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter a measure name.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Caption</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the measure caption.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Dimension</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the dimension name. Measures should be
+                      default value.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Visible</para>
+                    </entry>
+
+                    <entry>
+                      <para>Select if calculated member should be visible or
+                      not.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Formula</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the formula for the calculation.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Format</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the format.</para>
+                    </entry>
+                  </row>
+                </tbody>
+              </tgroup>
+            </informaltable>
+          </listitem>
+        </orderedlist>
       </section>
     </section>
 
-    <section id="multi_data_model.import_schema">
-      <title>Importing a multidimensional Data Model</title>
+    <section id="multi_data_model.dimension">
+      <title>Working with Dimensions, Hierarchies, Levels</title>
 
-      <para>To import an OLAP schema select OLAP-&gt;Import Schema. After
-      selecting the schema file you can enter the name of the schema and
-      select the related database.</para>
+      <para>In Power*Architect all dimensions are modeled as shared
+      dimensions. Degenerate dimensions are not supported.</para>
+
+      <section id="multi_data_model.dimension.add">
+        <title>Adding a Dimension</title>
+
+        <para>To add a shared dimension:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Click on <inlinemediaobject>
+                <imageobject>
+                  <imagedata fileref="../sqlpower_library/src/ca/sqlpower/swingui/olap/dimensionAdd.png"
+                             format="PNG" width="" />
+                </imageobject>
+              </inlinemediaobject> to create a new dimension.</para>
+          </listitem>
+
+          <listitem>
+            <para>The cursor will change to a crosshair. Move the cursor near
+            the left of the Playpen area, and click.</para>
+          </listitem>
+
+          <listitem>
+            <para>The dimension properties dialog box appears.</para>
+          </listitem>
+
+          <listitem>
+            <para>Enter the following information:</para>
+
+            <informaltable frame="all">
+              <tgroup cols="2">
+                <thead>
+                  <row>
+                    <entry>
+                      <para>In this field ...</para>
+                    </entry>
+
+                    <entry>
+                      <para>Do this ...</para>
+                    </entry>
+                  </row>
+                </thead>
+
+                <tbody>
+                  <row>
+                    <entry>
+                      <para>Name</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the dimension name.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Caption</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the dimension caption.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Type</para>
+                    </entry>
+
+                    <entry>
+                      <para>Select if your dimension is a standard dimension
+                      or a time related dimension.</para>
+                    </entry>
+                  </row>
+                </tbody>
+              </tgroup>
+            </informaltable>
+          </listitem>
+        </orderedlist>
+      </section>
+
+      <section id="multi_data_model.dimension.addUsage">
+        <title>Adding a Dimension usage</title>
+
+        <para>To add a dimension usage:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Click on <inlinemediaobject>
+                <imageobject>
+                  <imagedata fileref="../sqlpower_library/src/ca/sqlpower/swingui/olap/dimensionUsageAdd.png"
+                             format="PNG" width="" />
+                </imageobject>
+              </inlinemediaobject> to create a new dimension usage</para>
+          </listitem>
+
+          <listitem>
+            <para>The cursor will change to a crosshair. Do a left click on
+            the cube you want to use the dimension in.</para>
+          </listitem>
+
+          <listitem>
+            <para>Do a left click on the dimension you want to use.</para>
+          </listitem>
+
+          <listitem>
+            <para>The dimension usage property box appears.</para>
+          </listitem>
+
+          <listitem>
+            <para>Enter the following information:</para>
+
+            <informaltable frame="all">
+              <tgroup cols="2">
+                <thead>
+                  <row>
+                    <entry>
+                      <para>In this field ...</para>
+                    </entry>
+
+                    <entry>
+                      <para>Do this ...</para>
+                    </entry>
+                  </row>
+                </thead>
+
+                <tbody>
+                  <row>
+                    <entry>
+                      <para>Caption</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the dimension usage caption.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Foreign Key</para>
+                    </entry>
+
+                    <entry>
+                      <para>Select the related foreign key.</para>
+                    </entry>
+                  </row>
+                </tbody>
+              </tgroup>
+            </informaltable>
+          </listitem>
+        </orderedlist>
+      </section>
+
+      <section id="multi_data_model.dimension.addHierarchy">
+        <title>Adding a Hierarchy</title>
+
+        <para>To add a hierarchy:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Right click on the dimension you want to add the hierarchy
+            to.</para>
+          </listitem>
+
+          <listitem>
+            <para>Select "New hierarchy".</para>
+          </listitem>
+
+          <listitem>
+            <para>The hierarchy properties dialog box appears.</para>
+          </listitem>
+
+          <listitem>
+            <para>Enter the following information:</para>
+
+            <informaltable frame="all">
+              <tgroup cols="2">
+                <thead>
+                  <row>
+                    <entry>
+                      <para>In this field ...</para>
+                    </entry>
+
+                    <entry>
+                      <para>Do this ...</para>
+                    </entry>
+                  </row>
+                </thead>
+
+                <tbody>
+                  <row>
+                    <entry>
+                      <para>Name</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the hierarchy name.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Caption</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the hierarchy caption.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Has All</para>
+                    </entry>
+
+                    <entry>
+                      <para>Select if Hierarchy has an all level
+                      element.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>All Level Name</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the name of the all level element.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Table</para>
+                    </entry>
+
+                    <entry>
+                      <para>Select the table the hierarchy belongs to.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Primary Key</para>
+                    </entry>
+
+                    <entry>
+                      <para>Select the related primary key.</para>
+                    </entry>
+                  </row>
+                </tbody>
+              </tgroup>
+            </informaltable>
+          </listitem>
+        </orderedlist>
+      </section>
+
+      <section id="multi_data_model.dimension.addLevel">
+        <title>Adding a Level</title>
+
+        <para>To add a level</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Right click on the hierarchy you want to add a level
+            to.</para>
+          </listitem>
+
+          <listitem>
+            <para>The level properties dialog box appears.</para>
+          </listitem>
+
+          <listitem>
+            <para>Enter the following information:</para>
+
+            <informaltable frame="all">
+              <tgroup cols="2">
+                <thead>
+                  <row>
+                    <entry>
+                      <para>In this field ...</para>
+                    </entry>
+
+                    <entry>
+                      <para>Do this ...</para>
+                    </entry>
+                  </row>
+                </thead>
+
+                <tbody>
+                  <row>
+                    <entry>
+                      <para>Name</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the level name.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Caption</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the level caption.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Column</para>
+                    </entry>
+
+                    <entry>
+                      <para>Select the column your level is based on</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Unique members</para>
+                    </entry>
+
+                    <entry>
+                      <para>Select if the level has unique members.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Level Type</para>
+                    </entry>
+
+                    <entry>
+                      <para>Enter the type of the level. This selection is
+                      only available if you set the dimension type to a time
+                      dimension.</para>
+                    </entry>
+                  </row>
+
+                  <row>
+                    <entry>
+                      <para>Properties</para>
+                    </entry>
+
+                    <entry>
+                      <para>Add properties to the level.</para>
+                    </entry>
+                  </row>
+                </tbody>
+              </tgroup>
+            </informaltable>
+          </listitem>
+        </orderedlist>
+      </section>
     </section>
 
-    <section id="multi_data_model.export_schema">
-      <title>Exportng a multidimensional Data Model</title>
+    <section id="multi_data_model.role">
+      <title>Working with Roles</title>
 
-      <para>You can export OLAP schemes to PDF and XML with right-clicking on
-      the Playpen in the OLAP Schema Editor. To export it to XML select
-      'Export Schema...', to export it to PDF select 'Export Playpen to
-      PDF'.</para>
+      <para>Roles are not supported yet.</para>
     </section>
   </chapter>
 
