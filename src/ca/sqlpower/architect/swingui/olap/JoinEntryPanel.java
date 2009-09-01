@@ -62,7 +62,6 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanel;
-import ca.sqlpower.swingui.action.ForumAction;
 import ca.sqlpower.swingui.querypen.QueryPen;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -116,8 +115,6 @@ public class JoinEntryPanel implements DataEntryPanel {
     
     private final Query model;
     
-    private final ForumAction forumAction = new ForumAction(new ImageIcon(JoinEntryPanel.class.getResource("/icons/Architect16.png")), "Help on the forums.");
-
     private final SQLDatabase db;
 
     private final ArchitectSwingSession session;
@@ -138,7 +135,7 @@ public class JoinEntryPanel implements DataEntryPanel {
             addSQLJoinsToModel(join);
         }
         
-        pen = new QueryPen(noExecutionAction , model, forumAction, false);
+        pen = new QueryPen(noExecutionAction , model, false);
         pen.setExecuteIcon(new ImageIcon(QueryPen.class.getClassLoader().getResource("icons/auto_layout16.png")));
         buildUI();
     }
