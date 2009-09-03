@@ -22,12 +22,15 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -53,6 +56,9 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.SPSwingWorker;
+
+import com.jgoodies.forms.builder.ButtonBarBuilder;
+import com.jgoodies.forms.factories.Borders;
 
 public class ExportDDLAction extends AbstractArchitectAction {
 
@@ -137,17 +143,39 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                         Messages.getString("ExportDDLAction.recheckOption") //$NON-NLS-1$
                                 };
 
-                                int dialogChoice = JOptionPane.showOptionDialog(
-                                        frame,
-                                        dialogPanel.getPanel(),
-                                        Messages.getString("ExportDDLAction.errorsInDDLDialogTitle"), //$NON-NLS-1$
-                                        JOptionPane.DEFAULT_OPTION,
-                                        JOptionPane.ERROR_MESSAGE,
-                                        null,   // JOptionPane gets icon from owningComponent,
-                                        options,
-                                        options[options.length - 1]);    // blocking
-                                logger.debug(dialogChoice);
-                                switch (dialogChoice) {
+                                // This used to be a JOptionPane, but a resize bug made me change
+                                // it to this. The whole thing is a disaster and will go away when
+                                // critics are ready.
+                                final JDialog warningDialog = new JDialog(frame, true);
+                                warningDialog.setTitle(Messages.getString("ExportDDLAction.errorsInDDLDialogTitle"));
+                                
+                                ButtonBarBuilder bbb = new ButtonBarBuilder();
+                                bbb.setDefaultButtonBarGapBorder();
+                                final AtomicInteger dialogChoice = new AtomicInteger(-1);
+                                for (int i = 0; i < options.length; i++) {
+                                    final int ii = i;
+                                    JButton button = new JButton(options[i]);
+                                    button.addActionListener(new ActionListener() {
+                                        public void actionPerformed(ActionEvent e) {
+                                            dialogChoice.set(ii);
+                                            warningDialog.dispose();
+                                        }
+                                    });
+                                    bbb.addGridded(button);
+                                }
+
+                                JPanel p = new JPanel(new BorderLayout());
+                                p.add(dialogPanel.getPanel(), BorderLayout.CENTER);
+                                p.add(bbb.getPanel(), BorderLayout.SOUTH);
+                                p.setBorder(Borders.DIALOG_BORDER);
+                                
+                                warningDialog.setContentPane(p);
+                                warningDialog.pack();
+                                warningDialog.setLocationRelativeTo(d);
+                                warningDialog.setVisible(true); // modal dialog blocks
+                                
+                                logger.debug(dialogChoice.get());
+                                switch (dialogChoice.get()) {
                                 case 0:
                                     for (DDLWarning warning : warnings) {
                                         if (warning.isQuickFixable()) {
@@ -159,7 +187,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                     done = true;
                                     break;
                                 case 2:     // "Cancel"
-                                case -1:    // Kill dialog
+                                case -1:    // no button was pressed--kill dialog
                                     return true;
                                 case 3: // apply all changes made
                                     for (DDLWarningComponent warningComponent : warningComponents) {
