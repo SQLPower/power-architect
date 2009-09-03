@@ -18,7 +18,6 @@
 package ca.sqlpower.architect.olap;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.IdentityHashMap;
@@ -46,8 +45,8 @@ public class MondrianXMLWriter {
      *             If creating a file writer for the given file failed.
      */
     public static void exportXML(File f, MondrianModel.Schema schema) throws IOException {
-        PrintWriter out = new PrintWriter(new FileWriter(f));
-        out.println("&lt;?xml version=\"1.0\"?&gt;");
+        PrintWriter out = new PrintWriter(f, "UTF-8");
+        out.println("&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;");
         MondrianXMLWriter writer = new MondrianXMLWriter(out);
         writer.writeSchema(schema);
         out.flush();
@@ -70,7 +69,7 @@ public class MondrianXMLWriter {
      *             If creating a file writer for the given file failed.
      */
     public static Map&lt;OLAPObject, String&gt; write(File f, MondrianModel.Schema schema) throws IOException {
-        PrintWriter out = new PrintWriter(new FileWriter(f));
+        PrintWriter out = new PrintWriter(f, "UTF-8");
         return write(out, schema, true, 0, new IdentityHashMap&lt;OLAPObject, String&gt;());
     }
 
