@@ -594,7 +594,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         print("COMMENT ON COLUMN ");
         print(toQualifiedName(c.getParentTable()));
         print(".");
-        print(c.getName());
+        print(c.getPhysicalName());
         print(" IS '");
         print(c.getRemarks().replaceAll("'", "''"));
         print("'");
