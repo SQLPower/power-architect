@@ -1,5 +1,12 @@
 Power*Architect Release Notes
 
+0.9.14
+
+  Bug Fixes:
+    * Now Mondrian schemas are always exported with UTF-8 encoding
+      (previously, was platform default encoding)
+
+
 0.9.13-release
 
     * Relationship labels now display vertically if there's not enough room horizontally
