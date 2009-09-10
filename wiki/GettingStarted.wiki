@@ -44,6 +44,7 @@ To check out the Power*Architect source into an Eclipse project:
  # Create a new repository location to check out the SQL Power Library from. Power*Architect requires this project to build. The URL for the new repository is http://sqlpower-library.googlecode.com/svn/
  # To check out all of the latest source files for the SQL Power Library, select the *trunk* directory, then press next
  # Ensure that the "Check out as a project in the workspace" and "Head Revision" options are selected (they are the defaults), then click *Finish*.
+ # Ensure the Eclipse project is set to compile with Java 5 language level, and against the JDK 5 libraries. Trying to compile against JDK 6 or newer will cause compile errors in the JDBC Wrappers.
  # Repeat steps 2-6 for Power*Architect, except use the following repository URL at step 4: http://power-architect.googlecode.com/svn/
 
 == Other Development Environments ==
