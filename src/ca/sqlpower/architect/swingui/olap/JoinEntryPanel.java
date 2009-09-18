@@ -54,6 +54,7 @@ import ca.sqlpower.query.Container;
 import ca.sqlpower.query.Item;
 import ca.sqlpower.query.ItemContainer;
 import ca.sqlpower.query.Query;
+import ca.sqlpower.query.QueryImpl;
 import ca.sqlpower.query.SQLJoin;
 import ca.sqlpower.query.StringItem;
 import ca.sqlpower.query.TableContainer;
@@ -129,7 +130,7 @@ public class JoinEntryPanel implements DataEntryPanel {
         this.session = session;
         this.db = db;
         this.editPanel = editPanel;
-        model = new Query(session);
+        model = new QueryImpl(session);
         
         if (join != null) {
             addSQLJoinsToModel(join);
