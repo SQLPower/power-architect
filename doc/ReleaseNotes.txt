@@ -2,9 +2,14 @@ Power*Architect Release Notes
 
 0.9.14
 
+  New Features:
+    * Portuguese translation (contributed by Rogério Ramos da Silva)
+
   Bug Fixes:
     * Now Mondrian schemas are always exported with UTF-8 encoding
       (previously, was platform default encoding)
+
+
 
 
 0.9.13-release
