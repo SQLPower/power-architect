@@ -656,7 +656,7 @@
 
 	</target>
 
-    <target name="stage" depends="checkAntVersion,compile,userguide">
+    <target name="stage" depends="checkAntVersion,compile">
     	<mkdir dir="${dist.dir}" />
         <mkdir dir="${staging.dir}"/>
         <mkdir dir="${staging.dir}/lib"/>
@@ -736,10 +736,6 @@
 		    <fileset dir="jdbc_drivers" includes="*.jar"/>
 			<fileset dir="src" includes="default_database_types.ini"/>
 	    </copy>
-    	<copy todir="${staging.dir}/doc">
-        	<fileset dir="${build}/doc" includes="*-${app.version}.pdf"/>
-    	   	<fileset dir="${build}/doc" includes="*.txt"/>
-    	</copy>
     	<copy todir="${staging.dir}/doc" file="doc/ReleaseNotes.txt"/>
 
     	<copy todir="${staging.dir}" file="LICENSE"/>

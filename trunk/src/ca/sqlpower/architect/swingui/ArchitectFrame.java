@@ -93,7 +93,6 @@ import ca.sqlpower.architect.swingui.action.ExportDDLAction;
 import ca.sqlpower.architect.swingui.action.ExportHTMLReportAction;
 import ca.sqlpower.architect.swingui.action.ExportPlaypenToPDFAction;
 import ca.sqlpower.architect.swingui.action.FocusToChildOrParentTableAction;
-import ca.sqlpower.architect.swingui.action.HelpAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
 import ca.sqlpower.architect.swingui.action.InsertIndexAction;
 import ca.sqlpower.architect.swingui.action.KettleJobAction;
@@ -154,7 +153,6 @@ public class ArchitectFrame extends JFrame {
     private RedoAction redoAction;
     
     private AboutAction aboutAction;
-    private Action helpAction;
     private Action newProjectAction;
     private OpenProjectAction openProjectAction;
     private Action saveProjectAction;
@@ -331,9 +329,6 @@ public class ArchitectFrame extends JFrame {
         // Create actions
 
         aboutAction = new AboutAction(session);
-        helpAction = new HelpAction(session);
-        helpAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.userGuideActionDescription")); //$NON-NLS-1$    
-        
 
         newProjectAction = new AbstractAction(Messages.getString("ArchitectFrame.newProjectActionName"), //$NON-NLS-1$
                 SPSUtils.createIcon("new_project",Messages.getString("ArchitectFrame.newProjectActionIconDescription"),sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) { //$NON-NLS-1$ //$NON-NLS-2$
@@ -454,8 +449,6 @@ public class ArchitectFrame extends JFrame {
         projectBar.addSeparator();
         projectBar.add(autoLayoutAction);
         projectBar.add(profileAction);
-        projectBar.addSeparator();
-        projectBar.add(helpAction);
         projectBar.setToolTipText(Messages.getString("ArchitectFrame.projectToolbarToolTip")); //$NON-NLS-1$
         projectBar.setName(Messages.getString("ArchitectFrame.projectToolbarName")); //$NON-NLS-1$
         
@@ -692,7 +685,6 @@ public class ArchitectFrame extends JFrame {
             helpMenu.add(aboutAction);
             helpMenu.addSeparator();
         }
-        helpMenu.add(helpAction);
         helpMenu.add(SPSUtils.forumAction);
         helpMenu.addSeparator();
         helpMenu.add(checkForUpdateAction);
