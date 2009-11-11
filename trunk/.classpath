@@ -24,7 +24,6 @@
 	<classpathentry kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon-1.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart-1.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/jhall.jar"/>
 	<classpathentry kind="lib" path="lib/kettle-engine-3.0.jar"/>
 	<classpathentry kind="lib" path="lib/log4j.jar"/>
 	<classpathentry kind="lib" path="lib/mail.jar"/>
