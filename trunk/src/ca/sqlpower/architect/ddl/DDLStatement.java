@@ -47,6 +47,9 @@ public class DDLStatement {
 		}
 
 		public boolean equals(Object other) {
+		    if (!(other instanceof StatementType)) {
+		        return false;
+		    }
 			return this.type.equals(((StatementType) other).type);
 		}
 
