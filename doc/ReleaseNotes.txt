@@ -3,13 +3,18 @@ Power*Architect Release Notes
 0.9.14
 
   New Features:
-    * Portuguese translation (contributed by Rogério Ramos da Silva)
+    * German translation (contributed by Thomas Kellerer)
+    * Brazilian Portuguese translation (contributed by Rogério Ramos da Silva)
+    * DDL foward engineering support for H2 (contributed by Thomas Kellerer)
+    * Support for using Apache Velocity templates for HTML reports (contributed by Thomas Kellerer)
 
   Bug Fixes:
     * Now Mondrian schemas are always exported with UTF-8 encoding
       (previously, was platform default encoding)
-
-
+    * Fixed graphical artifacts while moving around Playpen components 
+      are non-default zoom levels (contributed by Israel Rios)
+	* Fixed Windows installer so that it works properly on 64-bit Windows
+	* Other minor bug fixes
 
 
 0.9.13-release
