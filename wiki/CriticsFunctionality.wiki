@@ -1,0 +1,11 @@
+#summary A High-level description of the planned Critics functionality.
+
+= Introduction =
+
+The idea behind the Critics feature is to have a real-time monitor of your data model that will notify the user of errors, mistakes, and bad practices in their data model. A simple analogy would be like how spell-checking works in modern word processors.
+
+
+= High Level Description =
+
+  * Support for platform-specific rules
+  * 
