@@ -34,6 +34,7 @@ The Architect currently does not support the concept of data domains, but it's a
   * Be able to specify domains for columns of existing database tables
   * GUI facility for defining new domains, capturing:
     * Logical type name
+    * "Basic" or fundamental type: text, number, boolean, date/time, and complex/other
     * Physical type in each target database you care about, including precision and scale plus custom native-coded check constraints (can be deferred until forward engineering time if desired)
     * Constraints on value
     * Default value
