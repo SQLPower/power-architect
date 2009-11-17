@@ -5,10 +5,18 @@
 The idea behind the Critics feature is to have a real-time monitor of your data model that will notify the user of errors, mistakes, and bad practices in their data model. A simple analogy would be like how spell-checking works in modern word processors.
 
 
-= High Level Description =
+= High Level Description of Requirements for the next release (0.9.15) =
 
   * Support for platform-specific rules 
     * ex. Oracle table names cannot be longer than 30 characters
   * Support for detecting bad database design practices
     * ex. Tables without primary keys
+  * Visual notification to the user of problems
+    * Provide a visual list of items that critics have found
+    * Highlighting of items in the playpen
+  * Allow the user to disable and enable critics
+    * If you're only working with Oracle, then you probably don't care about critics for SQL Server, MySQL, etc
     * 
+
+ = Items to consider for later? =
+  * User-defined critics
