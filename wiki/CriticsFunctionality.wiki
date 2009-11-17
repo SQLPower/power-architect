@@ -7,5 +7,8 @@ The idea behind the Critics feature is to have a real-time monitor of your data 
 
 = High Level Description =
 
-  * Support for platform-specific rules
-  * 
+  * Support for platform-specific rules 
+    * ex. Oracle table names cannot be longer than 30 characters
+  * Support for detecting bad database design practices
+    * ex. Tables without primary keys
+    * 
