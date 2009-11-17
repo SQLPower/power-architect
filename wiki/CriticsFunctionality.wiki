@@ -4,6 +4,12 @@
 
 The idea behind the Critics feature is to have a monitor of your data model that will notify the user of errors, mistakes, and bad practices in their data model. A simple analogy would be like how spell-checking works in modern word processors.
 
+= Motivation =
+  * A vocal group of users dislike some of the automatic data modelling features of the Architect. (For example, how can get hijacked for foreign key creation) Adding Critics would allow this automation to be disabled, and make the Architect easier to work with for different data modelling strategies.
+
+  * Currently, one of the less pleasant User Interface aspects of the Architect is the QuickFix functionality when you try to forward engineer a data model into a platform, but your data model violates some rules for that platform. Implementing the Critics feature can allow us to completely remove the QuickFix feature.
+
+  * There are a number of active bugs that are blocked by the implementation of the Critics functionality.
 
 = High Level Description =
 
