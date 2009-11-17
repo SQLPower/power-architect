@@ -36,5 +36,9 @@ The idea behind the Critics feature is to have a monitor of your data model that
     * Would require some technical research into multi-threaded access of the SQL Objects
     * Optionally, to limit the scope, critics could be run on demand instead
 
+== Anti-requirements (What NOT to do) ==
+  * Obtrusive warning visualizations (ex. popup messages)
+  * Poor performance (Slowing down the whole data modelling process)
+
 == Items to consider for later? ==
   * User-defined critics
