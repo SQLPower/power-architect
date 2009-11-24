@@ -17,12 +17,7 @@ The idea behind the Critics feature is to have a monitor of your data model that
 = High Level Description =
 
 == Requirements for the next release (0.9.15) ==
-
-  * Support for platform-specific rules 
-    * ex. Oracle table names cannot be longer than 30 characters
-
-  * Support for detecting bad database design practices
-    * ex. Tables without primary keys
+  * At minimum support a basic set of critics that replace the DDL warnings checked by the current system. (Provided by the QuickFix system)
 
   * Visual notification to the user of problems
     * Provide a visual list of items that critics have found
@@ -42,3 +37,7 @@ The idea behind the Critics feature is to have a monitor of your data model that
 
 == Items to consider for later? ==
   * User-defined critics
+  * Support for platform-specific rules 
+    * ex. Oracle table names cannot be longer than 30 characters
+  * Support for detecting bad database design practices
+    * ex. Tables without primary keys
