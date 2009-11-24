@@ -17,6 +17,8 @@ The idea behind the Critics feature is to have a monitor of your data model that
 = High Level Description =
 
 == Requirements for the next release (0.9.15) ==
+  * Provide a basic framework that should make it fairly simple to implement critics for individual items (Should only at most an hour to whip up a critic for a particular error/warning)
+
   * At minimum support a basic set of critics that replace the DDL warnings checked by the current system. (Provided by the QuickFix system)
 
   * Visual notification to the user of problems
