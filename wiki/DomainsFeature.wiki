@@ -54,14 +54,19 @@ Types:
   # Must preserve forward compatibility for existing .architect project files
   # Think about how this new feature might interact with, enhance, or be enhanced by the Architect's existing feature set:
     * Forward Engineering
+      * Covered above
     * Reverse Engineering
+      * Capture the source system data types as user-definable types
     * Profiling
+      * No change
     * Compare DM
-    * Column properties editor
-    * Playpen display preferences
-    * Print/PDF
+      * Could choose to compare at the level of physical types or user-definable types
     * HTML data model report
+      * Add domain name and user-definable type information
+      * Optionally include actual physical types for a particular (selection of) target platform(s)
+      * Add a section that outlines the definition of each domain?
     * OLAP modeling
+      * No change
 
 ==Specific Features We Will Implement==
 
