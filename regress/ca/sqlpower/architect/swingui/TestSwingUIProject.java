@@ -1238,7 +1238,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
                     "didn't expect this index to have no columns!",
                     idx.getChildCount() > 0);
             
-            List<SQLIndex.Column> indexCols = idx.getChildren();
+            List<SQLIndex.Column> indexCols = idx.getChildren(SQLIndex.Column.class);
             List<SQLColumn> colsToRemove = new ArrayList<SQLColumn>();
             for (SQLIndex.Column indexCol : indexCols) {
                 colsToRemove.add(indexCol.getColumn());
@@ -1341,7 +1341,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         project.load(r, plIni);
         SQLTable table = session.getPlayPen().getTables().get(0);
-        assertEquals(AscendDescend.ASCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+        assertEquals(AscendDescend.ASCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren(SQLIndex.Column.class).get(0).getAscendingOrDescending());
     }
     
     /**
@@ -1381,7 +1381,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         project.load(r, plIni);
         SQLTable table = session.getPlayPen().getTables().get(0);
-        assertEquals(AscendDescend.DESCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+        assertEquals(AscendDescend.DESCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren(SQLIndex.Column.class).get(0).getAscendingOrDescending());
     }
     
     /**
@@ -1421,7 +1421,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         project.load(r, plIni);
         SQLTable table = session.getPlayPen().getTables().get(0);
-        assertEquals(AscendDescend.UNSPECIFIED, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+        assertEquals(AscendDescend.UNSPECIFIED, table.getIndexByName("PL_MATCH_UNIQUE").getChildren(SQLIndex.Column.class).get(0).getAscendingOrDescending());
     }
     
     /**
@@ -1460,7 +1460,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         project.load(r, plIni);
         SQLTable table = session.getPlayPen().getTables().get(0);
-        assertEquals(AscendDescend.ASCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+        assertEquals(AscendDescend.ASCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren(SQLIndex.Column.class).get(0).getAscendingOrDescending());
     }
     /**
      * This tests loading a descending column on an index works.
@@ -1498,7 +1498,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         project.load(r, plIni);
         SQLTable table = session.getPlayPen().getTables().get(0);
-        assertEquals(AscendDescend.DESCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+        assertEquals(AscendDescend.DESCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren(SQLIndex.Column.class).get(0).getAscendingOrDescending());
     }
     /**
      * This tests loading an unspecified column on an index works.
@@ -1536,7 +1536,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         project.load(r, plIni);
         SQLTable table = session.getPlayPen().getTables().get(0);
-        assertEquals(AscendDescend.UNSPECIFIED, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+        assertEquals(AscendDescend.UNSPECIFIED, table.getIndexByName("PL_MATCH_UNIQUE").getChildren(SQLIndex.Column.class).get(0).getAscendingOrDescending());
     }
 
 }

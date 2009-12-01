@@ -33,6 +33,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
@@ -251,7 +252,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
 
             }
             if (index.isPrimaryKeyIndex()) {
-                for (Column c : (List<Column>) indexCopy.getChildren()) {
+                for (Column c : indexCopy.getChildren(Column.class)) {
                     if (c.getColumn() == null) {
                         warnings.append(Messages.getString("IndexEditPanel.onlyAddColumnsToPK")); //$NON-NLS-1$
                         break;
@@ -274,7 +275,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                             c.setPrimaryKeySeq(null);
                         }
                         int i = 0;
-                        for (Column c : (List<Column>) index.getChildren()) {
+                        for (Column c : index.getChildren(Column.class)) {
                             SQLColumn column = c.getColumn();
                             if (column != null) {
                                 column.setPrimaryKeySeq(Integer.MAX_VALUE);
@@ -308,6 +309,10 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
             }
         } catch (SQLObjectException e) {
             throw new SQLObjectRuntimeException(e);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        } catch (ObjectDependentException e) {
+            throw new RuntimeException(e);
         } finally {
             parent.commit();
         }

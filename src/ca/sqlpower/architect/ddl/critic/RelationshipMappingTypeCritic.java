@@ -35,7 +35,8 @@ public class RelationshipMappingTypeCritic implements Critic<SQLObject> {
         if (!(so instanceof SQLRelationship)) return Collections.emptyList();
         SQLRelationship subject = (SQLRelationship) so;
         List<Criticism<SQLObject>> criticisms = new ArrayList<Criticism<SQLObject>>();
-        for (SQLRelationship.ColumnMapping cm : subject.getChildren()) {
+        for (SQLRelationship.ColumnMapping cm : subject.getChildren(
+                SQLRelationship.ColumnMapping.class)) {
             if (ArchitectUtils.columnsDiffer(cm.getFkColumn(), cm.getPkColumn())) {
                 final SQLColumn parentColumn = cm.getPkColumn();
                 final SQLTable parentTable = parentColumn.getParent();

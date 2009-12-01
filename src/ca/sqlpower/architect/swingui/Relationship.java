@@ -194,7 +194,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
                 public void actionPerformed(ActionEvent e) {
                     StringBuffer componentList = new StringBuffer();
                     
-                    for (ColumnMapping columnMap : getModel().getChildren()) {
+                    for (ColumnMapping columnMap : getModel().getChildren(ColumnMapping.class)) {
                         componentList.append(columnMap).append("\n"); //$NON-NLS-1$
                     }
                     
@@ -232,7 +232,8 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 
 	public void setSelected(boolean isSelected,int multiSelectType) {
 		if (selected != isSelected) {
-		    for (SQLRelationship.ColumnMapping m : getModel().getChildren()) {
+		    for (SQLRelationship.ColumnMapping m : getModel().getChildren(
+		            SQLRelationship.ColumnMapping.class)) {
                 
                 if (isSelected) {
                     pkTable.addColumnHighlight(m.getPkColumn(), columnHighlightColour);

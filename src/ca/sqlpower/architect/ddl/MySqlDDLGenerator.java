@@ -378,7 +378,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         print("PRIMARY KEY (");
 
         boolean firstCol = true;
-        for (SQLIndex.Column col : pk.getChildren()) {
+        for (SQLIndex.Column col : pk.getChildren(SQLIndex.Column.class)) {
             if (!firstCol) print(", ");
             print(col.getPhysicalName());
             firstCol = false;

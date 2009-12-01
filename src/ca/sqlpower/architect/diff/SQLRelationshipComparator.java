@@ -58,12 +58,12 @@ public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 		Set<SQLColumn> sourceColFk = new TreeSet<SQLColumn>(comparator);
 		Set<SQLColumn> targetColFk = new TreeSet<SQLColumn>(comparator);
 
-		for (ColumnMapping cm : r1.getChildren()) {
+		for (ColumnMapping cm : r1.getChildren(ColumnMapping.class)) {
         	sourceColPk.add(cm.getPkColumn());
         	sourceColFk.add(cm.getFkColumn());
         }
 
-		for (ColumnMapping cm : r2.getChildren()) {
+		for (ColumnMapping cm : r2.getChildren(ColumnMapping.class)) {
         	targetColPk.add(cm.getPkColumn());
         	targetColFk.add(cm.getFkColumn());
         }

@@ -187,7 +187,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
 
     public SQLDatabase getDatabase(JDBCDataSource ds) {
         try {
-            for (SQLDatabase obj : rootObject.getChildren()) {
+            for (SQLDatabase obj : rootObject.getChildren(SQLDatabase.class)) {
                 if (obj.getDataSource().equals(ds)) {
                     return (SQLDatabase) obj;
                 }
