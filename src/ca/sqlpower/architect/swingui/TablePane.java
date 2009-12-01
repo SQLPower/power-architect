@@ -234,7 +234,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
          * delegate) with a PropertyChangeEvent.
          */
         public void childAddedImpl(SPChildEvent e) {
-            if (e.getSource() == getModel().getColumnsFolder()) {
+            if (e.getSource() == getModel() && e.getChildType() == SQLColumn.class) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Column inserted. Syncing select/highlight lists. New index="+e.getIndex()); //$NON-NLS-1$ //$NON-NLS-2$
                 }
@@ -494,8 +494,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			        } else if (col.getParent().getParentDatabase() == getModel().getParentDatabase()) {
 			            // moving column within playpen
 
-			            InsertionPointWatcher<SQLTable.Folder<SQLColumn>> ipWatcher =
-			                new InsertionPointWatcher<SQLTable.Folder<SQLColumn>>(getModel().getColumnsFolder(), insertionPoint);
+			            InsertionPointWatcher<SQLTable> ipWatcher =
+			                new InsertionPointWatcher<SQLTable>(getModel(), insertionPoint, SQLColumn.class);
 			            col.getParent().removeColumn(col);
 			            ipWatcher.dispose();
 
@@ -504,7 +504,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			                        +"' to table '"+getModel().getName() //$NON-NLS-1$
 			                        +"' at position "+ipWatcher.getInsertionPoint()); //$NON-NLS-1$
 			            }
-			            getModel().addColumn(ipWatcher.getInsertionPoint(), col);
+			            getModel().addColumn(col, ipWatcher.getInsertionPoint());
 			            // You need to disable the normalization otherwise it goes around
 			            // the property change events and causes undo to fail when dragging
 			            // into the primary key of a table
