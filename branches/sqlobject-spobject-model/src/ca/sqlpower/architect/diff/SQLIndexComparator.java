@@ -76,8 +76,8 @@ public class SQLIndexComparator implements Comparator<SQLIndex>, Serializable {
 		Set<Column> sourceCol = new TreeSet<Column>(comparator);
 		Set<Column> targetCol = new TreeSet<Column>(comparator);
 
-		sourceCol.addAll(source.getChildren());
-        targetCol.addAll(target.getChildren());
+		sourceCol.addAll(source.getChildren(Column.class));
+        targetCol.addAll(target.getChildren(Column.class));
 
 		return compareColumns(sourceCol, targetCol);
 	}
