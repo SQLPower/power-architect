@@ -125,7 +125,7 @@ public class SearchReplace {
             SQLObject obj = (SQLObject) results.get(rowIndex);
             if (columnIndex == 0) {
                 if (obj instanceof SQLColumn) {
-                    return Messages.getString("SearchReplace.columnOfTable",((SQLColumn) obj).getParentTable().getName()); //$NON-NLS-1$
+                    return Messages.getString("SearchReplace.columnOfTable",((SQLColumn) obj).getParent().getName()); //$NON-NLS-1$
                 } else {
                     String className = obj.getClass().getName();
                     return className.substring(className.lastIndexOf('.') + 4);  // the +4 is to skip over ".SQL"
@@ -314,7 +314,7 @@ public class SearchReplace {
 	                    SQLRelationship searchRelationship = null;
 	                    if (searchObj instanceof SQLColumn) {
 	                        searchColumn = (SQLColumn) searchObj;
-	                        searchTable = searchColumn.getParentTable();
+	                        searchTable = searchColumn.getParent();
 	                    } else if (searchObj instanceof SQLTable) {
 	                        searchTable = (SQLTable) searchObj;
 	                    } else if (searchObj instanceof SQLRelationship) {

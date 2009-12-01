@@ -130,7 +130,7 @@ public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
 	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
-		table.startCompoundEdit(Messages.getString("TableEditPanel.compoundEditName"));		 //$NON-NLS-1$
+		table.begin(Messages.getString("TableEditPanel.compoundEditName"));		 //$NON-NLS-1$
         try {	
 		    StringBuffer warnings = new StringBuffer();
             //We need to check if the table name and/or primary key name is empty or not
@@ -184,7 +184,7 @@ public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel
 		} catch (SQLObjectException e) {
             throw new SQLObjectRuntimeException(e);
         } finally {
-			table.endCompoundEdit("Ending new compound edit event in table edit panel"); //$NON-NLS-1$
+			table.commit();
 		}
 	}
 

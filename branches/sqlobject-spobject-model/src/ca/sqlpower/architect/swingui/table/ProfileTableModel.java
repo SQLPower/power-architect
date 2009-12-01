@@ -160,7 +160,7 @@ public class ProfileTableModel extends AbstractTableModel implements CleanupTabl
             return rowCount;
         case DATA_TYPE:
             try {
-                DDLGenerator gddl = DDLUtils.createDDLGenerator(col.getParentTable().getParentDatabase().getDataSource());
+                DDLGenerator gddl = DDLUtils.createDDLGenerator(col.getParent().getParentDatabase().getDataSource());
                 return gddl.columnType(col);
             } catch (Exception e) {
                 throw new SQLObjectRuntimeException(new SQLObjectException(

@@ -49,6 +49,7 @@ import javax.swing.table.TableColumn;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -58,7 +59,6 @@ import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
-import ca.sqlpower.sqlobject.SQLTable.Folder;
 import ca.sqlpower.swingui.table.CleanupTableModel;
 import ca.sqlpower.swingui.table.EditableJTable;
 import ca.sqlpower.util.TransactionEvent;
@@ -90,10 +90,9 @@ public class IndexColumnTable {
         private final SQLIndex index;
 
         /**
-         * The folder that contains all of the SQLColumns represented
-         * by this table.
+         * The list of all SQLColumns represented by this table.
          */
-        private final Folder<SQLColumn> columnsFolder;
+        private final List<SQLColumn> columns;
 
         /**
          * A listener that will listen for changes to the actual SQLIndex
@@ -118,7 +117,7 @@ public class IndexColumnTable {
             this.index = index;
             this.actualIndex = actualIndex;
             this.rowList = new ArrayList<Row>();
-            columnsFolder = parent.getColumnsFolder();
+            columns = parent.getColumnsWithoutPopulating();
             indexListener = new ActualIndexListener();
             setUpListeners();
             populateModel();
@@ -186,6 +185,10 @@ public class IndexColumnTable {
                 index.makeColumnsLike(actualIndex);
             } catch (SQLObjectException ex) {
                 throw new SQLObjectRuntimeException(ex);
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException(e);
+            } catch (ObjectDependentException e) {
+                throw new RuntimeException(e);
             }
             for (int i = rowList.size() - 1; i >= 0; i--) {
                 rowList.remove(i);
@@ -198,22 +201,17 @@ public class IndexColumnTable {
          * This populates the model will all the SQLColumns
          */
         private void populateModel() {
-            try {
-                for (Column indexCol : index.getChildren()) {
-                    if (indexCol.getColumn() != null) { 
-                        rowList.add(new Row(true, indexCol.getColumn(), indexCol.getAscendingOrDescending()));
-                    } else {
-                        rowList.add(new Row(true, indexCol, indexCol.getAscendingOrDescending()));
-                    }
+            for (Column indexCol : index.getChildren(Column.class)) {
+                if (indexCol.getColumn() != null) { 
+                    rowList.add(new Row(true, indexCol.getColumn(), indexCol.getAscendingOrDescending()));
+                } else {
+                    rowList.add(new Row(true, indexCol, indexCol.getAscendingOrDescending()));
                 }
-                for (Object so : columnsFolder.getChildren()) {
-                    SQLColumn col = (SQLColumn) so;
-                    if (!containsColumn(col)) {
-                        rowList.add(new Row(false, col, AscendDescend.UNSPECIFIED));
-                    }
+            }
+            for (SQLColumn col : columns) {
+                if (!containsColumn(col)) {
+                    rowList.add(new Row(false, col, AscendDescend.UNSPECIFIED));
                 }
-            } catch (SQLObjectException e) {
-                throw new SQLObjectRuntimeException(e);
             }
         }
 
@@ -492,7 +490,7 @@ public class IndexColumnTable {
         try {
             //First remove all the children of the index
             for (int i = index.getChildCount() - 1; i >= 0; i--) {
-                index.removeChild(i);// remove all current children
+                index.removeChild(index.getChildren().get(i));// remove all current children
             }
             for(Row r : model.getRowList()) {
                 if (r.isEnabled()){
@@ -507,6 +505,10 @@ public class IndexColumnTable {
 
         } catch (SQLObjectException e) {
             throw new SQLObjectRuntimeException(e);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        } catch (ObjectDependentException e) {
+            throw new RuntimeException(e);
         }
     }
 

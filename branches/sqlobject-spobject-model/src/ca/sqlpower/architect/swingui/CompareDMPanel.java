@@ -404,7 +404,7 @@ public class CompareDMPanel extends JPanel {
 				SQLObject schemaParent;
 
 				if (db.isCatalogContainer()) {
-					for (SQLObject item : (List<SQLObject>) db.getChildren()) {
+					for (SQLCatalog item : db.getChildren(SQLCatalog.class)) {
 						// Note: if you change the way this works, also update the RestoreSettingsListener
 						catalogDropdown.addItem(item);
 						// did you read the note?
@@ -1193,14 +1193,14 @@ public class CompareDMPanel extends JPanel {
 			try {
 				left = source.getObjectToCompare();
 				if (left.getChildType() == SQLTable.class) {
-					sourceTables = left.getChildren();
+					sourceTables = left.getChildren(SQLTable.class);
 				} else {
 					sourceTables = new ArrayList<SQLTable>();
 				}
 
 				right = target.getObjectToCompare();
 				if (right.getChildType() == SQLTable.class) {
-					targetTables = right.getChildren();
+					targetTables = right.getChildren(SQLTable.class);
 				} else {
 					targetTables = new ArrayList<SQLTable>();
 				}

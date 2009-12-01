@@ -43,7 +43,6 @@ import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
@@ -126,14 +125,8 @@ public class DBTreeModel extends AbstractSPListener implements TreeModel, java.i
 	}
 
 	public int getIndexOfChild(Object parent, Object child) {
-		try {
-			if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getIndexOfChild("+parent+","+child+"): returning "+((SQLObject) parent).getChildren().indexOf(child)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			return ((SQLObject) parent).getChildren().indexOf(child);
-		} catch (SQLObjectException e) {
-			//logger.error("Couldn't get index of child "+child, e);
-			//return -1;
-			throw new SQLObjectRuntimeException(e);
-		}
+		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getIndexOfChild("+parent+","+child+"): returning "+((SQLObject) parent).getChildren().indexOf(child)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        return ((SQLObject) parent).getChildren().indexOf(child);
 	}
 
 	// -------------- treeModel event source support -----------------
@@ -248,18 +241,16 @@ public class DBTreeModel extends AbstractSPListener implements TreeModel, java.i
 
 	public SQLObject[] getPkPathToRelationship(SQLRelationship rel) {
 		SQLObject[] pathToPkTable = getPathToNode(rel.getPkTable());
-		SQLObject[] path = new SQLObject[pathToPkTable.length + 2];
+		SQLObject[] path = new SQLObject[pathToPkTable.length + 1];
 		System.arraycopy(pathToPkTable, 0, path, 0, pathToPkTable.length);
-        path[path.length - 2] = rel.getPkTable().getExportedKeysFolder();
         path[path.length - 1] = rel;
 		return path;
 	}
 
 	public SQLObject[] getFkPathToRelationship(SQLRelationship rel) {
 		SQLObject[] pathToFkTable = getPathToNode(rel.getFkTable());
-		SQLObject[] path = new SQLObject[pathToFkTable.length + 2];
+		SQLObject[] path = new SQLObject[pathToFkTable.length + 1];
 		System.arraycopy(pathToFkTable, 0, path, 0, pathToFkTable.length);
-        path[path.length - 2] = rel.getFkTable().getImportedKeysFolder();
 		path[path.length - 1] = rel;
 		return path;
 	}

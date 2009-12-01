@@ -57,14 +57,12 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
-import ca.sqlpower.sqlobject.SQLTable.Folder;
 import ca.sqlpower.xml.UnescapingSaxParser;
 
 public class CoreProject {
@@ -216,11 +214,11 @@ public class CoreProject {
             }
 
             SQLObject dbConnectionContainer = ((SQLObject) getSession().getRootObject());
-            dbConnectionContainer.addChild(0, getSession().getTargetDatabase());
+            dbConnectionContainer.addChild(getSession().getTargetDatabase(), 0);
             getSession().getTargetDatabase().setPlayPenDatabase(true);
 
             // hook up data source parent types
-            for (SQLDatabase db : (List<SQLDatabase>) dbConnectionContainer.getChildren()) {
+            for (SQLDatabase db : dbConnectionContainer.getChildren(SQLDatabase.class)) {
                 JDBCDataSource ds = db.getDataSource();
                 String parentTypeId = ds.getPropertiesMap().get(JDBCDataSource.DBCS_CONNECTION_TYPE);
                 if (parentTypeId != null) {
@@ -255,39 +253,30 @@ public class CoreProject {
                 if (logger.isDebugEnabled()) {
                     if (!table.isPopulated()) {
                         logger.debug("Table ["+table.getName()+"] not populated");
-                    } else if (table.getIndicesFolder() == null) {
-                        logger.debug("Table ["+table.getName()+"] has null indices folder");
                     } else {
-                        logger.debug("Table ["+table.getName()+"] index folder contents: "+table.getIndicesFolder().getChildren());
+                        logger.debug("Table ["+table.getName()+"] index folder contents: "+table.getIndices());
                     }
                 }
 
-                if (table.getIndicesFolder() == null) {
-                    logger.debug("this must be a very old version, we have to add the index" +
-                            " folder manually. the table is [" + table.getName() + "]");
-                    table.addChild(new Folder(Folder.INDICES, true));
-                }
                 if ( table.getPrimaryKeyIndex() == null) {
                     logger.debug("primary key index is null in table: " + table);
-                    logger.debug("number of children found in indices folder: " + table.getIndicesFolder().getChildCount());
-                    for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
+                    logger.debug("number of children found in indices folder: " + table.getIndices().size());
+                    for (SQLIndex index : table.getIndices()) {
                         if (sqlObjectLoadIdMap.get(table.getName()+"."+index.getName()) != null) {
                             index.setPrimaryKeyIndex(true);
                             break;
                         }
                     }
                 }
-                logger.debug("Table ["+table.getName()+"]2 index folder contents: "+table.getIndicesFolder().getChildren());
+                logger.debug("Table ["+table.getName()+"]2 index folder contents: "+table.getIndices());
                 table.normalizePrimaryKey();
-                logger.debug("Table ["+table.getName()+"]3 index folder contents: "+table.getIndicesFolder().getChildren());
+                logger.debug("Table ["+table.getName()+"]3 index folder contents: "+table.getIndices());
 
                 if (logger.isDebugEnabled()) {
                     if (!table.isPopulated()) {
                         logger.debug("Table ["+table.getName()+"] not populated");
-                    } else if (table.getIndicesFolder() == null) {
-                        logger.debug("Table ["+table.getName()+"] has null indices folder");
                     } else {
-                        logger.debug("Table ["+table.getName()+"] index folder contents: "+table.getIndicesFolder().getChildren());
+                        logger.debug("Table ["+table.getName()+"] index folder contents: "+table.getIndices().size());
                     }
                 }
 
@@ -351,11 +340,6 @@ public class CoreProject {
         d.addFactoryCreate("*/table", tableFactory);
         d.addSetProperties("*/table");
         d.addSetNext("*/table", "addChild");
-
-        SQLFolderFactory folderFactory = new SQLFolderFactory();
-        d.addFactoryCreate("*/folder", folderFactory);
-        d.addSetProperties("*/folder");
-        // the factory adds the folder to the table upon creation
 
         SQLColumnFactory columnFactory = new SQLColumnFactory();
         d.addFactoryCreate("*/column", columnFactory);
@@ -586,45 +570,6 @@ public class CoreProject {
             LoadSQLObjectAttributes(tab, attributes);
             
             return tab;
-        }
-    }
-
-    /**
-     * Creates a SQLFolder instance which is marked as populated.
-     */
-    private class SQLFolderFactory extends AbstractObjectCreationFactory {
-        public Object createObject(Attributes attributes) {
-            int type = -1;
-            String typeStr = attributes.getValue("type");
-            if (typeStr == null) {
-                // backward compatibility: derive type from name
-                String name = attributes.getValue("name");
-                if (name.equals("Columns")) type = SQLTable.Folder.COLUMNS;
-                else if (name.equals("Imported Keys")) type = SQLTable.Folder.IMPORTED_KEYS;
-                else if (name.equals("Exported Keys")) type = SQLTable.Folder.EXPORTED_KEYS;
-                else throw new IllegalStateException("Could not determine folder type from name");
-            } else {
-                try {
-                    type = Integer.parseInt(typeStr);
-                } catch (NumberFormatException ex) {
-                    throw new IllegalStateException("Could not parse folder type id \""
-                            +typeStr+"\"");
-                }
-            }
-            
-            // have to add folders right away because some stuff (for example, the SQLIndex constructor)
-            // requires that the folder's parent table is already linked up. It's done here because
-            // the Digester is incapable of doing this up front (see javadoc for CallMethodRule)
-            Folder f = new SQLTable.Folder(type, true);
-            try {
-                currentTable.addChild(f);
-            } catch (SQLObjectException ex) {
-                throw new SQLObjectRuntimeException(ex);
-            }
-            
-            LoadSQLObjectAttributes(f, attributes);
-            
-            return f;
         }
     }
 
@@ -961,7 +906,7 @@ public class CoreProject {
      */
     public void addAllTablesFrom(SQLDatabase db) throws SQLObjectException {
         SQLDatabase ppdb = getSession().getTargetDatabase();
-        for (SQLObject table : (List<SQLObject>) db.getChildren()) {
+        for (SQLTable table : db.getChildren(SQLTable.class)) {
             ppdb.addChild(table);
         }
     }

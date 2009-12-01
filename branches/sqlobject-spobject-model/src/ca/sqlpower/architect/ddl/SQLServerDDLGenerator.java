@@ -432,7 +432,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
     @Override
     public void addColumn(SQLColumn c) {
         print("\nALTER TABLE ");
-        print(toQualifiedName(c.getParentTable()));
+        print(toQualifiedName(c.getParent()));
         print(" ADD ");
         print(columnDefinition(c,new HashMap()));
         endStatement(DDLStatement.StatementType.CREATE, c);
@@ -443,8 +443,8 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         if (logger.isDebugEnabled()) {
             String parentTableName = null;
             String parentFolder = null;
-            if (index.getParentTable() != null) {
-                parentTableName = index.getParentTable().getName();
+            if (index.getParent() != null) {
+                parentTableName = index.getParent().getName();
             }
             if (index.getParent() != null) {
                 parentFolder = index.getParent().getName();
@@ -466,7 +466,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         print("INDEX ");
         print(DDLUtils.toQualifiedName(null,null,index.getName()));
         print("\n ON ");
-        print(toQualifiedName(index.getParentTable()));
+        print(toQualifiedName(index.getParent()));
         print("\n ( ");
 
         boolean first = true;

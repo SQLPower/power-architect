@@ -592,13 +592,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
 
         // close connections
-        try {
-            for (SQLDatabase db : (List<SQLDatabase>) getRootObject().getChildren()) {
-                logger.debug ("closing connection: " + db.getName()); //$NON-NLS-1$
-                db.disconnect();
-            }
-        } catch (SQLObjectException ex) {
-            throw new AssertionError("Got impossible ArchitectException from root object"); //$NON-NLS-1$
+        for (SQLDatabase db : getRootObject().getChildren()) {
+            logger.debug ("closing connection: " + db.getName()); //$NON-NLS-1$
+            db.disconnect();
         }
 
         // Clear the profile manager (the effect we want is just to cancel running profiles.. clearing is a harmless side effect)

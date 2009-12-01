@@ -50,12 +50,12 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		SQLColumn at2 = new SQLColumn(t, "AT2", Types.INTEGER, 10,0);
 		SQLColumn at3 = new SQLColumn(t, "AT3", Types.INTEGER, 10,0);
 		
-		t.addColumn(0,pk1);
-		t.addColumn(1,pk2);
-		t.addColumn(2,pk3);
-		t.addColumn(3,at1);
-		t.addColumn(4,at2);
-		t.addColumn(5,at3);
+		t.addColumn(pk1,0);
+		t.addColumn(pk2,1);
+		t.addColumn(pk3,2);
+		t.addColumn(at1,3);
+		t.addColumn(at2,4);
+		t.addColumn(at3,5);
         
 		pp = session.getPlayPen();
 		tp = new TablePane(t, pp.getContentPane());
@@ -99,7 +99,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	/** This tests for a regression we found in March 2006 (bug 1057) */
 	public void testInsertColumnAtStartOfNonPK() throws Exception {
 	    SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
-	    t.addColumn(0, newcol);
+	    t.addColumn(newcol, 0);
 
 	    assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
 
@@ -114,7 +114,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	/** This tests for a regression we found in March 2006 (bug 1057) */
 	public void testInsertColumnAboveFirstNonPKColumn() throws Exception {
 	    SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
-	    t.addColumn(0, newcol);
+	    t.addColumn(newcol, 0);
 
 	    assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
 
@@ -130,7 +130,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	    SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
 	    t2.setName("Another Test Table");
 	    SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
-	    t2.addColumn(0, newcol);
+	    t2.addColumn(newcol, 0);
 	    newcol.setPrimaryKeySeq(1);
 	    assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
 
@@ -147,7 +147,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	    SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
 	    t2.setName("Another Test Table");
 	    SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
-	    t2.addColumn(0, newcol);
+	    t2.addColumn(newcol, 0);
 	    newcol.setPrimaryKeySeq(1);
 	    assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
 
@@ -162,7 +162,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	/** This tests for a regression we found in March 2006 (bug 1057) */
 	public void testInsertColumnAtStartOfNonPKByCopy() throws SQLObjectException {
 		SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
-		t.addColumn(0, newcol);
+		t.addColumn(newcol, 0);
 		
 		assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
 		
@@ -188,7 +188,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	/** This tests for a regression we found in March 2006 (bug 1057) */
 	public void testInsertColumnAboveFirstNonPKColumnByCopy() throws SQLObjectException {
 		SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
-		t.addColumn(0, newcol);
+		t.addColumn(newcol, 0);
 		
 		assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
 		
@@ -215,7 +215,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
 		t2.setName("Another Test Table");
 		SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
-		t2.addColumn(0, newcol);
+		t2.addColumn(newcol, 0);
 		newcol.setPrimaryKeySeq(1);
 		assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
 		
@@ -242,7 +242,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		SQLTable t2 = new SQLTable(t.getParentDatabase(), true);
 		t2.setName("Another Test Table");
 		SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
-		t2.addColumn(0, newcol);
+		t2.addColumn(newcol, 0);
 		newcol.setPrimaryKeySeq(1);
 		assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
 		
@@ -307,7 +307,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 				super(session.getTargetDatabase(), true);
 				setName(name);
 				children.set(0, new MyFolder());
-				columnsFolder = (Folder) children.get(0);
+				columns = (Folder) children.get(0);
 			}
 			public void removeLastColumnNoEvent() {
 				Folder<SQLColumn> columnsFolder2 = getColumnsFolder();
@@ -317,7 +317,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		
 		MySQLTable t = new MySQLTable("table");
 		SQLColumn c1 = new SQLColumn(t, "PK1", Types.BIT, 1, 0);
-		t.addColumn(0, c1);
+		t.addColumn(c1, 0);
 		
 		TablePane tp = new TablePane(t, pp.getContentPane());
 		
@@ -397,7 +397,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
     public void testSelectionAfterColumnDeleted() throws Exception {
         tp.selectItem(2);
         assertTrue(tp.isItemSelected(2));
-        t.removeChild(2);
+        t.removeChild(t.getChild(2));
         assertTrue(tp.isItemSelected(2));
     }
 
@@ -430,7 +430,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
         pp.addTablePane(tp, new Point(2,2));
         tp.selectItem(2);
         assertEquals(Collections.singletonList(t.getColumn(2)), tp.getSelectedItems());
-        t.removeChild(2);
+        t.removeChild(t.getChild(2));
         assertEquals(Collections.singletonList(t.getColumn(2)), tp.getSelectedItems());
     }
     
@@ -465,10 +465,10 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
         SQLColumn copyCol = newColumns.get(0);
         assertTrue(copyCol.isPrimaryKey());
         
-        assertEquals(fkTable, col.getParentTable());
+        assertEquals(fkTable, col.getParent());
         assertTrue(col.isPrimaryKey());
         assertEquals(4, fkTable.getColumns().size());
-        assertEquals(4, rel.getMappings().size());
+        assertEquals(4, rel.getChildren().size());
         assertNotNull(rel.getMappingByPkCol(copyCol));
         assertNotNull(rel.getMappingByFkCol(col));
     }

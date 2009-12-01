@@ -466,7 +466,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
             
             sourceLabel.setText(
                     DDLUtils.toQualifiedName(
-                            sourceColumn.getParentTable()) + "." + sourceColumn.getName());
+                            sourceColumn.getParent()) + "." + sourceColumn.getName());
         }
         
         updateComponent(colLogicalName, col.getName());
@@ -482,7 +482,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         updateComponent(colDefaultValue, col.getDefaultValue());
         
         boolean inPk;
-        if (col.getParentTable() == null) {
+        if (col.getParent() == null) {
             inPk = SQLColumn.isDefaultInPK(); // XXX looks fishy--how can a column be in the PK if it has no parent table?
             logger.debug("new constructed column");
         } else {
@@ -643,7 +643,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         SQLObject compoundEditRoot = SQLObjectUtils.findCommonAncestor(columns);
         logger.debug("Compound edit root is " + compoundEditRoot);
         try {
-            compoundEditRoot.startCompoundEdit(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
+            compoundEditRoot.begin(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
             
             for (SQLColumn column : columns) {
                 if (componentEnabledMap.get(colLogicalName).isSelected()) {
@@ -692,7 +692,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                 
                 if (componentEnabledMap.get(colInPK).isSelected()) {
                     if (column.getPrimaryKeySeq() == null) {
-                        column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getParentTable().getPkSize()) : null);
+                        column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getParent().getPkSize()) : null);
                     } else {
                         column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getPrimaryKeySeq()) : null);
                     }
@@ -703,7 +703,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                 }
             }
         } finally {
-            compoundEditRoot.endCompoundEdit(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
+            compoundEditRoot.commit();
         }
         return errors;
     }
@@ -857,7 +857,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         public void childRemovedImpl(SPChildEvent e) {
             logger.debug("SQLObject children got removed: " + e); //$NON-NLS-1$
             for (SQLColumn column : columns) {
-                if (e.getChild().equals(column) || e.getChild().equals(column.getParentTable())) {
+                if (e.getChild().equals(column) || e.getChild().equals(column.getParent())) {
                     Window parentWindow = SwingUtilities.getWindowAncestor(panel);
                     if (parentWindow != null) {
                         parentWindow.dispose();

@@ -484,19 +484,19 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			} else if (someData instanceof SQLColumn) {
 			    SQLColumn col = (SQLColumn) someData;
 			    if (deleteSource) {
-			        if (col.getParentTable() == getModel()) {
+			        if (col.getParent() == getModel()) {
 			            // moving column inside the same table
-			            int oldIndex = col.getParentTable().getColumns().indexOf(col);
+			            int oldIndex = col.getParent().getColumns().indexOf(col);
 			            if (insertionPoint > oldIndex) {
 			                insertionPoint--;
 			            }
 			            getModel().changeColumnIndex(oldIndex, insertionPoint, newColumnsInPk);
-			        } else if (col.getParentTable().getParentDatabase() == getModel().getParentDatabase()) {
+			        } else if (col.getParent().getParentDatabase() == getModel().getParentDatabase()) {
 			            // moving column within playpen
 
 			            InsertionPointWatcher<SQLTable.Folder<SQLColumn>> ipWatcher =
 			                new InsertionPointWatcher<SQLTable.Folder<SQLColumn>>(getModel().getColumnsFolder(), insertionPoint);
-			            col.getParentTable().removeColumn(col);
+			            col.getParent().removeColumn(col);
 			            ipWatcher.dispose();
 
 			            if (logger.isDebugEnabled()) {
@@ -989,7 +989,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
         try {
-            if (model != null && model.getIndicesFolder().getChildCount() > 0) {
+            if (model != null && model.getIndices().size() > 0) {
                 JMenu menu = new JMenu(Messages.getString("TablePane.indexPropertiesMenu")); //$NON-NLS-1$
                 menu.setIcon(SPSUtils.createIcon("edit_index", Messages.getString("TablePane.editIndexTooltip"), ArchitectSwingSessionContext.ICON_SIZE)); //$NON-NLS-1$ //$NON-NLS-2$
                 for (SQLIndex index : model.getIndices()) {

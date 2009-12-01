@@ -1500,17 +1500,11 @@ public class PlayPen extends JPanel
 		 *
 		 * @param so
 		 */
-		private void ensurePopulated(List<SQLObject> soList) {
+		private void ensurePopulated(List<? extends SQLObject> soList) {
 			for (SQLObject so : soList) {
 				if (isCancelled()) break;
-				try {
-					if (so instanceof SQLTable) setProgress(getProgress() + 1);
-					ensurePopulated(so.getChildren());
-				} catch (SQLObjectException e) {
-                    errorMessage = "Couldn't get children of " + so; //$NON-NLS-1$
-                    setDoStuffException(e);
-					logger.error("Couldn't get children of " + so, e); //$NON-NLS-1$
-				}
+				if (so instanceof SQLTable) setProgress(getProgress() + 1);
+                ensurePopulated(so.getChildren());
 			}
 		}
 
@@ -2704,7 +2698,7 @@ public class PlayPen extends JPanel
                 //Since we cannot directly select a SQLColumn directly
                 //from the playpen, there is a special case for it
                 SQLColumn col = (SQLColumn) obj;
-                SQLTable table = col.getParentTable();
+                SQLTable table = col.getParent();
                 TablePane tablePane = findTablePane(table);
                 if (tablePane != null) {
                     colTables.add(table);
@@ -2768,8 +2762,8 @@ public class PlayPen extends JPanel
                 // cannot deselect columns while going through the selected columns
                 List<Integer> indices = new ArrayList<Integer>();
                 for (SQLColumn col : tablePane.getSelectedItems()) {
-                    if (!selections.contains(col) && col.getParentTable() != null) {
-                        indices.add(col.getParentTable().getColumnIndex(col));
+                    if (!selections.contains(col) && col.getParent() != null) {
+                        indices.add(col.getParent().getColumnIndex(col));
                     }
                 }
                 for (int index : indices) {
