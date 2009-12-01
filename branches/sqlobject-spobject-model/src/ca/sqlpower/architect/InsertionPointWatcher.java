@@ -55,7 +55,7 @@ public class InsertionPointWatcher<T extends SQLObject> {
      * @param insertionPoint
      */
     public InsertionPointWatcher(final T objectUnderObservation, int insertionPoint) {
-        this(objectUnderObservation, insertionPoint, objectUnderObservation.getChildType());
+        this(objectUnderObservation, insertionPoint, SQLObject.class);
     }
     
     public InsertionPointWatcher(final T objectUnderObservation, int insertionPoint, Class<? extends SQLObject> childType) {
