@@ -88,7 +88,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                         boolean done = false;
                         while (!done) {
                             // generate DDL in order to come up with a list of warnings
-                            ddlg.generateDDLScript(session.getTargetDatabase().getChildren());
+                            ddlg.generateDDLScript(session.getTargetDatabase().getTables());
                             final List<DDLWarning> warnings = ddlg.getWarnings();
                             final JPanel outerPanel = new JPanel();
                             if (warnings.size() == 0) {
