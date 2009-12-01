@@ -45,6 +45,8 @@ public class InsertionPointWatcher<T extends SQLObject> {
     private final T objectUnderObservation;
     
     private int insertionPoint;
+    
+    private final Class<? extends SQLObject> childType;
 
     private final SQLObjectEventHandler eventHandler = new SQLObjectEventHandler();
     
@@ -53,9 +55,14 @@ public class InsertionPointWatcher<T extends SQLObject> {
      * @param insertionPoint
      */
     public InsertionPointWatcher(final T objectUnderObservation, int insertionPoint) {
+        this(objectUnderObservation, insertionPoint, objectUnderObservation.getChildType());
+    }
+    
+    public InsertionPointWatcher(final T objectUnderObservation, int insertionPoint, Class<? extends SQLObject> childType) {
         super();
         this.objectUnderObservation = objectUnderObservation;
         this.insertionPoint = insertionPoint;
+        this.childType = childType;
         objectUnderObservation.addSPListener(eventHandler);
     }
 
@@ -71,14 +78,14 @@ public class InsertionPointWatcher<T extends SQLObject> {
 
         @Override
         public void childAddedImpl(SPChildEvent e) {
-            if (e.getIndex() <= insertionPoint) {
+            if (e.getChildType() == childType && e.getIndex() <= insertionPoint) {
                 insertionPoint++;
             }
         }
 
         @Override
         public void childRemovedImpl(SPChildEvent e) {
-            if (e.getIndex() <= insertionPoint) {
+            if (e.getChildType() == childType && e.getIndex() <= insertionPoint) {
                 insertionPoint++;
             }
         }

@@ -293,36 +293,13 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	 * any of its folders and those events have to be handled in the right way.
 	 */
 	public void testListenerDoesntCleanUpEarly() throws SQLObjectException {
-		class MySQLTable extends SQLTable {
-			class MyFolder extends SQLTable.Folder<SQLColumn> {
-				MyFolder() {
-					super(COLUMNS, true);
-				}
-				
-				public void removeLastChildNoEvent() {
-					children.remove(children.size() - 1);
-				}
-			}
-			public MySQLTable(String name) throws SQLObjectException {
-				super(session.getTargetDatabase(), true);
-				setName(name);
-				children.set(0, new MyFolder());
-				columns = (Folder) children.get(0);
-			}
-			public void removeLastColumnNoEvent() {
-				Folder<SQLColumn> columnsFolder2 = getColumnsFolder();
-                ((MyFolder) columnsFolder2).removeLastChildNoEvent();
-			}
-		}
-		
-		MySQLTable t = new MySQLTable("table");
 		SQLColumn c1 = new SQLColumn(t, "PK1", Types.BIT, 1, 0);
 		t.addColumn(c1, 0);
 		
 		TablePane tp = new TablePane(t, pp.getContentPane());
 		
 		assertEquals(1, t.getColumns().size());
-		t.removeLastColumnNoEvent();
+		t.removeColumn(t.getChildrenWithoutPopulating(SQLColumn.class).size());
 		assertEquals(0, t.getColumns().size());
 		
 		// now table has selection list size 1, and model's column list is size 0
@@ -332,7 +309,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		tp.columnListener.childRemoved(new SPChildEvent(fakeSource, fakeSource.getClass(), fakeSource, 6, EventType.REMOVED));
 		
 		// this event notifies the table pane that we removed c1 earlier on.  It should not throw an exception
-		tp.columnListener.childRemoved(new SPChildEvent(t.getColumnsFolder(), c1.getClass(), c1, 0, EventType.REMOVED));
+		tp.columnListener.childRemoved(new SPChildEvent(t, c1.getClass(), c1, 0, EventType.REMOVED));
 	}
 	
     public void testMultiHighlight() throws SQLObjectException {
