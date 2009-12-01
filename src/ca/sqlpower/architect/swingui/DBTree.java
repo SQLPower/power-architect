@@ -68,6 +68,7 @@ import ca.sqlpower.architect.swingui.action.RemoveSourceDBAction;
 import ca.sqlpower.architect.swingui.action.ShowTableContentsAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
@@ -1027,8 +1028,16 @@ public class DBTree extends JTree implements DragSourceListener {
        }
        for (SQLObject o : copyObjects) {
            SQLDatabase target = session.getTargetDatabase();
-           if (SQLObjectUtils.ancestorList(o).contains(target) && !(o instanceof SQLTable.Folder)) {
-               o.getParent().removeChild(o);
+           if (SQLObjectUtils.ancestorList(o).contains(target)) {
+               try {
+                   o.getParent().removeChild(o);
+               } catch (ObjectDependentException e) {
+                    // FIXME Add an actual method for dealing with dependencies
+                    // here. As of now, nothing in Architect has depencies, so
+                    // this won't be hit, but in the future, this will need to
+                    // be changed.
+                   throw new RuntimeException(e);
+               }
            }
        }
  	}
