@@ -29,8 +29,9 @@ import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
 import ca.sqlpower.validation.swingui.NotNullValidator;
 import ca.sqlpower.validation.swingui.StatusComponent;
@@ -63,7 +64,7 @@ public class SchemaEditPanel implements ValidatableDataEntryPanel {
         builder.setDefaultDialogBorder();
         
         builder.append(status, 3);
-        builder.append("Database", databaseBox = new JComboBox(new SQLObjectComboBoxModel(session.getRootObject())));
+        builder.append("Database", databaseBox = new JComboBox(new SQLObjectComboBoxModel(session.getRootObject(), SQLObject.class)));
         OLAPSession osession = OLAPUtil.getSession(schema);
         if (osession.getDatabase() != null) {
             databaseBox.setSelectedItem(osession.getDatabase());
