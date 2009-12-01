@@ -11,18 +11,21 @@
 Domains:
   * A logical concept that captures a semantic idea, not only a physical representation (postal code vs. variable length character field)
   * Consists of:
+    * Authority tag: "Corporate Standard", "Sam", "Architect Build-in"
     * Domain name
     * Data type (a platform independent user-definable type; explained below)
     * Length (precision and scale)
     * Default value
     * Check Constraint or enumeration of allowed values
       * If enumerated, this can automatically be carried through to the physical representation as a proper enum or a check constraint (whatever is "normal" for each target platform)
+    * Documentation/description of purpose
 
 Types:
   * Just a physical representation, but keyed by database platform. /This is a key feature of SQL Power's Power*Architect that no other tool provides./
   * Power*Architect comes with a set of starter types that should be useful for most situations (i.e. anything you could achieve with previous versions of Power*Architect)
     * Plus, you can define new ones and say which actual physical type to use in each target platform that you care about.
     * You can always come back later and start to care about additional platforms in the future
+    * Documentation/description
   * Consists of these properties:
     * Platform independent:
       * Type name (this one item identifies the type and is not platform-dependant)
@@ -50,7 +53,7 @@ Types:
 ==Implementation Considerations==
 
   # Don't compromise Architect's unique feature of platform-independent modeling
-    * But make modeling for a heterogeneous environment easy and straightforward too
+    * But make modeling for a homogeneous environment easy and straightforward too
   # Must preserve forward compatibility for existing .architect project files
   # Think about how this new feature might interact with, enhance, or be enhanced by the Architect's existing feature set:
     * Forward Engineering
@@ -64,7 +67,7 @@ Types:
     * HTML data model report
       * Add domain name and user-definable type information
       * Optionally include actual physical types for a particular (selection of) target platform(s)
-      * Add a section that outlines the definition of each domain?
+      * Add a section that outlines the definition of each domain? Yes, a subsection of the data model
     * OLAP modeling
       * No change
 
