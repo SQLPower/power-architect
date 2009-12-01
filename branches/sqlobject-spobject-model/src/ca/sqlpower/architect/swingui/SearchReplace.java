@@ -439,7 +439,7 @@ public class SearchReplace {
      * @return
      */
     private boolean searchTypeMatches(SQLObject obj) {
-        if (allSearch.isSelected() && !(obj instanceof SQLTable.Folder)) return true;
+        if (allSearch.isSelected()) return true;
         if (tableSearch.isSelected() && obj instanceof SQLTable) return true;
         if (columnSearch.isSelected() && obj instanceof SQLColumn) return true;
         if (relationshipSearch.isSelected() && obj instanceof SQLRelationship) return true;
