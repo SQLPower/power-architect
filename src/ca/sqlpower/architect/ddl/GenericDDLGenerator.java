@@ -325,7 +325,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject> ();
 		boolean firstColumn = true;
 
-		for (ColumnMapping cm : r.getChildren()) {
+		for (ColumnMapping cm : r.getChildren(ColumnMapping.class)) {
 			SQLColumn c = cm.getFkColumn();
 			// make sure this is unique
 			if (colNameMap.get(c.getName()) == null) {
@@ -351,7 +351,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    errorMsg.append("Warning: Relationship has no columns to map:\n");
 		}
 
-		for (ColumnMapping cm : r.getChildren()) {
+		for (ColumnMapping cm : r.getChildren(ColumnMapping.class)) {
 			SQLColumn c = cm.getPkColumn();
 			SQLColumn fkCol = cm.getFkColumn();
 
@@ -382,7 +382,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
 
 		// sanity check for SET NULL and SET DEFAULT delete rules, whether or not DB supports them
-        for (SQLRelationship.ColumnMapping cm : r.getChildren()) {
+        for (SQLRelationship.ColumnMapping cm : r.getChildren(ColumnMapping.class)) {
             UpdateDeleteRule deleteRule = r.getDeleteRule();
             SQLColumn fkcol = cm.getFkColumn();
             if (deleteRule == UpdateDeleteRule.SET_NULL && !fkcol.isDefinitelyNullable()) {
@@ -408,7 +408,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
 
 		// sanity check for SET NULL and SET DEFAULT update rules, whether or not DB supports them
-        for (SQLRelationship.ColumnMapping cm : r.getChildren()) {
+        for (SQLRelationship.ColumnMapping cm : r.getChildren(SQLRelationship.ColumnMapping.class)) {
             UpdateDeleteRule updateRule = r.getUpdateRule();
             SQLColumn fkcol = cm.getFkColumn();
             if (updateRule == UpdateDeleteRule.SET_NULL && !fkcol.isDefinitelyNullable()) {
@@ -857,7 +857,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	    print(" PRIMARY KEY (");
 
 	    boolean firstCol = true;
-	    for (SQLIndex.Column col : pk.getChildren()) {
+	    for (SQLIndex.Column col : pk.getChildren(SQLIndex.Column.class)) {
 	        if (!firstCol) print(", ");
 	        if (col.getColumn() == null) {
 	            throw new IllegalStateException("Index column is not associated with the real column in the table.");
