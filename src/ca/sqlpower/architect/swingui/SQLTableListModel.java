@@ -55,7 +55,7 @@ public class SQLTableListModel extends AbstractSPListener implements ListModel {
 	 */
 	public int getSize() {
 		try {
-			return table.getColumnsFolder().getChildCount();
+			return table.getColumns().size();
 		} catch (SQLObjectException ex) {
 			throw new RuntimeException("Couldn't get child count", ex); //$NON-NLS-1$
 		}
@@ -66,7 +66,7 @@ public class SQLTableListModel extends AbstractSPListener implements ListModel {
 	 */
 	public Object getElementAt(int index) {
 		try {
-			return table.getColumnsFolder().getChild(index);
+			return table.getColumns().get(index);
 		} catch (SQLObjectException ex) {
 			throw new RuntimeException("Couldn't get child "+index, ex); //$NON-NLS-1$
 		}

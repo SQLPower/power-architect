@@ -34,13 +34,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import ca.sqlpower.sql.JDBCDataSourceType;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
-import ca.sqlpower.sqlobject.SQLTable.Folder;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -81,7 +80,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref", //$NON-NLS-1$
                 "pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu")); //$NON-NLS-1$
         this.session = session;
-        createGUI(index, index.getParentTable(), session);
+        createGUI(index, index.getParent(), session);
     }
 
     public IndexEditPanel(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws SQLObjectException {
@@ -157,8 +156,8 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
      */
     private boolean indexNameAlreadyExists(String name) {
         try {
-            for (int i = 0; i < parent.getIndicesFolder().getChildCount(); i++) {
-                if (name.equals(parent.getIndicesFolder().getChild(i).getName())) {
+            for (SQLIndex index : parent.getIndices()) {
+                if (name.equals(index.getName())) {
                     return true;
                 }
             }
@@ -242,7 +241,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         
         // if this was done on the index, listeners would only start listening after the index has
         // been added to its parent and compound edit would not work. Compound edits belong to the parent. 
-        parent.getIndicesFolder().startCompoundEdit(Messages.getString("IndexEditPanel.compoundEditName")); //$NON-NLS-1$
+        parent.begin(Messages.getString("IndexEditPanel.compoundEditName")); //$NON-NLS-1$
         try {
             StringBuffer warnings = new StringBuffer();
             //We need to check if the index name and/or primary key name is empty or not
@@ -280,7 +279,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                             if (column != null) {
                                 column.setPrimaryKeySeq(Integer.MAX_VALUE);
                                 parentTable.removeColumn(column);
-                                parentTable.addColumn(i, column);
+                                parentTable.addColumn(column, i);
                                 i++;
                             }
                         }
@@ -296,12 +295,11 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 } else {
                     index.setType(indexType.getSelectedItem().toString());
                 }
-                Folder<SQLIndex> indicesFolder = parentTable.getIndicesFolder();
-                List<SQLIndex> children = indicesFolder.getChildren();
+                List<SQLIndex> children = parentTable.getIndices();
                 if (!children.contains(index)) {
-                    indicesFolder.addChild(index);
+                    parentTable.addIndex(index);
                 }
-                index.cleanUp();
+                index.cleanUpIfChildless();
                 return true;
             } else {
                 JOptionPane.showMessageDialog(this, warnings.toString());
@@ -311,7 +309,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         } catch (SQLObjectException e) {
             throw new SQLObjectRuntimeException(e);
         } finally {
-            parent.getIndicesFolder().endCompoundEdit(Messages.getString("IndexEditPanel.compoundEditName")); //$NON-NLS-1$
+            parent.commit();
         }
     }
 

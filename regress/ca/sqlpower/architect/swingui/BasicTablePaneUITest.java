@@ -56,8 +56,8 @@ public class BasicTablePaneUITest extends TestCase {
         SQLColumn pk1 = new SQLColumn(t, "PKColumn1", Types.INTEGER, 10, 0);
         SQLColumn at1 = new SQLColumn(t, "AT1", Types.INTEGER, 10, 0);
 
-        t.addColumn(0, pk1);
-        t.addColumn(1, at1);
+        t.addColumn(pk1, 0);
+        t.addColumn(at1, 1);
 
         pp = session.getPlayPen();
         tp = new TablePane(t, pp.getContentPane());

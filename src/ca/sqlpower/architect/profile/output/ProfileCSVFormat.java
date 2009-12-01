@@ -63,7 +63,7 @@ public class ProfileCSVFormat implements ProfileFormat {
                 continue;
 
             SQLColumn c = (SQLColumn) result.getProfiledObject();
-            SQLTable t = c.getParentTable();
+            SQLTable t = c.getParent();
             TableProfileResult tpr = ((ColumnProfileResult)result).getParentResult();
             List<String> commonData = new ArrayList<String>();
 

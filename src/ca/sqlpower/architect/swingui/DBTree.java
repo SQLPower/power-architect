@@ -626,12 +626,7 @@ public class DBTree extends JTree implements DragSourceListener {
                 newMenu.add(new JMenuItem(new AbstractAction(Messages.getString("DBTree.retryActionName")) { //$NON-NLS-1$
                     public void actionPerformed(ActionEvent e) {
                         node.setPopulated(false);
-                        try {
-                            node.getChildren(); // forces populate
-                        } catch (SQLObjectException ex) {
-                            SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
-                                    Messages.getString("DBTree.exceptionDuringRetry"), ex); //$NON-NLS-1$
-                        }
+                        node.getChildren(); // forces populate
                     }
                 }));
             }
@@ -702,7 +697,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	                    Messages.getString("DBTree.connectionAlreadyExistsDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
 	        } else if (dbcs instanceof JDBCDataSource) {
 	            SQLDatabase newDB = new SQLDatabase((JDBCDataSource) dbcs);
-	            root.addChild(root.getChildCount(), newDB);
+	            root.addChild(newDB, root.getChildCount());
 	            session.getProject().setModified(true);
 	            // start a thread to poke the new SQLDatabase object...
 	            logger.debug("start poking database " + newDB.getName()); //$NON-NLS-1$

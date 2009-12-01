@@ -154,7 +154,7 @@ public class ProfileResultsViewer {
                 SQLColumn col = (SQLColumn)t.getValueAt(t.getSelectedRow(),
                         t.convertColumnIndexToView(
                                 ProfileColumn.valueOf("COLUMN").ordinal())); //$NON-NLS-1$
-                profilePanel.getTableSelector().setSelectedItem(col.getParentTable());
+                profilePanel.getTableSelector().setSelectedItem(col.getParent());
                 profilePanel.getColumnSelector().setSelectedValue(col,true);
                 tabPane.setSelectedIndex(1);
             }
@@ -246,7 +246,7 @@ public class ProfileResultsViewer {
             SQLColumn col = (SQLColumn)viewTable.getValueAt(0,
                     viewTable.convertColumnIndexToView(
                             ProfileColumn.valueOf("COLUMN").ordinal())); //$NON-NLS-1$
-            p.getTableSelector().setSelectedItem(col.getParentTable());
+            p.getTableSelector().setSelectedItem(col.getParent());
             p.getColumnSelector().setSelectedValue(col,true);
         }
  

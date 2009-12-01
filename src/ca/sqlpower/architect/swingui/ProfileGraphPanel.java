@@ -205,8 +205,8 @@ public class ProfileGraphPanel {
         SQLColumn profiledColumn = cr.getProfiledObject();
 
         String databaseType = null;
-        if (profiledColumn.getParentTable() != null) {
-            SQLDatabase parentDB = profiledColumn.getParentTable().getParentDatabase();
+        if (profiledColumn.getParent() != null) {
+            SQLDatabase parentDB = profiledColumn.getParent().getParentDatabase();
             if (parentDB != null) {
                 JDBCDataSource ds = parentDB.getDataSource();
                 if (ds != null) {

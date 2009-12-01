@@ -19,6 +19,7 @@
 package ca.sqlpower.architect;
 
 import junit.framework.TestCase;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.CountingSQLObjectListener;
 import ca.sqlpower.sqlobject.SQLCatalog;
@@ -171,7 +172,7 @@ public class ArchitectUtilsTest extends TestCase {
 		
 	}
     
-    public void testGetAncestor() throws SQLObjectException {
+    public void testGetAncestor() throws SQLObjectException, IllegalArgumentException, ObjectDependentException {
         SQLDatabase parentdb = new SQLDatabase();
         SQLSchema sch = new SQLSchema(true);
         SQLTable t = new SQLTable(sch, "cows", "remarkable cows", "TABLE", true);
@@ -179,14 +180,13 @@ public class ArchitectUtilsTest extends TestCase {
         parentdb.addChild(sch);
         sch.addChild(t);
         
-        assertEquals(parentdb, SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
-        assertEquals(sch, SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLSchema.class));
-        assertEquals(t, SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLTable.class));
-        assertEquals(t.getColumnsFolder(), SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLTable.Folder.class));
-        assertNull(SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLCatalog.class));
+        assertEquals(parentdb, SQLObjectUtils.getAncestor(t, SQLDatabase.class));
+        assertEquals(sch, SQLObjectUtils.getAncestor(t, SQLSchema.class));
+        assertEquals(t, SQLObjectUtils.getAncestor(t, SQLTable.class));
+        assertNull(SQLObjectUtils.getAncestor(t, SQLCatalog.class));
         
         parentdb.removeChild(sch);
-        assertNull(SQLObjectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
+        assertNull(SQLObjectUtils.getAncestor(t, SQLDatabase.class));
     }
     
     public void testCreateTableWhenExisting() throws Exception {

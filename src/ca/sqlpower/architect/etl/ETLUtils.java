@@ -55,7 +55,7 @@ public class ETLUtils {
             for (SQLColumn c : t.getColumns()) {
                 SQLColumn sc = c.getSourceColumn();
                 if (sc != null) {
-                    sources.add(sc.getParentTable());
+                    sources.add(sc.getParent());
                 } else {
                     sources.add(null);
                 }

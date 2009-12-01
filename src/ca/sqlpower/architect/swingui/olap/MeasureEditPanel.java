@@ -129,7 +129,7 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
         } else if (cubeTable.getColumns().isEmpty()) {
             columnChooser.addItem("Parent Cube table has no columns");
         } else {
-            columnChooser.setModel(new SQLObjectComboBoxModel(cubeTable.getColumnsFolder()));
+            columnChooser.setModel(new SQLObjectComboBoxModel(cubeTable, SQLColumn.class));
             columnRadioButton.doClick();
             for (SQLColumn col : cubeTable.getColumns()) {
                 if (col.getName().equalsIgnoreCase(measure.getColumn())) {

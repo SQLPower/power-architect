@@ -92,7 +92,6 @@ public class CriticizeAction extends AbstractArchitectAction {
         
         // skip types that don't warrant criticism
         if ( (!(root instanceof SQLDatabase)) &&
-             (!(root instanceof SQLTable.Folder)) &&
              (!(root instanceof SQLRelationship.ColumnMapping)) ) {
             criticizer.criticize(root);
         }

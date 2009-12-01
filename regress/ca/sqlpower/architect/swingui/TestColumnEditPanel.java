@@ -44,7 +44,7 @@ public class TestColumnEditPanel extends TestCase {
 		db = new SQLDatabase();
 		table = new SQLTable(db,"Table1","remark1","Table",true);
 		table2 = new SQLTable(db,"Table2","remark2","Table",true);
-		db.addChild(0,table);
+		db.addChild(table,0);
 		col1 = new SQLColumn(null,"Column 1",1,2,3);
 		col2 = new SQLColumn(null,"Column 2",2,3,4);
 		col3 = new SQLColumn(null,"Column 3",1,2,3);

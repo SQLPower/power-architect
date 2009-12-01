@@ -28,7 +28,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -195,7 +194,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
                 public void actionPerformed(ActionEvent e) {
                     StringBuffer componentList = new StringBuffer();
                     
-                    for (ColumnMapping columnMap : getModel().getMappings()) {
+                    for (ColumnMapping columnMap : getModel().getChildren()) {
                         componentList.append(columnMap).append("\n"); //$NON-NLS-1$
                     }
                     
@@ -233,22 +232,16 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 
 	public void setSelected(boolean isSelected,int multiSelectType) {
 		if (selected != isSelected) {
-		    try {
-		        Iterator it = getModel().getChildren().iterator();
-		        while (it.hasNext()) {
-		            SQLRelationship.ColumnMapping m = (ColumnMapping) it.next();
-		            
-                    if (isSelected) {
-                        pkTable.addColumnHighlight(m.getPkColumn(), columnHighlightColour);
-                        fkTable.addColumnHighlight(m.getFkColumn(), columnHighlightColour);
-                    } else {
-                        pkTable.removeColumnHighlight(m.getPkColumn(), columnHighlightColour);
-                        fkTable.removeColumnHighlight(m.getFkColumn(), columnHighlightColour);
-                    }
-		        }
-		    } catch (SQLObjectException e) {
-		        logger.error("Couldn't modify highlights for columns in the mapping", e); //$NON-NLS-1$
-		    }
+		    for (SQLRelationship.ColumnMapping m : getModel().getChildren()) {
+                
+                if (isSelected) {
+                    pkTable.addColumnHighlight(m.getPkColumn(), columnHighlightColour);
+                    fkTable.addColumnHighlight(m.getFkColumn(), columnHighlightColour);
+                } else {
+                    pkTable.removeColumnHighlight(m.getPkColumn(), columnHighlightColour);
+                    fkTable.removeColumnHighlight(m.getFkColumn(), columnHighlightColour);
+                }
+            }
 			selected = isSelected;
 			fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
 			repaint();
@@ -375,7 +368,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 			this.movingPk = movePk;
 			this.startingPk = new Point(r.getPkConnectionPoint().x, r.getPkConnectionPoint().y);
 			this.startingFk = new Point(r.getFkConnectionPoint().x, r.getFkConnectionPoint().y);
-			r.getModel().startCompoundEdit("Reposition relationship");
+			r.getModel().begin("Reposition relationship");
 			r.getPlayPen().addMouseMotionListener(this);
 			r.getPlayPen().addMouseListener(this);
 			r.getPlayPen().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
@@ -442,7 +435,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 			r.getPlayPen().removeMouseMotionListener(this);
 			r.getPlayPen().removeMouseListener(this);
 			r.getPlayPen().setCursor(null);
-			r.getModel().endCompoundEdit("Finished repositioning the relationship.");
+			r.getModel().commit();
 		}
 	}
 

@@ -38,6 +38,7 @@ import javax.swing.JScrollPane;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLRelationship;
@@ -347,7 +348,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
             SQLTable t = rhsTable.getModel();
             for (SQLRelationship r : t.getImportedKeys()) {
                 if (r == this.r) continue;
-                for (SQLRelationship.ColumnMapping cm : r.getMappings()) {
+                for (SQLRelationship.ColumnMapping cm : r.getChildren()) {
                     rhsTable.addColumnHighlight(cm.getFkColumn(), otherRelColour);
                 }
             }
@@ -362,17 +363,22 @@ public class ColumnMappingPanel implements DataEntryPanel {
      */
     public void updateRelationshipFromMappings() throws SQLObjectException {
         try {
-            r.startCompoundEdit("Modify Column Mappings"); //$NON-NLS-1$
+            r.begin("Modify Column Mappings"); //$NON-NLS-1$
             logger.debug("Removing all mappings from relationship..."); //$NON-NLS-1$
-            while (r.getChildren().size() > 0) {
-                r.removeChild(r.getChildren().size() - 1);
+            for (int i = r.getChildCount(); i >= 0; i--) {
+                r.removeChild(r.getChild(i));
             }
             for (Map.Entry<SQLColumn, SQLColumn> entry : mappings.entrySet()) {
                 logger.debug("Adding mapping " + entry.getKey() + " -> " + entry.getValue()); //$NON-NLS-1$ //$NON-NLS-2$
                 r.addMapping(entry.getKey(), entry.getValue());
             }
-        } finally {
-            r.endCompoundEdit("Modify Column Mappings"); //$NON-NLS-1$
+            r.commit();
+        } catch (IllegalArgumentException e) {
+            r.rollback("Could not remove mappings: " + e.getMessage());
+            throw new RuntimeException(e);
+        } catch (ObjectDependentException e) {
+            r.rollback("Could not remove mappings: " + e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
@@ -382,7 +388,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
      */
     public void updateMappingsFromRelationship() {
         mappings = new HashMap<SQLColumn, SQLColumn>();
-        for (SQLRelationship.ColumnMapping cm : r.getMappings()) {
+        for (SQLRelationship.ColumnMapping cm : r.getChildren()) {
             mappings.put(cm.getPkColumn(), cm.getFkColumn());
         }
         panel.repaint();

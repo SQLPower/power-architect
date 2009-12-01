@@ -42,10 +42,12 @@ import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.swingui.RecentMenu;
@@ -204,12 +206,21 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
-        while (rootObject.getChildCount() > 0) {
-            rootObject.removeChild(rootObject.getChildCount() - 1);
-        }
-        
-        for (SQLDatabase db : databases) {
-            rootObject.addChild(db);
+        try {
+            rootObject.begin("Setting source database list");
+            for (int i = rootObject.getChildCount()-1; i >= 0; i--) {
+                rootObject.removeChild(rootObject.getChild(i));
+            }
+            for (SQLDatabase db : databases) {
+                rootObject.addChild(db);
+            }
+            rootObject.commit();
+        } catch (IllegalArgumentException e) {
+            rootObject.rollback("Could not remove child: " + e.getMessage());
+            throw new RuntimeException(e);
+        } catch (ObjectDependentException e) {
+            rootObject.rollback("Could not remove child: " + e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 

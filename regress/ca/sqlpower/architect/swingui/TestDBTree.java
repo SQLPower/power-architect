@@ -50,7 +50,7 @@ public class TestDBTree extends TestCase {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
         session.getTargetDatabase().setDataSource(ds);
-        session.getRootObject().addChild(1, new SQLDatabase(db2ds));
+        session.getRootObject().addChild(new SQLDatabase(db2ds), 1);
 		dbTree = new DBTree(session);
 	}
 	

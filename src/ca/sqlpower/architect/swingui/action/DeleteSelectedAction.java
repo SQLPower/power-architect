@@ -38,6 +38,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.LockedColumnException;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -156,7 +157,9 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                     if (decision == JOptionPane.NO_OPTION) {
                         return;
                     }
-                } catch (SQLObjectException e) {
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeException(e);
+                } catch (ObjectDependentException e) {
                     throw new RuntimeException(e);
                 } 
             }
@@ -191,7 +194,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
         for (ListIterator<SQLObject> it = deleteItems.listIterator(); it.hasNext(); ) {
             SQLObject item = it.next();
             if (item instanceof SQLColumn) {
-                tablesWithSelectedColumns.add(((SQLColumn) item).getParentTable());
+                tablesWithSelectedColumns.add(((SQLColumn) item).getParent());
             } else if (item instanceof SQLTable) {
                 // ok
             } else if (item instanceof SQLRelationship) {

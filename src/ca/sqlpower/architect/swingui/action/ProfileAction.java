@@ -40,7 +40,6 @@ import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLTable.Folder;
 
 
 public class ProfileAction extends AbstractArchitectAction {
@@ -122,21 +121,9 @@ public class ProfileAction extends AbstractArchitectAction {
                     SQLDatabase db = SQLObjectUtils.getAncestor(sch,SQLDatabase.class);
                     if ( db != null && sqlObject.contains(db))
                         sqlObject.remove(db);
-                } else if ( tp.getLastPathComponent() instanceof SQLTable.Folder ) {
-                    SQLTable tab = SQLObjectUtils.getAncestor((Folder<?>) tp.getLastPathComponent(),SQLTable.class);
-                    sqlObject.add(tab);
-                    SQLSchema sch = SQLObjectUtils.getAncestor(tab,SQLSchema.class);
-                    if ( sch != null && sqlObject.contains(sch))
-                        sqlObject.remove(sch);
-                    SQLCatalog cat = SQLObjectUtils.getAncestor(sch,SQLCatalog.class);
-                    if ( cat != null && sqlObject.contains(cat))
-                        sqlObject.remove(cat);
-                    SQLDatabase db = SQLObjectUtils.getAncestor(sch,SQLDatabase.class);
-                    if ( db != null && sqlObject.contains(db))
-                        sqlObject.remove(db);
 
                 } else if ( tp.getLastPathComponent() instanceof SQLColumn ) {
-                    SQLTable tab = ((SQLColumn)tp.getLastPathComponent()).getParentTable();
+                    SQLTable tab = ((SQLColumn)tp.getLastPathComponent()).getParent();
                     sqlObject.add((SQLColumn)tp.getLastPathComponent());
                     SQLSchema sch = SQLObjectUtils.getAncestor(tab,SQLSchema.class);
                     if ( sch != null && sqlObject.contains(sch))
@@ -153,7 +140,7 @@ public class ProfileAction extends AbstractArchitectAction {
             final Set<SQLTable> tables = new HashSet<SQLTable>();
             for ( SQLObject o : sqlObject ) {
                 if ( o instanceof SQLColumn){
-                    tables.add(((SQLColumn)o).getParentTable());
+                    tables.add(((SQLColumn)o).getParent());
                 } else {
                     tables.addAll(SQLObjectUtils.findDescendentsByClass(o, SQLTable.class, new ArrayList<SQLTable>()));
                 }
