@@ -97,8 +97,9 @@ public class CriticizeAction extends AbstractArchitectAction {
         }
         
         for (SQLObject child : (List<SQLObject>) root.getChildren()) {
-            if (child instanceof SQLTable.Folder<?> &&
-                    ((SQLTable.Folder) child).getType() == SQLTable.Folder.IMPORTED_KEYS) {
+            if (child instanceof SQLRelationship
+                    && child.getParent() != null
+                    && ((SQLTable) child.getParent()).getImportedKeys().contains(child)) {
                 // skip contents of every imported keys folder, or else we will visit every relationship twice
                 continue;
             }
