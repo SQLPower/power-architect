@@ -133,7 +133,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
             } else {
             	// kind of a hack to trigger the validator.
                 primaryKey.setSelectedItem(null);
-                primaryKey.setModel(new SQLObjectComboBoxModel(selectedTable.getColumnsFolder()));
+                primaryKey.setModel(new SQLObjectComboBoxModel(selectedTable, SQLColumn.class));
                 for (SQLColumn col : selectedTable.getColumns()) {
                     if (col.getName().equalsIgnoreCase(primaryKeyName)) {
                         primaryKey.setSelectedItem(col);
