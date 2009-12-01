@@ -47,10 +47,6 @@ public class SQLObjectComboBoxModel implements ComboBoxModel {
     
     private final List<ListDataListener> listDataListeners = new ArrayList<ListDataListener>();
     
-    public SQLObjectComboBoxModel(SQLObject parent) {
-        this(parent, parent.getChildType());
-    }
-    
     public SQLObjectComboBoxModel(SQLObject parent, Class<? extends SQLObject> childType) {
         this.parent = parent;
         this.childType = childType;
