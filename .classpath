@@ -6,7 +6,6 @@
 	<classpathentry kind="src" path="ext-tools-home/resgen/src"/>
 	<classpathentry kind="src" path="example_code"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/sqlpower_library"/>
 	<classpathentry kind="lib" path="buildlib/ant.jar"/>
 	<classpathentry kind="lib" path="buildlib/gsbase-2.0.1.jar"/>
 	<classpathentry kind="lib" path="buildlib/junit.jar"/>
@@ -39,5 +38,6 @@
 	<classpathentry kind="lib" path="lib/commons-io-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/velocity-tools-generic-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/jsr305.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/sqlpower_library"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

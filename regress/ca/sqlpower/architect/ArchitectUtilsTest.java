@@ -19,18 +19,16 @@
 package ca.sqlpower.architect;
 
 import junit.framework.TestCase;
-import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.CountingSQLObjectListener;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.StubSQLObject;
-import ca.sqlpower.sqlobject.undo.CompoundEvent;
-import ca.sqlpower.sqlobject.undo.CompoundEventListener;
 import ca.sqlpower.util.SQLPowerUtils;
 
 public class ArchitectUtilsTest extends TestCase {
@@ -43,11 +41,11 @@ public class ArchitectUtilsTest extends TestCase {
 	
 	public void testListenToHierarchySQLObjectListenerSQLObject() throws SQLObjectException {
 
-		SQLObjectListener listener = new CountingSQLObjectListener();
-		SQLObjectUtils.listenToHierarchy(listener,sqlo);
-		SQLObjectUtils.listenToHierarchy(listener,sqlo);
-		assertEquals("There are the wrong number of listeners",1,sqlo.getSQLObjectListeners().size());
-		assertTrue("The wrong listener is listening",sqlo.getSQLObjectListeners().contains(listener));
+		SPListener listener = new CountingSQLObjectListener();
+		SQLPowerUtils.listenToHierarchy(sqlo, listener);
+		SQLPowerUtils.listenToHierarchy(sqlo, listener);
+		assertEquals("There are the wrong number of listeners",1,sqlo.getSPListeners().size());
+		assertTrue("The wrong listener is listening",sqlo.getSPListeners().contains(listener));
 		
 	}
 
@@ -59,51 +57,17 @@ public class ArchitectUtilsTest extends TestCase {
 	
 	}
 
-	public void testAddUndoListenerToHierarchy() throws SQLObjectException{
-
-	    //listener that doesn't do anything
-		CompoundEventListener listener = new CompoundEventListener(){
-			public void compoundEditStart(CompoundEvent e) {
-			}
-			public void compoundEditEnd(CompoundEvent e) {
-			}
-		};
-		SQLObjectUtils.addUndoListenerToHierarchy(listener,sqlo);
-		SQLObjectUtils.addUndoListenerToHierarchy(listener,sqlo);
-		assertEquals("There are the wrong number of listeners",1,sqlo.getUndoEventListeners().size());
-		assertTrue("The wrong listener is listening",sqlo.getUndoEventListeners().contains(listener));
-	}
-	
-
 	public void testUnlistenToHierarchySQLObjectListenerSQLObject() throws SQLObjectException {
 
-		SQLObjectListener listener = new CountingSQLObjectListener();
-		SQLObjectUtils.listenToHierarchy(listener,sqlo);
-		SQLObjectUtils.listenToHierarchy(listener,sqlo);
-		assertEquals("There are the wrong number of listeners",1,sqlo.getSQLObjectListeners().size());
-		assertTrue("The wrong listener is listening",sqlo.getSQLObjectListeners().contains(listener));
-		SQLObjectUtils.unlistenToHierarchy(listener,sqlo);
-		assertEquals("There are the wrong number of listeners",0,sqlo.getSQLObjectListeners().size());
+		SPListener listener = new CountingSQLObjectListener();
+		SQLPowerUtils.listenToHierarchy(sqlo, listener);
+		SQLPowerUtils.listenToHierarchy(sqlo, listener);
+		assertEquals("There are the wrong number of listeners",1,sqlo.getSPListeners().size());
+		assertTrue("The wrong listener is listening",sqlo.getSPListeners().contains(listener));
+		SQLPowerUtils.unlistenToHierarchy(sqlo, listener);
+		assertEquals("There are the wrong number of listeners",0,sqlo.getSPListeners().size());
 	}
 
-	public void testUndoUnlistenToHierarchy() throws SQLObjectException
-	{
-
-		CompoundEventListener listener = new CompoundEventListener(){
-			public void compoundEditStart(CompoundEvent e) {
-			}
-			public void compoundEditEnd(CompoundEvent e) {
-			}
-		};
-		SQLObjectUtils.addUndoListenerToHierarchy(listener,sqlo);
-		SQLObjectUtils.addUndoListenerToHierarchy(listener,sqlo);
-		assertEquals("There are the wrong number of listeners",1,sqlo.getUndoEventListeners().size());
-		assertTrue("The wrong listener is listening",sqlo.getUndoEventListeners().contains(listener));
-
-		SQLObjectUtils.undoUnlistenToHierarchy(listener,sqlo);
-		assertEquals("There are the wrong number of listeners",0,sqlo.getUndoEventListeners().size());
-	}
-	
 	/*
 	 * Test method for 'ca.sqlpower.architect.ArchitectUtils.unlistenToHierarchy(SQLObjectListener, SQLObject[])'
 	 */

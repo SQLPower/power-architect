@@ -8,6 +8,8 @@
 
 	<!-- $Id$ -->
 
+	<property name="sqlpower.library.home" value="${user.home}/Eclipse-Workspace/SQLPower/sqlpower_library" />
+	
 	<!-- Optional per-user customization -->
 	<property file="${user.home}/build.properties" />
 

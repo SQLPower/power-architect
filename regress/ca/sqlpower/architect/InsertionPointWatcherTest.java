@@ -85,9 +85,9 @@ public class InsertionPointWatcherTest extends TestCase {
     public void testDispose() {
         InsertionPointWatcher<StubSQLObject> watcher = new InsertionPointWatcher<StubSQLObject>(so, 1);
 
-        assertEquals(1, so.getSQLObjectListeners().size());
+        assertEquals(1, so.getSPListeners().size());
         watcher.dispose();
-        assertEquals(0, so.getSQLObjectListeners().size());
+        assertEquals(0, so.getSPListeners().size());
     }
 
 }

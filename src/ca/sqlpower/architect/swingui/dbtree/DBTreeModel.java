@@ -18,11 +18,16 @@
  */
 package ca.sqlpower.architect.swingui.dbtree;
 
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelEvent;
@@ -32,16 +37,18 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
-import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
-import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
-public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serializable {
+public class DBTreeModel extends AbstractSPListener implements TreeModel, java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(DBTreeModel.class);
 
@@ -56,7 +63,17 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
     private boolean refireOnAnyThread = false;
     
 	protected SQLObject root;
-
+	
+	/**
+	 * Map of parents to children and indices of nodes inserted during the transaction
+	 */
+	private Map<SPObject, HashMap<Integer, SPObject>> insertedNodes = new HashMap<SPObject, HashMap<Integer, SPObject>>();
+	
+	/**
+	 * Map of parents to children and indices of nodes removed during the transaction 
+	 */
+	private Map<SPObject, HashMap<Integer, SPObject>> removedNodes = new HashMap<SPObject, HashMap<Integer, SPObject>>();
+	
 	/**
 	 * Creates a tree model with all of the SQLDatabase objects in the
 	 * given session's root object in its root list of databases.
@@ -69,7 +86,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	public DBTreeModel(SQLObjectRoot root) throws SQLObjectException {
 		this.root = root;
 		this.treeModelListeners = new LinkedList();
-		SQLObjectUtils.listenToHierarchy(this, root);
+		SQLPowerUtils.listenToHierarchy(root, this);
 	}
 
 	public Object getRoot() {
@@ -216,7 +233,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	 *
 	 * @throws IllegalArgumentException if <code>node</code> is of class SQLRelationship.
 	 */
-	public SQLObject[] getPathToNode(SQLObject node) {
+	public SQLObject[] getPathToNode(SPObject node) {
 		if (node instanceof SQLRelationship) {
 			throw new IllegalArgumentException("This method does not work for SQLRelationship. Use getPkPathToRelationship() and getFkPathToRelationship() instead."); //$NON-NLS-1$
 		}
@@ -269,108 +286,48 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 
 	// --------------------- SQLObject listener support -----------------------
-	public void dbChildrenInserted(SQLObjectEvent e) {
+	@Override
+	public void childAddedImpl(SPChildEvent e) {
         if (logger.isDebugEnabled()) {
             logger.debug("dbChildrenInserted. source="+e.getSource() //$NON-NLS-1$
-                    +" indices: "+Arrays.asList(e.getChangedIndices()) //$NON-NLS-1$
-                    +" children: "+Arrays.asList(e.getChildren())); //$NON-NLS-1$
-        }
-		if (logger.isDebugEnabled()) {
-			if (e.getSQLSource() instanceof SQLRelationship) {
-				SQLRelationship r = (SQLRelationship) e.getSQLSource();
+                    +" index: "+e.getIndex() //$NON-NLS-1$
+                    +" child: "+e.getChild()); //$NON-NLS-1$
+			if (e.getSource() instanceof SQLRelationship) {
+				SQLRelationship r = (SQLRelationship) e.getSource();
 				logger.debug("dbChildrenInserted SQLObjectEvent: "+e //$NON-NLS-1$
 							 +"; pk path="+Arrays.asList(getPkPathToRelationship(r)) //$NON-NLS-1$
 							 +"; fk path="+Arrays.asList(getFkPathToRelationship(r))); //$NON-NLS-1$
 			} else {
 				logger.debug("dbChildrenInserted SQLObjectEvent: "+e //$NON-NLS-1$
-							 +"; tree path="+Arrays.asList(getPathToNode(e.getSQLSource()))); //$NON-NLS-1$
+							 +"; tree path="+Arrays.asList(getPathToNode(e.getSource()))); //$NON-NLS-1$
 			}
 		}
-		try {
-			SQLObject[] newEventSources = e.getChildren();
-			for (int i = 0; i < newEventSources.length; i++) {
-				SQLObjectUtils.listenToHierarchy(this, newEventSources[i]);
-			}
-		} catch (SQLObjectException ex) {
-			logger.error("Error listening to added object", ex); //$NON-NLS-1$
-		}
+        SQLPowerUtils.listenToHierarchy(e.getChild(), this);
 
-        if ((!SwingUtilities.isEventDispatchThread()) && (!refireOnAnyThread)) {
-            logger.debug("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$
-            return;
+        if (!insertedNodes.containsKey(e.getSource())) {
+            insertedNodes.put(e.getSource(), new HashMap<Integer, SPObject>());
         }
-
-		// relationships have two parents (pktable and fktable) so we need to fire two TMEs
-		if (e.getSQLSource() instanceof SQLRelationship) {
-			TreeModelEvent tme = new TreeModelEvent
-				(this,
-				 getPkPathToRelationship((SQLRelationship) e.getSQLSource()),
-				 e.getChangedIndices(),
-				 e.getChildren());
-			fireTreeNodesInserted(tme);
-
-			tme = new TreeModelEvent
-				(this,
-				 getFkPathToRelationship((SQLRelationship) e.getSQLSource()),
-				 e.getChangedIndices(),
-				 e.getChildren());
-			fireTreeNodesInserted(tme);
-		} else {
-			TreeModelEvent tme = new TreeModelEvent
-				(this,
-				 getPathToNode(e.getSQLSource()),
-				 e.getChangedIndices(),
-				 e.getChildren());
-			fireTreeNodesInserted(tme);
-		}
+        insertedNodes.get(e.getSource()).put(e.getIndex(), e.getChild());
 	}
 
-	public void dbChildrenRemoved(SQLObjectEvent e) {
+	@Override
+	public void childRemovedImpl(SPChildEvent e) {
         if (logger.isDebugEnabled()) {
             logger.debug("dbchildrenremoved. source="+e.getSource() //$NON-NLS-1$
-                    +" indices: "+Arrays.asList(e.getChangedIndices()) //$NON-NLS-1$
-                    +" children: "+Arrays.asList(e.getChildren())); //$NON-NLS-1$
+                    +" index: "+e.getIndex() //$NON-NLS-1$
+                    +" child: "+e.getChild()); //$NON-NLS-1$
         }
 		if (logger.isDebugEnabled()) logger.debug("dbChildrenRemoved SQLObjectEvent: "+e); //$NON-NLS-1$
-		try {
-			SQLObject[] oldEventSources = e.getChildren();
-			for (int i = 0; i < oldEventSources.length; i++) {
-				SQLObjectUtils.unlistenToHierarchy(this, oldEventSources[i]);
-			}
-		} catch (SQLObjectException ex) {
-			logger.error("Error unlistening to removed object", ex); //$NON-NLS-1$
+		SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
+		
+		if (!removedNodes.containsKey(e.getSource())) {
+		    removedNodes.put(e.getSource(), new HashMap<Integer, SPObject>());
 		}
-
-        if ((!SwingUtilities.isEventDispatchThread()) && (!refireOnAnyThread)) {
-            logger.debug("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$
-            return;
-        }
-
-		if (e.getSQLSource() instanceof SQLRelationship) {
-			TreeModelEvent tme = new TreeModelEvent
-				(this,
-				 getPkPathToRelationship((SQLRelationship) e.getSQLSource()),
-				 e.getChangedIndices(),
-				 e.getChildren());
-			fireTreeNodesRemoved(tme);
-
-			tme = new TreeModelEvent
-				(this,
-				 getFkPathToRelationship((SQLRelationship) e.getSQLSource()),
-				 e.getChangedIndices(),
-				 e.getChildren());
-			fireTreeNodesRemoved(tme);
-		} else {
-			TreeModelEvent tme = new TreeModelEvent
-				(this,
-				 getPathToNode(e.getSQLSource()),
-				 e.getChangedIndices(),
-				 e.getChildren());
-			fireTreeNodesRemoved(tme);
-		}
+		removedNodes.get(e.getSource()).put(e.getIndex(), e.getChild());
 	}
 	
-	public void dbObjectChanged(SQLObjectEvent e) {
+	@Override
+	public void propertyChangeImpl(PropertyChangeEvent e) {
 		logger.debug("dbObjectChanged. source="+e.getSource()); //$NON-NLS-1$
         if ((!SwingUtilities.isEventDispatchThread()) && (!refireOnAnyThread)) {
             logger.debug("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$
@@ -379,17 +336,67 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		if (logger.isDebugEnabled()) logger.debug("dbObjectChanged SQLObjectEvent: "+e); //$NON-NLS-1$
 		processSQLObjectChanged(e);
 	}
+	
+	@Override
+	protected void finalCommitImpl(TransactionEvent e) {
+	    if ((!SwingUtilities.isEventDispatchThread()) && (!refireOnAnyThread)) {
+            logger.debug("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$
+            return;
+        }
+	    
+	    for (TreeModelEvent insert : createTreeEvents(insertedNodes)) {
+	        fireTreeNodesInserted(insert);
+	    }
+	    insertedNodes.clear();
+	    
+	    for (TreeModelEvent remove : createTreeEvents(removedNodes)) {
+            fireTreeNodesRemoved(remove);
+        }
+	    removedNodes.clear();
+	}
+	
+	/**
+	 * Creates a set of TreeModelEvents, one for each parent, based on the given map.
+	 */
+	private Set<TreeModelEvent> createTreeEvents(Map<SPObject, HashMap<Integer, SPObject>> changes) {
+	    Set<TreeModelEvent> events = new HashSet<TreeModelEvent>();
+	    for (Map.Entry<SPObject, HashMap<Integer, SPObject>> e : changes.entrySet()) {
+	        if (e.getKey() instanceof SQLRelationship) {
+	            // SQLRelationships are in the tree twice, must fire two events
+	            events.add(createTreeModelEvent(getPkPathToRelationship((SQLRelationship) e.getKey()), e.getValue()));
+	            events.add(createTreeModelEvent(getFkPathToRelationship((SQLRelationship) e.getKey()), e.getValue()));
+	        } else {
+	            events.add(createTreeModelEvent(getPathToNode(e.getKey()), e.getValue()));
+	        }
+	    }
+	    return events;
+	}
 
+	/**
+	 * Creates a single TreeModelEvent for the given path and Map of children.
+	 */
+	private TreeModelEvent createTreeModelEvent(SPObject[] path, HashMap<Integer, SPObject> changes) {
+	    int[] indexes = new int[changes.size()];
+	    SPObject[] children = new SPObject[changes.size()];
+	    Iterator<Map.Entry <Integer, SPObject>> it = changes.entrySet().iterator();
+	    for (int i = 0; it.hasNext(); i++) {
+	        Map.Entry<Integer, SPObject> e = it.next();
+	        indexes[i] = e.getKey();
+	        children[i] = e.getValue();
+	    }
+	    return new TreeModelEvent(this, path, indexes, children);
+	}
+	
     /**
      * The profile manager needs to fire events from different threads.
      * So we need to get around the check.
      */
-    private void processSQLObjectChanged(SQLObjectEvent e) {
+    private void processSQLObjectChanged(PropertyChangeEvent e) {
         if (e.getPropertyName().equals("name") &&  //$NON-NLS-1$
-				!e.getNewValue().equals(e.getSQLSource().getName()) ) {
-			logger.error("Name change event has wrong new value. new="+e.getNewValue()+"; real="+e.getSQLSource().getName()); //$NON-NLS-1$ //$NON-NLS-2$
+				!e.getNewValue().equals(((SPObject) e.getSource()).getName()) ) {
+			logger.error("Name change event has wrong new value. new="+e.getNewValue()+"; real="+((SPObject) e.getSource()).getName()); //$NON-NLS-1$ //$NON-NLS-2$
 		}
-		SQLObject source = e.getSQLSource();
+		SPObject source = (SPObject) e.getSource();
 		if (source instanceof SQLRelationship) {
 			SQLRelationship r = (SQLRelationship) source;
 			fireTreeNodesChanged(new TreeModelEvent(this, getPkPathToRelationship(r)));

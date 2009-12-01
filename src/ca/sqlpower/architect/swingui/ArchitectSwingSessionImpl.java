@@ -24,7 +24,6 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -67,16 +66,14 @@ import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
-import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectListener;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
-import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.swingui.ModalDialogUserPrompter;
 import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
@@ -84,6 +81,7 @@ import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.SwingUIUserPrompterFactory;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
+import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
@@ -246,14 +244,17 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
         projectModificationWatcher = new ProjectModificationWatcher(playPen);
         
-        getRootObject().addSQLObjectListener(new SQLObjectListener() {
-            public void dbObjectChanged(SQLObjectEvent e) {
+        getRootObject().addSPListener(new AbstractSPListener() {
+            @Override
+            public void propertyChangeImpl(PropertyChangeEvent e) {
                 isNew = false;        
             }
-            public void dbChildrenRemoved(SQLObjectEvent e) {
+            @Override
+            public void childRemovedImpl(SPChildEvent e) {
                 isNew = false;
             }
-            public void dbChildrenInserted(SQLObjectEvent e) {
+            @Override
+            public void childAddedImpl(SPChildEvent e) {
                 isNew = false;
             }
         });
@@ -644,58 +645,38 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * <p>Note: when we implement proper undo/redo support, this class should
      * be replaced with a hook into that system.
      */
-    class ProjectModificationWatcher implements SQLObjectListener, PropertyChangeListener {
+    class ProjectModificationWatcher extends AbstractSPListener {
 
         /**
          * Sets up a new modification watcher on the given playpen.
          */
         public ProjectModificationWatcher(PlayPen pp) {
-            try {
-                SQLObjectUtils.listenToHierarchy(this, getTargetDatabase());
-            } catch (SQLObjectException e) {
-                logger.error("Can't listen to business model for changes", e); //$NON-NLS-1$
-            }
+            SQLPowerUtils.listenToHierarchy(getTargetDatabase(), this);
             PlayPenContentPane ppcp = pp.contentPane;
             ppcp.addPropertyChangeListener(this);
         }
 
         /** Marks project dirty, and starts listening to new kids. */
-        public void dbChildrenInserted(SQLObjectEvent e) {
+        @Override
+        public void childAddedImpl(SPChildEvent e) {
             getProject().setModified(true);
-            SQLObject[] newKids = e.getChildren();
-            for (int i = 0; i < newKids.length; i++) {
-                try {
-                    SQLObjectUtils.listenToHierarchy(this, newKids[i]);
-                } catch (SQLObjectException e1) {
-                    logger.error("Couldn't listen to SQLObject hierarchy rooted at "+newKids[i], e1); //$NON-NLS-1$
-                }
-            }
+            SQLPowerUtils.listenToHierarchy(e.getChild(), this);
             isNew = false;
         }
 
         /** Marks project dirty, and stops listening to removed kids. */
-        public void dbChildrenRemoved(SQLObjectEvent e) {
+        @Override
+        public void childRemovedImpl(SPChildEvent e) {
             getProject().setModified(true);
-            SQLObject[] oldKids = e.getChildren();
-            for (int i = 0; i < oldKids.length; i++) {
-                oldKids[i].removeSQLObjectListener(this);
-            }
+            SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
             isNew = false;
         }
 
         /** Marks project dirty. */
-        public void dbObjectChanged(SQLObjectEvent e) {
+        @Override
+        public void propertyChangeImpl(PropertyChangeEvent e) {
             getProject().setModified(true);
             isNew = false;
-        }
-
-        /**
-         * Marks the project dirty when property change event fires.
-         */
-        public void propertyChange(PropertyChangeEvent evt) {
-            getProject().setModified(true);
-            isNew = false;
-
         }
     }
 

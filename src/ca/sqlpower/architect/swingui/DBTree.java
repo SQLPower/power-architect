@@ -645,7 +645,7 @@ public class DBTree extends JTree implements DragSourceListener {
 					public void actionPerformed(ActionEvent e) {
 						SQLObject so = (SQLObject) getLastSelectedPathComponent();
 						if (so != null) {
-							JOptionPane.showMessageDialog(DBTree.this, new JScrollPane(new JList(new java.util.Vector(so.getSQLObjectListeners()))));
+							JOptionPane.showMessageDialog(DBTree.this, new JScrollPane(new JList(new java.util.Vector(so.getSPListeners()))));
 						}
 					}
 				});

@@ -26,9 +26,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPChildEvent.EventType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -328,10 +329,10 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		
 		// this event came from somewhere else.  it shouldn't affect the success of the next event
 		SQLColumn fakeSource = new SQLColumn();
-		tp.columnListener.dbChildrenRemoved(new SQLObjectEvent(fakeSource, new int[] {6}, new SQLObject[] {fakeSource}));
+		tp.columnListener.childRemoved(new SPChildEvent(fakeSource, fakeSource.getClass(), fakeSource, 6, EventType.REMOVED));
 		
 		// this event notifies the table pane that we removed c1 earlier on.  It should not throw an exception
-		tp.columnListener.dbChildrenRemoved(new SQLObjectEvent(t.getColumnsFolder(), new int[] {0}, new SQLObject[] {c1}));
+		tp.columnListener.childRemoved(new SPChildEvent(t.getColumnsFolder(), c1.getClass(), c1, 0, EventType.REMOVED));
 	}
 	
     public void testMultiHighlight() throws SQLObjectException {
@@ -369,9 +370,9 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
     
     public void testUnlistenToRemovedColumns() throws Exception {
         SQLColumn c = t.getColumn(0);
-        assertTrue(c.getSQLObjectListeners().contains(tp.columnListener));
+        assertTrue(c.getSPListeners().contains(tp.columnListener));
         t.removeColumn(0);
-        assertFalse(c.getSQLObjectListeners().contains(tp.columnListener));
+        assertFalse(c.getSPListeners().contains(tp.columnListener));
     }
     
     public void testSetLocationFiresEvents() {

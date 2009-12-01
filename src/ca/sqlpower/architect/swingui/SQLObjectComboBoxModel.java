@@ -26,11 +26,12 @@ import javax.swing.ComboBoxModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
-import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
-import ca.sqlpower.sqlobject.SQLObjectListener;
 
 /**
  * Combo box model that presents the list of a SQLObject's children as the
@@ -50,7 +51,7 @@ public class SQLObjectComboBoxModel implements ComboBoxModel {
         if (!parent.allowsChildren()) {
             throw new IllegalArgumentException("That parent object doesn't allow children");
         }
-        parent.addSQLObjectListener(childEventHandler);
+        parent.addSPListener(childEventHandler);
     }
 
     public Object getSelectedItem() {
@@ -97,26 +98,18 @@ public class SQLObjectComboBoxModel implements ComboBoxModel {
         }
     }
     
-    private SQLObjectListener childEventHandler = new SQLObjectListener() {
+    private SPListener childEventHandler = new AbstractSPListener() {
 
-        public void dbChildrenInserted(SQLObjectEvent e) {
-            for (int i : e.getChangedIndices()) {
-                fireListDataEvent(ListDataEvent.INTERVAL_ADDED, i, i);
-            }
+        public void childAddedImpl(SPChildEvent e) {
+            fireListDataEvent(ListDataEvent.INTERVAL_ADDED, e.getIndex(), e.getIndex());
         }
 
-        public void dbChildrenRemoved(SQLObjectEvent e) {
-            for (int i = 0; i < e.getChangedIndices().length; i++) {
-                int changedIndex = e.getChangedIndices()[i];
-                if (selectedItem == e.getChildren()[i]) {
-                    setSelectedItem(null);
-                }
-                fireListDataEvent(ListDataEvent.INTERVAL_REMOVED, changedIndex, changedIndex);
+        public void childRemovedImpl(SPChildEvent e) {
+            int changedIndex = e.getIndex();
+            if (selectedItem == e.getChild()) {
+                setSelectedItem(null);
             }
-        }
-
-        public void dbObjectChanged(SQLObjectEvent e) {
-            // doesn't matter
+            fireListDataEvent(ListDataEvent.INTERVAL_REMOVED, changedIndex, changedIndex);
         }
 
     };

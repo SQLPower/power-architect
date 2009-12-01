@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -27,13 +28,14 @@ import javax.swing.event.ListDataListener;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLColumn;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
-import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 
-public class SQLTableListModel implements ListModel, SQLObjectListener {
+public class SQLTableListModel extends AbstractSPListener implements ListModel {
 
 	private static final Logger logger = Logger.getLogger(SQLTableListModel.class);
 
@@ -106,31 +108,26 @@ public class SQLTableListModel implements ListModel, SQLObjectListener {
 	}
 
 
-	// -------------- SQLObjectListener INTERFACE -------------------
-	public void dbChildrenInserted(SQLObjectEvent e) {
-		int[] changedIndices = e.getChangedIndices();
-		for (int i = 0; i < changedIndices.length; i++) {
-			// XXX: should group contiguous regions into one event!
-			fireIntervalAdded(changedIndices[i], changedIndices[i]);
-		}
+	// -------------- SPListener INTERFACE -------------------
+	@Override
+	public void childAddedImpl(SPChildEvent e) {
+	    // XXX: should group contiguous regions into one event!
+	    fireIntervalAdded(e.getIndex(), e.getIndex());
 	}
 
-	public void dbChildrenRemoved(SQLObjectEvent e) {
-		int[] changedIndices = e.getChangedIndices();
-		for (int i = 0; i < changedIndices.length; i++) {
-			// XXX: should group contiguous regions into one event!
-			fireIntervalRemoved(changedIndices[i], changedIndices[i]);
-		}
+	@Override
+	public void childRemovedImpl(SPChildEvent e) {
+	    // XXX: should group contiguous regions into one event!
+	    fireIntervalRemoved(e.getIndex(), e.getIndex());
 	}
 
-	public void dbObjectChanged(SQLObjectEvent e) {
+	@Override
+	public void propertyChangeImpl(PropertyChangeEvent e) {
 		if (e.getSource() == table.getColumnsFolder()) {
-			int[] changedIndices = e.getChangedIndices();
-			for (int i = 0; i < changedIndices.length; i++) {
-				// XXX: should group contiguous regions into one event!
-				logger.debug("Firing contentsChanged event for index "+i); //$NON-NLS-1$
-				fireContentsChanged(changedIndices[i], changedIndices[i]);
-			}
+		    // XXX: should group contiguous regions into one event!
+		    int index = ((SPObject) e.getSource()).getChildren(((SPObject) e.getSource()).getClass()).indexOf(e.getSource());
+		    logger.debug("Firing contentsChanged event for index "+index); //$NON-NLS-1$
+		    fireContentsChanged(index, index);
 		} else if (e.getSource() instanceof SQLColumn) {
 			// make sure this column was actually in the table
 			try {

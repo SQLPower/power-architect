@@ -39,7 +39,7 @@ public class ArchitectUndoManager extends SQLObjectUndoManager implements Notify
      */
     public ArchitectUndoManager(PlayPen playPen) throws SQLObjectException {
         super(playPen.getSession().getTargetDatabase());
-        playPen.getSession().getRootObject().addSQLObjectListener(new SQLObjectUndoableEventAdapter(false));
+        playPen.getSession().getRootObject().addSPListener(new SQLObjectUndoableEventAdapter(false));
         if (playPen != null) {
             playPen.addUndoEventListener(eventAdapter);
         }
