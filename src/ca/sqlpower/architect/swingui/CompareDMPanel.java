@@ -1192,14 +1192,14 @@ public class CompareDMPanel extends JPanel {
 			final SQLObject right;
 			try {
 				left = source.getObjectToCompare();
-				if (left.getChildType() == SQLTable.class) {
+				if (left.getAllowedChildTypes().contains(SQLTable.class)) {
 					sourceTables = left.getChildren(SQLTable.class);
 				} else {
 					sourceTables = new ArrayList<SQLTable>();
 				}
 
 				right = target.getObjectToCompare();
-				if (right.getChildType() == SQLTable.class) {
+				if (right.getAllowedChildTypes().contains(SQLTable.class)) {
 					targetTables = right.getChildren(SQLTable.class);
 				} else {
 					targetTables = new ArrayList<SQLTable>();
