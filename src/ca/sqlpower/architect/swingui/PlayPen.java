@@ -1650,21 +1650,25 @@ public class PlayPen extends JPanel
 		boolean fireEvent = false;
 		SPObject child = e.getChild();
 		addHierarchyListeners(child);
-		if (child instanceof SQLTable
-		        || (child instanceof SQLRelationship
-		                && (((SQLTable.Folder) e.getSource()).getType() == SQLTable.Folder.EXPORTED_KEYS))) {
-		    fireEvent = true;
+		try {
+            if (child instanceof SQLTable
+                    || (child instanceof SQLRelationship
+                            && ((SQLTable) e.getSource()).getExportedKeys().contains(child))) {
+                fireEvent = true;
 
-		    PlayPenComponent ppc = removedComponents.get(child);
-		    if (ppc != null) {
-		        if (ppc instanceof Relationship) {
-		            contentPane.add(ppc, contentPane.getComponentCount());
-		        } else {
-		            contentPane.add(ppc, contentPane.getFirstRelationIndex());
-		        }
+                PlayPenComponent ppc = removedComponents.get(child);
+                if (ppc != null) {
+                    if (ppc instanceof Relationship) {
+                        contentPane.add(ppc, contentPane.getComponentCount());
+                    } else {
+                        contentPane.add(ppc, contentPane.getFirstRelationIndex());
+                    }
 
-		    }
-		}
+                }
+            }
+        } catch (SQLObjectException ex) {
+            throw new RuntimeException(ex);
+        }
 
 		if (fireEvent) {
 			firePropertyChange("model.children", null, null); //$NON-NLS-1$
