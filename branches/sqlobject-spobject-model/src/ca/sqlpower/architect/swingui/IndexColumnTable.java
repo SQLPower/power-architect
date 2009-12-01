@@ -88,11 +88,8 @@ public class IndexColumnTable {
          * removes corresponding rows as appropriate.
          */
         private final SQLIndex index;
-
-        /**
-         * The list of all SQLColumns represented by this table.
-         */
-        private final List<SQLColumn> columns;
+        
+        private final SQLTable table;
 
         /**
          * A listener that will listen for changes to the actual SQLIndex
@@ -117,7 +114,7 @@ public class IndexColumnTable {
             this.index = index;
             this.actualIndex = actualIndex;
             this.rowList = new ArrayList<Row>();
-            columns = parent.getColumnsWithoutPopulating();
+            this.table = parent;
             indexListener = new ActualIndexListener();
             setUpListeners();
             populateModel();
@@ -129,14 +126,10 @@ public class IndexColumnTable {
          * folder as well as all the SQLColumns in that folder
          */
         private void setUpListeners (){
-            columnsFolder.addSPListener(this);
+            table.addSPListener(this);
             this.actualIndex.addSPListener(indexListener);
-            try {
-                for (int i = 0; i < columnsFolder.getChildCount(); i++) {
-                    columnsFolder.getChild(i).addSPListener(this);
-                }
-            } catch (SQLObjectException e) {
-                throw new SQLObjectRuntimeException(e);
+            for (SQLColumn child : table.getChildren(SQLColumn.class)) {
+                child.addSPListener(this);
             }
         }
 
@@ -208,7 +201,7 @@ public class IndexColumnTable {
                     rowList.add(new Row(true, indexCol, indexCol.getAscendingOrDescending()));
                 }
             }
-            for (SQLColumn col : columns) {
+            for (SQLColumn col : table.getChildren(SQLColumn.class)) {
                 if (!containsColumn(col)) {
                     rowList.add(new Row(false, col, AscendDescend.UNSPECIFIED));
                 }
@@ -270,14 +263,10 @@ public class IndexColumnTable {
          * actual JTable, such that all the listeners can be removed.
          */
         public void cleanup() {
-            try {
-                for (int i = 0; i < columnsFolder.getChildCount(); i++) {
-                    columnsFolder.getChild(i).removeSPListener(this);
-                }
-            } catch (SQLObjectException e) {
-                throw new SQLObjectRuntimeException(e);
+            for (SQLColumn child : table.getChildren(SQLColumn.class)) {
+                child.removeSPListener(this);
             }
-            columnsFolder.removeSPListener(this);
+            table.removeSPListener(this);
             this.actualIndex.removeSPListener(indexListener);
         }
 
@@ -315,12 +304,16 @@ public class IndexColumnTable {
         }
 
         public void childAdded(SPChildEvent e) {
+            if (!e.getClass().equals(SQLColumn.class)) return;
+            
             // Do not forget to add a listener to the newly added column.
             e.getChild().addSPListener(this);
             rowList.add(new Row(false, (Column) e.getChild(), AscendDescend.UNSPECIFIED));
         }
 
         public void childRemoved(SPChildEvent e) {
+            if (!e.getClass().equals(SQLColumn.class)) return;
+            
             int rowToRemove = -1;
             int i = 0;
             SQLColumn removedCol = (SQLColumn) e.getChild();
