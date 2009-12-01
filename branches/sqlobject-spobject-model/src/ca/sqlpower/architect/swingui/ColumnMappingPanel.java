@@ -348,7 +348,8 @@ public class ColumnMappingPanel implements DataEntryPanel {
             SQLTable t = rhsTable.getModel();
             for (SQLRelationship r : t.getImportedKeys()) {
                 if (r == this.r) continue;
-                for (SQLRelationship.ColumnMapping cm : r.getChildren()) {
+                for (SQLRelationship.ColumnMapping cm : r.getChildren(
+                        SQLRelationship.ColumnMapping.class)) {
                     rhsTable.addColumnHighlight(cm.getFkColumn(), otherRelColour);
                 }
             }
@@ -388,7 +389,8 @@ public class ColumnMappingPanel implements DataEntryPanel {
      */
     public void updateMappingsFromRelationship() {
         mappings = new HashMap<SQLColumn, SQLColumn>();
-        for (SQLRelationship.ColumnMapping cm : r.getChildren()) {
+        for (SQLRelationship.ColumnMapping cm : r.getChildren(
+                SQLRelationship.ColumnMapping.class)) {
             mappings.put(cm.getPkColumn(), cm.getFkColumn());
         }
         panel.repaint();

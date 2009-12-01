@@ -592,7 +592,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
 
         // close connections
-        for (SQLDatabase db : getRootObject().getChildren()) {
+        for (SQLDatabase db : getRootObject().getChildren(SQLDatabase.class)) {
             logger.debug ("closing connection: " + db.getName()); //$NON-NLS-1$
             db.disconnect();
         }

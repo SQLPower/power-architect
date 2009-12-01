@@ -138,7 +138,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                         SQLIndex index = (SQLIndex) o;
                         o.getParent().removeChild(o);
                         List<SQLColumn> cols = new ArrayList<SQLColumn>();
-                        for (Column col : index.getChildren()) {
+                        for (Column col : index.getChildren(Column.class)) {
                             cols.add(col.getColumn());                            
                         }
                         for (SQLColumn col : cols) {
