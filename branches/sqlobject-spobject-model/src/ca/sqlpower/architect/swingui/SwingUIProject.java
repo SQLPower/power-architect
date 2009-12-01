@@ -1241,10 +1241,6 @@ public class SwingUIProject extends CoreProject {
             if (pm != null) {
                 pm.setProgress(++progress);
             }
-        } else if (o instanceof SQLTable.Folder) {
-            id = "FOL"+sqlObjectSaveIdMap.size(); //$NON-NLS-1$
-            type = "folder"; //$NON-NLS-1$
-            propNames.put("type", new Integer(((SQLTable.Folder) o).getType())); //$NON-NLS-1$
         } else if (o instanceof SQLColumn) {
             id = "COL"+sqlObjectSaveIdMap.size(); //$NON-NLS-1$
             type = "column"; //$NON-NLS-1$
