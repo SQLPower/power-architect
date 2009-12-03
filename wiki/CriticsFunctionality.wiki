@@ -21,6 +21,10 @@ The idea behind the Critics feature is to have a monitor of your data model that
 
   * At minimum support a basic set of critics that replace the DDL warnings checked by the current system. (Provided by the QuickFix system)
 
+  * At least two levels of severity: 
+    * Errors = problems that will create DDL script that WILL fail if you attempt to run it on a target database.
+    * Warnings = problems that will not cause the generated DDL script to fail, but are considered bad practice in database design.
+
   * Visual notification to the user of problems
     * Provide a visual list of items that critics have found
     * Highlighting of items in the playpen
