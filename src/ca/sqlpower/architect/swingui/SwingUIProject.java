@@ -1215,6 +1215,7 @@ public class SwingUIProject extends CoreProject {
         // properties of all SQLObject types
         propNames.put("physicalName", o.getPhysicalName()); //$NON-NLS-1$
         propNames.put("name", o.getName()); // note: there was no name attrib for SQLDatabase, SQLRelationship.ColumnMapping, and SQLExceptionNode //$NON-NLS-1$
+        propNames.put("UUID", o.getUUID());
         
         if (o.getChildrenInaccessibleReason() != null) {
             propNames.put("sql-exception", o.getChildrenInaccessibleReason().getMessage()); //$NON-NLS-1$

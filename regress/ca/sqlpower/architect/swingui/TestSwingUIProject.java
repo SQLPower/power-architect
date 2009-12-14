@@ -57,6 +57,7 @@ import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.PlDotIni;
@@ -85,6 +86,31 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	private PlDotIni plIni;
     private ArchitectSwingSession session;
     private TestingArchitectSwingSessionContext context;
+    
+    private class TestSQLDatabase extends SQLDatabase {
+
+        private List<StubSQLObject> stubs = new ArrayList<StubSQLObject>();
+        
+        @Override
+        public List<Class<? extends SPObject>> getAllowedChildTypes() {
+            List<Class<? extends SPObject>> types = new ArrayList<Class<? extends SPObject>>();
+            types.add(StubSQLObject.class);
+            return types;
+        }
+
+        @Override
+        protected void addChildImpl(SPObject child, int index) {
+            if (child instanceof StubSQLObject) {
+                stubs.add(index, (StubSQLObject) child);
+            }
+        }
+        
+        @Override
+        public List<? extends SQLObject> getChildren() {
+            return stubs;
+        }
+        
+    }
     
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.SwingUIProject(String)'
@@ -189,6 +215,22 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "  </profile-result>" +
         " </profiles>" +
         "</architect-project>";
+	
+	public Set<String> getPropertiesToIgnore() {
+	    Set<String> propertiesToIgnore = new HashSet<String>();
+	    propertiesToIgnore.add("SPListeners");
+        propertiesToIgnore.add("children");
+        propertiesToIgnore.add("parent");
+        propertiesToIgnore.add("class");
+        propertiesToIgnore.add("childCount");
+        propertiesToIgnore.add("populated");
+        propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("childrenInaccessibleReason");
+        propertiesToIgnore.add("session");
+        propertiesToIgnore.add("foregroundThread");
+        propertiesToIgnore.add("backgroundThread");
+        return propertiesToIgnore;
+	}
 	
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.load(InputStream)'
@@ -393,23 +435,16 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		db.setPopulated(true);
 		((SQLObject) dbTreeModel.getRoot()).addChild(db);
 		
-		Set<String> propertiesToIgnore = new HashSet<String>();
-		propertiesToIgnore.add("SQLObjectListeners");
-		propertiesToIgnore.add("children");
+		Set<String> propertiesToIgnore = getPropertiesToIgnore();
 		propertiesToIgnore.add("tables");
-		propertiesToIgnore.add("parent");
 		propertiesToIgnore.add("parentDatabase");
-		propertiesToIgnore.add("class");
-		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("connection");
-		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("secondaryChangeMode");
 		propertiesToIgnore.add("dataSource");  // we set this already!
 		propertiesToIgnore.add("playPenDatabase");  // only set by playpen code
 		propertiesToIgnore.add("progressMonitor");
 		propertiesToIgnore.add("zoomInAction");
 		propertiesToIgnore.add("zoomOutAction");
-        propertiesToIgnore.add("magicEnabled");
         propertiesToIgnore.add("tableContainer");
 		
 		Map<String,Object> oldDescription =
@@ -439,8 +474,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		Map<String, Object> newDescription =
 			ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(db, propertiesToIgnore);
 		
-		assertEquals("loaded-in version of database doesn't match the original!",
-				oldDescription.toString(), newDescription.toString());
+		assertMapsEqual(oldDescription, newDescription);
 	}
 	
 
@@ -471,17 +505,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		SQLCatalog target = new SQLCatalog(db, "my test catalog");
 		db.addChild(target);
 		
-		Set<String> propertiesToIgnore = new HashSet<String>();
-		propertiesToIgnore.add("SQLObjectListeners");
-		propertiesToIgnore.add("children");
-		propertiesToIgnore.add("parent");
+		Set<String> propertiesToIgnore = getPropertiesToIgnore();
 		propertiesToIgnore.add("parentDatabase");
-		propertiesToIgnore.add("class");
         
-		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("secondaryChangeMode");
-		propertiesToIgnore.add("populated");
-        propertiesToIgnore.add("magicEnabled");
         propertiesToIgnore.add("tableContainer");
 
 		Map<String,Object> oldDescription =
@@ -526,17 +553,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		SQLSchema target = new SQLSchema(db, "my test schema", true);
 		db.addChild(target);
 		
-		Set<String> propertiesToIgnore = new HashSet<String>();
-		propertiesToIgnore.add("SQLObjectListeners");
-		propertiesToIgnore.add("children");
-		propertiesToIgnore.add("parent");
+		Set<String> propertiesToIgnore = getPropertiesToIgnore();
 		propertiesToIgnore.add("parentDatabase");
-		propertiesToIgnore.add("class");
-		propertiesToIgnore.add("childCount");
-		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("secondaryChangeMode");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("childrenInaccessibleReason");
 
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
@@ -580,18 +599,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		SQLTable target = new SQLTable(db, true);
 		db.addChild(target);
 		
-		Set<String> propertiesToIgnore = new HashSet<String>();
-		propertiesToIgnore.add("SQLObjectListeners");
-		propertiesToIgnore.add("children");
-		propertiesToIgnore.add("parent");
+		Set<String> propertiesToIgnore = getPropertiesToIgnore();
 		propertiesToIgnore.add("parentDatabase");
-		propertiesToIgnore.add("class");
-		propertiesToIgnore.add("childCount");
-		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("columnsFolder");
 		propertiesToIgnore.add("secondaryChangeMode");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("childrenInaccessibleReason");
 
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
@@ -632,18 +643,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		ppdb.addChild(table);
 		table.addColumn(target);
 		
-		Set<String> propertiesToIgnore = new HashSet<String>();
-		propertiesToIgnore.add("SQLObjectListeners");
-		propertiesToIgnore.add("children");
-		propertiesToIgnore.add("parent");
+		Set<String> propertiesToIgnore = getPropertiesToIgnore();
 		propertiesToIgnore.add("parentTable");
-		propertiesToIgnore.add("class");
-		propertiesToIgnore.add("childCount");
-		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("secondaryChangeMode");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("childrenInaccessibleReason");
 
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
@@ -711,13 +714,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
         table.addChild(target);
         col.setPrimaryKeySeq(0);
         
-        Set<String> propertiesToIgnore = new HashSet<String>();
-        propertiesToIgnore.add("SQLObjectListeners");
+        Set<String> propertiesToIgnore = getPropertiesToIgnore();
         propertiesToIgnore.add("undoEventListeners");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("children");
-        propertiesToIgnore.add("parent");
-        propertiesToIgnore.add("class");
 
         Map<String,Object> oldDescription =
             TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
@@ -776,14 +774,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
         table.addChild(index);
         index.addChild(indexCol);
         
-        Set<String> propertiesToIgnore = new HashSet<String>();
-        propertiesToIgnore.add("SQLObjectListeners");
+        Set<String> propertiesToIgnore = getPropertiesToIgnore();
         propertiesToIgnore.add("undoEventListeners");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("children");
-        propertiesToIgnore.add("parent");
         propertiesToIgnore.add("primaryKeyIndex");
-        propertiesToIgnore.add("class");
 
         Map<String,Object> oldDescription =
             TestUtils.setAllInterestingProperties(index, propertiesToIgnore);
@@ -834,15 +827,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertEquals(1, table.getIndices().size());
         assertSame(index, table.getPrimaryKeyIndex());
         
-        Set<String> propertiesToIgnore = new HashSet<String>();
-        propertiesToIgnore.add("SQLObjectListeners");
+        Set<String> propertiesToIgnore = getPropertiesToIgnore();
         propertiesToIgnore.add("undoEventListeners");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("children");
-        propertiesToIgnore.add("parent");
         propertiesToIgnore.add("primaryKeyIndex");
-        propertiesToIgnore.add("class");
-        propertiesToIgnore.add("populated");
 
         assertSame(index, table.getPrimaryKeyIndex());
 
@@ -884,13 +871,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ppdb.addChild(table);
         table.addChild(index);
         col.setPrimaryKeySeq(new Integer(0));
-        Set<String> propertiesToIgnore = new HashSet<String>();
-        propertiesToIgnore.add("SQLObjectListeners");
+        Set<String> propertiesToIgnore = getPropertiesToIgnore();
         propertiesToIgnore.add("undoEventListeners");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("children");
-        propertiesToIgnore.add("parent");
-        propertiesToIgnore.add("class");
 
         Map<String,Object> oldDescription =
             TestUtils.setAllInterestingProperties(index, propertiesToIgnore);
@@ -1130,7 +1112,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
-        SQLDatabase db = new SQLDatabase();
+        SQLDatabase db = new TestSQLDatabase();
         dbtreeRoot.addChild(db);
         
         StubSQLObject sso = new StubSQLObject();
@@ -1197,9 +1179,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
             SQLObject child = (SQLObject) it.next();
             if (o instanceof SQLObjectRoot) {
                 // skip, because database parent pointers are null
-            } else if (child instanceof SQLRelationship && o.getName().startsWith("Imported Keys")) {
-                // skip, because the exported keys folder should be the parent
-                // Note, if this is failing, maybe you renamed the "Imported Keys" folder! :)
+            } else if (child instanceof SQLRelationship && ((SQLRelationship) child).getFkTable().equals(o)) {
+                // skip, because the primary key table should be the parent
             } else {
                 assertSame(path, o, child.getParent());
             }
@@ -1260,7 +1241,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
-        SQLDatabase db = new SQLDatabase();
+        SQLDatabase db = new TestSQLDatabase();
         dbtreeRoot.addChild(db);
         
         StubSQLObject sso = new StubSQLObject();
