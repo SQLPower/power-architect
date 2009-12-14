@@ -44,7 +44,6 @@ public class ArchitectUtilsTest extends TestCase {
 
 		SPListener listener = new CountingSQLObjectListener();
 		SQLPowerUtils.listenToHierarchy(sqlo, listener);
-		SQLPowerUtils.listenToHierarchy(sqlo, listener);
 		assertEquals("There are the wrong number of listeners",1,sqlo.getSPListeners().size());
 		assertTrue("The wrong listener is listening",sqlo.getSPListeners().contains(listener));
 		
@@ -61,7 +60,6 @@ public class ArchitectUtilsTest extends TestCase {
 	public void testUnlistenToHierarchySQLObjectListenerSQLObject() throws SQLObjectException {
 
 		SPListener listener = new CountingSQLObjectListener();
-		SQLPowerUtils.listenToHierarchy(sqlo, listener);
 		SQLPowerUtils.listenToHierarchy(sqlo, listener);
 		assertEquals("There are the wrong number of listeners",1,sqlo.getSPListeners().size());
 		assertTrue("The wrong listener is listening",sqlo.getSPListeners().contains(listener));
