@@ -293,13 +293,14 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	 * any of its folders and those events have to be handled in the right way.
 	 */
 	public void testListenerDoesntCleanUpEarly() throws SQLObjectException {
+	    SQLTable t = new SQLTable(session.getTargetDatabase(), true);
 		SQLColumn c1 = new SQLColumn(t, "PK1", Types.BIT, 1, 0);
 		t.addColumn(c1, 0);
 		
 		TablePane tp = new TablePane(t, pp.getContentPane());
 		
 		assertEquals(1, t.getColumns().size());
-		t.removeColumn(t.getChildrenWithoutPopulating(SQLColumn.class).size());
+		t.removeColumn(t.getChildrenWithoutPopulating(SQLColumn.class).size() - 1);
 		assertEquals(0, t.getColumns().size());
 		
 		// now table has selection list size 1, and model's column list is size 0
