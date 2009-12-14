@@ -267,7 +267,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
          * delegate) with a PropertyChangeEvent.
          */
         public void childRemovedImpl(SPChildEvent e) {
-            if (e.getSource() == model.getColumnsFolder()) {
+            if (e.getSource() == model && e.getChild() instanceof SQLColumn) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Column removed. Syncing select/highlight lists. Removed index="+e.getIndex()); //$NON-NLS-1$ //$NON-NLS-2$
                 }
