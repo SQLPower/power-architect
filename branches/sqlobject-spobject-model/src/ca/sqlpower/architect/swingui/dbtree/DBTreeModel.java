@@ -175,16 +175,16 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 
             if (e.getChild() instanceof SQLTable && foldersInTables.get(e.getChild()) == null) {
                 SQLTable table = (SQLTable) e.getChild();
-                List<FolderNode> folderList = new ArrayList<FolderNode>();
-                foldersInTables.put(table, folderList);
-                FolderNode SQLColumnFolder = new FolderNode(table, SQLColumn.class);
-                folderList.add(SQLColumnFolder);
-                FolderNode SQLRelationshipFolder = new FolderNode(table, SQLRelationship.class);
-                folderList.add(SQLRelationshipFolder);
-                FolderNode SQLIndexFolder = new FolderNode(table, SQLIndex.class);
-                folderList.add(SQLIndexFolder);
+                createFolders(table);
+                List<FolderNode> folderList = foldersInTables.get(table);
+                int[] positions = new int[folderList.size()];
+                for (int i = 0; i < folderList.size(); i++) {
+                    positions[i] = i;
+                }
                 fireTreeNodesInserted(new TreeModelEvent(table, getPathToNode(table), 
-                        new int[]{0, 1, 2}, new Object[]{SQLColumnFolder, SQLRelationshipFolder, SQLIndexFolder}));
+                        positions, folderList.toArray()));
+            } else {
+                setupTreeForNode((SQLObject) e.getChild());
             }
             
         }
@@ -289,7 +289,13 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
     
 	protected SQLObject root;
 	
-	protected final Map<SQLTable, List<FolderNode>> foldersInTables = new HashMap<SQLTable, List<FolderNode>>();
+	/**
+	 * Each table in the tree model is entered in the map when it is added to the tree
+	 * and is mapped to folders that contains the children of the table broken into their
+	 * types.
+	 */
+	protected final Map<SQLTable, List<FolderNode>> foldersInTables = 
+	    new HashMap<SQLTable, List<FolderNode>>();
 	
 	/**
 	 * Creates a tree model with all of the SQLDatabase objects in the
@@ -304,6 +310,20 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		this.root = root;
 		this.treeModelListeners = new LinkedList();
 		SQLPowerUtils.listenToHierarchy(root, treeListener);
+		setupTreeForNode(root);
+	}
+	
+	/**
+	 * Recursively walks the tree doing any necessary setup for each node.
+	 * At current this just adds folders for {@link SQLTable} objects.
+	 */
+	private void setupTreeForNode(SQLObject node) {
+	    if (node instanceof SQLTable) {
+	        createFolders((SQLTable) node);
+	    }
+	    for (SQLObject child : node.getChildrenWithoutPopulating()) {
+	        setupTreeForNode(child);
+	    }
 	}
 
 	public Object getRoot() {
@@ -340,8 +360,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		
 		SQLObject sqlParent = (SQLObject) parent;
 		try {
-            if (logger.isDebugEnabled()) logger.debug("returning "+sqlParent.getChildCount()); //$NON-NLS-1$
-			return sqlParent.getChildCount();
+            if (logger.isDebugEnabled()) logger.debug("returning "+sqlParent.getChildrenWithoutPopulating().size()); //$NON-NLS-1$
+			return sqlParent.getChildrenWithoutPopulating().size();
 		} catch (Exception e) {
 		    throw new RuntimeException(e);
 		}
@@ -535,5 +555,22 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
      */
     public void setRefireEventsOnAnyThread(boolean v) {
         refireOnAnyThread = v;
+    }
+    
+    /**
+     * Creates all of the folders the given table should contain for its children
+     * and adds them to the {@link #foldersInTables} map.
+     */
+    private void createFolders(SQLTable table) {
+        if (foldersInTables.get(table) == null) {
+            List<FolderNode> folderList = new ArrayList<FolderNode>();
+            foldersInTables.put(table, folderList);
+            FolderNode SQLColumnFolder = new FolderNode(table, SQLColumn.class);
+            folderList.add(SQLColumnFolder);
+            FolderNode SQLRelationshipFolder = new FolderNode(table, SQLRelationship.class);
+            folderList.add(SQLRelationshipFolder);
+            FolderNode SQLIndexFolder = new FolderNode(table, SQLIndex.class);
+            folderList.add(SQLIndexFolder);
+        }
     }
 }
