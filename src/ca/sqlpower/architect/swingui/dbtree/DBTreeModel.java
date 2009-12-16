@@ -385,6 +385,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		if (parent instanceof FolderNode) {
             return ((FolderNode) parent).getChildren().indexOf(child);
         } else if (parent instanceof SQLTable) {
+            if (foldersInTables.get((SQLTable) parent) == null) return -1;
             return foldersInTables.get((SQLTable) parent).indexOf(child);
         }
 		
