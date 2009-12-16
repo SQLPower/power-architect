@@ -126,11 +126,17 @@ public class DBTree extends JTree implements DragSourceListener {
 	private static final Object KEY_DELETE_SELECTED
         = "ca.sqlpower.architect.swingui.DBTree.KEY_DELETE_SELECTED"; //$NON-NLS-1$
 	
+	/**
+	 * The model behind this DB tree.
+	 */
+	private final DBTreeModel treeModel;
+	
 	// ----------- CONSTRUCTORS ------------
 
 	public DBTree(final ArchitectSwingSession session) throws SQLObjectException {
         this.session = session;
-        setModel(new DBTreeModel(session.getRootObject()));
+        treeModel = new DBTreeModel(session.getRootObject());
+        setModel(treeModel);
 		setUI(new MultiDragTreeUI());
 		setRootVisible(false);
 		setShowsRootHandles(true);
@@ -1063,16 +1069,7 @@ public class DBTree extends JTree implements DragSourceListener {
      * @return TreePath for given object.
      */
     public TreePath getTreePathForNode(SQLObject obj) {
-        List<SQLObject> path = new ArrayList<SQLObject>();
-        
-        while (obj != null && obj != session.getRootObject()) {
-            path.add(0, obj);
-            obj = obj.getParent();
-        }
-        
-        // the root object is not in the hierarchy
-        path.add(0, session.getRootObject());
-        return new TreePath(path.toArray());
+        return new TreePath(treeModel.getPathToNode(obj));
     }
     
     public void setPopupMenuEnabled(boolean popupMenuEnabled) {
@@ -1122,5 +1119,5 @@ public class DBTree extends JTree implements DragSourceListener {
             }
         }
     }
-
+    
 }
