@@ -279,12 +279,14 @@ public class PlayPen extends JPanel
 	 * A graveyard for components that used to be associated with model
 	 * components that are no longer in the model.  If the model components
 	 * come back from the dead (thanks the the UndoManager), then the
-	 * corresponding PlayPenComonent can be revived from this map.
+	 * corresponding PlayPenComonent can be revived from this map. The play pen
+	 * components are mapped to UUIDs of the objects as some SQLObject classes
+	 * implement a different version of equals.
 	 *
 	 * Allows the garbage collecter to clean up any components not in the undo manager
 	 *
 	 */
-    private Map<SQLObject,PlayPenComponent> removedComponents = new WeakHashMap<SQLObject, PlayPenComponent>();
+    private Map<String,PlayPenComponent> removedComponents = new WeakHashMap<String, PlayPenComponent>();
 
     /**
      * Tells whether or not this component will paint its contents.  This was
@@ -1656,7 +1658,7 @@ public class PlayPen extends JPanel
                             && ((SQLTable) e.getSource()).getExportedKeys().contains(child))) {
                 fireEvent = true;
 
-                PlayPenComponent ppc = removedComponents.get(child);
+                PlayPenComponent ppc = removedComponents.get(child.getUUID());
                 if (ppc != null) {
                     if (ppc instanceof Relationship) {
                         contentPane.add(ppc, contentPane.getComponentCount());
@@ -1692,7 +1694,7 @@ public class PlayPen extends JPanel
 		        if (contentPane.getComponent(j) instanceof TablePane) {
 		            TablePane tp = (TablePane) contentPane.getComponent(j);
 		            if (tp.getModel() == child) {
-		                removedComponents.put(tp.getModel(), contentPane.getComponent(j));
+		                removedComponents.put(tp.getModel().getUUID(), contentPane.getComponent(j));
 		                contentPane.remove(j);
 		                foundRemovedComponent = true;
 		            }
@@ -1704,7 +1706,7 @@ public class PlayPen extends JPanel
 		            Relationship r = (Relationship) contentPane.getComponent(j);
 		            if (r.getModel() == child) {
 		                r.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		                removedComponents.put(r.getModel(), contentPane.getComponent(j));
+		                removedComponents.put(r.getModel().getUUID(), contentPane.getComponent(j));
 		                contentPane.remove(j);
 		                foundRemovedComponent = true;
 		            }
