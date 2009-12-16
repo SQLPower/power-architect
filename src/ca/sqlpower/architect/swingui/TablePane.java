@@ -755,7 +755,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
 
             //Check to see if the drag and drop will change the current relationship
-            List<SQLRelationship> importedKeys = getModel().getImportedKeys();
+            List<SQLRelationship> importedKeys = SQLRelationship.getExportedKeys(getModel().getImportedKeys());
 
             boolean newColumnsInPk = false;
             if (insertionPoint == TablePane.COLUMN_INDEX_END_OF_PK) {
@@ -891,7 +891,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
     public List<LayoutEdge> getInboundEdges() {
         try {
-            List<SQLRelationship> relationships = getModel().getImportedKeys();
+            List<SQLRelationship> relationships = SQLRelationship.getExportedKeys(getModel().getImportedKeys());
             List<LayoutEdge> edges = new ArrayList<LayoutEdge>();
             for (SQLRelationship r : relationships) {
                 edges.add(getPlayPen().findRelationship(r));
