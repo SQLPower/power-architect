@@ -43,6 +43,7 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 /**
@@ -346,7 +347,8 @@ public class ColumnMappingPanel implements DataEntryPanel {
     private void colourOtherRelationships() {
         try {
             SQLTable t = rhsTable.getModel();
-            for (SQLRelationship r : t.getImportedKeys()) {
+            for (SQLImportedKey k : t.getImportedKeys()) {
+                SQLRelationship r = k.getRelationship();
                 if (r == this.r) continue;
                 for (SQLRelationship.ColumnMapping cm : r.getChildren(
                         SQLRelationship.ColumnMapping.class)) {

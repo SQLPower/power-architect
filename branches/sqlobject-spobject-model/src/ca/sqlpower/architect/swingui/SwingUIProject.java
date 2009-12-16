@@ -1203,6 +1203,11 @@ public class SwingUIProject extends CoreProject {
      * property manually.
      */
     private void saveSQLObject(PrintWriter out, SQLObject o) throws IOException, SQLObjectException {
+        if (o instanceof SQLRelationship.SQLImportedKey) {
+            // ImportedKeys only store the fkTable for a SQLRelationship, which
+            // is saved with the relationship for forward compatability.
+            return;
+        }
         String id = sqlObjectSaveIdMap.get(o);
         if (id != null) {
             ioo.println(out, "<reference ref-id=\""+SQLPowerUtils.escapeXML(id)+"\" />"); //$NON-NLS-1$ //$NON-NLS-2$
