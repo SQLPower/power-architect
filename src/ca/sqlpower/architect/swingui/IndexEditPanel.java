@@ -280,7 +280,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                             if (column != null) {
                                 column.setPrimaryKeySeq(Integer.MAX_VALUE);
                                 parentTable.removeColumn(column);
-                                parentTable.addColumn(column, i);
+                                parentTable.addColumn(column, i, false);
                                 i++;
                             }
                         }
