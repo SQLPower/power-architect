@@ -68,6 +68,7 @@ import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -82,6 +83,7 @@ import ca.sqlpower.swingui.SwingUIUserPrompterFactory;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
@@ -641,7 +643,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * <p>Note: when we implement proper undo/redo support, this class should
      * be replaced with a hook into that system.
      */
-    class ProjectModificationWatcher extends AbstractSPListener {
+    class ProjectModificationWatcher implements SPListener {
 
         /**
          * Sets up a new modification watcher on the given playpen.
@@ -653,26 +655,35 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
 
         /** Marks project dirty, and starts listening to new kids. */
-        @Override
-        public void childAddedImpl(SPChildEvent e) {
+        public void childAdded(SPChildEvent e) {
             getProject().setModified(true);
             SQLPowerUtils.listenToHierarchy(e.getChild(), this);
             isNew = false;
         }
 
         /** Marks project dirty, and stops listening to removed kids. */
-        @Override
-        public void childRemovedImpl(SPChildEvent e) {
+        public void childRemoved(SPChildEvent e) {
             getProject().setModified(true);
             SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
             isNew = false;
         }
 
         /** Marks project dirty. */
-        @Override
-        public void propertyChangeImpl(PropertyChangeEvent e) {
+        public void propertyChange(PropertyChangeEvent e) {
             getProject().setModified(true);
             isNew = false;
+        }
+
+        public void transactionEnded(TransactionEvent e) {
+            //no-op
+        }
+
+        public void transactionRollback(TransactionEvent e) {
+            //no-op
+        }
+
+        public void transactionStarted(TransactionEvent e) {
+            //no-op
         }
     }
 
