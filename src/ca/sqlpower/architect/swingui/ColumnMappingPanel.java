@@ -39,10 +39,11 @@ import javax.swing.JScrollPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.object.ObjectDependentException;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -368,8 +369,8 @@ public class ColumnMappingPanel implements DataEntryPanel {
         try {
             r.begin("Modify Column Mappings"); //$NON-NLS-1$
             logger.debug("Removing all mappings from relationship..."); //$NON-NLS-1$
-            for (int i = r.getChildCount(); i >= 0; i--) {
-                r.removeChild(r.getChild(i));
+            for (int i = r.getChildren(ColumnMapping.class).size() - 1; i >= 0; i--) {
+                r.removeChild(r.getChildren(ColumnMapping.class).get(i));
             }
             for (Map.Entry<SQLColumn, SQLColumn> entry : mappings.entrySet()) {
                 logger.debug("Adding mapping " + entry.getKey() + " -> " + entry.getValue()); //$NON-NLS-1$ //$NON-NLS-2$

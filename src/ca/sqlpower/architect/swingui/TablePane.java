@@ -59,7 +59,6 @@ import ca.sqlpower.architect.InsertionPointWatcher;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
-import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.LockedColumnException;
@@ -76,6 +75,7 @@ import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
 public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
@@ -209,7 +209,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
 	// -------------------- sqlobject event support ---------------------
 
-    private class ColumnListener extends AbstractSPListener {
+    private class ColumnListener implements SPListener {
 
         /**
          * The column that was most recently removed from this table while it
@@ -233,7 +233,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
          * this widget, we will notify all change listeners (the UI
          * delegate) with a PropertyChangeEvent.
          */
-        public void childAddedImpl(SPChildEvent e) {
+        public void childAdded(SPChildEvent e) {
             if (e.getSource() == getModel() && e.getChildType() == SQLColumn.class) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Column inserted. Syncing select/highlight lists. New index="+e.getIndex()); //$NON-NLS-1$ //$NON-NLS-2$
@@ -266,7 +266,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
          * this widget, we will notify all change listeners (the UI
          * delegate) with a PropertyChangeEvent.
          */
-        public void childRemovedImpl(SPChildEvent e) {
+        public void childRemoved(SPChildEvent e) {
             if (e.getSource() == model && e.getChild() instanceof SQLColumn) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Column removed. Syncing select/highlight lists. Removed index="+e.getIndex()); //$NON-NLS-1$ //$NON-NLS-2$
@@ -304,7 +304,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
          * this widget, we will notify all change listeners (the UI
          * delegate) with a ChangeEvent.
          */
-        public void propertyChangeImpl(PropertyChangeEvent e) {
+        public void propertyChange(PropertyChangeEvent e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("TablePane got object changed event." + //$NON-NLS-1$
                         "  Source="+e.getSource()+" Property="+e.getPropertyName()+ //$NON-NLS-1$ //$NON-NLS-2$
@@ -315,6 +315,18 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             updateHiddenColumns();
             firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
             //repaint();
+        }
+
+        public void transactionEnded(TransactionEvent e) {
+            // no-op
+        }
+
+        public void transactionRollback(TransactionEvent e) {
+            // no-op            
+        }
+
+        public void transactionStarted(TransactionEvent e) {
+            // no-op            
         }
 
     }

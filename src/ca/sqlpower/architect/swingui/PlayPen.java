@@ -119,6 +119,7 @@ import ca.sqlpower.architect.swingui.olap.PaneSection;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
@@ -133,6 +134,7 @@ import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.sqlobject.undo.CompoundEventListener;
@@ -1351,6 +1353,14 @@ public class PlayPen extends JPanel
 
 				SQLRelationship newRel = new SQLRelationship(r);
 				
+				for (ColumnMapping child : newRel.getChildren(ColumnMapping.class)) {
+				    try {
+				        newRel.removeChild(child);
+				    } catch (ObjectDependentException e) {
+				        throw new RuntimeException(e);
+				    }
+				}
+				
 				SQLTable oldTable;
 				
 				if (r.getFkTable().equals(r.getPkTable())) {
@@ -1703,7 +1713,7 @@ public class PlayPen extends JPanel
 		    for (int j = 0; j < contentPane.getComponentCount(); j++) {
 		        if (contentPane.getComponent(j) instanceof Relationship) {
 		            Relationship r = (Relationship) contentPane.getComponent(j);
-		            if (r.getModel() == child || r.getModel() == ((SQLImportedKey) child).getRelationship()) {
+		            if (r.getModel() == child || (child instanceof SQLImportedKey && r.getModel() == ((SQLImportedKey) child).getRelationship())) {
 		                r.setSelected(false,SelectionEvent.SINGLE_SELECT);
 		                removedComponents.put(r.getModel().getUUID(), contentPane.getComponent(j));
 		                contentPane.remove(j);
