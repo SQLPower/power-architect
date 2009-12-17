@@ -133,6 +133,7 @@ import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.sqlobject.undo.CompoundEventListener;
 import ca.sqlpower.swingui.CursorManager;
@@ -1698,11 +1699,11 @@ public class PlayPen extends JPanel
 		            }
 		        }
 		    }
-		} else if (child instanceof SQLRelationship) {
+		} else if (child instanceof SQLRelationship || child instanceof SQLImportedKey) {
 		    for (int j = 0; j < contentPane.getComponentCount(); j++) {
 		        if (contentPane.getComponent(j) instanceof Relationship) {
 		            Relationship r = (Relationship) contentPane.getComponent(j);
-		            if (r.getModel() == child) {
+		            if (r.getModel() == child || r.getModel() == ((SQLImportedKey) child).getRelationship()) {
 		                r.setSelected(false,SelectionEvent.SINGLE_SELECT);
 		                removedComponents.put(r.getModel().getUUID(), contentPane.getComponent(j));
 		                contentPane.remove(j);
