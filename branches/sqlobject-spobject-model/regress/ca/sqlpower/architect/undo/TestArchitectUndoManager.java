@@ -454,6 +454,7 @@ public class TestArchitectUndoManager extends TestCase {
 
     public void testRedoCreateRelationship() throws SQLObjectException {
         testUndoCreateRelationship();
+        System.out.println(undoManager.toString());
         System.out.println("==REDOING==");
         undoManager.redo();
         
