@@ -1312,16 +1312,14 @@ public class PlayPen extends JPanel
      */
     private void createRelationshipsFromPP(SQLTable source, SQLTable newTable, boolean isPrimaryKeyTableNew, boolean isAlreadyOnPlaypen, int suffix) throws SQLObjectException {
         // create exported relationships if the importing tables exist in pp
-		Iterator sourceKeys = null;
+		Iterator<SQLRelationship> sourceKeys = null;
         if (isPrimaryKeyTableNew) {
             sourceKeys = source.getExportedKeys().iterator();
         } else {
-            sourceKeys = source.getImportedKeys().iterator();
+            sourceKeys = SQLRelationship.getExportedKeys(source.getImportedKeys()).iterator();
         }
 		while (sourceKeys.hasNext()) {
-		    Object next = sourceKeys.next();
-		    if ( !(next instanceof SQLRelationship) ) continue;  // there could be SQLExceptionNodes here
-			SQLRelationship r = (SQLRelationship) next;
+			SQLRelationship r = sourceKeys.next();
 			
 			// If relationship is self-referencing, then don't add it twice.
 			if (r.getFkTable().equals(r.getPkTable()) && !isPrimaryKeyTableNew) continue;
