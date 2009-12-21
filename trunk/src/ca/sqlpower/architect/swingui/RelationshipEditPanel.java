@@ -37,24 +37,22 @@ import javax.swing.JTextField;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectListener;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
-import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.swingui.ColorCellRenderer;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.SQLPowerUtils;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel {
+public class RelationshipEditPanel extends AbstractSPListener implements DataEntryPanel {
 
 	private static final Logger logger = Logger.getLogger(RelationshipEditPanel.class);
 
@@ -314,23 +312,14 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
 
 		relationshipName.selectAll();
 		
-		try {
-            SQLObjectUtils.listenToHierarchy(this, session.getRootObject());
-        } catch (SQLObjectException e) {
-            logger.error("Fail to add sql object listener to the edit panel.", e); //$NON-NLS-1$
-            throw new SQLObjectRuntimeException(e);
-        }
+		SQLPowerUtils.listenToHierarchy(session.getRootObject(), this);
 	}
 
 	// ------------------ ARCHITECT PANEL INTERFACE ---------------------
 	
 	public boolean applyChanges() {
-	    try {
-	        SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
-	    } catch (SQLObjectException e) {
-	        throw new SQLObjectRuntimeException(e);
-	    }
-		relationship.startCompoundEdit(Messages.getString("RelationshipEditPanel.modifyRelationshipProperties")); //$NON-NLS-1$
+	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
+		relationship.begin(Messages.getString("RelationshipEditPanel.modifyRelationshipProperties")); //$NON-NLS-1$
 		try {
 			relationship.setName(relationshipName.getText());
 			// set the parent label text of relationship lines
@@ -399,17 +388,13 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
             }
             
 		} finally {
-			relationship.endCompoundEdit(Messages.getString("RelationshipEditPanel.modifyRelationshipProperties")); //$NON-NLS-1$
+			relationship.commit();
 		}
 		return true;
 	}
 
 	public void discardChanges() {
-	    try {
-            SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
-        } catch (SQLObjectException e) {
-            throw new SQLObjectRuntimeException(e);
-        }
+	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
 	}
 
 	public JPanel getPanel() {
@@ -420,35 +405,19 @@ public class RelationshipEditPanel implements SQLObjectListener, DataEntryPanel 
         return true;
     }
 
-    public void dbChildrenInserted(SQLObjectEvent e) {
-        
-    }
-
     /**
      * Checks to see if its respective relationship is removed from
      * playpen. If yes, exit the editing dialog window.
      */
-    public void dbChildrenRemoved(SQLObjectEvent e) {
-        logger.debug("SQLObject children got removed: "+e); //$NON-NLS-1$
-        SQLObject[] c = e.getChildren();
-
-        for (SQLObject obj : c) {
-            if (relationship.equals(obj)) {
-                try {
-                    SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
-                    if (editDialog != null) {
-                        editDialog.dispose();
-                    }
-                    break;
-                } catch (SQLObjectException ex) {
-                    throw new SQLObjectRuntimeException(ex);
-                }
+    public void childRemovedImpl(SPChildEvent e) {
+        logger.debug("SQLObject child was removed: "+e); //$NON-NLS-1$
+        
+        if (relationship.equals(e.getChild())) {
+            SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
+            if (editDialog != null) {
+                editDialog.dispose();
             }
         }
-    }
-
-    public void dbObjectChanged(SQLObjectEvent e) {
-        
     }
 
     public void setEditDialog(JDialog editDialog) {

@@ -321,7 +321,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
         String columnName = null;
         String databaseIdentifierQuoteString = null;
         cpr.setCreateStartTime(createStartTime);
-        SQLTable table = col.getParentTable();
+        SQLTable table = col.getParent();
 
         try {
             databaseIdentifierQuoteString = con.getMetaData().getIdentifierQuoteString();
@@ -516,7 +516,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
         String lastSQL = null;
         try {
             SQLColumn col = cpr.getProfiledObject();
-            SQLDatabase db = col.getParentTable().getParentDatabase();
+            SQLDatabase db = col.getParent().getParentDatabase();
             con = db.getConnection();
             stmt = con.createStatement();
             stmt.setEscapeProcessing(false);
@@ -634,7 +634,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
         ProfileFunctionDescriptor pfd = new ProfileFunctionDescriptor(col.getSourceDataTypeName(),
                 col.getType(),false,false,false,false,false,false,false,false);
 
-        TableProfileResult dummyParent = new TableProfileResult(col.getParentTable(), new ProfileSettings());
+        TableProfileResult dummyParent = new TableProfileResult(col.getParent(), new ProfileSettings());
         dummyParent.setRowCount(1);
         ColumnProfileResult dummy = new ColumnProfileResult(col, dummyParent);
         dummyParent.addColumnProfileResult(dummy);

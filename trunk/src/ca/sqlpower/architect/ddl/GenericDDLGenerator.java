@@ -226,7 +226,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 				addTable(t);
 
-                for (SQLIndex index : (List<SQLIndex>)t.getIndicesFolder().getChildren()) {
+                for (SQLIndex index : t.getIndices()) {
                    if (index.isPrimaryKeyIndex()) continue;
                     addIndex(index);
                 }
@@ -325,7 +325,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject> ();
 		boolean firstColumn = true;
 
-		for (ColumnMapping cm : r.getMappings()) {
+		for (ColumnMapping cm : r.getChildren(ColumnMapping.class)) {
 			SQLColumn c = cm.getFkColumn();
 			// make sure this is unique
 			if (colNameMap.get(c.getName()) == null) {
@@ -346,12 +346,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 		colNameMap.clear();
 		firstColumn = true;
 
-		if (r.getMappings().isEmpty()) {
+		if (r.getChildren().isEmpty()) {
 		    warnings.add(new RelationshipMapsNoColumnsDDLWarning(r.getPkTable(), r.getFkTable()));
 		    errorMsg.append("Warning: Relationship has no columns to map:\n");
 		}
 
-		for (ColumnMapping cm : r.getMappings()) {
+		for (ColumnMapping cm : r.getChildren(ColumnMapping.class)) {
 			SQLColumn c = cm.getPkColumn();
 			SQLColumn fkCol = cm.getFkColumn();
 
@@ -382,7 +382,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
 
 		// sanity check for SET NULL and SET DEFAULT delete rules, whether or not DB supports them
-        for (SQLRelationship.ColumnMapping cm : r.getMappings()) {
+        for (SQLRelationship.ColumnMapping cm : r.getChildren(ColumnMapping.class)) {
             UpdateDeleteRule deleteRule = r.getDeleteRule();
             SQLColumn fkcol = cm.getFkColumn();
             if (deleteRule == UpdateDeleteRule.SET_NULL && !fkcol.isDefinitelyNullable()) {
@@ -408,7 +408,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
 
 		// sanity check for SET NULL and SET DEFAULT update rules, whether or not DB supports them
-        for (SQLRelationship.ColumnMapping cm : r.getMappings()) {
+        for (SQLRelationship.ColumnMapping cm : r.getChildren(SQLRelationship.ColumnMapping.class)) {
             UpdateDeleteRule updateRule = r.getUpdateRule();
             SQLColumn fkcol = cm.getFkColumn();
             if (updateRule == UpdateDeleteRule.SET_NULL && !fkcol.isDefinitelyNullable()) {
@@ -592,7 +592,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         if (c.getRemarks() == null || c.getRemarks().trim().length() == 0) return;
 
         print("COMMENT ON COLUMN ");
-        print(toQualifiedName(c.getParentTable()));
+        print(toQualifiedName(c.getParent()));
         print(".");
         print(c.getPhysicalName());
         print(" IS '");
@@ -642,7 +642,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public void addColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();
 		print("\nALTER TABLE ");
-		print(toQualifiedName(c.getParentTable()));
+		print(toQualifiedName(c.getParent()));
 		print(" ADD COLUMN ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.CREATE, c);
@@ -652,7 +652,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public void dropColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();
 		print("\nALTER TABLE ");
-		print(toQualifiedName(c.getParentTable()));
+		print(toQualifiedName(c.getParent()));
 		print(" DROP COLUMN ");
 		print(createPhysicalName(colNameMap,c));
 		endStatement(DDLStatement.StatementType.DROP, c);
@@ -661,7 +661,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	public void modifyColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();
-		SQLTable t = c.getParentTable();
+		SQLTable t = c.getParent();
 		print("\nALTER TABLE ");
 		print(toQualifiedName(t));
 		print(" ALTER COLUMN ");
@@ -772,7 +772,7 @@ public class GenericDDLGenerator implements DDLGenerator {
                     "Type '%s' of column '%s' in table '%s' is unknown in the target platform",
                     SQLType.getTypeName(c.getType()),
                     c.getPhysicalName(),
-                    c.getParentTable().getPhysicalName()), oldType, td);
+                    c.getParent().getPhysicalName()), oldType, td);
 		   if (!contains(warnings, o)) {
 		       warnings.add(o);
 		   }
@@ -857,7 +857,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	    print(" PRIMARY KEY (");
 
 	    boolean firstCol = true;
-	    for (SQLIndex.Column col : pk.getChildren()) {
+	    for (SQLIndex.Column col : pk.getChildren(SQLIndex.Column.class)) {
 	        if (!firstCol) print(", ");
 	        if (col.getColumn() == null) {
 	            throw new IllegalStateException("Index column is not associated with the real column in the table.");
@@ -1195,7 +1195,7 @@ public class GenericDDLGenerator implements DDLGenerator {
             if (so instanceof SQLColumn) {
                 message = String.format("Column name %s in table %s already in use",
                         so.getPhysicalName(),
-                        ((SQLColumn) so).getParentTable().getPhysicalName());
+                        ((SQLColumn) so).getParent().getPhysicalName());
             } else {
                 message = String.format("Global name %s already in use", physicalName2);
             }
@@ -1357,7 +1357,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         print("INDEX ");
         print(toQualifiedName(index.getName()));
         print("\n ON ");
-        print(toQualifiedName(index.getParentTable()));
+        print(toQualifiedName(index.getParent()));
         print("\n ( ");
 
         boolean first = true;

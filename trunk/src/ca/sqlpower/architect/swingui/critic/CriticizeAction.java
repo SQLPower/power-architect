@@ -19,7 +19,6 @@
 
 package ca.sqlpower.architect.swingui.critic;
 
-import ca.sqlpower.architect.swingui.Messages;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,12 +33,14 @@ import ca.sqlpower.architect.ddl.critic.PhysicalNameCritic;
 import ca.sqlpower.architect.ddl.critic.PrimaryKeyCritic;
 import ca.sqlpower.architect.ddl.critic.RelationshipMappingTypeCritic;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.table.FancyExportableJTable;
 
@@ -92,14 +93,13 @@ public class CriticizeAction extends AbstractArchitectAction {
         
         // skip types that don't warrant criticism
         if ( (!(root instanceof SQLDatabase)) &&
-             (!(root instanceof SQLTable.Folder)) &&
              (!(root instanceof SQLRelationship.ColumnMapping)) ) {
             criticizer.criticize(root);
         }
         
         for (SQLObject child : (List<SQLObject>) root.getChildren()) {
-            if (child instanceof SQLTable.Folder<?> &&
-                    ((SQLTable.Folder) child).getType() == SQLTable.Folder.IMPORTED_KEYS) {
+            if (child instanceof SQLImportedKey
+                    && ((SQLTable) root).getImportedKeys().contains(child)) {
                 // skip contents of every imported keys folder, or else we will visit every relationship twice
                 continue;
             }

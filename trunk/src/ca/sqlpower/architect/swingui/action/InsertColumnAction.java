@@ -50,13 +50,13 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         if (so instanceof SQLTable) {
         	logger.debug("user clicked on table, so we shall try to add a column to the end of the table."); //$NON-NLS-1$
         	st = (SQLTable) so;
-        	idx = st.getColumnsFolder().getChildCount();
+        	idx = st.getColumns().size();
         	logger.debug("SQLTable click -- idx set to: " + idx);						 //$NON-NLS-1$
         } else if (so instanceof SQLColumn) {
         	// iterate through the column list to figure out what position we are in...
         	logger.debug("trying to determine insertion index for table."); //$NON-NLS-1$
         	SQLColumn sc = (SQLColumn) so;
-        	st = sc.getParentTable();
+        	st = sc.getParent();
         	idx = st.getColumnIndex(sc);
         	if (idx == -1)  {
         	    throw new IllegalStateException("Selected column '" + sc.getName() + 
@@ -81,7 +81,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
     void processTablePane(TablePane tp) throws SQLObjectException {
         int idx = tp.getSelectedItemIndex();
         
-        if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();
+        if (idx < 0) idx = tp.getModel().getColumns().size();
         
         EditColumnAction editColumnAction = new EditColumnAction(session);
         

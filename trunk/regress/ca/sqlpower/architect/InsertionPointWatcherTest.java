@@ -62,32 +62,32 @@ public class InsertionPointWatcherTest extends TestCase {
     }
     
     public void testRemoveBeforeInsertionPoint() throws Exception {
-        InsertionPointWatcher<StubSQLObject> watcher = new InsertionPointWatcher<StubSQLObject>(so, 2);
+        InsertionPointWatcher<StubSQLObject> watcher = new InsertionPointWatcher<StubSQLObject>(so, 2, StubSQLObject.class);
         
-        so.removeChild(1);
+        so.removeChild(so.getChild(1));
         assertEquals(1, watcher.getInsertionPoint());
     }
 
     public void testRemoveAtInsertionPoint() throws Exception {
-        InsertionPointWatcher<StubSQLObject> watcher = new InsertionPointWatcher<StubSQLObject>(so, 2);
+        InsertionPointWatcher<StubSQLObject> watcher = new InsertionPointWatcher<StubSQLObject>(so, 2, StubSQLObject.class);
         
-        so.removeChild(2);
+        so.removeChild(so.getChild(2));
         assertEquals(1, watcher.getInsertionPoint());
     }
     
     public void testRemoveAfterInsertionPoint() throws Exception {
         InsertionPointWatcher<StubSQLObject> watcher = new InsertionPointWatcher<StubSQLObject>(so, 1);
         
-        so.removeChild(2);
+        so.removeChild(so.getChild(2));
         assertEquals(1, watcher.getInsertionPoint());
     }
     
     public void testDispose() {
         InsertionPointWatcher<StubSQLObject> watcher = new InsertionPointWatcher<StubSQLObject>(so, 1);
 
-        assertEquals(1, so.getSQLObjectListeners().size());
+        assertEquals(1, so.getSPListeners().size());
         watcher.dispose();
-        assertEquals(0, so.getSQLObjectListeners().size());
+        assertEquals(0, so.getSPListeners().size());
     }
 
 }

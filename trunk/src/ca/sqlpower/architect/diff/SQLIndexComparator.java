@@ -26,7 +26,6 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
@@ -77,22 +76,10 @@ public class SQLIndexComparator implements Comparator<SQLIndex>, Serializable {
 		Set<Column> sourceCol = new TreeSet<Column>(comparator);
 		Set<Column> targetCol = new TreeSet<Column>(comparator);
 
-		try {
-            sourceCol.addAll(source.getChildren());
-        } catch (SQLObjectException e) {
-            logger.warn("Source index has no columns!");
-        }
-        try {
-            targetCol.addAll(target.getChildren());
-        } catch (SQLObjectException e) {
-            logger.warn("Target index has no columns!");
-        }
+		sourceCol.addAll(source.getChildren(Column.class));
+        targetCol.addAll(target.getChildren(Column.class));
 
-		result = compareColumns(sourceCol, targetCol);
-		if (result != 0)
-			return result;
-
-		return 0;
+		return compareColumns(sourceCol, targetCol);
 	}
 
 	/**

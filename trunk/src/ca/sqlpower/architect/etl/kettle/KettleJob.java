@@ -205,7 +205,7 @@ public class KettleJob implements Monitorable {
                         sourceColumn = "null";
                         noMappingForColumn.add(column.getName());
                     } else {
-                        sourceTable = column.getSourceColumn().getParentTable();
+                        sourceTable = column.getSourceColumn().getParent();
                         sourceColumn = column.getSourceColumn().getName();
                     }
                     if (!tableMapping.containsKey(sourceTable)) {

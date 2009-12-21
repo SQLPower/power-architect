@@ -20,6 +20,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
+import java.beans.PropertyChangeEvent;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,7 +33,6 @@ import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
@@ -177,13 +177,13 @@ public class ArchitectSwingSessionImplTest extends TestCase {
      * Test to ensure that the isNew property starts off as true, and then
      * ensure that it gets updated to be false after a SQLObject event is fired.
      */
-    public void testIsNewFalseAfterSQLObjectEvent() throws Exception {
+    public void testIsNewFalseAfterPropertyChangeEvent() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
         ArchitectSwingSessionImpl session = (ArchitectSwingSessionImpl)context.createSession(false);
         assertTrue(session.isNew());
         
-        SQLObjectEvent e = new SQLObjectEvent(new SQLDatabase(), "test");
-        session.getProjectModificationWatcher().dbObjectChanged(e);
+        PropertyChangeEvent e = new PropertyChangeEvent(new SQLDatabase(), "property", "old", "new");
+        session.getProjectModificationWatcher().propertyChange(e);
         assertFalse(session.isNew());
     }
     

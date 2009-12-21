@@ -20,13 +20,11 @@ package ca.sqlpower.architect.diff;
 
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
@@ -60,28 +58,15 @@ public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 		Set<SQLColumn> sourceColFk = new TreeSet<SQLColumn>(comparator);
 		Set<SQLColumn> targetColFk = new TreeSet<SQLColumn>(comparator);
 
-		try {
-			for (ColumnMapping cm : (List<ColumnMapping>) r1.getChildren()) {
-				sourceColPk.add(cm.getPkColumn());
-				sourceColFk.add(cm.getFkColumn());
-			}
-		} catch (SQLObjectException e) {
-			logger
-					.debug("The source columnMapping has no PK Columns!  Shouldn't happen!"
-							+ e);
-		}
+		for (ColumnMapping cm : r1.getChildren(ColumnMapping.class)) {
+        	sourceColPk.add(cm.getPkColumn());
+        	sourceColFk.add(cm.getFkColumn());
+        }
 
-		try {
-			for (ColumnMapping cm : (List<ColumnMapping>) r2.getChildren()) {
-				targetColPk.add(cm.getPkColumn());
-				targetColFk.add(cm.getFkColumn());
-			}
-		} catch (SQLObjectException e) {
-			logger
-					.debug("The target columnMapping has no PK Columns!  Shouldn't happen!"
-							+ e);
-
-		}
+		for (ColumnMapping cm : r2.getChildren(ColumnMapping.class)) {
+        	targetColPk.add(cm.getPkColumn());
+        	targetColFk.add(cm.getFkColumn());
+        }
 
 		result = compareColumns(sourceColPk, targetColPk);
 		if (result != 0)

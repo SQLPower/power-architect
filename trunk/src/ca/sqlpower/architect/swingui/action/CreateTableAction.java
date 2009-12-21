@@ -33,6 +33,7 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanel;
@@ -99,8 +100,14 @@ public class CreateTableAction extends AbstractArchitectAction {
             editPanel = new TableEditPanel(playpen.getSession(), tp.getModel()) {
                 @Override
                 public void discardChanges() {
-                    playpen.getSession().getTargetDatabase().removeChild(tp.getModel());
-                    playpen.getTableNames().remove(tp.getModel().getName());
+                    try {
+                        playpen.getSession().getTargetDatabase().removeChild(tp.getModel());
+                        playpen.getTableNames().remove(tp.getModel().getName());
+                    } catch (IllegalArgumentException e) {
+                        throw new RuntimeException(e);
+                    } catch (ObjectDependentException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             };
             return editPanel;

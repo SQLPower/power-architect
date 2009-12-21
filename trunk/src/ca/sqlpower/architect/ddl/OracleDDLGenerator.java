@@ -317,7 +317,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
     @Override
     public void modifyColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();
-		SQLTable t = c.getParentTable();
+		SQLTable t = c.getParent();
 		print("\nALTER TABLE ");
 		print(toQualifiedName(t.getPhysicalName()));
 		print(" MODIFY ");
@@ -333,7 +333,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
     public void addColumn(SQLColumn c) {
         Map colNameMap = new HashMap();
         print("\nALTER TABLE ");
-        print(toQualifiedName(c.getParentTable()));
+        print(toQualifiedName(c.getParent()));
         print(" ADD ");
         print(columnDefinition(c,colNameMap));
         endStatement(DDLStatement.StatementType.CREATE, c);
@@ -356,7 +356,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         print("INDEX ");
         print(toQualifiedName(index.getName()));
         print("\n ON ");
-        print(toQualifiedName(index.getParentTable()));
+        print(toQualifiedName(index.getParent()));
         print("\n ( ");
 
         boolean first = true;

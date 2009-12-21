@@ -273,7 +273,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
     @Override
     public void modifyColumn(SQLColumn c) {
         Map colNameMap = new HashMap();
-        SQLTable t = c.getParentTable();
+        SQLTable t = c.getParent();
         print("\nALTER TABLE ONLY ");
         print( toQualifiedName(t) );
         print(" ALTER COLUMN ");
@@ -340,7 +340,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         print("INDEX ");
         print(toIdentifier(index.getName()));
         print("\n ON ");
-        print(toQualifiedName(index.getParentTable()));
+        print(toQualifiedName(index.getParent()));
         if(index.getType() != null) {            
             print(" USING "+ index.getType());
         }
@@ -358,7 +358,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         print(" )");
         endStatement(DDLStatement.StatementType.CREATE, index);
         if(index.isClustered()) {
-            addCluster(index, toIdentifier(index.getName()), index.getParentTable().getName());
+            addCluster(index, toIdentifier(index.getName()), index.getParent().getName());
         }
     }
     

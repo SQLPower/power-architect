@@ -47,12 +47,16 @@ public class TestEditColumnAction extends TestCase {
         ArchitectSwingSession session = context.createSession();
 		editColumn = new EditColumnAction(session);
 		pp = session.getArchitectFrame().getPlayPen();
-		tp = new TablePane(new SQLTable(session.getTargetDatabase(),true),pp.getContentPane());
+		SQLTable tm = new SQLTable(session.getTargetDatabase(), true);
+		session.getTargetDatabase().addTable(tm);
+		tp = new TablePane(tm, pp.getContentPane());
 		tp.getModel().setName("Table1");
 		tp.getModel().addColumn(new SQLColumn(tp.getModel(),"col1",Types.INTEGER,1,1));
 		tp.getModel().addColumn(new SQLColumn(tp.getModel(),"col2",Types.INTEGER,1,1));
 		
-		tp2 = new TablePane(new SQLTable(session.getTargetDatabase(),true),pp.getContentPane());
+		SQLTable tm2 = new SQLTable(session.getTargetDatabase(), true);
+		session.getTargetDatabase().addTable(tm2);
+		tp2 = new TablePane(tm2, pp.getContentPane());
 		tp2.getModel().setName("Table2");
 		tp2.getModel().addColumn(new SQLColumn(tp.getModel(),"col1",Types.INTEGER,1,1));
 		tp2.getModel().addColumn(new SQLColumn(tp.getModel(),"col2",Types.INTEGER,1,1));

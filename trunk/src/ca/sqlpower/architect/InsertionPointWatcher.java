@@ -34,9 +34,9 @@ package ca.sqlpower.architect;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
-import ca.sqlpower.sqlobject.SQLObjectListener;
 
 public class InsertionPointWatcher<T extends SQLObject> {
 
@@ -45,6 +45,8 @@ public class InsertionPointWatcher<T extends SQLObject> {
     private final T objectUnderObservation;
     
     private int insertionPoint;
+    
+    private final Class<? extends SQLObject> childType;
 
     private final SQLObjectEventHandler eventHandler = new SQLObjectEventHandler();
     
@@ -53,10 +55,15 @@ public class InsertionPointWatcher<T extends SQLObject> {
      * @param insertionPoint
      */
     public InsertionPointWatcher(final T objectUnderObservation, int insertionPoint) {
+        this(objectUnderObservation, insertionPoint, SQLObject.class);
+    }
+    
+    public InsertionPointWatcher(final T objectUnderObservation, int insertionPoint, Class<? extends SQLObject> childType) {
         super();
         this.objectUnderObservation = objectUnderObservation;
         this.insertionPoint = insertionPoint;
-        objectUnderObservation.addSQLObjectListener(eventHandler);
+        this.childType = childType;
+        objectUnderObservation.addSPListener(eventHandler);
     }
 
     public int getInsertionPoint() {
@@ -67,30 +74,20 @@ public class InsertionPointWatcher<T extends SQLObject> {
         return objectUnderObservation;
     }
     
-    private class SQLObjectEventHandler implements SQLObjectListener {
+    private class SQLObjectEventHandler extends AbstractSPListener {
 
-        public void dbChildrenInserted(SQLObjectEvent e) {
-            int adjustment = 0;
-            for (int insertIdx : e.getChangedIndices()) {
-                if (insertIdx <= insertionPoint) {
-                    adjustment++;
-                }
+        @Override
+        public void childAddedImpl(SPChildEvent e) {
+            if (e.getChildType() == childType && e.getIndex() <= insertionPoint) {
+                insertionPoint++;
             }
-            insertionPoint += adjustment;
         }
 
-        public void dbChildrenRemoved(SQLObjectEvent e) {
-            int adjustment = 0;
-            for (int insertIdx : e.getChangedIndices()) {
-                if (insertIdx <= insertionPoint) {
-                    adjustment++;
-                }
+        @Override
+        public void childRemovedImpl(SPChildEvent e) {
+            if (e.getChildType() == childType && e.getIndex() <= insertionPoint) {
+                insertionPoint--;
             }
-            insertionPoint -= adjustment;
-        }
-
-        public void dbObjectChanged(SQLObjectEvent e) {
-            // don't care
         }
 
     }
@@ -101,6 +98,6 @@ public class InsertionPointWatcher<T extends SQLObject> {
      * InsertionPointWatcher.
      */
     public void dispose() {
-        objectUnderObservation.removeSQLObjectListener(eventHandler);
+        objectUnderObservation.removeSPListener(eventHandler);
     }
 }

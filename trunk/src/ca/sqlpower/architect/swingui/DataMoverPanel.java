@@ -46,6 +46,7 @@ import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sql.DataMover;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
@@ -162,15 +163,26 @@ public class DataMoverPanel {
      * in the current context.
      */
     private void setupDBTrees() throws SQLObjectException {
-        if (treeRoot == null) {
-            treeRoot = new SQLObjectRoot();
-        } else {
-            for(int i = treeRoot.getChildCount() - 1; i >= 0; i--) {
-                treeRoot.removeChild(i);
+        try {
+            if (treeRoot == null) {
+                treeRoot = new SQLObjectRoot();
+                treeRoot.begin("Setting up database trees in data mover panel.");
+            } else {
+                treeRoot.begin("Setting up database trees in data mover panel.");
+                for(int i = treeRoot.getChildCount() - 1; i >= 0; i--) {
+                    treeRoot.removeChild(treeRoot.getChild(i));
+                }
             }
-        }
-        for (SPDataSource ds : session.getContext().getConnections()) {
-            treeRoot.addChild(new SQLDatabase((JDBCDataSource) ds));
+            for (SPDataSource ds : session.getContext().getConnections()) {
+                treeRoot.addChild(new SQLDatabase((JDBCDataSource) ds));
+            }
+            treeRoot.commit();
+        } catch (IllegalArgumentException e) {
+            treeRoot.rollback("Could not set up database trees.");
+            throw new RuntimeException(e);
+        } catch (ObjectDependentException e) {
+            treeRoot.rollback("Could not set up database trees.");
+            throw new RuntimeException(e);
         }
     }
     

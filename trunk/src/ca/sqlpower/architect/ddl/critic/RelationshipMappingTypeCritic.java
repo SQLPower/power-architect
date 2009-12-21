@@ -35,12 +35,13 @@ public class RelationshipMappingTypeCritic implements Critic<SQLObject> {
         if (!(so instanceof SQLRelationship)) return Collections.emptyList();
         SQLRelationship subject = (SQLRelationship) so;
         List<Criticism<SQLObject>> criticisms = new ArrayList<Criticism<SQLObject>>();
-        for (SQLRelationship.ColumnMapping cm : subject.getMappings()) {
+        for (SQLRelationship.ColumnMapping cm : subject.getChildren(
+                SQLRelationship.ColumnMapping.class)) {
             if (ArchitectUtils.columnsDiffer(cm.getFkColumn(), cm.getPkColumn())) {
                 final SQLColumn parentColumn = cm.getPkColumn();
-                final SQLTable parentTable = parentColumn.getParentTable();
+                final SQLTable parentTable = parentColumn.getParent();
                 final SQLColumn childColumn = cm.getFkColumn();
-                final SQLTable childTable = childColumn.getParentTable();
+                final SQLTable childTable = childColumn.getParent();
                 criticisms.add(new Criticism<SQLObject>(
                         subject,
                         "Columns related by FK constraint have different types",

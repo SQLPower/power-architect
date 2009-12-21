@@ -68,6 +68,7 @@ import ca.sqlpower.architect.swingui.action.RemoveSourceDBAction;
 import ca.sqlpower.architect.swingui.action.ShowTableContentsAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
@@ -125,11 +126,17 @@ public class DBTree extends JTree implements DragSourceListener {
 	private static final Object KEY_DELETE_SELECTED
         = "ca.sqlpower.architect.swingui.DBTree.KEY_DELETE_SELECTED"; //$NON-NLS-1$
 	
+	/**
+	 * The model behind this DB tree.
+	 */
+	private final DBTreeModel treeModel;
+	
 	// ----------- CONSTRUCTORS ------------
 
 	public DBTree(final ArchitectSwingSession session) throws SQLObjectException {
         this.session = session;
-        setModel(new DBTreeModel(session.getRootObject()));
+        treeModel = new DBTreeModel(session.getRootObject());
+        setModel(treeModel);
 		setUI(new MultiDragTreeUI());
 		setRootVisible(false);
 		setShowsRootHandles(true);
@@ -626,12 +633,7 @@ public class DBTree extends JTree implements DragSourceListener {
                 newMenu.add(new JMenuItem(new AbstractAction(Messages.getString("DBTree.retryActionName")) { //$NON-NLS-1$
                     public void actionPerformed(ActionEvent e) {
                         node.setPopulated(false);
-                        try {
-                            node.getChildren(); // forces populate
-                        } catch (SQLObjectException ex) {
-                            SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
-                                    Messages.getString("DBTree.exceptionDuringRetry"), ex); //$NON-NLS-1$
-                        }
+                        node.getChildren(); // forces populate
                     }
                 }));
             }
@@ -645,7 +647,7 @@ public class DBTree extends JTree implements DragSourceListener {
 					public void actionPerformed(ActionEvent e) {
 						SQLObject so = (SQLObject) getLastSelectedPathComponent();
 						if (so != null) {
-							JOptionPane.showMessageDialog(DBTree.this, new JScrollPane(new JList(new java.util.Vector(so.getSQLObjectListeners()))));
+							JOptionPane.showMessageDialog(DBTree.this, new JScrollPane(new JList(new java.util.Vector(so.getSPListeners()))));
 						}
 					}
 				});
@@ -702,7 +704,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	                    Messages.getString("DBTree.connectionAlreadyExistsDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
 	        } else if (dbcs instanceof JDBCDataSource) {
 	            SQLDatabase newDB = new SQLDatabase((JDBCDataSource) dbcs);
-	            root.addChild(root.getChildCount(), newDB);
+	            root.addChild(newDB, root.getChildCount());
 	            session.getProject().setModified(true);
 	            // start a thread to poke the new SQLDatabase object...
 	            logger.debug("start poking database " + newDB.getName()); //$NON-NLS-1$
@@ -1032,8 +1034,16 @@ public class DBTree extends JTree implements DragSourceListener {
        }
        for (SQLObject o : copyObjects) {
            SQLDatabase target = session.getTargetDatabase();
-           if (SQLObjectUtils.ancestorList(o).contains(target) && !(o instanceof SQLTable.Folder)) {
-               o.getParent().removeChild(o);
+           if (SQLObjectUtils.ancestorList(o).contains(target)) {
+               try {
+                   o.getParent().removeChild(o);
+               } catch (ObjectDependentException e) {
+                    // FIXME Add an actual method for dealing with dependencies
+                    // here. As of now, nothing in Architect has depencies, so
+                    // this won't be hit, but in the future, this will need to
+                    // be changed.
+                   throw new RuntimeException(e);
+               }
            }
        }
  	}
@@ -1059,16 +1069,10 @@ public class DBTree extends JTree implements DragSourceListener {
      * @return TreePath for given object.
      */
     public TreePath getTreePathForNode(SQLObject obj) {
-        List<SQLObject> path = new ArrayList<SQLObject>();
-        
-        while (obj != null && obj != session.getRootObject()) {
-            path.add(0, obj);
-            obj = obj.getParent();
+        if (obj instanceof SQLRelationship) {
+            return new TreePath(treeModel.getPkPathToRelationship((SQLRelationship) obj));
         }
-        
-        // the root object is not in the hierarchy
-        path.add(0, session.getRootObject());
-        return new TreePath(path.toArray());
+        return new TreePath(treeModel.getPathToNode(obj));
     }
     
     public void setPopupMenuEnabled(boolean popupMenuEnabled) {
@@ -1118,5 +1122,5 @@ public class DBTree extends JTree implements DragSourceListener {
             }
         }
     }
-
+    
 }

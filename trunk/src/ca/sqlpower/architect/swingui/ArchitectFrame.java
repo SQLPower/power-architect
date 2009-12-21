@@ -109,7 +109,6 @@ import ca.sqlpower.architect.swingui.action.SQLQueryAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
 import ca.sqlpower.architect.swingui.action.SelectAllAction;
 import ca.sqlpower.architect.swingui.action.UndoAction;
-import ca.sqlpower.architect.swingui.action.UserGuideAction;
 import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
@@ -212,8 +211,6 @@ public class ArchitectFrame extends JFrame {
         }
     };
 
-    private Action userGuideAction = new UserGuideAction(this);
-    
     /**
      * This constructor is used by the session implementation. To obtain an
      * Architect Frame, you have to create an
@@ -454,8 +451,7 @@ public class ArchitectFrame extends JFrame {
         projectBar.add(profileAction);
         projectBar.setToolTipText(Messages.getString("ArchitectFrame.projectToolbarToolTip")); //$NON-NLS-1$
         projectBar.setName(Messages.getString("ArchitectFrame.projectToolbarName")); //$NON-NLS-1$
-        projectBar.addSeparator();
-        projectBar.add(userGuideAction);
+        
         projectBar.setFocusable(false);
         for (Component c : projectBar.getComponents()) {
             c.setFocusable(false);
@@ -689,7 +685,6 @@ public class ArchitectFrame extends JFrame {
             helpMenu.add(aboutAction);
             helpMenu.addSeparator();
         }
-        helpMenu.add(userGuideAction);
         helpMenu.add(SPSUtils.forumAction);
         helpMenu.addSeparator();
         helpMenu.add(checkForUpdateAction);

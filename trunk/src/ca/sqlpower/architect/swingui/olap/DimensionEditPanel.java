@@ -108,7 +108,7 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
                 foreignKeyChooser.addItem("Parent Cube Fact table has no columns");
                 foreignKeyChooser.setEnabled(false);
             } else {
-                foreignKeyChooser.setModel(new SQLObjectComboBoxModel(factTable.getColumnsFolder()));
+                foreignKeyChooser.setModel(new SQLObjectComboBoxModel(factTable, SQLColumn.class));
                 for (SQLColumn col : factTable.getColumns()) {
                     if (col.getName().equals(dimension.getForeignKey())) {
                         foreignKeyChooser.setSelectedItem(col);

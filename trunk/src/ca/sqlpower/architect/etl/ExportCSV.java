@@ -96,8 +96,6 @@ public class ExportCSV {
                     catalog.append(parent.getPhysicalName());
                 } else if (parent instanceof SQLTable){
                     table.append(parent.getPhysicalName());
-                } else if (parent instanceof SQLTable.Folder){
-                    // no op
                 } else if (parent instanceof SQLObjectRoot){
                     // no op
                 } else{

@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
+import java.beans.PropertyChangeEvent;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -32,18 +33,18 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
-import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
-import ca.sqlpower.sqlobject.SQLObjectListener;
-import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.ColorCellRenderer;
 import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
-public class TableEditPanel extends JPanel implements SQLObjectListener, DataEntryPanel {
+public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel {
     
     private static final Logger logger = Logger.getLogger(TableEditPanel.class);
 
@@ -111,7 +112,7 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
                 pkName.setText(t.getPrimaryKeyName());
                 pkName.setEnabled(true);
             }
-            SQLObjectUtils.listenToHierarchy(this, session.getRootObject());
+            SQLPowerUtils.listenToHierarchy(session.getRootObject(), this);
         } catch (SQLObjectException e) {
             throw new SQLObjectRuntimeException(e);
         }
@@ -128,12 +129,8 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
-	    try {
-            SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
-        } catch (SQLObjectException e) {
-            throw new SQLObjectRuntimeException(e);
-        }
-		table.startCompoundEdit(Messages.getString("TableEditPanel.compoundEditName"));		 //$NON-NLS-1$
+	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
+		table.begin(Messages.getString("TableEditPanel.compoundEditName"));		 //$NON-NLS-1$
         try {	
 		    StringBuffer warnings = new StringBuffer();
             //We need to check if the table name and/or primary key name is empty or not
@@ -187,16 +184,12 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
 		} catch (SQLObjectException e) {
             throw new SQLObjectRuntimeException(e);
         } finally {
-			table.endCompoundEdit("Ending new compound edit event in table edit panel"); //$NON-NLS-1$
+			table.commit();
 		}
 	}
 
 	public void discardChanges() {
-	    try {
-            SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
-        } catch (SQLObjectException e) {
-            throw new SQLObjectRuntimeException(e);
-        }
+	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
 	}
 	
 	public JPanel getPanel() {
@@ -256,35 +249,38 @@ public class TableEditPanel extends JPanel implements SQLObjectListener, DataEnt
         return true;
     }
 
-    public void dbChildrenInserted(SQLObjectEvent e) {
-
+    public void childAdded(SPChildEvent e) {
+        // no-op
     }
 
     /**
      * Checks to see if its respective table is removed from playpen. If yes,
      * exit the editing dialog window.
      */
-    public void dbChildrenRemoved(SQLObjectEvent e) {
+    public void childRemoved(SPChildEvent e) {
         logger.debug("SQLObject children got removed: " + e); //$NON-NLS-1$
-        SQLObject[] c = e.getChildren();
-
-        for (SQLObject obj : c) {
-            try {
-                if (table.equals(obj)) {
-                    SQLObjectUtils.unlistenToHierarchy(this, session.getRootObject());
-                    if (editDialog != null) {
-                        editDialog.dispose();
-                    }
-                    break;
-                }
-            } catch (SQLObjectException ex) {
-                throw new SQLObjectRuntimeException(ex);
+        if (table.equals(e.getChild())) {
+            SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
+            if (editDialog != null) {
+                editDialog.dispose();
             }
         }
     }
 
-    public void dbObjectChanged(SQLObjectEvent e) {
-
+    public void propertyChange(PropertyChangeEvent e) {
+        // no-op
+    }
+    
+    public void transactionStarted(TransactionEvent e) {
+        // no-op
+    }
+    
+    public void transactionEnded(TransactionEvent e) {
+        // no-op
+    }
+    
+    public void transactionRollback(TransactionEvent e) {
+        // no-op
     }
 
     public void setEditDialog(JDialog editDialog) {

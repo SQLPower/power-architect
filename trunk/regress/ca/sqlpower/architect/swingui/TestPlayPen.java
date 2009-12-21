@@ -245,7 +245,7 @@ public class TestPlayPen extends TestCase {
         
         for (SQLTable t: pp.getTables()) {
             List<SQLRelationship> exportedKeys = t.getExportedKeys();
-            List<SQLRelationship> importedKeys = t.getImportedKeys();
+            List<SQLRelationship> importedKeys = SQLRelationship.getExportedKeys(t.getImportedKeys());
             
             assertEquals("Expected only one exported key in table", 1, exportedKeys.size());
             assertEquals("Expected only one imported key in table", 1, importedKeys.size());

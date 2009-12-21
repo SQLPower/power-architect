@@ -50,12 +50,15 @@ public class TestDeleteSelectedAction extends TestCase {
         session = context.createSession();
 		deleteAction = new DeleteSelectedAction(session);
 		pp = session.getPlayPen();
-		tp = new TablePane(new SQLTable(session.getTargetDatabase(),true),pp.getContentPane());
+		SQLTable tm = new SQLTable(session.getTargetDatabase(), true);
+		session.getTargetDatabase().addTable(tm);
+		tp = new TablePane(tm, pp.getContentPane());
 		tp.getModel().setName("Table1");
 		tp.getModel().addColumn(new SQLColumn(tp.getModel(),"col1",Types.INTEGER,1,1));
 		tp.getModel().addColumn(new SQLColumn(tp.getModel(),"col2",Types.INTEGER,1,1));
 		
-		tp2 = new TablePane(new SQLTable(session.getTargetDatabase(),true),pp.getContentPane());
+		SQLTable tm2 = new SQLTable(session.getTargetDatabase(), true);
+		tp2 = new TablePane(tm2, pp.getContentPane());
 		tp2.getModel().setName("Table2");
 		tp2.getModel().addColumn(new SQLColumn(tp.getModel(),"col1",Types.INTEGER,1,1));
 		tp2.getModel().addColumn(new SQLColumn(tp.getModel(),"col2",Types.INTEGER,1,1));

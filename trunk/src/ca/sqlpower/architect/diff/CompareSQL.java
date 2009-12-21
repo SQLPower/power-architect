@@ -280,16 +280,12 @@ public class CompareSQL implements Monitorable {
 		
 		for (SQLTable t : sourceTables) {
 			incProgress(1, t, null);
-			if (t.getImportedKeys() != null){		
-				sourceRels.addAll(t.getImportedKeys());
-			}
+			sourceRels.addAll(SQLRelationship.getExportedKeys(t.getImportedKeys()));
 		}	
 				
 		for (SQLTable t : targetTables) {
 			incProgress(1, null, t);
-			if (t.getImportedKeys() != null){			
-				targetRels.addAll(t.getImportedKeys());
-			}
+			targetRels.addAll(SQLRelationship.getExportedKeys(t.getImportedKeys()));
 		}
 		
 		logger.debug("Source relationships: "+sourceRels);

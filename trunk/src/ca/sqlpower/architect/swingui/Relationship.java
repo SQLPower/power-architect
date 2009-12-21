@@ -28,7 +28,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -48,20 +47,20 @@ import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectListener;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.ColourScheme;
+import ca.sqlpower.util.TransactionEvent;
 import ca.sqlpower.util.WebColour;
 
-public class Relationship extends PlayPenComponent implements SQLObjectListener, LayoutEdge {
+public class Relationship extends PlayPenComponent implements SPListener, LayoutEdge {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 	
-	public static final String PAREENT_TO_CHILD = "receives";
+	public static final String PARENT_TO_CHILD = "receives";
 	public static final String CHILD_TO_PARENT = "is received by";
 
     public static final Vector<Color> SUGGESTED_COLOURS;
@@ -141,7 +140,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 		updateUI();
 		setOpaque(false);
 		setBackgroundColor(Color.green);
-		model.addSQLObjectListener(this);
+		model.addSPListener(this);
 		setToolTipText(model.getName());
 
 		// requires pkTable and fkTable to be initialized
@@ -195,7 +194,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
                 public void actionPerformed(ActionEvent e) {
                     StringBuffer componentList = new StringBuffer();
                     
-                    for (ColumnMapping columnMap : getModel().getMappings()) {
+                    for (ColumnMapping columnMap : getModel().getChildren(ColumnMapping.class)) {
                         componentList.append(columnMap).append("\n"); //$NON-NLS-1$
                     }
                     
@@ -233,22 +232,17 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 
 	public void setSelected(boolean isSelected,int multiSelectType) {
 		if (selected != isSelected) {
-		    try {
-		        Iterator it = getModel().getChildren().iterator();
-		        while (it.hasNext()) {
-		            SQLRelationship.ColumnMapping m = (ColumnMapping) it.next();
-		            
-                    if (isSelected) {
-                        pkTable.addColumnHighlight(m.getPkColumn(), columnHighlightColour);
-                        fkTable.addColumnHighlight(m.getFkColumn(), columnHighlightColour);
-                    } else {
-                        pkTable.removeColumnHighlight(m.getPkColumn(), columnHighlightColour);
-                        fkTable.removeColumnHighlight(m.getFkColumn(), columnHighlightColour);
-                    }
-		        }
-		    } catch (SQLObjectException e) {
-		        logger.error("Couldn't modify highlights for columns in the mapping", e); //$NON-NLS-1$
-		    }
+		    for (SQLRelationship.ColumnMapping m : getModel().getChildren(
+		            SQLRelationship.ColumnMapping.class)) {
+                
+                if (isSelected) {
+                    pkTable.addColumnHighlight(m.getPkColumn(), columnHighlightColour);
+                    fkTable.addColumnHighlight(m.getFkColumn(), columnHighlightColour);
+                } else {
+                    pkTable.removeColumnHighlight(m.getPkColumn(), columnHighlightColour);
+                    fkTable.removeColumnHighlight(m.getFkColumn(), columnHighlightColour);
+                }
+            }
 			selected = isSelected;
 			fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
 			repaint();
@@ -375,7 +369,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 			this.movingPk = movePk;
 			this.startingPk = new Point(r.getPkConnectionPoint().x, r.getPkConnectionPoint().y);
 			this.startingFk = new Point(r.getFkConnectionPoint().x, r.getFkConnectionPoint().y);
-			r.getModel().startCompoundEdit("Reposition relationship");
+			r.getModel().begin("Reposition relationship");
 			r.getPlayPen().addMouseMotionListener(this);
 			r.getPlayPen().addMouseListener(this);
 			r.getPlayPen().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
@@ -442,7 +436,7 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 			r.getPlayPen().removeMouseMotionListener(this);
 			r.getPlayPen().removeMouseListener(this);
 			r.getPlayPen().setCursor(null);
-			r.getModel().endCompoundEdit("Finished repositioning the relationship.");
+			r.getModel().commit();
 		}
 	}
 
@@ -456,28 +450,24 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
         return columnHighlightColour;
     }
 
-	// ------------------ sqlobject listener ----------------
-	public void dbChildrenInserted(SQLObjectEvent e) {
+	// ------------------ SP listener ----------------
+	public void childAdded(SPChildEvent e) {
         if (isSelected()) {
-            for (SQLObject newChild : e.getChildren()) {
-                SQLRelationship.ColumnMapping cm = (ColumnMapping) newChild;
-                pkTable.addColumnHighlight(cm.getPkColumn(), columnHighlightColour); 
-                fkTable.addColumnHighlight(cm.getFkColumn(), columnHighlightColour);
-            }
+            SQLRelationship.ColumnMapping cm = (ColumnMapping) e.getChild();
+            pkTable.addColumnHighlight(cm.getPkColumn(), columnHighlightColour); 
+            fkTable.addColumnHighlight(cm.getFkColumn(), columnHighlightColour);
         }
 	}
 
-	public void dbChildrenRemoved(SQLObjectEvent e) {
+	public void childRemoved(SPChildEvent e) {
         if (isSelected()) {
-            for (SQLObject oldChild : e.getChildren()) {
-                SQLRelationship.ColumnMapping cm = (ColumnMapping) oldChild;
-                pkTable.removeColumnHighlight(cm.getPkColumn(), columnHighlightColour);
-                fkTable.removeColumnHighlight(cm.getFkColumn(), columnHighlightColour);
-            }
+            SQLRelationship.ColumnMapping cm = (ColumnMapping) e.getChild();
+            pkTable.removeColumnHighlight(cm.getPkColumn(), columnHighlightColour);
+            fkTable.removeColumnHighlight(cm.getFkColumn(), columnHighlightColour);
         }
 	}
 
-	public void dbObjectChanged(SQLObjectEvent e) {
+	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getPropertyName() != null) {
 			if (e.getPropertyName().equals("name")) { //$NON-NLS-1$
 				setToolTipText(model.getName());
@@ -487,6 +477,18 @@ public class Relationship extends PlayPenComponent implements SQLObjectListener,
 				repaint();
 			}
 		}
+	}
+	
+	public void transactionStarted(TransactionEvent e) {
+	    // no-op
+	}
+	
+	public void transactionEnded(TransactionEvent e) {
+	    // no-op
+	}
+	
+	public void transactionRollback(TransactionEvent e) {
+	    // no-op
 	}
 
     /**

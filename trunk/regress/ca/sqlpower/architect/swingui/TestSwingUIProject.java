@@ -57,6 +57,7 @@ import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.PlDotIni;
@@ -85,6 +86,31 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	private PlDotIni plIni;
     private ArchitectSwingSession session;
     private TestingArchitectSwingSessionContext context;
+    
+    private class TestSQLDatabase extends SQLDatabase {
+
+        private List<StubSQLObject> stubs = new ArrayList<StubSQLObject>();
+        
+        @Override
+        public List<Class<? extends SPObject>> getAllowedChildTypes() {
+            List<Class<? extends SPObject>> types = new ArrayList<Class<? extends SPObject>>();
+            types.add(StubSQLObject.class);
+            return types;
+        }
+
+        @Override
+        protected void addChildImpl(SPObject child, int index) {
+            if (child instanceof StubSQLObject) {
+                stubs.add(index, (StubSQLObject) child);
+            }
+        }
+        
+        @Override
+        public List<? extends SQLObject> getChildren() {
+            return stubs;
+        }
+        
+    }
     
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.SwingUIProject(String)'
@@ -189,6 +215,22 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "  </profile-result>" +
         " </profiles>" +
         "</architect-project>";
+	
+	public Set<String> getPropertiesToIgnore() {
+	    Set<String> propertiesToIgnore = new HashSet<String>();
+	    propertiesToIgnore.add("SPListeners");
+        propertiesToIgnore.add("children");
+        propertiesToIgnore.add("parent");
+        propertiesToIgnore.add("class");
+        propertiesToIgnore.add("childCount");
+        propertiesToIgnore.add("populated");
+        propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("childrenInaccessibleReason");
+        propertiesToIgnore.add("session");
+        propertiesToIgnore.add("foregroundThread");
+        propertiesToIgnore.add("backgroundThread");
+        return propertiesToIgnore;
+	}
 	
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.load(InputStream)'
@@ -393,23 +435,16 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		db.setPopulated(true);
 		((SQLObject) dbTreeModel.getRoot()).addChild(db);
 		
-		Set<String> propertiesToIgnore = new HashSet<String>();
-		propertiesToIgnore.add("SQLObjectListeners");
-		propertiesToIgnore.add("children");
+		Set<String> propertiesToIgnore = getPropertiesToIgnore();
 		propertiesToIgnore.add("tables");
-		propertiesToIgnore.add("parent");
 		propertiesToIgnore.add("parentDatabase");
-		propertiesToIgnore.add("class");
-		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("connection");
-		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("secondaryChangeMode");
 		propertiesToIgnore.add("dataSource");  // we set this already!
 		propertiesToIgnore.add("playPenDatabase");  // only set by playpen code
 		propertiesToIgnore.add("progressMonitor");
 		propertiesToIgnore.add("zoomInAction");
 		propertiesToIgnore.add("zoomOutAction");
-        propertiesToIgnore.add("magicEnabled");
         propertiesToIgnore.add("tableContainer");
 		
 		Map<String,Object> oldDescription =
@@ -439,8 +474,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		Map<String, Object> newDescription =
 			ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(db, propertiesToIgnore);
 		
-		assertEquals("loaded-in version of database doesn't match the original!",
-				oldDescription.toString(), newDescription.toString());
+		assertMapsEqual(oldDescription, newDescription);
 	}
 	
 
@@ -471,17 +505,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		SQLCatalog target = new SQLCatalog(db, "my test catalog");
 		db.addChild(target);
 		
-		Set<String> propertiesToIgnore = new HashSet<String>();
-		propertiesToIgnore.add("SQLObjectListeners");
-		propertiesToIgnore.add("children");
-		propertiesToIgnore.add("parent");
+		Set<String> propertiesToIgnore = getPropertiesToIgnore();
 		propertiesToIgnore.add("parentDatabase");
-		propertiesToIgnore.add("class");
         
-		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("secondaryChangeMode");
-		propertiesToIgnore.add("populated");
-        propertiesToIgnore.add("magicEnabled");
         propertiesToIgnore.add("tableContainer");
 
 		Map<String,Object> oldDescription =
@@ -526,17 +553,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		SQLSchema target = new SQLSchema(db, "my test schema", true);
 		db.addChild(target);
 		
-		Set<String> propertiesToIgnore = new HashSet<String>();
-		propertiesToIgnore.add("SQLObjectListeners");
-		propertiesToIgnore.add("children");
-		propertiesToIgnore.add("parent");
+		Set<String> propertiesToIgnore = getPropertiesToIgnore();
 		propertiesToIgnore.add("parentDatabase");
-		propertiesToIgnore.add("class");
-		propertiesToIgnore.add("childCount");
-		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("secondaryChangeMode");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("childrenInaccessibleReason");
 
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
@@ -580,18 +599,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		SQLTable target = new SQLTable(db, true);
 		db.addChild(target);
 		
-		Set<String> propertiesToIgnore = new HashSet<String>();
-		propertiesToIgnore.add("SQLObjectListeners");
-		propertiesToIgnore.add("children");
-		propertiesToIgnore.add("parent");
+		Set<String> propertiesToIgnore = getPropertiesToIgnore();
 		propertiesToIgnore.add("parentDatabase");
-		propertiesToIgnore.add("class");
-		propertiesToIgnore.add("childCount");
-		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("columnsFolder");
 		propertiesToIgnore.add("secondaryChangeMode");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("childrenInaccessibleReason");
 
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
@@ -632,18 +643,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		ppdb.addChild(table);
 		table.addColumn(target);
 		
-		Set<String> propertiesToIgnore = new HashSet<String>();
-		propertiesToIgnore.add("SQLObjectListeners");
-		propertiesToIgnore.add("children");
-		propertiesToIgnore.add("parent");
+		Set<String> propertiesToIgnore = getPropertiesToIgnore();
 		propertiesToIgnore.add("parentTable");
-		propertiesToIgnore.add("class");
-		propertiesToIgnore.add("childCount");
-		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("secondaryChangeMode");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("childrenInaccessibleReason");
 
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
@@ -708,16 +711,11 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLIndex target = new SQLIndex("testy index", false, null, null, null);
         target.addChild(target.new Column(col, AscendDescend.UNSPECIFIED));
         ppdb.addChild(table);
-        table.getIndicesFolder().addChild(target);
+        table.addChild(target);
         col.setPrimaryKeySeq(0);
         
-        Set<String> propertiesToIgnore = new HashSet<String>();
-        propertiesToIgnore.add("SQLObjectListeners");
+        Set<String> propertiesToIgnore = getPropertiesToIgnore();
         propertiesToIgnore.add("undoEventListeners");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("children");
-        propertiesToIgnore.add("parent");
-        propertiesToIgnore.add("class");
 
         Map<String,Object> oldDescription =
             TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
@@ -755,7 +753,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // child 1 because setPrimaryKeySeq calls normalizePrimaryKey who creates
         // a primary key is there is none made. The primary key is placed as child 0
         // in the list so it shows up first in the DBTree.
-        target = (SQLIndex) (targetTable).getIndicesFolder().getChild(1);
+        target = (SQLIndex) (targetTable).getIndices().get(1);
         
         Map<String, Object> newDescription =
             ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
@@ -773,17 +771,12 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
         SQLIndex.Column indexCol = index.new Column("phogna bologna", AscendDescend.DESCENDING);
         ppdb.addChild(table);
-        table.getIndicesFolder().addChild(index);
+        table.addChild(index);
         index.addChild(indexCol);
         
-        Set<String> propertiesToIgnore = new HashSet<String>();
-        propertiesToIgnore.add("SQLObjectListeners");
+        Set<String> propertiesToIgnore = getPropertiesToIgnore();
         propertiesToIgnore.add("undoEventListeners");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("children");
-        propertiesToIgnore.add("parent");
         propertiesToIgnore.add("primaryKeyIndex");
-        propertiesToIgnore.add("class");
 
         Map<String,Object> oldDescription =
             TestUtils.setAllInterestingProperties(index, propertiesToIgnore);
@@ -800,7 +793,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // grab the second database in the dbtree's model (the first is the play pen)
         ppdb = (SQLDatabase) session2.getTargetDatabase();
         
-        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
+        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndices().get(0);
         
         Map<String, Object> newDescription =
             ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
@@ -821,28 +814,22 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLIndex.Column indexCol = index.new Column(col, AscendDescend.DESCENDING);
         index.setPrimaryKeyIndex(true);
         ppdb.addChild(table);
-        table.getIndicesFolder().addChild(index);
+        table.addChild(index);
         
         assertNotNull(table.getPrimaryKeyIndex());
-        assertEquals(1, table.getIndicesFolder().getChildCount());
+        assertEquals(1, table.getIndices().size());
         assertSame(index, table.getPrimaryKeyIndex());
 
         index.addChild(indexCol);
-        assertEquals(1, table.getIndicesFolder().getChildCount());
+        assertEquals(1, table.getIndices().size());
         assertSame(index, table.getPrimaryKeyIndex());
         col.setPrimaryKeySeq(new Integer(0));
-        assertEquals(1, table.getIndicesFolder().getChildCount());
+        assertEquals(1, table.getIndices().size());
         assertSame(index, table.getPrimaryKeyIndex());
         
-        Set<String> propertiesToIgnore = new HashSet<String>();
-        propertiesToIgnore.add("SQLObjectListeners");
+        Set<String> propertiesToIgnore = getPropertiesToIgnore();
         propertiesToIgnore.add("undoEventListeners");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("children");
-        propertiesToIgnore.add("parent");
         propertiesToIgnore.add("primaryKeyIndex");
-        propertiesToIgnore.add("class");
-        propertiesToIgnore.add("populated");
 
         assertSame(index, table.getPrimaryKeyIndex());
 
@@ -862,7 +849,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         ppdb = (SQLDatabase) session2.getTargetDatabase();
         System.out.println(ppdb.getTableByName(tableName));
-        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
+        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndices().get(0);
         
         Map<String, Object> newDescription =
             ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
@@ -882,15 +869,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
         index.addIndexColumn(col, AscendDescend.DESCENDING);
         ppdb.addChild(table);
-        table.getIndicesFolder().addChild(index);
+        table.addChild(index);
         col.setPrimaryKeySeq(new Integer(0));
-        Set<String> propertiesToIgnore = new HashSet<String>();
-        propertiesToIgnore.add("SQLObjectListeners");
+        Set<String> propertiesToIgnore = getPropertiesToIgnore();
         propertiesToIgnore.add("undoEventListeners");
-        propertiesToIgnore.add("magicEnabled");
-        propertiesToIgnore.add("children");
-        propertiesToIgnore.add("parent");
-        propertiesToIgnore.add("class");
 
         Map<String,Object> oldDescription =
             TestUtils.setAllInterestingProperties(index, propertiesToIgnore);
@@ -916,7 +898,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // child 1 because setPrimaryKeySeq calls normalizePrimaryKey which creates
         // a primary key is there is none made. The primary key is placed as child 0
         // in the list so it shows up first in the DBTree.
-        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(1);
+        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndices().get(1);
         
         Map<String, Object> newDescription =
             ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
@@ -937,7 +919,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
         SQLIndex origIndex1 = new SQLIndex("tasty index", false, null, "HASH", null);
         origIndex1.addIndexColumn(col, AscendDescend.DESCENDING);
-        table.getIndicesFolder().addChild(origIndex1);
+        table.addChild(origIndex1);
         col.setPrimaryKeySeq(new Integer(0));
 
         // second index references same column as first index, so
@@ -945,7 +927,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // they are not the same object
         SQLIndex origIndex2 = new SQLIndex("nasty index", false, null, "HASH", null);
         origIndex2.addIndexColumn(col, AscendDescend.DESCENDING);
-        table.getIndicesFolder().addChild(origIndex2);
+        table.addChild(origIndex2);
 
         ByteArrayOutputStream tempFile = new ByteArrayOutputStream();
         PrintWriter out = new PrintWriter(tempFile);
@@ -961,8 +943,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // child 1 because setPrimaryKeySeq calls normalizePrimaryKey which creates
         // a primary key is there is none made. The primary key is placed as child 0
         // in the list so it shows up first in the DBTree.
-        SQLIndex reloadedIndex1 = (SQLIndex) ppdb.getTableByName(tableName).getIndicesFolder().getChild(1);
-        SQLIndex reloadedIndex2 = (SQLIndex) ppdb.getTableByName(tableName).getIndicesFolder().getChild(2);
+        SQLIndex reloadedIndex1 = (SQLIndex) ppdb.getTableByName(tableName).getIndices().get(1);
+        SQLIndex reloadedIndex2 = (SQLIndex) ppdb.getTableByName(tableName).getIndices().get(2);
         
         assertEquals(origIndex1.getChildCount(), reloadedIndex1.getChildCount());
         assertEquals(origIndex2.getChildCount(), reloadedIndex2.getChildCount());
@@ -1130,7 +1112,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
-        SQLDatabase db = new SQLDatabase();
+        SQLDatabase db = new TestSQLDatabase();
         dbtreeRoot.addChild(db);
         
         StubSQLObject sso = new StubSQLObject();
@@ -1197,9 +1179,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
             SQLObject child = (SQLObject) it.next();
             if (o instanceof SQLObjectRoot) {
                 // skip, because database parent pointers are null
-            } else if (child instanceof SQLRelationship && o.getName().startsWith("Imported Keys")) {
-                // skip, because the exported keys folder should be the parent
-                // Note, if this is failing, maybe you renamed the "Imported Keys" folder! :)
+            } else if (child instanceof SQLRelationship && ((SQLRelationship) child).getFkTable().equals(o)) {
+                // skip, because the primary key table should be the parent
             } else {
                 assertSame(path, o, child.getParent());
             }
@@ -1238,14 +1219,14 @@ public class TestSwingUIProject extends ArchitectTestCase {
                     "didn't expect this index to have no columns!",
                     idx.getChildCount() > 0);
             
-            List<SQLIndex.Column> indexCols = idx.getChildren();
+            List<SQLIndex.Column> indexCols = idx.getChildren(SQLIndex.Column.class);
             List<SQLColumn> colsToRemove = new ArrayList<SQLColumn>();
             for (SQLIndex.Column indexCol : indexCols) {
                 colsToRemove.add(indexCol.getColumn());
             }
 
             for (SQLColumn col : colsToRemove) {
-                t.removeColumn(col);
+                t.removeChild(col);
             }
 
             // prove the listener was hooked up
@@ -1260,7 +1241,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
-        SQLDatabase db = new SQLDatabase();
+        SQLDatabase db = new TestSQLDatabase();
         dbtreeRoot.addChild(db);
         
         StubSQLObject sso = new StubSQLObject();
@@ -1341,7 +1322,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         project.load(r, plIni);
         SQLTable table = session.getPlayPen().getTables().get(0);
-        assertEquals(AscendDescend.ASCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+        assertEquals(AscendDescend.ASCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren(SQLIndex.Column.class).get(0).getAscendingOrDescending());
     }
     
     /**
@@ -1381,7 +1362,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         project.load(r, plIni);
         SQLTable table = session.getPlayPen().getTables().get(0);
-        assertEquals(AscendDescend.DESCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+        assertEquals(AscendDescend.DESCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren(SQLIndex.Column.class).get(0).getAscendingOrDescending());
     }
     
     /**
@@ -1421,7 +1402,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         project.load(r, plIni);
         SQLTable table = session.getPlayPen().getTables().get(0);
-        assertEquals(AscendDescend.UNSPECIFIED, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+        assertEquals(AscendDescend.UNSPECIFIED, table.getIndexByName("PL_MATCH_UNIQUE").getChildren(SQLIndex.Column.class).get(0).getAscendingOrDescending());
     }
     
     /**
@@ -1460,7 +1441,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         project.load(r, plIni);
         SQLTable table = session.getPlayPen().getTables().get(0);
-        assertEquals(AscendDescend.ASCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+        assertEquals(AscendDescend.ASCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren(SQLIndex.Column.class).get(0).getAscendingOrDescending());
     }
     /**
      * This tests loading a descending column on an index works.
@@ -1498,7 +1479,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         project.load(r, plIni);
         SQLTable table = session.getPlayPen().getTables().get(0);
-        assertEquals(AscendDescend.DESCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+        assertEquals(AscendDescend.DESCENDING, table.getIndexByName("PL_MATCH_UNIQUE").getChildren(SQLIndex.Column.class).get(0).getAscendingOrDescending());
     }
     /**
      * This tests loading an unspecified column on an index works.
@@ -1536,7 +1517,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         project.load(r, plIni);
         SQLTable table = session.getPlayPen().getTables().get(0);
-        assertEquals(AscendDescend.UNSPECIFIED, table.getIndexByName("PL_MATCH_UNIQUE").getChildren().get(0).getAscendingOrDescending());
+        assertEquals(AscendDescend.UNSPECIFIED, table.getIndexByName("PL_MATCH_UNIQUE").getChildren(SQLIndex.Column.class).get(0).getAscendingOrDescending());
     }
 
 }
