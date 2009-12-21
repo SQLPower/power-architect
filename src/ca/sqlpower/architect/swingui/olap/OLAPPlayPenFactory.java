@@ -61,9 +61,9 @@ import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
-import ca.sqlpower.sqlobject.undo.CompoundEvent;
 import ca.sqlpower.sqlobject.undo.CompoundEventListener;
 import ca.sqlpower.sqlobject.undo.PropertyChangeEdit;
+import ca.sqlpower.util.TransactionEvent;
 
 public class OLAPPlayPenFactory {
 
@@ -319,11 +319,11 @@ public class OLAPPlayPenFactory {
             }
         }
 
-        public void compoundEditStart(CompoundEvent e) {
+        public void transactionStarted(TransactionEvent e) {
             undoManager.addEdit(new PlayPenComponentLocationEdit());
         }
         
-        public void compoundEditEnd(CompoundEvent e) {
+        public void transactionEnded(TransactionEvent e) {
             // the location edit will simply stop absorbing
             // edits because new edits are of the wrong type
         }

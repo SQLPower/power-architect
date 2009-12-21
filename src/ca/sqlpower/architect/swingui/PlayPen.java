@@ -58,6 +58,7 @@ import java.awt.event.MouseWheelListener;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -118,27 +119,32 @@ import ca.sqlpower.architect.swingui.olap.PaneSection;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
+import ca.sqlpower.object.ObjectDependentException;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectListener;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
-import ca.sqlpower.sqlobject.undo.CompoundEvent;
 import ca.sqlpower.sqlobject.undo.CompoundEventListener;
-import ca.sqlpower.sqlobject.undo.CompoundEvent.EventTypes;
 import ca.sqlpower.swingui.CursorManager;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
+import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
+import ca.sqlpower.util.TransactionEvent.TransactionState;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 
@@ -149,7 +155,7 @@ import edu.umd.cs.findbugs.annotations.SuppressWarnings;
         justification = "PlayPen is not meant to be serializable",
         value = {"SE_BAD_FIELD"})
 public class PlayPen extends JPanel
-	implements SQLObjectListener, SelectionListener, Scrollable {
+	implements SPListener, SelectionListener, Scrollable {
 
     public interface CancelableListener {
 
@@ -276,12 +282,14 @@ public class PlayPen extends JPanel
 	 * A graveyard for components that used to be associated with model
 	 * components that are no longer in the model.  If the model components
 	 * come back from the dead (thanks the the UndoManager), then the
-	 * corresponding PlayPenComonent can be revived from this map.
+	 * corresponding PlayPenComonent can be revived from this map. The play pen
+	 * components are mapped to UUIDs of the objects as some SQLObject classes
+	 * implement a different version of equals.
 	 *
 	 * Allows the garbage collecter to clean up any components not in the undo manager
 	 *
 	 */
-    private Map<SQLObject,PlayPenComponent> removedComponents = new WeakHashMap<SQLObject, PlayPenComponent>();
+    private Map<String,PlayPenComponent> removedComponents = new WeakHashMap<String, PlayPenComponent>();
 
     /**
      * Tells whether or not this component will paint its contents.  This was
@@ -425,11 +433,7 @@ public class PlayPen extends JPanel
         logger.debug("Destroying playpen " + System.identityHashCode(this));
         // FIXME the content pane must be notified of this destruction, either explicitly or via a lifecycle event
         firePlayPenLifecycleEvent();
-        try {
-            removeHierarcyListeners(session.getTargetDatabase());
-        } catch (SQLObjectException ex) {
-            logger.error("Couldn't unlisten this playpen from the database", ex); //$NON-NLS-1$
-        }
+        removeHierarchyListeners(session.getTargetDatabase());
     }
 
     /**
@@ -453,11 +457,7 @@ public class PlayPen extends JPanel
 		JDBCDataSource dbcs = new JDBCDataSource(session.getContext().getPlDotIni());
         newdb.setDataSource(dbcs);
 
-		try {
-			SQLObjectUtils.listenToHierarchy(this, newdb);
-		} catch (SQLObjectException ex) {
-			logger.error("Couldn't listen to database", ex); //$NON-NLS-1$
-		}
+        SQLPowerUtils.listenToHierarchy(newdb, this);
 		tableNames = new HashSet<String>();
 	}
 
@@ -1315,16 +1315,14 @@ public class PlayPen extends JPanel
      */
     private void createRelationshipsFromPP(SQLTable source, SQLTable newTable, boolean isPrimaryKeyTableNew, boolean isAlreadyOnPlaypen, int suffix) throws SQLObjectException {
         // create exported relationships if the importing tables exist in pp
-		Iterator sourceKeys = null;
+		Iterator<SQLRelationship> sourceKeys = null;
         if (isPrimaryKeyTableNew) {
             sourceKeys = source.getExportedKeys().iterator();
         } else {
-            sourceKeys = source.getImportedKeys().iterator();
+            sourceKeys = SQLRelationship.getExportedKeys(source.getImportedKeys()).iterator();
         }
 		while (sourceKeys.hasNext()) {
-		    Object next = sourceKeys.next();
-		    if ( !(next instanceof SQLRelationship) ) continue;  // there could be SQLExceptionNodes here
-			SQLRelationship r = (SQLRelationship) next;
+			SQLRelationship r = sourceKeys.next();
 			
 			// If relationship is self-referencing, then don't add it twice.
 			if (r.getFkTable().equals(r.getPkTable()) && !isPrimaryKeyTableNew) continue;
@@ -1354,6 +1352,14 @@ public class PlayPen extends JPanel
 				logger.info("FOUND IT!"); //$NON-NLS-1$
 
 				SQLRelationship newRel = new SQLRelationship(r);
+				
+				for (ColumnMapping child : newRel.getChildren(ColumnMapping.class)) {
+				    try {
+				        newRel.removeChild(child);
+				    } catch (ObjectDependentException e) {
+				        throw new RuntimeException(e);
+				    }
+				}
 				
 				SQLTable oldTable;
 				
@@ -1505,17 +1511,11 @@ public class PlayPen extends JPanel
 		 *
 		 * @param so
 		 */
-		private void ensurePopulated(List<SQLObject> soList) {
+		private void ensurePopulated(List<? extends SQLObject> soList) {
 			for (SQLObject so : soList) {
 				if (isCancelled()) break;
-				try {
-					if (so instanceof SQLTable) setProgress(getProgress() + 1);
-					ensurePopulated(so.getChildren());
-				} catch (SQLObjectException e) {
-                    errorMessage = "Couldn't get children of " + so; //$NON-NLS-1$
-                    setDoStuffException(e);
-					logger.error("Couldn't get children of " + so, e); //$NON-NLS-1$
-				}
+				if (so instanceof SQLTable) setProgress(getProgress() + 1);
+                ensurePopulated(so.getChildren());
 			}
 		}
 
@@ -1620,25 +1620,33 @@ public class PlayPen extends JPanel
 
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
 
+	private int transactionCount = 0;
+	
+	private boolean childAdded = false;
+	
+	private boolean childRemoved = false;
+	
+	private boolean propertyChanged = false;
+	
 	/**
-	 * Adds all the listeners that should be listining to events from
-	 * the sqlobject hieracrchy.  At this time only the play pen
+	 * Adds all the listeners that should be listening to events from
+	 * the sqlobject hierarchy.  At this time only the play pen
 	 * needs to listen.
 	 */
-	private void addHierarcyListeners(SQLObject sqlObject) throws SQLObjectException
+	private void addHierarchyListeners(SPObject sqlObject)
 	{
-		SQLObjectUtils.listenToHierarchy(this, sqlObject);
+		SQLPowerUtils.listenToHierarchy(sqlObject, this);
 
 	}
 
 	/**
-	 * Removes all the listeners that should be listining to events from
-	 * the sqlobject hieracrchy.  At this time only the play pen
+	 * Removes all the listeners that should be listening to events from
+	 * the sqlobject hierarchy.  At this time only the play pen
 	 * needs to be removed
 	 */
-	private void removeHierarcyListeners(SQLObject sqlObject) throws SQLObjectException
+	private void removeHierarchyListeners(SPObject sqlObject)
 	{
-		SQLObjectUtils.unlistenToHierarchy(this,sqlObject);
+		SQLPowerUtils.unlistenToHierarchy(sqlObject, this);
 	}
 
 	/**
@@ -1647,36 +1655,34 @@ public class PlayPen extends JPanel
 	 * this widget, we will notify all change listeners (the UI
 	 * delegate) with a ChangeEvent.
 	 */
-	public void dbChildrenInserted(SQLObjectEvent e) {
+	public void childAdded(SPChildEvent e) {
 		logger.debug("SQLObject children got inserted: "+e); //$NON-NLS-1$
+		childAdded = true;
 		boolean fireEvent = false;
-		SQLObject[] c = e.getChildren();
-		for (int i = 0; i < c.length; i++) {
-			try {
-				addHierarcyListeners(c[i]);
-			} catch (SQLObjectException ex) {
-				logger.error("Couldn't listen to added object", ex); //$NON-NLS-1$
-			}
-			if (c[i] instanceof SQLTable
-				|| (c[i] instanceof SQLRelationship
-						&& (((SQLTable.Folder) e.getSource()).getType() == SQLTable.Folder.EXPORTED_KEYS))) {
-				fireEvent = true;
+		SPObject child = e.getChild();
+		addHierarchyListeners(child);
+		try {
+            if (child instanceof SQLTable
+                    || (child instanceof SQLRelationship
+                            && ((SQLTable) e.getSource()).getExportedKeys().contains(child))) {
+                fireEvent = true;
 
-				PlayPenComponent ppc = removedComponents.get(c[i]);
-				if (ppc != null) {
-					if (ppc instanceof Relationship) {
-						contentPane.add(ppc, contentPane.getComponentCount());
-					} else {
-						contentPane.add(ppc, contentPane.getFirstRelationIndex());
-					}
+                PlayPenComponent ppc = removedComponents.get(child.getUUID());
+                if (ppc != null) {
+                    if (ppc instanceof Relationship) {
+                        contentPane.add(ppc, contentPane.getComponentCount());
+                    } else {
+                        contentPane.add(ppc, contentPane.getFirstRelationIndex());
+                    }
 
-				}
-			}
-		}
+                }
+            }
+        } catch (SQLObjectException ex) {
+            throw new RuntimeException(ex);
+        }
 
 		if (fireEvent) {
 			firePropertyChange("model.children", null, null); //$NON-NLS-1$
-			revalidate();
 		}
 	}
 
@@ -1686,46 +1692,40 @@ public class PlayPen extends JPanel
 	 * this widget, we will notify all change listeners (the UI
 	 * delegate) with a ChangeEvent.
 	 */
-	public void dbChildrenRemoved(SQLObjectEvent e) {
+	public void childRemoved(SPChildEvent e) {
 		logger.debug("SQLObject children got removed: "+e); //$NON-NLS-1$
 		boolean foundRemovedComponent = false;
-		SQLObject[] c = e.getChildren();
-		for (int i = 0; i < c.length; i++) {
-			try {
-				removeHierarcyListeners(c[i]);
-			} catch (SQLObjectException ex) {
-				logger.error("Couldn't unlisten to removed object", ex); //$NON-NLS-1$
-			}
+		SPObject child = e.getChild();
+		removeHierarchyListeners(child);
 
-			if (c[i] instanceof SQLTable) {
-				for (int j = 0; j < contentPane.getComponentCount(); j++) {
-					if (contentPane.getComponent(j) instanceof TablePane) {
-						TablePane tp = (TablePane) contentPane.getComponent(j);
-						if (tp.getModel() == c[i]) {
-							removedComponents.put(tp.getModel(), contentPane.getComponent(j));
-							contentPane.remove(j);
-							foundRemovedComponent = true;
-						}
-					}
-				}
-			} else if (c[i] instanceof SQLRelationship) {
-				for (int j = 0; j < contentPane.getComponentCount(); j++) {
-					if (contentPane.getComponent(j) instanceof Relationship) {
-						Relationship r = (Relationship) contentPane.getComponent(j);
-						if (r.getModel() == c[i]) {
-						    r.setSelected(false,SelectionEvent.SINGLE_SELECT);
-							removedComponents.put(r.getModel(), contentPane.getComponent(j));
-							contentPane.remove(j);
-							foundRemovedComponent = true;
-						}
-					}
-				}
-			}
+		if (child instanceof SQLTable) {
+		    for (int j = 0; j < contentPane.getComponentCount(); j++) {
+		        if (contentPane.getComponent(j) instanceof TablePane) {
+		            TablePane tp = (TablePane) contentPane.getComponent(j);
+		            if (tp.getModel() == child) {
+		                removedComponents.put(tp.getModel().getUUID(), contentPane.getComponent(j));
+		                contentPane.remove(j);
+		                foundRemovedComponent = true;
+		            }
+		        }
+		    }
+		} else if (child instanceof SQLRelationship || child instanceof SQLImportedKey) {
+		    for (int j = 0; j < contentPane.getComponentCount(); j++) {
+		        if (contentPane.getComponent(j) instanceof Relationship) {
+		            Relationship r = (Relationship) contentPane.getComponent(j);
+		            if (r.getModel() == child || (child instanceof SQLImportedKey && r.getModel() == ((SQLImportedKey) child).getRelationship())) {
+		                r.setSelected(false,SelectionEvent.SINGLE_SELECT);
+		                removedComponents.put(r.getModel().getUUID(), contentPane.getComponent(j));
+		                contentPane.remove(j);
+		                foundRemovedComponent = true;
+		            }
+		        }
+		    }
 		}
 
 		if (foundRemovedComponent) {
+		    childRemoved = true;
 			firePropertyChange("model.children", null, null); //$NON-NLS-1$
-			repaint();
 		}
 	}
 
@@ -1735,9 +1735,37 @@ public class PlayPen extends JPanel
 	 * this widget, we will notify all change listeners (the UI
 	 * delegate) with a ChangeEvent.
 	 */
-	public void dbObjectChanged(SQLObjectEvent e) {
+	public void propertyChange(PropertyChangeEvent e) {
 		firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
-		revalidate();
+	}
+	
+	public void transactionStarted(TransactionEvent e) {
+	    transactionCount++;
+	}
+	
+	public void transactionEnded(TransactionEvent e) {
+	    transactionCount--;
+	    if (transactionCount == 0) {
+	        if (childAdded || propertyChanged) {
+	            revalidate();
+	        }
+	        if (childRemoved) {
+	            repaint();
+	        }
+	        childAdded = false;
+	        childRemoved = false;
+	        propertyChanged = false;
+	    } else if (transactionCount < 0) {
+	        throw new IllegalStateException("Commit attempted while not in a transaction");
+	    }
+	}
+	
+	public void transactionRollback(TransactionEvent e) {
+	    logger.error("Unable to rollback changes to the playpen");
+	    transactionCount = 0;
+	    childAdded = false;
+	    childRemoved = false;
+	    propertyChanged = false;
 	}
 
 	// --------------- SELECTION METHODS ----------------
@@ -1886,7 +1914,7 @@ public class PlayPen extends JPanel
 	}
 	// Undo event support --------------------------------------
 
-	protected LinkedList undoEventListeners = new LinkedList();
+	protected LinkedList<CompoundEventListener> undoEventListeners = new LinkedList<CompoundEventListener>();
 
 	public void addUndoEventListener(CompoundEventListener l) {
 		undoEventListeners.add(l);
@@ -1896,27 +1924,27 @@ public class PlayPen extends JPanel
 		undoEventListeners.remove(l);
 	}
 
-	private void fireUndoCompoundEvent(CompoundEvent e) {
-		Iterator it = undoEventListeners.iterator();
+	private void fireUndoCompoundEvent(TransactionEvent e) {
+		Iterator<CompoundEventListener> it = undoEventListeners.iterator();
 
-		if (e.getType().isStartEvent()) {
+		if (e.getState().equals(TransactionState.START)) {
 			while (it.hasNext()) {
-				((CompoundEventListener) it.next()).compoundEditStart(e);
+				it.next().transactionStarted(e);
 			}
 		} else {
 			while (it.hasNext()) {
-				((CompoundEventListener) it.next()).compoundEditEnd(e);
+				it.next().transactionEnded(e);
 			}
 		}
 
 	}
 
 	public void startCompoundEdit(String message){
-		fireUndoCompoundEvent(new CompoundEvent(EventTypes.COMPOUND_EDIT_START,message));
+		fireUndoCompoundEvent(TransactionEvent.createStartTransactionEvent(this, message));
 	}
 
 	public void endCompoundEdit(String message){
-		fireUndoCompoundEvent(new CompoundEvent(EventTypes.COMPOUND_EDIT_END,message));
+		fireUndoCompoundEvent(TransactionEvent.createEndTransactionEvent(this));
 	}
 	// ------------------------------------- INNER CLASSES ----------------------------
 
@@ -2685,7 +2713,7 @@ public class PlayPen extends JPanel
                 //Since we cannot directly select a SQLColumn directly
                 //from the playpen, there is a special case for it
                 SQLColumn col = (SQLColumn) obj;
-                SQLTable table = col.getParentTable();
+                SQLTable table = col.getParent();
                 TablePane tablePane = findTablePane(table);
                 if (tablePane != null) {
                     colTables.add(table);
@@ -2749,8 +2777,8 @@ public class PlayPen extends JPanel
                 // cannot deselect columns while going through the selected columns
                 List<Integer> indices = new ArrayList<Integer>();
                 for (SQLColumn col : tablePane.getSelectedItems()) {
-                    if (!selections.contains(col) && col.getParentTable() != null) {
-                        indices.add(col.getParentTable().getColumnIndex(col));
+                    if (!selections.contains(col) && col.getParent() != null) {
+                        indices.add(col.getParent().getColumnIndex(col));
                     }
                 }
                 for (int index : indices) {

@@ -32,18 +32,15 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.RepaintManager;
 
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
-import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
-import ca.sqlpower.sqlobject.SQLObjectListener;
-import ca.sqlpower.sqlobject.SQLObjectUtils;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
+import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
 /**
  * Navigator defines the behaviours of the overview navigation dialog. It
@@ -53,7 +50,7 @@ import ca.sqlpower.sqlobject.SQLObjectUtils;
  * @author kaiyi
  * 
  */
-public class Navigator extends JDialog implements PropertyChangeListener, SQLObjectListener, AdjustmentListener {
+public class Navigator extends JDialog implements SPListener, AdjustmentListener {
 
     private static final int SCALED_IMAGE_WIDTH = 200;
 
@@ -78,11 +75,7 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
         super(session.getArchitectFrame(), Messages.getString("Navigator.name")); //$NON-NLS-1$
         this.pp = session.getPlayPen();
         
-        try {
-            SQLObjectUtils.listenToHierarchy(this, pp.getSession().getTargetDatabase());
-        } catch (SQLObjectException ex) {
-            throw new SQLObjectRuntimeException(ex);
-        }
+        SQLPowerUtils.listenToHierarchy(pp.getSession().getTargetDatabase(), this);
 
         pp.getPlayPenContentPane().addPropertyChangeListener("location", this);
         pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", this);
@@ -208,40 +201,27 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
     /**
      * Refreshes the navigator upon the addition of a new PlaypenComponent
      */
-    public void dbChildrenInserted(SQLObjectEvent e) {
-        navigationPanel.repaint();
-        
-        SQLObject[] children = e.getChildren();
-        for (SQLObject child : children) {
-            try {
-                SQLObjectUtils.listenToHierarchy(this, child);
-            } catch (SQLObjectException ex) {
-                throw new SQLObjectRuntimeException(ex);
-            }
-        }
+    public void childAdded(SPChildEvent e) {
+        SQLPowerUtils.listenToHierarchy(e.getChild(), this);
     }
 
     /**
      * Refreshes the navigator upon the removal of a PlaypenComponent
      */
-    public void dbChildrenRemoved(SQLObjectEvent e) {
-        navigationPanel.repaint();
-        
-        SQLObject[] children = e.getChildren();
-        for (SQLObject child : children) {
-            try {
-                SQLObjectUtils.unlistenToHierarchy(this, child);
-            } catch (SQLObjectException ex) {
-                throw new SQLObjectRuntimeException(ex);
-            }
-        }
+    public void childRemoved(SPChildEvent e) {
+        SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
     }
-
-    /**
-     * Refreshes the navigator upon the changes made to sqlobject
-     */
-    public void dbObjectChanged(SQLObjectEvent e) {
+    
+    public void transactionStarted(TransactionEvent e) {
+        // no-op
+    }
+    
+    public void transactionEnded(TransactionEvent e) {
         navigationPanel.repaint();
+    }
+    
+    public void transactionRollback(TransactionEvent e) {
+        // no-op
     }
 
     /**
@@ -255,11 +235,7 @@ public class Navigator extends JDialog implements PropertyChangeListener, SQLObj
      * Removes this listener from connected objects.
      */
     public void cleanup() {
-        try {
-            SQLObjectUtils.unlistenToHierarchy(this, pp.getSession().getTargetDatabase());
-        } catch (SQLObjectException ex) {
-            throw new SQLObjectRuntimeException(ex);
-        }
+        SQLPowerUtils.unlistenToHierarchy(pp.getSession().getTargetDatabase(), this);
         pp.getPlayPenContentPane().removePropertyChangeListener(this);
     }
 }

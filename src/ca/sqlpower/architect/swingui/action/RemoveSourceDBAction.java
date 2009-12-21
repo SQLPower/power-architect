@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.Messages;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 
@@ -52,11 +53,18 @@ public class RemoveSourceDBAction extends AbstractAction {
         
 		SQLDatabase selection = (SQLDatabase) tp.getLastPathComponent();
 		SQLObject root = (SQLObject) tree.getModel().getRoot();
-		if (root.removeChild(selection)) {
-		    selection.disconnect();
-		} else {
-		    logger.error("root.removeChild(selection) returned false!"); //$NON-NLS-1$
-		    JOptionPane.showMessageDialog(tree, Messages.getString("DBTree.deleteConnectionFailed"), Messages.getString("DBTree.deleteConnectionFailedDialogTitle"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
+		
+		try {
+		    if (root.removeChild(selection)) {
+		        selection.disconnect();
+		    } else {
+		        logger.error("root.removeChild(selection) returned false!"); //$NON-NLS-1$
+		        JOptionPane.showMessageDialog(tree, Messages.getString("DBTree.deleteConnectionFailed"), Messages.getString("DBTree.deleteConnectionFailedDialogTitle"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
+		    }
+		} catch (IllegalArgumentException e) {
+		    throw new RuntimeException(e);
+		} catch (ObjectDependentException e) {
+		    throw new RuntimeException(e);
 		}
 	}
 }

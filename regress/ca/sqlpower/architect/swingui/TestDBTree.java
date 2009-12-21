@@ -50,7 +50,7 @@ public class TestDBTree extends TestCase {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
         session.getTargetDatabase().setDataSource(ds);
-        session.getRootObject().addChild(1, new SQLDatabase(db2ds));
+        session.getRootObject().addChild(new SQLDatabase(db2ds), 1);
 		dbTree = new DBTree(session);
 	}
 	
@@ -233,8 +233,8 @@ public class TestDBTree extends TestCase {
         assertNotNull(col1);
         assertNotNull(col2);
         TreePath tablePath = new TreePath(new Object[]{dbTree.getModel().getRoot(), db, schema, table});
-        TreePath path = new TreePath(new Object[]{dbTree.getModel().getRoot(), db, schema, table, table.getColumnsFolder(), col1});
-        TreePath path2 = new TreePath(new Object[]{dbTree.getModel().getRoot(), db, schema, table, table.getColumnsFolder(), col2});
+        TreePath path = new TreePath(new Object[]{dbTree.getModel().getRoot(), db, schema, table, col1});
+        TreePath path2 = new TreePath(new Object[]{dbTree.getModel().getRoot(), db, schema, table, col2});
         dbTree.setSelectionPaths(new TreePath[]{path, path2, tablePath});
         
         Set<SQLObject> objectsToCopy = dbTree.findSQLObjectsToCopy();
@@ -271,8 +271,8 @@ public class TestDBTree extends TestCase {
         assertNotNull(col1);
         assertNotNull(col2);
         TreePath tablePath = new TreePath(new Object[]{dbTree.getModel().getRoot(), db, schema, table2});
-        TreePath path = new TreePath(new Object[]{dbTree.getModel().getRoot(), db, schema, table, table.getColumnsFolder(), col1});
-        TreePath path2 = new TreePath(new Object[]{dbTree.getModel().getRoot(), db, schema, table, table.getColumnsFolder(), col2});
+        TreePath path = new TreePath(new Object[]{dbTree.getModel().getRoot(), db, schema, table, col1});
+        TreePath path2 = new TreePath(new Object[]{dbTree.getModel().getRoot(), db, schema, table, col2});
         dbTree.setSelectionPaths(new TreePath[]{path, path2, tablePath});
         
         Set<SQLObject> objectsToCopy = dbTree.findSQLObjectsToCopy();

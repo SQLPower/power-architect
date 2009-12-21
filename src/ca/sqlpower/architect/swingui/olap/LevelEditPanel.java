@@ -222,7 +222,7 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
             columnChooser.addItem("Parent hierarchy table has no columns");
             columnChooser.setEnabled(false);
         } else {
-            columnChooser.setModel(new SQLObjectComboBoxModel(dimensionTable.getColumnsFolder()));
+            columnChooser.setModel(new SQLObjectComboBoxModel(dimensionTable, SQLColumn.class));
             for (SQLColumn col : dimensionTable.getColumns()) {
                 if (col.getName().equalsIgnoreCase(level.getColumn())) {
                     columnChooser.setSelectedItem(col);

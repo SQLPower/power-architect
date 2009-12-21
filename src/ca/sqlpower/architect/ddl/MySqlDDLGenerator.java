@@ -378,7 +378,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         print("PRIMARY KEY (");
 
         boolean firstCol = true;
-        for (SQLIndex.Column col : pk.getChildren()) {
+        for (SQLIndex.Column col : pk.getChildren(SQLIndex.Column.class)) {
             if (!firstCol) print(", ");
             print(col.getPhysicalName());
             firstCol = false;
@@ -430,7 +430,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             print(" USING " + index.getType());
         }
         print("\n ON ");
-        print(toQualifiedName(index.getParentTable()));
+        print(toQualifiedName(index.getParent()));
         print("\n ( ");
 
         boolean first = true;
@@ -510,7 +510,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     public void addColumn(SQLColumn c) {
         Map colNameMap = new HashMap();
         print("\nALTER TABLE ");
-        print(toQualifiedName(c.getParentTable()));
+        print(toQualifiedName(c.getParent()));
         print(" ADD COLUMN ");
         print(columnDefinition(c,colNameMap));
         
@@ -539,7 +539,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     @Override
     public void modifyColumn(SQLColumn c) {
         Map colNameMap = new HashMap();
-        SQLTable t = c.getParentTable();
+        SQLTable t = c.getParent();
         print("\nALTER TABLE ");
         print(toQualifiedName(t));
         print(" MODIFY COLUMN ");

@@ -32,7 +32,6 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.ArchitectSessionImpl;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -107,7 +106,7 @@ public class TestDBTreeModel extends TestCase {
         tm.setRefireEventsOnAnyThread(true);
 	}
 	
-    public void testRefireRelationshipMappingEvents() throws SQLObjectException {
+    public void testRefireRelationshipMappingEvents() throws Exception {
         SQLObject treeRoot = (SQLObject) tm.getRoot();
         SQLDatabase db = new SQLDatabase();
         db.setName("test database");
@@ -129,14 +128,14 @@ public class TestDBTreeModel extends TestCase {
         LoggingSwingTreeModelListener l = new LoggingSwingTreeModelListener();
         tm.addTreeModelListener(l);
 
-        r.removeChild(0);
+        r.removeChild(r.getChild(0));
         
         System.out.println(l);
         
         assertEquals(2, l.getRemoveCount());
         
-        TreePath expectPkPath = new TreePath(new Object[] { treeRoot, db, t, t.getExportedKeysFolder(), r });
-        TreePath expectFkPath = new TreePath(new Object[] { treeRoot, db, t, t.getImportedKeysFolder(), r });
+        TreePath expectPkPath = new TreePath(new Object[] { treeRoot, db, t, t.getExportedKeysWithoutPopulating(), r });
+        TreePath expectFkPath = new TreePath(new Object[] { treeRoot, db, t, t.getImportedKeysWithoutPopulating(), r });
         
         Set<TreePath> actualPaths = new HashSet<TreePath>();
         for (TreeModelEvent tme : l.getEventLog()) {

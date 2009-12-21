@@ -1203,6 +1203,11 @@ public class SwingUIProject extends CoreProject {
      * property manually.
      */
     private void saveSQLObject(PrintWriter out, SQLObject o) throws IOException, SQLObjectException {
+        if (o instanceof SQLRelationship.SQLImportedKey) {
+            // ImportedKeys only store the fkTable for a SQLRelationship, which
+            // is saved with the relationship for forward compatability.
+            return;
+        }
         String id = sqlObjectSaveIdMap.get(o);
         if (id != null) {
             ioo.println(out, "<reference ref-id=\""+SQLPowerUtils.escapeXML(id)+"\" />"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1215,6 +1220,7 @@ public class SwingUIProject extends CoreProject {
         // properties of all SQLObject types
         propNames.put("physicalName", o.getPhysicalName()); //$NON-NLS-1$
         propNames.put("name", o.getName()); // note: there was no name attrib for SQLDatabase, SQLRelationship.ColumnMapping, and SQLExceptionNode //$NON-NLS-1$
+        propNames.put("UUID", o.getUUID());
         
         if (o.getChildrenInaccessibleReason() != null) {
             propNames.put("sql-exception", o.getChildrenInaccessibleReason().getMessage()); //$NON-NLS-1$
@@ -1241,10 +1247,6 @@ public class SwingUIProject extends CoreProject {
             if (pm != null) {
                 pm.setProgress(++progress);
             }
-        } else if (o instanceof SQLTable.Folder) {
-            id = "FOL"+sqlObjectSaveIdMap.size(); //$NON-NLS-1$
-            type = "folder"; //$NON-NLS-1$
-            propNames.put("type", new Integer(((SQLTable.Folder) o).getType())); //$NON-NLS-1$
         } else if (o instanceof SQLColumn) {
             id = "COL"+sqlObjectSaveIdMap.size(); //$NON-NLS-1$
             type = "column"; //$NON-NLS-1$

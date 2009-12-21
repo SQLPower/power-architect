@@ -746,7 +746,7 @@ public class ProfilePDFFormat implements ProfileFormat {
             int alignment;
 
             if ( headings[colNo].equalsIgnoreCase("table name") ) {
-                String fqTableName = SQLObjectUtils.toQualifiedName(col.getParentTable(), SQLDatabase.class);
+                String fqTableName = SQLObjectUtils.toQualifiedName(col.getParent(), SQLDatabase.class);
                 if ( tProfile == null || tProfile.getException() != null) {
                     contents = fqTableName + "\nProfiling Error:\n";
                     if ( tProfile != null && tProfile.getException() != null ) {

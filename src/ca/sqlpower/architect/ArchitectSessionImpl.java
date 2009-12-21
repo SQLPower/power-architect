@@ -25,6 +25,7 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -135,11 +136,21 @@ public class ArchitectSessionImpl implements ArchitectSession {
     }
     public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
         SQLObject root = getRootObject();
-        while (root.getChildCount() > 0) {
-            root.removeChild(root.getChildCount() - 1);
-        }
-        for (SQLDatabase db : databases) {
-            root.addChild(db);
+        try {
+            root.begin("Setting source database list");
+            for (int i = root.getChildCount()-1; i >= 0; i--) {
+                root.removeChild(root.getChild(i));
+            }
+            for (SQLDatabase db : databases) {
+                root.addChild(db);
+            }
+            root.commit();
+        } catch (IllegalArgumentException e) {
+            root.rollback("Could not remove child: " + e.getMessage());
+            throw new RuntimeException(e);
+        } catch (ObjectDependentException e) {
+            root.rollback("Could not remove child: " + e.getMessage());
+            throw new RuntimeException(e);
         }
     }
     
@@ -176,8 +187,8 @@ public class ArchitectSessionImpl implements ArchitectSession {
 
     public SQLDatabase getDatabase(JDBCDataSource ds) {
         try {
-            for (SQLObject obj : (List<SQLObject>) rootObject.getChildren()) {
-                if (((SQLDatabase) obj).getDataSource().equals(ds)) {
+            for (SQLDatabase obj : rootObject.getChildren(SQLDatabase.class)) {
+                if (obj.getDataSource().equals(ds)) {
                     return (SQLDatabase) obj;
                 }
             }

@@ -40,16 +40,15 @@ import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.undo.CompoundEvent;
 import ca.sqlpower.sqlobject.undo.PropertyChangeEdit;
 import ca.sqlpower.sqlobject.undo.ArchitectPropertyChangeUndoableEditTest.TestSQLObject;
-import ca.sqlpower.sqlobject.undo.CompoundEvent.EventTypes;
+import ca.sqlpower.util.TransactionEvent;
 
 public class TestArchitectUndoManager extends TestCase {
     
@@ -316,16 +315,16 @@ public class TestArchitectUndoManager extends TestCase {
         pp.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", manager.getEventAdapter());
         pp.getPlayPenContentPane().addPropertyChangeListener("dashed", manager.getEventAdapter());
         pp.getPlayPenContentPane().addPropertyChangeListener("rounded", manager.getEventAdapter());
-        StateChangeTestListner listner = new StateChangeTestListner();
-        manager.addChangeListener(listner);
+        StateChangeTestListner listener = new StateChangeTestListner();
+        manager.addChangeListener(listener);
         ArchitectUndoManager.SQLObjectUndoableEventAdapter adapter = manager.getEventAdapter();
         assertTrue(adapter.canUndoOrRedo());
         
-        adapter.compoundEditStart(new CompoundEvent(EventTypes.COMPOUND_EDIT_START, "Test"));
-        assertEquals(" Improper number of state changes after first compound edit",1,listner.stateChanges);
+        adapter.transactionStarted(TransactionEvent.createStartTransactionEvent(null, "Test"));
+        assertEquals(" Improper number of state changes after first compound edit",1,listener.stateChanges);
         assertFalse(adapter.canUndoOrRedo());
-        adapter.compoundEditEnd(new CompoundEvent(EventTypes.COMPOUND_EDIT_END, "Test"));
-        assertEquals(" Improper number of state changes after first compound edit",2,listner.stateChanges);
+        adapter.transactionEnded(TransactionEvent.createEndTransactionEvent(null));
+        assertEquals(" Improper number of state changes after first compound edit",2,listener.stateChanges);
         assertTrue(adapter.canUndoOrRedo());
     }
     
@@ -455,6 +454,7 @@ public class TestArchitectUndoManager extends TestCase {
 
     public void testRedoCreateRelationship() throws SQLObjectException {
         testUndoCreateRelationship();
+        System.out.println(undoManager.toString());
         System.out.println("==REDOING==");
         undoManager.redo();
         

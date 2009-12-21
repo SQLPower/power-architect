@@ -38,6 +38,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.LockedColumnException;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -137,7 +138,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                         SQLIndex index = (SQLIndex) o;
                         o.getParent().removeChild(o);
                         List<SQLColumn> cols = new ArrayList<SQLColumn>();
-                        for (Column col : index.getChildren()) {
+                        for (Column col : index.getChildren(Column.class)) {
                             cols.add(col.getColumn());                            
                         }
                         for (SQLColumn col : cols) {
@@ -146,7 +147,12 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                             }
                         }
                     } else {
-                        o.getParent().removeChild(o);
+                        //Side effect of removing a relationship's parent table is to remove the relationship
+                        //causing this to fail if the relationship is removed immediately after.
+                        if (o.getParent() != null && 
+                                o.getParent().getChildrenWithoutPopulating().contains(o)) {
+                            o.getParent().removeChild(o);
+                        }
                     }
                 } catch (LockedColumnException ex) {
                     int decision = JOptionPane.showConfirmDialog(playpen,
@@ -156,7 +162,9 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                     if (decision == JOptionPane.NO_OPTION) {
                         return;
                     }
-                } catch (SQLObjectException e) {
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeException(e);
+                } catch (ObjectDependentException e) {
                     throw new RuntimeException(e);
                 } 
             }
@@ -191,7 +199,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
         for (ListIterator<SQLObject> it = deleteItems.listIterator(); it.hasNext(); ) {
             SQLObject item = it.next();
             if (item instanceof SQLColumn) {
-                tablesWithSelectedColumns.add(((SQLColumn) item).getParentTable());
+                tablesWithSelectedColumns.add(((SQLColumn) item).getParent());
             } else if (item instanceof SQLTable) {
                 // ok
             } else if (item instanceof SQLRelationship) {

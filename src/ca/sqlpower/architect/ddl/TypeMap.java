@@ -246,7 +246,7 @@ public class TypeMap {
 	 * @return
 	 */
 	protected List getRules (SQLColumn col) {
-		SQLDatabase database = col.getParentTable().getParentDatabase();
+		SQLDatabase database = col.getParent().getParentDatabase();
 		List mappingRules = null; 
 		List applicableRules = new ArrayList();
 		if (database != null) {

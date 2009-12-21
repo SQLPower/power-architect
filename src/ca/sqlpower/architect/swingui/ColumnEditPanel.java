@@ -29,7 +29,6 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,16 +60,17 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectListener;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.SQLPowerUtils;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -424,7 +424,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         colPhysicalName.requestFocus();
         colPhysicalName.selectAll();
         
-        SQLObjectUtils.listenToHierarchy(obsolesenceListener, session.getRootObject());
+        SQLPowerUtils.listenToHierarchy(session.getRootObject(), obsolesenceListener);
         panel.addAncestorListener(cleanupListener);
     }
 
@@ -466,7 +466,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
             
             sourceLabel.setText(
                     DDLUtils.toQualifiedName(
-                            sourceColumn.getParentTable()) + "." + sourceColumn.getName());
+                            sourceColumn.getParent()) + "." + sourceColumn.getName());
         }
         
         updateComponent(colLogicalName, col.getName());
@@ -482,7 +482,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         updateComponent(colDefaultValue, col.getDefaultValue());
         
         boolean inPk;
-        if (col.getParentTable() == null) {
+        if (col.getParent() == null) {
             inPk = SQLColumn.isDefaultInPK(); // XXX looks fishy--how can a column be in the PK if it has no parent table?
             logger.debug("new constructed column");
         } else {
@@ -643,7 +643,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         SQLObject compoundEditRoot = SQLObjectUtils.findCommonAncestor(columns);
         logger.debug("Compound edit root is " + compoundEditRoot);
         try {
-            compoundEditRoot.startCompoundEdit(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
+            compoundEditRoot.begin(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
             
             for (SQLColumn column : columns) {
                 if (componentEnabledMap.get(colLogicalName).isSelected()) {
@@ -692,7 +692,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                 
                 if (componentEnabledMap.get(colInPK).isSelected()) {
                     if (column.getPrimaryKeySeq() == null) {
-                        column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getParentTable().getPkSize()) : null);
+                        column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getParent().getPkSize()) : null);
                     } else {
                         column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getPrimaryKeySeq()) : null);
                     }
@@ -703,7 +703,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                 }
             }
         } finally {
-            compoundEditRoot.endCompoundEdit(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
+            compoundEditRoot.commit();
         }
         return errors;
     }
@@ -843,8 +843,9 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      * column that is no longer in the model). When this editor is deemed
      * obsolete, it looks for its nearest Window ancestor and disposes it.
      */
-    private final SQLObjectListener obsolesenceListener = new SQLObjectListener() {
-        public void dbChildrenInserted(SQLObjectEvent e) {
+    private final SPListener obsolesenceListener = new AbstractSPListener() {
+        @Override
+        public void childAddedImpl(SPChildEvent e) {
             logger.debug("SQLObject children got inserted: " + e); //$NON-NLS-1$
         }
 
@@ -852,22 +853,17 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
          * Checks to see if any of the columns being edited was just removed from
          * the playpen. If yes, disposes the enclosing window.
          */
-        public void dbChildrenRemoved(SQLObjectEvent e) {
+        @Override
+        public void childRemovedImpl(SPChildEvent e) {
             logger.debug("SQLObject children got removed: " + e); //$NON-NLS-1$
-            List<SQLObject> removedChildren = Arrays.asList(e.getChildren());
-
             for (SQLColumn column : columns) {
-                if (removedChildren.contains(column) || removedChildren.contains(column.getParentTable())) {
+                if (e.getChild().equals(column) || e.getChild().equals(column.getParent())) {
                     Window parentWindow = SwingUtilities.getWindowAncestor(panel);
                     if (parentWindow != null) {
                         parentWindow.dispose();
                     }
                 }
             }
-        }
-
-        public void dbObjectChanged(SQLObjectEvent e) {
-
         }
 
     };
@@ -883,11 +879,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         public void ancestorMoved(AncestorEvent event) { /* don't care */ }
 
         public void ancestorRemoved(AncestorEvent event) {
-            try {
-                SQLObjectUtils.unlistenToHierarchy(obsolesenceListener, session.getRootObject());
-            } catch (SQLObjectException e) {
-                throw new SQLObjectRuntimeException(e);
-            }
+            SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), obsolesenceListener);
         }
     };
     

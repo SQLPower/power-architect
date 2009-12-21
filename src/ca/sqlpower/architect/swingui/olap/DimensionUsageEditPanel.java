@@ -82,7 +82,7 @@ public class DimensionUsageEditPanel implements DataEntryPanel{
             foreignKeyChooser.addItem("Parent Cube Fact table has no columns");
             foreignKeyChooser.setEnabled(false);
         } else {
-            foreignKeyChooser.setModel(new SQLObjectComboBoxModel(factTable.getColumnsFolder()));
+            foreignKeyChooser.setModel(new SQLObjectComboBoxModel(factTable, SQLColumn.class));
             for (SQLColumn col : factTable.getColumns()) {
                 if (col.getName().equals(dimensionUsage.getForeignKey())) {
                     foreignKeyChooser.setSelectedItem(col);

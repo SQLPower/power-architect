@@ -32,6 +32,7 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,15 +59,14 @@ import ca.sqlpower.architect.InsertionPointWatcher;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.LockedColumnException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectListener;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
-import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
@@ -74,6 +74,8 @@ import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
+import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
 public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
@@ -122,7 +124,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
     private boolean fullyQualifiedNameInHeader = false;
 
-    SQLObjectListener columnListener = new ColumnListener();
+    SPListener columnListener = new ColumnListener();
 
     public TablePane(TablePane tp, PlayPenContentPane parent) {
 		super(parent);
@@ -202,16 +204,12 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	 * destroyed separately of the model.
 	 */
 	public void destroy() {
-		try {
-			SQLObjectUtils.unlistenToHierarchy(columnListener, model);
-		} catch (SQLObjectException e) {
-			logger.error("Caught exception while unlistening to all children", e); //$NON-NLS-1$
-		}
+	    SQLPowerUtils.unlistenToHierarchy(model, columnListener);
 	}
 
 	// -------------------- sqlobject event support ---------------------
 
-    private class ColumnListener implements SQLObjectListener {
+    private class ColumnListener implements SPListener {
 
         /**
          * The column that was most recently removed from this table while it
@@ -235,39 +233,27 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
          * this widget, we will notify all change listeners (the UI
          * delegate) with a PropertyChangeEvent.
          */
-        public void dbChildrenInserted(SQLObjectEvent e) {
-            if (e.getSource() == getModel().getColumnsFolder()) {
-                int ci[] = e.getChangedIndices();
-
+        public void childAdded(SPChildEvent e) {
+            if (e.getSource() == getModel() && e.getChildType() == SQLColumn.class) {
                 if (logger.isDebugEnabled()) {
-                    StringBuffer sb = new StringBuffer();
-                    for (int i : ci) {
-                        sb.append(i).append(' ');
-                    }
-                    logger.debug("Columns inserted. Syncing select/highlight lists. New indices=["+sb+"]"); //$NON-NLS-1$ //$NON-NLS-2$
+                    logger.debug("Column inserted. Syncing select/highlight lists. New index="+e.getIndex()); //$NON-NLS-1$ //$NON-NLS-2$
                 }
-                for (int i = 0; i < ci.length; i++) {
-                    boolean wasSelectedPreviously = (e.getChildren()[i] == mostRecentSelectedRemoval);
-                    final SQLColumn column = (SQLColumn) e.getChildren()[i];
-                    if (wasSelectedPreviously) {
-                        deselectItem(mostRecentSelectedReplacement);
-                        selectItem(e.getChangedIndices()[i]);
-                        logger.debug("Restored most recent selection");
-                    } else {
-                        logger.debug("Was not the most recent selection; not restoring");
-                    }
-                    // This is only supposed to work if we deselect the columns before selecting them
-                    // this if stops the insert from wiping out a highlighted column
-                    if (columnHighlight.get(column) == null) {
-                        columnHighlight.put(column, new ArrayList<Color>());
-                    }
+                boolean wasSelectedPreviously = (e.getChild() == mostRecentSelectedRemoval);
+                final SQLColumn column = (SQLColumn) e.getChild();
+                if (wasSelectedPreviously) {
+                    deselectItem(mostRecentSelectedReplacement);
+                    selectItem(e.getIndex());
+                    logger.debug("Restored most recent selection");
+                } else {
+                    logger.debug("Was not the most recent selection; not restoring");
+                }
+                // This is only supposed to work if we deselect the columns before selecting them
+                // this if stops the insert from wiping out a highlighted column
+                if (columnHighlight.get(column) == null) {
+                    columnHighlight.put(column, new ArrayList<Color>());
                 }
             }
-            try {
-                SQLObjectUtils.listenToHierarchy(this, e.getChildren());
-            } catch (SQLObjectException ex) {
-                logger.error("Caught exception while listening to added children", ex); //$NON-NLS-1$
-            }
+            SQLPowerUtils.listenToHierarchy(e.getChild(), this);
             
             updateHiddenColumns();
             firePropertyChange("model.children", null, null); //$NON-NLS-1$
@@ -280,43 +266,32 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
          * this widget, we will notify all change listeners (the UI
          * delegate) with a PropertyChangeEvent.
          */
-        public void dbChildrenRemoved(SQLObjectEvent e) {
-            if (e.getSource() == model.getColumnsFolder()) {
-                int ci[] = e.getChangedIndices();
+        public void childRemoved(SPChildEvent e) {
+            if (e.getSource() == model && e.getChild() instanceof SQLColumn) {
                 if (logger.isDebugEnabled()) {
-                    StringBuffer sb = new StringBuffer();
-                    for (int i : ci) {
-                        sb.append(i).append(' ');
-                    }
-                    logger.debug("Columns removed. Syncing select/highlight lists. Removed indices=["+sb+"]"); //$NON-NLS-1$ //$NON-NLS-2$
+                    logger.debug("Column removed. Syncing select/highlight lists. Removed index="+e.getIndex()); //$NON-NLS-1$ //$NON-NLS-2$
                 }
-                for (int i = 0; i < ci.length; i++) {
-                    SQLColumn removedCol = (SQLColumn) e.getChildren()[i];
-                    if (isItemSelected(removedCol)) {
-                        int removedIdx = e.getChangedIndices()[i];
-                        deselectItem(removedCol);
-                        mostRecentSelectedRemoval = removedCol;
-                        if (getItems().isEmpty()) {
-                            mostRecentSelectedReplacement = null;
-                        } else {
-                            mostRecentSelectedReplacement = getItems().get(Math.min(removedIdx, getItems().size() - 1));
-                        }
-                        selectItem(mostRecentSelectedReplacement);
-                        logger.debug("Remembering as most recent selection: " + mostRecentSelectedRemoval);
+                SQLColumn removedCol = (SQLColumn) e.getChild();
+                if (isItemSelected(removedCol)) {
+                    int removedIdx = e.getIndex();
+                    deselectItem(removedCol);
+                    mostRecentSelectedRemoval = removedCol;
+                    if (getItems().isEmpty()) {
+                        mostRecentSelectedReplacement = null;
                     } else {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Not remembering as recent selection. Selected items: " + getSelectedItems());
-                        }
+                        mostRecentSelectedReplacement = getItems().get(Math.min(removedIdx, getItems().size() - 1));
+                    }
+                    selectItem(mostRecentSelectedReplacement);
+                    logger.debug("Remembering as most recent selection: " + mostRecentSelectedRemoval);
+                } else {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Not remembering as recent selection. Selected items: " + getSelectedItems());
                     }
                 }
             }
             
             // no matter where the event came from, we should no longer be listening to the removed children
-            try {
-                SQLObjectUtils.unlistenToHierarchy(this, e.getChildren());
-            } catch (SQLObjectException ex) {
-                throw new SQLObjectRuntimeException(ex);
-            }
+            SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
 //            updateNameDisplay();
             updateHiddenColumns();
             firePropertyChange("model.children", null, null); //$NON-NLS-1$
@@ -329,7 +304,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
          * this widget, we will notify all change listeners (the UI
          * delegate) with a ChangeEvent.
          */
-        public void dbObjectChanged(SQLObjectEvent e) {
+        public void propertyChange(PropertyChangeEvent e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("TablePane got object changed event." + //$NON-NLS-1$
                         "  Source="+e.getSource()+" Property="+e.getPropertyName()+ //$NON-NLS-1$ //$NON-NLS-2$
@@ -340,6 +315,18 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             updateHiddenColumns();
             firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
             //repaint();
+        }
+
+        public void transactionEnded(TransactionEvent e) {
+            // no-op
+        }
+
+        public void transactionRollback(TransactionEvent e) {
+            // no-op            
+        }
+
+        public void transactionStarted(TransactionEvent e) {
+            // no-op            
         }
 
     }
@@ -368,11 +355,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			logger.error("Error getting children on new model", e); //$NON-NLS-1$
 		}
 
-		try {
-			SQLObjectUtils.listenToHierarchy(columnListener, model);
-		} catch (SQLObjectException e) {
-			logger.error("Caught exception while listening to new model", e); //$NON-NLS-1$
-		}
+		SQLPowerUtils.listenToHierarchy(model, columnListener);
 	}
 
 	@Override
@@ -513,19 +496,19 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			} else if (someData instanceof SQLColumn) {
 			    SQLColumn col = (SQLColumn) someData;
 			    if (deleteSource) {
-			        if (col.getParentTable() == getModel()) {
+			        if (col.getParent() == getModel()) {
 			            // moving column inside the same table
-			            int oldIndex = col.getParentTable().getColumns().indexOf(col);
+			            int oldIndex = col.getParent().getColumns().indexOf(col);
 			            if (insertionPoint > oldIndex) {
 			                insertionPoint--;
 			            }
 			            getModel().changeColumnIndex(oldIndex, insertionPoint, newColumnsInPk);
-			        } else if (col.getParentTable().getParentDatabase() == getModel().getParentDatabase()) {
+			        } else if (col.getParent().getParentDatabase() == getModel().getParentDatabase()) {
 			            // moving column within playpen
 
-			            InsertionPointWatcher<SQLTable.Folder<SQLColumn>> ipWatcher =
-			                new InsertionPointWatcher<SQLTable.Folder<SQLColumn>>(getModel().getColumnsFolder(), insertionPoint);
-			            col.getParentTable().removeColumn(col);
+			            InsertionPointWatcher<SQLTable> ipWatcher =
+			                new InsertionPointWatcher<SQLTable>(getModel(), insertionPoint, SQLColumn.class);
+			            col.getParent().removeColumn(col);
 			            ipWatcher.dispose();
 
 			            if (logger.isDebugEnabled()) {
@@ -533,11 +516,11 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			                        +"' to table '"+getModel().getName() //$NON-NLS-1$
 			                        +"' at position "+ipWatcher.getInsertionPoint()); //$NON-NLS-1$
 			            }
-			            getModel().addColumn(ipWatcher.getInsertionPoint(), col);
+			            getModel().addColumn(col, ipWatcher.getInsertionPoint());
 			            // You need to disable the normalization otherwise it goes around
 			            // the property change events and causes undo to fail when dragging
 			            // into the primary key of a table
-			            logger.debug("Column listeners are " + col.getSQLObjectListeners());
+			            logger.debug("Column listeners are " + col.getSPListeners());
 
 			            if (newColumnsInPk) {
 			                col.setPrimaryKeySeq(new Integer(ipWatcher.getInsertionPoint()), false);
@@ -784,7 +767,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
 
             //Check to see if the drag and drop will change the current relationship
-            List<SQLRelationship> importedKeys = getModel().getImportedKeys();
+            List<SQLRelationship> importedKeys = SQLRelationship.getExportedKeys(getModel().getImportedKeys());
 
             boolean newColumnsInPk = false;
             if (insertionPoint == TablePane.COLUMN_INDEX_END_OF_PK) {
@@ -920,7 +903,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
     public List<LayoutEdge> getInboundEdges() {
         try {
-            List<SQLRelationship> relationships = getModel().getImportedKeys();
+            List<SQLRelationship> relationships = SQLRelationship.getExportedKeys(getModel().getImportedKeys());
             List<LayoutEdge> edges = new ArrayList<LayoutEdge>();
             for (SQLRelationship r : relationships) {
                 edges.add(getPlayPen().findRelationship(r));
@@ -1018,7 +1001,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
         try {
-            if (model != null && model.getIndicesFolder().getChildCount() > 0) {
+            if (model != null && model.getIndices().size() > 0) {
                 JMenu menu = new JMenu(Messages.getString("TablePane.indexPropertiesMenu")); //$NON-NLS-1$
                 menu.setIcon(SPSUtils.createIcon("edit_index", Messages.getString("TablePane.editIndexTooltip"), ArchitectSwingSessionContext.ICON_SIZE)); //$NON-NLS-1$ //$NON-NLS-2$
                 for (SQLIndex index : model.getIndices()) {
@@ -1144,7 +1127,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                         List<PlayPenComponent> selection = getPlayPen().getSelectedItems();
                         if (selection.size() == 1) {
                             TablePane tp = (TablePane) selection.get(0);
-                            JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JList(tp.getModel().getSQLObjectListeners().toArray())));
+                            JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JList(tp.getModel().getSPListeners().toArray())));
                         } else {
                             JOptionPane.showMessageDialog(getPlayPen(), "You can only show listeners on one item at a time"); //$NON-NLS-1$
                         }

@@ -35,6 +35,7 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,19 +48,20 @@ import javax.swing.table.TableColumn;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.ObjectDependentException;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
-import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectEvent;
-import ca.sqlpower.sqlobject.SQLObjectListener;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
-import ca.sqlpower.sqlobject.SQLTable.Folder;
 import ca.sqlpower.swingui.table.CleanupTableModel;
 import ca.sqlpower.swingui.table.EditableJTable;
+import ca.sqlpower.util.TransactionEvent;
 
 /**
  * This class will be used to display the columns that are contained in an
@@ -72,7 +74,7 @@ public class IndexColumnTable {
     /**
      * This is package private for testing purposes.
      */
-    class IndexColumnTableModel extends AbstractTableModel implements CleanupTableModel, SQLObjectListener {
+    class IndexColumnTableModel extends AbstractTableModel implements CleanupTableModel, SPListener {
 
         /**
          * This List contains all of the Row objects in the table. Refer to the
@@ -86,12 +88,8 @@ public class IndexColumnTable {
          * removes corresponding rows as appropriate.
          */
         private final SQLIndex index;
-
-        /**
-         * The folder that contains all of the SQLColumns represented
-         * by this table.
-         */
-        private final Folder<SQLColumn> columnsFolder;
+        
+        private final SQLTable table;
 
         /**
          * A listener that will listen for changes to the actual SQLIndex
@@ -116,7 +114,7 @@ public class IndexColumnTable {
             this.index = index;
             this.actualIndex = actualIndex;
             this.rowList = new ArrayList<Row>();
-            columnsFolder = parent.getColumnsFolder();
+            this.table = parent;
             indexListener = new ActualIndexListener();
             setUpListeners();
             populateModel();
@@ -128,14 +126,10 @@ public class IndexColumnTable {
          * folder as well as all the SQLColumns in that folder
          */
         private void setUpListeners (){
-            columnsFolder.addSQLObjectListener(this);
-            this.actualIndex.addSQLObjectListener(indexListener);
-            try {
-                for (int i = 0; i < columnsFolder.getChildCount(); i++) {
-                    columnsFolder.getChild(i).addSQLObjectListener(this);
-                }
-            } catch (SQLObjectException e) {
-                throw new SQLObjectRuntimeException(e);
+            table.addSPListener(this);
+            this.actualIndex.addSPListener(indexListener);
+            for (SQLColumn child : table.getChildren(SQLColumn.class)) {
+                child.addSPListener(this);
             }
         }
 
@@ -144,19 +138,13 @@ public class IndexColumnTable {
          * that if the user modifies the SQLIndex from the pp, the table will
          * also be updated with the proper changes.
          */
-        private class ActualIndexListener implements SQLObjectListener {
+        private class ActualIndexListener extends AbstractSPListener {
 
-            public void dbChildrenInserted(SQLObjectEvent e) {
+            @Override
+            protected void transactionEndedImpl(TransactionEvent e) {
                 repopulateModel();
             }
-
-            public void dbChildrenRemoved(SQLObjectEvent e) {
-                repopulateModel();
-            }
-
-            public void dbObjectChanged(SQLObjectEvent e) {
-            }
-
+            
         }
         
         /**
@@ -190,6 +178,10 @@ public class IndexColumnTable {
                 index.makeColumnsLike(actualIndex);
             } catch (SQLObjectException ex) {
                 throw new SQLObjectRuntimeException(ex);
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException(e);
+            } catch (ObjectDependentException e) {
+                throw new RuntimeException(e);
             }
             for (int i = rowList.size() - 1; i >= 0; i--) {
                 rowList.remove(i);
@@ -202,22 +194,17 @@ public class IndexColumnTable {
          * This populates the model will all the SQLColumns
          */
         private void populateModel() {
-            try {
-                for (Column indexCol : index.getChildren()) {
-                    if (indexCol.getColumn() != null) { 
-                        rowList.add(new Row(true, indexCol.getColumn(), indexCol.getAscendingOrDescending()));
-                    } else {
-                        rowList.add(new Row(true, indexCol, indexCol.getAscendingOrDescending()));
-                    }
+            for (Column indexCol : index.getChildren(Column.class)) {
+                if (indexCol.getColumn() != null) { 
+                    rowList.add(new Row(true, indexCol.getColumn(), indexCol.getAscendingOrDescending()));
+                } else {
+                    rowList.add(new Row(true, indexCol, indexCol.getAscendingOrDescending()));
                 }
-                for (Object so : columnsFolder.getChildren()) {
-                    SQLColumn col = (SQLColumn) so;
-                    if (!containsColumn(col)) {
-                        rowList.add(new Row(false, col, AscendDescend.UNSPECIFIED));
-                    }
+            }
+            for (SQLColumn col : table.getChildren(SQLColumn.class)) {
+                if (!containsColumn(col)) {
+                    rowList.add(new Row(false, col, AscendDescend.UNSPECIFIED));
                 }
-            } catch (SQLObjectException e) {
-                throw new SQLObjectRuntimeException(e);
             }
         }
 
@@ -276,15 +263,11 @@ public class IndexColumnTable {
          * actual JTable, such that all the listeners can be removed.
          */
         public void cleanup() {
-            try {
-                for (int i = 0; i < columnsFolder.getChildCount(); i++) {
-                    columnsFolder.getChild(i).removeSQLObjectListener(this);
-                }
-            } catch (SQLObjectException e) {
-                throw new SQLObjectRuntimeException(e);
+            for (SQLColumn child : table.getChildren(SQLColumn.class)) {
+                child.removeSPListener(this);
             }
-            columnsFolder.removeSQLObjectListener(this);
-            this.actualIndex.removeSQLObjectListener(indexListener);
+            table.removeSPListener(this);
+            this.actualIndex.removeSPListener(indexListener);
         }
 
         public int getColumnCount() {
@@ -320,43 +303,52 @@ public class IndexColumnTable {
             fireTableCellUpdated(row, col);
         }
 
-        public void dbChildrenInserted(SQLObjectEvent e) {
-            for (SQLObject so : e.getChildren()) {
-                SQLColumn col = (SQLColumn) so;
-                // Do not forget to add a listener to the newly added column.
-                col.addSQLObjectListener(this);
-                rowList.add(new Row(false, col, AscendDescend.UNSPECIFIED));
+        public void childAdded(SPChildEvent e) {
+            if (!e.getClass().equals(SQLColumn.class)) return;
+            
+            // Do not forget to add a listener to the newly added column.
+            e.getChild().addSPListener(this);
+            rowList.add(new Row(false, (Column) e.getChild(), AscendDescend.UNSPECIFIED));
+        }
+
+        public void childRemoved(SPChildEvent e) {
+            if (!e.getClass().equals(SQLColumn.class)) return;
+            
+            int rowToRemove = -1;
+            int i = 0;
+            SQLColumn removedCol = (SQLColumn) e.getChild();
+            // also removed the listener off the removed object.
+            removedCol.removeSPListener(this);
+            for (Row row : rowList) {
+                SQLColumn currentCol = row.getSQLColumn();
+                if (currentCol == removedCol) {
+                    rowToRemove = i;
+                    break;
+                }
+                i++;
             }
+
+            if (rowToRemove == -1) {
+                throw new IllegalStateException("SQLTable's column " + removedCol + " was just removed, but it " + //$NON-NLS-1$ //$NON-NLS-2$
+                "wasn't in the index table model. Creepy!"); //$NON-NLS-1$
+            }
+            rowList.remove(rowToRemove);
+        }
+        
+        public void transactionEnded(TransactionEvent e) {
             fireTableDataChanged();
         }
 
-        public void dbChildrenRemoved(SQLObjectEvent e) {
-            for (SQLObject so : e.getChildren()) {
-                int rowToRemove = -1;
-                int i = 0;
-                SQLColumn removedCol = (SQLColumn) so;
-                // also removed the listner off the removed object.
-                removedCol.removeSQLObjectListener(this);
-                for (Row row : rowList) {
-                    SQLColumn currentCol = row.getSQLColumn();
-                    if (currentCol == removedCol) {
-                        rowToRemove = i;
-                        break;
-                    }
-                    i++;
-                }
-
-                if (rowToRemove == -1) {
-                    throw new IllegalStateException("SQLTable's column " + removedCol + " was just removed, but it " + //$NON-NLS-1$ //$NON-NLS-2$
-                            "wasn't in the index table model. Creepy!"); //$NON-NLS-1$
-                }
-                rowList.remove(rowToRemove);
-            }
-            fireTableDataChanged();
+        public void propertyChange(PropertyChangeEvent e) {
+            // no-op
         }
-
-        public void dbObjectChanged(SQLObjectEvent e) {
-            fireTableDataChanged();
+        
+        public void transactionStarted(TransactionEvent e) {
+            // no=op
+        }
+        
+        public void transactionRollback(TransactionEvent e) {
+            // no-op
         }
 
     }
@@ -491,7 +483,7 @@ public class IndexColumnTable {
         try {
             //First remove all the children of the index
             for (int i = index.getChildCount() - 1; i >= 0; i--) {
-                index.removeChild(i);// remove all current children
+                index.removeChild(index.getChildren().get(i));// remove all current children
             }
             for(Row r : model.getRowList()) {
                 if (r.isEnabled()){
@@ -506,6 +498,10 @@ public class IndexColumnTable {
 
         } catch (SQLObjectException e) {
             throw new SQLObjectRuntimeException(e);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        } catch (ObjectDependentException e) {
+            throw new RuntimeException(e);
         }
     }
 
