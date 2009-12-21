@@ -397,7 +397,11 @@ public class KettleJob implements Monitorable {
         for (TransMeta transMeta : transformations) {
             File file = new File(getTransFilePath(transMeta.getName()));
             transMeta.setFilename(file.getName());
-            outputs.put(file, transMeta.getXML());
+            try {
+                outputs.put(file, transMeta.getXML());
+            } catch (KettleException e) {
+                throw new RuntimeException(e);
+            }
             if (monitor.isCancelled()) {
                 cancel();
                 return;
@@ -544,7 +548,8 @@ public class KettleJob implements Monitorable {
                 //This is done here so we know where the files are being saved and that they are saved
                 for (int i = 1; i < jm.nrJobEntries(); i++) {
                     JobEntryTrans trans = (JobEntryTrans) (jm.getJobEntry(i).getEntry());
-                    trans.setDirectory(directory);
+                    trans.setDirectory(directory.getDirectoryName());
+                    trans.setDirectoryPath(directory.getPath());
                 }
 
                 jm.setDirectory(directory);
