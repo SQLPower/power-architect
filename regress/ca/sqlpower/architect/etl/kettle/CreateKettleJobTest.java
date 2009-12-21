@@ -238,15 +238,15 @@ public class CreateKettleJobTest extends TestCase {
         }
     }
     
-    public void testOutputToXMLCancel() throws IOException {
+    public void testOutputToXMLCancel() throws Exception {
         outputToXMLTesting(UserPromptResponse.CANCEL, true);
     }
 
-    public void testOutputToXMLFileValidatorWriteOk() throws IOException {
+    public void testOutputToXMLFileValidatorWriteOk() throws Exception {
         outputToXMLTesting(UserPromptResponse.OK, false);
     }
     
-    public void testOutputToXMLFileValidatorWriteNotOk() throws IOException {
+    public void testOutputToXMLFileValidatorWriteNotOk() throws Exception {
         outputToXMLTesting(UserPromptResponse.NOT_OK, true);
     }
     
@@ -392,7 +392,7 @@ public class CreateKettleJobTest extends TestCase {
      * the outputToXML file.
      * @throws IOException
      */
-    private void outputToXMLTesting(final UserPromptResponse fvr, boolean checkOriginalXML) throws IOException {
+    private void outputToXMLTesting(final UserPromptResponse fvr, boolean checkOriginalXML) throws Exception {
         TransMeta transMeta = createTransMeta();
         JobMeta job = createJobMeta();
         

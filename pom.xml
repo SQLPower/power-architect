@@ -5,7 +5,7 @@
 	<groupId>ca.sqlpower</groupId>
 	<artifactId>power-architect</artifactId>
 	<packaging>jar</packaging>
-	<version>0.9.12-SNAPSHOT</version>
+	<version>0.9.14-SNAPSHOT</version>
 	<name>power-architect</name>
 	<url>http://code.google.com/p/power-architect</url>
 
@@ -151,7 +151,7 @@
 	              <configuration>
 	                 <izpackBasedir>installer</izpackBasedir>
 	                 <descriptor>ext-tools-home/izpack/install.xml</descriptor>
-	                 <installerFile>dist/Architect-Setup-Windows-jdbc-${project.version}</installerFile>
+	                 <installerFile>dist/Architect-Setup-Windows-jdbc-${project.version}.jar</installerFile>
 	              </configuration>
 	            </execution>
 	          </executions>
@@ -222,17 +222,38 @@
 			<scope>test</scope>
 		</dependency>
 		
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>1.4</version>
+            <scope>test</scope>
+        </dependency>
+		
 		<dependency>
-			<groupId>org.pentaho.di</groupId>
+			<groupId>pentaho.kettle</groupId>
 			<artifactId>kettle-engine</artifactId>
-			<version>3.0</version>
+			<version>3.2.2</version>
 			<scope>compile</scope>
 		</dependency>
 		
 		<dependency>
-			<groupId>mondrian</groupId>
+            <groupId>pentaho.kettle</groupId>
+            <artifactId>kettle-core</artifactId>
+            <version>3.2.2</version>
+            <scope>compile</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>pentaho.kettle</groupId>
+            <artifactId>kettle-db</artifactId>
+            <version>3.2.2</version>
+            <scope>compile</scope>
+        </dependency>
+		
+		<dependency>
+			<groupId>pentaho</groupId>
 			<artifactId>mondrian</artifactId>
-			<version>3.0.3.11016</version>
+			<version>3.0.3</version>
 			<scope>compile</scope>
 		</dependency>
 		
@@ -293,4 +314,10 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<repositories>
+        <repository>
+            <id>pentaho-repo</id>
+            <url>http://repo.pentaho.org/artifactory/pentaho/</url>
+        </repository>
+	</repositories>
 </project>

@@ -24,7 +24,6 @@
 	<classpathentry kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon-1.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart-1.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/kettle-engine-3.0.jar"/>
 	<classpathentry kind="lib" path="lib/log4j.jar"/>
 	<classpathentry kind="lib" path="lib/mail.jar"/>
 	<classpathentry kind="lib" path="osx_packaging_utils/osx_adapter.jar"/>
@@ -39,5 +38,8 @@
 	<classpathentry kind="lib" path="lib/commons-io-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/velocity-tools-generic-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/jsr305.jar"/>
+	<classpathentry kind="lib" path="lib/kettle-engine-3.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/kettle-core-3.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/kettle-db-3.2.2.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
