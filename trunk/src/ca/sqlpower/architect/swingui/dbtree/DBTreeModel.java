@@ -48,9 +48,14 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
 
+/**
+ * A tree model that displays {@link SQLObject}s contained in a {@link SQLObjectRoot}.
+ * Each object is displayed as is and will not cause the {@link SQLObject}s to populate.
+ */
 public class DBTreeModel implements TreeModel, java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(DBTreeModel.class);
@@ -141,6 +146,11 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 
         public void removeDependency(SPObject dependency) {
             //do nothing
+        }
+        
+        @Override
+        public boolean isPopulated() {
+            return parentTable.isPopulated();
         }
 	    
 	}
@@ -570,6 +580,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             folderList.add(SQLColumnFolder);
             FolderNode SQLRelationshipFolder = new FolderNode(table, SQLRelationship.class);
             folderList.add(SQLRelationshipFolder);
+            FolderNode SQLImportedKeys = new FolderNode(table, SQLImportedKey.class);
+            folderList.add(SQLImportedKeys);
             FolderNode SQLIndexFolder = new FolderNode(table, SQLIndex.class);
             folderList.add(SQLIndexFolder);
         }
