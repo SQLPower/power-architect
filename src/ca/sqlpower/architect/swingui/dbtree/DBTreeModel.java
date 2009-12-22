@@ -166,15 +166,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 logger.debug("dbChildrenInserted. source="+e.getSource() //$NON-NLS-1$
                         +" index: "+e.getIndex() //$NON-NLS-1$
                         +" child: "+e.getChild()); //$NON-NLS-1$
-                if (e.getSource() instanceof SQLRelationship) {
-                    SQLRelationship r = (SQLRelationship) e.getSource();
-                    logger.debug("dbChildrenInserted SQLObjectEvent: "+e //$NON-NLS-1$
-                                 +"; pk path="+Arrays.asList(getPkPathToRelationship(r)) //$NON-NLS-1$
-                                 +"; fk path="+Arrays.asList(getFkPathToRelationship(r))); //$NON-NLS-1$
-                } else {
-                    logger.debug("dbChildrenInserted SQLObjectEvent: "+e //$NON-NLS-1$
-                                 +"; tree path="+Arrays.asList(getPathToNode(e.getSource()))); //$NON-NLS-1$
-                }
+                logger.debug("dbChildrenInserted SQLObjectEvent: "+e //$NON-NLS-1$
+                        +"; tree path="+Arrays.asList(getPathToNode(e.getSource()))); //$NON-NLS-1$
             }
             SQLPowerUtils.listenToHierarchy(e.getChild(), this);
             
@@ -246,21 +239,15 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             Set<TreeModelEvent> events = new HashSet<TreeModelEvent>();
             SPObject parent = change.getSource();
             SPObject child = change.getChild();
-            if (parent instanceof SQLRelationship) {
-                // SQLRelationships are in the tree twice, must fire two events
-                events.add(new TreeModelEvent(DBTreeModel.this, getPkPathToRelationship((SQLRelationship) parent), new int[]{change.getIndex()}, new Object[]{child}));
-                events.add(new TreeModelEvent(DBTreeModel.this, getFkPathToRelationship((SQLRelationship) parent), new int[]{change.getIndex()}, new Object[]{child}));
-            } else {
-                if (parent instanceof SQLTable) {
-                    for (FolderNode folder : foldersInTables.get(parent)) {
-                        if (folder.getContainingChildType().isAssignableFrom(child.getClass())) {
-                            parent = folder;
-                            break;
-                        }
+            if (parent instanceof SQLTable) {
+                for (FolderNode folder : foldersInTables.get(parent)) {
+                    if (folder.getContainingChildType().isAssignableFrom(child.getClass())) {
+                        parent = folder;
+                        break;
                     }
                 }
-                events.add(new TreeModelEvent(DBTreeModel.this, getPathToNode(parent), new int[]{change.getIndex()}, new Object[]{child}));
             }
+            events.add(new TreeModelEvent(DBTreeModel.this, getPathToNode(parent), new int[]{change.getIndex()}, new Object[]{child}));
             return events;
         }
 
@@ -274,13 +261,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 logger.error("Name change event has wrong new value. new="+e.getNewValue()+"; real="+((SPObject) e.getSource()).getName()); //$NON-NLS-1$ //$NON-NLS-2$
             }
             SPObject source = (SPObject) e.getSource();
-            if (source instanceof SQLRelationship) {
-                SQLRelationship r = (SQLRelationship) source;
-                fireTreeNodesChanged(new TreeModelEvent(this, getPkPathToRelationship(r)));
-                fireTreeNodesChanged(new TreeModelEvent(this, getFkPathToRelationship(r)));
-            } else {
-                fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
-            }
+            fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
         }
 	    
 	}
@@ -386,7 +367,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	}
 
 	public void valueForPathChanged(TreePath path, Object newValue) {
-		throw new UnsupportedOperationException("model doesn't support editting yet"); //$NON-NLS-1$
+		throw new UnsupportedOperationException("model doesn't support editing yet"); //$NON-NLS-1$
 	}
 
 	public int getIndexOfChild(Object parent, Object child) {
@@ -399,7 +380,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             return foldersInTables.get((SQLTable) parent).indexOf(child);
         }
 		
-        return ((SQLObject) parent).getChildren().indexOf(child);
+        return ((SQLObject) parent).getChildrenWithoutPopulating().indexOf(child);
 	}
 
 	// -------------- treeModel event source support -----------------
@@ -500,9 +481,6 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	 * @throws IllegalArgumentException if <code>node</code> is of class SQLRelationship.
 	 */
 	public SQLObject[] getPathToNode(SPObject node) {
-		if (node instanceof SQLRelationship) {
-			throw new IllegalArgumentException("This method does not work for SQLRelationship. Use getPkPathToRelationship() and getFkPathToRelationship() instead."); //$NON-NLS-1$
-		}
 		LinkedList path = new LinkedList();
 		while (node != null && node != root) {
 		    if (path.size() > 0 && node instanceof SQLTable) {
@@ -520,22 +498,6 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		return (SQLObject[]) path.toArray(new SQLObject[path.size()]);
 	}
 
-	public SQLObject[] getPkPathToRelationship(SQLRelationship rel) {
-		SQLObject[] pathToPkTable = getPathToNode(rel.getPkTable());
-		SQLObject[] path = new SQLObject[pathToPkTable.length + 1];
-		System.arraycopy(pathToPkTable, 0, path, 0, pathToPkTable.length);
-        path[path.length - 1] = rel;
-		return path;
-	}
-
-	public SQLObject[] getFkPathToRelationship(SQLRelationship rel) {
-		SQLObject[] pathToFkTable = getPathToNode(rel.getFkTable());
-		SQLObject[] path = new SQLObject[pathToFkTable.length + 1];
-		System.arraycopy(pathToFkTable, 0, path, 0, pathToFkTable.length);
-		path[path.length - 1] = rel;
-		return path;
-	}
-	
 	/**
      * Returns the path from the conceptual, hidden root node (of type
      * DBTreeRoot) to the given node.
@@ -546,13 +508,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	 */
 	public List<SQLObject[]> getPathsToNode(SQLObject node) {
 	    List<SQLObject[]> nodePaths = new ArrayList<SQLObject[]>();
-	    if (node instanceof SQLRelationship) {
-	        SQLRelationship rel = (SQLRelationship) node;
-	        nodePaths.add(getPkPathToRelationship(rel));
-	        nodePaths.add(getFkPathToRelationship(rel));
-	    } else {
-	        nodePaths.add(getPathToNode(node));
-	    }
+	    nodePaths.add(getPathToNode(node));
 	    return nodePaths;
 	}
 
