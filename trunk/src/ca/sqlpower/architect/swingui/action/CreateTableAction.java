@@ -26,7 +26,6 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.AbstractPlacer;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -59,15 +58,8 @@ public class CreateTableAction extends AbstractArchitectAction {
 	public void actionPerformed(ActionEvent evt) {
 		playpen.fireCancel();
 		SQLTable t = null; 
-		try {
-            t = new SQLTable();
-			t.initFolders(true);
-		} catch (SQLObjectException e) {
-			logger.error("Couldn't add folder to table \""+t.getName()+"\"", e); //$NON-NLS-1$ //$NON-NLS-2$
-			ASUtils.showExceptionDialog(
-			        session,
-			        Messages.getString("CreateTableAction.couldNotAddFolder"), e); //$NON-NLS-1$
-		}
+		t = new SQLTable();
+		t.initFolders(true);
 		t.setName("New_Table"); //$NON-NLS-1$
 		
 		TablePane tp = new TablePane(t, playpen.getContentPane());

@@ -73,6 +73,7 @@ import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.StubSQLObject;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
+import ca.sqlpower.sqlobject.SQLIndex.Column;
 import ca.sqlpower.testutil.MockJDBCDriver;
 
 /**
@@ -709,7 +710,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLColumn col = new SQLColumn(table, "first", Types.VARCHAR, 10, 0);
         table.addColumn(col);
         SQLIndex target = new SQLIndex("testy index", false, null, null, null);
-        target.addChild(target.new Column(col, AscendDescend.UNSPECIFIED));
+        target.addChild(new Column(col, AscendDescend.UNSPECIFIED));
         ppdb.addChild(table);
         table.addChild(target);
         col.setPrimaryKeySeq(0);
@@ -769,7 +770,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLTable table = new SQLTable(ppdb, true);
         table.setName(tableName);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
-        SQLIndex.Column indexCol = index.new Column("phogna bologna", AscendDescend.DESCENDING);
+        SQLIndex.Column indexCol = new Column("phogna bologna", AscendDescend.DESCENDING);
         ppdb.addChild(table);
         table.addChild(index);
         index.addChild(indexCol);
@@ -811,7 +812,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         table.setName(tableName);
         table.addColumn(col);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
-        SQLIndex.Column indexCol = index.new Column(col, AscendDescend.DESCENDING);
+        SQLIndex.Column indexCol = new Column(col, AscendDescend.DESCENDING);
         index.setPrimaryKeyIndex(true);
         ppdb.addChild(table);
         table.addChild(index);
