@@ -41,6 +41,7 @@ import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.swingui.ComposedIcon;
 
 /**
@@ -120,13 +121,9 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 			    setText((table).getName());
 			}
 		} else if (value instanceof SQLRelationship) {
-            //XXX ARRRRRRGGGGGHHHHHHH!!!! No way of knowing which end of a relationship we're
-            // looking at because the relationship has two parents.  Maybe able to do it with the row number.
-            if (true) {
-                setIcon(EXPORTED_KEY_ICON);
-            } else {
-                setIcon(IMPORTED_KEY_ICON);
-            }
+		    setIcon(EXPORTED_KEY_ICON);
+		} else if (value instanceof SQLImportedKey) {
+		    setIcon(IMPORTED_KEY_ICON);
 		} else if (value instanceof SQLIndex) {
             SQLIndex i = (SQLIndex) value;
             if (i.isPrimaryKeyIndex()) {

@@ -279,12 +279,27 @@ public class DBTree extends JTree implements DragSourceListener {
 	public void expandPath(TreePath tp) {
 		try {
 			session.getArchitectFrame().setCursor(new Cursor(Cursor.WAIT_CURSOR));
+			if (tp.getLastPathComponent() instanceof SQLObject) {
+			    ((SQLObject) tp.getLastPathComponent()).populate();
+			}
 			super.expandPath(tp);
 		} catch (Exception ex) {
 			logger.warn("Unexpected exception while expanding path "+tp, ex); //$NON-NLS-1$
 		} finally {
 			session.getArchitectFrame().setCursor(null);
 		}
+	}
+	
+	@Override
+	public void expandRow(int row) {
+	    if (getPathForRow(row).getLastPathComponent() instanceof SQLObject) {
+	        try {
+                ((SQLObject) getPathForRow(row).getLastPathComponent()).populate();
+            } catch (SQLObjectException e) {
+                throw new RuntimeException(e);
+            }
+	    }
+	    super.expandRow(row);
 	}
 
 	// ---------- methods of DragSourceListener -----------
