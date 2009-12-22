@@ -1084,9 +1084,6 @@ public class DBTree extends JTree implements DragSourceListener {
      * @return TreePath for given object.
      */
     public TreePath getTreePathForNode(SQLObject obj) {
-        if (obj instanceof SQLRelationship) {
-            return new TreePath(treeModel.getPkPathToRelationship((SQLRelationship) obj));
-        }
         return new TreePath(treeModel.getPathToNode(obj));
     }
     
