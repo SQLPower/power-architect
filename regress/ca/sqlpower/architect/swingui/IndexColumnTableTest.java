@@ -37,7 +37,7 @@ public class IndexColumnTableTest extends TestCase {
         SQLTable table = new SQLTable();
         table.initFolders(true);
         SQLIndex index = new SQLIndex();
-        Column col = index.new Column("TestCol", AscendDescend.UNSPECIFIED);
+        Column col = new Column("TestCol", AscendDescend.UNSPECIFIED);
         index.addChild(col);
         table.addIndex(index);
         SQLIndex copyIndex = new SQLIndex(index);

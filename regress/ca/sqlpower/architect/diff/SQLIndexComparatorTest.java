@@ -145,7 +145,7 @@ public class SQLIndexComparatorTest extends TestCase {
         
         assertEquals("Should be same column list.", 0, indComparator.compareColumns(list1, list2));
         
-        list1.add(new SQLIndex().new Column("new_col", AscendDescend.UNSPECIFIED));
+        list1.add(new Column("new_col", AscendDescend.UNSPECIFIED));
         assertTrue(indComparator.compareColumns(list1, list2) > 0);        
         assertTrue(indComparator.compareColumns(list2, list1) < 0);
         
@@ -183,7 +183,7 @@ public class SQLIndexComparatorTest extends TestCase {
     private SQLIndex makeIndex(int num) throws SQLObjectException {
         SQLIndex ind = new SQLIndex();
         for (int i = 0; i < num; i++) {
-            ind.addChild(ind.new Column("col_" + i, AscendDescend.UNSPECIFIED));
+            ind.addChild(new Column("col_" + i, AscendDescend.UNSPECIFIED));
         }
         return ind;
     }
@@ -197,7 +197,7 @@ public class SQLIndexComparatorTest extends TestCase {
         Set<Column> colList = new TreeSet<Column>(comparator);
         SQLIndex ind = new SQLIndex();
         for (int i = 0; i < num; i++){
-            colList.add(ind.new Column("col_" + i, ascDes)); 
+            colList.add(new Column("col_" + i, ascDes)); 
         }       
         return colList;
     }

@@ -558,11 +558,7 @@ public class CoreProject {
 
             String populated = attributes.getValue("populated");
             if (populated != null && populated.equals("false")) {
-                try {
-                    tab.initFolders(false);
-                } catch (SQLObjectException e) {
-                    logger.error("Couldn't add folder to table \""+tab.getName()+"\"", e);
-                }
+                tab.initFolders(false);
             }
 
             currentTable = tab;
@@ -718,7 +714,7 @@ public class CoreProject {
      */
     private class SQLIndexColumnFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
-            Column col = currentIndex.new Column();
+            Column col = new Column();
 
             String id = attributes.getValue("id");
             if (id != null) {

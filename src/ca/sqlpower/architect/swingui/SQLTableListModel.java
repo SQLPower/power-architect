@@ -123,7 +123,7 @@ public class SQLTableListModel extends AbstractSPListener implements ListModel {
 
 	@Override
 	public void propertyChangeImpl(PropertyChangeEvent e) {
-		if (e.getSource() == table.getColumnsFolder()) {
+		if (e.getSource() == table) {
 		    // XXX: should group contiguous regions into one event!
 		    int index = ((SPObject) e.getSource()).getChildren(((SPObject) e.getSource()).getClass()).indexOf(e.getSource());
 		    logger.debug("Firing contentsChanged event for index "+index); //$NON-NLS-1$
