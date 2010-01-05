@@ -47,6 +47,7 @@ import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.object.ObjectDependentException;
+import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sql.DataMover;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
@@ -249,22 +250,22 @@ public class DataMoverPanel {
      * @throws SQLObjectException
      */
     private int moveSingleTable(final SQLTable sourceTable) throws SQLException, SQLObjectException {
-        final SQLDatabase sourceDB = getParentDatabase(sourceTable);
+        final SQLDatabase sourceDB = SPObjectUtils.getAncestor(sourceTable, SQLDatabase.class);
         
         final TreePath destPath = destTree.getSelectionPath();
         final SQLObject destObject = (SQLObject) destPath.getLastPathComponent();
-        final SQLDatabase destDB = getParentDatabase(destObject);
+        final SQLDatabase destDB = SPObjectUtils.getAncestor(destObject, SQLDatabase.class);
         
         String destCatalogName = null;
         String destSchemaName = null;
         String destTableName = sourceTable.getName();
         SQLObject tmpSqlObj = destObject;
-        while (tmpSqlObj != null) {
+        List<SQLObject> ancestorList = SQLObjectUtils.ancestorList(tmpSqlObj);
+        for (SQLObject ancestor : ancestorList) {
             // walk up the ancestors and set table, catalog, and schema name as appropriate
-            if (tmpSqlObj instanceof SQLTable) destTableName = tmpSqlObj.getName();
-            if (tmpSqlObj instanceof SQLCatalog) destCatalogName = tmpSqlObj.getName();
-            if (tmpSqlObj instanceof SQLSchema) destSchemaName = tmpSqlObj.getName();
-            tmpSqlObj = tmpSqlObj.getParent();
+            if (tmpSqlObj instanceof SQLTable) destTableName = ancestor.getName();
+            if (tmpSqlObj instanceof SQLCatalog) destCatalogName = ancestor.getName();
+            if (tmpSqlObj instanceof SQLSchema) destSchemaName = ancestor.getName();
         }
         
         boolean needToCreate = false;
@@ -385,23 +386,5 @@ public class DataMoverPanel {
             sourceCon.close();
             destCon.close();
         }
-    }
-    
-    /**
-     * Returns the nearest parent of obj that is an instance of SQLDatabase,
-     * or null if there is no SQLDatabase ancestor of obj.
-     * 
-     * @param obj The object to find the parent database of.
-     * @return The nearest SQLDatabase ancestor of obj, or null if there is no
-     * such ancestor.
-     */
-    private static SQLDatabase getParentDatabase(SQLObject obj) {
-        while (obj != null) {
-            if (obj instanceof SQLDatabase) {
-                return (SQLDatabase) obj;
-            }
-            obj = obj.getParent();
-        }
-        return null;
     }
 }

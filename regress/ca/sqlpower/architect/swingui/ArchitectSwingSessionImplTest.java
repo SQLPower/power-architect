@@ -283,12 +283,14 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         
         SQLObject o1Parent = column;
         while (o1Parent.getParent() != null) {
-            o1Parent = o1Parent.getParent();
+            if (!(o1Parent.getParent() instanceof SQLObject)) break;
+            o1Parent = (SQLObject) o1Parent.getParent();
             System.out.println("Columns ancestor is " + o1Parent);
         }
         SQLObject o2Parent = sourceColumn;
         while (o2Parent.getParent() != null) {
-            o2Parent = o2Parent.getParent();
+            if (!(o2Parent.getParent() instanceof SQLObject)) break;
+            o2Parent = (SQLObject) o2Parent.getParent();
             System.out.println("Source Column ancestor is " + o2Parent);
         }
         

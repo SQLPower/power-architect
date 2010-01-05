@@ -21,12 +21,17 @@ package ca.sqlpower.architect;
 
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.etl.kettle.RootRepositoryDirectoryChooser;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.testutil.GenericNewValueMaker;
 
 public class ArchitectValueMaker extends GenericNewValueMaker {
+    
+    public ArchitectValueMaker(SPObject root) {
+        super(root);
+    }
 
     public Object makeNewValue(Class<?> valueType, Object oldVal, String propName) {
         Object newVal;  // don't init here so compiler can warn if the following code doesn't always give it a value

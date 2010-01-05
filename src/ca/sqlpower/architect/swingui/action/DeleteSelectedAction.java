@@ -149,8 +149,8 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                     } else {
                         //Side effect of removing a relationship's parent table is to remove the relationship
                         //causing this to fail if the relationship is removed immediately after.
-                        if (o.getParent() != null && 
-                                o.getParent().getChildrenWithoutPopulating().contains(o)) {
+                        if (o.getParent() != null && o.getParent() instanceof SQLObject &&  
+                                ((SQLObject) o.getParent()).getChildrenWithoutPopulating().contains(o)) {
                             o.getParent().removeChild(o);
                         }
                     }
