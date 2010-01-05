@@ -33,6 +33,7 @@ import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -95,43 +96,43 @@ public class ProfileAction extends AbstractArchitectAction {
                 else if ( tp.getLastPathComponent() instanceof SQLCatalog ) {
                     SQLCatalog cat = (SQLCatalog)tp.getLastPathComponent();
                     sqlObject.add(cat);
-                    SQLDatabase db = SQLObjectUtils.getAncestor(cat,SQLDatabase.class);
+                    SQLDatabase db = SPObjectUtils.getAncestor(cat,SQLDatabase.class);
                     if ( db != null && sqlObject.contains(db))
                         sqlObject.remove(db);
                 } else if ( tp.getLastPathComponent() instanceof SQLSchema ) {
                     SQLSchema sch = (SQLSchema)tp.getLastPathComponent();
                     sqlObject.add(sch);
 
-                    SQLCatalog cat = SQLObjectUtils.getAncestor(sch,SQLCatalog.class);
+                    SQLCatalog cat = SPObjectUtils.getAncestor(sch,SQLCatalog.class);
                     if ( cat != null && sqlObject.contains(cat))
                         sqlObject.remove(cat);
-                    SQLDatabase db = SQLObjectUtils.getAncestor(sch,SQLDatabase.class);
+                    SQLDatabase db = SPObjectUtils.getAncestor(sch,SQLDatabase.class);
                     if ( db != null && sqlObject.contains(db))
                         sqlObject.remove(db);
                 }  else if ( tp.getLastPathComponent() instanceof SQLTable ) {
                     SQLTable tab = (SQLTable)tp.getLastPathComponent();
                     sqlObject.add(tab);
 
-                    SQLSchema sch = SQLObjectUtils.getAncestor(tab,SQLSchema.class);
+                    SQLSchema sch = SPObjectUtils.getAncestor(tab,SQLSchema.class);
                     if ( sch != null && sqlObject.contains(sch))
                         sqlObject.remove(sch);
-                    SQLCatalog cat = SQLObjectUtils.getAncestor(sch,SQLCatalog.class);
+                    SQLCatalog cat = SPObjectUtils.getAncestor(sch,SQLCatalog.class);
                     if ( cat != null && sqlObject.contains(cat))
                         sqlObject.remove(cat);
-                    SQLDatabase db = SQLObjectUtils.getAncestor(sch,SQLDatabase.class);
+                    SQLDatabase db = SPObjectUtils.getAncestor(sch,SQLDatabase.class);
                     if ( db != null && sqlObject.contains(db))
                         sqlObject.remove(db);
 
                 } else if ( tp.getLastPathComponent() instanceof SQLColumn ) {
                     SQLTable tab = ((SQLColumn)tp.getLastPathComponent()).getParent();
                     sqlObject.add((SQLColumn)tp.getLastPathComponent());
-                    SQLSchema sch = SQLObjectUtils.getAncestor(tab,SQLSchema.class);
+                    SQLSchema sch = SPObjectUtils.getAncestor(tab,SQLSchema.class);
                     if ( sch != null && sqlObject.contains(sch))
                         sqlObject.remove(sch);
-                    SQLCatalog cat = SQLObjectUtils.getAncestor(sch,SQLCatalog.class);
+                    SQLCatalog cat = SPObjectUtils.getAncestor(sch,SQLCatalog.class);
                     if ( cat != null && sqlObject.contains(cat))
                         sqlObject.remove(cat);
-                    SQLDatabase db = SQLObjectUtils.getAncestor(sch,SQLDatabase.class);
+                    SQLDatabase db = SPObjectUtils.getAncestor(sch,SQLDatabase.class);
                     if ( db != null && sqlObject.contains(db))
                         sqlObject.remove(db);
 

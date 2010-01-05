@@ -962,7 +962,8 @@ public class DBTree extends JTree implements DragSourceListener {
                             SQLObject parent = childObject;
                             logger.debug("Initial Object before recursively go to parent is: " + parent);
                             for (int k = 0; k < sortedLengths.get(j) - pathCount; k++) {
-                                parent = parent.getParent();
+                                if (!(parent.getParent() instanceof SQLObject)) break;
+                                parent = (SQLObject) parent.getParent();
                             }
                             objectsToTransfer.add(parent);
                             logger.debug("Final Object after recursively go to parent is: " + parent);
@@ -978,7 +979,8 @@ public class DBTree extends JTree implements DragSourceListener {
                         for (SQLObject childObject : pathLengthsToSelectedObjectsMap.get(sortedLengths.get(j))) {
                             SQLObject parent = childObject;
                             for (int k = 0; k < sortedLengths.get(j) - pathCount; k++) {
-                                parent = parent.getParent();
+                                if (!(parent.getParent() instanceof SQLObject)) break;
+                                parent = (SQLObject) parent.getParent();
                             }
                             if (parent != singleParent) {
                                 isParentOfAllSelected = false;
@@ -998,7 +1000,8 @@ public class DBTree extends JTree implements DragSourceListener {
                             for (SQLObject childObject : pathLengthsToSelectedObjectsMap.get(sortedLengths.get(j))) {
                                 SQLObject parent = childObject;
                                 for (int k = 0; k < sortedLengths.get(j) - pathCount; k++) {
-                                    parent = parent.getParent();
+                                    if (!(parent.getParent() instanceof SQLObject)) break;
+                                    parent = (SQLObject) parent.getParent();
                                 }
                                 objectsToTransfer.add(parent);
                             }

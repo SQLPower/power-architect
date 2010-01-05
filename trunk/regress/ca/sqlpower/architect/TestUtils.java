@@ -26,6 +26,7 @@ import java.util.Set;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import ca.sqlpower.testutil.NewValueMaker;
+import ca.sqlpower.testutil.SPObjectRoot;
 
 /**
  * Container class for utility methods useful to testing.
@@ -56,7 +57,7 @@ public class TestUtils {
     				props[i].getWriteMethod() != null &&
     				!propertiesToIgnore.contains(props[i].getName())) {
     		
-    		    NewValueMaker valueMaker = new ArchitectValueMaker();
+    		    NewValueMaker valueMaker = new ArchitectValueMaker(new SPObjectRoot());
     		    Object newVal = valueMaker.makeNewValue(props[i].getPropertyType(), oldVal, props[i].getName());
 
     		    System.out.println("Changing property \""+props[i].getName()+"\" to \""+newVal+"\"");

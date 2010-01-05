@@ -36,12 +36,12 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.profile.output.ProfileColumn;
+import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
-import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.table.CleanupTableModel;
@@ -145,13 +145,13 @@ public class ProfileTableModel extends AbstractTableModel implements CleanupTabl
 
         switch(column) {
         case DATABASE:
-            return SQLObjectUtils.getAncestor(col,SQLDatabase.class);
+            return SPObjectUtils.getAncestor(col,SQLDatabase.class);
         case CATALOG:
-            return SQLObjectUtils.getAncestor(col,SQLCatalog.class);
+            return SPObjectUtils.getAncestor(col,SQLCatalog.class);
         case  SCHEMA:
-            return SQLObjectUtils.getAncestor(col,SQLSchema.class);
+            return SPObjectUtils.getAncestor(col,SQLSchema.class);
         case TABLE:
-            return SQLObjectUtils.getAncestor(col,SQLTable.class);
+            return SPObjectUtils.getAncestor(col,SQLTable.class);
         case COLUMN:
             return col;
         case RUNDATE:

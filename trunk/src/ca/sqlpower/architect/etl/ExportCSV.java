@@ -103,7 +103,9 @@ public class ExportCSV {
                             "Unexpected ancestor type " + parent.getClass().getName() +
                             " for object " + c + ".");
                 }
-                parent = parent.getParent();
+                if (!(parent.getParent() instanceof SQLObject)) break;
+                
+                parent = (SQLObject) parent.getParent();
             }
         }
         if (connection.length() == 0) {

@@ -46,6 +46,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.SPDataSource;
@@ -589,7 +590,7 @@ public class ASUtils {
         if (sourceColumn != null && !SQLObjectUtils.isInSameSession(column, sourceColumn)) {
             
             //The source database of the source column ETL lineage from the source column from the import/copy (if you can understand that) 
-            SQLDatabase sourceSourceDatabase = SQLObjectUtils.getAncestor(sourceColumn, SQLDatabase.class);
+            SQLDatabase sourceSourceDatabase = SPObjectUtils.getAncestor(sourceColumn, SQLDatabase.class);
             
             //The source data source of the target of this import/copy if it exists (less confusing than above thankfully)
             SPDataSource targetSourceSPDataSource = dbTree.getDuplicateDbcs(sourceSourceDatabase.getDataSource());
