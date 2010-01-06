@@ -126,8 +126,7 @@
 
 	<!-- clover test coverage tool -->
 	<property name="clover.home" value="ext-tools-home/clover"/>
-	<taskdef resource="clovertasks"/>
-	<typedef resource="clovertypes"/>
+	<taskdef resource="cloverlib.xml" classpath="${clover.home}/clover.jar"/>
 
 	<!-- 
 		Sets if we want to actually run a build on the SQL Power Library.
@@ -391,9 +390,6 @@
 	
 	<target name="compile-tests" depends="compile"
 		description="Compiles the regression test suite">
-		<ant dir="${sqlpower.library.home}" target="compile-tests">
-			<property name="build" value="${sqlpower.library.home}/build"/>
-		</ant>
 		<mkdir dir="${build.tests}"/>
 		<javac srcdir="regress" destdir="${build.tests}"
 			classpathref="test.classpath"
@@ -1442,7 +1438,7 @@
 	</target>
 	
 	<target name="copy.sqlpower.library" depends="check.sqlpower.library.dir">
-		<copy file="${sqlpower.library.home}/build/sqlpower_library.jar" todir="${lib}"/>
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${lib}"/>
 	</target>
 	
 	<target name="architect.version.properties" depends="init">
