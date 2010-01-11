@@ -523,9 +523,9 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			            logger.debug("Column listeners are " + col.getSPListeners());
 
 			            if (newColumnsInPk) {
-			                col.setPrimaryKeySeq(new Integer(ipWatcher.getInsertionPoint()), false);
+			                col.setPrimaryKeySeqAndRearrangeCols(new Integer(ipWatcher.getInsertionPoint()), false);
 			            } else {
-			                col.setPrimaryKeySeq(null, false);
+			                col.setPrimaryKeySeqAndRearrangeCols(null, false);
 			            }
 			        } else {
 			            // importing column from a source database
