@@ -324,6 +324,8 @@ public class RelationalPlayPenFactory {
                     if ((obj instanceof SQLTable || obj instanceof SQLRelationship || obj instanceof SQLColumn) &&
                             !objects.contains(obj)) {
                         objects.add(obj);
+                    } else if (obj instanceof SQLRelationship.SQLImportedKey) {
+                        objects.add(((SQLRelationship.SQLImportedKey) obj).getRelationship());
                     }
                 }
                 try {

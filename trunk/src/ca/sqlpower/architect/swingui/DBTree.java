@@ -1074,7 +1074,7 @@ public class DBTree extends JTree implements DragSourceListener {
         if (getSelectionPaths() == null) return;
         for (TreePath tp : getSelectionPaths()) {
             SQLObject obj = (SQLObject) tp.getLastPathComponent();
-            if (!(obj instanceof SQLTable || obj instanceof SQLRelationship || obj instanceof SQLColumn)) {
+            if (!(obj instanceof SQLTable || obj instanceof SQLRelationship || obj instanceof SQLColumn || obj instanceof SQLRelationship.SQLImportedKey)) {
                 removeSelectionPath(tp);
             }
         }
