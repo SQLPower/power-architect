@@ -111,7 +111,24 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 
         @Override
         public String getShortDisplayName() {
-            return "Folder for " + containingChildType.getSimpleName();
+            
+            if (containingChildType.isAssignableFrom(SQLColumn.class)) {
+                return "Columns folder for " + parentTable.getName();
+            }
+            
+            if (containingChildType.isAssignableFrom(SQLIndex.class)) {
+                return "Indices folder for " + parentTable.getName();
+            }
+            
+            if (containingChildType.isAssignableFrom(SQLRelationship.class)) {
+                return "Exported keys folder for " + parentTable.getName();
+            }
+            
+            if (containingChildType.isAssignableFrom(SQLRelationship.SQLImportedKey.class)) {
+                return "Imported keys folder for " + parentTable.getName();
+            }
+            
+            return containingChildType.getSimpleName() + "s folder for " + parentTable.getName();
         }
         
         @Override
