@@ -45,7 +45,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import ca.sqlpower.architect.ArchitectVersion;
-import ca.sqlpower.architect.CoreProject;
+import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.UnclosableInputStream;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.olap.MondrianXMLReader;
@@ -94,7 +94,7 @@ import ca.sqlpower.xml.XMLHelper;
  * <p>Anyone who makes a change to the file reading code which causes a failure to
  * read older (release 1.0.19 or later) project files will get Airzooka'ed.
  */
-public class SwingUIProject extends CoreProject {
+public class SwingUIProjectLoader extends ProjectLoader {
     
     /**
      * The constant value within the project file representing a playpen whose
@@ -110,7 +110,7 @@ public class SwingUIProject extends CoreProject {
      */
     private static final String RELATIONSHIP_STYLE_DIRECT = "direct"; //$NON-NLS-1$
 
-    private static final Logger logger = Logger.getLogger(SwingUIProject.class);
+    private static final Logger logger = Logger.getLogger(SwingUIProjectLoader.class);
     
     /**
      * This holds mappings from OLAPPane instance to String ID used in saving.
@@ -134,7 +134,7 @@ public class SwingUIProject extends CoreProject {
      * loading into and saving out from.
      * @throws NullPointerException if the given session is null
      */
-    public SwingUIProject(ArchitectSwingSession session) throws SQLObjectException {
+    public SwingUIProjectLoader(ArchitectSwingSession session) throws SQLObjectException {
         super(session);
         
         if (session == null) {

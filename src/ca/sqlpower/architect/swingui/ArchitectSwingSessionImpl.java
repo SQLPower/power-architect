@@ -49,7 +49,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
-import ca.sqlpower.architect.CoreProject;
+import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
@@ -69,6 +69,7 @@ import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -228,7 +229,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         // XXX this is probably redundant now, since the context owns the pl.ini
         getContext().getPlDotIni();
 
-        setProject(new SwingUIProject(this));
+        setProjectLoader(new SwingUIProjectLoader(this));
 
         compareDMSettings = new CompareDMSettings();
 
@@ -327,12 +328,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         profileDialog.setLocationRelativeTo(frame);
     }
 
-    public SwingUIProject getProject() {
-        return (SwingUIProject) delegateSession.getProject();
+    public SwingUIProjectLoader getProjectLoader() {
+        return (SwingUIProjectLoader) delegateSession.getProjectLoader();
     }
 
-    public void setProject(CoreProject project) {
-        delegateSession.setProject(project);
+    public void setProjectLoader(ProjectLoader project) {
+        delegateSession.setProjectLoader(project);
     }
 
     public CoreUserSettings getUserSettings() {
@@ -402,7 +403,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * @return True if the project can be closed; false if the project should remain open.
      */
     protected boolean promptForUnsavedModifications() {
-        if (getProject().isModified()) {
+        if (getProjectLoader().isModified()) {
             int response = JOptionPane.showOptionDialog(frame,
                     Messages.getString("ArchitectSwingSessionImpl.projectHasUnsavedChanges"), Messages.getString("ArchitectSwingSessionImpl.unsavedChangesDialogTitle"), //$NON-NLS-1$ //$NON-NLS-2$
                     JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
@@ -434,7 +435,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * failed.
      */
     public boolean saveOrSaveAs(boolean showChooser, boolean separateThread) {
-        SwingUIProject project = getProject();
+        SwingUIProjectLoader project = getProjectLoader();
 
         if (project.getFile() == null || showChooser) {
             JFileChooser chooser = new JFileChooser(project.getFile());
@@ -482,7 +483,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             boolean success;
 
             public void run() {
-                SwingUIProject project = getProject();
+                SwingUIProjectLoader project = getProjectLoader();
                 try {
                     success = false;
                     if (finalSeparateThread) {
@@ -533,7 +534,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         // IMPORTANT NOTE: If the GUI hasn't been initialized, frame will be null.
 
-        if (getProject().isSaveInProgress()) {
+        if (getProjectLoader().isSaveInProgress()) {
             // project save is in progress, don't allow exit
             JOptionPane.showMessageDialog(frame,
                     Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSaving"), //$NON-NLS-1$
@@ -656,21 +657,21 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         /** Marks project dirty, and starts listening to new kids. */
         public void childAdded(SPChildEvent e) {
-            getProject().setModified(true);
+            getProjectLoader().setModified(true);
             SQLPowerUtils.listenToHierarchy(e.getChild(), this);
             isNew = false;
         }
 
         /** Marks project dirty, and stops listening to removed kids. */
         public void childRemoved(SPChildEvent e) {
-            getProject().setModified(true);
+            getProjectLoader().setModified(true);
             SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
             isNew = false;
         }
 
         /** Marks project dirty. */
         public void propertyChange(PropertyChangeEvent e) {
-            getProject().setModified(true);
+            getProjectLoader().setModified(true);
             isNew = false;
         }
 
@@ -1001,5 +1002,38 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             DataSourceCollection<SPDataSource> dsCollection, String... buttonNames) {
         return swinguiUserPrompterFactory.createDatabaseUserPrompter(question, dsTypes, optionType,
                 defaultResponseType, defaultResponse, dsCollection, buttonNames);
+    }
+
+    public SPObject getWorkspace() {
+        return delegateSession.getWorkspace();
+    }
+
+    public boolean isForegroundThread() {
+        return SwingUtilities.isEventDispatchThread();
+    }
+
+    public void runInBackground(final Runnable runner) {
+        SPSwingWorker worker = new SPSwingWorker(this) {
+            
+            @Override
+            public void doStuff() throws Exception {
+                runner.run();
+            }
+
+            @Override
+            public void cleanup() throws Exception {
+                //do nothing
+            }
+            
+        };
+        new Thread(worker).start();       
+    }
+
+    public void runInForeground(Runnable runner) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            runner.run();
+        } else {
+            SwingUtilities.invokeLater(runner);
+        }     
     }
 }

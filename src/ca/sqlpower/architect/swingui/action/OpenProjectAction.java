@@ -166,8 +166,8 @@ public class OpenProjectAction extends AbstractArchitectAction {
 
         @Override
         public void doStuff() throws Exception {
-            session.getProject().load(in, context.getPlDotIni());
-            session.getProject().setFile(file);
+            session.getProjectLoader().load(in, context.getPlDotIni());
+            session.getProjectLoader().setFile(file);
         }
 
         @Override
@@ -189,7 +189,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 session.removeSwingWorker(this);
                 if (session.getContext().getSessions().size() > 1) {
                     //Prevents the save dialog from being displayed if it contained an error
-                    session.getProject().setModified(false); 
+                    session.getProjectLoader().setModified(false); 
                     session.close();
                 }
             } else {

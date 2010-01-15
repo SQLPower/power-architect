@@ -34,7 +34,7 @@ import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.SwingUIProject;
+import ca.sqlpower.architect.swingui.SwingUIProjectLoader;
 import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.sql.PlDotIni;
 
@@ -48,7 +48,7 @@ public class VelocityTransformationTest extends TestCase {
         super(testName);
     }
 
-	private SwingUIProject project;
+	private SwingUIProjectLoader project;
 	private static final String ENCODING="UTF-8";
 	private PlDotIni plIni;
     private ArchitectSwingSession session;
@@ -60,7 +60,7 @@ public class VelocityTransformationTest extends TestCase {
 	public void setUp() throws Exception {
         context = new TestingArchitectSwingSessionContext();
         session = context.createSession(false);
-        project = session.getProject();
+        project = session.getProjectLoader();
         plIni = new PlDotIni();
 		ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
 		project.load(r, plIni);

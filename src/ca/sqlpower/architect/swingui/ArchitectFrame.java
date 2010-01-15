@@ -711,8 +711,8 @@ public class ArchitectFrame extends JFrame {
         session.getContext().createSession(session);
     }
 
-	public SwingUIProject getProject() {
-		return session.getProject();
+	public SwingUIProjectLoader getProject() {
+		return session.getProjectLoader();
 	}
 
 	/**
@@ -818,7 +818,7 @@ public class ArchitectFrame extends JFrame {
                         InputStream in = new BufferedInputStream(new FileInputStream(openFile));
                         ArchitectSwingSession session = context.createSession(in, true);
                         session.getRecentMenu().putRecentFileName(openFile.getAbsolutePath());
-                        session.getProject().setFile(openFile);
+                        session.getProjectLoader().setFile(openFile);
                     } else {
                         context.createSession();
                     }

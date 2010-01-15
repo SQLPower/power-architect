@@ -22,13 +22,15 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLDatabaseMapping;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.util.SPSession;
 import ca.sqlpower.util.UserPrompterFactory;
 
-public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMapping {
+public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMapping, SPSession {
 
     public static final String PREFS_PL_INI_PATH = "PL.INI.PATH";
     
@@ -44,12 +46,6 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
      * gui session, this would be the playpen database. 
      */
     public SQLDatabase getTargetDatabase();
-    
-    /**
-     * Returns the top level object in the SQLObject hierarchy.
-     * It has no parent and its children are SQLDatabase's.
-     */
-    public SQLObjectRoot getRootObject();
     
     /**
      * Sets the value of name
@@ -70,14 +66,14 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
      * holds the playpen objects, and can save and load itself in an
      * XML format.
      */
-    public CoreProject getProject();
+    public ProjectLoader getProjectLoader();
     
     /**
      *  This method is only used to create the correct type of project
      *  for an ArchitectSwingSessionImpl and should not be called anywhere
      *  else.
      */
-    public void setProject(CoreProject project);
+    public void setProjectLoader(ProjectLoader project);
     
     
     /**
@@ -98,6 +94,10 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
     /**
      * Sets the new DDL Generator currently in use for this session.
      */
-    public void setDDLGenerator(DDLGenerator generator);
+    public void setDDLGenerator(DDLGenerator generator);    
+
+    public SPObject getWorkspace();
+    
+    public SQLObjectRoot getRootObject();
 
 }

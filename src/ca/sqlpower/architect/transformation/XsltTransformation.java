@@ -78,7 +78,7 @@ public class XsltTransformation implements ReportTransformer {
 	 */
 	public void transform(InputStream xsltStylesheet, File output, ArchitectSwingSession session) throws Exception {
 
-		File project = session.getProject().getFile();
+		File project = session.getProjectLoader().getFile();
 		InputStream xml = new FileInputStream(project);
 
 		Source xmlSource = new StreamSource(xml);

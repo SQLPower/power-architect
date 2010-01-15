@@ -44,7 +44,7 @@ public class TestingArchitectSessionContext implements ArchitectSessionContext {
 
     public ArchitectSession createSession(InputStream in) throws SQLObjectException, IOException {
         ArchitectSession s = createSession();
-        s.getProject().load(in, getPlDotIni());
+        s.getProjectLoader().load(in, getPlDotIni());
         return s;
     }
 

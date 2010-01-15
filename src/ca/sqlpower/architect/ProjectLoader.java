@@ -65,7 +65,7 @@ import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.xml.UnescapingSaxParser;
 
-public class CoreProject {
+public class ProjectLoader {
 
     /*
      * Any Jakarta Commons BeanUtils converters needed by the Digester should
@@ -98,7 +98,7 @@ public class CoreProject {
     
     // ------------------ load and save support -------------------
 
-    private static final Logger logger = Logger.getLogger(CoreProject.class);
+    private static final Logger logger = Logger.getLogger(ProjectLoader.class);
     
     /**
      * Tracks whether or not this project has been modified since last saved.
@@ -165,7 +165,7 @@ public class CoreProject {
     
     protected ArchitectSession session;
     
-    public CoreProject(ArchitectSession session) {
+    public ProjectLoader(ArchitectSession session) {
         this.session = session;
     }
     

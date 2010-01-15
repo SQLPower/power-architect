@@ -196,7 +196,7 @@ public class KettleJobPanel implements DataEntryPanel {
         browseFilePath.setText(Messages.getString("KettleJobPanel.browseButton")); //$NON-NLS-1$
         browseFilePath.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                JFileChooser chooser = new JFileChooser(session.getProject().getFile());
+                JFileChooser chooser = new JFileChooser(session.getProjectLoader().getFile());
                 chooser.addChoosableFileFilter(SPSUtils.XML_FILE_FILTER);
                 int response = chooser.showSaveDialog(panel);
                 if (response != JFileChooser.APPROVE_OPTION) {
