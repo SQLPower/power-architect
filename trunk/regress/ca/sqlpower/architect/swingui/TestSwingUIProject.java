@@ -46,7 +46,7 @@ import org.apache.tools.ant.filters.StringInputStream;
 import ca.sqlpower.ArchitectTestCase;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
-import ca.sqlpower.architect.CoreProject;
+import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.TestUtils;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
 import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
@@ -81,7 +81,7 @@ import ca.sqlpower.testutil.MockJDBCDriver;
  */
 public class TestSwingUIProject extends ArchitectTestCase {
 	
-	private SwingUIProject project;
+	private SwingUIProjectLoader project;
 	private static final String ENCODING="UTF-8";
 	private boolean deleteOnExit = false;
 	private PlDotIni plIni;
@@ -119,7 +119,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	public void setUp() throws Exception {
         context = new TestingArchitectSwingSessionContext();
         session = context.createSession(false);
-        project = session.getProject();
+        project = session.getProjectLoader();
         plIni = new PlDotIni();
         // TODO add some database types and a test that loading the project finds them
 	}
@@ -311,7 +311,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // load it back and check
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-        SwingUIProject project2 = new SwingUIProject(session2);
+        SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
         target = session2.getTargetDatabase();
@@ -331,7 +331,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-		SwingUIProject p2 = new SwingUIProject(session2);
+		SwingUIProjectLoader p2 = new SwingUIProjectLoader(session2);
 		p2.load(new BufferedInputStream(new FileInputStream(file)), plIni);
 		File tmp2 = File.createTempFile("test2", ".architect");
 		if (deleteOnExit) {
@@ -356,7 +356,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-        SwingUIProject p2 = new SwingUIProject(session2);
+        SwingUIProjectLoader p2 = new SwingUIProjectLoader(session2);
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
         p2.load(byteArrayInputStream, plIni);
 		p2.save(byteArrayOutputStream2,ENCODING);
@@ -377,7 +377,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         System.out.println(byteArrayOutputStream.toString());
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-        SwingUIProject p2 = new SwingUIProject(session2);
+        SwingUIProjectLoader p2 = new SwingUIProjectLoader(session2);
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
         p2.load(byteArrayInputStream, plIni);
         List<TablePane> projectTablePanes = session2.getPlayPen().getTablePanes();
@@ -464,7 +464,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-		SwingUIProject project2 = new SwingUIProject(session2);
+		SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
@@ -526,7 +526,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-		SwingUIProject project2 = new SwingUIProject(session2);
+		SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
@@ -572,7 +572,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-		SwingUIProject project2 = new SwingUIProject(session2);
+		SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
@@ -619,7 +619,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-		SwingUIProject project2 = new SwingUIProject(session2);
+		SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
@@ -686,7 +686,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-		SwingUIProject project2 = new SwingUIProject(session2);
+		SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
@@ -744,7 +744,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-        SwingUIProject project2 = new SwingUIProject(session2);
+        SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
         ppdb = (SQLDatabase) session2.getTargetDatabase();
@@ -788,7 +788,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-        SwingUIProject project2 = new SwingUIProject(session2);
+        SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         // grab the second database in the dbtree's model (the first is the play pen)
@@ -845,7 +845,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         System.out.println(byteArrayOutputStream.toString());
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-        SwingUIProject project2 = new SwingUIProject(session2);
+        SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         ppdb = (SQLDatabase) session2.getTargetDatabase();
@@ -890,7 +890,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-        SwingUIProject project2 = new SwingUIProject(session2);
+        SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
         // grab the second database in the dbtree's model (the first is the play pen)
@@ -936,7 +936,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
-        SwingUIProject p = new SwingUIProject(session2);
+        SwingUIProjectLoader p = new SwingUIProjectLoader(session2);
         p.load(new ByteArrayInputStream(tempFile.toByteArray()), context.getPlDotIni());
         
         ppdb = session2.getTargetDatabase();
@@ -994,7 +994,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
         System.out.println(byteArrayOutputStream.toString());
 
-        SwingUIProject project2 = new SwingUIProject(session);
+        SwingUIProjectLoader project2 = new SwingUIProjectLoader(session);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         Map<String, Object> newDescription =
@@ -1019,7 +1019,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
         System.out.println(byteArrayOutputStream.toString());
 
-        SwingUIProject project2 = new SwingUIProject(session);
+        SwingUIProjectLoader project2 = new SwingUIProjectLoader(session);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         PlayPen newPP = project2.getSession().getPlayPen();
@@ -1155,7 +1155,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // testing using a core project, just for fun
         ArchitectSessionContext ctx = new TestingArchitectSessionContext();
         ArchitectSession session = ctx.createSession(new BufferedInputStream(new StringInputStream(testData)));
-        CoreProject prj = session.getProject();
+        ProjectLoader prj = session.getProjectLoader();
         SQLObjectRoot rootObject = session.getRootObject();
         recursiveCheckParenting(rootObject, "Root");
     }
@@ -1197,7 +1197,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
     public void testPlayPenPropertyCoreProject() throws Exception {
         ArchitectSessionContext ctx = new TestingArchitectSessionContext();
         ArchitectSession session = ctx.createSession(new BufferedInputStream(new StringInputStream(testData)));
-        CoreProject prj = session.getProject();
+        ProjectLoader prj = session.getProjectLoader();
         SQLObjectRoot rootObject = session.getRootObject();
         SQLDatabase ppdb = (SQLDatabase) rootObject.getChild(0);
         assertTrue(ppdb.isPlayPenDatabase());
@@ -1275,12 +1275,12 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertEquals(1, session.getOLAPEditSessions().size());
         
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        session.getProject().save(byteArrayOutputStream, ENCODING);
+        session.getProjectLoader().save(byteArrayOutputStream, ENCODING);
 
         System.out.println(byteArrayOutputStream.toString());
 
         ArchitectSwingSession session2 = new ArchitectSwingSessionImpl(context, "Load session");
-        SwingUIProject project2 = new SwingUIProject(session2);
+        SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         assertEquals(1, session2.getOLAPEditSessions().size());

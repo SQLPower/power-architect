@@ -414,7 +414,7 @@ public class CompareDMFormatter {
             }
             needBrackets = true;
         } else if (settings.getDatastoreType().equals(CompareDMSettings.DatastoreType.PROJECT)) {
-            SwingUIProject swingUIProject = session.getProject();
+            SwingUIProjectLoader swingUIProject = session.getProjectLoader();
             String tempName;
             if (swingUIProject.getFile() != null) {
                 tempName = swingUIProject.getFile().getName();

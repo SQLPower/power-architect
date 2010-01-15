@@ -19,18 +19,15 @@
 package ca.sqlpower.architect;
 
 
-import java.sql.SQLException;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
-import ca.sqlpower.object.ObjectDependentException;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
-import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.util.DefaultUserPrompterFactory;
@@ -51,10 +48,8 @@ import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 public class ArchitectSessionImpl implements ArchitectSession {
     
     private final ArchitectSessionContext context;
-    private ProfileManagerImpl profileManager;
-    private SQLDatabase db;
-    private String name;
-    private SQLObjectRoot rootObject;
+    private final ArchitectProject project;
+    private String name;  
     
     /**
      * The factory that creates user prompters for this session. Defaults to a
@@ -64,31 +59,22 @@ public class ArchitectSessionImpl implements ArchitectSession {
      * prompts the user.
      */
     private UserPrompterFactory userPrompterFactory = new DefaultUserPrompterFactory();
-    
-    private DDLGenerator ddlGenerator;
-    
+        
     /**
      * The project associated with this session.  The project provides save
      * and load functionality, and houses the source database connections.
      */
-    private CoreProject project;
+    private ProjectLoader projectLoader;
 
 	public ArchitectSessionImpl(final ArchitectSessionContext context,
 	        String name) throws SQLObjectException {
+	    
 	    this.context = context;
-	    this.name = name;
-	    this.rootObject = new SQLObjectRoot();
-        this.profileManager = new ProfileManagerImpl(this);
-        this.project = new CoreProject(this);
-        this.db = new SQLDatabase();
-        
-        rootObject.addSQLObjectPreEventListener(new SourceObjectIntegrityWatcher(this));
-        
-        try {
-            ddlGenerator = new GenericDDLGenerator();
-        } catch (SQLException e) {
-            throw new SQLObjectException("SQL Error in ddlGenerator",e);
-        }
+	    this.project = new ArchitectProject(this);
+	    this.project.setProfileManager(new ProfileManagerImpl(this));
+	    this.name = name;	           
+        this.projectLoader = new ProjectLoader(this);
+               
 	}
 
 	// --------------- accessors and mutators ------------------
@@ -112,58 +98,33 @@ public class ArchitectSessionImpl implements ArchitectSession {
     }
 
     public ProfileManagerImpl getProfileManager() {
-        return profileManager;
+        return project.getProfileManager();
     }
 
     public SQLDatabase getTargetDatabase() {
-        return db;
+        return project.getTargetDatabase();
     }
 
-    public CoreProject getProject() {
-        return project;
+    public ProjectLoader getProjectLoader() {
+        return projectLoader;
     }
     
-    public void setProject(CoreProject project) {
-        this.project = project;
+    public void setProjectLoader(ProjectLoader project) {
+        this.projectLoader = project;
     }
 
     public SQLObjectRoot getRootObject() {
-        return rootObject;
+        return project.getRootObject();
     }
 
     public ArchitectSessionContext getContext() {
         return context;
     }
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
-        SQLObject root = getRootObject();
-        try {
-            root.begin("Setting source database list");
-            for (int i = root.getChildCount()-1; i >= 0; i--) {
-                root.removeChild(root.getChild(i));
-            }
-            for (SQLDatabase db : databases) {
-                root.addChild(db);
-            }
-            root.commit();
-        } catch (IllegalArgumentException e) {
-            root.rollback("Could not remove child: " + e.getMessage());
-            throw new RuntimeException(e);
-        } catch (ObjectDependentException e) {
-            root.rollback("Could not remove child: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
-    
-    public DDLGenerator getDDLGenerator() {
-        return ddlGenerator;
-    }
 
-    public void setDDLGenerator(DDLGenerator generator) {
-        ddlGenerator = generator;
-    }
+    
     
     public void setProfileManager(ProfileManagerImpl manager) {
-        profileManager = manager;
+        project.setProfileManager(manager);
     }
     
     public UserPrompter createUserPrompter(String question, UserPromptType responseType,
@@ -186,21 +147,19 @@ public class ArchitectSessionImpl implements ArchitectSession {
     }
 
     public SQLDatabase getDatabase(JDBCDataSource ds) {
-        try {
-            for (SQLDatabase obj : rootObject.getChildren(SQLDatabase.class)) {
-                if (obj.getDataSource().equals(ds)) {
-                    return (SQLDatabase) obj;
-                }
-            }
-            if (db.getDataSource().equals(ds)) {
-                return db;
-            }
-            SQLDatabase db = new SQLDatabase(ds);
-            rootObject.addChild(db);
-            return db;
-        } catch (SQLObjectException e) {
-            throw new RuntimeException(e);
-        }
+        return project.getDatabase(ds);
+    }
+    
+    public DDLGenerator getDDLGenerator() {
+        return project.getDDLGenerator();
+    }
+
+    public void setDDLGenerator(DDLGenerator generator) {
+        project.setDDLGenerator(generator);
+    }
+
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {        
+        project.setSourceDatabaseList(databases);
     }
 
     public UserPrompter createDatabaseUserPrompter(String question, List<Class<? extends SPDataSource>> dsTypes,
@@ -208,6 +167,26 @@ public class ArchitectSessionImpl implements ArchitectSession {
             DataSourceCollection<SPDataSource> dsCollection, String... buttonNames) {
         return userPrompterFactory.createDatabaseUserPrompter(question, dsTypes, optionType,
                 defaultResponseType, defaultResponse, dsCollection, buttonNames);
+    }
+
+    public SPObject getWorkspace() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean isForegroundThread() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public void runInBackground(Runnable runner) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void runInForeground(Runnable runner) {
+        // TODO Auto-generated method stub
+        
     }
 
 }

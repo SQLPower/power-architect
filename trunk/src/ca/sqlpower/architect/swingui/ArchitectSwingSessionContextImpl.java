@@ -208,7 +208,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         ArchitectSwingSession session = createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.projectLoadingDialogTitle"), false, null); //$NON-NLS-1$
         
         try {
-            session.getProject().load(in, getPlDotIni());
+            session.getProjectLoader().load(in, getPlDotIni());
 
             if (showGUI) {
                 session.initGUI();

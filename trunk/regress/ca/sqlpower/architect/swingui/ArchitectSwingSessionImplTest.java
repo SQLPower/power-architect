@@ -169,7 +169,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         assertTrue(session.isNew());
         
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
-        session.getProject().load(r, new PlDotIni());
+        session.getProjectLoader().load(r, new PlDotIni());
         assertFalse(session.isNew());
     }
     
@@ -215,16 +215,16 @@ public class ArchitectSwingSessionImplTest extends TestCase {
     public void testSaveAndLoadRelationshipLineType() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
         ArchitectSwingSession session = context.createSession(false);
-        session.getProject().load(new ByteArrayInputStream(testData.getBytes()), new PlDotIni());
+        session.getProjectLoader().load(new ByteArrayInputStream(testData.getBytes()), new PlDotIni());
         
         boolean newValueForStraightLines = !session.getRelationshipLinesDirect();
         session.setRelationshipLinesDirect(newValueForStraightLines);
         
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        session.getProject().save(out, "utf-8");
+        session.getProjectLoader().save(out, "utf-8");
         
         ArchitectSwingSession loadedSession = context.createSession(false);
-        loadedSession.getProject().load(new ByteArrayInputStream(out.toByteArray()), new PlDotIni());
+        loadedSession.getProjectLoader().load(new ByteArrayInputStream(out.toByteArray()), new PlDotIni());
         assertEquals(newValueForStraightLines, loadedSession.getRelationshipLinesDirect());
         
         for (Relationship r : loadedSession.getPlayPen().getRelationships()) {

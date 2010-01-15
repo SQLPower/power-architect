@@ -178,7 +178,7 @@ public class ProjectCreator implements Runnable {
         File file = new File("project_creator_output.architect");
         FileOutputStream out = new FileOutputStream(file);
         try {
-            session.getProject().save(out, "utf-8");
+            session.getProjectLoader().save(out, "utf-8");
             System.out.println("Saved example project to " + file.getAbsolutePath());
         } finally {
             out.close();

@@ -720,7 +720,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	        } else if (dbcs instanceof JDBCDataSource) {
 	            SQLDatabase newDB = new SQLDatabase((JDBCDataSource) dbcs);
 	            root.addChild(newDB, root.getChildCount());
-	            session.getProject().setModified(true);
+	            session.getProjectLoader().setModified(true);
 	            // start a thread to poke the new SQLDatabase object...
 	            logger.debug("start poking database " + newDB.getName()); //$NON-NLS-1$
 	            PokeDBWorker poker = new PokeDBWorker(newDB);

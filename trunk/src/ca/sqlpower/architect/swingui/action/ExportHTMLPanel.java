@@ -389,7 +389,7 @@ public class ExportHTMLPanel {
 
 
 	private void selectTemplate() {
-		JFileChooser chooser = new JFileChooser(session.getProject().getFile());
+		JFileChooser chooser = new JFileChooser(session.getProjectLoader().getFile());
 		File tmpl = getTemplateFile();
 		boolean xslt = true;
 		String fname = "";
@@ -428,7 +428,7 @@ public class ExportHTMLPanel {
 	}
 
 	private void selectOutput() {
-		JFileChooser chooser = new JFileChooser(session.getProject().getFile());
+		JFileChooser chooser = new JFileChooser(session.getProjectLoader().getFile());
 		chooser.addChoosableFileFilter(SPSUtils.HTML_FILE_FILTER);
 		chooser.setDialogTitle(Messages.getString("XSLTSelectionPanel.saveAsTitle"));
 
@@ -499,7 +499,7 @@ public class ExportHTMLPanel {
 
 						public void run() {
 							try {
-								session.getProject().save(xmlOutputStream, ENCODING);
+								session.getProjectLoader().save(xmlOutputStream, ENCODING);
 							} catch (IOException e2) {
 								SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "You got an error", e2);
 							} catch (SQLObjectException e2) {

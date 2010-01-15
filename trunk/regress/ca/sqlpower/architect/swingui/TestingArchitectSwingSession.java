@@ -30,7 +30,7 @@ import javax.swing.JMenu;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
-import ca.sqlpower.architect.CoreProject;
+import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
@@ -43,6 +43,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.object.ObjectDependentException;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -65,7 +66,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     private CoreUserSettings userSettings;
     private ArchitectSwingSessionContext context;
-    private SwingUIProject project;
+    private SwingUIProjectLoader project;
     private ArchitectFrame frame;
     private PlayPen playpen;
     private ArchitectUndoManager undoManager;
@@ -99,7 +100,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         };
         this.delegateSession = new ArchitectSessionImpl(context, "test");
         profileManager = new ProfileManagerImpl(this);
-        project = new SwingUIProject(this);
+        project = new SwingUIProjectLoader(this);
         userSettings = context.getUserSettings();
         rootObject = new SQLObjectRoot();
         rootObject.addChild(getTargetDatabase());
@@ -124,7 +125,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         printSettings = new PrintSettings();
     }
     
-    public TestingArchitectSwingSession(ArchitectSwingSessionContext context, SwingUIProject project) throws SQLObjectException {
+    public TestingArchitectSwingSession(ArchitectSwingSessionContext context, SwingUIProjectLoader project) throws SQLObjectException {
         this(context);
     }
     
@@ -140,11 +141,11 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         return recent;
     }
     
-    public SwingUIProject getProject() {
+    public SwingUIProjectLoader getProjectLoader() {
         return project;
     }
 
-    public void setProject(SwingUIProject project) {
+    public void setProject(SwingUIProjectLoader project) {
         this.project = project;
     }
     
@@ -275,8 +276,8 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         return delegateSession.getTargetDatabase();
     }
 
-    public void setProject(CoreProject project) {
-        delegateSession.setProject(project);
+    public void setProjectLoader(ProjectLoader project) {
+        delegateSession.setProjectLoader(project);
     }
 
     public SQLObjectRoot getRootObject() {
@@ -392,5 +393,25 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         // TODO Auto-generated method stub
         return new DefaultUserPrompterFactory().createDatabaseUserPrompter(question, dsTypes,
                 optionType, defaultResponseType, defaultResponse, dsCollection, buttonNames);
+    }
+
+    public SPObject getWorkspace() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean isForegroundThread() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public void runInBackground(Runnable runner) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void runInForeground(Runnable runner) {
+        // TODO Auto-generated method stub
+        
     }
 }

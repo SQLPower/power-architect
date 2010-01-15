@@ -37,6 +37,7 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -83,7 +84,7 @@ public class TestingArchitectSession implements ArchitectSession {
         return null;
     }
 
-    public CoreProject getProject() {
+    public ProjectLoader getProjectLoader() {
         // TODO Auto-generated method stub
         return null;
     }
@@ -108,7 +109,7 @@ public class TestingArchitectSession implements ArchitectSession {
 
     }
 
-    public void setProject(CoreProject project) {
+    public void setProjectLoader(ProjectLoader project) {
         // TODO Auto-generated method stub
 
     }
@@ -141,6 +142,26 @@ public class TestingArchitectSession implements ArchitectSession {
             DataSourceCollection<SPDataSource> dsCollection, String... buttonNames) {
         return defaultUPF.createDatabaseUserPrompter(question, dsTypes, optionType, defaultResponseType,
                 defaultResponse, dsCollection, buttonNames);
+    }
+
+    public SPObject getWorkspace() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean isForegroundThread() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public void runInBackground(Runnable runner) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void runInForeground(Runnable runner) {
+        // TODO Auto-generated method stub
+        
     }
 
 }

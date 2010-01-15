@@ -107,7 +107,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
 
     public ArchitectSession createSession(InputStream in) throws SQLObjectException, IOException {
         ArchitectSession session = createSessionImpl("Loading...");
-        session.getProject().load(in, getPlDotIni());
+        session.getProjectLoader().load(in, getPlDotIni());
         return session;
     }
     
