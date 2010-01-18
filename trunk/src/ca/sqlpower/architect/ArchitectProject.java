@@ -150,15 +150,25 @@ public class ArchitectProject extends AbstractSPObject {
     }
     
     public int childPositionOffset(Class<? extends SPObject> childType) {
-        //TODO generated, would be better to do when this class has all its children decided
-        return 0;
+        
+        if (childType.isAssignableFrom(SQLObjectRoot.class)) {
+            return 0;
+        } else if (childType.isAssignableFrom(ProfileManager.class)) {
+            return 1;
+        } else if (childType.isAssignableFrom(DDLGenerator.class)) {
+            return 2;
+        } else if (childType.isAssignableFrom(SQLDatabase.class)) {
+            return 3;
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>();
         childTypes.add(SQLObjectRoot.class);
         childTypes.add(ProfileManager.class);
-        // childTypes.add(DDLGenerator.class); TODO make DDLGenerator an SPObject
+        childTypes.add(DDLGenerator.class);
         childTypes.add(SQLDatabase.class);
         return childTypes;
     }
@@ -167,7 +177,7 @@ public class ArchitectProject extends AbstractSPObject {
         List<SPObject> allChildren = new ArrayList<SPObject>();
         allChildren.add(rootObject);
         allChildren.add(profileManager);
-        // allChildren.add(ddlGenerator); TODO make DDLGenerator an SPObject 
+        allChildren.add(ddlGenerator); 
         allChildren.add(db);
         return allChildren;
     }

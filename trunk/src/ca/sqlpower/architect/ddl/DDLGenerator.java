@@ -19,15 +19,16 @@
 
 package ca.sqlpower.architect.ddl;
 
-import ca.sqlpower.sqlobject.SQLObject;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -39,7 +40,7 @@ import ca.sqlpower.sqlobject.SQLTable;
  * @author fuerth
  * @version $Id$
  */
-public interface DDLGenerator {
+public interface DDLGenerator extends SPObject {
 
     /**
      * Returns the name of this DDL Generator, which should be a
