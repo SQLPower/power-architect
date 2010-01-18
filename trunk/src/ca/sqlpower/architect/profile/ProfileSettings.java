@@ -18,7 +18,13 @@
  */
 package ca.sqlpower.architect.profile;
 
-public class ProfileSettings {
+import java.util.Collections;
+import java.util.List;
+
+import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.object.SPObject;
+
+public class ProfileSettings extends AbstractSPObject {
     
     private boolean findingMin = true;
 
@@ -122,5 +128,34 @@ public class ProfileSettings {
     
     public void setTopNCount(String topNCount) {
         this.topNCount = Integer.valueOf(topNCount);
+    }
+
+    @Override
+    protected boolean removeChildImpl(SPObject child) {
+        return false;
+    }
+
+    public boolean allowsChildren() {
+        return false;
+    }
+
+    public int childPositionOffset(Class<? extends SPObject> childType) {
+        return 0;
+    }
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return Collections.emptyList();
+    }
+
+    public List<? extends SPObject> getChildren() {
+        return Collections.emptyList();
+    }
+
+    public List<? extends SPObject> getDependencies() {
+        return Collections.emptyList();
+    }
+
+    public void removeDependency(SPObject dependency) {
+        
     }
 }

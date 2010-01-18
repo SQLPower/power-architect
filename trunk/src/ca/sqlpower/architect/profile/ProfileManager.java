@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -32,7 +33,7 @@ import ca.sqlpower.sqlobject.SQLTable;
  * For now it can only be a list of TableProfileResults; some day we might
  * want to make it a generic type.
  */
-public interface ProfileManager {
+public interface ProfileManager extends SPObject {
 
     /**
      * A client property defined on an object to count how many profiles

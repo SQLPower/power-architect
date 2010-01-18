@@ -18,13 +18,19 @@
  */
 package ca.sqlpower.architect.profile;
 
+import java.util.Collections;
+import java.util.List;
+
+import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.object.SPObject;
+
 /**
  * A simple class for keeping track of a value, the number of occurrences
  * associated with it, and the percentage of occurences in the table.  
  * Instances of this class are used in the "Top N most
  * frequent values" property of a column's profile.
  */
-public class ColumnValueCount {
+public class ColumnValueCount extends AbstractSPObject {
 
     private Object value;
     private int count;
@@ -86,5 +92,34 @@ public class ColumnValueCount {
         }
         result = 37 * result + count;
         return result;
+    }
+
+    @Override
+    protected boolean removeChildImpl(SPObject child) {
+        return false;
+    }
+
+    public boolean allowsChildren() {
+        return false;
+    }
+
+    public int childPositionOffset(Class<? extends SPObject> childType) {
+        return 0;
+    }
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return Collections.emptyList();
+    }
+
+    public List<? extends SPObject> getChildren() {     
+        return Collections.emptyList();
+    }
+
+    public List<? extends SPObject> getDependencies() {
+        return Collections.emptyList();
+    }
+
+    public void removeDependency(SPObject dependency) {
+        
     }
 }
