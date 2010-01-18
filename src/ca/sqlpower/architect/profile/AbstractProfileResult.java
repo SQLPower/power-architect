@@ -25,6 +25,8 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.profile.event.ProfileResultEvent;
 import ca.sqlpower.architect.profile.event.ProfileResultListener;
+import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -43,7 +45,7 @@ import ca.sqlpower.sqlobject.SQLTable;
  *            The type of DatabaseObject this profile pertains to. For example,
  *            SQLTable or SQLColumn.
  */
-public abstract class AbstractProfileResult<T extends SQLObject>
+public abstract class AbstractProfileResult<T extends SQLObject> extends AbstractSPObject
     implements Comparable<AbstractProfileResult>, ProfileResult<T> {
 
     private static final Logger logger = Logger.getLogger(AbstractProfileResult.class);
@@ -292,5 +294,11 @@ public abstract class AbstractProfileResult<T extends SQLObject>
         for (int i = profileResultListeners.size() - 1; i >= 0; i--) {
             profileResultListeners.get(i).profileCancelled(event);
         }
+    }
+    
+    public List<? extends SPObject> getDependencies() {
+        List<SPObject> dependencies = new ArrayList<SPObject>();
+        dependencies.add(profiledObject);
+        return dependencies;
     }
 }

@@ -23,7 +23,6 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
-import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -169,24 +168,20 @@ public class ArchitectSessionImpl implements ArchitectSession {
                 defaultResponseType, defaultResponse, dsCollection, buttonNames);
     }
 
-    public SPObject getWorkspace() {
-        // TODO Auto-generated method stub
-        return null;
+    public ArchitectProject getWorkspace() {
+        return project;
     }
 
     public boolean isForegroundThread() {
-        // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 
     public void runInBackground(Runnable runner) {
-        // TODO Auto-generated method stub
-        
+        runner.run();        
     }
 
     public void runInForeground(Runnable runner) {
-        // TODO Auto-generated method stub
-        
+        runner.run();
     }
 
 }

@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLColumn;
 
 public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
@@ -157,5 +158,38 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
 
     public TableProfileResult getParentResult() {
         return parentResult;
+    }
+
+    @Override
+    protected boolean removeChildImpl(SPObject child) {
+        return false;
+    }
+
+    public boolean allowsChildren() {
+        return true;
+    }
+
+    public int childPositionOffset(Class<? extends SPObject> childType) {
+        if (childType.isAssignableFrom(ColumnValueCount.class)) {
+            return 0;
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() { 
+        List<Class<? extends SPObject>> types = new ArrayList<Class<? extends SPObject>>();
+        types.add(ColumnValueCount.class);
+        return types;
+    }
+
+    public List<? extends SPObject> getChildren() {
+        List<SPObject> children = new ArrayList<SPObject>();
+        children.addAll(topTen);
+        return children;
+    }
+
+    public void removeDependency(SPObject dependency) {
+
     }
 }

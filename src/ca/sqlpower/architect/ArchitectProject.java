@@ -26,6 +26,7 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
@@ -36,6 +37,15 @@ import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.util.SPSession;
+
+/**
+ * 
+ * This class is the root object of an ArchitectSession. There is an ArchitectProject
+ * for every ArchitectSession. The ArchitectProject, and all its children, will be
+ * listened to and persisted to the JCR. This includes the SQL object tree,
+ * the profile manager, forward engineering settings, and compare DM settings.
+ *
+ */
 
 public class ArchitectProject extends AbstractSPObject {
     
@@ -147,7 +157,7 @@ public class ArchitectProject extends AbstractSPObject {
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>();
         childTypes.add(SQLObjectRoot.class);
-        // childTypes.add(ProfileManager.class); TODO make ProfileManager an SPObject
+        childTypes.add(ProfileManager.class);
         // childTypes.add(DDLGenerator.class); TODO make DDLGenerator an SPObject
         childTypes.add(SQLDatabase.class);
         return childTypes;
@@ -156,8 +166,8 @@ public class ArchitectProject extends AbstractSPObject {
     public List<SPObject> getChildren() {
         List<SPObject> allChildren = new ArrayList<SPObject>();
         allChildren.add(rootObject);
-        // childTypes.add(profileManager); TODO make ProfileManager an SPObject
-        // childTypes.add(ddlGenerator); TODO make DDLGenerator an SPObject 
+        allChildren.add(profileManager);
+        // allChildren.add(ddlGenerator); TODO make DDLGenerator an SPObject 
         allChildren.add(db);
         return allChildren;
     }

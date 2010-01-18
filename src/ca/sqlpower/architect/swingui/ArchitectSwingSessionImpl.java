@@ -47,10 +47,11 @@ import javax.swing.ToolTipManager;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
-import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
@@ -69,7 +70,6 @@ import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
-import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -1004,7 +1004,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 defaultResponseType, defaultResponse, dsCollection, buttonNames);
     }
 
-    public SPObject getWorkspace() {
+    public ArchitectProject getWorkspace() {
         return delegateSession.getWorkspace();
     }
 

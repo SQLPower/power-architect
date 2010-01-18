@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -204,5 +205,38 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      */
     public void addColumnProfileResult(ColumnProfileResult profileResult) {
         columnProfileResults.add(profileResult);
+    }
+
+    @Override
+    protected boolean removeChildImpl(SPObject child) {
+        return false;
+    }
+
+    public boolean allowsChildren() {
+        return true;
+    }
+
+    public int childPositionOffset(Class<? extends SPObject> childType) {
+        if (childType.isAssignableFrom(ColumnProfileResult.class)) {
+            return 0;
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        List<Class<? extends SPObject>> types = new ArrayList<Class<? extends SPObject>>();
+        types.add(ColumnProfileResult.class);
+        return types;
+    }
+
+    public List<? extends SPObject> getChildren() {
+        List<SPObject> children = new ArrayList<SPObject>();
+        children.addAll(columnProfileResults);
+        return children;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        
     }
 }

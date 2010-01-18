@@ -19,8 +19,10 @@
 package ca.sqlpower.architect.profile;
 
 import java.util.Date;
+import java.util.List;
 
 import junit.framework.TestCase;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -29,6 +31,42 @@ public class AbstractProfileResultTest extends TestCase {
 
         public TestingAbstractProfileResult(SQLObject s) {
             super(s);
+        }
+
+        @Override
+        protected boolean removeChildImpl(SPObject child) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        public boolean allowsChildren() {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        public int childPositionOffset(Class<? extends SPObject> childType) {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+        public List<Class<? extends SPObject>> getAllowedChildTypes() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        public List<? extends SPObject> getChildren() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        public List<? extends SPObject> getDependencies() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        public void removeDependency(SPObject dependency) {
+            // TODO Auto-generated method stub
+            
         }
         
     }

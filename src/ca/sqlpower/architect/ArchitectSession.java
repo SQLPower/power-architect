@@ -22,7 +22,6 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLDatabaseMapping;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -96,8 +95,14 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
      */
     public void setDDLGenerator(DDLGenerator generator);    
 
-    public SPObject getWorkspace();
+    /**
+     * Returns the workspace object which is the root object of the ArchitectSession, the ArchitectProject.  
+     */
+    public ArchitectProject getWorkspace();    
     
+    /**
+     * Returns the root SQL object of the session, which is the tree that contains Columns, Databases, etc.
+     */
     public SQLObjectRoot getRootObject();
 
 }

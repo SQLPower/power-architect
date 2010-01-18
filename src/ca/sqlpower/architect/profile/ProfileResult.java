@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.profile;
 
 import ca.sqlpower.architect.profile.event.ProfileResultListener;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLObject;
 
 /**
@@ -30,7 +31,7 @@ import ca.sqlpower.sqlobject.SQLObject;
  * @param T The type of SQLObject that this profile result calculates
  * and holds results for.
  */
-public interface ProfileResult<T extends SQLObject> {
+public interface ProfileResult<T extends SQLObject> extends SPObject {
     
     /**
      * Returns the SQLObject that is profiled by this ProfileResult.

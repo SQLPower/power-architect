@@ -34,9 +34,11 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
-import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectPreEvent;
 import ca.sqlpower.sqlobject.SQLObjectPreEventListener;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -51,7 +53,7 @@ import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
  * 
  * @version $Id$
  */
-public class ProfileManagerImpl implements ProfileManager {
+public class ProfileManagerImpl extends AbstractSPObject implements ProfileManager {
     
     /**
      * Watches the session's root object, and reacts when SQLDatabase items
@@ -98,6 +100,8 @@ public class ProfileManagerImpl implements ProfileManager {
     }
 
     private static final Logger logger = Logger.getLogger(ProfileManagerImpl.class);
+    
+
     
     /**
      * The current list of listeners who want to know when the contents
@@ -373,6 +377,49 @@ public class ProfileManagerImpl implements ProfileManager {
 
     public void setCreator(TableProfileCreator tpc) {
         this.creator = tpc;
+    }
+
+    @Override
+    protected boolean removeChildImpl(SPObject child) {
+        return false;
+    }
+
+    public boolean allowsChildren() {
+        return true;
+    }
+
+    public int childPositionOffset(Class<? extends SPObject> childType) {
+        if (childType.isAssignableFrom(ProfileSettings.class)) {
+            return 0;
+        } else if (results.size() > 0) {
+            return 1;
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        List<Class<? extends SPObject>> types = new ArrayList<Class<? extends SPObject>>();
+        types.add(ProfileSettings.class);
+        if (results.size() > 0) {
+            types.add(TableProfileResult.class);
+        }
+        return types;
+    }
+
+    public List<? extends SPObject> getChildren() {
+        List<SPObject> allChildren = new ArrayList<SPObject>();        
+        allChildren.add(defaultProfileSettings);
+        allChildren.addAll(results);
+        return allChildren;
+    }
+
+    public List<? extends SPObject> getDependencies() {
+        return Collections.emptyList();
+    }
+
+    public void removeDependency(SPObject dependency) {
+        
     }
 
 }

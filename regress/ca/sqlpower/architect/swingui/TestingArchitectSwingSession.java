@@ -28,10 +28,11 @@ import java.util.List;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
 
+import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
-import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
@@ -43,7 +44,6 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.object.ObjectDependentException;
-import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -395,7 +395,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
                 optionType, defaultResponseType, defaultResponse, dsCollection, buttonNames);
     }
 
-    public SPObject getWorkspace() {
+    public ArchitectProject getWorkspace() {
         // TODO Auto-generated method stub
         return null;
     }
