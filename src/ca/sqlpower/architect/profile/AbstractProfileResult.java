@@ -301,4 +301,22 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
         dependencies.add(profiledObject);
         return dependencies;
     }
+    
+    /**
+     * Remove this profile result, whether it be a column or table, from its parent when its dependency is deleted.
+     * The children are expected to just be removed from their parent's list of children.
+     * TableProfileResult will continue existing when a child ColumnProfileResult is removed, as will
+     * ProfileManagerImpl will when a child TableProfileResult is removed.    
+     */
+    public void removeDependency(SPObject dependency) {
+        if (dependency == getDependencies().get(0)) {
+            try {
+                getParent().removeChild(this);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            throw new IllegalArgumentException("ProfileResult is not dependant on that.");
+        }
+    }
 }
