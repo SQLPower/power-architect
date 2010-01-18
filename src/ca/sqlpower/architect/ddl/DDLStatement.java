@@ -18,6 +18,11 @@
  */
 package ca.sqlpower.architect.ddl;
 
+import java.util.Collections;
+import java.util.List;
+
+import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLObject;
 
 /**
@@ -25,7 +30,7 @@ import ca.sqlpower.sqlobject.SQLObject;
  * certain Data Definition Language statement does, as well as the
  * text of that statement for a particular database.
  */
-public class DDLStatement {
+public class DDLStatement extends AbstractSPObject {
 
 	public static class StatementType {
 
@@ -164,5 +169,35 @@ public class DDLStatement {
 
     public String toString() {
         return getType()+" "+DDLUtils.toQualifiedName(getTargetCatalog(), getTargetSchema(), object.getName());
+    }
+
+    @Override
+    protected boolean removeChildImpl(SPObject child) {
+        return false;
+    }
+
+    public boolean allowsChildren() {
+        return false;
+    }
+
+    public int childPositionOffset(Class<? extends SPObject> childType) {
+        return 0;
+    }
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return Collections.emptyList();
+    }
+
+    public List<? extends SPObject> getChildren() {
+        return Collections.emptyList();
+    }
+
+    public List<? extends SPObject> getDependencies() {
+        // Assuming that the SQLObject field object is never modified/removed, as is the case currently...
+        return Collections.emptyList();
+    }
+
+    public void removeDependency(SPObject dependency) {
+        
     }
 }
