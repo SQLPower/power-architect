@@ -188,8 +188,5 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
         children.addAll(topTen);
         return children;
     }
-
-    public void removeDependency(SPObject dependency) {
-
-    }
+    
 }

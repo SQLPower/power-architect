@@ -380,8 +380,12 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     }
 
     @Override
-    protected boolean removeChildImpl(SPObject child) {
-        return false;
+    protected boolean removeChildImpl(SPObject child) {        
+        if (results.remove(child)) {
+            return true;
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 
     public boolean allowsChildren() {
@@ -391,7 +395,7 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     public int childPositionOffset(Class<? extends SPObject> childType) {
         if (childType.isAssignableFrom(ProfileSettings.class)) {
             return 0;
-        } else if (results.size() > 0) {
+        } else if (childType.isAssignableFrom(TableProfileResult.class)) {
             return 1;
         } else {
             throw new IllegalArgumentException();
@@ -401,9 +405,7 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         List<Class<? extends SPObject>> types = new ArrayList<Class<? extends SPObject>>();
         types.add(ProfileSettings.class);
-        if (results.size() > 0) {
-            types.add(TableProfileResult.class);
-        }
+        types.add(TableProfileResult.class);
         return types;
     }
 

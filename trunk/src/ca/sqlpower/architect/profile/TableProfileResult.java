@@ -209,7 +209,11 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
 
     @Override
     protected boolean removeChildImpl(SPObject child) {
-        return false;
+        if (columnProfileResults.remove(child)) {
+            return true;
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 
     public boolean allowsChildren() {
@@ -236,7 +240,4 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
         return children;
     }
 
-    public void removeDependency(SPObject dependency) {
-        
-    }
 }
