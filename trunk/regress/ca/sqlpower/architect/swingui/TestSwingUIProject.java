@@ -225,6 +225,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("class");
         propertiesToIgnore.add("childCount");
         propertiesToIgnore.add("populated");
+        propertiesToIgnore.add("columnsPopulated");
+        propertiesToIgnore.add("exportedKeysPopulated");
+        propertiesToIgnore.add("importedKeysPopulated");
+        propertiesToIgnore.add("indicesPopulated");
         propertiesToIgnore.add("magicEnabled");
         propertiesToIgnore.add("childrenInaccessibleReason");
         propertiesToIgnore.add("session");

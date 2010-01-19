@@ -60,6 +60,7 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
@@ -75,6 +76,7 @@ public class ProjectLoader {
     static {
         ConvertUtils.register(new DeferrabilityConverter(), Deferrability.class);
         ConvertUtils.register(new UpdateDeleteRuleConverter(), UpdateDeleteRule.class);
+        ConvertUtils.register(new AscendDescendConverter(), AscendDescend.class);
     }
     
     /**
