@@ -44,14 +44,15 @@ public class MySqlDDLGeneratorTest extends TestCase {
 		// second, third and fourth statements should be the COMMENT ON ... statements
 		List<DDLStatement> stmts = ddl.getDdlStatements();
 		assertEquals(4, stmts.size());
-
-		String sql = stmts.get(1).getSQLText().trim();
+		
+		String sql = stmts.get(1).getSQLText().trim();	
+		
 		assertEquals("ALTER TABLE test_table COMMENT 'Test single '' quotes'", sql);
 
 		sql = stmts.get(2).getSQLText().trim();
-		assertEquals("COMMENT ON COLUMN test_table.id IS 'The row''s primary key'", sql);
-
+		assertEquals("ALTER TABLE test_table MODIFY COLUMN id INTEGER(0) COMMENT 'The row''s primary key'", sql);
+		
 		sql = stmts.get(3).getSQLText().trim();
-		assertEquals("COMMENT ON COLUMN test_table.name IS 'The person''s name'", sql);
+        assertEquals("ALTER TABLE test_table MODIFY COLUMN name VARCHAR(50) COMMENT 'The person''s name'", sql);
 	}
 }
