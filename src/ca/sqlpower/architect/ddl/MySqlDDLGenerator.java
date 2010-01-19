@@ -495,15 +495,17 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 
 	@Override
 	public void addComment(SQLTable t, boolean includeColumns) {
-		print("\nALTER TABLE ");
-		print(toQualifiedName(t));
-		print(" COMMENT '");
-		print(t.getRemarks().replaceAll("'", "''"));
-		print("'");
-		endStatement(DDLStatement.StatementType.ALTER, t);
-		if (includeColumns) {
-			addColumnComments(t);
-		}
+	    if (t.getRemarks() != null && t.getRemarks().trim().length() > 0) {
+        	print("\nALTER TABLE ");
+        	print(toQualifiedName(t));
+        	print(" COMMENT '");     		
+        	print(t.getRemarks().replaceAll("'", "''"));
+        	print("'");
+        	endStatement(DDLStatement.StatementType.ALTER, t);
+	    }
+        if (includeColumns) {
+            addColumnComments(t);
+        }
 	}
 
     @Override
