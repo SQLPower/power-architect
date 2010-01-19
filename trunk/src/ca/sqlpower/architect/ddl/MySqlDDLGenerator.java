@@ -507,6 +507,22 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             addColumnComments(t);
         }
 	}
+	
+	@Override
+	public void addComment(SQLColumn c) {
+	    if (c.getRemarks() != null && c.getRemarks().trim().length() > 0) {
+	        print("\nALTER TABLE ");
+	        print(toQualifiedName(c.getParent()));
+	        print(" MODIFY COLUMN ");
+	        print(c.getPhysicalName());
+	        print(" ");
+	        print(c.getTypeName());
+	        print(" COMMENT '");
+            print(c.getRemarks().replaceAll("'", "''"));
+            print("'");
+            endStatement(DDLStatement.StatementType.ALTER, c);
+	    }
+	}
 
     @Override
     public void addColumn(SQLColumn c) {
