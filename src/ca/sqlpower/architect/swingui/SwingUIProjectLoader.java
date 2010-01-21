@@ -1337,12 +1337,63 @@ public class SwingUIProjectLoader extends ProjectLoader {
             ioo.niprintln(out, ">"); //$NON-NLS-1$
             Iterator children = o.getChildren().iterator();
             ioo.indent++;
+            
+            //XXX Adding the folders back into the saved file format. This way the save file version
+            //does not need to change. At some point when the save version increases in a major version
+            //number we may want to remove this.
+            //Note: columns type = 1, imported keys type = 2, exported keys type = 3, indicies type = 4
+            SQLObject lastChild = null;
+            String exportedKeysFolder = null;
+            String importedKeysFolder = null;
+            String indicesFolder = null;
+            if (o instanceof SQLTable) {
+                SQLTable table = (SQLTable) o;
+                ioo.println(out, "<folder id=\"FOL" + id + "1\" populated=\"" + 
+                        table.isColumnsPopulated() + "\" name=\"Columns\" " +
+                        		"physicalName=\"Columns\" type=\"1\">");
+                ioo.indent++;
+                
+                importedKeysFolder = "<folder id=\"FOL" + id + "2\" populated=\"" + 
+                    table.isImportedKeysPopulated() + "\" name=\"Imported Keys\" " +
+                    "physicalName=\"Imported Keys\" type=\"2\">";
+                exportedKeysFolder = "<folder id=\"FOL" + id + "3\" populated=\"" + 
+                    table.isExportedKeysPopulated() + "\" name=\"Exported Keys\" " +
+                    "physicalName=\"Exported Keys\" type=\"3\">";
+                indicesFolder = "<folder id=\"FOL" + id + "4\" populated=\"" + 
+                    table.isImportedKeysPopulated() + "\" name=\"Indices\" " +
+                    "physicalName=\"Indices\" type=\"4\">";
+            }
             while (children.hasNext()) {
                 SQLObject child = (SQLObject) children.next();
+                //another part of the XXX
+                if (o instanceof SQLTable && lastChild instanceof SQLColumn 
+                        && !(child instanceof SQLColumn)) {
+                    ioo.println(out, "</folder>");
+                    ioo.println(out, exportedKeysFolder);
+                    ioo.println(out, "</folder>");
+                    ioo.println(out, importedKeysFolder);
+                    ioo.println(out, "</folder>");
+                    ioo.println(out, indicesFolder);
+                }
                 if ( ! (child instanceof SQLRelationship)) {
                     saveSQLObject(out, child);
                 }
+                lastChild = child;
             }
+            //Second part of the above XXX
+            if (o instanceof SQLTable) {
+                ioo.indent--;
+                if (lastChild == null || lastChild instanceof SQLColumn) {
+                    ioo.println(out, "</folder>");
+                    ioo.println(out, exportedKeysFolder);
+                    ioo.println(out, "</folder>");
+                    ioo.println(out, importedKeysFolder);
+                    ioo.println(out, "</folder>");
+                    ioo.println(out, indicesFolder);
+                }
+                ioo.println(out, "</folder>");
+            }
+            
             if (o instanceof SQLDatabase) {
                 saveRelationships(out, (SQLDatabase) o);
             }
