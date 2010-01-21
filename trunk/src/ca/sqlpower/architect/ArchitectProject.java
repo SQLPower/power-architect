@@ -61,13 +61,18 @@ public class ArchitectProject extends AbstractSPObject {
         this.rootObject = new SQLObjectRoot();
         this.db = new SQLDatabase();
         
-        rootObject.addSQLObjectPreEventListener(new SourceObjectIntegrityWatcher(session));
+        rootObject.addSQLObjectPreEventListener(new SourceObjectIntegrityWatcher(session));                        
         
         try {
             ddlGenerator = new GenericDDLGenerator();
         } catch (SQLException e) {
             throw new SQLObjectException("SQL Error in ddlGenerator",e);
         }
+        
+        rootObject.setParent(this);
+        db.setParent(this);
+        ddlGenerator.setParent(this);
+        
     }
     
     /**
