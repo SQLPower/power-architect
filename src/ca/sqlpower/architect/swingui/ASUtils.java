@@ -526,12 +526,15 @@ public class ASUtils {
                     );
         }
         
-        if (containingSession != currentSession) { //Duplicating a SQLObject across sessions in the same context.
+        if (containingSession != currentSession) { //Duplicating a SQLObject across sessions in the same context.            
+            ImportSafetyChecker checker = new ImportSafetyChecker(currentSession);
+            boolean preserveColumnSource = checker.visit(source); // check if the columns can be preserved
+
             return new DuplicateProperties(
                     true, //Have to add the source db to the project if it's missing.
                     SQLTable.TransferStyles.COPY,
                     false, 
-                    true,
+                    preserveColumnSource,
                     true
                     );
         }
@@ -571,6 +574,10 @@ public class ASUtils {
         if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.REVERSE_ENGINEER) {
             sourceColumn = source;
         } else if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.COPY) {
+            // getSourceColumn may return null if source is its own source column.
+            if (source.getSourceColumn() == null) {
+                source.setSourceColumn(source);
+            }
             sourceColumn = source.getSourceColumn();
         } else {
             sourceColumn = null;
@@ -606,6 +613,22 @@ public class ASUtils {
             List<SQLObject> ancestors = SQLObjectUtils.ancestorList(sourceColumn);
             System.out.println(ancestors);
             SQLObject child = targetSourceDatabase;
+            
+            // It seems sometimes the PokeDBTree takes too long to populate the database,
+            // so this makes sure the new database is ready.
+            int waits = 0;            
+            while (child.getChildren().size() == 0) {
+                try {
+                    waits++;
+                    Thread.sleep(50);
+                    if (waits > 100) {
+                        throw new RuntimeException("Waiting too long for database to be populated.");
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            
             for (int i = 2; i < ancestors.size(); i++) {
                 SQLObject ancestor = ancestors.get(i);
                 System.out.println("Child " + child + " ancestor " + ancestor);

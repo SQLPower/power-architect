@@ -1530,12 +1530,15 @@ public class PlayPen extends JPanel
                         errorMessage, getDoStuffException());
 				if (getNextProcess() != null) {
 					setCancelled(true);
-
 				}
 			}
 
-			session.getPlayPen().startCompoundEdit("Drag to Playpen"); //$NON-NLS-1$
-
+			session.getPlayPen().startCompoundEdit("Drag to Playpen"); //$NON-NLS-1$						
+			
+			// Filter out objects that would lose ETL lineage against the user's will.
+			ImportSafetyChecker checker = new ImportSafetyChecker(session);
+			sqlObjects = checker.filterImportedItems(sqlObjects);		
+			
 			try {
 
 				// reset iterator
