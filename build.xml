@@ -802,6 +802,7 @@
 			Version="true" Author="true" Use="true"
 			Overview="html/overview.html"
 			classpathref="test.classpath"
+			access="private"
 			>
 			<packageset dir="${src}" defaultexcludes="yes">
 				<include name="ca/sqlpower/**" />
