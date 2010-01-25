@@ -230,7 +230,7 @@ public class ArchitectFrame extends JFrame {
         session = architectSession;
         ArchitectSwingSessionContext context = session.getContext();
         
-        setTitle(session.getName()+" - Power*Architect"); //$NON-NLS-1$
+        setTitle(session.getName()+" - SQL Power Architect"); //$NON-NLS-1$
         setIconImage(ASUtils.getFrameIconImage());
 	    
         // close is handled by a window listener
