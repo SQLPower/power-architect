@@ -1738,7 +1738,7 @@ public class PlayPen extends JPanel
 	 * this widget, we will notify all change listeners (the UI
 	 * delegate) with a ChangeEvent.
 	 */
-	public void propertyChange(PropertyChangeEvent e) {
+	public void propertyChanged(PropertyChangeEvent e) {
 		firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
 	}
 	

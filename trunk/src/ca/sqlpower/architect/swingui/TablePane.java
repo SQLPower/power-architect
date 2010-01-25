@@ -304,7 +304,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
          * this widget, we will notify all change listeners (the UI
          * delegate) with a ChangeEvent.
          */
-        public void propertyChange(PropertyChangeEvent e) {
+        public void propertyChanged(PropertyChangeEvent e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("TablePane got object changed event." + //$NON-NLS-1$
                         "  Source="+e.getSource()+" Property="+e.getPropertyName()+ //$NON-NLS-1$ //$NON-NLS-2$

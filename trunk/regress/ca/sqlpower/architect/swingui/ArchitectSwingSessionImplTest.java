@@ -183,7 +183,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         assertTrue(session.isNew());
         
         PropertyChangeEvent e = new PropertyChangeEvent(new SQLDatabase(), "property", "old", "new");
-        session.getProjectModificationWatcher().propertyChange(e);
+        session.getProjectModificationWatcher().propertyChanged(e);
         assertFalse(session.isNew());
     }
     

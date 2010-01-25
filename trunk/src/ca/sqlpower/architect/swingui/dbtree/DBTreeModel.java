@@ -239,7 +239,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             //do nothing            
         }
 
-        public void propertyChange(PropertyChangeEvent e) {
+        public void propertyChanged(PropertyChangeEvent e) {
             logger.debug("dbObjectChanged. source="+e.getSource()); //$NON-NLS-1$
             if ((!SwingUtilities.isEventDispatchThread()) && (!refireOnAnyThread)) {
                 logger.debug("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$

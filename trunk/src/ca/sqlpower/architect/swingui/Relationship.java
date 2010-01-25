@@ -467,7 +467,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
         }
 	}
 
-	public void propertyChange(PropertyChangeEvent e) {
+	public void propertyChanged(PropertyChangeEvent e) {
 		if (e.getPropertyName() != null) {
 			if (e.getPropertyName().equals("name")) { //$NON-NLS-1$
 				setToolTipText(model.getName());

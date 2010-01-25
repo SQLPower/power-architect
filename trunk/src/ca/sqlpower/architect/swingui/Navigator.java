@@ -32,6 +32,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -50,7 +51,7 @@ import ca.sqlpower.util.TransactionEvent;
  * @author kaiyi
  * 
  */
-public class Navigator extends JDialog implements SPListener, AdjustmentListener {
+public class Navigator extends JDialog implements SPListener, AdjustmentListener, PropertyChangeListener {
 
     private static final int SCALED_IMAGE_WIDTH = 200;
 
@@ -193,9 +194,13 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
     /**
      * Refreshes the navigator upon a visible property change
      */
-    public void propertyChange(PropertyChangeEvent evt) {
+    public void propertyChanged(PropertyChangeEvent evt) {
         navigationPanel.repaint();
 
+    }
+    
+    public void propertyChange(PropertyChangeEvent evt) {
+        navigationPanel.repaint();
     }
 
     /**

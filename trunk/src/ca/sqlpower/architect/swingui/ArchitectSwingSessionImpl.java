@@ -24,6 +24,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -644,7 +645,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * <p>Note: when we implement proper undo/redo support, this class should
      * be replaced with a hook into that system.
      */
-    class ProjectModificationWatcher implements SPListener {
+    class ProjectModificationWatcher implements SPListener, PropertyChangeListener {
 
         /**
          * Sets up a new modification watcher on the given playpen.
@@ -670,7 +671,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
 
         /** Marks project dirty. */
-        public void propertyChange(PropertyChangeEvent e) {
+        public void propertyChanged(PropertyChangeEvent e) {
             getProjectLoader().setModified(true);
             isNew = false;
         }
@@ -685,6 +686,14 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         public void transactionStarted(TransactionEvent e) {
             //no-op
+        }
+
+        /**
+         * Marks the project dirty
+         */
+        public void propertyChange(PropertyChangeEvent evt) {
+            getProjectLoader().setModified(true);
+            isNew = false;
         }
     }
 
