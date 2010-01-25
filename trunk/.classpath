@@ -41,5 +41,6 @@
 	<classpathentry kind="lib" path="lib/kettle-engine-3.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/kettle-core-3.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/kettle-db-3.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang-2.4.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
