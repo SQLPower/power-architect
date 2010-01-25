@@ -1,5 +1,12 @@
 Power*Architect Release Notes
 
+0.9.15
+  Bug Fixes:
+    * Fixed comments in MySQL's DDL generator
+    * Copy & paste of tables no longer causes illegal state exceptions when pasting into a different schema.
+    * Fixed a null pointer exception on DDL generation when the comments are null.
+    * Fixed the repository creation script for Oracle 10/11g
+
 0.9.14
 
   New Features:
