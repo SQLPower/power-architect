@@ -267,7 +267,7 @@ public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel
         }
     }
 
-    public void propertyChange(PropertyChangeEvent e) {
+    public void propertyChanged(PropertyChangeEvent e) {
         // no-op
     }
     

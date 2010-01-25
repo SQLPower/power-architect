@@ -339,7 +339,7 @@ public class IndexColumnTable {
             fireTableDataChanged();
         }
 
-        public void propertyChange(PropertyChangeEvent e) {
+        public void propertyChanged(PropertyChangeEvent e) {
             // no-op
         }
         
