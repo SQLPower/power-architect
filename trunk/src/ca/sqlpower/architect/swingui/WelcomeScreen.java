@@ -71,7 +71,7 @@ public class WelcomeScreen {
     final static String welcomeHTMLstuff =
         "<html><head><style type=\"text/css\">body {margin-left: 100px; margin-right: 100px;}</style></head>" + //$NON-NLS-1$
         "<body>" + //$NON-NLS-1$
-        "<h1 align=\"center\">Power*Architect " + ArchitectVersion.APP_FULL_VERSION + "</h1>" + //$NON-NLS-1$ //$NON-NLS-2$
+        "<h1 align=\"center\">SQL Power Architect " + ArchitectVersion.APP_FULL_VERSION + "</h1>" + //$NON-NLS-1$ //$NON-NLS-2$
         "<br><br><br>" + //$NON-NLS-1$
         "<p>" + Messages.getString("WelcomeScreen.forumInfo", SPSUtils.FORUM_URL) + //$NON-NLS-1$ //$NON-NLS-2$
         "<br><br>" + //$NON-NLS-1$
