@@ -19,17 +19,24 @@
 package ca.sqlpower.architect;
 
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.object.CleanupExceptions;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.swingui.event.SessionLifecycleEvent;
+import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.DefaultUserPrompterFactory;
+import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
@@ -49,6 +56,11 @@ public class ArchitectSessionImpl implements ArchitectSession {
     private final ArchitectSessionContext context;
     private final ArchitectProject project;
     private String name;  
+    
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    
+    private final List<SessionLifecycleListener<ArchitectSession>> lifecycleListeners =
+        new ArrayList<SessionLifecycleListener<ArchitectSession>>();
     
     /**
      * The factory that creates user prompters for this session. Defaults to a
@@ -182,6 +194,35 @@ public class ArchitectSessionImpl implements ArchitectSession {
 
     public void runInForeground(Runnable runner) {
         runner.run();
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener l) {
+        pcs.addPropertyChangeListener(l);        
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener l) {
+        pcs.addPropertyChangeListener(l);        
+    }
+
+    public boolean close() {
+        CleanupExceptions cleanupObject = SQLPowerUtils.cleanupSPObject(project);
+        SQLPowerUtils.displayCleanupErrors(cleanupObject, userPrompterFactory);
+        
+        SessionLifecycleEvent<ArchitectSession> lifecycleEvent =
+            new SessionLifecycleEvent<ArchitectSession>(this);
+        for (int i = lifecycleListeners.size() - 1; i >= 0; i--) {
+            lifecycleListeners.get(i).sessionClosing(lifecycleEvent);
+        }
+        
+        return true;
+    }
+
+    public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l) {
+        lifecycleListeners.add(l);        
+    }
+
+    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l) {
+        lifecycleListeners.remove(l);        
     }
 
 }

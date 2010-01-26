@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect;
 
+import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
@@ -26,6 +27,7 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLDatabaseMapping;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.SPSession;
 import ca.sqlpower.util.UserPrompterFactory;
 
@@ -105,4 +107,24 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
      */
     public SQLObjectRoot getRootObject();
 
+    void addPropertyChangeListener(PropertyChangeListener l);
+    
+    void removePropertyChangeListener(PropertyChangeListener l);
+    
+    public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l);
+
+    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l);
+    
+    /**
+     * Ends this session, disposing its frame and releasing any system
+     * resources that were obtained explicitly by this session. Also
+     * fires a sessionClosing lifecycle event, so any resources used up
+     * by subsystems dependent on this session can be freed by the appropriate
+     * parties.
+     * 
+     * @return True if the session was successfully closed. False if the
+     * session did not close due to an error or user intervention.
+     */
+    public boolean close();
+    
 }

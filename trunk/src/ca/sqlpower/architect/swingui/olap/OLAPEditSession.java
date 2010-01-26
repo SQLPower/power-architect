@@ -35,6 +35,7 @@ import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.olap.OLAPChildEvent;
 import ca.sqlpower.architect.olap.OLAPChildListener;
@@ -162,8 +163,8 @@ public class OLAPEditSession implements OLAPChildListener {
         pp = OLAPPlayPenFactory.createPlayPen(swingSession, this, undoManager);
         
         
-        swingSession.addSessionLifecycleListener(new SessionLifecycleListener<ArchitectSwingSession>() {
-            public void sessionClosing(SessionLifecycleEvent<ArchitectSwingSession> e) {
+        swingSession.addSessionLifecycleListener(new SessionLifecycleListener<ArchitectSession>() {
+            public void sessionClosing(SessionLifecycleEvent<ArchitectSession> e) {
                 close();
             }
         });

@@ -20,6 +20,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
 import java.awt.Window;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -161,7 +162,8 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         userSettings = argUserSettings;
     }
 
-    public void close() {
+    public boolean close() {
+        return true;
     }
 
     public CompareDMSettings getCompareDMSettings() {
@@ -340,11 +342,11 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         return null;
     }
 
-    public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener) {
+    public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> listener) {
         // do-nothing stub
     }
     
-    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener) {
+    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> listener) {
         // do-nothing stub
     }
 
@@ -411,6 +413,16 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public void runInForeground(Runnable runner) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener l) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener l) {
         // TODO Auto-generated method stub
         
     }

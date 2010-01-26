@@ -95,13 +95,6 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public JDialog getProfileDialog();
     
     /**
-     * This is a common handler for all actions that must
-     * occur when switching projects, e.g., dispose dialogs, 
-     * shut down running threads, etc. 
-     */
-    public void close();
-    
-    /**
      * See {@link #userSettings}.
      *
      * @return the value of userSettings
@@ -299,14 +292,14 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * notified when this session is about to close. Being a lifecycle listener
      * is an excellent way to make a session shutdown hook for your subsystem.
      */
-    public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener);
+    public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> listener);
 
     /**
      * Removes the given listener from the lifecycle event list. Once removed,
      * the listener will not receive a sessionClosing notification when this
      * session closes.
      */
-    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener);
+    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> listener);
     
     /**
      * Creates a new JMenu containing one item per data source in this

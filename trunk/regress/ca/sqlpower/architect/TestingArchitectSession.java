@@ -32,6 +32,7 @@
 
 package ca.sqlpower.architect;
 
+import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
@@ -43,6 +44,7 @@ import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.DefaultUserPrompterFactory;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
@@ -159,6 +161,31 @@ public class TestingArchitectSession implements ArchitectSession {
     }
 
     public void runInForeground(Runnable runner) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener l) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener l) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public boolean close() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l) {
         // TODO Auto-generated method stub
         
     }
