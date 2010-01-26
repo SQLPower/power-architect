@@ -33,6 +33,7 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
@@ -57,9 +58,9 @@ public class PasteSelectedAction extends AbstractArchitectAction {
         };
         session.getPlayPen().addFocusListener(focusListener);
         
-        final SessionLifecycleListener<ArchitectSwingSession> lifecycleListener = new SessionLifecycleListener<ArchitectSwingSession>() {
+        final SessionLifecycleListener<ArchitectSession> lifecycleListener = new SessionLifecycleListener<ArchitectSession>() {
         
-            public void sessionClosing(SessionLifecycleEvent<ArchitectSwingSession> e) {
+            public void sessionClosing(SessionLifecycleEvent<ArchitectSession> e) {
                 session.getPlayPen().removeFocusListener(focusListener);
             }
         };

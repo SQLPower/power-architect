@@ -302,9 +302,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * Removes the closed session from the list, and terminates the VM
      * if there are no more sessions.
      */
-    private SessionLifecycleListener<ArchitectSwingSession> sessionLifecycleListener =
-        new SessionLifecycleListener<ArchitectSwingSession>() {
-        public void sessionClosing(SessionLifecycleEvent<ArchitectSwingSession> e) {
+    private SessionLifecycleListener<ArchitectSession> sessionLifecycleListener =
+        new SessionLifecycleListener<ArchitectSession>() {
+        public void sessionClosing(SessionLifecycleEvent<ArchitectSession> e) {
             getSessions().remove(e.getSource());
             if (getSessions().isEmpty() && exitAfterAllSessionsClosed) {
                 System.exit(0);

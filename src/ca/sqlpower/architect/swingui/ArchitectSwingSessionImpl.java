@@ -144,7 +144,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private KettleJob kettleJob;
     // END STUFF BROUGHT IN FROM SwingUIProject
 
-    private final List<SessionLifecycleListener<ArchitectSwingSession>> lifecycleListeners;
+    private final List<SessionLifecycleListener<ArchitectSession>> lifecycleListeners;
 
     private Set<SPSwingWorker> swingWorkers;
 
@@ -270,7 +270,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         playPen.getPlayPenContentPane().addPropertyChangeListener("dashed", undoManager.getEventAdapter()); //$NON-NLS-1$
         playPen.getPlayPenContentPane().addPropertyChangeListener("rounded", undoManager.getEventAdapter()); //$NON-NLS-1$
 
-        lifecycleListeners = new ArrayList<SessionLifecycleListener<ArchitectSwingSession>>();
+        lifecycleListeners = new ArrayList<SessionLifecycleListener<ArchitectSession>>();
 
         swingWorkers = new HashSet<SPSwingWorker>();
         
@@ -531,7 +531,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * projects, e.g., prompting to save any unsaved changes, disposing dialogs,
      * shutting down running threads, and so on.
      */
-    public void close() {
+    public boolean close() {
 
         // IMPORTANT NOTE: If the GUI hasn't been initialized, frame will be null.
 
@@ -540,11 +540,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             JOptionPane.showMessageDialog(frame,
                     Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSaving"), //$NON-NLS-1$
                     Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSavingDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
-            return;
+            return false;
         }
 
         if (!promptForUnsavedModifications()) {
-            return;
+            return false;
+        }
+        
+        if (!delegateSession.close()) {
+            return false;
         }
 
         // If we still have ArchitectSwingWorker threads running, 
@@ -564,7 +568,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                     null, options, options[0]);
 
             if (n == 0) {
-                return;
+                return false;
             } else {
                 for (SPSwingWorker currentWorker : swingWorkers) {
                     currentWorker.kill();
@@ -606,6 +610,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         delegateSession.getProfileManager().clear();
 
         fireSessionClosing();
+        
+        return true;
     }
 
     /**
@@ -783,17 +789,17 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
     // END STUFF BROUGHT IN FROM SwingUIProject
 
-    public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener) {
-        lifecycleListeners.add(listener);
+    public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l) {
+        lifecycleListeners.add(l);
     }
-
-    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> listener) {
-        lifecycleListeners.remove(listener);
+    
+    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l) {
+        lifecycleListeners.remove(l);
     }
 
     public void fireSessionClosing() {
-        SessionLifecycleEvent<ArchitectSwingSession> evt = new SessionLifecycleEvent<ArchitectSwingSession>(this);
-        for (SessionLifecycleListener<ArchitectSwingSession> listener: lifecycleListeners) {
+        SessionLifecycleEvent<ArchitectSession> evt = new SessionLifecycleEvent<ArchitectSession>(this);
+        for (SessionLifecycleListener<ArchitectSession> listener: lifecycleListeners) {
             listener.sessionClosing(evt);
         }
     }
@@ -1044,5 +1050,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         } else {
             SwingUtilities.invokeLater(runner);
         }     
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener l) {
+        delegateSession.addPropertyChangeListener(l);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener l) {
+        delegateSession.removePropertyChangeListener(l);
     }
 }
