@@ -381,10 +381,14 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
 
     @Override
     protected boolean removeChildImpl(SPObject child) {        
-        if (results.remove(child)) {
-            return true;
+        if (child.getClass().isAssignableFrom(TableProfileResult.class)) {
+            if (removeProfile((TableProfileResult)child)) {
+                return true;
+            } else {
+                throw new IllegalArgumentException("Table does not exist in this profile manager");
+            }
         } else {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Child must be of type TableProfileResult");
         }
     }
 
