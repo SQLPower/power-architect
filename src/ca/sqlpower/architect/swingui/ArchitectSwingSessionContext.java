@@ -43,6 +43,22 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      * sizes.
      */
     public static final int ICON_SIZE = 16;
+    
+    /**
+     * Link to where you can buy the user guide on the SQL Power website.
+     */
+    public static final String USER_GUIDE_URL = "http://www.sqlpower.ca/page/architect-userguide";
+
+    /**
+     * Link to where you can buy premium support on the SQL Power website.
+     */
+    public static final String PREMIUM_SUPPORT_URL = "http://www.sqlpower.ca/page/architect_support";
+
+    /**
+     * Link to where you can post questions to the community in the SQL Power
+     * forums.
+     */
+    public static final String COMMUNITY_FORUM_URL = "http://www.sqlpower.ca/page/enter_forum";
 
     /**
      * Creates a new session within this parent context.  This will cause an
