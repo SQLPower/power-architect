@@ -19,7 +19,6 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -69,15 +68,18 @@ public class WelcomeScreen {
      * The contents of the Welcome Screen text.
      */
     final static String welcomeHTMLstuff =
-        "<html><head><style type=\"text/css\">body {margin-left: 100px; margin-right: 100px;}</style></head>" + //$NON-NLS-1$
-        "<body>" + //$NON-NLS-1$
+        "<html><head><style>body {margin-left: 100px; margin-right: 100px;}</style></head>" + //$NON-NLS-1$
+        "<body style=\"font:" + new JLabel().getFont() + "\">" + //$NON-NLS-1$
+        "<br>" + //$NON-NLS-1$
         "<h1 align=\"center\">SQL Power Architect " + ArchitectVersion.APP_FULL_VERSION + "</h1>" + //$NON-NLS-1$ //$NON-NLS-2$
         "<br><br><br>" + //$NON-NLS-1$
-        "<p>" + Messages.getString("WelcomeScreen.forumInfo", SPSUtils.FORUM_URL) + //$NON-NLS-1$ //$NON-NLS-2$
-        "<br><br>" + //$NON-NLS-1$
-        "<p>" + Messages.getString("WelcomeScreen.jdbcDriversHelp") + //$NON-NLS-1$ //$NON-NLS-2$
+        "<div align=\"center\"><p>" + Messages.getString("WelcomeScreen.forInfo") + "</div>" + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         "<br>" + //$NON-NLS-1$
-        "<p>" + Messages.getString("WelcomeScreen.helpFindingJdbcDrivers", ArchitectSwingSessionContext.DRIVERS_URL) + //$NON-NLS-1$ //$NON-NLS-2$
+        "<div align=\"center\"><b>" + Messages.getString("WelcomeScreen.userGuide", ArchitectSwingSessionContext.USER_GUIDE_URL)+ "</b></div>" + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        "<br>" + //$NON-NLS-1$
+        "<div align=\"center\"><b>" + Messages.getString("WelcomeScreen.premiumSupport", ArchitectSwingSessionContext.PREMIUM_SUPPORT_URL)+ "</b></div>" + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        "<br>" + //$NON-NLS-1$
+        "<div align=\"center\"><b>" + Messages.getString("WelcomeScreen.communityForum", ArchitectSwingSessionContext.COMMUNITY_FORUM_URL)+ "</b></div>" + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         "<br><br><br>"; //$NON-NLS-1$
 
     public void showWelcomeDialog(Component dialogOwner) {
@@ -146,9 +148,6 @@ public class WelcomeScreen {
     
     private static class LogoLayout implements LayoutManager {
 
-        private int textStartY = 130;
-        private int textStartX = 400;
-        
         public static JPanel generateLogoPanel() {
             JPanel panel = new JPanel(new LogoLayout());
             
@@ -156,13 +155,10 @@ public class WelcomeScreen {
             JLabel welcomeLabel = new JLabel(new ImageIcon(WelcomeScreen.class.getClassLoader().getResource("icons/architect_header_welcome.png")));
             JLabel architectLabel = new JLabel(new ImageIcon(WelcomeScreen.class.getClassLoader().getResource("icons/architect_header_architect.png")));
             JLabel sqlpowerLabel = new JLabel(new ImageIcon(WelcomeScreen.class.getClassLoader().getResource("icons/architect_header_sqlpower.png")));
-            JLabel versionLabel = new JLabel("" + ArchitectVersion.APP_VERSION);
-            versionLabel.setForeground(new Color(0x999999));
             
             panel.add(welcomeLabel);
             panel.add(architectLabel);
             panel.add(sqlpowerLabel);
-            panel.add(versionLabel);
             panel.add(bgLabel);
             return panel;
         }
@@ -172,11 +168,10 @@ public class WelcomeScreen {
         }
         
         public void layoutContainer(Container parent) {
-            JLabel bgLabel = (JLabel) parent.getComponent(4);
+            JLabel bgLabel = (JLabel) parent.getComponent(3);
             JLabel welcomeLabel = (JLabel) parent.getComponent(0);
             JLabel architectLabel = (JLabel) parent.getComponent(1);
             JLabel sqlpowerLabel = (JLabel) parent.getComponent(2);
-            JLabel versionLabel = (JLabel) parent.getComponent(3);
             
             int headerStartX = (parent.getWidth() - 800) / 2;
             
@@ -184,7 +179,6 @@ public class WelcomeScreen {
             welcomeLabel.setBounds(headerStartX, 0, welcomeLabel.getPreferredSize().width, welcomeLabel.getPreferredSize().height);
             architectLabel.setBounds(welcomeLabel.getX() + welcomeLabel.getPreferredSize().width, 0, architectLabel.getPreferredSize().width, architectLabel.getPreferredSize().height);
             sqlpowerLabel.setBounds(headerStartX + 800 - sqlpowerLabel.getPreferredSize().width, 0, sqlpowerLabel.getPreferredSize().width, sqlpowerLabel.getPreferredSize().height);
-            versionLabel.setBounds(architectLabel.getX() + textStartX, architectLabel.getY() + textStartY, versionLabel.getPreferredSize().width, versionLabel.getPreferredSize().height);
         }
 
         public Dimension minimumLayoutSize(Container parent) {
