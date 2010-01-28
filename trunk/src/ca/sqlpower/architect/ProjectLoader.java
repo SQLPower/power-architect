@@ -342,6 +342,8 @@ public class ProjectLoader {
         d.addFactoryCreate("*/table", tableFactory);
         d.addSetProperties("*/table");
         d.addSetNext("*/table", "addChild");
+        
+        d.addFactoryCreate("*/folder", new SQLFolderFactory());
 
         SQLColumnFactory columnFactory = new SQLColumnFactory();
         d.addFactoryCreate("*/column", columnFactory);
@@ -569,6 +571,31 @@ public class ProjectLoader {
             
             return tab;
         }
+    }
+    
+    /**
+     * XXX Temporary factory for folders until the file format changes and the folders
+     * are removed permanently.
+     */
+    private class SQLFolderFactory extends AbstractObjectCreationFactory {
+        @Override
+        public Object createObject(Attributes attributes) throws Exception {
+            String type = attributes.getValue("type"); //1=col, 2=import, 3=export, 4=index
+            boolean isPopulated = Boolean.valueOf(attributes.getValue("populated"));
+            
+            if (type.equals("1")) {
+                currentTable.setColumnsPopulated(isPopulated);
+            } else if (type.equals("2")) {
+                currentTable.setImportedKeysPopulated(isPopulated);
+            } else if (type.equals("3")) {
+                currentTable.setExportedKeysPopulated(isPopulated);
+            } else if (type.equals("4")) {
+                currentTable.setIndicesPopulated(isPopulated);
+            }
+            
+            return currentTable;
+        }
+        
     }
 
     /**
