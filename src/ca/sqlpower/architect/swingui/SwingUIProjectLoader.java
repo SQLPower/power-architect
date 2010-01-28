@@ -82,6 +82,10 @@ import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.ExceptionReport;
 import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 import ca.sqlpower.xml.XMLHelper;
 
 /**
@@ -1113,13 +1117,29 @@ public class SwingUIProjectLoader extends ProjectLoader {
         List<TableProfileResult> tableResults = profmgr.getResults();
         
         for (TableProfileResult tableResult : tableResults) {
-            printCommonItems(out, tableResult);
+            String profiledObjectId = sqlObjectSaveIdMap.get(tableResult.getProfiledObject());
+            if (profiledObjectId == null) {
+                UserPrompter prompter = getSession().createUserPrompter("Cannot save profile for table " + 
+                        tableResult.getProfiledObject().getName() + ", skipping this profile and continuing save.", 
+                        UserPromptType.MESSAGE, UserPromptOptions.OK, UserPromptResponse.OK, null, "OK");
+                prompter.promptUser();
+                continue;
+            }
+            printCommonItems(out, tableResult, profiledObjectId);
             ioo.print(out, " rowCount=\"" + tableResult.getRowCount() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
             ioo.niprintln(out, "/>"); //$NON-NLS-1$
             
             List<ColumnProfileResult> columnProfileResults = tableResult.getColumnProfileResults();
             for (ColumnProfileResult cpr : columnProfileResults) {
-                printCommonItems(out, cpr);
+                String profiledColumnObjectId = sqlObjectSaveIdMap.get(cpr.getProfiledObject());
+                if (profiledColumnObjectId == null) {
+                    UserPrompter prompter = getSession().createUserPrompter("Cannot save profile for column " + 
+                            cpr.getProfiledObject().getName() + ", skipping this profile and continuing save.", 
+                            UserPromptType.MESSAGE, UserPromptOptions.OK, UserPromptResponse.OK, null, "OK");
+                    prompter.promptUser();
+                    continue;
+                }
+                printCommonItems(out, cpr, profiledColumnObjectId);
                 ioo.niprint(out, " avgLength=\"" + cpr.getAvgLength() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
 
                 ioo.niprint(out, " minLength=\"" + cpr.getMinLength() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1174,9 +1194,8 @@ public class SwingUIProjectLoader extends ProjectLoader {
         ioo.indent--;
     }
 
-    private void printCommonItems(PrintWriter out, ProfileResult profileResult) {
-        SQLObject profiledObject = profileResult.getProfiledObject();
-        ioo.print(out, "<profile-result ref-id=\""+sqlObjectSaveIdMap.get(profiledObject)+"\"" + //$NON-NLS-1$ //$NON-NLS-2$
+    private void printCommonItems(PrintWriter out, ProfileResult profileResult, String profiledObjectId) {
+        ioo.print(out, "<profile-result ref-id=\"" + profiledObjectId + "\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " type=\"" + profileResult.getClass().getName() + "\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " createStartTime=\""+profileResult.getCreateStartTime()+"\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " createEndTime=\""+profileResult.getCreateEndTime()+"\"" + //$NON-NLS-1$ //$NON-NLS-2$
@@ -1333,9 +1352,14 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 ioo.niprint(out, key+"="+quote(value.toString())+" "); //$NON-NLS-1$ //$NON-NLS-2$
             }
         }
-        if ( (!skipChildren) && o.allowsChildren() && (getSession().isSavingEntireSource() || o.isPopulated()) ) {
+        if ( (!skipChildren) && o.allowsChildren() ) {
             ioo.niprintln(out, ">"); //$NON-NLS-1$
-            Iterator children = o.getChildren().iterator();
+            Iterator children;
+            if (getSession().isSavingEntireSource()) {
+                children = o.getChildren().iterator();
+            } else {
+                children = o.getChildrenWithoutPopulating().iterator();
+            }
             ioo.indent++;
             
             //XXX Adding the folders back into the saved file format. This way the save file version
@@ -1360,7 +1384,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
                     table.isExportedKeysPopulated() + "\" name=\"Exported Keys\" " +
                     "physicalName=\"Exported Keys\" type=\"3\">";
                 indicesFolder = "<folder id=\"FOL" + id + "4\" populated=\"" + 
-                    table.isImportedKeysPopulated() + "\" name=\"Indices\" " +
+                    table.isIndicesPopulated() + "\" name=\"Indices\" " +
                     "physicalName=\"Indices\" type=\"4\">";
             }
             while (children.hasNext()) {

@@ -29,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelEvent;
@@ -67,6 +68,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	    
 	    private final SQLTable parentTable;
         private final Class<? extends SQLObject> containingChildType;
+        private final Callable<Boolean> isPopulatedRunnable;
 
         /**
          * @param parentTable
@@ -75,11 +77,13 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
          *            The type of child of the SQLTable this folder is to
          *            contain. Must be a valid type of child in the table.
          */
-	    public FolderNode(SQLTable parentTable, Class<? extends SQLObject> containingChildType) {
+	    public FolderNode(SQLTable parentTable, Class<? extends SQLObject> containingChildType,
+	            Callable<Boolean> isPopulatedRunnable) {
 	        this.parentTable = parentTable;
 	        if (!parentTable.getAllowedChildTypes().contains(containingChildType)) 
 	            throw new IllegalArgumentException(containingChildType + " is not a valid child type of " + parentTable);
             this.containingChildType = containingChildType;
+            this.isPopulatedRunnable = isPopulatedRunnable;
 	    }
 	    
 	    public SQLTable getParentTable() {
@@ -167,7 +171,11 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         
         @Override
         public boolean isPopulated() {
-            return parentTable.isPopulated();
+            try {
+                return isPopulatedRunnable.call().booleanValue();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 	    
 	}
@@ -545,17 +553,33 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
      * Creates all of the folders the given table should contain for its children
      * and adds them to the {@link #foldersInTables} map.
      */
-    private void createFolders(SQLTable table) {
+    private void createFolders(final SQLTable table) {
         if (foldersInTables.get(table) == null) {
             List<FolderNode> folderList = new ArrayList<FolderNode>();
             foldersInTables.put(table, folderList);
-            FolderNode SQLColumnFolder = new FolderNode(table, SQLColumn.class);
+            FolderNode SQLColumnFolder = new FolderNode(table, SQLColumn.class, new Callable<Boolean>() {
+                public Boolean call() throws Exception {
+                    return table.isColumnsPopulated();
+                }
+            });
             folderList.add(SQLColumnFolder);
-            FolderNode SQLRelationshipFolder = new FolderNode(table, SQLRelationship.class);
+            FolderNode SQLRelationshipFolder = new FolderNode(table, SQLRelationship.class, new Callable<Boolean>() {
+                public Boolean call() throws Exception {
+                    return table.isExportedKeysPopulated();
+                }
+            });
             folderList.add(SQLRelationshipFolder);
-            FolderNode SQLImportedKeys = new FolderNode(table, SQLImportedKey.class);
+            FolderNode SQLImportedKeys = new FolderNode(table, SQLImportedKey.class, new Callable<Boolean>() {
+                public Boolean call() throws Exception {
+                    return table.isImportedKeysPopulated();
+                }
+            });
             folderList.add(SQLImportedKeys);
-            FolderNode SQLIndexFolder = new FolderNode(table, SQLIndex.class);
+            FolderNode SQLIndexFolder = new FolderNode(table, SQLIndex.class, new Callable<Boolean>() {
+                public Boolean call() throws Exception {
+                    return table.isIndicesPopulated();
+                }
+            });
             folderList.add(SQLIndexFolder);
         }
     }
