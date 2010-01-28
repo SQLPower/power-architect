@@ -26,7 +26,6 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
-import ca.sqlpower.object.CleanupExceptions;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -36,7 +35,6 @@ import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.DefaultUserPrompterFactory;
-import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
@@ -205,8 +203,12 @@ public class ArchitectSessionImpl implements ArchitectSession {
     }
 
     public boolean close() {
-        CleanupExceptions cleanupObject = SQLPowerUtils.cleanupSPObject(project);
-        SQLPowerUtils.displayCleanupErrors(cleanupObject, userPrompterFactory);
+        //TODO decide what to do with cleanup in the long run. At current this call
+        //makes closing Architect extremely slow as it populates everything in the entire
+        //collection of databases in the DBTree (painful on a slow Windows laptop with a
+        //large Oracle DB).
+//        CleanupExceptions cleanupObject = SQLPowerUtils.cleanupSPObject(project);
+//        SQLPowerUtils.displayCleanupErrors(cleanupObject, userPrompterFactory);
         
         SessionLifecycleEvent<ArchitectSession> lifecycleEvent =
             new SessionLifecycleEvent<ArchitectSession>(this);
