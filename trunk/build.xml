@@ -428,7 +428,7 @@
 	<!-- This target is used to make an architect library jar to embed
 	in other applications -->
 	<target name="library.jar" depends="compile">
-		<jar jarfile="${build}/architect_lib.jar" basedir="${build}"
+		<jar jarfile="dist/architect_library.jar" basedir="${build}"
 			includes="ca/sqlpower/architect/*.class,
 						ca/sqlpower/architect/ddl/*.class,
 						ca/sqlpower/architect/diff/*.class,
