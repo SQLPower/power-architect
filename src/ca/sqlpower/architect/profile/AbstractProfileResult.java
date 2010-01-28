@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.profile.event.ProfileResultEvent;
 import ca.sqlpower.architect.profile.event.ProfileResultListener;
 import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sqlobject.SQLCatalog;
@@ -50,7 +51,7 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
 
     private static final Logger logger = Logger.getLogger(AbstractProfileResult.class);
     
-    private T profiledObject;
+    private final T profiledObject;
     private long createEndTime = -1L;
     private long createStartTime = -1L;
     private Exception ex;
@@ -312,7 +313,7 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
         if (dependency == getDependencies().get(0)) {
             try {
                 getParent().removeChild(this);
-            } catch (Exception e) {
+            } catch (ObjectDependentException e) {
                 throw new RuntimeException(e);
             }
         } else {
