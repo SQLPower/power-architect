@@ -70,9 +70,9 @@ public class WelcomeScreen {
     final static String welcomeHTMLstuff =
         "<html><head><style>body {margin-left: 100px; margin-right: 100px;}</style></head>" + //$NON-NLS-1$
         "<body style=\"font:" + new JLabel().getFont() + "\">" + //$NON-NLS-1$
-        "<br>" + //$NON-NLS-1$
+        "<br><br>" + //$NON-NLS-1$
         "<h1 align=\"center\">SQL Power Architect " + ArchitectVersion.APP_FULL_VERSION + "</h1>" + //$NON-NLS-1$ //$NON-NLS-2$
-        "<br><br><br>" + //$NON-NLS-1$
+        "<br>" + //$NON-NLS-1$
         "<div align=\"center\"><p>" + Messages.getString("WelcomeScreen.forInfo") + "</div>" + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         "<br>" + //$NON-NLS-1$
         "<div align=\"center\"><b>" + Messages.getString("WelcomeScreen.userGuide", ArchitectSwingSessionContext.USER_GUIDE_URL)+ "</b></div>" + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
