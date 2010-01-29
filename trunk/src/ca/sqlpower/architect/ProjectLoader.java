@@ -94,7 +94,7 @@ public class ProjectLoader {
         }
     }
     
-//  ---------------- persistent properties -------------------
+    //  ---------------- persistent properties -------------------
 
     protected File file;
     
@@ -184,7 +184,7 @@ public class ProjectLoader {
      * @param dataSources
      *            Collection of the data sources used in the project
      */
-    public void load(InputStream in, DataSourceCollection<JDBCDataSource> dataSources) throws IOException, SQLObjectException {
+    public void load(InputStream in, DataSourceCollection<? extends SPDataSource> dataSources) throws IOException, SQLObjectException {
         UnclosableInputStream uin = new UnclosableInputStream(in);
         try {
             dbcsLoadIdMap = new HashMap<String, JDBCDataSource>();
