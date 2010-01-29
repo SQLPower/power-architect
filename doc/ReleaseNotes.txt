@@ -1,4 +1,4 @@
-Power*Architect Release Notes
+SQL Power Architect Release Notes
 
 0.9.15
   Bug Fixes:
