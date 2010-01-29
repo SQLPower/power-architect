@@ -721,8 +721,8 @@
 					stayalive="false"
 					icon="installer/uninstall.ico">
 				<singleInstance
-					mutexName="Power*Architect Uninstaller"
-					windowTitle="Power*Architect Uninstaller"
+					mutexName="SQL Power Architect Uninstaller"
+					windowTitle="SQL Power Architect Uninstaller"
 				/>
 				<jre minVersion="1.5.0"/>
 			</config>
@@ -755,7 +755,7 @@
 		<delete dir="${build}"/>
 		<delete dir="${build.tests}"/>
 		<delete dir="${build.examples}"/>
-		<delete><fileset dir="${dist.dir}" includes="lib,Power*Architect.app,architect.jar"/></delete>
+		<delete><fileset dir="${dist.dir}" includes="lib,SQL Power Architect.app,architect.jar"/></delete>
 		<delete dir="webstart/lib"/>
 		<delete dir="${staging.dir}"/>
 		<delete><fileset dir="." includes="mycoverage.db*"/></delete>
@@ -798,7 +798,7 @@
 		<javadoc sourcepath="${src}" destdir="${dist.dir}/doc/api"
 			packagenames="ca.sqlpower.*"
 			maxmemory="100m"
-			windowtitle="ca.sqlpower.architect.* Power*Architect"
+			windowtitle="ca.sqlpower.architect.* SQL Power Architect"
 			Version="true" Author="true" Use="true"
 			Overview="html/overview.html"
 			classpathref="test.classpath"
@@ -820,7 +820,7 @@
 		<javadoc sourcepath="${src}" destdir="${dist.dir}/doc/api"
 			packagenames="ca.sqlpower.*"
 			maxmemory="100m"
-			windowtitle="ca.sqlpower.architect.* Power*Architect"
+			windowtitle="ca.sqlpower.architect.* SQL Power Architect"
 			Version="true" Author="true" Use="true"
 			Overview="html/overview.html"
 			classpathref="test.classpath"
@@ -1034,8 +1034,8 @@
 					stayalive="false"
 					icon="src/icons/architect.ico">
 				<singleInstance
-					mutexName="Power*Architect Installer"
-					windowTitle="Power*Architect Installer"
+					mutexName="SQL Power Architect Installer"
+					windowTitle="SQL Power Architect Installer"
 				/>
 				<jre minVersion="1.5.0"/>
 			</config>
@@ -1058,8 +1058,8 @@
 					stayalive="false"
 					icon="src/icons/architect.ico">
 				<singleInstance
-					mutexName="Power*Architect Installer"
-					windowTitle="Power*Architect Installer"
+					mutexName="SQL Power Architect Installer"
+					windowTitle="SQL Power Architect Installer"
 				/>
 				<jre minVersion="1.5.0"/>
 			</config>
@@ -1147,22 +1147,22 @@
 		<copy file="osx_packaging_utils/RWArchitect.dmg.sparseimage" tofile="${staging.dir}/RWArchitect.dmg.sparseimage" overwrite="true" />
 		<exec executable="hdiutil">
 					<arg value="detach" />
-					<arg value="/Volumes/Power*Architect" />
+					<arg value="/Volumes/SQL Power Architect" />
 		</exec>
 		<exec executable="hdiutil">
 			<arg value="attach" />
 			<arg value="${staging.dir}/RWArchitect.dmg.sparseimage" />
 		</exec>
-		<copy todir="/Volumes/Power*Architect/Power*Architect.app/" overwrite="true"  >
+		<copy todir="/Volumes/SQL Power Architect/SQL Power Architect.app/" overwrite="true"  >
 			<fileset dir="${staging.dir}/Power Architect.app"></fileset>
 		</copy>
 		<exec executable="chmod">
 			<arg value="a+x"/>
-			<arg value="/Volumes/Power*Architect/Power*Architect.app/Contents/MacOS/PowerArchitectStub"/>
+			<arg value="/Volumes/SQL Power Architect/SQL Power Architect.app/Contents/MacOS/PowerArchitectStub"/>
 		</exec>
 		<exec executable="hdiutil">
 			<arg value="detach" />
-			<arg value="/Volumes/Power*Architect" />
+			<arg value="/Volumes/SQL Power Architect" />
 		</exec>
 		<delete file="${dist.dir}/Architect-OSX-${app.version}.dmg" />
 		<exec executable="hdiutil">
@@ -1195,23 +1195,23 @@
 			<copy file="osx_packaging_utils/RWArchitect.dmg.sparseimage" tofile="${staging.dir}/RWArchitect.dmg.sparseimage" overwrite="true" />
 			<exec executable="hdiutil">
 						<arg value="detach" />
-						<arg value="/Volumes/Power*Architect" />
+						<arg value="/Volumes/SQL Power Architect" />
 			</exec>
 			<exec executable="hdiutil">
 				<arg value="attach" />
 				<arg value="${staging.dir}/RWArchitect.dmg.sparseimage" />
 			</exec>
-			<delete dir="/Volumes/Power*Architect/Power*Architect.app/Contents/Resources/Java"/>
-			<copy todir="/Volumes/Power*Architect/Power*Architect.app/" overwrite="true"  >
+			<delete dir="/Volumes/SQL Power Architect/SQL Power Architect.app/Contents/Resources/Java"/>
+			<copy todir="/Volumes/SQL Power Architect/SQL Power Architect.app/" overwrite="true"  >
 				<fileset dir="${staging.dir}/Power Architect JDBC.app"></fileset>
 			</copy>
 			<exec executable="chmod">
 				<arg value="a+x"/>
-				<arg value="/Volumes/Power*Architect/Power*Architect.app/Contents/MacOS/PowerArchitectStub"/>
+				<arg value="/Volumes/SQL Power Architect/SQL Power Architect.app/Contents/MacOS/PowerArchitectStub"/>
 			</exec>
 			<exec executable="hdiutil">
 				<arg value="detach" />
-				<arg value="/Volumes/Power*Architect" />
+				<arg value="/Volumes/SQL Power Architect" />
 			</exec>
 			<delete file="${dist.dir}/Architect-OSX-jdbc-${app.version}.dmg" />
 			<exec executable="hdiutil">
@@ -1235,7 +1235,7 @@
 	<target name="osx_tgz" depends="osx_dist" if="isNotMac">
 		<tar destfile="${dist.dir}/Architect-OSX-${app.version}.tar.gz"
 					compression="gzip">
-			<tarfileset dir="${staging.dir}" includes="Power*Architect.app/**"/>
+			<tarfileset dir="${staging.dir}" includes="SQL Power Architect.app/**"/>
 		</tar>
 	</target>
 
@@ -1445,7 +1445,7 @@
 	<target name="architect.version.properties" depends="init">
 		<propertyfile
 		    file="${dist.dir}/architect.version.properties"
-		    comment="Power*Architect Version">
+		    comment="SQL Power Architect Version">
 		  <entry key="app.version" value="${app.version}"/>
 		</propertyfile>
 	</target>
