@@ -85,11 +85,15 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
         setPlDotIniPath(ArchitectUtils.checkForValidPlDotIni(getPlDotIniPath(), "Architect"));
     }
     
+    public ArchitectSessionContextImpl(String PlDotIniPath) throws SQLObjectException {
+        this(PlDotIniPath, true);
+    }
+    
     /**
      * Similar to the default constructor, but we can specify a pl.ini path
      * ourselves. (This has been created in order to fully automate the JUnit test).
      */
-    public ArchitectSessionContextImpl(String PlDotIniPath) throws SQLObjectException {
+    public ArchitectSessionContextImpl(String PlDotIniPath, boolean checkPath) throws SQLObjectException {
         sessions = new HashSet<ArchitectSession>();
         
         ArchitectUtils.startup();
@@ -97,8 +101,10 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
         ArchitectUtils.configureLog4j();
 
         setPlDotIniPath(PlDotIniPath);
-
-        setPlDotIniPath(ArchitectUtils.checkForValidPlDotIni(PlDotIniPath, "Architect"));
+        
+        if (checkPath) {
+            setPlDotIniPath(ArchitectUtils.checkForValidPlDotIni(PlDotIniPath, "Architect"));
+        }
     }
     
     public ArchitectSession createSession() throws SQLObjectException {
