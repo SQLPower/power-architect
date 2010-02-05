@@ -32,6 +32,7 @@ import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSequence;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -350,7 +351,8 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         if (index.isUnique()) {
             print("UNIQUE ");
         }
-        if(index.getType() != null && index.getType().equals("BITMAP")) {
+		boolean isBitmapIndex = index.getType() != null && index.getType().equals("BITMAP");
+        if(isBitmapIndex) {
             print("BITMAP ");
         }
         print("INDEX ");
@@ -362,8 +364,11 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         boolean first = true;
         for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
             if (!first) print(", ");
-            print(c.getName());
-            //TODO: Note: Oracle does not seem to use ASC/DES similar to PostgreSQL
+            print(c.getRealName());
+			if (!isBitmapIndex) {
+				print(c.getAscendingOrDescending() == AscendDescend.ASCENDING ? " ASC" : "");
+				print(c.getAscendingOrDescending() == AscendDescend.DESCENDING ? " DESC" : "");
+			}
             first = false;
         }
 
