@@ -33,6 +33,7 @@ import ca.sqlpower.sql.SQL;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLSequence;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -349,9 +350,13 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         boolean first = true;
         for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
             if (!first) print(", ");
-            print(c.getName());
+            print(c.getColumn().getPhysicalName());
             //TODO: ASC and DESC are not supported in the current version of PostgreSQL (8.2.3)
             //but is expected to be added in later versions (8.3 for example)
+			//Thomas Kellerer: ASC/DESC is available since 8.3.0...
+            print(c.getAscendingOrDescending() == AscendDescend.ASCENDING ? " ASC" : "");
+            print(c.getAscendingOrDescending() == AscendDescend.DESCENDING ? " DESC" : "");
+
             first = false;
         }
 

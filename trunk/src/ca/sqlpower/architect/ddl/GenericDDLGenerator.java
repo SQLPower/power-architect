@@ -1367,7 +1367,7 @@ public class GenericDDLGenerator extends AbstractSPObject implements DDLGenerato
         boolean first = true;
         for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
             if (!first) print(", ");
-            print(c.getName());
+            print(c.getColumn().getPhysicalName());
             print(c.getAscendingOrDescending() == AscendDescend.ASCENDING ? " ASC" : "");
             print(c.getAscendingOrDescending() == AscendDescend.DESCENDING ? " DESC" : "");
             first = false;
