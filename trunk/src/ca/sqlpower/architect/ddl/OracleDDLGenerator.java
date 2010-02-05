@@ -364,7 +364,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         boolean first = true;
         for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
             if (!first) print(", ");
-            print(c.getRealName());
+            print(c.getColumn().getPhysicalName());
 			if (!isBitmapIndex) {
 				print(c.getAscendingOrDescending() == AscendDescend.ASCENDING ? " ASC" : "");
 				print(c.getAscendingOrDescending() == AscendDescend.DESCENDING ? " DESC" : "");
