@@ -11,6 +11,35 @@
 ## $sqlTypes - a reference to ca.sqlpower.sqlobject.SQLType to provide the static method
 ##             String getTypeName(int)
 
+#macro( typeDisplay $column )
+   #set ($jdbcType = $column.type)
+   
+   #if ($jdbcType == 2005)CLOB 
+   #elseif ($jdbcType == 2011)NCLOB 
+   #elseif ($jdbcType == 2004)BLOB 
+   #elseif ($jdbcType == -3)VARBINARY 
+   #elseif ($jdbcType == -4)LONGVARBINARY 
+   #elseif ($jdbcType == -1)LONGVARCHAR 
+   #elseif ($jdbcType == 93)TIMESTAMP 
+   #elseif ($jdbcType == 92)TIME
+   #elseif ($jdbcType == 91)DATE 
+   #elseif ($jdbcType == -15)NCHAR($column.precision)
+   #elseif ($jdbcType == 4)INTEGER
+   #elseif ($jdbcType == -5)BIGINT
+   #elseif ($jdbcType == 5)SMALLINT
+   #elseif ($jdbcType == 8)DOUBLE
+   #elseif ($jdbcType == 7)REAL
+   #elseif ($jdbcType == 16)BOOLEAN
+   #elseif ($jdbcType == -7)BIT
+   #elseif ($jdbcType == 1)CHAR($column.precision)
+   #elseif ($jdbcType == 2)NUMERIC($column.precision, $column.scale)
+   #elseif ($jdbcType == 2)DECIMAL($column.precision, $column.scale)
+   #elseif ($jdbcType == -9)NVARCHAR($column.precision)
+   #elseif ($jdbcType == 12)VARCHAR($column.precision)
+   #elseif ($column.sourceDataType != "")$column.sourceDataTypeName
+   #else $column.typeName #end
+#end
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
@@ -133,11 +162,11 @@
         <td class="tdTableDefinition">$column.name
         #if ($column.primaryKey)(PK)#end 
         #if ($column.foreignKey)
-          <a href="$column.referencedTable.physicalName">(FK)</a>
+          <a href="#$column.getReferencedTable().getPhysicalName()">(FK)</a>
         #end
         </td>
         <td class="tdTableDefinition">$column.physicalName</td>
-        <td class="tdTableDefinition">$column.typeName</td>
+        <td class="tdTableDefinition">#typeDisplay($column)</td>
         <td class="tdTableDefinition" nowrap="nowrap">#if ($column.primaryKey)PK#end</td>
         <td class="tdTableDefinition" nowrap="nowrap">#if ($column.primaryKey || !$column.nullable)NOT NULL#end</td>
       </tr>
@@ -148,13 +177,15 @@
       #if ($table.importedKeys.size() > 0)
         <p class="subTitle">References</p>
         <ul>
-        #foreach ($relation in $table.importedKeys)
+        #foreach ($rel in $table.importedKeys)
           <li>
-            <a href="$relation.pkTable.physicalName">$relation.pkTable.physicalName</a>
+          #set ($pkTable = $rel.getRelationship().getPkTable().getPhysicalName() )
+          #set ($mappings = $rel.getRelationship().getChildrenWithoutPopulating())
+            <a href="#$pkTable">$pkTable</a>
             through 
             ## unfortunately this must be put on a single line, otherwise
             ## there will be a whitespace after the opening and before the closing bracket
-            (#foreach ($mapping in $relation.mappings)$mapping.pkColumn.physicalName#if( $velocityHasNext ),#end#end)
+            (#foreach ($mapping in $mappings)$mapping.pkColumn.physicalName#if( $velocityHasNext ),#end#end)
            </li>
         #end
         </ul>
@@ -162,11 +193,13 @@
       #if ($table.exportedKeys.size() > 0)
         <p class="subTitle">Referenced By</p>
         <ul>
-        #foreach ($relation in $table.exportedKeys)
+        #foreach ($rel in $table.exportedKeys)
           <li>
-          <a href="$relation.fkTable.physicalName">$relation.fkTable.physicalName</a>
+          #set ($fkTable = $rel.getFkTable().getPhysicalName())
+          #set ($mappings = $rel.getChildrenWithoutPopulating())
+          <a href="#$fkTable">$fkTable</a>
           referencing
-          (#foreach ($mapping in $relation.mappings)$mapping.fkColumn.physicalName#if( $velocityHasNext ),#end#end)
+          (#foreach ($mapping in $mappings)$mapping.fkColumn.physicalName#if( $velocityHasNext ),#end#end)
           </li>
         #end
         </ul>
