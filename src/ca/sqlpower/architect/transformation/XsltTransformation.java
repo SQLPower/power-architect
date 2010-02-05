@@ -21,12 +21,15 @@ package ca.sqlpower.architect.transformation;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
@@ -35,7 +38,11 @@ import javax.xml.transform.stream.StreamSource;
  * format specified by the xslt stylesheet and sends the results to an
  * OutputStream.
  */
-public class XsltTransformation implements ReportTransformer {
+public class XsltTransformation
+  implements ReportTransformer, URIResolver {
+
+	private File baseDir;
+	private File projectDir;
 
 	public XsltTransformation() {
 	}
@@ -48,7 +55,8 @@ public class XsltTransformation implements ReportTransformer {
 	 * @param xml The XML that should be transformed
 	 * @param result the output stream where the result of the transformation should be written to
 	 */
-	public void transform(String builtInXsltName, File result, ArchitectSwingSession session) throws Exception {
+	public void transform(String builtInXsltName, File result, ArchitectSwingSession session)
+	  throws Exception {
 
 		InputStream xsltStylesheet = getClass().getResourceAsStream(builtInXsltName);
 		transform(xsltStylesheet, result, session);
@@ -62,9 +70,11 @@ public class XsltTransformation implements ReportTransformer {
 	 * @param xml The XML that should be transformed
 	 * @param result the output stream where the result of the transformation should be written to
 	 */
-	public void transform(File xsltStylesheet, File output, ArchitectSwingSession session) throws Exception {
+	public void transform(File xsltStylesheet, File output, ArchitectSwingSession session)
+	  throws Exception {
 
 		InputStream xslt = new FileInputStream(xsltStylesheet);
+		baseDir = xsltStylesheet.getParentFile();
 		transform(xslt, output, session);
 	}
 
@@ -76,23 +86,94 @@ public class XsltTransformation implements ReportTransformer {
 	 * @param xml The XML that should be transformed
 	 * @param result the output stream where the result of the transformation should be written to
 	 */
-	public void transform(InputStream xsltStylesheet, File output, ArchitectSwingSession session) throws Exception {
+	public void transform(InputStream xsltStylesheet, File output, ArchitectSwingSession session)
+	  throws Exception {
 
 		File project = session.getProjectLoader().getFile();
+		projectDir = project.getParentFile();
 		InputStream xml = new FileInputStream(project);
 
 		Source xmlSource = new StreamSource(xml);
 		Source xsltSource = new StreamSource(xsltStylesheet);
 		FileOutputStream result = new FileOutputStream(output);
-		
+
 		TransformerFactory transFact =
 				TransformerFactory.newInstance();
+
+		transFact.setURIResolver(this);
 		Transformer trans = transFact.newTransformer(xsltSource);
+		
+		
 
 		trans.transform(xmlSource, new StreamResult(result));
 		result.flush();
 		result.close();
 		xsltStylesheet.close();
 		xml.close();
+	}
+
+	/**
+	 * Resolve embedded XSLTs (e.g: imported through <xsl:import/>
+	 * <br/>
+	 * The referenced file is first searched in the same directory as the
+	 * main XSLT. If that is not defined (because the a built-in stylesheet is
+	 * used) the referenced resource is loaded from the classloader.
+	 * <br/>
+	 * If the resource is still not found, the directory where the project file
+	 * is stored is searched for the resource.
+	 * <br/>
+	 * If the resource is still not found, null is returned
+	 * 
+	 * @param href An href attribute, which may be relative or absolute.
+	 * @param base The base URI against which the first argument will be made absolute if the absolute URI is required.
+	 * @return A Source object, or null if the href cannot be resolved, and the processor should try to resolve the URI itself.
+	 * 
+	 * @throws TransformerException
+	 */
+	public Source resolve(String href, String base)
+			throws TransformerException {
+
+		File referenced = null;
+		if (base == null) {
+			referenced = new File(href);
+		} else {
+			referenced = new File(base, href);
+		}
+
+		try {
+			if (referenced.exists()) {
+				return new StreamSource(new FileInputStream(referenced));
+			}
+			File toUse = null;
+
+			if (baseDir != null) {
+				toUse = new File(baseDir, href);
+			} else {
+				// If baseDir == null, a built-in template was used
+				// to the referenced stylesheet is most probably part
+				// of the classpath as well
+				InputStream in = getClass().getResourceAsStream(href);
+				if (in != null) {
+					return new StreamSource(in);
+				}
+			}
+
+			if (toUse.exists()) {
+				return new StreamSource(new FileInputStream(toUse));
+			}
+
+			if (projectDir != null) {
+				toUse = new File(projectDir, href);
+			}
+
+			if (toUse.exists()) {
+				return new StreamSource(new FileInputStream(toUse));
+			}
+
+			return null;
+
+		} catch (FileNotFoundException e) {
+			return null;
+		}
 	}
 }
