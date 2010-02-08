@@ -651,6 +651,10 @@
         </copy>
 
 	</target>
+	
+	<target name ="jar" depends="compile">
+		<jar jarfile="dist/architect_library.jar" basedir="${build}"/>
+	</target>
 
     <target name="stage" depends="checkAntVersion,compile">
     	<mkdir dir="${dist.dir}" />
