@@ -417,7 +417,7 @@ public class ASUtils {
             try {
                 context = new ArchitectSwingSessionContextImpl();
                 context.setExitAfterAllSessionsClosed(true);
-            } catch (SQLObjectException e) {
+            } catch (Exception e) {
                 showExceptionDialogNoReport(Messages.getString("ASUtils.couldNotLaunchPowerArchitect"), e); //$NON-NLS-1$
                 System.exit(1);
             }

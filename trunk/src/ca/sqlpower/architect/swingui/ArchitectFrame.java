@@ -45,10 +45,12 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -121,6 +123,7 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.enterprise.client.SPServerInfoManagerPanel;
 
 /**
  * The Main Window for the Architect Application; contains a main() method that is
@@ -211,6 +214,34 @@ public class ArchitectFrame extends JFrame {
         }
     };
 
+    private Action openServerManagerAction = new AbstractAction("Configure Server Connections...") {
+        public void actionPerformed(ActionEvent e) {
+            
+            final JDialog d = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Server Connections");
+            Action closeAction = new AbstractAction("Close") {
+                public void actionPerformed(ActionEvent e) {
+                    d.dispose();
+                }
+            };
+            
+            Action loginAction = new AbstractAction("Login") {
+                public void actionPerformed(ActionEvent e) {
+                    JOptionPane.showMessageDialog(ArchitectFrame.this, "Login not yet supported");
+                }
+            };
+            
+            SPServerInfoManagerPanel sim = new SPServerInfoManagerPanel(session.getContext().getServerManager(),
+                    ArchitectFrame.this, loginAction, closeAction);
+            d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            d.setContentPane(sim.getPanel());
+            
+            SPSUtils.makeJDialogCancellable(d, null);
+            d.pack();
+            d.setLocationRelativeTo(ArchitectFrame.this);
+            d.setVisible(true);
+        }
+    };
+    
     /**
      * This constructor is used by the session implementation. To obtain an
      * Architect Frame, you have to create an
@@ -627,6 +658,10 @@ public class ArchitectFrame extends JFrame {
         });
         menuBar.add(olapMenu);
 
+        JMenu enterpriseMenu = new JMenu("Enterprise");
+        enterpriseMenu.add(openServerManagerAction);
+        menuBar.add(enterpriseMenu);
+        
         JMenu toolsMenu = new JMenu(Messages.getString("ArchitectFrame.toolsMenu")); //$NON-NLS-1$
         toolsMenu.setMnemonic('t');
         toolsMenu.add(exportDDLAction);
