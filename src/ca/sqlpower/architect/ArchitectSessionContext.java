@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.prefs.Preferences;
 
+import ca.sqlpower.enterprise.client.SPServerInfoManager;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -85,4 +86,9 @@ public interface ArchitectSessionContext {
      * if the given value differs from the existing one.  See {@link #plDotIniPath}.
      */
     public void setPlDotIniPath(String plDotIniPath);
+    
+    /**
+     * Returns the {@link SPServerInfoManager} for this application instance.
+     */
+    public SPServerInfoManager getServerManager();
 }

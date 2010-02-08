@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl;
+import ca.sqlpower.enterprise.client.SPServerInfoManager;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.PlDotIni;
@@ -70,6 +71,11 @@ public class TestingArchitectSessionContext implements ArchitectSessionContext {
 
     public void setPlDotIniPath(String plDotIniPath) {
         // do nothing!
+    }
+
+    public SPServerInfoManager getServerManager() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

@@ -31,6 +31,7 @@ import java.util.prefs.Preferences;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.enterprise.client.SPServerInfoManager;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.PlDotIni;
@@ -199,5 +200,10 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
 
     public void setClipboardContents(Transferable t) {
         throw new IllegalStateException("Setting clipboard contents not currently implemented.");        
+    }
+
+    public SPServerInfoManager getServerManager() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

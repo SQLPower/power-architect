@@ -25,10 +25,13 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.enterprise.client.SPServerInfo;
+import ca.sqlpower.enterprise.client.SPServerInfoManager;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.PlDotIni;
@@ -36,6 +39,7 @@ import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SpecificDataSourceCollection;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.util.Version;
 
 public class ArchitectSessionContextImpl implements ArchitectSessionContext {
     
@@ -63,6 +67,8 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
      */
     private final Collection<ArchitectSession> sessions;
     
+    private final SPServerInfoManager serverManager;
+    
     /**
      * Creates a new session context.  You will normally only need one of these
      * per JVM, but there is no technical barrier to creating multiple contexts.
@@ -71,8 +77,9 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
      * Thread.  See SwingUtilities.invokeLater() for a way of ensuring this method
      * is called on the proper thread.
      * @throws SQLObjectException 
+     * @throws BackingStoreException 
      */
-    public ArchitectSessionContextImpl() throws SQLObjectException {
+    public ArchitectSessionContextImpl() throws SQLObjectException, BackingStoreException {
         sessions = new HashSet<ArchitectSession>();
         
         ArchitectUtils.startup();
@@ -83,17 +90,22 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
         logger.debug("pl.ini path is " + getPlDotIniPath());
 
         setPlDotIniPath(ArchitectUtils.checkForValidPlDotIni(getPlDotIniPath(), "Architect"));
+        
+        SPServerInfo defaultSettings = new SPServerInfo("", "", 8080, "/architect-enterprise/", "", "");
+        serverManager = new SPServerInfoManager(getPrefs().node("servers"), new Version(
+                ArchitectVersion.APP_FULL_VERSION.toString()), defaultSettings);
     }
     
-    public ArchitectSessionContextImpl(String PlDotIniPath) throws SQLObjectException {
+    public ArchitectSessionContextImpl(String PlDotIniPath) throws SQLObjectException, BackingStoreException {
         this(PlDotIniPath, true);
     }
     
     /**
      * Similar to the default constructor, but we can specify a pl.ini path
      * ourselves. (This has been created in order to fully automate the JUnit test).
+     * @throws BackingStoreException 
      */
-    public ArchitectSessionContextImpl(String PlDotIniPath, boolean checkPath) throws SQLObjectException {
+    public ArchitectSessionContextImpl(String PlDotIniPath, boolean checkPath) throws SQLObjectException, BackingStoreException {
         sessions = new HashSet<ArchitectSession>();
         
         ArchitectUtils.startup();
@@ -105,6 +117,10 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
         if (checkPath) {
             setPlDotIniPath(ArchitectUtils.checkForValidPlDotIni(PlDotIniPath, "Architect"));
         }
+        
+        SPServerInfo defaultSettings = new SPServerInfo("", "", 8080, "/architect-enterprise/", "", "");
+        serverManager = new SPServerInfoManager(getPrefs().node("servers"), new Version(
+                ArchitectVersion.APP_FULL_VERSION.toString()), defaultSettings);
     }
     
     public ArchitectSession createSession() throws SQLObjectException {
@@ -201,5 +217,9 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
     
     public List<JDBCDataSource> getConnections() {
         return getPlDotIni().getConnections();
+    }
+
+    public SPServerInfoManager getServerManager() {
+        return serverManager;
     }
 }

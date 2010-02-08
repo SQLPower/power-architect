@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.ImageIcon;
@@ -42,6 +43,7 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.enterprise.client.SPServerInfoManager;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.Olap4jDataSource;
@@ -163,8 +165,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * is called on the proper thread.
      * 
      * @throws SQLObjectException 
+     * @throws BackingStoreException 
      */
-    public ArchitectSwingSessionContextImpl() throws SQLObjectException {
+    public ArchitectSwingSessionContextImpl() throws SQLObjectException, BackingStoreException {
         delegateContext = new ArchitectSessionContextImpl();
         
         System.setProperty("apple.laf.useScreenMenuBar", "true"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -422,5 +425,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     public void lostOwnership(Clipboard clipboard, Transferable contents) {
         this.clipboard.setContents(dummyTransferable, this);
         logger.debug("Context lost clipboard ownership");
+    }
+
+    public SPServerInfoManager getServerManager() {
+        return delegateContext.getServerManager();
     }
 }
