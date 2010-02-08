@@ -57,6 +57,7 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -265,13 +266,12 @@ public class ProjectLoader {
                     logger.debug("number of children found in indices folder: " + table.getIndices().size());
                     for (SQLIndex index : table.getIndices()) {
                         if (sqlObjectLoadIdMap.get(table.getName()+"."+index.getName()) != null) {
-                            index.setPrimaryKeyIndex(true);
+                            table.getPrimaryKeyIndex().updateToMatch(index);
                             break;
                         }
                     }
                 }
                 logger.debug("Table ["+table.getName()+"]2 index folder contents: "+table.getIndices());
-                table.normalizePrimaryKey();
                 logger.debug("Table ["+table.getName()+"]3 index folder contents: "+table.getIndices());
 
                 if (logger.isDebugEnabled()) {
@@ -718,6 +718,16 @@ public class ProjectLoader {
         public Object createObject(Attributes attributes) {
             SQLIndex index = new SQLIndex();
             logger.debug("Loading index: "+attributes.getValue("name"));
+            
+            String pkIndex = attributes.getValue("primaryKeyIndex");
+            if (Boolean.valueOf(pkIndex)) {
+                try {
+                    index = currentTable.getPrimaryKeyIndex();
+                } catch (SQLObjectException e) {
+                    throw new SQLObjectRuntimeException(e);
+                }
+            }
+            
             String id = attributes.getValue("id");
             if (id != null) {
                 sqlObjectLoadIdMap.put(id, index);

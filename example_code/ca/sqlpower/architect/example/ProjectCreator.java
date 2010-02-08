@@ -125,7 +125,7 @@ public class ProjectCreator implements Runnable {
         
         // make person_id a primary key
         col.setNullable(DatabaseMetaData.columnNoNulls);
-        col.setPrimaryKeySeq(0);
+        person.addToPK(col);
         
         col = new SQLColumn(person, "name", Types.VARCHAR, 100, 0);
         person.addColumn(col);
@@ -135,7 +135,7 @@ public class ProjectCreator implements Runnable {
 
         // make address_id a primary key
         col.setNullable(DatabaseMetaData.columnNoNulls);
-        col.setPrimaryKeySeq(0);
+        person.addToPK(col);
 
         // make a foreign key that maps person.person_id to address.person_id
         SQLRelationship rel = new SQLRelationship();

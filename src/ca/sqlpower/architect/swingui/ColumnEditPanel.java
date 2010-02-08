@@ -691,10 +691,10 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                 }
                 
                 if (componentEnabledMap.get(colInPK).isSelected()) {
-                    if (column.getPrimaryKeySeq() == null) {
-                        column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getParent().getPkSize()) : null);
+                    if (colInPK.isSelected()) {
+                        column.getParent().addToPK(column);
                     } else {
-                        column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getPrimaryKeySeq()) : null);
+                        column.getParent().moveAfterPK(column);
                     }
                 }
                 
@@ -702,6 +702,8 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                     column.setAutoIncrementSequenceName(colAutoIncSequenceName.getText());
                 }
             }
+        } catch (SQLObjectException e) {
+            throw new RuntimeException(e);
         } finally {
             compoundEditRoot.commit();
         }

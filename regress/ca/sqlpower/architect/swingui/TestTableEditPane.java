@@ -39,7 +39,7 @@ public class TestTableEditPane extends TestCase {
 		SQLColumn pk1 = new SQLColumn(t, "PKColumn1", Types.INTEGER, 10,0);
 		
 		t.addColumn(pk1,0);						
-		pk1.setPrimaryKeySeq(1);
+		t.addToPK(pk1);
 
         tep = new TableEditPanel(session, t);
 	}

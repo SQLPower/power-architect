@@ -818,7 +818,7 @@ public class GenericDDLGenerator extends AbstractSPObject implements DDLGenerato
 		}
 
 		SQLIndex pk = t.getPrimaryKeyIndex();
-		if (pk != null) {
+		if (pk.getChildCount() > 0) {
 		    print(",\n");
             print("                ");
 		    writePKConstraintClause(pk);

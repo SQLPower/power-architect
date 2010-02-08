@@ -35,7 +35,6 @@ import javax.swing.JTextField;
 
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sql.JDBCDataSourceType;
-import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
@@ -202,7 +201,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         this.index = index;
         name.setText(index.getName());
         indexCopy = new SQLIndex(index);
-        indexCopy.setPrimaryKeyIndex(false);
+        indexCopy.setParent(null);
     }
 
     private void loadIndexIntoPanel() {
@@ -268,26 +267,6 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 //The operation is successful
                 index.makeColumnsLike(indexCopy);
                 SQLTable parentTable = parent;
-                if (index.isPrimaryKeyIndex()) {
-                    try {
-                        parentTable.setMagicEnabled(false);
-                        for (SQLColumn c : parentTable.getColumns()) {
-                            c.setPrimaryKeySeq(null);
-                        }
-                        int i = 0;
-                        for (Column c : index.getChildren(Column.class)) {
-                            SQLColumn column = c.getColumn();
-                            if (column != null) {
-                                column.setPrimaryKeySeq(Integer.MAX_VALUE);
-                                parentTable.removeColumn(column);
-                                parentTable.addColumn(column, i, false);
-                                i++;
-                            }
-                        }
-                    } finally {
-                        parentTable.setMagicEnabled(true);
-                    }
-                }
                 index.setName(name.getText());
                 index.setUnique(unique.isSelected());
                 index.setClustered(clustered.isSelected());

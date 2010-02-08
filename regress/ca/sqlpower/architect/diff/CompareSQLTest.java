@@ -376,7 +376,7 @@ public class CompareSQLTest extends TestCase {
 		SQLTable newTable2L = makeTable(6);
 		SQLRelationship relationL = new SQLRelationship();		
 		//This is done because the architect requires imported key to be in the primary key
-		newTable1L.getColumn(0).setPrimaryKeySeq(1); 
+		newTable1L.addToPK(newTable1L.getColumn(0)); 
 		relationL.addMapping(newTable1L.getColumn(0), newTable2L.getColumn(2));  // this is the difference
 		relationL.setName("relation1");
 		relationL.attachRelationship(newTable1L,newTable2L,false);
@@ -389,7 +389,7 @@ public class CompareSQLTest extends TestCase {
 		SQLTable newTable1R = makeTable(4);
 		SQLTable newTable2R = makeTable(6);		
 		SQLRelationship relationR = new SQLRelationship();
-		newTable1R.getColumn(0).setPrimaryKeySeq(1);
+		newTable1R.addToPK(newTable1R.getColumn(0));
 		relationR.addMapping(newTable1R.getColumn(0), newTable2R.getColumn(1));
 		relationR.setName("relation1");
 		
@@ -428,7 +428,7 @@ public class CompareSQLTest extends TestCase {
 		SQLTable t1 = makeTable(4);
 		list1.add(t1);
 		SQLColumn c = t1.getColumn(2); 
-		c.setPrimaryKeySeq(new Integer(0));
+		t1.addToPK(c);
 
 		List<SQLTable> list2 = new ArrayList<SQLTable>();
 		SQLTable t2 = makeTable(4);
@@ -471,7 +471,7 @@ public class CompareSQLTest extends TestCase {
         SQLTable t1 = makeTable(4);
         list1.add(t1);
         SQLColumn c = t1.getColumn(3); 
-        c.setPrimaryKeySeq(new Integer(0));
+        t1.addToPK(c);
 
         List<SQLTable> list2 = new ArrayList<SQLTable>();
         SQLTable t2 = makeTable(4);
@@ -520,7 +520,7 @@ public class CompareSQLTest extends TestCase {
         SQLTable t2 = makeTable(4);
         list2.add(t2);
         SQLColumn c = t2.getColumn(3); 
-        c.setPrimaryKeySeq(new Integer(0));
+        t2.addToPK(c);
                 
         CompareSQL sqlComparator = new CompareSQL(list1, list2);
         List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
@@ -561,7 +561,7 @@ public class CompareSQLTest extends TestCase {
         SQLTable t2 = makeTable(4);
         list2.add(t2);
         SQLColumn c = t2.getColumn(3); 
-        c.setPrimaryKeySeq(new Integer(0));
+        t2.addToPK(c);
                 
         CompareSQL sqlComparator = new CompareSQL(list1, list2);
         List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
@@ -598,13 +598,13 @@ public class CompareSQLTest extends TestCase {
         SQLTable t1 = makeTable(4);
         list1.add(t1);
         SQLColumn c1 = t1.getColumn(3); 
-        c1.setPrimaryKeySeq(new Integer(0));
+        t1.addToPK(c1);
 
         List<SQLTable> list2 = new ArrayList<SQLTable>();
         SQLTable t2 = makeTable(4);
         list2.add(t2);
         SQLColumn c2 = t2.getColumn(2); 
-        c2.setPrimaryKeySeq(new Integer(0));
+        t2.addToPK(c2);
                 
         CompareSQL sqlComparator = new CompareSQL(list1, list2);
         List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();

@@ -60,9 +60,9 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		pp = session.getPlayPen();
 		tp = new TablePane(t, pp.getContentPane());
 		
-		pk1.setPrimaryKeySeq(1);
-		pk2.setPrimaryKeySeq(2);
-		pk3.setPrimaryKeySeq(3);
+		t.addToPK(pk1);
+		t.addToPK(pk2);
+		t.addToPK(pk3);
 		
 		assertEquals(3, t.getPkSize());
 		
@@ -101,14 +101,14 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	    SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
 	    t.addColumn(newcol, 0);
 
-	    assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
+	    assertTrue("Column should start in primary key", newcol.isPrimaryKey());
 
 	    List<SQLObject> movecolList = new ArrayList<SQLObject>();
 	    movecolList.add(newcol);
 	    tp.insertObjects(movecolList, TablePane.COLUMN_INDEX_START_OF_NON_PK, true);
 
 	    assertEquals(3, t.getColumnIndex(newcol));
-	    assertNull("Column should have moved out of primary key", newcol.getPrimaryKeySeq());
+	    assertFalse("Column should have moved out of primary key", newcol.isPrimaryKey());
 	}
 
 	/** This tests for a regression we found in March 2006 (bug 1057) */
@@ -116,14 +116,14 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	    SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
 	    t.addColumn(newcol, 0);
 
-	    assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
+	    assertTrue("Column should start in primary key", newcol.isPrimaryKey());
 
 	    List<SQLObject> movecolList = new ArrayList<SQLObject>();
 	    movecolList.add(newcol);
 	    tp.insertObjects(movecolList, 4, true);
 
 	    assertEquals(3, t.getColumnIndex(newcol));
-	    assertNull("Column should have moved out of primary key", newcol.getPrimaryKeySeq());
+	    assertFalse("Column should have moved out of primary key", newcol.isPrimaryKey());
 	}
 
 	public void testInsertNewColumnAboveFirstNonPKColumn() throws Exception {
@@ -131,15 +131,15 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	    t2.setName("Another Test Table");
 	    SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
 	    t2.addColumn(newcol, 0);
-	    newcol.setPrimaryKeySeq(1);
-	    assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
+	    t2.addToPK(newcol);
+	    assertTrue("Column should start in primary key", newcol.isPrimaryKey());
 
 	    List<SQLObject> movecolList = new ArrayList<SQLObject>();
 	    movecolList.add(newcol);
 	    tp.insertObjects(movecolList, 3, true);
 
 	    assertEquals(3, t.getColumnIndex(newcol));
-	    assertNull("Column should not be in primary key", newcol.getPrimaryKeySeq());
+	    assertFalse("Column should not be in primary key", newcol.isPrimaryKey());
 	}
 
 	/** This tests for a real regression (the column was ending up at index 2 instead of 3) */
@@ -148,15 +148,15 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 	    t2.setName("Another Test Table");
 	    SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
 	    t2.addColumn(newcol, 0);
-	    newcol.setPrimaryKeySeq(1);
-	    assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
+	    t2.addToPK(newcol);
+	    assertTrue("Column should start in primary key", newcol.isPrimaryKey());
 
 	    List<SQLObject> movecolList = new ArrayList<SQLObject>();
 	    movecolList.add(newcol);
 	    tp.insertObjects(movecolList, TablePane.COLUMN_INDEX_END_OF_PK, true);
 
 	    assertEquals(3, t.getColumnIndex(newcol));
-	    assertNotNull("Column should be in primary key", newcol.getPrimaryKeySeq());
+	    assertTrue("Column should be in primary key", newcol.isPrimaryKey());
 	}
 
 	/** This tests for a regression we found in March 2006 (bug 1057) */
@@ -164,7 +164,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
 		t.addColumn(newcol, 0);
 		
-		assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
+		assertTrue("Column should start in primary key", newcol.isPrimaryKey());
 		
 		List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
 		
@@ -178,11 +178,11 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		assertEquals(1, newColumns.size());
 		final SQLColumn copyCol = newColumns.get(0);
         assertEquals(4, t.getColumnIndex(copyCol));
-		assertNull("Column should have moved out of primary key", copyCol.getPrimaryKeySeq());
+		assertFalse("Column should have moved out of primary key", copyCol.isPrimaryKey());
 		
 		//assert column copied still exists
 		assertEquals(0, t.getColumnIndex(newcol));
-		assertNotNull("Column copied should stay in primary key", newcol.getPrimaryKeySeq());
+		assertTrue("Column copied should stay in primary key", newcol.isPrimaryKey());
 	}
 
 	/** This tests for a regression we found in March 2006 (bug 1057) */
@@ -190,7 +190,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
 		t.addColumn(newcol, 0);
 		
-		assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
+		assertTrue("Column should start in primary key", newcol.isPrimaryKey());
 		
 		List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
 		
@@ -204,11 +204,11 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		assertEquals(1, newColumns.size());
 		SQLColumn copyColumn = newColumns.get(0);
 		assertEquals(4, t.getColumnIndex(copyColumn));
-		assertNull("Column copied should be out of primary key", copyColumn.getPrimaryKeySeq());
+		assertFalse("Column copied should be out of primary key", copyColumn.isPrimaryKey());
 		
 		//column copied should not be changed
 		assertEquals(0, t.getColumnIndex(newcol));
-		assertNotNull("Column should stay in primary key", newcol.getPrimaryKeySeq());
+		assertTrue("Column should stay in primary key", newcol.isPrimaryKey());
 	}
 
 	public void testInsertNewColumnAboveFirstNonPKColumnByCopy() throws SQLObjectException {
@@ -216,8 +216,8 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		t2.setName("Another Test Table");
 		SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
 		t2.addColumn(newcol, 0);
-		newcol.setPrimaryKeySeq(1);
-		assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
+		t2.addToPK(newcol);
+		assertTrue("Column should start in primary key", newcol.isPrimaryKey());
 		
 		List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
 		
@@ -231,10 +231,10 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		assertEquals(1, newColumns.size());
 		SQLColumn copyCol = newColumns.get(0);
 		assertEquals(3, t.getColumnIndex(copyCol));
-		assertNull("Copy column should not bein in the primary key", copyCol.getPrimaryKeySeq());
+		assertFalse("Copy column should not bein in the primary key", copyCol.isPrimaryKey());
 		
 		assertEquals(0, t2.getColumnIndex(newcol));
-		assertNotNull("Column should still be in primary key", newcol.getPrimaryKeySeq());
+		assertTrue("Column should still be in primary key", newcol.isPrimaryKey());
 	}
 	
 	/** This tests for a real regression (the column was ending up at index 2 instead of 3) */
@@ -243,8 +243,8 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		t2.setName("Another Test Table");
 		SQLColumn newcol = new SQLColumn(t2, "newcol", Types.INTEGER, 10, 0);
 		t2.addColumn(newcol, 0);
-		newcol.setPrimaryKeySeq(1);
-		assertNotNull("Column should start in primary key", newcol.getPrimaryKeySeq());
+		t2.addToPK(newcol);
+		assertTrue("Column should start in primary key", newcol.isPrimaryKey());
 		
 		List<SQLColumn> oldColumns = new ArrayList<SQLColumn>(t.getColumns());
 		
@@ -259,11 +259,11 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 		SQLColumn copyCol = newColumns.get(0);
 		
 		assertEquals(3, t.getColumnIndex(copyCol));
-		assertNotNull("Copy column should be in primary key", copyCol.getPrimaryKeySeq());
+		assertTrue("Copy column should be in primary key", copyCol.isPrimaryKey());
 		
 		//Assert column copied is unmodified.
 		assertEquals(0, t2.getColumnIndex(newcol));
-		assertNotNull("Column should still be in primary key", newcol.getPrimaryKeySeq());
+		assertTrue("Column should still be in primary key", newcol.isPrimaryKey());
 	}
 
 	public void testImportTableFromPlaypenByCopy() throws SQLObjectException {
@@ -392,7 +392,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
         tp.selectItem(0);
         
         // this was throwing an exception
-        t.getColumn(0).setPrimaryKeySeq(0);
+        t.addToPK(t.getColumn(0));
         
     }
     /**

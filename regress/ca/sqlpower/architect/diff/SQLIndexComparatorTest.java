@@ -24,10 +24,12 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import junit.framework.TestCase;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
 
@@ -117,6 +119,7 @@ public class SQLIndexComparatorTest extends TestCase {
     public void testCompareByPrimaryKeyIndex() throws SQLObjectException {
         SQLIndex ind1 = new SQLIndex();
         SQLIndex ind2 = new SQLIndex();
+        SQLDatabase db = new SQLDatabase();
         
         SQLColumn col = new SQLColumn();
         col.setName("cool_col");
@@ -126,14 +129,22 @@ public class SQLIndexComparatorTest extends TestCase {
         
         assertEquals("Should compare as same.", 0, indComparator.compare(ind1, ind2));
         
-        ind1.setPrimaryKeyIndex(true);
-        assertTrue("Should compare as source > target.", indComparator.compare(ind1, ind2) > 0);
+        SQLIndex ind3 = new SQLIndex();
+        SQLTable table1 = new SQLTable(db, true, ind3);
+        table1.addColumn(col);
+        ind3.addIndexColumn(col, AscendDescend.UNSPECIFIED);
+        assertTrue("Should compare as source > target.", indComparator.compare(ind3, ind1) > 0);
         
-        ind2.setPrimaryKeyIndex(true);
-        assertEquals("PrimaryKeyIndex should be same.", 0, indComparator.compare(ind1, ind2));
+        SQLColumn col2 = new SQLColumn();
+        col2.setName("cool_col");
         
-        ind1.setPrimaryKeyIndex(false);
-        assertTrue("Should compare as source < target.", indComparator.compare(ind1, ind2) < 0);
+        SQLIndex ind4 = new SQLIndex();
+        SQLTable table2 = new SQLTable(db, true, ind4);
+        table2.addColumn(col2);
+        ind4.addIndexColumn(col2, AscendDescend.UNSPECIFIED);
+        assertEquals("PrimaryKeyIndex should be same.", 0, indComparator.compare(ind3, ind4));
+        
+        assertTrue("Should compare as source < target.", indComparator.compare(ind1, ind4) < 0);
     }
     
     /**

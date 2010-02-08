@@ -39,7 +39,7 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
 		SQLTable t1 = new SQLTable(session.getTargetDatabase(), true);
         t1.addColumn(new SQLColumn(t1, "pkcol_1", Types.INTEGER, 10,0));
         t1.addColumn(new SQLColumn(t1, "fkcol_1", Types.INTEGER, 10,0));
-        t1.getColumnByName("pkcol_1").setPrimaryKeySeq(0);
+        t1.addToPK(t1.getColumnByName("pkcol_1"));
 
 		session.getTargetDatabase().addChild(t1);
 		pp.addTablePane(tp1 = new TablePane(t1, pp.getContentPane()), new Point(0,0));
@@ -92,7 +92,7 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
         pkTable.setName("pkTable");
         pkTable.addColumn(new SQLColumn(pkTable, "PKTableCol1", Types.INTEGER, 1, 0));
         pkTable.addColumn(new SQLColumn(pkTable, "PKTableCol2", Types.INTEGER, 1, 0));
-        pkTable.getColumn(0).setPrimaryKeySeq(0);
+        pkTable.addToPK(pkTable.getColumn(0));
         db.addChild(pkTable);
         
         fkTable.setName("child");

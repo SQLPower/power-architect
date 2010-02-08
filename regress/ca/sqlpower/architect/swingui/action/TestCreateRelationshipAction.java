@@ -52,9 +52,9 @@ public class TestCreateRelationshipAction extends TestCase {
 		pp.addTablePane(tp2,new Point(1,1));
 		pkTable.addColumn(new SQLColumn());
 		pkTable.addColumn(new SQLColumn());
-		pkTable.getColumn(0).setPrimaryKeySeq(1);
+		pkTable.addToPK(pkTable.getColumn(0));
 		pkTable.getColumn(0).setName("pk1");
-		pkTable.getColumn(1).setPrimaryKeySeq(1);
+		pkTable.addToPK(pkTable.getColumn(1));
 		pkTable.getColumn(1).setName("pk2");
 		
 		
@@ -69,8 +69,8 @@ public class TestCreateRelationshipAction extends TestCase {
 		assertEquals("Wrong number of relationships created",1,pp.getRelationships().size());
 		assertEquals("Did the relationship create the columns in the fkTable",2,fkTable.getColumns().size());
 		List<SQLColumn> columns = fkTable.getColumns();
-		assertNotNull("Is the first column a key column?",columns.get(0).getPrimaryKeySeq());
-		assertNotNull("Is the second column a key column?",columns.get(1).getPrimaryKeySeq());
+		assertTrue("Is the first column a key column?",columns.get(0).isPrimaryKey());
+		assertTrue("Is the second column a key column?",columns.get(1).isPrimaryKey());
 		assertEquals("Is the first column pk1?","pk1",columns.get(0).getName());
 		assertEquals("Is the second column pk2?","pk2",columns.get(1).getName());
 		
@@ -84,8 +84,8 @@ public class TestCreateRelationshipAction extends TestCase {
 		assertEquals("Wrong number of relationships created",1,pp.getRelationships().size());
 		assertEquals("Did the relationship create the columns in the fkTable",2,fkTable.getColumns().size());
 		List<SQLColumn> columns = fkTable.getColumns();
-		assertNull("Is the first column a key column?",columns.get(0).getPrimaryKeySeq());
-		assertNull("Is the second column a key column?",columns.get(1).getPrimaryKeySeq());
+		assertFalse("Is the first column a key column?",columns.get(0).isPrimaryKey());
+		assertFalse("Is the second column a key column?",columns.get(1).isPrimaryKey());
 		assertEquals("Is the first column pk1?","pk1",columns.get(0).getName());
 		assertEquals("Is the second column pk2?","pk2",columns.get(1).getName());
 		
@@ -100,8 +100,8 @@ public class TestCreateRelationshipAction extends TestCase {
 		assertEquals("Did the relationship create the columns in the fkTable",2,fkTable.getColumns().size());
 		List<SQLColumn> columns = fkTable.getColumns();
 		assertEquals("Do we only have two columns in the fk table",2,columns.size());
-		assertNotNull("Is the first column a key column?",columns.get(0).getPrimaryKeySeq());
-		assertNotNull("Is the second column a key column?",columns.get(1).getPrimaryKeySeq());
+		assertTrue("Is the first column a key column?",columns.get(0).isPrimaryKey());
+		assertTrue("Is the second column a key column?",columns.get(1).isPrimaryKey());
 		assertEquals("Is the first column pk1?","pk1",columns.get(0).getName());
 		assertEquals("Is the second column pk2?","pk2",columns.get(1).getName());
 		

@@ -83,17 +83,17 @@ public class GenericDDLGeneratorTest extends TestCase {
 		tbl.setPhysicalName("test_table");
 
 		SQLColumn col1 = new SQLColumn(tbl, "N_TEST", SQLType.NVARCHAR, "NVARCHAR", 1000, 0, 0, "",
-		  null, null, false);
+		  null, false);
 		assertEquals("NVARCHAR(1000)", ddl.getColumnDataTypeName(col1));
 		assertEquals("NVARCHAR(1000)", ddl.columnType(col1));
 
 		SQLColumn col2 = new SQLColumn(tbl, "N_CHARTEST", SQLType.NCHAR, "NCHAR", 1000, 0, 0, "",
-		  null, null, false);
+		  null, false);
 		assertEquals("NCHAR(1000)", ddl.getColumnDataTypeName(col2));
 		assertEquals("NCHAR(1000)", ddl.columnType(col2));
 
 		SQLColumn col3 = new SQLColumn(tbl, "N_CLOB_TEST", SQLType.NCLOB, "NCLOB", 1000, 0, 0, "",
-		  null, null, false);
+		  null, false);
 		assertEquals("NCLOB", ddl.getColumnDataTypeName(col3));
 		assertEquals("NCLOB", ddl.columnType(col3));
 

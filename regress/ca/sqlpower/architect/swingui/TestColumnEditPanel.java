@@ -53,11 +53,11 @@ public class TestColumnEditPanel extends TestCase {
 		col2.setPhysicalName("Physical Name 2");
 		col2.setAutoIncrement(false);
 		col2.setNullable(DatabaseMetaData.columnNoNulls);
-		col2.setPrimaryKeySeq(0);
 		table.addColumn(col1);
 		table.addColumn(col2);
 		table.addColumn(col3);
 		table2.addColumn(col4);
+		table.addToPK(col2);
 		TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
 		session = context.createSession();
 		panel = new ColumnEditPanel(col2, session);
@@ -77,8 +77,8 @@ public class TestColumnEditPanel extends TestCase {
 
 	public void testSetComponentsToColumnValues() throws SQLObjectException {
 	    assertEquals(2, table.getColumnIndex(col3));
-	    assertEquals("The column we plan to edit should not be in PK",
-                null, col3.getPrimaryKeySeq());
+	    assertFalse("The column we plan to edit should not be in PK",
+                col3.isPrimaryKey());
 
 	    panel = new ColumnEditPanel(col3, session);
         
@@ -128,7 +128,10 @@ public class TestColumnEditPanel extends TestCase {
 		assertTrue(col2.isDefinitelyNullable());
 	}
 
-	public void testDiscardChanges() {
+	public void testDiscardChanges() throws Exception {
+	    table.moveAfterPK(col2);
+	    assertFalse(col2.isPrimaryKey());
+	    
 		panel.getColPhysicalName().setText("CHANGED");
 		panel.getColLogicalName().setText("Easier Use Column Name");
 		panel.getColPrec().setValue(new Integer(1234));
@@ -155,8 +158,8 @@ public class TestColumnEditPanel extends TestCase {
 		SQLColumn c2 = new SQLColumn(table,"PKColumn 2",1,2,3);
 		table.addColumn(c1);
 		table.addColumn(c2);
-		c1.setPrimaryKeySeq(0);
-		c2.setPrimaryKeySeq(1);
+		table.addToPK(c1);
+		table.addToPK(c2);
 		assertEquals(5, table.getColumns().size());
         assertTrue(c1.isPrimaryKey());
         assertTrue(c2.isPrimaryKey());

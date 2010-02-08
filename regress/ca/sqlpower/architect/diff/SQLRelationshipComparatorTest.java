@@ -43,7 +43,7 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		table1L = makeTable(1);
 		table2L = makeTable(3);
 		left= new SQLRelationship();
-		table1L.getColumn(0).setPrimaryKeySeq(1);
+		table1L.addToPK(table1L.getColumn(0));
 		left.addMapping(table1L.getColumn(0),table2L.getColumn(1));
 	}
 
@@ -56,7 +56,7 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		SQLTable table1R = makeTable(1);
 		SQLTable table2R = makeTable(3);
 		SQLRelationship right = new SQLRelationship();
-		table1R.getColumn(0).setPrimaryKeySeq(1);
+		table1R.addToPK(table1R.getColumn(0));
 		right.addMapping(table1R.getColumn(0),table2R.getColumn(1));
 		assertEquals("Should be same relationship", 0,relComparator.compare(left,right));
 	}
@@ -66,7 +66,7 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		SQLTable table1R = makeTable(1);
 		SQLTable table2R = makeTable(3);
 		SQLRelationship right = new SQLRelationship();
-		table1R.getColumn(0).setPrimaryKeySeq(1);
+		table1R.addToPK(table1R.getColumn(0));
 		right.addMapping(table1R.getColumn(0),table2R.getColumn(0));//Different mapping here
 		assertNotSame("Shouldn't be same relationship", 0,relComparator.compare(left,right));
 	}
@@ -75,7 +75,7 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		SQLTable table1R = makeTable(1);
 		SQLTable table2R = makeTable(3);
 		SQLRelationship right = new SQLRelationship();
-		table1R.getColumn(0).setPrimaryKeySeq(1);
+		table1R.addToPK(table1R.getColumn(0));
 		right.addMapping(table1R.getColumn(0),table2R.getColumn(1));
 		right.addMapping(table1R.getColumn(0),table2R.getColumn(2));
 		assertNotSame("Shouldn't be same relationship", 0,relComparator.compare(left,right));

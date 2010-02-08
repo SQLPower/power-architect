@@ -152,10 +152,10 @@ public class TestArchitectUndoManager extends TestCase {
         pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter());
         pkTable.addColumn(new SQLColumn());
         pkTable.addColumn(new SQLColumn());
-        pkTable.getColumn(0).setPrimaryKeySeq(1);
+        pkTable.addToPK(pkTable.getColumn(0));
         pkTable.getColumn(0).setName("pk1");
         pkTable.getColumn(0).setType(Types.INTEGER);
-        pkTable.getColumn(1).setPrimaryKeySeq(1);
+        pkTable.addToPK(pkTable.getColumn(1));
         pkTable.getColumn(1).setName("pk2");
         pkTable.getColumn(1).setType(Types.INTEGER);
         db.addChild(pkTable);
@@ -431,8 +431,8 @@ public class TestArchitectUndoManager extends TestCase {
         CreateRelationshipAction.doCreateRelationship(pkTable, fkTable, pp, false);
         assertEquals("Wrong number of relationships created", 1, pp.getRelationships().size());
         assertEquals("Did the relationship create the columns in the fkTable", 2, fkTable.getColumns().size());
-        assertNull("First column should not be in PK", fkTable.getColumns().get(0).getPrimaryKeySeq());
-        assertNull("Second column should not be in PK", fkTable.getColumns().get(1).getPrimaryKeySeq());
+        assertFalse("First column should not be in PK", fkTable.getColumns().get(0).isPrimaryKey());
+        assertFalse("Second column should not be in PK", fkTable.getColumns().get(1).isPrimaryKey());
         assertEquals("first column should be called 'pk1'", "pk1", fkTable.getColumns().get(0).getName());
         assertEquals("second column should be called 'pk2'", "pk2", fkTable.getColumns().get(1).getName());
         
@@ -466,11 +466,11 @@ public class TestArchitectUndoManager extends TestCase {
         assertEquals("Wrong number of columns in the fkTable", 2, columns.size());
         
         assertEquals("Is the first column pk1?", "pk1", columns.get(0).getName());
-        assertNull("Is the first column a key column?", columns.get(0).getPrimaryKeySeq());
+        assertFalse("Is the first column a key column?", columns.get(0).isPrimaryKey());
         assertEquals("redo left incorrect reference count on pk1", 1, columns.get(0).getReferenceCount());
         
         assertEquals("Is the second column pk2?", "pk2", columns.get(1).getName());
-        assertNull("Is the second column a key column?", columns.get(1).getPrimaryKeySeq());
+        assertFalse("Is the second column a key column?", columns.get(1).isPrimaryKey());
         assertEquals("redo left incorrect reference count on pk2", 1, columns.get(1).getReferenceCount());
     }
 

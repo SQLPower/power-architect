@@ -516,17 +516,12 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			                        +"' to table '"+getModel().getName() //$NON-NLS-1$
 			                        +"' at position "+ipWatcher.getInsertionPoint()); //$NON-NLS-1$
 			            }
-			            getModel().addColumn(col, ipWatcher.getInsertionPoint());
+			            getModel().addColumn(col, newColumnsInPk, ipWatcher.getInsertionPoint());
 			            // You need to disable the normalization otherwise it goes around
 			            // the property change events and causes undo to fail when dragging
 			            // into the primary key of a table
 			            logger.debug("Column listeners are " + col.getSPListeners());
 
-			            if (newColumnsInPk) {
-			                col.setPrimaryKeySeqAndRearrangeCols(new Integer(ipWatcher.getInsertionPoint()), false);
-			            } else {
-			                col.setPrimaryKeySeqAndRearrangeCols(null, false);
-			            }
 			        } else {
 			            // importing column from a source database
 			            getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource());
@@ -810,13 +805,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
         } finally {
             setInsertionPoint(ITEM_INDEX_NONE);
-            try {
-                getModel().normalizePrimaryKey();
-            } catch (SQLObjectException e) {
-                logger.error("Error processing normalize PrimaryKey", e); //$NON-NLS-1$
-                ASUtils.showExceptionDialogNoReport(getParent().getOwner(),
-                        "Error processing normalize PrimaryKey after processing drop operation", e); //$NON-NLS-1$
-            }
         }
         return success;
     }
@@ -933,7 +921,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
     public int getHiddenPkCount() {
         int count = 0;
         for (SQLColumn c : hiddenColumns) {
-            if (c.getPrimaryKeySeq() != null) {
+            if (c.isPrimaryKey()) {
                 count++;
             }
         }

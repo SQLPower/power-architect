@@ -119,7 +119,7 @@ public class TestDBTreeModel extends TestCase {
         treeRoot.addChild(db);
         db.addChild(t);
         t.addColumn(c);
-        c.setPrimaryKeySeq(0);
+        t.addToPK(c);
         
         SQLRelationship r = new SQLRelationship();
         r.setName("my relationship is cooler than your silly columnmnm");

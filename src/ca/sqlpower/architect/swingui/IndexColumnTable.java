@@ -480,28 +480,21 @@ public class IndexColumnTable {
      * the ordering that the user provided in the JTable.
      */
     public void finalizeIndex() {
-        try {
-            //First remove all the children of the index
-            for (int i = index.getChildCount() - 1; i >= 0; i--) {
-                index.removeChild(index.getChildren().get(i));// remove all current children
-            }
-            for(Row r : model.getRowList()) {
-                if (r.isEnabled()){
-                    if (r.getSQLColumn() != null) {
-                        index.addIndexColumn(r.getSQLColumn(), r.getOrder());
-                    } else {
-                        logger.debug("Adding index column with no SQLColumn. Column name is " + r.getColumn().getName());
-                        index.addIndexColumn(r.getColumn().getName(), r.getOrder());
-                    }
+        List<Column> colsToMatch = new ArrayList<Column>();
+        for(Row r : model.getRowList()) {
+            if (r.isEnabled()){
+                if (r.getSQLColumn() != null) {
+                    colsToMatch.add(new Column(r.getSQLColumn(), r.getOrder()));
+                } else {
+                    logger.debug("Adding index column with no SQLColumn. Column name is " + r.getColumn().getName());
+                    colsToMatch.add(new Column(r.getColumn().getName(), r.getOrder()));
                 }
             }
-
+        }
+        try {
+            index.makeColumnsLike(colsToMatch);
         } catch (SQLObjectException e) {
             throw new SQLObjectRuntimeException(e);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (ObjectDependentException e) {
-            throw new RuntimeException(e);
         }
     }
 
