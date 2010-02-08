@@ -666,7 +666,7 @@ public class CompareSQL implements Monitorable {
 		}
 
 		if ( keyChangeFlag ) {
-		    if (sourceTable.getPrimaryKeyIndex() != null) {
+		    if (sourceTable.getPkSize() > 0) {
 		        diffs.add(new DiffChunk<SQLObject>(sourceTable, DiffType.DROP_KEY));
 		    }
 		    diffs.add(new DiffChunk<SQLObject>(targetTable, DiffType.KEY_CHANGED));

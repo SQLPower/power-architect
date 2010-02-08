@@ -213,7 +213,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			        continue;
 			    }
 			    // draws the line in the table that separates primary keys from others
-			    if (col.getPrimaryKeySeq() == null && stillNeedPKLine) {
+			    if (!col.isPrimaryKey() && stillNeedPKLine) {
 			        stillNeedPKLine = false;
 			        currentColor = null;
 			        y += PK_GAP;

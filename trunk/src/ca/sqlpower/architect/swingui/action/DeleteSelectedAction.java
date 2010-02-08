@@ -39,14 +39,13 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.object.ObjectDependentException;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.LockedColumnException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLIndex.Column;
 
 public class DeleteSelectedAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(DeleteSelectedAction.class);
@@ -137,15 +136,6 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                     if (o instanceof SQLIndex) {
                         SQLIndex index = (SQLIndex) o;
                         o.getParent().removeChild(o);
-                        List<SQLColumn> cols = new ArrayList<SQLColumn>();
-                        for (Column col : index.getChildren(Column.class)) {
-                            cols.add(col.getColumn());                            
-                        }
-                        for (SQLColumn col : cols) {
-                            if (col != null) {
-                                col.setPrimaryKeySeq(null);
-                            }
-                        }
                     } else {
                         //Side effect of removing a relationship's parent table is to remove the relationship
                         //causing this to fail if the relationship is removed immediately after.

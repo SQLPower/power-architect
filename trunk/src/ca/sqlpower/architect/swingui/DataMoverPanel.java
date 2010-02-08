@@ -284,7 +284,7 @@ public class DataMoverPanel {
             // setup PK
             for (SQLColumn srcCol : sourceTable.getColumns()) {
                 SQLColumn destCol = destTable.getColumnByName(srcCol.getName());
-                destCol.setPrimaryKeySeq(srcCol.getPrimaryKeySeq());
+                destTable.getPrimaryKeyIndex().addIndexColumn(destCol);
             }
             
             // TODO indexes and foriegn keys

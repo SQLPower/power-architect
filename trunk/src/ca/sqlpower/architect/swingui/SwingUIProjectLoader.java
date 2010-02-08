@@ -1280,7 +1280,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
             propNames.put("nullable", new Integer(((SQLColumn) o).getNullable())); //$NON-NLS-1$
             propNames.put("remarks", ((SQLColumn) o).getRemarks()); //$NON-NLS-1$
             propNames.put("defaultValue", ((SQLColumn) o).getDefaultValue()); //$NON-NLS-1$
-            propNames.put("primaryKeySeq", ((SQLColumn) o).getPrimaryKeySeq()); //$NON-NLS-1$
+            propNames.put("primaryKeySeq", ((SQLColumn) o).isPrimaryKey() ? ((SQLColumn) o).getParent().getChildrenWithoutPopulating(SQLColumn.class).indexOf(o) : null); //$NON-NLS-1$
             propNames.put("autoIncrement", Boolean.valueOf(((SQLColumn) o).isAutoIncrement())); //$NON-NLS-1$
             propNames.put("referenceCount", new Integer(((SQLColumn)o).getReferenceCount())); //$NON-NLS-1$
             if (((SQLColumn) o).isAutoIncrementSequenceNameSet()) {
@@ -1333,8 +1333,6 @@ public class SwingUIProjectLoader extends ProjectLoader {
         
         sqlObjectSaveIdMap.put(o, id);
 
-        boolean skipChildren = false;
-
         //ioo.print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");  // use this for debugging duplicate object problems
         ioo.print(out, "<"+type+" id="+quote(id)+" "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
@@ -1352,7 +1350,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 ioo.niprint(out, key+"="+quote(value.toString())+" "); //$NON-NLS-1$ //$NON-NLS-2$
             }
         }
-        if ( (!skipChildren) && o.allowsChildren() ) {
+        if (o.allowsChildren()) {
             ioo.niprintln(out, ">"); //$NON-NLS-1$
             Iterator children;
             if (getSession().isSavingEntireSource()) {

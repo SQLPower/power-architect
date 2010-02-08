@@ -122,7 +122,7 @@ public class TestPlayPen extends TestCase {
 		SQLTable sourceParentTable = new SQLTable(sourceDB, true);
 		sourceParentTable.setName("parent");
 		sourceParentTable.addColumn(new SQLColumn(sourceParentTable, "key", Types.BOOLEAN, 1, 0));
-		sourceParentTable.getColumn(0).setPrimaryKeySeq(0);
+		sourceParentTable.addToPK(sourceParentTable.getColumn(0));
 		sourceDB.addChild(sourceParentTable);
 
 		SQLTable sourceChildTable = new SQLTable(sourceDB, true);
@@ -172,7 +172,7 @@ public class TestPlayPen extends TestCase {
         table.setName("self_ref");
         SQLColumn pkCol = new SQLColumn(table, "key", Types.INTEGER, 10, 0);
         table.addColumn(pkCol);
-        table.getColumn(0).setPrimaryKeySeq(0);
+        table.addToPK(table.getColumn(0));
         SQLColumn fkCol = new SQLColumn(table, "self_ref_column", Types.INTEGER, 10, 0);
         table.addColumn(fkCol);
         
@@ -214,7 +214,7 @@ public class TestPlayPen extends TestCase {
         table.setName("self_ref");
         SQLColumn pkCol = new SQLColumn(table, "key", Types.INTEGER, 10, 0);
         table.addColumn(pkCol);
-        table.getColumn(0).setPrimaryKeySeq(0);
+        table.addToPK(table.getColumn(0));
         SQLColumn fkCol = new SQLColumn(table, "self_ref_column", Types.INTEGER, 10, 0);
         table.addColumn(fkCol);
         

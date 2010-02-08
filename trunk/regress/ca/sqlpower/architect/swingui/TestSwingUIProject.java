@@ -111,6 +111,11 @@ public class TestSwingUIProject extends ArchitectTestCase {
             return stubs;
         }
         
+        @Override
+        public List<? extends SQLObject> getChildrenWithoutPopulating() {
+            return stubs;
+        }
+        
     }
     
 	/*
@@ -267,17 +272,20 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         SQLDatabase target = session.getTargetDatabase();
         
-        SQLTable t1 = (SQLTable) target.getChild(0);
+        SQLTable t1 = (SQLTable) target.getChildByName("mm_project");
         assertEquals(1, t1.getPkSize());
-        assertEquals(new Integer(0), t1.getColumn(0).getPrimaryKeySeq());
-        assertNull(t1.getColumn(1).getPrimaryKeySeq());
+        assertEquals(t1.getPrimaryKeyIndex().getChild(0).getColumn(), t1.getColumn(0));
+        assertTrue(t1.getColumn(0).isPrimaryKey());
+        assertFalse(t1.getColumn(1).isPrimaryKey());
     }
     
     private void subroutineForTestSaveLoadPK(SQLTable t) throws SQLObjectException {
         assertEquals(2, t.getPkSize());
-        assertEquals(new Integer(0), t.getColumn(0).getPrimaryKeySeq());
-        assertEquals(new Integer(1), t.getColumn(1).getPrimaryKeySeq());
-        assertEquals(null, t.getColumn(2).getPrimaryKeySeq());
+        assertTrue(t.getColumn(0).isPrimaryKey());
+        assertEquals(t.getPrimaryKeyIndex().getChild(0).getColumn(), t.getColumn(0));
+        assertTrue(t.getColumn(1).isPrimaryKey());
+        assertEquals(t.getPrimaryKeyIndex().getChild(1).getColumn(), t.getColumn(1));
+        assertFalse(t.getColumn(2).isPrimaryKey());
         assertFalse(t.getColumn(0).isDefinitelyNullable());
         assertFalse(t.getColumn(1).isDefinitelyNullable());
         assertTrue(t.getColumn(0).isPrimaryKey());
@@ -295,8 +303,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
         t.addColumn(new SQLColumn(t, "pk1", Types.CHAR, 10, 0));
         t.addColumn(new SQLColumn(t, "pk2", Types.CHAR, 10, 0));
         t.addColumn(new SQLColumn(t, "nonpk", Types.CHAR, 10, 0));
-        t.getColumn(0).setPrimaryKeySeq(0);
-        t.getColumn(1).setPrimaryKeySeq(1);
+        t.addToPK(t.getColumn(0));
+        t.addToPK(t.getColumn(1));
         target.addChild(t);
         
         subroutineForTestSaveLoadPK(t);
@@ -717,7 +725,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         target.addChild(new Column(col, AscendDescend.UNSPECIFIED));
         ppdb.addChild(table);
         table.addChild(target);
-        col.setPrimaryKeySeq(0);
+        table.addToPK(col);
         
         Set<String> propertiesToIgnore = getPropertiesToIgnore();
         propertiesToIgnore.add("undoEventListeners");
@@ -798,7 +806,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // grab the second database in the dbtree's model (the first is the play pen)
         ppdb = (SQLDatabase) session2.getTargetDatabase();
         
-        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndices().get(0);
+        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getChildByName(index.getName());
         
         Map<String, Object> newDescription =
             ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
@@ -811,13 +819,12 @@ public class TestSwingUIProject extends ArchitectTestCase {
         testLoad();
         
         SQLDatabase ppdb = session.getTargetDatabase();
-        SQLTable table = new SQLTable(ppdb, true);
+        SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
+        SQLTable table = new SQLTable(ppdb, true, index);
         SQLColumn col = new SQLColumn(table,"col",1,0,0);
         table.setName(tableName);
         table.addColumn(col);
-        SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
         SQLIndex.Column indexCol = new Column(col, AscendDescend.DESCENDING);
-        index.setPrimaryKeyIndex(true);
         ppdb.addChild(table);
         table.addChild(index);
         
@@ -828,7 +835,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         index.addChild(indexCol);
         assertEquals(1, table.getIndices().size());
         assertSame(index, table.getPrimaryKeyIndex());
-        col.setPrimaryKeySeq(new Integer(0));
+        table.addToPK(col);
         assertEquals(1, table.getIndices().size());
         assertSame(index, table.getPrimaryKeyIndex());
         
@@ -875,7 +882,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         index.addIndexColumn(col, AscendDescend.DESCENDING);
         ppdb.addChild(table);
         table.addChild(index);
-        col.setPrimaryKeySeq(new Integer(0));
+        table.addToPK(col);
         Set<String> propertiesToIgnore = getPropertiesToIgnore();
         propertiesToIgnore.add("undoEventListeners");
 
@@ -925,7 +932,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLIndex origIndex1 = new SQLIndex("tasty index", false, null, "HASH", null);
         origIndex1.addIndexColumn(col, AscendDescend.DESCENDING);
         table.addChild(origIndex1);
-        col.setPrimaryKeySeq(new Integer(0));
+        table.addToPK(col);
 
         // second index references same column as first index, so
         // origIndex1.getChild(0).equals(origIndex2.getChild(0)) even though
@@ -1238,7 +1245,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
             assertTrue(
                     "Index " + idx + " wasn't listening to columns folder!",
                     idx.getChildCount() == 0);
-            assertFalse(t.getIndices().contains(idx));
+            if (!idx.isPrimaryKeyIndex()) {
+                assertFalse(t.getIndices().contains(idx));
+            }
         }
     }
     

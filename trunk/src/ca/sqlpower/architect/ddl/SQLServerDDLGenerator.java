@@ -28,14 +28,14 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLType;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 
 /**
  * The base class for version-specific SQL Server DDL generators. This class is
@@ -506,11 +506,11 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         try {
             SQLIndex pk = t.getPrimaryKeyIndex();
             print("\nALTER TABLE " + toQualifiedName(t.getName())
-                + " DROP " + pk.getPhysicalName());
+                    + " DROP " + pk.getPhysicalName());
+            endStatement(DDLStatement.StatementType.DROP, t);
         } catch (SQLObjectException e) {
             throw new SQLObjectRuntimeException(e);
         }
-        endStatement(DDLStatement.StatementType.DROP, t);
     }
 
     @Override
