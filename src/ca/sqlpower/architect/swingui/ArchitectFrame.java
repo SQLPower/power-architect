@@ -115,6 +115,7 @@ import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
+import ca.sqlpower.architect.swingui.enterprise.ServerProjectsManagerPanel;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPSchemaManagerAction;
@@ -234,6 +235,29 @@ public class ArchitectFrame extends JFrame {
                     ArchitectFrame.this, loginAction, closeAction);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(sim.getPanel());
+            
+            SPSUtils.makeJDialogCancellable(d, null);
+            d.pack();
+            d.setLocationRelativeTo(ArchitectFrame.this);
+            d.setVisible(true);
+        }
+    };
+    
+    private Action openProjectManagerAction = new AbstractAction("Projects...") {
+        public void actionPerformed(ActionEvent e) {
+            
+            final JDialog d = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Projects");
+            Action closeAction = new AbstractAction("Close") {
+                public void actionPerformed(ActionEvent e) {
+                    d.dispose();
+                }
+            };
+            
+            ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(session.getContext(),
+                    session.getContext().getServerManager(), 
+                    ArchitectFrame.this, closeAction);
+            d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            d.setContentPane(spm.getPanel());
             
             SPSUtils.makeJDialogCancellable(d, null);
             d.pack();
@@ -660,6 +684,7 @@ public class ArchitectFrame extends JFrame {
 
         JMenu enterpriseMenu = new JMenu("Enterprise");
         enterpriseMenu.add(openServerManagerAction);
+        enterpriseMenu.add(openProjectManagerAction);
         menuBar.add(enterpriseMenu);
         
         JMenu toolsMenu = new JMenu(Messages.getString("ArchitectFrame.toolsMenu")); //$NON-NLS-1$

@@ -278,6 +278,81 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         
         printSettings = new PrintSettings();
     }
+    
+    ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, ArchitectSession delegateSession)
+    throws SQLObjectException {
+
+        swinguiUserPrompterFactory = new SwingUIUserPrompterFactory(frame);
+        this.isNew = true;
+        this.context = context;
+        this.delegateSession = delegateSession;
+        this.olapRootObject = new OLAPRootObject(delegateSession);
+        ((ArchitectSessionImpl)delegateSession).setProfileManager(new ProfileManagerImpl(this));
+        ((ArchitectSessionImpl)delegateSession).setUserPrompterFactory(this);
+        this.recent = new RecentMenu(this.getClass()) {
+            @Override
+            public void loadFile(String fileName) throws IOException {
+                File f = new File(fileName);
+                try {
+                    OpenProjectAction.openAsynchronously(getContext().createSession(false), f, ArchitectSwingSessionImpl.this);
+                } catch (SQLObjectException ex) {
+                    SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), Messages.getString("ArchitectSwingSessionImpl.openProjectFileFailed"), ex); //$NON-NLS-1$
+                }
+            }
+        };
+
+        // Make sure we can load the pl.ini file so we can handle exceptions
+        // XXX this is probably redundant now, since the context owns the pl.ini
+        getContext().getPlDotIni();
+
+        setProjectLoader(new SwingUIProjectLoader(this));
+
+        compareDMSettings = new CompareDMSettings();
+
+        kettleJob = new KettleJob(this);
+
+        olapSchemaManager = new OLAPSchemaManager(this);
+        
+        delegateSession.getRootObject().addChild(getTargetDatabase());
+        this.sourceDatabases = new DBTree(this);
+
+        playPen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
+        UserSettings sprefs = getUserSettings().getSwingSettings();
+        if (sprefs != null) {
+            playPen.setRenderingAntialiased(sprefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
+        }
+        projectModificationWatcher = new ProjectModificationWatcher(playPen);
+        
+        getRootObject().addSPListener(new AbstractSPListener() {
+            @Override
+            public void propertyChangeImpl(PropertyChangeEvent e) {
+                isNew = false;        
+            }
+            @Override
+            public void childRemovedImpl(SPChildEvent e) {
+                isNew = false;
+            }
+            @Override
+            public void childAddedImpl(SPChildEvent e) {
+                isNew = false;
+            }
+        });
+        undoManager = new ArchitectUndoManager(playPen);
+        playPen.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter()); //$NON-NLS-1$
+        playPen.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter()); //$NON-NLS-1$
+        playPen.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", undoManager.getEventAdapter()); //$NON-NLS-1$
+        playPen.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", undoManager.getEventAdapter()); //$NON-NLS-1$
+        playPen.getPlayPenContentPane().addPropertyChangeListener("dashed", undoManager.getEventAdapter()); //$NON-NLS-1$
+        playPen.getPlayPenContentPane().addPropertyChangeListener("rounded", undoManager.getEventAdapter()); //$NON-NLS-1$
+
+        lifecycleListeners = new ArrayList<SessionLifecycleListener<ArchitectSession>>();
+
+        swingWorkers = new HashSet<SPSwingWorker>();
+        
+        olapEditSessions = new ArrayList<OLAPEditSession>();
+        
+        printSettings = new PrintSettings();
+    }
 
     public void initGUI() throws SQLObjectException {
         initGUI(null);
