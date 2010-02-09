@@ -28,6 +28,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -37,12 +38,18 @@ import java.util.prefs.Preferences;
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 
+import org.apache.http.client.ClientProtocolException;
 import org.apache.log4j.Logger;
+import org.json.JSONException;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
+
+import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
+import ca.sqlpower.architect.enterprise.ProjectLocation;
+import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.SPServerInfoManager;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
@@ -260,7 +267,47 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws SQLObjectException {
         return createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.defaultNewProjectName"), true, openingSession); //$NON-NLS-1$
     }
-
+    
+    public ArchitectSwingSession createNewServerSession(SPServerInfo serverInfo, boolean initGUI) throws SQLObjectException, ClientProtocolException, URISyntaxException, IOException, JSONException {
+        return createNewServerSession(serverInfo, "", initGUI);
+    }
+    
+    public ArchitectSwingSession createNewServerSession(SPServerInfo serverInfo, String name,  boolean initGUI) throws SQLObjectException, ClientProtocolException, URISyntaxException, IOException, JSONException {
+        
+        ProjectLocation projectLocation = ArchitectClientSideSession.createNewServerSession(serverInfo);
+        ArchitectSession clientSession = new ArchitectClientSideSession(this, name, projectLocation);     
+            
+        ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
+            
+        if (initGUI) {
+            swingSession.initGUI();
+        }
+            
+        return swingSession;
+    }
+    
+    
+        
+    public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, boolean initGUI) throws SQLObjectException {
+        return createServerSession(projectLocation, "", initGUI);
+    }
+    
+    public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, String name, boolean initGUI) throws SQLObjectException {
+        
+        ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, name, projectLocation);
+        clientSession.startUpdaterThread();
+        
+        ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
+        
+        if (initGUI) {
+            swingSession.initGUI();
+        }
+        
+        return swingSession;
+    }
+    
+    
+    
     /**
      * This is the one createSession() implementation to which all other
      * overloads of createSession() actually delegate their work.
