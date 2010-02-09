@@ -653,7 +653,7 @@
 	</target>
 	
 	<target name ="jar" depends="compile">
-		<jar jarfile="dist/architect_library.jar" basedir="${build}"/>
+		<jar jarfile="dist/architect.jar" basedir="${build}"/>
 	</target>
 
     <target name="stage" depends="checkAntVersion,compile">
