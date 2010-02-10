@@ -76,7 +76,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	private static Logger logger = Logger.getLogger(ArchitectClientSideSession.class);
 	private static CookieStore cookieStore = new BasicCookieStore();
 	
-	public static final String MONDRIAN_SCHEMA_REL_PATH = null;
+	public static final String MONDRIAN_SCHEMA_REL_PATH = "/mondrian";
 	
 	private final ProjectLocation projectLocation;
 	private final HttpClient outboundHttpClient;
@@ -288,6 +288,30 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     		httpClient.getConnectionManager().shutdown();
     	}
     }
+	
+	/**
+	 * This method reverts the server workspace specified by the given project location
+	 * to the specified revision number.
+	 * 
+	 * All sessions should automatically update to the reverted revision due to their Updater.
+	 * 
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
+	public static void revertServerWorkspace(ProjectLocation projectLocation, int revisionNo) throws IOException, URISyntaxException {
+	    SPServerInfo serviceInfo = projectLocation.getServiceInfo();
+	    HttpClient httpClient = createHttpClient(serviceInfo);
+	    
+        try {
+            executeServerRequest(httpClient, projectLocation.getServiceInfo(),
+                    "/project/" + projectLocation.getUUID() + 
+                    "/revert?revisionNo=" + revisionNo, 
+                    new BasicResponseHandler());            
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+	    
+	}
 	
 	public static void deleteServerWorkspace(ProjectLocation projectLocation) throws URISyntaxException, ClientProtocolException, IOException {
     	SPServerInfo serviceInfo = projectLocation.getServiceInfo();
