@@ -50,7 +50,7 @@ import ca.sqlpower.util.SPSession;
 public class ArchitectProject extends AbstractSPObject {
     
     private final ArchitectSession session;
-    private final SQLObjectRoot rootObject;
+    private SQLObjectRoot rootObject;
     private ProfileManagerImpl profileManager;  
     private SQLDatabase db;
     
@@ -194,5 +194,12 @@ public class ArchitectProject extends AbstractSPObject {
     public void removeDependency(SPObject dependency) {
         
     }
-
+    
+    protected void addChildImpl(SPObject child, int index) {
+        if (child instanceof SQLObjectRoot) {
+            rootObject = (SQLObjectRoot) child;
+        } else {
+            super.addChildImpl(child, index);
+        }
+    }
 }
