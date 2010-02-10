@@ -254,7 +254,6 @@ public class ArchitectFrame extends JFrame {
             };
             
             ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(session.getContext(),
-                    session.getContext().getServerManager(), 
                     ArchitectFrame.this, closeAction);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(spm.getPanel());

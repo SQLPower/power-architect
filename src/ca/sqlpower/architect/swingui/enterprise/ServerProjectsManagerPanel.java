@@ -41,7 +41,6 @@ import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl;
 import ca.sqlpower.enterprise.client.SPServerInfo;
-import ca.sqlpower.enterprise.client.SPServerInfoManager;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -50,9 +49,10 @@ import com.jgoodies.forms.layout.FormLayout;
 public class ServerProjectsManagerPanel {
 
     private final Component dialogOwner;
-    private final JPanel panel;
-    private final SPServerInfoManager serverInfoManager;
     private final ArchitectSessionContext context;
+    
+    private final JPanel panel;
+    private final Action closeAction;
     private JList projects;
     private JList servers;
     
@@ -106,8 +106,8 @@ public class ServerProjectsManagerPanel {
                             }
                         } 
                     }
-                        
-                    refreshInfoList();      
+                    
+                    closeAction.actionPerformed(e);
                 }
             }
         }
@@ -157,10 +157,11 @@ public class ServerProjectsManagerPanel {
         }
     };
     
-    public ServerProjectsManagerPanel(ArchitectSessionContext context, SPServerInfoManager serverInfoManager, Component dialogOwner, Action closeAction) {
+    public ServerProjectsManagerPanel(ArchitectSessionContext context, 
+            Component dialogOwner, Action closeAction) {
         this.dialogOwner = dialogOwner;
-        this.serverInfoManager = serverInfoManager;
         this.context = context;
+        this.closeAction = closeAction;
         
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
                 "pref:grow, 5dlu, pref:grow, 5dlu, pref", 
@@ -178,8 +179,8 @@ public class ServerProjectsManagerPanel {
         
         DefaultListModel serversModel = (DefaultListModel) servers.getModel();
         serversModel.removeAllElements();
-        if (serverInfoManager.getServers(false).size() > 0) {
-            for (SPServerInfo serverInfo : serverInfoManager.getServers(false)) {
+        if (context.getServerManager().getServers(false).size() > 0) {
+            for (SPServerInfo serverInfo : context.getServerManager().getServers(false)) {
                 serversModel.addElement(serverInfo);
             }
         } else {
@@ -191,7 +192,7 @@ public class ServerProjectsManagerPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
-                    openSelectedProject();
+                    openAction.actionPerformed(null);
                 }
             }
         });
@@ -238,6 +239,7 @@ public class ServerProjectsManagerPanel {
             } catch (Exception ex) {
                 model.removeAllElements();
                 model.addElement("There has been a problem retrieving projects from the selected server");
+                throw new RuntimeException("There has been a problem retrieving projects from the selected server", ex);
             }
         } else {
             model.addElement("No Server Selected");
@@ -257,9 +259,5 @@ public class ServerProjectsManagerPanel {
         }
         
         return null;
-    }
-    
-    private void openSelectedProject() {
-        
     }
 }

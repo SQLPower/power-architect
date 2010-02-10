@@ -89,6 +89,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	
 	// -
 	
+	int currentRevision = 0;
+	
 	public ArchitectClientSideSession(ArchitectSessionContext context, 
 			String name, ProjectLocation projectLocation) throws SQLObjectException {
 		super(context, name);
@@ -174,6 +176,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                 return new SpecificDataSourceCollection<JDBCDataSource>(plIni, JDBCDataSource.class);
             }
         };
+        
         try {
             dataSourceCollection = executeServerRequest(outboundHttpClient, projectLocation.getServiceInfo(), "/data-sources/", plIniHandler);
         } catch (Exception ex) {
@@ -189,10 +192,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		updater.start();
 		
 		final SPPersisterListener listener = new SPPersisterListener(
-				new SPPersisterHelperFactoryImpl(sessionPersister,
-						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace())));
+				new SPPersisterHelperFactoryImpl(jsonPersister,
+						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace().getRootObject())));
 		
-		SQLPowerUtils.listenToHierarchy(getWorkspace(), listener);
+		SQLPowerUtils.listenToHierarchy(getWorkspace().getRootObject(), listener);
 		
 		addSessionLifecycleListener(new SessionLifecycleListener<ArchitectSession>() {
 			public void sessionClosing(SessionLifecycleEvent<ArchitectSession> e) {
@@ -364,6 +367,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 
 		public void flush() throws SPPersistenceException {
 			try {
+
+			    currentRevision++;
+			    
 				URI serverURI = getServerURI();
 				HttpPost postRequest = new HttpPost(serverURI);
 				postRequest.setEntity(new StringEntity(message.toString()));
@@ -374,7 +380,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 							throws ClientProtocolException, IOException {
 						StatusLine statusLine = response.getStatusLine();
 						if (statusLine.getStatusCode() >= 400) {
-							throw new ClientProtocolException( 
+						    
+						    currentRevision--;
+						    
+						    throw new ClientProtocolException( 
 									"HTTP Post request returned an error: " +
 									"Code = " + statusLine.getStatusCode() + ", " +
 									"Reason = " + statusLine.getReasonPhrase());
@@ -383,10 +392,13 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 					}
 		        });
 			} catch (ClientProtocolException e) {
+			    currentRevision--;
 				throw new SPPersistenceException(null, e);
 			} catch (IOException e) {
+			    currentRevision--;
 				throw new SPPersistenceException(null, e);
 			} catch (URISyntaxException e) {
+			    currentRevision--;
 				throw new SPPersistenceException(null, e);
 			} finally {
 				clear();
@@ -450,23 +462,28 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 			logger.info("Updater thread starting");
 			
 			// the path to contact on the server for update events
-			int currentRevision = 0;
-			final String contextRelativePath = "/project/" + getWorkspace().getUUID() + 
-											   "?oldRevisionNo=" + currentRevision;
+			final String contextRelativePath = "/project/" + projectLocation.getUUID();
 			
 			try {
 				while (!this.isInterrupted() && !cancelled) {
 					try {
-						
-						final String jsonArray = executeServerRequest(
-								inboundHttpClient, projectLocation.getServiceInfo(),
-								contextRelativePath, new BasicResponseHandler());
-						
-						System.out.println(jsonArray);
-		                runInForeground(new Runnable() {
+ 
+					    URI uri = new URI("http", null, projectLocation.getServiceInfo().getServerAddress(), projectLocation.getServiceInfo().getPort(),
+				                projectLocation.getServiceInfo().getPath() + contextRelativePath, "oldRevisionNo=" + currentRevision, null);
+					    HttpUriRequest request = new HttpGet(uri);
+			       
+					    String message = inboundHttpClient.execute(request, new BasicResponseHandler());
+					    JSONObject json = new JSONObject(message);
+					    final String jsonArray = json.getString("data");
+					    
+					    currentRevision = json.getInt("currentRevision");
+
+					    runInForeground(new Runnable() {
 							public void run() {
 								try {
+
 									jsonDecoder.decode(jsonArray);
+									
 								} catch (SPPersistenceException e) {
 									logger.error("Update from server failed!", e);
 									createUserPrompter(
@@ -479,7 +496,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 								}
 							}
 						});
-					} catch (Exception ex) {
+					} catch (Exception ex) {    
 						logger.error("Failed to contact server. Will retry in " + retryDelay + " ms.", ex);
 						Thread.sleep(retryDelay);
 					}

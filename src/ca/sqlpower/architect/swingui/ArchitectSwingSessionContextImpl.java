@@ -295,9 +295,8 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, String name, boolean initGUI) throws SQLObjectException {
         
         ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, name, projectLocation);
-        clientSession.startUpdaterThread();
-        
         ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
+        clientSession.startUpdaterThread();
         
         if (initGUI) {
             swingSession.initGUI();
