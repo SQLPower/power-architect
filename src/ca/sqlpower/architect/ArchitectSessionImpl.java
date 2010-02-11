@@ -80,7 +80,8 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	        String name) throws SQLObjectException {
 	    
 	    this.context = context;
-	    this.project = new ArchitectProject(this);
+	    this.project = new ArchitectProject();
+	    project.init(this);
 	    this.project.setProfileManager(new ProfileManagerImpl(this));
 	    this.name = name;	           
         this.projectLoader = new ProjectLoader(this);
