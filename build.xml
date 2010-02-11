@@ -26,6 +26,11 @@
 	     get added to the architect.jar file. -->
 	<property name="build" value="build"/>
 	
+	<!-- A target build directory to place a temporary build in to
+	     allow us to generate new files based on the annotations in the
+	     class files. -->
+	<property name="build_tmp" value="build_tmp"/>
+	
 	<property name="dist.base" value="dist"/>
 	
 	<!-- The target build directory for compiled test classes.
@@ -53,6 +58,13 @@
 	<property name="installer.dir" value="installer"/>
 	
 	<property name="only.copy.sqlpower.library" value="false"/>
+	
+    <path id="apt.classpath">
+	    <pathelement location="${build}"/>
+	    <fileset dir="lib">
+	        <include name="*.jar"/>
+	    </fileset>
+	</path>
 	
 	<!-- When the build runs on a Mac, we can create the .dmg disk image
 	     using the native hdiutil program.  Otherwise, we just make a .tar.gz.
@@ -383,9 +395,30 @@
 	
 	<!-- Compiles the application source files -->
 	<target name="compile" depends="init, copyfiles, build.sqlpower.library, copy.sqlpower.library">
-		<javac srcdir="${src}" destdir="${build}"
-			classpathref="compile.classpath" 
-			debug="true"/>
+	   	<mkdir dir="${build_tmp}"/>
+        <javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true"/>
+		<apt srcdir="${src}"
+            destdir="${build_tmp}"
+            classpathref="apt.classpath"
+            debug="true"
+            compile="true"
+            factory="ca.sqlpower.object.annotation.SPAnnotationProcessorFactory"
+            preprocessdir="src">
+        </apt>
+        <delete dir="${build}"/>
+        <move todir="${build}">
+            <fileset dir="${build_tmp}"/>
+        </move>
+        <copy todir="${build}">
+            <fileset dir="${src}">
+                <include name="**/*.png"/>
+            </fileset>
+        </copy>
+        <copy todir="${build}/">
+            <fileset dir="src">
+                <include name="**/messages*.properties"/>
+            </fileset>
+	    </copy>
 	</target>
 	
 	<target name="compile-tests" depends="compile"

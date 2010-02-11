@@ -36,6 +36,8 @@ import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -178,7 +180,8 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
         }
     }
     
-    public ProfileManagerImpl(ArchitectSession session) {
+    @Constructor
+    public ProfileManagerImpl(@ConstructorParameter(propertyName="session") ArchitectSession session) {
         this.session = session;
         if (session != null && session.getRootObject() != null) {
             session.getRootObject().addSQLObjectPreEventListener(new DatabaseRemovalWatcher());

@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
@@ -106,7 +107,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
         this.name = argName;
     }
 
-    public ProfileManagerImpl getProfileManager() {
+    public ProfileManager getProfileManager() {
         return project.getProfileManager();
     }
 

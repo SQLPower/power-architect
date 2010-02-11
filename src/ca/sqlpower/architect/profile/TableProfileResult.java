@@ -30,6 +30,8 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -69,7 +71,9 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * @param manager
      * @param settings
      */
-    public TableProfileResult(SQLTable profiledObject, ProfileSettings settings) {
+    @Constructor
+    public TableProfileResult(@ConstructorParameter(propertyName="profiledObject") SQLTable profiledObject, 
+            @ConstructorParameter(propertyName="settings") ProfileSettings settings) {
         super(profiledObject);
         setSettings(settings);
     }

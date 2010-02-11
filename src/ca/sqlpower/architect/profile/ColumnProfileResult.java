@@ -24,6 +24,8 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sqlobject.SQLColumn;
 
 public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
@@ -45,7 +47,9 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     /**
      * This creates a column profile result which stores information about a profiled column.
      */
-    public ColumnProfileResult(SQLColumn profiledObject, TableProfileResult parentResult) {
+    @Constructor
+    public ColumnProfileResult(@ConstructorParameter(propertyName="profiledObject") SQLColumn profiledObject, 
+            @ConstructorParameter(propertyName="parentResult") TableProfileResult parentResult) {
         super(profiledObject);
         this.parentResult = parentResult;
     }
