@@ -2,8 +2,9 @@ package ca.sqlpower.architect.enterprise;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -14,7 +15,6 @@ import javax.swing.SwingUtilities;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
@@ -26,7 +26,6 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicResponseHandler;
@@ -91,8 +90,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	int currentRevision = 0;
 	
 	public ArchitectClientSideSession(ArchitectSessionContext context, 
-			String name, ProjectLocation projectLocation) throws SQLObjectException {
-		super(context, name);
+			ProjectLocation projectLocation) throws SQLObjectException {
+		super(context, projectLocation.getName());
 		
 		this.projectLocation = projectLocation;
 		
@@ -252,7 +251,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     	HttpClient httpClient = createHttpClient(serviceInfo);
     	try {
     		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/jcr/projects"));
-    		String responseBody = httpClient.execute(request, new BasicResponseHandler());
+    		String responseBody = httpClient.execute(request, new JSONResponseHandler());
     		List<ProjectLocation> workspaces = new ArrayList<ProjectLocation>();
     		JSONArray response = new JSONArray(responseBody);
     		logger.debug("Workspace list:\n" + responseBody);
@@ -274,7 +273,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     	try {
     		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/jcr/projects/new"));
     		
-    		String responseBody = httpClient.execute(request, new BasicResponseHandler());
+    		String responseBody = httpClient.execute(request, new JSONResponseHandler());
     		JSONObject response = new JSONObject(responseBody);
     		logger.debug("New Workspace:" + responseBody);
     		return new ProjectLocation(
@@ -352,7 +351,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	
 	public static ArchitectClientSideSession openServerSession(ArchitectSessionContext context, ProjectLocation projectLoc) 
 	throws SQLObjectException {
-    	final ArchitectClientSideSession session = new ArchitectClientSideSession(context, "", projectLoc);
+    	final ArchitectClientSideSession session = new ArchitectClientSideSession(context, projectLoc);
     	// TODO
     	//context.registerChildSession(session);
 		//session.startUpdaterThread();
@@ -396,22 +395,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 				postRequest.setEntity(new StringEntity(message.toString()));
 				postRequest.setHeader("Content-Type", "application/json");
 				HttpUriRequest request = postRequest;
-		        getHttpClient().execute(request, new ResponseHandler<Void>() {
-					public Void handleResponse(HttpResponse response)
-							throws ClientProtocolException, IOException {
-						StatusLine statusLine = response.getStatusLine();
-						if (statusLine.getStatusCode() >= 400) {
-						    
-						    currentRevision--;
-						    
-						    throw new ClientProtocolException( 
-									"HTTP Post request returned an error: " +
-									"Code = " + statusLine.getStatusCode() + ", " +
-									"Reason = " + statusLine.getReasonPhrase());
-						}
-						return null;
-					}
-		        });
+				
+		        getHttpClient().execute(request, new JSONResponseHandler());
 			} catch (ClientProtocolException e) {
 			    currentRevision--;
 				throw new SPPersistenceException(null, e);
@@ -493,7 +478,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 				                projectLocation.getServiceInfo().getPath() + contextRelativePath, "oldRevisionNo=" + currentRevision, null);
 					    HttpUriRequest request = new HttpGet(uri);
 			       
-					    String message = inboundHttpClient.execute(request, new BasicResponseHandler());
+					    String message = inboundHttpClient.execute(request, new JSONResponseHandler());
 					    JSONObject json = new JSONObject(message);
 					    final String jsonArray = json.getString("data");
 					    
@@ -636,44 +621,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             		}
             	};
             	
-            	if (ds instanceof Olap4jDataSource 
-            			&& ((Olap4jDataSource) ds).getMondrianSchema() != null
-            			&& ((Olap4jDataSource) ds).getMondrianSchema().getScheme().equals("file")) {
-            		//Pushing the mondrian schema to the server and updating the schema location to a server schema
-            		Olap4jDataSource olapDS = ((Olap4jDataSource) ds);
-            		File schemaFile = new File(olapDS.getMondrianSchema());
-            		
-            		if (!schemaFile.exists()) 
-            			logger.error("Schema file " + schemaFile.getAbsolutePath() + 
-            					" does not exist for data source " + ds.getName());
-            		
-            		HttpPost request = new HttpPost(
-            				getServerURI(projectLocation.getServiceInfo(), 
-            						MONDRIAN_SCHEMA_REL_PATH + schemaFile.getName()));
-            		
-            		request.setEntity(new FileEntity(schemaFile, "text/xml"));
-            		httpClient.execute(request, responseHandler);
-            		
-            		//updating new data source to point to the server's schema.
-            		for (int i = properties.size() - 1; i >= 0; i--) {
-            			NameValuePair pair = properties.get(i);
-            			if (pair.getName().equals(Olap4jDataSource.MONDRIAN_SCHEMA)) {
-            				properties.add(new BasicNameValuePair(
-            						Olap4jDataSource.MONDRIAN_SCHEMA, 
-            						SPDataSource.SERVER + schemaFile.getName()));
-            				properties.remove(pair);
-            				break;
-            			}
-            		}
-            		
-            		try {
-            			postingProperties = true;
-            			olapDS.setMondrianSchema(new URI(SPDataSource.SERVER + schemaFile.getName()));
-            		} finally {
-            			postingProperties = false;
-            		}
-            	}
-                
                 HttpPost request = new HttpPost(dataSourceURI(ds));
                 
                 request.setEntity(new UrlEncodedFormEntity(properties));
@@ -715,14 +662,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                 };
 				httpClient.execute(request, responseHandler);
 				
-				if (removedDS instanceof Olap4jDataSource
-						&& ((Olap4jDataSource) removedDS).getMondrianSchema() != null) {
-					URI serverURI = ((Olap4jDataSource) removedDS).getMondrianSchema();
-					logger.debug("Server URI for deletion is " + serverURI);
-					HttpDelete schemaRequest = new HttpDelete(serverURI);
-					httpClient.execute(schemaRequest, responseHandler);
-				}
-                
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             } finally {
@@ -754,4 +693,40 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
         }
     }
     
+	private static class JSONResponseHandler implements ResponseHandler<String> {
+
+        public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+            try {
+                
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(response.getEntity().getContent()));
+                StringBuffer buffer = new StringBuffer();
+                
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line).append("\n");
+                }
+                
+                JSONObject message = new JSONObject(buffer.toString());
+                
+                if (message.getString("responseKind").equals("data")) {    
+                    return message.getString("data");
+                } else if (message.getString("responseKind").equals("exceptionStackTrace")) {
+                    
+                    JSONArray stackTraceStrings = new JSONArray(message.getString("data"));
+                    StringBuffer stackTraceMessage = new StringBuffer();
+                    for (int i = 0; i < stackTraceStrings.length(); i++) {
+                        stackTraceMessage.append("\n(from resource) at ").append(stackTraceStrings.get(i));
+                    }
+                    
+                    throw new Exception(stackTraceMessage.toString());
+                } else {
+                    throw new Exception("Unable to parse response");
+                }
+                
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+	}
 }
