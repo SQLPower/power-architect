@@ -154,4 +154,9 @@ public class StubArchitectSession implements ArchitectSession {
 
     }
 
+    public boolean isEnterpriseSession() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
 }

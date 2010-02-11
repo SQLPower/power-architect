@@ -115,6 +115,7 @@ import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
+import ca.sqlpower.architect.swingui.enterprise.RevisionListPanel;
 import ca.sqlpower.architect.swingui.enterprise.ServerProjectsManagerPanel;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
@@ -263,6 +264,28 @@ public class ArchitectFrame extends JFrame {
             d.setLocationRelativeTo(ArchitectFrame.this);
             d.setVisible(true);
         }
+    };
+    
+    private Action openRevisionListAction = new AbstractAction("Revisions...") {                       
+        public void actionPerformed(ActionEvent e) {
+            
+            final JDialog d = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Revision List");
+            Action closeAction = new AbstractAction("Close") {
+                public void actionPerformed(ActionEvent e) {
+                    d.dispose();
+                }
+            };
+            
+            RevisionListPanel p = new RevisionListPanel(session, ArchitectFrame.this, closeAction);
+            d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            d.setContentPane(p.getPanel());
+            
+            SPSUtils.makeJDialogCancellable(d, null);
+            d.pack();
+            d.setLocationRelativeTo(ArchitectFrame.this);
+            d.setVisible(true);
+            
+        }        
     };
     
     /**
@@ -684,6 +707,8 @@ public class ArchitectFrame extends JFrame {
         JMenu enterpriseMenu = new JMenu("Enterprise");
         enterpriseMenu.add(openServerManagerAction);
         enterpriseMenu.add(openProjectManagerAction);
+        openRevisionListAction.setEnabled(session.isEnterpriseSession());
+        enterpriseMenu.add(openRevisionListAction);
         menuBar.add(enterpriseMenu);
         
         JMenu toolsMenu = new JMenu(Messages.getString("ArchitectFrame.toolsMenu")); //$NON-NLS-1$

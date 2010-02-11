@@ -36,6 +36,7 @@ import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -425,5 +426,15 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public void removePropertyChangeListener(PropertyChangeListener l) {
         // TODO Auto-generated method stub
         
+    }
+
+    public boolean isEnterpriseSession() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public ArchitectClientSideSession getEnterpriseSession() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

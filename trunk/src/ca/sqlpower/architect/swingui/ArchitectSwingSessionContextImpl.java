@@ -270,7 +270,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     public ArchitectSwingSession createNewServerSession(SPServerInfo serverInfo, boolean initGUI) throws SQLObjectException, ClientProtocolException, URISyntaxException, IOException, JSONException {
         
         ProjectLocation projectLocation = ArchitectClientSideSession.createNewServerSession(serverInfo);
-        ArchitectSession clientSession = new ArchitectClientSideSession(this, projectLocation);     
+        ArchitectSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);     
             
         ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
             
@@ -283,7 +283,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     
     public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, boolean initGUI) throws SQLObjectException {
         
-        ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, projectLocation);
+        ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);
         ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
         clientSession.startUpdaterThread();
         

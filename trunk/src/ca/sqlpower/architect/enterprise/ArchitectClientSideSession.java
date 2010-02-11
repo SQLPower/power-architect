@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +55,7 @@ import ca.sqlpower.dao.SPSessionPersister;
 import ca.sqlpower.dao.json.SPJSONMessageDecoder;
 import ca.sqlpower.dao.json.SPJSONPersister;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
+import ca.sqlpower.enterprise.TransactionInformation;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
@@ -90,10 +93,11 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	int currentRevision = 0;
 	
 	public ArchitectClientSideSession(ArchitectSessionContext context, 
-			ProjectLocation projectLocation) throws SQLObjectException {
-		super(context, projectLocation.getName());
+			String name, ProjectLocation projectLocation) throws SQLObjectException {
+		super(context, name);
 		
 		this.projectLocation = projectLocation;
+		this.isEnterpriseSession = true;
 		
 		outboundHttpClient = createHttpClient(projectLocation.getServiceInfo());
 		
@@ -268,7 +272,49 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     	}
     }
 	
-	public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo) throws URISyntaxException, ClientProtocolException, IOException, JSONException {
+	/**
+     * Requests the server for the transaction list. 
+     * 
+     * @return A list of TransactionInformation containing all the information about revisions of this project.
+     * @throws IOException
+     * @throws URISyntaxException
+     * @throws JSONException
+     * @throws ParseException
+     */
+    public List<TransactionInformation> getTransactionList() throws IOException, URISyntaxException, JSONException, ParseException {
+        
+        SPServerInfo serviceInfo = projectLocation.getServiceInfo();
+        HttpClient httpClient = createHttpClient(serviceInfo);
+        List<TransactionInformation> transactions = new ArrayList<TransactionInformation>();
+        
+        try {
+            
+            String responseBody = executeServerRequest(httpClient, projectLocation.getServiceInfo(),
+                    "/project/" + projectLocation.getUUID() + "/revision_list", 
+                    new JSONResponseHandler());
+            JSONArray jsonArray = new JSONArray(responseBody);
+            
+            for (int i = 0; i < jsonArray.length(); i++) {
+                
+                JSONObject json = jsonArray.getJSONObject(i);
+                TransactionInformation transaction = new TransactionInformation(
+                        json.getLong("number"),                        
+                        DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).parse(json.getString("time")),
+                        json.getString("author"),
+                        json.getString("description"));
+                transactions.add(transaction);
+                
+            }
+                                 
+            return transactions;
+            
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }               
+        
+    }
+
+    public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo) throws URISyntaxException, ClientProtocolException, IOException, JSONException {
     	HttpClient httpClient = createHttpClient(serviceInfo);
     	try {
     		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/jcr/projects/new"));
@@ -285,6 +331,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     	}
     }
 	
+	public void revertServerWorkspace(int revisionNo) throws IOException, URISyntaxException {
+	    revertServerWorkspace(projectLocation, revisionNo);
+	}
+	
 	/**
 	 * This method reverts the server workspace specified by the given project location
 	 * to the specified revision number.
@@ -295,13 +345,13 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	 * @throws URISyntaxException
 	 */
 	public static void revertServerWorkspace(ProjectLocation projectLocation, int revisionNo) throws IOException, URISyntaxException {
-	    SPServerInfo serviceInfo = projectLocation.getServiceInfo();
-	    HttpClient httpClient = createHttpClient(serviceInfo);
-	    
+        SPServerInfo serviceInfo = projectLocation.getServiceInfo();
+        HttpClient httpClient = createHttpClient(serviceInfo);
+        
         try {
             executeServerRequest(httpClient, projectLocation.getServiceInfo(),
-                    "/project/" + projectLocation.getUUID() + 
-                    "/revert?revisionNo=" + revisionNo, 
+                    "/project/" + projectLocation.getUUID() + "/revert",
+                    "revisionNo=" + revisionNo, 
                     new BasicResponseHandler());            
         } finally {
             httpClient.getConnectionManager().shutdown();
@@ -325,15 +375,24 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	
 	private static <T> T executeServerRequest(HttpClient httpClient, SPServerInfo serviceInfo, 
             String contextRelativePath, ResponseHandler<T> responseHandler)throws IOException, URISyntaxException {
-        HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, contextRelativePath));
-        return httpClient.execute(request, responseHandler);
-    }
+        return executeServerRequest(httpClient, serviceInfo, contextRelativePath, null, responseHandler);
+    }	
+	
+	private static <T> T executeServerRequest(HttpClient httpClient, SPServerInfo serviceInfo, 
+	        String contextRelativePath, String query, ResponseHandler<T> responseHandler) throws IOException, URISyntaxException {
+	    HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, contextRelativePath, query));  
+	    return httpClient.execute(request, responseHandler);
+	}
 	
 	private static URI getServerURI(SPServerInfo serviceInfo, String contextRelativePath) throws URISyntaxException {
+	    return getServerURI(serviceInfo, contextRelativePath, null);
+	}
+	
+	private static URI getServerURI(SPServerInfo serviceInfo, String contextRelativePath, String query) throws URISyntaxException {
         logger.debug("Getting server URI for: " + serviceInfo);
         String contextPath = serviceInfo.getPath();
         URI serverURI = new URI("http", null, serviceInfo.getServerAddress(), serviceInfo.getPort(),
-                contextPath + contextRelativePath, null, null);
+                contextPath + contextRelativePath, query, null);
         logger.debug("Created URI " + serverURI);
         return serverURI;
     }
@@ -351,7 +410,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	
 	public static ArchitectClientSideSession openServerSession(ArchitectSessionContext context, ProjectLocation projectLoc) 
 	throws SQLObjectException {
-    	final ArchitectClientSideSession session = new ArchitectClientSideSession(context, projectLoc);
+    	final ArchitectClientSideSession session = new ArchitectClientSideSession(context, projectLoc.getName(), projectLoc);
     	// TODO
     	//context.registerChildSession(session);
 		//session.startUpdaterThread();
@@ -477,8 +536,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 					    URI uri = new URI("http", null, projectLocation.getServiceInfo().getServerAddress(), projectLocation.getServiceInfo().getPort(),
 				                projectLocation.getServiceInfo().getPath() + contextRelativePath, "oldRevisionNo=" + currentRevision, null);
 					    HttpUriRequest request = new HttpGet(uri);
-			       
-					    String message = inboundHttpClient.execute(request, new JSONResponseHandler());
+					    
+					    String message = inboundHttpClient.execute(request, new JSONResponseHandler());					    
 					    JSONObject json = new JSONObject(message);
 					    final String jsonArray = json.getString("data");
 					    
@@ -695,7 +754,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     
 	private static class JSONResponseHandler implements ResponseHandler<String> {
 
-        public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+	    public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
             try {
                 
                 BufferedReader reader = new BufferedReader(
@@ -727,6 +786,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
-        }
-	}
+	    }
+	}    
 }
