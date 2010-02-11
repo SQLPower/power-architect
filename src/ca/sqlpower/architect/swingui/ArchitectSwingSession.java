@@ -26,6 +26,7 @@ import javax.swing.JMenu;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -310,4 +311,8 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public JMenu createDataSourcesMenu();
     
     public PrintSettings getPrintSettings();
+
+    public boolean isEnterpriseSession();
+    
+    public ArchitectClientSideSession getEnterpriseSession();
 }

@@ -75,6 +75,8 @@ public class ArchitectSessionImpl implements ArchitectSession {
      * and load functionality, and houses the source database connections.
      */
     private ProjectLoader projectLoader;
+    
+    protected boolean isEnterpriseSession;
 
 	public ArchitectSessionImpl(final ArchitectSessionContext context,
 	        String name) throws SQLObjectException {
@@ -84,7 +86,8 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	    project.init(this);
 	    this.project.setProfileManager(new ProfileManagerImpl(this));
 	    this.name = name;	           
-        this.projectLoader = new ProjectLoader(this);
+        this.projectLoader = new ProjectLoader(this);   
+        this.isEnterpriseSession = false;
                
 	}
 
@@ -227,6 +230,10 @@ public class ArchitectSessionImpl implements ArchitectSession {
 
     public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l) {
         lifecycleListeners.remove(l);        
+    }
+
+    public boolean isEnterpriseSession() {
+        return isEnterpriseSession;
     }
 
 }

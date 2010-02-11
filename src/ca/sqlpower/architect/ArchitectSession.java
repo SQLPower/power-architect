@@ -106,6 +106,8 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
      * Returns the root SQL object of the session, which is the tree that contains Columns, Databases, etc.
      */
     public SQLObjectRoot getRootObject();
+    
+    public boolean isEnterpriseSession();
 
     void addPropertyChangeListener(PropertyChangeListener l);
     
@@ -113,7 +115,7 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
     
     public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l);
 
-    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l);
+    public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l);        
     
     /**
      * Ends this session, disposing its frame and releasing any system
