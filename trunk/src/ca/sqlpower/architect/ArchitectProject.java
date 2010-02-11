@@ -33,7 +33,6 @@ import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
-import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
@@ -63,21 +62,26 @@ public class ArchitectProject extends AbstractSPObject {
         Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
                 Arrays.asList(SQLObjectRoot.class, ProfileManager.class, DDLGenerator.class, SQLDatabase.class)));
     
-    private final ArchitectSession session;
+    /**
+     * There is a 1:1 ratio between the session and the project.
+     */
+    private ArchitectSession session;
     private SQLObjectRoot rootObject;
     private ProfileManager profileManager;  
     private SQLDatabase db;
     
     private DDLGenerator ddlGenerator;    
     
+    /**
+     * Constructs an architect project. The init method must be called immediately
+     * after creating a project.
+     * @throws SQLObjectException
+     */
     @Constructor
-    public ArchitectProject(@ConstructorParameter(propertyName="session") ArchitectSession session) 
+    public ArchitectProject() 
             throws SQLObjectException {
-        this.session = session;
         this.rootObject = new SQLObjectRoot();
         this.db = new SQLDatabase();
-        
-        rootObject.addSQLObjectPreEventListener(new SourceObjectIntegrityWatcher(session));                        
         
         try {
             ddlGenerator = new GenericDDLGenerator();
@@ -85,6 +89,14 @@ public class ArchitectProject extends AbstractSPObject {
             throw new SQLObjectException("SQL Error in ddlGenerator",e);
         }
         
+    }
+
+    /**
+     * Call this to initialize the session and the children of the project.
+     */
+    public void init(ArchitectSession session) {
+        this.session = session;
+        rootObject.addSQLObjectPreEventListener(new SourceObjectIntegrityWatcher(session));                        
         rootObject.setParent(this);
         db.setParent(this);
         ddlGenerator.setParent(this);

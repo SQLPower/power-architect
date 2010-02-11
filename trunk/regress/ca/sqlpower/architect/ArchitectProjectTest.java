@@ -36,7 +36,9 @@ public class ArchitectProjectTest extends PersistedSPObjectTest {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        objectUnderTest = new ArchitectProject(new StubArchitectSession());
+        ArchitectSession session = new StubArchitectSession();
+        objectUnderTest = new ArchitectProject();
+        objectUnderTest.init(session);
         getRootObject().addChild(objectUnderTest, 0);
     }
     
