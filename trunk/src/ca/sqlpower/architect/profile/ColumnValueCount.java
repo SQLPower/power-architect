@@ -23,6 +23,8 @@ import java.util.List;
 
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 
 /**
  * A simple class for keeping track of a value, the number of occurrences
@@ -46,7 +48,10 @@ public class ColumnValueCount extends AbstractSPObject {
      * being profiled.
      * @param percent The percentage of occurrences in the table.
      */
-    public ColumnValueCount(Object value, int count, double percent) {
+    @Constructor
+    public ColumnValueCount(@ConstructorParameter(propertyName="value") Object value, 
+            @ConstructorParameter(propertyName="count") int count, 
+            @ConstructorParameter(propertyName="percent") double percent) {
         this.value = value;
         this.count = count;
         this.percent = percent;

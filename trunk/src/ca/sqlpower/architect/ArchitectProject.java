@@ -21,16 +21,22 @@ package ca.sqlpower.architect;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.NonBound;
+import ca.sqlpower.object.annotation.NonProperty;
+import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -49,14 +55,24 @@ import ca.sqlpower.util.SPSession;
 
 public class ArchitectProject extends AbstractSPObject {
     
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    @SuppressWarnings("unchecked")
+    public static List<Class<? extends SPObject>> allowedChildTypes = 
+        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
+                Arrays.asList(SQLObjectRoot.class, ProfileManager.class, DDLGenerator.class, SQLDatabase.class)));
+    
     private final ArchitectSession session;
     private SQLObjectRoot rootObject;
-    private ProfileManagerImpl profileManager;  
+    private ProfileManager profileManager;  
     private SQLDatabase db;
     
     private DDLGenerator ddlGenerator;    
     
-    public ArchitectProject(ArchitectSession session) throws SQLObjectException {
+    @Constructor
+    public ArchitectProject(@ConstructorParameter(propertyName="session") ArchitectSession session) 
+            throws SQLObjectException {
         this.session = session;
         this.rootObject = new SQLObjectRoot();
         this.db = new SQLDatabase();
@@ -79,14 +95,17 @@ public class ArchitectProject extends AbstractSPObject {
      * Returns the top level object in the SQLObject hierarchy.
      * It has no parent and its children are SQLDatabase's.
      */
+    @NonProperty
     public SQLObjectRoot getRootObject() {
         return rootObject;
     }
     
-    public ProfileManagerImpl getProfileManager() {
+    @NonProperty
+    public ProfileManager getProfileManager() {
         return profileManager;
     }
     
+    @NonProperty
     public SQLDatabase getDatabase(JDBCDataSource ds) {
         try {
             for (SQLDatabase obj : getRootObject().getChildren(SQLDatabase.class)) {
@@ -105,14 +124,17 @@ public class ArchitectProject extends AbstractSPObject {
         }
     }
     
+    @NonProperty
     public SQLDatabase getTargetDatabase() {
         return db;
     }    
 
+    @NonProperty
     public DDLGenerator getDDLGenerator() {
         return ddlGenerator;
     }
     
+    @NonProperty
     public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
         SQLObject root = getRootObject();
         try {
@@ -133,12 +155,24 @@ public class ArchitectProject extends AbstractSPObject {
         }
     }
     
+    @NonProperty
     public void setDDLGenerator(DDLGenerator generator) {
+        DDLGenerator oldDDLG = ddlGenerator;
         ddlGenerator = generator;
+        if (oldDDLG != null) {
+            fireChildRemoved(DDLGenerator.class, oldDDLG, 0);
+        }
+        fireChildAdded(DDLGenerator.class, generator, 0);
     }
     
-    public void setProfileManager(ProfileManagerImpl manager) {
+    @NonProperty
+    public void setProfileManager(ProfileManager manager) {
+        ProfileManager oldManager = profileManager;
         profileManager = manager;
+        if (oldManager != null) {
+            fireChildRemoved(ProfileManager.class, oldManager, 0);
+        }
+        fireChildAdded(ProfileManager.class, manager, 0);
     }
 
     @Override
@@ -146,6 +180,7 @@ public class ArchitectProject extends AbstractSPObject {
         return false;
     }        
     
+    @Transient @Accessor
     public SPSession getSession() {
         return session;
     }
@@ -156,28 +191,25 @@ public class ArchitectProject extends AbstractSPObject {
     
     public int childPositionOffset(Class<? extends SPObject> childType) {
         
-        if (childType.isAssignableFrom(SQLObjectRoot.class)) {
+        if (SQLObjectRoot.class.isAssignableFrom(childType)) {
             return 0;
-        } else if (childType.isAssignableFrom(ProfileManager.class)) {
+        } else if (ProfileManager.class.isAssignableFrom(childType)) {
             return 1;
-        } else if (childType.isAssignableFrom(DDLGenerator.class)) {
+        } else if (DDLGenerator.class.isAssignableFrom(childType)) {
             return 2;
-        } else if (childType.isAssignableFrom(SQLDatabase.class)) {
+        } else if (SQLDatabase.class.isAssignableFrom(childType)) {
             return 3;
         } else {
             throw new IllegalArgumentException();
         }
     }
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
-        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>();
-        childTypes.add(SQLObjectRoot.class);
-        childTypes.add(ProfileManager.class);
-        childTypes.add(DDLGenerator.class);
-        childTypes.add(SQLDatabase.class);
-        return childTypes;
+        return allowedChildTypes;
     }
 
+    @NonProperty
     public List<SPObject> getChildren() {
         List<SPObject> allChildren = new ArrayList<SPObject>();
         allChildren.add(rootObject);
@@ -186,13 +218,17 @@ public class ArchitectProject extends AbstractSPObject {
         allChildren.add(db);
         return allChildren;
     }
-
+    
+    @NonBound
     public List<? extends SPObject> getDependencies() {
         return Collections.emptyList();
     }
 
     public void removeDependency(SPObject dependency) {
-        
+        db.removeDependency(dependency);
+        rootObject.removeDependency(dependency);
+        profileManager.removeDependency(dependency);
+        ddlGenerator.removeDependency(dependency);
     }
     
     protected void addChildImpl(SPObject child, int index) {

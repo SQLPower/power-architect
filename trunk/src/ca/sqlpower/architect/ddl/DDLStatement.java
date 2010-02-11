@@ -23,6 +23,10 @@ import java.util.List;
 
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.sqlobject.SQLObject;
 
 /**
@@ -75,13 +79,14 @@ public class DDLStatement extends AbstractSPObject {
 	private String sqlText;
 	private String sqlTerminator;
 
+	@Constructor
 	public DDLStatement(
-	        SQLObject object,
-	        StatementType type,
-	        String sqlText,
-	        String sqlTerminator,
-	        String targetCatalog,
-	        String targetSchema) {
+	        @ConstructorParameter(propertyName="object") SQLObject object,
+	        @ConstructorParameter(propertyName="type") StatementType type,
+	        @ConstructorParameter(propertyName="SQLText") String sqlText,
+	        @ConstructorParameter(propertyName="sqlTerminator") String sqlTerminator,
+	        @ConstructorParameter(propertyName="targetCatalog") String targetCatalog,
+	        @ConstructorParameter(propertyName="targetSchema") String targetSchema) {
 	    this.object = object;
 	    this.type = type;
 	    this.sqlText = sqlText;
@@ -97,6 +102,7 @@ public class DDLStatement extends AbstractSPObject {
 	 *
 	 * @return the value of object
 	 */
+	@Accessor
 	public SQLObject getObject()  {
 		return this.object;
 	}
@@ -106,8 +112,11 @@ public class DDLStatement extends AbstractSPObject {
 	 *
 	 * @param argObject Value to assign to this.object
 	 */
+	@Mutator
 	public void setObject(SQLObject argObject) {
+	    SQLObject oldObj = object;
 		this.object = argObject;
+		firePropertyChange("object", oldObj, argObject);
 	}
 
 	/**
@@ -115,6 +124,7 @@ public class DDLStatement extends AbstractSPObject {
 	 *
 	 * @return the value of type
 	 */
+	@Accessor
 	public StatementType getType()  {
 		return this.type;
 	}
@@ -124,8 +134,11 @@ public class DDLStatement extends AbstractSPObject {
 	 *
 	 * @param argType Value to assign to this.type
 	 */
+	@Mutator
 	public void setType(StatementType argType) {
+	    StatementType oldType = type;
 		this.type = argType;
+		firePropertyChange("type", oldType, type);
 	}
 
 	/**
@@ -133,6 +146,7 @@ public class DDLStatement extends AbstractSPObject {
 	 *
 	 * @return the value of sqlText
 	 */
+	@Accessor
 	public String getSQLText()  {
 		return this.sqlText;
 	}
@@ -142,29 +156,47 @@ public class DDLStatement extends AbstractSPObject {
 	 *
 	 * @param v Value to assign to this.sqlText
 	 */
+	@Mutator
 	public void setSQLText(String v) {
+	    String oldText = sqlText;
 		this.sqlText = v;
+		firePropertyChange("SQLText", oldText, v);
 	}
 
+	@Mutator
     public void setSqlTerminator(String sqlTerminator) {
+	    String oldTerminator = this.sqlTerminator;
         this.sqlTerminator = sqlTerminator;
+        firePropertyChange("sqlTerminator", oldTerminator, sqlTerminator);
     }
 
+    @Accessor
     public String getSqlTerminator() {
         return sqlTerminator;
     }
 
+    @Accessor
 	public String getTargetCatalog() {
 		return targetCatalog;
 	}
+    
+    @Mutator
 	public void setTargetCatalog(String targetCatalog) {
+        String oldCatalog = this.targetCatalog;
 		this.targetCatalog = targetCatalog;
+		firePropertyChange("targetCatalog", oldCatalog, targetCatalog);
 	}
+	
+	@Accessor
 	public String getTargetSchema() {
 		return targetSchema;
 	}
+	
+	@Mutator
 	public void setTargetSchema(String targetSchema) {
+	    String oldSchema = this.targetSchema;
 		this.targetSchema = targetSchema;
+		firePropertyChange("targetSchema", oldSchema, targetSchema);
 	}
 
     public String toString() {
