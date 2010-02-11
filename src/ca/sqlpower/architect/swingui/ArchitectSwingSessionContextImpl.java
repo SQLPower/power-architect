@@ -46,7 +46,6 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
-
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.enterprise.client.SPServerInfo;
@@ -269,13 +268,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     }
     
     public ArchitectSwingSession createNewServerSession(SPServerInfo serverInfo, boolean initGUI) throws SQLObjectException, ClientProtocolException, URISyntaxException, IOException, JSONException {
-        return createNewServerSession(serverInfo, "", initGUI);
-    }
-    
-    public ArchitectSwingSession createNewServerSession(SPServerInfo serverInfo, String name,  boolean initGUI) throws SQLObjectException, ClientProtocolException, URISyntaxException, IOException, JSONException {
         
         ProjectLocation projectLocation = ArchitectClientSideSession.createNewServerSession(serverInfo);
-        ArchitectSession clientSession = new ArchitectClientSideSession(this, name, projectLocation);     
+        ArchitectSession clientSession = new ArchitectClientSideSession(this, projectLocation);     
             
         ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
             
@@ -286,15 +281,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         return swingSession;
     }
     
-    
-        
     public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, boolean initGUI) throws SQLObjectException {
-        return createServerSession(projectLocation, "", initGUI);
-    }
-    
-    public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, String name, boolean initGUI) throws SQLObjectException {
         
-        ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, name, projectLocation);
+        ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, projectLocation);
         ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
         clientSession.startUpdaterThread();
         
