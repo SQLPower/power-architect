@@ -51,7 +51,6 @@ import ca.sqlpower.dao.MessageSender;
 import ca.sqlpower.dao.SPPersistenceException;
 import ca.sqlpower.dao.SPPersisterListener;
 import ca.sqlpower.dao.SPSessionPersister;
-import ca.sqlpower.dao.helper.generated.SPPersisterHelperFactoryImpl;
 import ca.sqlpower.dao.json.SPJSONMessageDecoder;
 import ca.sqlpower.dao.json.SPJSONPersister;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
@@ -108,7 +107,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		dataSourceCollection = getDataSourceCollection();
 		
 		sessionPersister = new SPSessionPersister("inbound-" + projectLocation.getUUID(), getWorkspace(), 
-				new SPPersisterHelperFactoryImpl(null, new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace())));
+				new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
 		sessionPersister.setSession(this);
 		
 		updater = new Updater(projectLocation.getUUID(), new SPJSONMessageDecoder(sessionPersister));
@@ -191,9 +190,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	public void startUpdaterThread() {
 		updater.start();
 		
-		final SPPersisterListener listener = new SPPersisterListener(
-				new SPPersisterHelperFactoryImpl(jsonPersister,
-						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace().getRootObject())));
+		final SPPersisterListener listener = new SPPersisterListener(jsonPersister,
+						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace().getRootObject()));
 		
 		SQLPowerUtils.listenToHierarchy(getWorkspace().getRootObject(), listener);
 		
@@ -205,9 +203,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	}
 	
 	public void persistProjectToServer() throws SPPersistenceException {
-		final SPPersisterListener tempListener = new SPPersisterListener(
-				new SPPersisterHelperFactoryImpl(jsonPersister,
-						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace())));
+		final SPPersisterListener tempListener = new SPPersisterListener(jsonPersister,
+						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
 		tempListener.persistObject(getWorkspace().getRootObject(), 0);
 	}
 	
