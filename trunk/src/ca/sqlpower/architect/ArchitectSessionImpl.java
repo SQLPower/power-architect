@@ -21,10 +21,12 @@ package ca.sqlpower.architect;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -76,6 +78,8 @@ public class ArchitectSessionImpl implements ArchitectSession {
      */
     private ProjectLoader projectLoader;
     
+    private DDLGenerator ddlGenerator;
+    
     protected boolean isEnterpriseSession;
 
 	public ArchitectSessionImpl(final ArchitectSessionContext context,
@@ -90,7 +94,13 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	    this.name = name;	           
         this.projectLoader = new ProjectLoader(this);   
         this.isEnterpriseSession = false;
-               
+          
+        try {
+            ddlGenerator = new GenericDDLGenerator();
+        } catch (SQLException e) {
+            throw new SQLObjectException("SQL Error in ddlGenerator",e);
+        } 
+        
 	}
 
 	// --------------- accessors and mutators ------------------
@@ -167,11 +177,11 @@ public class ArchitectSessionImpl implements ArchitectSession {
     }
     
     public DDLGenerator getDDLGenerator() {
-        return project.getDDLGenerator();
+        return ddlGenerator;
     }
 
     public void setDDLGenerator(DDLGenerator generator) {
-        project.setDDLGenerator(generator);
+        ddlGenerator = generator;
     }
 
     public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {        
