@@ -38,6 +38,7 @@ import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
@@ -196,6 +197,11 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
         }
     }
     
+    @Constructor
+    public ProfileManagerImpl() {
+        defaultProfileSettings.setParent(this);
+    }
+    
     @Transient @Mutator
     public void setUserPrompterFactory(ArchitectSession session) {
         this.session = session;
@@ -321,7 +327,15 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     /* docs inherited from interface */
     @NonProperty
     public void setDefaultProfileSettings(ProfileSettings settings) {
+        ProfileSettings oldSettings = defaultProfileSettings;
         defaultProfileSettings = settings;
+        defaultProfileSettings.setParent(this);
+        if (oldSettings != null) {
+            fireChildRemoved(ProfileSettings.class, oldSettings, 0);
+        }
+        if (settings != null) {
+            fireChildAdded(ProfileSettings.class, settings, 0);
+        }
     }
 
     /* docs inherited from interface */
@@ -431,6 +445,16 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
             throw new IllegalArgumentException("Child must be of type TableProfileResult");
         }
     }
+    
+    @Override
+    protected void addChildImpl(SPObject child, int index) {
+        if (child instanceof ProfileSettings) {
+            setDefaultProfileSettings((ProfileSettings) child);
+        } else if (child instanceof TableProfileResult) {
+            //XXX make a new add method that can add one result.
+            addResults(Collections.singletonList((TableProfileResult) child));
+        }
+    }
 
     public boolean allowsChildren() {
         return true;
@@ -440,7 +464,11 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
         if (childType.isAssignableFrom(ProfileSettings.class)) {
             return 0;
         } else if (childType.isAssignableFrom(TableProfileResult.class)) {
-            return 1;
+            if (defaultProfileSettings != null) {
+                return 1;
+            } else {
+                return 0;
+            }
         } else {
             throw new IllegalArgumentException();
         }
