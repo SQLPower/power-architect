@@ -55,6 +55,8 @@ import ca.sqlpower.dao.SPSessionPersister;
 import ca.sqlpower.dao.json.SPJSONMessageDecoder;
 import ca.sqlpower.dao.json.SPJSONPersister;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
+import ca.sqlpower.diff.DiffChunk;
+import ca.sqlpower.diff.SimpleDiffChunkJSONConverter;
 import ca.sqlpower.enterprise.TransactionInformation;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -65,6 +67,7 @@ import ca.sqlpower.sql.Olap4jDataSource;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SpecificDataSourceCollection;
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
@@ -352,11 +355,34 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             executeServerRequest(httpClient, projectLocation.getServiceInfo(),
                     "/project/" + projectLocation.getUUID() + "/revert",
                     "revisionNo=" + revisionNo, 
-                    new BasicResponseHandler());            
+                    new JSONResponseHandler());       
         } finally {
             httpClient.getConnectionManager().shutdown();
         }
 	    
+	}
+	
+	/**
+     * Gets a list of DiffChunks representing the differences between the two revisions from the server.
+     */
+	public List<DiffChunk<SQLObject>> getComparisonDiffChunks(int oldRevisionNo, int newRevisionNo) 
+	throws IOException, URISyntaxException, JSONException, SPPersistenceException {
+	    
+        SPServerInfo serviceInfo = projectLocation.getServiceInfo();
+        HttpClient httpClient = createHttpClient(serviceInfo);
+        
+        try {
+            String response = executeServerRequest(httpClient, projectLocation.getServiceInfo(),
+                    "/project/" + projectLocation.getUUID() + "/compare",
+                    "versions=" + oldRevisionNo + ":" + newRevisionNo, 
+                    new JSONResponseHandler());    
+                                  
+            return SimpleDiffChunkJSONConverter.decode(response);
+            
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+        
 	}
 	
 	public static void deleteServerWorkspace(ProjectLocation projectLocation) throws URISyntaxException, ClientProtocolException, IOException {

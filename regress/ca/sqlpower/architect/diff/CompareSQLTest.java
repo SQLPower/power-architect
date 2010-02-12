@@ -24,6 +24,8 @@ import java.util.Collection;
 import java.util.List;
 
 import junit.framework.TestCase;
+import ca.sqlpower.diff.DiffChunk;
+import ca.sqlpower.diff.DiffType;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;

@@ -29,10 +29,12 @@ import java.util.TreeSet;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.diff.DiffChunk;
+import ca.sqlpower.diff.DiffType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.Monitorable;
