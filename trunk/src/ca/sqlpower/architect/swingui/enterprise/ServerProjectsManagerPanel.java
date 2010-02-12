@@ -157,6 +157,12 @@ public class ServerProjectsManagerPanel {
         }
     };
     
+    private JButton newButton = new JButton(newAction);
+    private JButton openButton = new JButton(openAction);
+    private JButton deleteButton = new JButton(deleteAction);
+    
+    private boolean connected = false;
+
     public ServerProjectsManagerPanel(ArchitectSessionContext context, 
             Component dialogOwner, Action closeAction) {
         this.dialogOwner = dialogOwner;
@@ -191,6 +197,7 @@ public class ServerProjectsManagerPanel {
         projects.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                refreshPanel();
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
                     openAction.actionPerformed(null);
                 }
@@ -213,9 +220,9 @@ public class ServerProjectsManagerPanel {
         
         DefaultFormBuilder buttonBarBuilder = new DefaultFormBuilder(new FormLayout("pref"));      
         buttonBarBuilder.append(new JButton(refreshAction));
-        buttonBarBuilder.append(new JButton(newAction));
-        buttonBarBuilder.append(new JButton(openAction));
-        buttonBarBuilder.append(new JButton(deleteAction));
+        buttonBarBuilder.append(newButton);
+        buttonBarBuilder.append(openButton);
+        buttonBarBuilder.append(deleteButton);
         buttonBarBuilder.append(new JButton(closeAction));
         builder.add(buttonBarBuilder.getPanel(), cc.xy(5, 2));
         builder.setDefaultDialogBorder();
@@ -224,6 +231,30 @@ public class ServerProjectsManagerPanel {
     
     public JPanel getPanel() {
         return panel;
+    }
+    
+    private void refreshPanel() {
+        // Update the status of buttons and lists .
+        if (connected) {
+            
+            newButton.setEnabled(true);
+            
+            if (projects.isSelectionEmpty()) {
+                openButton.setEnabled(false);
+                deleteButton.setEnabled(false);
+            } else {
+                openButton.setEnabled(true);
+                deleteButton.setEnabled(true);
+            }
+            
+            projects.setEnabled(true);
+        } else {
+            newButton.setEnabled(false);
+            openButton.setEnabled(false);
+            deleteButton.setEnabled(false);
+            
+            projects.setEnabled(false);
+        }
     }
     
     private void refreshInfoList() {
@@ -235,14 +266,25 @@ public class ServerProjectsManagerPanel {
             try {
                 for (ProjectLocation pl : ArchitectClientSideSession.getWorkspaceNames(serviceInfo)) {
                     model.addElement(pl);
+                    connected = true;
                 } 
             } catch (Exception ex) {
                 model.removeAllElements();
-                model.addElement("There has been a problem retrieving projects from the selected server");
-                throw new RuntimeException("There has been a problem retrieving projects from the selected server", ex);
+                model.addElement("Unable to get projects from server");
+                
+                connected = false;
+                
+                // XXX: Having an exception thrown whenever the server cannot be found seems a little
+                //      extreme, but it can be useful for debugging.
+                
+                //throw new RuntimeException("There has been a problem retrieving projects from the selected server", ex);
             }
+            
+            refreshPanel();
         } else {
             model.addElement("No Server Selected");
+            connected = false;
+            refreshPanel();
         }    
     }
     
