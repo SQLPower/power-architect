@@ -19,14 +19,12 @@
 
 package ca.sqlpower.architect;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
@@ -60,7 +58,7 @@ public class ArchitectProject extends AbstractSPObject {
     @SuppressWarnings("unchecked")
     public static List<Class<? extends SPObject>> allowedChildTypes = 
         Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Arrays.asList(SQLObjectRoot.class, ProfileManager.class, DDLGenerator.class, SQLDatabase.class)));
+                Arrays.asList(SQLObjectRoot.class, ProfileManager.class, SQLDatabase.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -70,25 +68,15 @@ public class ArchitectProject extends AbstractSPObject {
     private ProfileManager profileManager;  
     private SQLDatabase db;
     
-    private DDLGenerator ddlGenerator;    
-    
     /**
      * Constructs an architect project. The init method must be called immediately
      * after creating a project.
      * @throws SQLObjectException
      */
     @Constructor
-    public ArchitectProject() 
-            throws SQLObjectException {
+    public ArchitectProject() throws SQLObjectException {
         this.rootObject = new SQLObjectRoot();
         this.db = new SQLDatabase();
-        
-        try {
-            ddlGenerator = new GenericDDLGenerator();
-        } catch (SQLException e) {
-            throw new SQLObjectException("SQL Error in ddlGenerator",e);
-        }
-        
     }
 
     /**
@@ -98,9 +86,7 @@ public class ArchitectProject extends AbstractSPObject {
         this.session = session;
         rootObject.addSQLObjectPreEventListener(new SourceObjectIntegrityWatcher(session));                        
         rootObject.setParent(this);
-        db.setParent(this);
-        ddlGenerator.setParent(this);
-        
+        db.setParent(this); 
     }
     
     /**
@@ -140,11 +126,6 @@ public class ArchitectProject extends AbstractSPObject {
     public SQLDatabase getTargetDatabase() {
         return db;
     }    
-
-    @NonProperty
-    public DDLGenerator getDDLGenerator() {
-        return ddlGenerator;
-    }
     
     @NonProperty
     public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
@@ -165,16 +146,6 @@ public class ArchitectProject extends AbstractSPObject {
             root.rollback("Could not remove child: " + e.getMessage());
             throw new RuntimeException(e);
         }
-    }
-    
-    @NonProperty
-    public void setDDLGenerator(DDLGenerator generator) {
-        DDLGenerator oldDDLG = ddlGenerator;
-        ddlGenerator = generator;
-        if (oldDDLG != null) {
-            fireChildRemoved(DDLGenerator.class, oldDDLG, 0);
-        }
-        fireChildAdded(DDLGenerator.class, generator, 0);
     }
     
     @NonProperty
@@ -227,7 +198,6 @@ public class ArchitectProject extends AbstractSPObject {
         List<SPObject> allChildren = new ArrayList<SPObject>();
         allChildren.add(rootObject);
         allChildren.add(profileManager);
-        allChildren.add(ddlGenerator); 
         allChildren.add(db);
         return allChildren;
     }
@@ -241,13 +211,13 @@ public class ArchitectProject extends AbstractSPObject {
         db.removeDependency(dependency);
         rootObject.removeDependency(dependency);
         profileManager.removeDependency(dependency);
-        ddlGenerator.removeDependency(dependency);
     }
     
     protected void addChildImpl(SPObject child, int index) {
         if (child instanceof SQLObjectRoot) {
-            rootObject = (SQLObjectRoot) child;
+            rootObject = (SQLObjectRoot) child;          
         } else {
+           
             super.addChildImpl(child, index);
         }
     }
