@@ -175,7 +175,9 @@ public abstract class TestProfileBase extends TestCase {
             assertNotNull(t2);
             assertNotNull(t3);
             
-            pm = new ProfileManagerImpl(session);
+            pm = new ProfileManagerImpl();
+            ((ProfileManagerImpl) pm).setUserPrompterFactory(session);
+            session.getWorkspace().setProfileManager(pm);
             pm.getDefaultProfileSettings().setFindingAvg(true);
             pm.getDefaultProfileSettings().setFindingMin(true);
             pm.getDefaultProfileSettings().setFindingMax(true);

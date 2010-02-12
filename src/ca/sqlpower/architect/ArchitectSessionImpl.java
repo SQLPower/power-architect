@@ -84,7 +84,9 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	    this.context = context;
 	    this.project = new ArchitectProject();
 	    project.init(this);
-	    this.project.setProfileManager(new ProfileManagerImpl(this));
+	    ProfileManagerImpl manager = new ProfileManagerImpl();
+	    manager.setUserPrompterFactory(this);
+	    this.project.setProfileManager(manager);
 	    this.name = name;	           
         this.projectLoader = new ProjectLoader(this);   
         this.isEnterpriseSession = false;

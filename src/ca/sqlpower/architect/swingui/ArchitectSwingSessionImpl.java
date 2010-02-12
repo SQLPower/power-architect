@@ -218,7 +218,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.context = context;
         this.delegateSession = delegateSession;
         this.olapRootObject = new OLAPRootObject(delegateSession);
-        ((ArchitectSessionImpl)delegateSession).setProfileManager(new ProfileManagerImpl(this));
+        ProfileManagerImpl profileManager = new ProfileManagerImpl();
+        profileManager.setUserPrompterFactory(this);
+        ((ArchitectSessionImpl)delegateSession).setProfileManager(profileManager);
         ((ArchitectSessionImpl)delegateSession).setUserPrompterFactory(this);
         this.recent = new RecentMenu(this.getClass()) {
             @Override
