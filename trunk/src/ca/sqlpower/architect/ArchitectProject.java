@@ -31,6 +31,7 @@ import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
@@ -64,19 +65,36 @@ public class ArchitectProject extends AbstractSPObject {
      * There is a 1:1 ratio between the session and the project.
      */
     private ArchitectSession session;
-    private SQLObjectRoot rootObject;
+    private final SQLObjectRoot rootObject;
     private ProfileManager profileManager;  
-    private SQLDatabase db;
+    private final SQLDatabase db;
     
     /**
      * Constructs an architect project. The init method must be called immediately
      * after creating a project.
      * @throws SQLObjectException
      */
-    @Constructor
     public ArchitectProject() throws SQLObjectException {
-        this.rootObject = new SQLObjectRoot();
-        this.db = new SQLDatabase();
+        this(new SQLObjectRoot(), new SQLDatabase());
+    }
+
+    /**
+     * The init method for this project must be called immediately after this
+     * object is constructed.
+     * 
+     * @param sourceRootObject
+     *            The root object that holds all of the source databases for the
+     *            current project.
+     * @param targetDB
+     *            The target database that will represent the play pen and be
+     *            acted on by other parts of Architect.
+     */
+    @Constructor
+    public ArchitectProject(@ConstructorParameter(propertyName="rootObject") SQLObjectRoot sourceRootObject, 
+            @ConstructorParameter(propertyName="targetDatabase") SQLDatabase targetDB) 
+            throws SQLObjectException {
+        this.rootObject = sourceRootObject;
+        this.db = targetDB;
     }
 
     /**
@@ -214,11 +232,11 @@ public class ArchitectProject extends AbstractSPObject {
     }
     
     protected void addChildImpl(SPObject child, int index) {
-        if (child instanceof SQLObjectRoot) {
-            rootObject = (SQLObjectRoot) child;          
+        if (child instanceof ProfileManager) {
+            setProfileManager((ProfileManager) child);
         } else {
-           
-            super.addChildImpl(child, index);
+            throw new IllegalArgumentException("Cannot add child of type " + 
+                    child.getClass() + " to the project once it has been created.");
         }
     }
 }
