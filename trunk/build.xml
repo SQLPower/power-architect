@@ -31,6 +31,9 @@
 	     class files. -->
 	<property name="build_tmp" value="build_tmp"/>
 	
+	<!-- The location where generated java files will be stored at.-->
+	<property name="generated" value="generated"/>
+	
 	<property name="dist.base" value="dist"/>
 	
 	<!-- The target build directory for compiled test classes.
@@ -403,7 +406,7 @@
             debug="true"
             compile="true"
             factory="ca.sqlpower.object.annotation.SPAnnotationProcessorFactory"
-            preprocessdir="src">
+            preprocessdir="${generated}">
         </apt>
         <delete dir="${build}"/>
         <move todir="${build}">
@@ -795,6 +798,7 @@
 		<delete><fileset dir="${dist.dir}" includes="lib,SQL Power Architect.app,architect.jar"/></delete>
 		<delete dir="webstart/lib"/>
 		<delete dir="${staging.dir}"/>
+		<delete dir="${generated}/ca"/>
 		<delete><fileset dir="." includes="mycoverage.db*"/></delete>
 	</target>
 
