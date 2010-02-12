@@ -48,7 +48,7 @@ import ca.sqlpower.util.SPSession;
  * This class is the root object of an ArchitectSession. There is an ArchitectProject
  * for every ArchitectSession. The ArchitectProject, and all its children, will be
  * listened to and persisted to the JCR. This includes the SQL object tree,
- * the profile manager, forward engineering settings, and compare DM settings.
+ * the profile manager.
  *
  */
 
@@ -185,6 +185,7 @@ public class ArchitectProject extends AbstractSPObject {
             fireChildRemoved(ProfileManager.class, oldManager, 0);
         }
         fireChildAdded(ProfileManager.class, manager, 0);
+        profileManager.setParent(this);
     }
 
     @Override

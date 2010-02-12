@@ -31,13 +31,17 @@ import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
-import ca.sqlpower.object.annotation.Constructor;
-import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonBound;
+import ca.sqlpower.object.annotation.NonProperty;
+import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -45,6 +49,7 @@ import ca.sqlpower.sqlobject.SQLObjectPreEvent;
 import ca.sqlpower.sqlobject.SQLObjectPreEventListener;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
@@ -56,6 +61,14 @@ import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
  * @version $Id$
  */
 public class ProfileManagerImpl extends AbstractSPObject implements ProfileManager {
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    @SuppressWarnings("unchecked")
+    public static List<Class<? extends SPObject>> allowedChildTypes = 
+        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
+                Arrays.asList(ProfileSettings.class, TableProfileResult.class)));
     
     /**
      * Watches the session's root object, and reacts when SQLDatabase items
@@ -103,8 +116,6 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
 
     private static final Logger logger = Logger.getLogger(ProfileManagerImpl.class);
     
-
-    
     /**
      * The current list of listeners who want to know when the contents
      * of this profile manager change.
@@ -119,9 +130,9 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     private final List<TableProfileResult> results = new ArrayList<TableProfileResult>();
     
     /**
-     * The session this manager is associated with.
+     * The user prompter for the profile manager.
      */
-    private final ArchitectSession session;
+    private UserPrompterFactory session;
     
     /**
      * The defaults that new profile results will be created with.
@@ -139,6 +150,11 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
      * The creator that will be used to create profiles.
      */
     private TableProfileCreator creator = new RemoteDatabaseProfileCreator(getDefaultProfileSettings());
+    
+    /**
+     * Watches for database removals and updates the manager accordingly.
+     */
+    private final DatabaseRemovalWatcher databaseRemovalWatcher = new DatabaseRemovalWatcher();
     
     /**
      * A list of the different existing profile creators that can be used.
@@ -180,12 +196,25 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
         }
     }
     
-    @Constructor
-    public ProfileManagerImpl(@ConstructorParameter(propertyName="session") ArchitectSession session) {
+    @Transient @Mutator
+    public void setUserPrompterFactory(ArchitectSession session) {
         this.session = session;
-        if (session != null && session.getRootObject() != null) {
-            session.getRootObject().addSQLObjectPreEventListener(new DatabaseRemovalWatcher());
+    }
+    
+    @Override @Mutator
+    public void setParent(SPObject parent) {
+        if (getParent() != null) {
+            ((ArchitectProject) getParent()).getRootObject().removeSQLObjectPreEventListener(databaseRemovalWatcher);
         }
+        super.setParent(parent);
+        if (parent != null && ((ArchitectProject) parent).getRootObject() != null) {
+            ((ArchitectProject) parent).getRootObject().addSQLObjectPreEventListener(databaseRemovalWatcher);
+        }
+    }
+    
+    @Override @Accessor
+    public ArchitectProject getParent() {
+        return (ArchitectProject) super.getParent();
     }
     
     /**
@@ -254,12 +283,14 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     }
 
     /* docs inherited from interface */
+    @NonProperty
     public List<TableProfileResult> getResults() {
         // this could be optimized by caching the current result list snapshot, but enh.
         return Collections.unmodifiableList(new ArrayList<TableProfileResult>(results));
     }
 
     /* docs inherited from interface */
+    @NonProperty
     public List<TableProfileResult> getResults(SQLTable t) {
         List<TableProfileResult> someResults = new ArrayList<TableProfileResult>();
         for (TableProfileResult tpr : results) {
@@ -282,16 +313,19 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     }
 
     /* docs inherited from interface */
+    @NonProperty
     public ProfileSettings getDefaultProfileSettings() {
         return defaultProfileSettings;
     }
 
     /* docs inherited from interface */
+    @NonProperty
     public void setDefaultProfileSettings(ProfileSettings settings) {
         defaultProfileSettings = settings;
     }
 
     /* docs inherited from interface */
+    @NonBound
     public void setProcessingOrder(List<TableProfileResult> tpr) {
         
     }
@@ -370,14 +404,17 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
         profileExecutor.shutdown();
     }
 
+    @NonBound
     public List<TableProfileCreator> getProfileCreators() {
         return Collections.unmodifiableList(profileCreators);
     }
 
+    @NonBound
     public TableProfileCreator getCreator() {
         return creator;
     }
 
+    @NonBound
     public void setCreator(TableProfileCreator tpc) {
         this.creator = tpc;
     }
@@ -409,13 +446,12 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
         }
     }
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
-        List<Class<? extends SPObject>> types = new ArrayList<Class<? extends SPObject>>();
-        types.add(ProfileSettings.class);
-        types.add(TableProfileResult.class);
-        return types;
+        return allowedChildTypes;
     }
 
+    @NonProperty
     public List<? extends SPObject> getChildren() {
         List<SPObject> allChildren = new ArrayList<SPObject>();        
         allChildren.add(defaultProfileSettings);
@@ -423,6 +459,7 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
         return allChildren;
     }
 
+    @NonBound
     public List<? extends SPObject> getDependencies() {
         return Collections.emptyList();
     }

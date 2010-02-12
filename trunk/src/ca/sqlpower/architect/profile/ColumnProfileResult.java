@@ -19,16 +19,29 @@
 package ca.sqlpower.architect.profile;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.sqlobject.SQLColumn;
 
 public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    @SuppressWarnings("unchecked")
+    public static List<Class<? extends SPObject>> allowedChildTypes = 
+        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
+                Arrays.asList(ColumnValueCount.class))); 
 
     private static final Logger logger = Logger.getLogger(ColumnProfileResult.class);
 
@@ -54,72 +67,100 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
         this.parentResult = parentResult;
     }
 
+    @Accessor
     public double getAvgLength() {
         return avgLength;
     }
 
+    @Mutator
     public void setAvgLength(double avgLength) {
+        double oldLength = this.avgLength;
         this.avgLength = avgLength;
+        firePropertyChange("avgLength", oldLength, avgLength);
     }
 
     /**
      * @return The average value as a Number object, or null if there were
      * 0 values.
      */
+    @Accessor
     public Object getAvgValue() {
         return avgValue;
     }
 
+    @Mutator
     public void setAvgValue(Object avgValue) {
+        Object oldVal = this.avgValue;
         this.avgValue = avgValue;
+        firePropertyChange("avgValue", oldVal, avgValue);
     }
 
+    @Accessor
     public int getDistinctValueCount() {
         return distinctValueCount;
     }
 
+    @Mutator
     public void setDistinctValueCount(int distinctValueCount) {
+        int oldVal = this.distinctValueCount;
         this.distinctValueCount = distinctValueCount;
+        firePropertyChange("distinctValueCount", oldVal, distinctValueCount);
     }
 
+    @Accessor
     public int getMaxLength() {
         return maxLength;
     }
 
+    @Mutator
     public void setMaxLength(int maxLength) {
+        int oldLength = this.maxLength;
         this.maxLength = maxLength;
+        firePropertyChange("maxLength", oldLength, maxLength);
     }
 
     /**
      * @return The minimum value as a Number object, or null if there were
      * 0 values.
      */
+    @Accessor
     public Object getMaxValue() {
         return maxValue;
     }
 
+    @Mutator
     public void setMaxValue(Object maxValue) {
+        Object oldVal = this.maxValue;
         this.maxValue = maxValue;
+        firePropertyChange("maxValue", oldVal, maxValue);
     }
 
+    @Accessor
     public int getMinLength() {
         return minLength;
     }
 
+    @Mutator
     public void setMinLength(int minLength) {
+        int oldLength = this.minLength;
         this.minLength = minLength;
+        firePropertyChange("minLength", oldLength, minLength);
     }
 
     /**
      * @return The minimum value as a Number object, or null if there were
      * 0 values.
      */
+    @Accessor
     public Object getMinValue() {
         return minValue;
     }
 
+    @Mutator
     public void setMinValue(Object minValue) {
+        Object oldVal = this.minValue;
         this.minValue = minValue;
+        firePropertyChange("minValue", oldVal, this.minValue);
     }
 
     @Override
@@ -135,12 +176,16 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
         "; nullCount: "+getNullCount()+ "]";
     }
 
+    @Accessor
     public int getNullCount() {
         return nullCount;
     }
 
+    @Mutator
     public void setNullCount(int nullCount) {
+        int oldCount = this.nullCount;
         this.nullCount = nullCount;
+        firePropertyChange("nullCount", oldCount, nullCount);
     }
 
     public void addValueCount(Object value, int count) {
@@ -156,10 +201,13 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     public void addValueCount(ColumnValueCount value) {
         topTen.add(value);
     }
+    
+    @NonProperty
     public List<ColumnValueCount> getValueCount() {
         return topTen;
     }
 
+    @Accessor
     public TableProfileResult getParentResult() {
         return parentResult;
     }
@@ -182,9 +230,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     }
 
     public List<Class<? extends SPObject>> getAllowedChildTypes() { 
-        List<Class<? extends SPObject>> types = new ArrayList<Class<? extends SPObject>>();
-        types.add(ColumnValueCount.class);
-        return types;
+        return allowedChildTypes;
     }
 
     public List<? extends SPObject> getChildren() {
