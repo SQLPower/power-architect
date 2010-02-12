@@ -38,10 +38,10 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.diff.ArchitectDiffException;
-import ca.sqlpower.architect.diff.DiffChunk;
-import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
+import ca.sqlpower.diff.DiffChunk;
+import ca.sqlpower.diff.DiffType;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
