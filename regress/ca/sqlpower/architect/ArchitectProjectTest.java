@@ -64,7 +64,7 @@ public class ArchitectProjectTest extends PersistedSPObjectTest {
     public void testChildPositionOffset() throws Exception {
         assertEquals(1, objectUnderTest.childPositionOffset(ProfileManagerImpl.class));
     }
-    
+
     @Override
     public void testPersisterCreatesNewObjects() throws Exception {
         //The ArchitectProject is the root of the SPObject tree. This

@@ -197,9 +197,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		updater.start();
 		
 		final SPPersisterListener listener = new SPPersisterListener(jsonPersister,
-						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace().getRootObject()));
+						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
 		
-		SQLPowerUtils.listenToHierarchy(getWorkspace().getRootObject(), listener);
+		SQLPowerUtils.listenToHierarchy(getWorkspace(), listener);
 		
 		addSessionLifecycleListener(new SessionLifecycleListener<ArchitectSession>() {
 			public void sessionClosing(SessionLifecycleEvent<ArchitectSession> e) {
@@ -211,7 +211,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	public void persistProjectToServer() throws SPPersistenceException {
 		final SPPersisterListener tempListener = new SPPersisterListener(jsonPersister,
 						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
-		tempListener.persistObject(getWorkspace().getRootObject(), 0);
+		tempListener.persistObject(getWorkspace(), 0);
 	}
 	
 	public ArchitectProject getSystemWorkspace() {
@@ -474,6 +474,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 			try {
 
 			    currentRevision++;
+			    System.out.println(message.toString());
 			    
 				URI serverURI = getServerURI();
 				HttpPost postRequest = new HttpPost(serverURI);
@@ -777,10 +778,18 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                     "data-sources/" + type + "/" + ds.getName());
         }
     }
-    
+	
 	private static class JSONResponseHandler implements ResponseHandler<String> {
 
-	    public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+	    /*
+	     * Responses from the architect-enterprise resources should always be bundled as
+	     * a JSON object of the form {"responseKind":(data or exception),"data":(data or stackTrace)}.
+	     * 
+	     * This is an extension of the basic response handler which returns data (if found), or 
+	     * reads, reconstructs, and re-throws an exception from a resource.
+	     */
+	    
+        public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
             try {
                 
                 BufferedReader reader = new BufferedReader(
@@ -794,21 +803,28 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                 
                 JSONObject message = new JSONObject(buffer.toString());
                 
+                // Does the response contain data? If so, return it. Communication
+                // with the resource has been successful.
                 if (message.getString("responseKind").equals("data")) {    
                     return message.getString("data");
-                } else if (message.getString("responseKind").equals("exceptionStackTrace")) {
-                    
-                    JSONArray stackTraceStrings = new JSONArray(message.getString("data"));
-                    StringBuffer stackTraceMessage = new StringBuffer();
-                    for (int i = 0; i < stackTraceStrings.length(); i++) {
-                        stackTraceMessage.append("\n(from resource) at ").append(stackTraceStrings.get(i));
-                    }
-                    
-                    throw new Exception(stackTraceMessage.toString());
                 } else {
-                    throw new Exception("Unable to parse response");
+                    // Does the response contain an exception? If so, reconstruct, and then
+                    // re-throw it. There has been an exception on the server.
+                    if (message.getString("responseKind").equals("exceptionStackTrace")) {
+             
+                        JSONArray stackTraceStrings = new JSONArray(message.getString("data"));
+                        StringBuffer stackTraceMessage = new StringBuffer();
+                        for (int i = 0; i < stackTraceStrings.length(); i++) {
+                            stackTraceMessage.append("\n").append(stackTraceStrings.get(i));
+                        }
+                    
+                        throw new Exception(stackTraceMessage.toString());
+                    
+                    } else {
+                        // This exception represents a(n epic) client-server miscommunication
+                        throw new Exception("Unable to parse response");
+                    }
                 }
-                
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }

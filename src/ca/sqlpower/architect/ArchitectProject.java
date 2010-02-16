@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
@@ -35,6 +34,7 @@ import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
+import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -59,15 +59,14 @@ public class ArchitectProject extends AbstractSPObject {
     @SuppressWarnings("unchecked")
     public static List<Class<? extends SPObject>> allowedChildTypes = 
         Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Arrays.asList(SQLObjectRoot.class, ProfileManager.class, SQLDatabase.class)));
+                Arrays.asList(SQLObjectRoot.class, ProfileManager.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
      */
     private ArchitectSession session;
     private final SQLObjectRoot rootObject;
-    private ProfileManager profileManager;  
-    private final SQLDatabase db;
+    private ProfileManager profileManager; 
     
     /**
      * Constructs an architect project. The init method must be called immediately
@@ -75,26 +74,25 @@ public class ArchitectProject extends AbstractSPObject {
      * @throws SQLObjectException
      */
     public ArchitectProject() throws SQLObjectException {
-        this(new SQLObjectRoot(), new SQLDatabase());
+        this(new SQLObjectRoot());
+        
+        SQLDatabase targetDatabase = new SQLDatabase();
+        targetDatabase.setPlayPenDatabase(true);
+        rootObject.addChild(targetDatabase, 0);
     }
 
     /**
      * The init method for this project must be called immediately after this
      * object is constructed.
      * 
-     * @param sourceRootObject
+     * @param rootObject
      *            The root object that holds all of the source databases for the
      *            current project.
-     * @param targetDB
-     *            The target database that will represent the play pen and be
-     *            acted on by other parts of Architect.
      */
     @Constructor
-    public ArchitectProject(@ConstructorParameter(propertyName="rootObject") SQLObjectRoot sourceRootObject, 
-            @ConstructorParameter(propertyName="targetDatabase") SQLDatabase targetDB) 
+    public ArchitectProject(@ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject) 
             throws SQLObjectException {
-        this.rootObject = sourceRootObject;
-        this.db = targetDB;
+        this.rootObject = rootObject;
     }
 
     /**
@@ -104,7 +102,7 @@ public class ArchitectProject extends AbstractSPObject {
         this.session = session;
         rootObject.addSQLObjectPreEventListener(new SourceObjectIntegrityWatcher(session));                        
         rootObject.setParent(this);
-        db.setParent(this); 
+        setName("Architect Project");
     }
     
     /**
@@ -129,9 +127,6 @@ public class ArchitectProject extends AbstractSPObject {
                     return (SQLDatabase) obj;
                 }
             }
-            if (db.getDataSource().equals(ds)) {
-                return db;
-            }
             SQLDatabase db = new SQLDatabase(ds);
             getRootObject().addChild(db);
             return db;
@@ -140,18 +135,27 @@ public class ArchitectProject extends AbstractSPObject {
         }
     }
     
-    @NonProperty
+    @Transient @Accessor
     public SQLDatabase getTargetDatabase() {
-        return db;
+        for (SQLDatabase db : rootObject.getChildren(SQLDatabase.class)) {
+            if (db.isPlayPenDatabase()) {
+                return db;
+            }
+        }
+        throw new IllegalStateException("No target database!");
     }    
     
     @NonProperty
     public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
         SQLObject root = getRootObject();
+        SQLDatabase targetDB = getTargetDatabase();
         try {
             root.begin("Setting source database list");
             for (int i = root.getChildCount()-1; i >= 0; i--) {
                 root.removeChild(root.getChild(i));
+            }
+            if (targetDB != null) {
+                root.addChild(targetDB);
             }
             for (SQLDatabase db : databases) {
                 root.addChild(db);
@@ -197,10 +201,6 @@ public class ArchitectProject extends AbstractSPObject {
             return 0;
         } else if (ProfileManager.class.isAssignableFrom(childType)) {
             return 1;
-        } else if (DDLGenerator.class.isAssignableFrom(childType)) {
-            return 2;
-        } else if (SQLDatabase.class.isAssignableFrom(childType)) {
-            return 3;
         } else {
             throw new IllegalArgumentException();
         }
@@ -215,8 +215,9 @@ public class ArchitectProject extends AbstractSPObject {
     public List<SPObject> getChildren() {
         List<SPObject> allChildren = new ArrayList<SPObject>();
         allChildren.add(rootObject);
-        allChildren.add(profileManager);
-        allChildren.add(db);
+        if (profileManager != null) {
+            allChildren.add(profileManager);
+        }
         return allChildren;
     }
     
@@ -226,7 +227,6 @@ public class ArchitectProject extends AbstractSPObject {
     }
 
     public void removeDependency(SPObject dependency) {
-        db.removeDependency(dependency);
         rootObject.removeDependency(dependency);
         profileManager.removeDependency(dependency);
     }

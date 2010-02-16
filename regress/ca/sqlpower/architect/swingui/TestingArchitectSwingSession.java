@@ -45,7 +45,6 @@ import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
-import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -73,8 +72,6 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private PlayPen playpen;
     private ArchitectUndoManager undoManager;
     private DBTree sourceDatabases;
-    private SQLObjectRoot rootObject;
-    private ProfileManager profileManager;
     private CompareDMSettings compareDMSettings;
     private DDLGenerator ddlGenerator;
     private KettleJob kettleJob;
@@ -101,12 +98,9 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
             }
         };
         this.delegateSession = new ArchitectSessionImpl(context, "test");
-        profileManager = new ProfileManagerImpl();
-        ((ProfileManagerImpl) profileManager).setUserPrompterFactory(this);
+        ((ProfileManagerImpl) delegateSession.getProfileManager()).setUserPrompterFactory(this);
         project = new SwingUIProjectLoader(this);
         userSettings = context.getUserSettings();
-        rootObject = new SQLObjectRoot();
-        rootObject.addChild(getTargetDatabase());
         sourceDatabases = new DBTree(this);
         playpen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
         undoManager = new ArchitectUndoManager(playpen);
@@ -153,7 +147,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
     
     public ProfileManager getProfileManager() {
-        return profileManager;
+        return delegateSession.getProfileManager();
     }
 
     public CoreUserSettings getUserSettings() {
@@ -210,22 +204,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
-        try {
-            rootObject.begin("Setting source database list");
-            for (int i = rootObject.getChildCount()-1; i >= 0; i--) {
-                rootObject.removeChild(rootObject.getChild(i));
-            }
-            for (SQLDatabase db : databases) {
-                rootObject.addChild(db);
-            }
-            rootObject.commit();
-        } catch (IllegalArgumentException e) {
-            rootObject.rollback("Could not remove child: " + e.getMessage());
-            throw new RuntimeException(e);
-        } catch (ObjectDependentException e) {
-            rootObject.rollback("Could not remove child: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
+        delegateSession.setSourceDatabaseList(databases);
     }
 
     public KettleJob getKettleJob() {
@@ -285,7 +264,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public SQLObjectRoot getRootObject() {
-        return rootObject;
+        return delegateSession.getRootObject();
     }
 
     public boolean isShowPkTag() {

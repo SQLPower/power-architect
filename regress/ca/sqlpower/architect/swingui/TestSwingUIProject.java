@@ -365,6 +365,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		assertNotNull(byteArrayOutputStream);
 		project.save(byteArrayOutputStream,ENCODING);
+		System.out.println(byteArrayOutputStream.toString());
 
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);

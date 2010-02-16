@@ -217,9 +217,7 @@ public class ProjectLoader {
             }
 
             SQLObject dbConnectionContainer = ((SQLObject) getSession().getRootObject());
-            dbConnectionContainer.addChild(getSession().getTargetDatabase(), 0);
-            getSession().getTargetDatabase().setPlayPenDatabase(true);
-
+             
             // hook up data source parent types
             for (SQLDatabase db : dbConnectionContainer.getChildren(SQLDatabase.class)) {
                 JDBCDataSource ds = db.getDataSource();
