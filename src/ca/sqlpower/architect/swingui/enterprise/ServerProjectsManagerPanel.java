@@ -156,11 +156,7 @@ public class ServerProjectsManagerPanel {
             }      
         }
     };
-    
-    private JButton newButton = new JButton(newAction);
-    private JButton openButton = new JButton(openAction);
-    private JButton deleteButton = new JButton(deleteAction);
-    
+       
     private boolean connected = false;
 
     public ServerProjectsManagerPanel(ArchitectSessionContext context, 
@@ -221,9 +217,9 @@ public class ServerProjectsManagerPanel {
         
         DefaultFormBuilder buttonBarBuilder = new DefaultFormBuilder(new FormLayout("pref"));      
         buttonBarBuilder.append(new JButton(refreshAction));
-        buttonBarBuilder.append(newButton);
-        buttonBarBuilder.append(openButton);
-        buttonBarBuilder.append(deleteButton);
+        buttonBarBuilder.append(new JButton(newAction));
+        buttonBarBuilder.append(new JButton(openAction));
+        buttonBarBuilder.append(new JButton(deleteAction));
         buttonBarBuilder.append(new JButton(closeAction));
         builder.add(buttonBarBuilder.getPanel(), cc.xy(5, 2));
         builder.setDefaultDialogBorder();
@@ -238,21 +234,21 @@ public class ServerProjectsManagerPanel {
         // Update the status of buttons and lists .
         if (connected) {
             
-            newButton.setEnabled(true);
+            newAction.setEnabled(true);
             
             if (projects.isSelectionEmpty()) {
-                openButton.setEnabled(false);
-                deleteButton.setEnabled(false);
+                openAction.setEnabled(false);
+                deleteAction.setEnabled(false);
             } else {
-                openButton.setEnabled(true);
-                deleteButton.setEnabled(true);
+                openAction.setEnabled(true);
+                deleteAction.setEnabled(true);
             }
             
             projects.setEnabled(true);
         } else {
-            newButton.setEnabled(false);
-            openButton.setEnabled(false);
-            deleteButton.setEnabled(false);
+            newAction.setEnabled(false);
+            openAction.setEnabled(false);
+            deleteAction.setEnabled(false);
             
             projects.setEnabled(false);
         }
