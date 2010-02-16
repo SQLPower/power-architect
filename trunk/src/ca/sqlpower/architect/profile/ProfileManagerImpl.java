@@ -200,6 +200,7 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     @Constructor
     public ProfileManagerImpl() {
         defaultProfileSettings.setParent(this);
+        setName("Profile Manager");
     }
     
     @Transient @Mutator

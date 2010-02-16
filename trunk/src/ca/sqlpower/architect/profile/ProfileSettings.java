@@ -63,6 +63,10 @@ public class ProfileSettings extends AbstractSPObject {
 
     private int topNCount = 10;
 
+    public ProfileSettings() {
+        setName("Profile Settings");
+    }
+    
     @Accessor
     public boolean isFindingAvg() {
         return findingAvg;

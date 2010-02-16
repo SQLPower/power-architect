@@ -191,8 +191,9 @@ public class ServerProjectsManagerPanel {
             }
         } else {
             serversModel.addElement("No Servers");
+            servers.setEnabled(false);
         }
-
+        
         projects = new JList(new DefaultListModel());
         projects.addMouseListener(new MouseAdapter() {
             @Override
@@ -266,8 +267,9 @@ public class ServerProjectsManagerPanel {
             try {
                 for (ProjectLocation pl : ArchitectClientSideSession.getWorkspaceNames(serviceInfo)) {
                     model.addElement(pl);
-                    connected = true;
+                    
                 } 
+                connected = true;
             } catch (Exception ex) {
                 model.removeAllElements();
                 model.addElement("Unable to get projects from server");

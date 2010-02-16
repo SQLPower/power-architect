@@ -246,7 +246,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         olapSchemaManager = new OLAPSchemaManager(this);
         
-        delegateSession.getRootObject().addChild(getTargetDatabase());
         this.sourceDatabases = new DBTree(this);
 
         playPen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
