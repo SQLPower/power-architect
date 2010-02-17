@@ -456,6 +456,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	
 	// Contained classes --------------------------------------------------------------------
 	
+	 boolean persistingToServer = false;
+	
 	/**
 	 * Sends outgoing JSON
 	 */
@@ -474,9 +476,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 
 		public void flush() throws SPPersistenceException {
 			try {
-
-			    currentRevision++;
-			    System.out.println(message.toString());
+			    persistingToServer = true;
+			    logger.debug("starting send ... (v" + currentRevision + ")");
 			    
 				URI serverURI = getServerURI();
 				HttpPost postRequest = new HttpPost(serverURI);
@@ -484,18 +485,21 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 				postRequest.setHeader("Content-Type", "application/json");
 				HttpUriRequest request = postRequest;
 				
-		        getHttpClient().execute(request, new JSONResponseHandler());
+		        String response = getHttpClient().execute(request, new JSONResponseHandler());
+		        currentRevision = (new JSONObject(response)).getInt("currentRevision");
+
 			} catch (ClientProtocolException e) {
-			    currentRevision--;
 				throw new SPPersistenceException(null, e);
 			} catch (IOException e) {
-			    currentRevision--;
 				throw new SPPersistenceException(null, e);
 			} catch (URISyntaxException e) {
-			    currentRevision--;
 				throw new SPPersistenceException(null, e);
-			} finally {
+			} catch (Exception e) {
+                throw new RuntimeException(null, e);
+            } finally {
 				clear();
+				persistingToServer = false;
+				logger.debug("... ending send");
 			}
 		}
 
@@ -554,42 +558,34 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		@Override
 		public void run() {
 			logger.info("Updater thread starting");
-			
-			// the path to contact on the server for update events
 			final String contextRelativePath = "/project/" + projectLocation.getUUID();
 			
 			try {
 				while (!this.isInterrupted() && !cancelled) {
 					try {
- 
 					    URI uri = new URI("http", null, projectLocation.getServiceInfo().getServerAddress(), projectLocation.getServiceInfo().getPort(),
-				                projectLocation.getServiceInfo().getPath() + contextRelativePath, "oldRevisionNo=" + currentRevision, null);
+					            projectLocation.getServiceInfo().getPath() + contextRelativePath, "oldRevisionNo=" + currentRevision, null);
 					    HttpUriRequest request = new HttpGet(uri);
-					    
-					    String message = inboundHttpClient.execute(request, new JSONResponseHandler());					    
-					    JSONObject json = new JSONObject(message);
-					    final String jsonArray = json.getString("data");
-					    
-					    currentRevision = json.getInt("currentRevision");
-
-					    runInForeground(new Runnable() {
-							public void run() {
-								try {
-
-									jsonDecoder.decode(jsonArray);
-									
-								} catch (SPPersistenceException e) {
-									logger.error("Update from server failed!", e);
-									createUserPrompter(
-											"Architect failed to apply an update that was just received from the Enterprise Server.\n"
-											+ "The error was:"
-											+ "\n" + e.getMessage(),
-											UserPromptType.MESSAGE, UserPromptOptions.OK,
-											UserPromptResponse.OK, UserPromptResponse.OK, "OK");
-									// TODO discard session and reload
-								}
-							}
-						});
+	                        
+                        String message = inboundHttpClient.execute(request, new JSONResponseHandler());                     
+                        final JSONObject json = new JSONObject(message);
+                        final String jsonArray = json.getString("data");
+                        currentRevision = json.getInt("currentRevision"); 
+                        if (!persistingToServer) {
+	                        runInForeground(new Runnable() {
+	                            public void run() {
+	                                try {
+	                                    logger.debug("Start update ... (v" + json.getInt("currentRevision") + ")");
+	                                    jsonDecoder.decode(jsonArray);
+	                                    logger.debug("... end update");
+	                                } catch (SPPersistenceException e) {
+	                                    logger.error("Update from server failed!", e);
+	                                    // TODO discard session and reload
+	                                } catch (JSONException je) {
+	                                }
+	                            }
+	                        });
+					    }
 					} catch (Exception ex) {    
 						logger.error("Failed to contact server. Will retry in " + retryDelay + " ms.", ex);
 						Thread.sleep(retryDelay);
