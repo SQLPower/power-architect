@@ -250,7 +250,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         public void propertyChanged(PropertyChangeEvent e) {
             logger.debug("dbObjectChanged. source="+e.getSource()); //$NON-NLS-1$
             if ((!SwingUtilities.isEventDispatchThread()) && (!refireOnAnyThread)) {
-                logger.debug("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$
+                logger.warn("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$
                 return;
             }
             if (logger.isDebugEnabled()) logger.debug("dbObjectChanged SQLObjectEvent: "+e); //$NON-NLS-1$
@@ -285,8 +285,15 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                     !e.getNewValue().equals(((SPObject) e.getSource()).getName()) ) {
                 logger.error("Name change event has wrong new value. new="+e.getNewValue()+"; real="+((SPObject) e.getSource()).getName()); //$NON-NLS-1$ //$NON-NLS-2$
             }
+            
             SPObject source = (SPObject) e.getSource();
-            fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
+            //The UUID should only change during loading. If it changes at a different time it is likely an error.
+            if (e.getPropertyName().equals("UUID")) {
+                refreshTreeStructure();
+                logger.info("Changing a UUID. This should only be done during load.");
+            } else {
+                fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
+            }
         }
 	    
 	}
