@@ -23,6 +23,7 @@ import java.util.List;
 
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
 
@@ -34,6 +35,12 @@ import ca.sqlpower.object.annotation.ConstructorParameter;
  */
 public class ColumnValueCount extends AbstractSPObject {
 
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    @SuppressWarnings("unchecked")
+    public static List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
+    
     private Object value;
     private int count;
     private double percent;
@@ -57,14 +64,17 @@ public class ColumnValueCount extends AbstractSPObject {
         this.percent = percent;
     }
     
+    @Accessor
     public int getCount() {
         return count;
     }
     
+    @Accessor
     public Object getValue() {
         return value;
     }
     
+    @Accessor
     public double getPercent() {
         return percent;
     }
