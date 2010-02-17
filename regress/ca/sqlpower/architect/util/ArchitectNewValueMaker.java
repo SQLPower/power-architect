@@ -19,14 +19,17 @@
 
 package ca.sqlpower.architect.util;
 
+import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileSettings;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.testutil.GenericNewValueMaker;
+import ca.sqlpower.util.SPSession;
 
 public class ArchitectNewValueMaker extends GenericNewValueMaker {
 
@@ -54,6 +57,21 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             ColumnValueCount cvc = new ColumnValueCount(Integer.MAX_VALUE, 2, 42);
             getRootObject().addChild(cvc, 0);
             return cvc;
+        } else if (ArchitectProject.class.isAssignableFrom(valueType)) {
+            ArchitectProject project;
+            final SPObject rootObject = getRootObject();
+            try {
+                project = new ArchitectProject() {
+                    @Override
+                    public SPSession getSession() {
+                        return rootObject.getSession();
+                    }
+                };
+            } catch (SQLObjectException e) {
+                throw new RuntimeException(e);
+            }
+            getRootObject().addChild(project, 0);
+            return project;
         } else {
             return super.makeNewValue(valueType, oldVal, propName);
         }
