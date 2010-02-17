@@ -268,7 +268,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     }
     
     public ArchitectSwingSession createNewServerSession(SPServerInfo serverInfo, boolean initGUI) throws SQLObjectException, ClientProtocolException, URISyntaxException, IOException, JSONException {
-        ProjectLocation projectLocation = ArchitectClientSideSession.createNewServerSession(serverInfo);
+        ProjectLocation projectLocation = ArchitectClientSideSession.createNewServerSession(serverInfo, "New_Project");
         ArchitectSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);     
         ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
         getSessions().add(swingSession);

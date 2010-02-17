@@ -317,13 +317,12 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
         
     }
 
-    public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo) throws URISyntaxException, ClientProtocolException, IOException, JSONException {
+    public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo, String name) throws URISyntaxException, ClientProtocolException, IOException, JSONException {
     	HttpClient httpClient = createHttpClient(serviceInfo);
     	try {
-    	    
-    	    
-    		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/jcr/projects/new"));
-    		
+
+    		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/jcr/projects/new", "name=" + name));
+    		System.out.println(request.getURI());
     		String responseBody = httpClient.execute(request, new JSONResponseHandler());
     		JSONObject response = new JSONObject(responseBody);
     		logger.debug("New Workspace:" + responseBody);
@@ -435,24 +434,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             new UsernamePasswordCredentials(serviceInfo.getUsername(), serviceInfo.getPassword()));
         return httpClient;
 	}
-	
-	public static ArchitectClientSideSession openServerSession(ArchitectSessionContext context, ProjectLocation projectLoc) 
-	throws SQLObjectException {
-    	final ArchitectClientSideSession session = new ArchitectClientSideSession(context, projectLoc.getName(), projectLoc);
-    	// TODO
-    	//context.registerChildSession(session);
-		//session.startUpdaterThread();
-		return session;
-    }
-	
-	public static List<ArchitectClientSideSession> openServerSessions(ArchitectSessionContext context, SPServerInfo serverInfo) 
-	throws IOException, URISyntaxException, JSONException, SQLObjectException {
-		List<ArchitectClientSideSession> openedSessions = new ArrayList<ArchitectClientSideSession>();
-		for (ProjectLocation workspaceLoc : ArchitectClientSideSession.getWorkspaceNames(serverInfo)) {
-			openedSessions.add(openServerSession(context, workspaceLoc));
-		}
-        return openedSessions;
-    }
 	
 	// Contained classes --------------------------------------------------------------------
 	

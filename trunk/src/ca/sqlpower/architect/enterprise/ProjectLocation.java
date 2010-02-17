@@ -36,6 +36,6 @@ public class ProjectLocation {
 	
 	@Override
 	public String toString() {
-		return name + " (" +uuid +")";
+		return getName();
 	}
 }
