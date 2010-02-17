@@ -24,64 +24,52 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableModel;
 
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.enterprise.TransactionInformation;
-import ca.sqlpower.util.UserPrompter;
-import ca.sqlpower.util.UserPrompter.UserPromptOptions;
-import ca.sqlpower.util.UserPrompter.UserPromptResponse;
-import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
+import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 public class RevisionListPanel {
-    
-    private static final String[] headers = {"Version", "Time Created", "Author", "Description"};
 
     private final Component dialogOwner;
     private final ArchitectClientSideSession session;
     private final ArchitectSwingSession swingSession;
-    private final UserPrompter revertPrompt;    
-    private final Action closeAction;
     
-    private List<TransactionInformation> transactions;
+    private final RevisionsTable revisionsTable;
     
-    private final JTable revisionsTable;
     private final JPanel panel;
     
     private final Action refreshAction = new AbstractAction("Refresh...") {
-        public void actionPerformed(ActionEvent e) {
-            refreshRevisionsList();
+        public void actionPerformed(ActionEvent e) {            
+            revisionsTable.refreshRevisionsList();
+            refreshPanel();
         }
     };
     
     private final Action revertAction = new AbstractAction("Revert...") {
         public void actionPerformed(ActionEvent e) {
-            int revisionNo = Integer.parseInt((String) revisionsTable.getValueAt(revisionsTable.getSelectedRow(), 0));
+            int revisionNo = revisionsTable.getSelectedRevisionNumber();
             int response = JOptionPane.showConfirmDialog(dialogOwner, 
                     "Are you sure you would like to revert to version " + revisionNo,
                     "Revert...", JOptionPane.OK_CANCEL_OPTION);            
             if (response == JOptionPane.OK_OPTION) {
                 try {
                     session.revertServerWorkspace(revisionNo);
-                    refreshRevisionsList();
+                    revisionsTable.refreshRevisionsList();
                 } catch (Throwable t) {
                     throw new RuntimeException("Error requesting server revert", t);
                 }
@@ -97,92 +85,72 @@ public class RevisionListPanel {
 
     private final Action compareAction = new AbstractAction("Compare...") {
         public void actionPerformed(ActionEvent e) {
-            JOptionPane.showMessageDialog(dialogOwner, "This feature is not yet supported. Try again soon!");
+            final JDialog d = SPSUtils.makeOwnedDialog(swingSession.getArchitectFrame(), "Compare Revisions");
+            Action closeAction = new AbstractAction("Close") {
+                public void actionPerformed(ActionEvent e) {
+                    d.dispose();
+                }
+            };
+            
+            CompareRevisionsPanel p = new CompareRevisionsPanel(session, closeAction);
+            d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            d.setContentPane(p.getPanel());
+            
+            SPSUtils.makeJDialogCancellable(d, null);
+            d.pack();
+            d.setLocationRelativeTo(RevisionListPanel.this.getPanel());
+            d.setVisible(true);            
         }
-    };  
-    
-    private void refreshRevisionsList() {               
-        
-        try {
-            transactions = session.getTransactionList();
-        } catch (Throwable e) {
-            throw new RuntimeException("Error getting revision list from server: " + e);
-        }
-                
-        String[][] data = new String[transactions.size()][4];
-        
-        for (int i = 0; i < transactions.size(); i++) {
-            TransactionInformation transaction = transactions.get(i);
-            data[i][0] = String.valueOf(transaction.getVersionNumber());
-            data[i][1] = transaction.getTimeCreated().toString();
-            data[i][2] = transaction.getVersionAuthor();
-            data[i][3] = transaction.getVersionDescription();
-        }        
-        
-        revisionsTable.setModel(new DefaultTableModel(data, headers) {
-            public boolean isCellEditable(int x, int y) {
-                return false;
-            }
-        });
-        
-    }
+    };
     
     public RevisionListPanel(ArchitectSwingSession swingSession, ArchitectFrame architectFrame, Action closeAction) {
         
         this.dialogOwner = architectFrame;
         this.swingSession = swingSession;
         this.session = swingSession.getEnterpriseSession();
-        this.closeAction = closeAction;
         
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
-                "pref:grow, 5dlu, pref:grow, 5dlu, pref",
-                "pref, pref, pref"));              
+                "pref:grow, 5dlu, pref",
+                "pref, 2dlu, default:grow"));                                 
         
-        revisionsTable = new JTable();
-        revisionsTable.setColumnSelectionAllowed(false);
-        revisionsTable.setShowVerticalLines(false);
-        revisionsTable.setShowHorizontalLines(false);
-                
-        refreshRevisionsList();
-                
-        ListSelectionModel selectionModel = revisionsTable.getSelectionModel();
-        selectionModel.setSelectionInterval(transactions.size(), transactions.size());
-        selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
+        revisionsTable = new RevisionsTable(this.session);
         revisionsTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {                    
-                    revertAction.actionPerformed(null);
-                }
+                refreshPanel();
             }
         });
-
-        JScrollPane revisionsPane = new JScrollPane(revisionsTable);        
+        
+        JScrollPane revisionsPane = new JScrollPane(revisionsTable);
         
         CellConstraints cc = new CellConstraints();
-        builder.add(new JLabel("Revisions:"), cc.xyw(3, 1, 2));
-        builder.nextLine();
-        builder.add(revisionsPane, cc.xywh(3, 2, 1, 2));
-        
-        revertPrompt = swingSession.createUserPrompter("Are you sure you would like the server to revert to version {0}?", 
-                UserPromptType.BOOLEAN, 
-                UserPromptOptions.OK_CANCEL, 
-                UserPromptResponse.OK, 
-                UserPromptResponse.OK, 
-                "OK", "Cancel");
+        builder.add(new JLabel("Revisions:"), cc.xy(1, 1));        
+        builder.add(revisionsPane, cc.xy(1, 3));
         
         DefaultFormBuilder buttonBarBuilder = new DefaultFormBuilder(new FormLayout("pref"));      
         buttonBarBuilder.append(new JButton(refreshAction));
         buttonBarBuilder.append(new JButton(revertAction));
         buttonBarBuilder.append(new JButton(openAction));
         buttonBarBuilder.append(new JButton(compareAction));
-        buttonBarBuilder.append(new JButton(closeAction));
-        builder.add(buttonBarBuilder.getPanel(), cc.xy(5, 2));
+        buttonBarBuilder.append(new JButton(closeAction));        
+        builder.add(buttonBarBuilder.getPanel(), cc.xy(3, 3));
         builder.setDefaultDialogBorder();
-        panel = builder.getPanel();
+
+        panel = builder.getPanel();              
         panel.setPreferredSize(new Dimension(700, 250));
         
+        refreshPanel();
+        
+    }
+    
+    private void refreshPanel() {
+        if (revisionsTable.getSelectedRow() == -1) {
+            openAction.setEnabled(false);
+            revertAction.setEnabled(false);
+        } else {
+            openAction.setEnabled(true);
+            revertAction.setEnabled(true);
+        }
     }
     
     public JPanel getPanel() {
