@@ -210,6 +210,7 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     
     @Override @Mutator
     public void setParent(SPObject parent) {
+        SPObject oldParent = getParent();
         if (getParent() != null) {
             ((ArchitectProject) getParent()).getRootObject().removeSQLObjectPreEventListener(databaseRemovalWatcher);
         }
@@ -217,6 +218,7 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
         if (parent != null && ((ArchitectProject) parent).getRootObject() != null) {
             ((ArchitectProject) parent).getRootObject().addSQLObjectPreEventListener(databaseRemovalWatcher);
         }
+        firePropertyChange("parent", oldParent, parent);
     }
     
     @Override @Accessor
@@ -398,6 +400,9 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
      */
     private void fireProfilesAdded(List<TableProfileResult> results) {
         if (results == null) throw new NullPointerException("Can't fire event for null profile list");
+        for (TableProfileResult tpr : results) {
+            fireChildAdded(TableProfileResult.class, tpr, results.indexOf(tpr));
+        }
         ProfileChangeEvent e = new ProfileChangeEvent(this, results);
         for (int i = profileChangeListeners.size() - 1; i >= 0; i--) {
             profileChangeListeners.get(i).profilesAdded(e);
