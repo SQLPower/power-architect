@@ -63,6 +63,33 @@ public class CompareDMFormatter {
      * The dialog that owns any additional dialogs popped up by this formatter.
      */
     private final Dialog dialogOwner;
+    
+    /**
+     * A hash map of styles which dictate the color of different kinds of changes/differences.
+     */
+    public final static Map<DiffType, AttributeSet> DIFF_STYLES = new HashMap<DiffType, AttributeSet>();
+    static {
+        SimpleAttributeSet att = new SimpleAttributeSet();
+        StyleConstants.setForeground(att, Color.red);
+        DIFF_STYLES.put(DiffType.LEFTONLY, att);
+
+        att = new SimpleAttributeSet();
+        StyleConstants.setForeground(att, Color.green.darker().darker());
+        DIFF_STYLES.put(DiffType.RIGHTONLY, att);
+
+        att = new SimpleAttributeSet();
+        StyleConstants.setForeground(att, Color.black);
+        DIFF_STYLES.put(DiffType.SAME, att);
+
+        att = new SimpleAttributeSet();
+        StyleConstants.setForeground(att, Color.orange);
+        DIFF_STYLES.put(DiffType.MODIFIED, att);
+
+        att = new SimpleAttributeSet();
+        StyleConstants.setForeground(att, Color.blue);
+        DIFF_STYLES.put(DiffType.KEY_CHANGED, att);
+        DIFF_STYLES.put(DiffType.DROP_KEY, att);
+   }
 
     public CompareDMFormatter(ArchitectSwingSession session, Dialog dialogOwner, CompareDMSettings compDMSet) {
         super();
@@ -87,30 +114,7 @@ public class CompareDMFormatter {
                 gen.setTargetCatalog(cat == null ? null : cat.getPhysicalName());
                 gen.setTargetSchema(sch == null ? null : sch.getPhysicalName());
             }
-            
-            final Map<DiffType, AttributeSet> styles = new HashMap<DiffType, AttributeSet>();
-            {
-                SimpleAttributeSet att = new SimpleAttributeSet();
-                StyleConstants.setForeground(att, Color.red);
-                styles.put(DiffType.LEFTONLY, att);
-
-                att = new SimpleAttributeSet();
-                StyleConstants.setForeground(att, Color.green.darker().darker());
-                styles.put(DiffType.RIGHTONLY, att);
-
-                att = new SimpleAttributeSet();
-                StyleConstants.setForeground(att, Color.black);
-                styles.put(DiffType.SAME, att);
-
-                att = new SimpleAttributeSet();
-                StyleConstants.setForeground(att, Color.orange);
-                styles.put(DiffType.MODIFIED, att);
-
-                att = new SimpleAttributeSet();
-                StyleConstants.setForeground(att, Color.blue);
-                styles.put(DiffType.KEY_CHANGED, att);
-                styles.put(DiffType.DROP_KEY, att);
-            }
+          
            if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
 
                 List<DiffChunk<SQLObject>> addRelationships = new ArrayList<DiffChunk<SQLObject>>();
@@ -128,13 +132,13 @@ public class CompareDMFormatter {
                         nonRelationship.add(d);
                     }
                 }
-                sqlScriptGenerator(styles, dropRelationships, gen);
-                sqlScriptGenerator(styles, nonRelationship, gen);
-                sqlScriptGenerator(styles, addRelationships, gen);
+                sqlScriptGenerator(DIFF_STYLES, dropRelationships, gen);
+                sqlScriptGenerator(DIFF_STYLES, nonRelationship, gen);
+                sqlScriptGenerator(DIFF_STYLES, addRelationships, gen);
 
             } else if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.ENGLISH)) {
-                generateEnglishDescription(styles, diff, sourceDoc);
-                generateEnglishDescription(styles, diff1, targetDoc);
+                sourceDoc = generateEnglishDescription(DIFF_STYLES, dmSetting.getSuppressSimilarities(), diff);
+                targetDoc = generateEnglishDescription(DIFF_STYLES, dmSetting.getSuppressSimilarities(), diff1);
             } else {
                 throw new IllegalStateException(
                 "Don't know what type of output to make");
@@ -254,23 +258,24 @@ public class CompareDMFormatter {
     
     /**
      * This method generates english descriptions by taking in the diff list
-     * and putting the appropiate statements in the document.  It will iterate
+     * and putting the appropiate statements in the returned document.  It will iterate
      * through the diff list and identify which type of DiffChunk it is and
-     * what kind of SQLType it is to produce the proper english description
-     * output
+     * what kind of SQLType it is to produce the proper english description output
      * @throws BadLocationException
      * @throws SQLObjectException
      */
-    private void generateEnglishDescription(
-            Map<DiffType, AttributeSet> styles,
-            List<DiffChunk<SQLObject>> diff, DefaultStyledDocument sourceDoc)
+    public static DefaultStyledDocument generateEnglishDescription(
+            Map<DiffType, AttributeSet> styles, boolean suppressSimilarities,
+            List<DiffChunk<SQLObject>> diff)
             throws BadLocationException, SQLObjectException {
+        
+        DefaultStyledDocument resultDoc = new DefaultStyledDocument();
 
         String currentTableName = "";
         
         for (DiffChunk<SQLObject> chunk : diff) {
             SQLObject o = chunk.getData();
-            if (dmSetting.getSuppressSimilarities() && chunk.getType().equals(DiffType.SAME)) {
+            if (suppressSimilarities && chunk.getType().equals(DiffType.SAME)) {
                 if (o instanceof SQLTable) {
                     currentTableName = o.getName();
                 }
@@ -287,34 +292,34 @@ public class CompareDMFormatter {
             StyleConstants.setBold(boldAttributes, true);
 
             if (o == null) {
-                sourceDoc.insertString(
-                        sourceDoc.getLength(),
+                resultDoc.insertString(
+                        resultDoc.getLength(),
                         "ERROR: null object in diff list\n",
                         attributes);
             } else if (o instanceof SQLTable) {
-                sourceDoc.insertString(
-                        sourceDoc.getLength(),
+                resultDoc.insertString(
+                        resultDoc.getLength(),
                         "Table ",
                         attributes);
-                sourceDoc.insertString(
-                        sourceDoc.getLength(),
+                resultDoc.insertString(
+                        resultDoc.getLength(),
                         (o.getPhysicalName() != null || o.getPhysicalName().trim().equals("") ? o.getName() : o.getPhysicalName())+ " ",
                         boldAttributes);
             } else if (o instanceof SQLColumn) {
-                if (dmSetting.getSuppressSimilarities() && !currentTableName.equals("")) {
+                if (suppressSimilarities && !currentTableName.equals("")) {
                     attributes = styles.get(DiffType.SAME);
                     boldAttributes = new SimpleAttributeSet(attributes);
                     StyleConstants.setBold(boldAttributes, true);
-                    sourceDoc.insertString(
-                            sourceDoc.getLength(), 
+                    resultDoc.insertString(
+                            resultDoc.getLength(), 
                             "Table ", 
                             attributes);
-                    sourceDoc.insertString(
-                            sourceDoc.getLength(), 
+                    resultDoc.insertString(
+                            resultDoc.getLength(), 
                             currentTableName, 
                             boldAttributes);
-                    sourceDoc.insertString(
-                            sourceDoc.getLength(), 
+                    resultDoc.insertString(
+                            resultDoc.getLength(), 
                             " needs no changes\n", 
                             attributes);
                     currentTableName = "";
@@ -322,30 +327,30 @@ public class CompareDMFormatter {
                 attributes = styles.get(chunk.getType());
                 boldAttributes = new SimpleAttributeSet(attributes);
                 StyleConstants.setBold(boldAttributes, true);
-                sourceDoc.insertString(
-                        sourceDoc.getLength(),
+                resultDoc.insertString(
+                        resultDoc.getLength(),
                         "\tColumn ",
                         attributes);
-                sourceDoc.insertString(
-                        sourceDoc.getLength(),
+                resultDoc.insertString(
+                        resultDoc.getLength(),
                         o.getName() + " ",
                         boldAttributes);
             } else if (o instanceof SQLRelationship) {
-                sourceDoc.insertString(
-                        sourceDoc.getLength(),
+                resultDoc.insertString(
+                        resultDoc.getLength(),
                         "Foreign Key ",
                         attributes);
-                sourceDoc.insertString(
-                        sourceDoc.getLength(),
+                resultDoc.insertString(
+                        resultDoc.getLength(),
                         o.getName() + " ",
                         boldAttributes);
             } else {
-                sourceDoc.insertString(
-                        sourceDoc.getLength(),
+                resultDoc.insertString(
+                        resultDoc.getLength(),
                         "Unknown object type ",
                         attributes);
-                sourceDoc.insertString(
-                        sourceDoc.getLength(),
+                resultDoc.insertString(
+                        resultDoc.getLength(),
                         o.getClass().getName() + " ",
                         boldAttributes);
             }
@@ -383,11 +388,12 @@ public class CompareDMFormatter {
                 break;
             }
 
-            sourceDoc.insertString(
-                    sourceDoc.getLength(),
+            resultDoc.insertString(
+                    resultDoc.getLength(),
                     diffTypeEnglish + "\n",
                     attributes);
         }
+        return resultDoc;
     }
     
 //  Generates the proper title text for compareDMFrame or SQLScriptDialog                
