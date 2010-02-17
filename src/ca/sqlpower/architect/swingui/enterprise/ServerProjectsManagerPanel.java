@@ -71,7 +71,7 @@ public class ServerProjectsManagerPanel {
                 
                 if (name != null) {
                     try {
-                        ArchitectClientSideSession.createNewServerSession(getSelectedServerInfo());
+                        ArchitectClientSideSession.createNewServerSession(getSelectedServerInfo(), name);
                     } catch (Exception ex) {
                         throw new RuntimeException("Unable to create new project", ex);
                     }
@@ -263,7 +263,6 @@ public class ServerProjectsManagerPanel {
             try {
                 for (ProjectLocation pl : ArchitectClientSideSession.getWorkspaceNames(serviceInfo)) {
                     model.addElement(pl);
-                    
                 } 
                 connected = true;
             } catch (Exception ex) {
