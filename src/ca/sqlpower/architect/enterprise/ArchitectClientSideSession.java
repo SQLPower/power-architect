@@ -112,7 +112,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		
 		dataSourceCollection = getDataSourceCollection();
 		
-		sessionPersister = new SPSessionPersister("inbound-" + projectLocation.getUUID(), getWorkspace(), 
+		sessionPersister = new ArchitectSessionPersister("inbound-" + projectLocation.getUUID(), getWorkspace(), 
 				new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
 		sessionPersister.setSession(this);
 		
@@ -196,7 +196,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	public void startUpdaterThread() {
 		updater.start();
 		
-		final SPPersisterListener listener = new SPPersisterListener(jsonPersister,
+		final SPPersisterListener listener = new SPPersisterListener(jsonPersister, sessionPersister,
 						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
 		
 		SQLPowerUtils.listenToHierarchy(getWorkspace(), listener);
@@ -320,6 +320,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo) throws URISyntaxException, ClientProtocolException, IOException, JSONException {
     	HttpClient httpClient = createHttpClient(serviceInfo);
     	try {
+    	    
+    	    
     		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/jcr/projects/new"));
     		
     		String responseBody = httpClient.execute(request, new JSONResponseHandler());

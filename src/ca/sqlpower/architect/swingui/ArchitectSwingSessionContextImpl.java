@@ -277,7 +277,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         if (initGUI) {
             swingSession.initGUI();
         }
-            
+        getSessions().add(swingSession);
         return swingSession;
     }
     
