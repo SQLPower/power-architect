@@ -208,7 +208,23 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * Adds a new column profile result to the end of the result list.
      */
     public void addColumnProfileResult(ColumnProfileResult profileResult) {
-        columnProfileResults.add(profileResult);
+        addColumnProfileResult(profileResult, columnProfileResults.size());
+    }
+    
+    @Override
+    protected void addChildImpl(SPObject child, int index) {
+        if (child instanceof ColumnProfileResult) {
+            addColumnProfileResult((ColumnProfileResult) child, index);
+        } else {
+            throw new IllegalArgumentException("Cannot handle children of type " + 
+                    child.getClass() + " for object " + child);
+        }
+    }
+
+    private void addColumnProfileResult(ColumnProfileResult child, int index) {
+        columnProfileResults.add(child);
+        child.setParent(this);
+        fireChildAdded(ColumnProfileResult.class, child, index);        
     }
 
     @Override

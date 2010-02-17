@@ -193,13 +193,28 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
 
         ColumnValueCount columnValueCount = new ColumnValueCount(value,count, per);
         if (!topTen.contains(columnValueCount)) {
-            topTen.add(columnValueCount);
+            addValueCount(columnValueCount);
             logger.debug("Added Value Count: Value: " + value + " Count: " + count);
         }
     }
 
     public void addValueCount(ColumnValueCount value) {
+        addColumnValueCount(value, topTen.size());
+    }
+    
+    private void addColumnValueCount(ColumnValueCount value, int index) {
         topTen.add(value);
+        fireChildAdded(ColumnValueCount.class, value, index);
+    }
+    
+    @Override
+    protected void addChildImpl(SPObject child, int index) {
+        if (child instanceof ColumnValueCount) {
+            addColumnValueCount((ColumnValueCount) child, index);
+        } else {
+            throw new IllegalArgumentException("Cannot add child " + child + " to " + this);
+        }
+            
     }
     
     @NonProperty

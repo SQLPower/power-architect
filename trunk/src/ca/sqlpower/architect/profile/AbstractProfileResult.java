@@ -29,6 +29,9 @@ import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.SPObjectUtils;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -77,6 +80,7 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.profile.ProfileResultInterface#getProfiledObject()
      */
+    @Accessor
     public T getProfiledObject() {
         return profiledObject;
     }
@@ -84,6 +88,7 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.profile.ProfileResultInterface#getCreateStartTime()
      */
+    @Accessor
     public long getCreateStartTime() {
         return createStartTime;
     }
@@ -91,13 +96,17 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.profile.ProfileResultInterface#setCreateStartTime(long)
      */
+    @Mutator
     public void setCreateStartTime(long createStartTime) {
+        long oldStartTime = this.createStartTime;
         this.createStartTime = createStartTime;
+        firePropertyChange("createStartTime", oldStartTime, createStartTime);
     }
 
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.profile.ProfileResultInterface#getTimeToCreate()
      */
+    @Transient @Accessor
     public long getTimeToCreate() {
         return createEndTime-createStartTime;
     }
@@ -105,13 +114,17 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.profile.ProfileResultInterface#setCreateEndTime(long)
      */
+    @Mutator
     public void setCreateEndTime(long createEndTime) {
+        long oldEndTime = this.createEndTime;
         this.createEndTime = createEndTime;
+        firePropertyChange("createEndTime", oldEndTime, createEndTime);
     }
 
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.profile.ProfileResultInterface#getCreateEndTime()
      */
+    @Accessor
     public long getCreateEndTime() {
         return createEndTime;
     }
@@ -119,6 +132,7 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.profile.ProfileResultInterface#getException()
      */
+    @Transient @Accessor
     public Exception getException() {
         return ex;
     }
@@ -127,8 +141,11 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
      * If an exception is encountered while populating this profile result,
      * it should be stored here for later inspection by client code.
      */
+    @Transient @Mutator
     public void setException(Exception ex) {
+        Exception oldEx = this.ex;
         this.ex = ex;
+        firePropertyChange("exception", oldEx, ex);
     }
 
     /**
@@ -257,12 +274,16 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
         return hash;
     }
 
+    @Accessor
     public ProfileSettings getSettings() {
         return settings;
     }
 
+    @Mutator
     public void setSettings(ProfileSettings settings) {
+        ProfileSettings oldSettings = this.settings;
         this.settings = settings;
+        firePropertyChange("settings", oldSettings, settings);
     }
 
     public void addProfileResultListener(ProfileResultListener listener) {
@@ -300,6 +321,7 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
     public List<? extends SPObject> getDependencies() {
         List<SPObject> dependencies = new ArrayList<SPObject>();
         dependencies.add(profiledObject);
+        dependencies.add(settings);
         return dependencies;
     }
     
@@ -310,7 +332,7 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
      * ProfileManagerImpl will when a child TableProfileResult is removed.    
      */
     public void removeDependency(SPObject dependency) {
-        if (dependency == getDependencies().get(0)) {
+        if (getDependencies().contains(dependency)) {
             try {
                 getParent().removeChild(this);
             } catch (ObjectDependentException e) {
