@@ -229,6 +229,13 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
 
     @Override
     protected boolean removeChildImpl(SPObject child) {
+        if (child instanceof ColumnValueCount) {
+            int index = topTen.indexOf(child);
+            if (topTen.remove(child)) {
+                fireChildRemoved(ColumnValueCount.class, child, index);
+                return true;
+            }
+        }
         return false;
     }
 
