@@ -20,12 +20,14 @@
 package ca.sqlpower.architect.util;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileSettings;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.testutil.GenericNewValueMaker;
@@ -53,6 +55,12 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
                     (ProfileSettings) makeNewValue(ProfileSettings.class, null, ""));
             getRootObject().addChild(tpr, 0);
             return tpr;
+        } else if (valueType == ColumnProfileResult.class) {
+            TableProfileResult tpr = (TableProfileResult) makeNewValue(TableProfileResult.class, null, "");
+            ColumnProfileResult cpr = new ColumnProfileResult(
+                    (SQLColumn) makeNewValue(SQLColumn.class, null, ""), tpr);
+            cpr.setParent(tpr);
+            return cpr;
         } else if (valueType == ColumnValueCount.class) {
             ColumnValueCount cvc = new ColumnValueCount(Integer.MAX_VALUE, 2, 42);
             getRootObject().addChild(cvc, 0);

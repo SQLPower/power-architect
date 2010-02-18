@@ -20,6 +20,7 @@ package ca.sqlpower.architect.profile;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -30,8 +31,13 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonBound;
+import ca.sqlpower.object.annotation.NonProperty;
+import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -45,6 +51,14 @@ import ca.sqlpower.util.MonitorableImpl;
  * possible to obtain one by using a TableProfileCreator directly.
  */
 public class TableProfileResult extends AbstractProfileResult<SQLTable> {
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    @SuppressWarnings("unchecked")
+    public static List<Class<? extends SPObject>> allowedChildTypes = 
+        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
+                Arrays.asList(ColumnProfileResult.class)));
 
     @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(TableProfileResult.class);
@@ -83,6 +97,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * of this profile result being populated.  The progress monitor also
      * provides the means of canceling the population of this profile result.
      */
+    @Transient @Accessor
     public Monitorable getProgressMonitor() {
         return progressMonitor;
     }
@@ -91,12 +106,16 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * Returns the number of rows in this table.  This count is not guaranteed to
      * be realistic until this result has been fully profiled.
      */
+    @Accessor
     public int getRowCount() {
         return rowCount;
     }
 
+    @Mutator
     public void setRowCount(int rowCount) {
+        int oldCount = this.rowCount;
         this.rowCount = rowCount;
+        firePropertyChange("rowCount", oldCount, rowCount);
     }
 
     /**
@@ -163,6 +182,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * Returns an unmodifiable list of columnProfileResults that
      * belong to this table.
      */
+    @NonProperty
     public List<ColumnProfileResult> getColumnProfileResults() {
         return Collections.unmodifiableList(columnProfileResults);
     }
@@ -173,6 +193,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * date that they were created. If there are no results found for the
      * given table, an empty collection will be returned.
      */
+    @NonProperty
     public Collection<ColumnProfileResult> getColumnProfileResult(SQLColumn c) {
         Collection<ColumnProfileResult> retCollection = new ArrayList<ColumnProfileResult>();
         for (ColumnProfileResult result : columnProfileResults) {
@@ -191,6 +212,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * @return
      * @throws SQLObjectException
      */
+    @Transient @Accessor
     public DDLGenerator getDDLGenerator() throws SQLObjectException {
         JDBCDataSource ds = getProfiledObject().getParentDatabase().getDataSource();
         try {
@@ -244,12 +266,12 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
         }
     }
 
+    @NonBound
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
-        List<Class<? extends SPObject>> types = new ArrayList<Class<? extends SPObject>>();
-        types.add(ColumnProfileResult.class);
-        return types;
+        return allowedChildTypes;
     }
 
+    @NonProperty
     public List<? extends SPObject> getChildren() {
         List<SPObject> children = new ArrayList<SPObject>();
         children.addAll(columnProfileResults);
