@@ -158,9 +158,61 @@ public class ServerProjectsManagerPanel {
     };
        
     private boolean connected = false;
+    private SPServerInfo serverInfo = null;
 
-    public ServerProjectsManagerPanel(ArchitectSessionContext context, 
-            Component dialogOwner, Action closeAction) {
+    public ServerProjectsManagerPanel(
+            SPServerInfo serverInfo,
+            ArchitectSessionContext context, 
+            Component dialogOwner, 
+            Action closeAction) 
+    {
+        this.serverInfo = serverInfo;
+        this.dialogOwner = dialogOwner;
+        this.context = context;
+        this.closeAction = closeAction;
+        
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
+                "pref:grow, 5dlu, pref", 
+                "pref, pref, pref"));
+        
+        servers = null;
+        
+        projects = new JList(new DefaultListModel());
+        projects.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                refreshPanel();
+                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                    openAction.actionPerformed(null);
+                }
+            }
+        });
+        
+        JScrollPane projectsPane = new JScrollPane(projects);
+        projectsPane.setPreferredSize(new Dimension(250, 300));
+        
+        refreshInfoList();
+        CellConstraints cc = new CellConstraints();    
+        builder.add(new JLabel(serverInfo.getName() + "'s projects:"), cc.xyw(1, 1, 2));
+        builder.nextLine();
+        builder.add(projectsPane, cc.xywh(1, 2, 1, 2));
+        
+        DefaultFormBuilder buttonBarBuilder = new DefaultFormBuilder(new FormLayout("pref"));      
+        buttonBarBuilder.append(new JButton(refreshAction));
+        buttonBarBuilder.append(new JButton(newAction));
+        buttonBarBuilder.append(new JButton(openAction));
+        buttonBarBuilder.append(new JButton(deleteAction));
+        buttonBarBuilder.append(new JButton(closeAction));
+        builder.add(buttonBarBuilder.getPanel(), cc.xy(3, 2));
+        builder.setDefaultDialogBorder();
+        panel = builder.getPanel();
+    }
+    
+    public ServerProjectsManagerPanel(
+            ArchitectSessionContext context, 
+            Component dialogOwner, 
+            Action closeAction) 
+    {
         this.dialogOwner = dialogOwner;
         this.context = context;
         this.closeAction = closeAction;
@@ -286,6 +338,8 @@ public class ServerProjectsManagerPanel {
     }
     
     private SPServerInfo getSelectedServerInfo() {
+        if (serverInfo != null) return serverInfo;
+        
         int index = servers.getSelectedIndex();
         Object obj;
         
