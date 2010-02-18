@@ -261,7 +261,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     		String responseBody = httpClient.execute(request, new JSONResponseHandler());
     		List<ProjectLocation> workspaces = new ArrayList<ProjectLocation>();
     		JSONArray response = new JSONArray(responseBody);
-    		logger.debug("Workspace list:\n" + responseBody);
     		for (int i = 0; i < response.length(); i++) {
     			JSONObject workspace = (JSONObject) response.get(i);
     			workspaces.add(new ProjectLocation(
@@ -320,9 +319,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo, String name) throws URISyntaxException, ClientProtocolException, IOException, JSONException {
     	HttpClient httpClient = createHttpClient(serviceInfo);
     	try {
-
     		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/jcr/projects/new", "name=" + name));
-    		System.out.println(request.getURI());
     		String responseBody = httpClient.execute(request, new JSONResponseHandler());
     		JSONObject response = new JSONObject(responseBody);
     		logger.debug("New Workspace:" + responseBody);

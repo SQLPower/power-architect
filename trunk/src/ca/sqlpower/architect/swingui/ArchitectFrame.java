@@ -120,6 +120,7 @@ import ca.sqlpower.architect.swingui.enterprise.ServerProjectsManagerPanel;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPSchemaManagerAction;
+import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -220,20 +221,44 @@ public class ArchitectFrame extends JFrame {
         public void actionPerformed(ActionEvent e) {
             
             final JDialog d = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Server Connections");
+            
             Action closeAction = new AbstractAction("Close") {
                 public void actionPerformed(ActionEvent e) {
                     d.dispose();
                 }
             };
             
-            Action loginAction = new AbstractAction("Login") {
+            final SPServerInfoManagerPanel sim = new SPServerInfoManagerPanel(session.getContext().getServerManager(),
+                    ArchitectFrame.this, closeAction);
+            sim.setLoginAction(new AbstractAction("Login") {
                 public void actionPerformed(ActionEvent e) {
-                    JOptionPane.showMessageDialog(ArchitectFrame.this, "Login not yet supported");
+                    SPServerInfo si = sim.getSelectedServer();
+                    if (si != null) {
+                        final JDialog dialog = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Projects");
+                        Action closeAction = new AbstractAction("Close") {
+                            public void actionPerformed(ActionEvent e) {
+                                dialog.dispose();
+                                
+                                if (!((JButton) e.getSource()).getAction().getValue(Action.NAME).equals("Close")) {
+                                    d.dispose();
+                                }
+                            }
+                        };
+                        ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(si, session.getContext(),
+                                ArchitectFrame.this, closeAction);
+                        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                        dialog.setContentPane(spm.getPanel());
+                        
+                        SPSUtils.makeJDialogCancellable(dialog, null);
+                        dialog.pack();
+                        dialog.setLocationRelativeTo(ArchitectFrame.this);
+                        dialog.setVisible(true);
+                    } else {
+                        JOptionPane.showMessageDialog(ArchitectFrame.this, "Please select a server", "", JOptionPane.INFORMATION_MESSAGE);
+                    }
                 }
-            };
+            });
             
-            SPServerInfoManagerPanel sim = new SPServerInfoManagerPanel(session.getContext().getServerManager(),
-                    ArchitectFrame.this, loginAction, closeAction);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(sim.getPanel());
             
