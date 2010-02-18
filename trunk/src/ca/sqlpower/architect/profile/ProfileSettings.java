@@ -148,7 +148,7 @@ public class ProfileSettings extends AbstractSPObject {
     public void setFindingMinLength(boolean findingMinLength) {
         boolean oldMin = this.findingMinLength;
         this.findingMinLength = findingMinLength;
-        firePropertyChange("findingMinLenth", oldMin, findingMinLength);
+        firePropertyChange("findingMinLength", oldMin, findingMinLength);
     }
 
     @Accessor
