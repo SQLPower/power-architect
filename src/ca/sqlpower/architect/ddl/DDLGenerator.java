@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -40,7 +39,7 @@ import ca.sqlpower.sqlobject.SQLTable;
  * @author fuerth
  * @version $Id$
  */
-public interface DDLGenerator extends SPObject {
+public interface DDLGenerator {
 
     /**
      * Returns the name of this DDL Generator, which should be a
