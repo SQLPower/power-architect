@@ -312,8 +312,10 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
 
     /* docs inherited from interface */
     public boolean removeProfile(TableProfileResult victim) {
+        int index = results.indexOf(victim);
         boolean removed = results.remove(victim);
         if (removed) {
+            fireChildRemoved(TableProfileResult.class, victim, index);
             fireProfilesRemoved(Collections.singletonList(victim));
         }
         SQLTable table = victim.getProfiledObject();

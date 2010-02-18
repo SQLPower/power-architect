@@ -251,6 +251,12 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
 
     @Override
     protected boolean removeChildImpl(SPObject child) {
+        if (child instanceof ColumnProfileResult) {
+            int index = columnProfileResults.indexOf(child);
+            if (columnProfileResults.remove(child)) {
+                fireChildRemoved(ColumnProfileResult.class, child, index);
+            }
+        }
         return false;
     }
 
