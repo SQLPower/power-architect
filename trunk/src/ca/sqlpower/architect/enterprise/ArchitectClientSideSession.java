@@ -12,6 +12,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.prefs.Preferences;
 
 import javax.swing.SwingUtilities;
 
@@ -46,6 +47,7 @@ import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionImpl;
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.dao.HttpMessageSender;
 import ca.sqlpower.dao.MessageSender;
@@ -82,9 +84,35 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	
 	public static final String MONDRIAN_SCHEMA_REL_PATH = "/mondrian";
 	
+	/**
+	 * The prefs node that will store information about the current settings of
+	 * the DDL generator and compare DM panels. Currently this is stored in prefs
+	 * because we want to store it per user for each project they are using. In the
+	 * future we may want to store this in the server, once per user per project.
+	 */
+	private final Preferences prefs = Preferences.userNodeForPackage(ArchitectClientSideSession.class);
+	
+	/**
+	 * Describes the location of the project that this session represents.
+	 */
 	private final ProjectLocation projectLocation;
+
+    /**
+     * An {@link HttpClient} used to send updates to the server for changes to
+     * the project and to receive updates from other users from the server.
+     */
 	private final HttpClient outboundHttpClient;
+	
+	/**
+	 * The persister that will update the project in this session with changes from
+	 * the server.
+	 */
 	private final SPSessionPersister sessionPersister;
+	
+	/**
+	 * Used to convert JSON sent from the server into persist calls to forward the
+	 * server changes to the {@link #sessionPersister}.
+	 */
 	private final SPJSONPersister jsonPersister;
 	private final Updater updater;
 	private final DataSourceCollectionUpdater dataSourceCollectionUpdater = new DataSourceCollectionUpdater();
@@ -92,7 +120,11 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	private DataSourceCollection <JDBCDataSource> dataSourceCollection;
 	
 	// -
-	
+
+    /**
+     * The revision this project is currently at. This will be updated as
+     * changes come in from the server.
+     */
 	int currentRevision = 0;
 	
 	public ArchitectClientSideSession(ArchitectSessionContext context, 
@@ -101,6 +133,21 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		
 		this.projectLocation = projectLocation;
 		this.isEnterpriseSession = true;
+		
+		String ddlgClass = prefs.get(this.projectLocation.getUUID() + ".ddlg", null);
+		if (ddlgClass != null) {
+		    try {
+                DDLGenerator ddlg = (DDLGenerator) Class.forName(ddlgClass).newInstance();
+                setDDLGenerator(ddlg);
+                ddlg.setTargetCatalog(prefs.get(this.projectLocation.getUUID() + ".targetCatalog", null));
+                ddlg.setTargetSchema(prefs.get(this.projectLocation.getUUID() + ".targetSchema", null));
+            } catch (Exception e) {
+                createUserPrompter("Cannot load DDL settings due to missing class " + ddlgClass, 
+                        UserPromptType.MESSAGE, UserPromptOptions.OK, UserPromptResponse.OK, null, "OK");
+                logger.error("Cannot find DDL Generator for class " + ddlgClass + 
+                        ", ddl generator properties are not loaded.");
+            }
+		}
 		
 		outboundHttpClient = createHttpClient(projectLocation.getServiceInfo());
 		
@@ -124,6 +171,17 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	@Override
     public boolean close() {
     	logger.debug("Closing Client Session");
+    	
+    	if (getDDLGenerator() != null) {
+    	    if (getDDLGenerator().getTargetCatalog() != null) {
+    	        prefs.put(projectLocation.getUUID() + ".targetCatalog", getDDLGenerator().getTargetCatalog());
+    	    }
+    	    if (getDDLGenerator().getTargetSchema() != null) {
+    	        prefs.put(projectLocation.getUUID() + ".targetSchema", getDDLGenerator().getTargetSchema());
+    	    }
+    	    prefs.put(projectLocation.getUUID() + ".ddlg", getDDLGenerator().getClass().getName());
+    	}
+    	
     	try {
     		//TODO: Figure out how to de-register the session &c.
     		//HttpUriRequest request = new HttpDelete(getServerURI(projectLocation.getServiceInfo(), 

@@ -26,7 +26,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -37,8 +36,6 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
-import ca.sqlpower.object.AbstractSPObject;
-import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -54,7 +51,7 @@ import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
-public class GenericDDLGenerator extends AbstractSPObject implements DDLGenerator {
+public class GenericDDLGenerator implements DDLGenerator {
 
 	public static final String GENERATOR_VERSION = "$Revision$";
 
@@ -1385,40 +1382,4 @@ public class GenericDDLGenerator extends AbstractSPObject implements DDLGenerato
         return true;
     }
 
-    @Override
-    protected boolean removeChildImpl(SPObject child) {
-        return false;
-    }
-
-    public boolean allowsChildren() {
-        return true;
-    }
-
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        if (childType.isAssignableFrom(DDLStatement.class)) {
-            return 0;
-        } else {
-            throw new IllegalArgumentException();
-        }
-    }
-
-    public List<Class<? extends SPObject>> getAllowedChildTypes() {
-        List<Class<? extends SPObject>> types = new ArrayList<Class<? extends SPObject>>();
-        types.add(DDLStatement.class);
-        return null;
-    }
-
-    public List<? extends SPObject> getChildren() {
-        List<SPObject> children = new ArrayList<SPObject>();
-        children.addAll(ddlStatements);
-        return children;
-    }
-
-    public List<? extends SPObject> getDependencies() {
-        return Collections.emptyList();
-    }
-
-    public void removeDependency(SPObject dependency) {
-                
-    }
 }
