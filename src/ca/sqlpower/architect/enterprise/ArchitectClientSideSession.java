@@ -170,8 +170,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	
 	@Override
     public boolean close() {
-    	logger.debug("Closing Client Session");
-    	
     	if (getDDLGenerator() != null) {
     	    if (getDDLGenerator().getTargetCatalog() != null) {
     	        prefs.put(projectLocation.getUUID() + ".targetCatalog", getDDLGenerator().getTargetCatalog());
@@ -468,11 +466,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	}
 	
 	private static URI getServerURI(SPServerInfo serviceInfo, String contextRelativePath, String query) throws URISyntaxException {
-        logger.debug("Getting server URI for: " + serviceInfo);
         String contextPath = serviceInfo.getPath();
         URI serverURI = new URI("http", null, serviceInfo.getServerAddress(), serviceInfo.getPort(),
                 contextPath + contextRelativePath, query, null);
-        logger.debug("Created URI " + serverURI);
         return serverURI;
     }
 	
@@ -507,19 +503,24 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 			message = new JSONArray();
 		}
 
+		private boolean flushAgain = false;
 		public void flush() throws SPPersistenceException {
 		    try {
-    		    logger.debug("Sender: Starting flush ...");
+		        if (persistingToServer) {
+		            flushAgain = true;
+		            return;
+		        }
                 persistingToServer = true;
+                flushAgain = false;
     		    
     		    URI serverURI = getServerURI();
                 HttpPost postRequest = new HttpPost(serverURI);
                 postRequest.setEntity(new StringEntity(message.toString()));
                 postRequest.setHeader("Content-Type", "application/json");
                 HttpUriRequest request = postRequest;
+                clear();
                 
                 final JSONMessage response = getHttpClient().execute(request, new JSONResponseHandler());
-    		    
     		    runInForeground(new Runnable() {
     		        public void run() {
             		    try {
@@ -529,18 +530,21 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             		        } else {
             		            // Message was sent successfully but rejected by the server. We must rollback our
             		            // changes and update to the head revision.
-            		            
             		            logger.debug("Response unsuccessful");
+            		            throw new RuntimeException("Out of sync with server");
             		        }
             			} catch (JSONException e) {
-                            throw new RuntimeException("");
+                            throw new RuntimeException(e);
                         } finally {
-            				clear();
             				persistingToServer = false;
-            				logger.debug("... Sender: completing flush");
+                                try {
+                                    if (flushAgain) flush();
+                                } catch (SPPersistenceException e) {
+                                    throw new RuntimeException(e);
+                                }
             			}
                     }
-                });
+                });    
 		    } catch (UnsupportedEncodingException e) {
 		        throw new SPPersistenceException(null, e);
             } catch (URISyntaxException e) {
@@ -549,7 +553,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                 throw new SPPersistenceException(null, e);
             } catch (IOException e) {
                 throw new SPPersistenceException(null, e);
-            } 
+            } catch (RuntimeException e) {
+                throw new SPPersistenceException(null, e);
+            }
 		}
 
 		public void send(JSONObject content) throws SPPersistenceException {
@@ -599,7 +605,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		}
 		
 		public void interrupt() {
-			logger.debug("Updater Thread interrupt sent");
 			super.interrupt();
 			cancelled = true;
 		}
