@@ -510,11 +510,13 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		            flushAgain = true;
 		            return;
 		        }
-                persistingToServer = true;
-                flushAgain = false;
+
+		        persistingToServer = true;
+		        flushAgain = false;
     		    
     		    URI serverURI = getServerURI();
                 HttpPost postRequest = new HttpPost(serverURI);
+                
                 postRequest.setEntity(new StringEntity(message.toString()));
                 postRequest.setHeader("Content-Type", "application/json");
                 HttpUriRequest request = postRequest;
@@ -537,11 +539,11 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                             throw new RuntimeException(e);
                         } finally {
             				persistingToServer = false;
-                                try {
-                                    if (flushAgain) flush();
-                                } catch (SPPersistenceException e) {
-                                    throw new RuntimeException(e);
-                                }
+                            try {
+                                if (flushAgain) flush();
+                            } catch (SPPersistenceException e) {
+                                throw new RuntimeException(e);
+                            }
             			}
                     }
                 });    
@@ -588,6 +590,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		 * Used by the Updater to handle inbound HTTP updates
 		 */
 		private final HttpClient inboundHttpClient;
+		
+		final String contextRelativePath = "/project/" + projectLocation.getUUID();
 
 		private volatile boolean cancelled;
 		
@@ -609,14 +613,19 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 			cancelled = true;
 		}
         
+		boolean updating = false;
+		
 		@Override
 		public void run() {
 			logger.info("Updater thread starting");
-			final String contextRelativePath = "/project/" + projectLocation.getUUID();
-			
 			try {
 				while (!this.isInterrupted() && !cancelled) {
 					try {
+					    while (updating) {
+					        synchronized (this) {
+					            wait();
+					        }
+					    }
 					    
 					    URI uri = getServerURI(projectLocation.getServiceInfo(), contextRelativePath, 
 					            "oldRevisionNo=" + currentRevision);
@@ -625,28 +634,36 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                         JSONMessage message = inboundHttpClient.execute(request, new JSONResponseHandler());                     
                         final JSONObject json = new JSONObject(message.getBody());
                         final String jsonArray = json.getString("data");
-                          
+
+                        updating = true;
                         runInForeground(new Runnable() {
                             public void run() {
                                 try {
                                     if (!persistingToServer) {
                                         int newRevision = json.getInt("currentRevision"); 
                                         if (currentRevision < newRevision) {
+                                            logger.debug("CurrentRevision = " + currentRevision + " JSON:");
+                                            logger.debug(jsonArray);
                                             currentRevision = newRevision;
-                                            logger.debug("Updater: Starting run ...");
                                             jsonDecoder.decode(jsonArray);
-                                            logger.debug("... Updater: completing run");
                                         }
                                     }
                                 } catch (SPPersistenceException e) {
                                     logger.error("Update from server failed!", e);
+                                    //logger.warn(jsonArray);
+                                    throw new RuntimeException("Please hit the refresh button that does not exist", e);
                                     // TODO discard session and reload
                                 } catch (JSONException e) {
                                     logger.error("Update from server failed!", e);
+                                } finally {
+                                    updating = false;
+                                    synchronized (updater) {
+                                        updater.notify();
+                                    }
                                 }
                             }
                         });
-					    
+                        
 					} catch (Exception ex) {    
 						logger.error("Failed to contact server. Will retry in " + retryDelay + " ms.", ex);
 						Thread.sleep(retryDelay);
