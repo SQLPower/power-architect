@@ -48,6 +48,7 @@ public class DDLStatement extends AbstractSPObject {
 
         // NOT A DDL STATEMENT
         public static final StatementType SELECT = new StatementType("SELECT");
+		public static final StatementType XMLTAG = new StatementType("XMLTAG");
 
 		private String type;
 
