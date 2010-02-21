@@ -619,11 +619,11 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	}
 
 	public String getCatalogTerm() {
-		return "Catalog";
+		return null;
 	}
 
 	public String getSchemaTerm() {
-		return "Schema";
+		return null;
 	}
 
     /**
@@ -673,6 +673,22 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		endStatement(DDLStatement.StatementType.XMLTAG,t);
 	}
 
+	@Override
+	public void renameIndex(SQLIndex oldIndex, SQLIndex newIndex) throws SQLObjectException {
+		// renaming an index is currently not supported in Liquibase 1.8
+		dropIndex(oldIndex);
+		addIndex(newIndex);
+	}
+
+	public void dropIndex(SQLIndex index) throws SQLObjectException {
+		print("<dropIndex indexName=\"");
+		print(getName(index));
+		print("\" tableName=\"");
+		print(getName(index.getParent()));
+		println("\"/>");
+		endStatement(DDLStatement.StatementType.XMLTAG, index);
+	}
+
     /**
      * Adds the necessary <createIndex> tag.
      *
@@ -697,7 +713,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
             println("  <column name=\"" + getName(c) + "\"/>") ;
         }
         println("</createIndex>");
-        endStatement(DDLStatement.StatementType.CREATE, index);
+        endStatement(DDLStatement.StatementType.XMLTAG, index);
     }
 
     private String getTableQualifier(SQLObject o) {

@@ -18,6 +18,10 @@
  */
 package ca.sqlpower.architect.ddl;
 
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -26,6 +30,8 @@ import java.util.HashMap;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLTable;
+import java.util.Map;
 
 // TODO: override to_identifier routine to ensure identifier names are legal
 // and unique for DB2.  See the Oracle, SQL Server, and Postgres DDL generators
@@ -122,4 +128,34 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
             return "";
         }
     }
+
+	@Override
+    public void renameColumn(SQLColumn oldCol, SQLColumn newCol) {
+		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>(0);
+		print("\nALTER TABLE ");
+		print(toQualifiedName(oldCol.getParent()));
+		print(" RENAME ");
+		print(createPhysicalName(colNameMap, oldCol));
+        print(" TO ");
+		print(createPhysicalName(colNameMap, oldCol));
+		endStatement(DDLStatement.StatementType.ALTER, oldCol);
+    }
+
+	@Override
+    public void renameTable(SQLTable oldTable, SQLTable newTable) {
+		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>(0);
+        println("RENAME TABLE " + createPhysicalName(colNameMap, oldTable)
+		  + " TO " + createPhysicalName(colNameMap, newTable));
+        endStatement(DDLStatement.StatementType.ALTER, newTable);
+    }
+
+	@Override
+	public void renameIndex(SQLIndex oldIndex, SQLIndex newIndex) throws SQLObjectException {
+		print("RENAME INDEX ");
+		print(toQualifiedName(oldIndex));
+		print(" TO ");
+		println(toQualifiedName(newIndex.getName()));
+		endStatement(DDLStatement.StatementType.ALTER, oldIndex);
+	}
+
 }

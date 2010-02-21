@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ca.sqlpower.architect.ddl;
 
@@ -331,7 +331,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
      */
     @Override
     public void addIndex(SQLIndex index) throws SQLObjectException {
-        
+
         createPhysicalName(topLevelNames, index);
         println("");
         print("CREATE ");
@@ -342,7 +342,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         print(toIdentifier(index.getName()));
         print("\n ON ");
         print(toQualifiedName(index.getParent()));
-        if(index.getType() != null) {            
+        if(index.getType() != null) {
             print(" USING "+ index.getType());
         }
         print("\n ( ");
@@ -366,7 +366,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
             addCluster(index, toIdentifier(index.getName()), index.getParent().getName());
         }
     }
-    
+
     /**
      * This will create a clustered index on a given table.
      */
@@ -375,10 +375,10 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         print("CLUSTER " + indexName + " ON " + table);
         endStatement(DDLStatement.StatementType.CREATE, index);
     }
-    
+
     @Override
     public void addTable(SQLTable t) throws SQLException, SQLObjectException {
-        
+
         // Create all the sequences that will be needed for auto-increment cols in this table
         for (SQLColumn c : t.getColumns()) {
             if (c.isAutoIncrement()) {
@@ -388,9 +388,9 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
                 endStatement(StatementType.CREATE, seq);
             }
         }
-        
+
         super.addTable(t);
-        
+
         // attach sequences to columns
         for (SQLColumn c : t.getColumns()) {
             if (c.isAutoIncrement()) {
@@ -400,7 +400,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
             }
         }
     }
-    
+
     /**
      * Augments the default columnDefinition behaviour by adding the correct
      * default value clause for auto-increment columns. For non-autoincrement
@@ -409,7 +409,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
     @Override
     protected String columnDefinition(SQLColumn c, Map colNameMap) {
         String nameAndType = super.columnDefinition(c, colNameMap);
-        
+
         if (c.isAutoIncrement()) {
             SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
             return nameAndType + " DEFAULT nextval(" + SQL.quote(toQualifiedName(seq.getName())) + ")";
@@ -418,4 +418,27 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         }
     }
 
+	@Override
+	public void renameIndex(SQLIndex oldIndex, SQLIndex newIndex) throws SQLObjectException {
+		print("ALTER INDEX ");
+		print(toQualifiedName(oldIndex));
+		print(" RENAME TO ");
+		println(toQualifiedName(newIndex.getName()));
+		endStatement(DDLStatement.StatementType.ALTER, oldIndex);
+	}
+
+	/**
+	 * Drop the specified index.
+	 * <br/>
+	 * The default implementation should work for all databases.
+	 *
+	 * @param index the index to drop.
+	 * @throws SQLObjectException
+	 */
+	public void dropIndex(SQLIndex index) throws SQLObjectException {
+		print("DROP INDEX ");
+		print(toQualifiedName(index));
+		println(" CASCADE");
+		endStatement(DDLStatement.StatementType.DROP, index);
+	}
 }

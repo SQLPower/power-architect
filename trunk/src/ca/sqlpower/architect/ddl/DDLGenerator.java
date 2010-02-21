@@ -92,6 +92,16 @@ public interface DDLGenerator {
      */
     public void modifyComment(SQLObject o);
 
+    /**
+     * Appends the DDL statement to rename "oldCol" to "newCol.
+     *
+     * If the DBMS does not support renaming columns the generator
+     * should create the approriate DROP/ADD sequence
+     *
+	 * @param oldName the old definition of the column
+     * @param newColumn the new definition of the column
+     */
+    public void renameColumn(SQLColumn oldColumn, SQLColumn newColumn);
 
     /**
      * Appends the DDL statement for dropping the given column from its parent
@@ -126,6 +136,15 @@ public interface DDLGenerator {
     public void addRelationship(SQLRelationship r);
 
     /**
+     * Appends the DDL statement for renaming the given FK relationship
+     * in this DDL Generator's target schema/catalog.
+     *
+     * @param oldFK The old relationship name
+     * @param newFK The new relationship name
+     */
+    public void renameRelationship(SQLRelationship oldFK, SQLRelationship newFK);
+
+    /**
      * Appends the DDL statement for dropping the given FK relationship
      * in this DDL Generator's target schema/catalog.
      *
@@ -133,6 +152,16 @@ public interface DDLGenerator {
      */
     public void dropRelationship(SQLRelationship r);
 
+    /**
+     * Appends the DDL statement for renaming the table.
+     * If the DBMS does not support renaming tables, the generator should
+     * create the approriate DROP/CREATE sequence.
+     *
+     * @param oldTable the old definition of the table
+	 * @param newTable the new definition of the table
+     */
+    public void renameTable(SQLTable oldTable, SQLTable newTable);
+    
     /**
      * Appends the DDL statements for dropping the table in this DDL Generator's
      * current catalog and schema using SQLTable t's physical name.
@@ -150,7 +179,25 @@ public interface DDLGenerator {
      * current catalog and schema.
      */
     public void addIndex(SQLIndex idx) throws SQLObjectException;
-    
+
+	/**
+	 * Drops the specified index. Currently the CompareSQL does not detect index drops
+	 * but I have added this for completeness (as it is needed e.g. for renaming an
+	 * index with Liquibase)
+	 *
+	 * @param index
+	 * @throws SQLObjectException
+	 */
+	public void dropIndex(SQLIndex index) throws SQLObjectException;
+
+    /**
+     * Appends the DDL statements for renaming the given index
+	 * 
+	 * @param oldIndex the old index definition
+	 * @param newIndex the new index definition
+     */
+    public void renameIndex(SQLIndex oldIndex, SQLIndex newIndex) throws SQLObjectException;
+
     /**
      * Returns the list of DDL statements that have been created so far.  Call
      * {@link #generateDDLStatements(Collection)} to populate this list.

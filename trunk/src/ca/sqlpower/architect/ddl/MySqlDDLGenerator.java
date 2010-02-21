@@ -364,6 +364,51 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         return null;
     }
 
+	@Override
+    public void renameTable(SQLTable oldTable, SQLTable newTable) {
+		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>(0);
+        println("RENAME TABLE "
+				+ createPhysicalName(colNameMap, oldTable)
+				+ " TO "
+				+ createPhysicalName(colNameMap, newTable));
+        endStatement(DDLStatement.StatementType.ALTER, newTable);
+    }
+
+	@Override
+	public void renameColumn(SQLColumn oldCol, SQLColumn newCol) {
+		Map<String, SQLObject> empty = new HashMap<String, SQLObject>(0);
+		print("ALTER TABLE ");
+		print(createPhysicalName(empty, oldCol.getParent()));
+		print(" CHANGE ");
+
+		Map<String, SQLObject> cols = new HashMap<String, SQLObject>();
+		try {
+			for (SQLColumn col : oldCol.getParent().getColumns()) {
+				cols.put(col.getPhysicalName(), col);
+			}
+		} catch (SQLObjectException e) {
+			// can't do anything...
+		}
+		print(createPhysicalName(cols, newCol));
+		print(" ");
+		print(columnDefinition(newCol, cols));
+		endStatement(DDLStatement.StatementType.ALTER, newCol);
+	}
+
+	@Override
+	public void renameRelationship(SQLRelationship oldFK, SQLRelationship newFK) {
+		println("/* Renaming foreign key " + oldFK.getPhysicalName() + " to " + newFK.getPhysicalName() + " */");
+		dropRelationship(oldFK);
+		addRelationship(newFK);
+	}
+
+	@Override
+	public void renameIndex(SQLIndex oldIndex, SQLIndex newIndex) throws SQLObjectException {
+		println("/* Renaming index " + oldIndex.getPhysicalName() + " to " + newIndex.getPhysicalName() + " */");
+		dropIndex(oldIndex);
+		addIndex(newIndex);
+	}
+	
     /**
      * Overridden because MySQL doesn't allow the naming of PK constraints. This
      * version's text begins with "PRIMARY KEY" and is otherwise the same as the

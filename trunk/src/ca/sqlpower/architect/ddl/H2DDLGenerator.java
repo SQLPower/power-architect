@@ -26,10 +26,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.sqlobject.SQLType;
+import java.util.Map;
 
 /**
  * Implements the quirks required for successful DDL generation that targets
@@ -151,5 +153,23 @@ public class H2DDLGenerator extends GenericDDLGenerator {
     public String toString() {
         return "SQL Power H2 DDL Generator " + GENERATOR_VERSION;
     }
+
+	/**
+	 * Generate the SQL to rename a column.
+	 * 
+	 * @param oldTable
+	 * @param newTable
+	 */
+	public void renameColumn(SQLColumn oldCol, SQLColumn newCol) {
+		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
+		print("\nALTER TABLE ");
+		print(toQualifiedName(oldCol.getParent()));
+		print(" ALTER COLUMN ");
+		print(createPhysicalName(colNameMap, oldCol));
+        print(" RENAME TO ");
+		print(createPhysicalName(colNameMap, newCol));
+		endStatement(DDLStatement.StatementType.ALTER, newCol);
+    }
+
 
 }

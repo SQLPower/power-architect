@@ -296,6 +296,11 @@ public class GenericDDLGenerator implements DDLGenerator {
 		println("-- Would Create Database "+db.getName()+" here. --");
 	}
 
+	public void renameRelationship(SQLRelationship oldFK, SQLRelationship newFK) {
+        dropRelationship(oldFK);
+		addRelationship(newFK);
+	}
+
 	public void dropRelationship(SQLRelationship r) {
 
 		print("\nALTER TABLE ");
@@ -577,6 +582,19 @@ public class GenericDDLGenerator implements DDLGenerator {
         }
     }
 
+	/**
+	 * Generate the SQL to rename a table.
+	 * <br/>
+	 * The default implementation works for PostgreSQL, Oracle, HSQLDB, H2
+	 * 
+	 * @param oldTable
+	 * @param newTable
+	 */
+    public void renameTable(SQLTable oldTable, SQLTable newTable) {
+        println("ALTER TABLE " + oldTable.getPhysicalName() + " RENAME TO " + newTable.getPhysicalName());
+        endStatement(DDLStatement.StatementType.ALTER, newTable);
+    }
+
     public void addComment(SQLObject o) {
         // TODO: move remarks storage to SQLObject in order to support comments for all object types
     }
@@ -640,8 +658,26 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print("\n");
 	}
 
+	/**
+	 * Generate the SQL to rename a column.
+	 * <br/>
+	 * The default implementation works for PostgreSQL, Oracle
+	 * @param oldTable
+	 * @param newTable
+	 */
+	public void renameColumn(SQLColumn oldCol, SQLColumn newCol) {
+		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
+		print("\nALTER TABLE ");
+		print(toQualifiedName(oldCol.getParent()));
+		print(" RENAME COLUMN ");
+		print(createPhysicalName(colNameMap, oldCol));
+        print(" TO ");
+		print(createPhysicalName(colNameMap, newCol));
+		endStatement(DDLStatement.StatementType.ALTER, oldCol);
+    }
+
 	public void addColumn(SQLColumn c) {
-		Map colNameMap = new HashMap();
+		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
 		print("\nALTER TABLE ");
 		print(toQualifiedName(c.getParent()));
 		print(" ADD COLUMN ");
@@ -651,7 +687,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 
 	public void dropColumn(SQLColumn c) {
-		Map colNameMap = new HashMap();
+		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
 		print("\nALTER TABLE ");
 		print(toQualifiedName(c.getParent()));
 		print(" DROP COLUMN ");
@@ -1335,6 +1371,35 @@ public class GenericDDLGenerator implements DDLGenerator {
 			print(sqlStatement.toString());
 			endStatement(DDLStatement.StatementType.CREATE,t);
 		}
+	}
+
+	/**
+	 * Drop the specified index.
+	 * <br/>
+	 * The default implementation should work for all databases.
+	 * 
+	 * @param index the index to drop.
+	 * @throws SQLObjectException
+	 */
+	public void dropIndex(SQLIndex index) throws SQLObjectException {
+		print("DROP INDEX ");
+		println(toQualifiedName(index));
+		endStatement(DDLStatement.StatementType.DROP, index);
+	}
+
+	/**
+	 * Rename an index.
+	 * The default implementation works for PostgreSQL, Oracle, H2, HSQLDB
+	 * @param oldIndex
+	 * @param newIndex
+	 * @throws SQLObjectException
+	 */
+	public void renameIndex(SQLIndex oldIndex, SQLIndex newIndex) throws SQLObjectException {
+		print("ALTER INDEX ");
+		print(toQualifiedName(oldIndex));
+		print(" RENAME TO ");
+		println(toQualifiedName(newIndex.getName()));
+		endStatement(DDLStatement.StatementType.ALTER, oldIndex);
 	}
 
     /**
