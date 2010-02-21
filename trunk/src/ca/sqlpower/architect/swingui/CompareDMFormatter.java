@@ -33,10 +33,12 @@ import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
+import org.apache.commons.lang.StringUtils;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.ddl.LiquibaseDDLGenerator;
 import ca.sqlpower.architect.diff.ArchitectDiffException;
 import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
@@ -113,9 +115,11 @@ public class CompareDMFormatter {
                 SQLSchema sch = (SQLSchema) dmSetting.getSourceSettings().getSchemaObject();
                 gen.setTargetCatalog(cat == null ? null : cat.getPhysicalName());
                 gen.setTargetSchema(sch == null ? null : sch.getPhysicalName());
-            }
+            } else if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.LIQUIBASE)) {
+				gen = new LiquibaseDDLGenerator();
+			}
           
-           if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
+           if (gen != null) {
 
                 List<DiffChunk<SQLObject>> addRelationships = new ArrayList<DiffChunk<SQLObject>>();
                 List<DiffChunk<SQLObject>> dropRelationships = new ArrayList<DiffChunk<SQLObject>>();
@@ -250,7 +254,7 @@ public class CompareDMFormatter {
                 }
             } else if (chunk.getType() == DiffType.SAME) {
                 //do nothing when they're the same
-            } else {
+                } else {
                 throw new IllegalStateException("DiffChunk is an invalid type.");
             }
         }
