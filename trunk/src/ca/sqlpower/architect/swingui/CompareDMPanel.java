@@ -154,6 +154,8 @@ public class CompareDMPanel extends JPanel {
 
 	private static final String OUTPUT_SQL = "OUTPUT_SQL"; //$NON-NLS-1$
 
+	private static final String OUTPUT_LIQUIBASE = "OUTPUT_LIQUIBASE"; //$NON-NLS-1$
+
 	public static final String DBCS_DIALOG_TITLE = Messages.getString("CompareDMPanel.dbcsDialogTitle"); //$NON-NLS-1$
 
 	private JProgressBar progressBar;
@@ -169,6 +171,8 @@ public class CompareDMPanel extends JPanel {
 	private JRadioButton sqlButton;
 
 	private JRadioButton englishButton;
+
+	private JRadioButton liquibaseButton;
     
     private JCheckBox showNoChanges;
 
@@ -791,6 +795,11 @@ public class CompareDMPanel extends JPanel {
 
 		}
 
+
+		public boolean isModelWithUUID() {
+			return playPenRadio.isSelected() || loadRadio.isSelected();
+		}
+
 		/**
 		 * Figures out which SQLObject holds the tables we want to compare, and
 		 * returns it.
@@ -1015,7 +1024,13 @@ public class CompareDMPanel extends JPanel {
 		englishButton.setActionCommand(OUTPUT_ENGLISH);
 		englishButton.setSelected(true);
 		englishButton.addActionListener(listener);
-        
+
+		liquibaseButton = new JRadioButton();
+		liquibaseButton.setName(OUTPUT_LIQUIBASE); //$NON-NLS-1$
+		liquibaseButton.setActionCommand(OUTPUT_LIQUIBASE);
+		liquibaseButton.setSelected(false);
+		liquibaseButton.addActionListener(listener);
+		
         showNoChanges = new JCheckBox();
         showNoChanges.setName("showNoChanges"); //$NON-NLS-1$
         showNoChanges.setSelected(false);
@@ -1024,6 +1039,7 @@ public class CompareDMPanel extends JPanel {
 		ButtonGroup outputGroup = new ButtonGroup();
 		outputGroup.add(sqlButton);
 		outputGroup.add(englishButton);
+		outputGroup.add(liquibaseButton);
 
 		startCompareAction = new StartCompareAction();
 		startCompareAction.setEnabled(false);
@@ -1093,6 +1109,13 @@ public class CompareDMPanel extends JPanel {
 		builder.appendRow("pref"); //$NON-NLS-1$
 		builder.nextLine(2);
 		builder.nextColumn(2);
+		builder.append(liquibaseButton);
+		builder.append(Messages.getString("CompareDMPanel.liqubaseScript")); //$NON-NLS-1$
+
+		builder.appendRow(builder.getLineGapSpec());
+		builder.appendRow("pref"); //$NON-NLS-1$
+		builder.nextLine(2);
+		builder.nextColumn(2);
 		builder.append(englishButton);
 		builder.append(Messages.getString("CompareDMPanel.englishDescriptions")); //$NON-NLS-1$
 
@@ -1153,6 +1176,9 @@ public class CompareDMPanel extends JPanel {
 			if (e.getActionCommand().equals(OUTPUT_SQL)) {
 				cb.setEnabled(true);
                 showNoChanges.setEnabled(false);
+			} else if (e.getActionCommand().equals(OUTPUT_LIQUIBASE)) {
+				cb.setEnabled(false);
+                showNoChanges.setEnabled(false);
 			} else {
 				cb.setEnabled(false);
                 showNoChanges.setEnabled(true);
@@ -1176,6 +1202,7 @@ public class CompareDMPanel extends JPanel {
 			startCompareAction.setEnabled(false);
 			sqlButton.setEnabled(false);
 			englishButton.setEnabled(false);
+			liquibaseButton.setEnabled(false);
 			if (sqlButton.isSelected()) {
 			    sqlTypeDropdown.setEnabled(false);
 			} else {
@@ -1205,6 +1232,7 @@ public class CompareDMPanel extends JPanel {
 					targetTables = new ArrayList<SQLTable>();
 				}
 
+				boolean useUUID = source.isModelWithUUID() && target.isModelWithUUID();
 				sourceComp = new CompareSQL(sourceTables,
 						targetTables);
 				targetComp = new CompareSQL(targetTables,
@@ -1290,6 +1318,7 @@ public class CompareDMPanel extends JPanel {
 		private void reenableGUIComponents() {
 		    sqlButton.setEnabled(true);
             englishButton.setEnabled(true);
+			liquibaseButton.setEnabled(true);
             if (sqlButton.isSelected()) {
                 sqlTypeDropdown.setEnabled(true);
             } else {
@@ -1307,7 +1336,13 @@ public class CompareDMPanel extends JPanel {
 	public void copySettingsToProject() {
 		CompareDMSettings s = session.getCompareDMSettings();
 		s.setSaveFlag(true);
-		s.setOutputFormat(englishButton.isSelected()?CompareDMSettings.OutputFormat.ENGLISH:CompareDMSettings.OutputFormat.SQL);
+		if (englishButton.isSelected()) {
+			s.setOutputFormat(CompareDMSettings.OutputFormat.ENGLISH);
+		} else if (sqlButton.isSelected()) {
+			s.setOutputFormat(CompareDMSettings.OutputFormat.SQL);
+		} else if (liquibaseButton.isSelected()) {
+			s.setOutputFormat(CompareDMSettings.OutputFormat.LIQUIBASE);
+		}
 		s.setSuppressSimilarities(showNoChanges.isSelected());
         
         Class<? extends DDLGenerator> selectedGenerator = 
@@ -1368,7 +1403,10 @@ public class CompareDMPanel extends JPanel {
 
 		if ( s.getOutputFormat() == CompareDMSettings.OutputFormat.SQL)
 			sqlButton.doClick();
-        
+
+		if ( s.getOutputFormat() == CompareDMSettings.OutputFormat.LIQUIBASE)
+			liquibaseButton.doClick();
+
         showNoChanges.setSelected(s.getSuppressSimilarities());
 
         sqlTypeDropdown.setSelectedItem(s.getDdlGenerator());

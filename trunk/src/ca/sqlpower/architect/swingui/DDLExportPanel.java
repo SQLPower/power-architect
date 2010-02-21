@@ -36,11 +36,14 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.ddl.LiquibaseDDLGenerator;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.swingui.DataEntryPanel;
+import javax.swing.JCheckBox;
+import javax.swing.JRadioButton;
 
 
 public class DDLExportPanel implements DataEntryPanel {
@@ -58,7 +61,7 @@ public class DDLExportPanel implements DataEntryPanel {
      * are all of type <tt>Class&lt;? extends DDLGenerator&gt;</tt>.
      */
     private JComboBox dbType;
-	
+	private JCheckBox liquibaseCheckbox;
 	private JLabel catalogLabel;
 	private JTextField catalogField;
 
@@ -90,6 +93,7 @@ public class DDLExportPanel implements DataEntryPanel {
 	private void setup() {		
         panel.setLayout(new FormLayout());
         JPanel panelProperties = new JPanel(new FormLayout());
+
         panelProperties.add(new JLabel(Messages.getString("DDLExportPanel.createInLabel"))); //$NON-NLS-1$
 
         panelProperties.add(targetDB = new JComboBox());
@@ -136,16 +140,28 @@ public class DDLExportPanel implements DataEntryPanel {
 						setUpCatalogAndSchemaFields();
 				}
 			});
-        
+			
         panelProperties.add(catalogLabel = new JLabel(Messages.getString("DDLExportPanel.targetCatalog"))); //$NON-NLS-1$
         panelProperties.add(catalogField = new JTextField(ddlg.getTargetCatalog()));
         panelProperties.add(schemaLabel = new JLabel(Messages.getString("DDLExportPanel.targetSchema"))); //$NON-NLS-1$
         panelProperties.add(schemaField = new JTextField(ddlg.getTargetSchema()));
         panel.add(panelProperties);
         panel.add(newTargetDB);
-		
+
+        panel.add(liquibaseCheckbox = new JCheckBox(Messages.getString("DDLExportPanel.liqubaseScript"))); //$NON-NLS-1$
+		panel.add(new JPanel()); //dummy component to keep the two-column layout
+
+
+		liquibaseCheckbox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				setUpCatalogAndSchemaFields();
+				dbType.setEnabled(!liquibaseCheckbox.isSelected());
+				targetDB.setEnabled(!liquibaseCheckbox.isSelected());
+				newTargetDB.setEnabled(!liquibaseCheckbox.isSelected());
+			}
+		});
+
 		setUpCatalogAndSchemaFields();
-        
 	}
     
     /**
@@ -157,7 +173,8 @@ public class DDLExportPanel implements DataEntryPanel {
 	private void setUpCatalogAndSchemaFields() {
 		Class<? extends DDLGenerator> selectedGeneratorClass = null;
 		try {
-			selectedGeneratorClass = (Class<? extends DDLGenerator>) dbType.getSelectedItem();
+			selectedGeneratorClass = getSelectedGeneratorClass();
+
 			DDLGenerator newGen = selectedGeneratorClass.newInstance();
 			if (newGen.getCatalogTerm() != null) {
 				catalogLabel.setText(newGen.getCatalogTerm());
@@ -190,13 +207,30 @@ public class DDLExportPanel implements DataEntryPanel {
 		}
 	}
 
+	private Class<? extends DDLGenerator> getSelectedGeneratorClass() {
+		if (liquibaseCheckbox.isSelected()) {
+			return LiquibaseDDLGenerator.class;
+		} else {
+			return (Class<? extends DDLGenerator>) dbType.getSelectedItem();
+		}
+	}
+
+	public DDLGenerator getGenerator() {
+		Class<? extends DDLGenerator> genClass = getSelectedGeneratorClass();
+		try {
+			return genClass.newInstance();
+		} catch (Exception ex) {
+			logger.error("Problem creating user-selected DDL generator", ex); //$NON-NLS-1$
+			throw new RuntimeException(Messages.getString("DDLExportPanel.couldNotCreateDdlGenerator"), ex); //$NON-NLS-1$
+		}
+	}
+
 	// ------------------------ Architect Panel Stuff -------------------------
 	public boolean applyChanges() {
 	    disconnect();
 		DDLGenerator ddlg = session.getDDLGenerator();
-		Class<? extends DDLGenerator> selectedGeneratorClass =
-            (Class<? extends DDLGenerator>) dbType.getSelectedItem();
-		if (ddlg.getClass() != selectedGeneratorClass) {
+		Class<? extends DDLGenerator> selectedGeneratorClass = getSelectedGeneratorClass();
+		if (ddlg.getClass() != selectedGeneratorClass && selectedGeneratorClass != LiquibaseDDLGenerator.class) {
 			try {
 				ddlg = selectedGeneratorClass.newInstance();
 				session.setDDLGenerator(ddlg);
