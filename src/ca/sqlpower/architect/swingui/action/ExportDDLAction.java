@@ -82,7 +82,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                 try {
                     if (ddlPanel.applyChanges()) {
 
-                        DDLGenerator ddlg = session.getDDLGenerator();
+                        DDLGenerator ddlg = ddlPanel.getGenerator();
                         ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
                         
                         boolean done = false;

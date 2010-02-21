@@ -24,7 +24,7 @@ import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
 public class CompareDMSettings {
 	
 	public enum DatastoreType { PROJECT, DATABASE, FILE; }
-	public enum OutputFormat { SQL, ENGLISH; }
+	public enum OutputFormat { SQL, ENGLISH, LIQUIBASE; }
 
     /**
      * The DDL Generator class the user has chosen.  This option
