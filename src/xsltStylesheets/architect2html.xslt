@@ -294,9 +294,6 @@
     <xsl:when test="$type-id = 1">
       <xsl:text>CHAR</xsl:text>
     </xsl:when>
-    <xsl:when test="$type-id = -15">
-      <xsl:text>NCHAR</xsl:text>
-    </xsl:when>
     <xsl:when test="$type-id = 4">
       <xsl:text>INTEGER</xsl:text>
     </xsl:when>
@@ -330,8 +327,14 @@
     <xsl:when test="$type-id = 3">
       <xsl:text>DECIMAL(</xsl:text><xsl:value-of select="$precision"/><xsl:text>,</xsl:text><xsl:value-of select="$scale"/><xsl:text>)</xsl:text>
     </xsl:when>
+    <xsl:when test="$type-id = -15">
+      <xsl:text>NCHAR(</xsl:text><xsl:value-of select="$precision"/><xsl:text>)</xsl:text>
+    </xsl:when>
     <xsl:when test="$type-id = 12">
       <xsl:text>VARCHAR(</xsl:text><xsl:value-of select="$precision"/><xsl:text>)</xsl:text>
+    </xsl:when>
+    <xsl:when test="$type-id = -9">
+      <xsl:text>NVARCHAR(</xsl:text><xsl:value-of select="$precision"/><xsl:text>)</xsl:text>
     </xsl:when>
     <xsl:otherwise>
         <xsl:text>[</xsl:text><xsl:value-of select="$type-id"/><xsl:text>]</xsl:text>
