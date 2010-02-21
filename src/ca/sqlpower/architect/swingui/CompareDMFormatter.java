@@ -149,7 +149,7 @@ public class CompareDMFormatter {
             }
            
             // get the title string for the compareDMFrame
-            if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
+            if (gen !=null) {
                 String titleString = "Generated SQL Script to turn "+ toTitleText(true, left)
                 + " into " + toTitleText(false, right);
 
