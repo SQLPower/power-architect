@@ -267,8 +267,12 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 //The operation is successful
                 index.makeColumnsLike(indexCopy);
                 SQLTable parentTable = parent;
-                index.setName(name.getText());
-                index.setUnique(unique.isSelected());
+                index.setName(name.getText().trim());
+
+				// make the physical name identitical as long as there  is
+				// no separate input field for it
+				index.setPhysicalName(name.getText().trim());
+				index.setUnique(unique.isSelected());
                 index.setClustered(clustered.isSelected());
                 if (indexType.getSelectedItem().toString().equals(DEFAULT_INDEX_TYPE)) {
                     index.setType(null);
