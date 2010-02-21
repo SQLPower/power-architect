@@ -26,10 +26,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
+import java.util.Map;
 
 /**
  * Implements the quirks required for successful DDL generation that targets
@@ -195,4 +197,23 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
         print(c.getRemarks().replaceAll(REGEX_CRLF, "\n-- "));
         endStatement(DDLStatement.StatementType.COMMENT, c);
     }
+
+	/**
+	 * Generate the SQL to rename a column.
+	 * <br/>
+	 * The default implementation works for PostgreSQL, Oracle
+	 * @param oldTable
+	 * @param newTable
+	 */
+	public void renameColumn(SQLColumn oldCol, SQLColumn newCol) {
+		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
+		print("\nALTER TABLE ");
+		print(toQualifiedName(oldCol.getParent()));
+		print(" ALTER COLUMN ");
+		print(createPhysicalName(colNameMap, oldCol));
+        print(" RENAME TO ");
+		print(createPhysicalName(colNameMap, newCol));
+		endStatement(DDLStatement.StatementType.ALTER, newCol);
+    }
+
 }

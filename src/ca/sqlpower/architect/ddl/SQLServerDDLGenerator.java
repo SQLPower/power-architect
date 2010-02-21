@@ -30,12 +30,14 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import java.util.Map;
 
 /**
  * The base class for version-specific SQL Server DDL generators. This class is
@@ -520,4 +522,52 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         +" DROP CONSTRAINT "
         +fkName;
     }
+
+	@Override
+	public void renameColumn(SQLColumn oldCol, SQLColumn newCol) {
+		Map<String, SQLObject> empty = new HashMap<String, SQLObject>(0);
+		print("sp_rename @objname='");
+		print(toQualifiedName(oldCol.getParent()));
+		print(".");
+		print(createPhysicalName(empty, oldCol));
+		print("', @newname='");
+		print(createPhysicalName(empty, newCol));
+		print("', @objtype='COLUMN'");
+		endStatement(DDLStatement.StatementType.ALTER, newCol);
+	}
+
+	@Override
+	public void renameIndex(SQLIndex oldIndex, SQLIndex newIndex) throws SQLObjectException {
+		Map<String, SQLObject> empty = new HashMap<String, SQLObject>(0);
+		print("sp_rename @objname='");
+		print(toQualifiedName(oldIndex));
+		print("', @newname='");
+		print(toQualifiedName(newIndex));
+		print("', @objtype='INDEX'");
+		endStatement(DDLStatement.StatementType.ALTER, newIndex);
+	}
+
+	@Override
+	public void renameRelationship(SQLRelationship oldFK, SQLRelationship newFK) {
+		Map<String, SQLObject> empty = new HashMap<String, SQLObject>(0);
+		print("sp_rename @objname='");
+		print(createPhysicalName(empty, oldFK));
+		print("', @newname='");
+		print(createPhysicalName(empty, newFK));
+		println("', @objtype='OBJECT'");
+		endStatement(DDLStatement.StatementType.ALTER, newFK);
+	}
+
+	@Override
+	public void renameTable(SQLTable oldTable, SQLTable newTable) {
+		Map<String, SQLObject> empty = new HashMap<String, SQLObject>(0);
+		print("sp_rename @objname='");
+		print(createPhysicalName(empty, oldTable));
+		print("', @newname='");
+		print(createPhysicalName(empty, newTable));
+		println("'");
+		endStatement(DDLStatement.StatementType.ALTER, newTable);
+	}
+
+
 }
