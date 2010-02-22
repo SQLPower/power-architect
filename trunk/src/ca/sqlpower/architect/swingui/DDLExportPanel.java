@@ -25,6 +25,7 @@ import java.awt.event.ItemListener;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -42,8 +43,6 @@ import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.swingui.DataEntryPanel;
-import javax.swing.JCheckBox;
-import javax.swing.JRadioButton;
 
 
 public class DDLExportPanel implements DataEntryPanel {

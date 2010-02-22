@@ -1231,12 +1231,12 @@ public class CompareDMPanel extends JPanel {
 				} else {
 					targetTables = new ArrayList<SQLTable>();
 				}
+               
+				sourceComp = new CompareSQL(sourceTables, targetTables, 
+				        session.getCompareDMSettings().getSuppressSimilarities());
+				targetComp = new CompareSQL(targetTables, sourceTables, 
+				        session.getCompareDMSettings().getSuppressSimilarities());
 
-				boolean useUUID = source.isModelWithUUID() && target.isModelWithUUID();
-				sourceComp = new CompareSQL(sourceTables,
-						targetTables);
-				targetComp = new CompareSQL(targetTables,
-						sourceTables);
 			} catch (SQLObjectException ex) {
 			    ASUtils.showExceptionDialog(session,
 			            Messages.getString("CompareDMPanel.couldNotBeginDiffProcess"), ex); //$NON-NLS-1$
@@ -1269,9 +1269,9 @@ public class CompareDMPanel extends JPanel {
 	                }
 	                setJobSize(sourceComp.getJobSize() + targetComp.getJobSize());
 	                logger.debug("Generating TableDiffs for source");
-					diff = sourceComp.generateTableDiffs();
-					logger.debug("Generating TableDiffs for target");
-					diff1 = targetComp.generateTableDiffs();
+	                diff = sourceComp.generateTableDiffs();
+	                logger.debug("Generating TableDiffs for target");
+	                diff1 = targetComp.generateTableDiffs();
 					message = "Finished";
 					logger.debug("Finished Compare");
 				}
@@ -1286,8 +1286,15 @@ public class CompareDMPanel extends JPanel {
                         return;
                     }
 					logger.debug("cleanup starts"); //$NON-NLS-1$
-                    CompareDMFormatter dmFormat = new CompareDMFormatter(session, parentDialog, session.getCompareDMSettings());
-                    dmFormat.format(diff, diff1, left, right);
+                    CompareDMFormatter dmFormat = new CompareDMFormatter(session, parentDialog, session.getCompareDMSettings());                  
+                    if (session.getCompareDMSettings().getOutputFormat() == CompareDMSettings.OutputFormat.SQL) {
+                        dmFormat.formatForSQLOutput((List<DiffChunk<SQLObject>>) diff, 
+                                (List<DiffChunk<SQLObject>>) diff1, left, right);
+                    } else if (session.getCompareDMSettings().getOutputFormat() == CompareDMSettings.OutputFormat.ENGLISH) {
+                        dmFormat.formatForEnglishOutput(diff, diff1, left, right);
+                    } else {
+                        throw new IllegalStateException("Don't know what type of output to make");
+                    }
                     logger.debug("cleanup finished"); //$NON-NLS-1$
 				}
 

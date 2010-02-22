@@ -108,14 +108,14 @@ public class CompareSQLTest extends TestCase {
 		List <SQLTable> list1 = new ArrayList();
 		
 		CompareSQL compare1 = new CompareSQL ((Collection<SQLTable>)list1,
-												(Collection<SQLTable>)list1);
+												(Collection<SQLTable>)list1, false);
 		List<DiffChunk<SQLObject>> nullChecker = compare1.generateTableDiffs();
 		assertEquals (0, nullChecker.size());
 		
 		
 		//Testing diff chunk with one table and nothing;
 		CompareSQL compareWorker = new CompareSQL((Collection<SQLTable>)listWithATable,
-													(Collection<SQLTable>)list1);
+													(Collection<SQLTable>)list1, false);
 		List<DiffChunk<SQLObject>> tableAndNull = compareWorker.generateTableDiffs();
 		assertEquals (1,tableAndNull.size());
 		assertEquals (DiffType.LEFTONLY, tableAndNull.get(0).getType());
@@ -124,7 +124,7 @@ public class CompareSQLTest extends TestCase {
 		
 		//Testing diff chunk with two list that has the same properties
 		CompareSQL compareWorker1 = new CompareSQL((Collection<SQLTable>)listWithATable,
-													(Collection<SQLTable>)listWithATable);
+													(Collection<SQLTable>)listWithATable, false);
 		List<DiffChunk<SQLObject>> exactlySameTable = compareWorker1.generateTableDiffs();
 		assertEquals (1,exactlySameTable.size());
 		assertEquals (DiffType.SAME, exactlySameTable.get(0).getType());
@@ -141,7 +141,7 @@ public class CompareSQLTest extends TestCase {
 		list1.add(tableNoColumn2);
 		
 		CompareSQL compareWorker2 = new CompareSQL((Collection<SQLTable>)listWithATable,
-				(Collection<SQLTable>)list1);
+				(Collection<SQLTable>)list1, false);
 		List<DiffChunk<SQLObject>> differentProp = compareWorker2.generateTableDiffs();
 		assertEquals (3,differentProp.size());
 		
@@ -164,7 +164,7 @@ public class CompareSQLTest extends TestCase {
 		tableList1.add(table1);
 		CompareSQL worker1 = new CompareSQL(
 				(Collection<SQLTable>)tableList1,
-				(Collection<SQLTable>)tableList2);
+				(Collection<SQLTable>)tableList2, false);
 		List<DiffChunk<SQLObject>> tableWithColumnAndNothing = worker1.generateTableDiffs();
 		assertEquals (1,tableWithColumnAndNothing.size());
 		
@@ -175,7 +175,7 @@ public class CompareSQLTest extends TestCase {
 		
 		//Testing tables with the same column 
 		CompareSQL worker2 = new CompareSQL((Collection<SQLTable>)tableList1,
-				(Collection<SQLTable>)tableList1);
+				(Collection<SQLTable>)tableList1, false);
 		List<DiffChunk<SQLObject>> sameTablesWithColumns = worker2.generateTableDiffs();
 		assertEquals (3,sameTablesWithColumns.size());
 		
@@ -198,11 +198,13 @@ public class CompareSQLTest extends TestCase {
 		List<SQLTable>tempList = new ArrayList();
 		tempList.add(table1NoColumn);
 		CompareSQL worker3 = new CompareSQL((Collection<SQLTable>)tempList,
-				(Collection<SQLTable>)tableList1);
+				(Collection<SQLTable>)tableList1, false);
 		List<DiffChunk<SQLObject>> diffTest = worker3.generateTableDiffs();
 		
-		assertEquals (3, diffTest.size());
-		assertEquals (DiffType.SAME, diffTest.get(0).getType());
+		assertEquals (3, diffTest.size());		
+		assertEquals (DiffType.SQL_MODIFIED, diffTest.get(0).getType());
+		assertEquals (1, diffTest.get(0).getPropertyChanges().size());
+		assertEquals ("remarks", diffTest.get(0).getPropertyChanges().get(0).getPropertyName());
 		assertEquals (SQLTable.class, diffTest.get(0).getData().getClass());
 		assertEquals ("tableWithColumn1", diffTest.get(0).getData().getName());
 		
@@ -229,12 +231,14 @@ public class CompareSQLTest extends TestCase {
 		tableList2.add(table3);
 		
 		CompareSQL worker4 = new CompareSQL((Collection<SQLTable>)tableList1,
-				(Collection<SQLTable>)tableList2);
+				(Collection<SQLTable>)tableList2, false);
 		List<DiffChunk<SQLObject>> manyProperties = worker4.generateTableDiffs();
 		System.out.println("-/|\\-"+manyProperties+"-/|\\-");
 		assertEquals (5, manyProperties.size());
 		
-		assertEquals (DiffType.SAME, manyProperties.get(0).getType());
+		assertEquals (DiffType.SQL_MODIFIED, manyProperties.get(0).getType());
+		assertEquals (1, manyProperties.get(0).getPropertyChanges().size());
+		assertEquals ("remarks", manyProperties.get(0).getPropertyChanges().get(0).getPropertyName());
 		assertEquals (SQLTable.class, manyProperties.get(0).getData().getClass());
 		assertEquals ("tableWithColumn1", manyProperties.get(0).getData().getName());
 		
@@ -242,7 +246,7 @@ public class CompareSQLTest extends TestCase {
 		assertEquals (SQLColumn.class, manyProperties.get(1).getData().getClass());
 		assertEquals ("Column1", manyProperties.get(1).getData().getName());
 		
-		assertEquals (DiffType.MODIFIED, manyProperties.get(2).getType());
+		assertEquals (DiffType.SQL_MODIFIED, manyProperties.get(2).getType());
 		assertEquals (SQLColumn.class, manyProperties.get(2).getData().getClass());
 		assertEquals ("Column2", manyProperties.get(2).getData().getName());
 		
@@ -272,7 +276,7 @@ public class CompareSQLTest extends TestCase {
 		newList1.add(newTable2);
 		
 		CompareSQL worker1 = new CompareSQL((Collection<SQLTable>)newList1,
-				(Collection<SQLTable>)newList2);
+				(Collection<SQLTable>)newList2, false);
 		List<DiffChunk<SQLObject>> diffList = worker1.generateTableDiffs();
 		assertEquals (3, diffList.size());
 		assertEquals (DiffType.LEFTONLY, diffList.get(0).getType());
@@ -316,7 +320,7 @@ public class CompareSQLTest extends TestCase {
 		tableListR.add(newTable1R);
 		tableListR.add(newTable2R);
 		
-		CompareSQL cs = new CompareSQL(tableListL, tableListR);
+		CompareSQL cs = new CompareSQL(tableListL, tableListR, false);
 		List<DiffChunk<SQLObject>> diffs = cs.generateTableDiffs();
 		
 		for (DiffChunk<SQLObject> chunk : diffs) {
@@ -354,15 +358,14 @@ public class CompareSQLTest extends TestCase {
 		tableListR.add(newTable1R);
 		tableListR.add(newTable2R);
 		
-		CompareSQL cs = new CompareSQL(tableListL, tableListR);
+		CompareSQL cs = new CompareSQL(tableListL, tableListR, false);
 		List<DiffChunk<SQLObject>> diffs = cs.generateTableDiffs();
 		
 		for (DiffChunk<SQLObject> chunk : diffs) {
 			if (chunk.getData().getClass().equals(SQLRelationship.class)) {
-				//We now do not mind if the relationships have the same name
-				//We just consider the mappings
 				assertEquals("The relationships have different names",
-						DiffType.SAME, chunk.getType());
+						DiffType.MODIFIED, chunk.getType());
+				assertEquals(2, chunk.getPropertyChanges().size());
 			} else {
 				assertEquals(
 						"Diff list should be all same for non-relationship SQLObjects",
@@ -401,7 +404,7 @@ public class CompareSQLTest extends TestCase {
 		tableListR.add(newTable1R);
 		tableListR.add(newTable2R);
 		
-		CompareSQL cs = new CompareSQL(tableListL, tableListR);
+		CompareSQL cs = new CompareSQL(tableListL, tableListR, false);
 		List<DiffChunk<SQLObject>> diffs = cs.generateTableDiffs();
 		
 		boolean foundColMapDiff = false;
@@ -436,7 +439,7 @@ public class CompareSQLTest extends TestCase {
 		SQLTable t2 = makeTable(4);
 		list2.add(t2);
 				
-		CompareSQL sqlComparator = new CompareSQL(list1, list2);
+		CompareSQL sqlComparator = new CompareSQL(list1, list2, false);
 		List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
 		
 		
@@ -455,7 +458,7 @@ public class CompareSQLTest extends TestCase {
 			}
 			else if (dc.getData().getClass().equals(SQLColumn.class)){
 				if (((SQLObject) dc.getData()).getName().equals(c.getName())){
-					assertEquals(DiffType.MODIFIED, dc.getType());
+					assertEquals(DiffType.SQL_MODIFIED, dc.getType());
 				} else {
 					assertEquals (DiffType.SAME, dc.getType());
 				}
@@ -480,7 +483,7 @@ public class CompareSQLTest extends TestCase {
         t2.removeColumn(3);
         list2.add(t2);
                 
-        CompareSQL sqlComparator = new CompareSQL(list1, list2);
+        CompareSQL sqlComparator = new CompareSQL(list1, list2, false);
         List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
         
         
@@ -524,7 +527,7 @@ public class CompareSQLTest extends TestCase {
         SQLColumn c = t2.getColumn(3); 
         t2.addToPK(c);
                 
-        CompareSQL sqlComparator = new CompareSQL(list1, list2);
+        CompareSQL sqlComparator = new CompareSQL(list1, list2, false);
         List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
         
         
@@ -565,7 +568,7 @@ public class CompareSQLTest extends TestCase {
         SQLColumn c = t2.getColumn(3); 
         t2.addToPK(c);
                 
-        CompareSQL sqlComparator = new CompareSQL(list1, list2);
+        CompareSQL sqlComparator = new CompareSQL(list1, list2, false);
         List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
         
         
@@ -582,7 +585,7 @@ public class CompareSQLTest extends TestCase {
             }
             else if (dc.getData().getClass().equals(SQLColumn.class)){
                 if (((SQLObject) dc.getData()).getName().equals(c.getName())){
-                    assertEquals(DiffType.MODIFIED, dc.getType());
+                    assertEquals(DiffType.SQL_MODIFIED, dc.getType());
                 } else {
                     assertEquals (DiffType.SAME, dc.getType());
                 }
@@ -608,7 +611,7 @@ public class CompareSQLTest extends TestCase {
         SQLColumn c2 = t2.getColumn(2); 
         t2.addToPK(c2);
                 
-        CompareSQL sqlComparator = new CompareSQL(list1, list2);
+        CompareSQL sqlComparator = new CompareSQL(list1, list2, false);
         List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
         
         
@@ -627,7 +630,7 @@ public class CompareSQLTest extends TestCase {
             }
             else if (dc.getData().getClass().equals(SQLColumn.class)){
                 if (((SQLObject) dc.getData()).getName().equals(c1.getName()) || ((SQLObject) dc.getData()).getName().equals(c2.getName())){
-                    assertEquals(DiffType.MODIFIED, dc.getType());
+                    assertEquals(DiffType.SQL_MODIFIED, dc.getType());
                 } else {
                     assertEquals (DiffType.SAME, dc.getType());
                 }
