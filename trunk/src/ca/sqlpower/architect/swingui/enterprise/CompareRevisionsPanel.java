@@ -150,7 +150,7 @@ public class CompareRevisionsPanel {
         
         builder.setDefaultDialogBorder();
         panel = builder.getPanel();
-        panel.setPreferredSize(new Dimension(900, 500));
+        panel.setPreferredSize(new Dimension(900, 650));
         refreshPanel();
 
     }

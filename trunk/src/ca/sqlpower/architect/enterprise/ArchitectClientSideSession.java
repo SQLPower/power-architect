@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -354,8 +353,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                 
                 JSONObject json = jsonArray.getJSONObject(i);
                 TransactionInformation transaction = new TransactionInformation(
-                        json.getLong("number"),                        
-                        DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).parse(json.getString("time")),
+                        json.getLong("number"),                     
+                        TransactionInformation.DATE_FORMAT.parse(json.getString("time")),
                         json.getString("author"),
                         json.getString("description"));
                 transactions.add(transaction);

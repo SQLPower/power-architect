@@ -87,6 +87,10 @@ public class CompareDMFormatter {
         att = new SimpleAttributeSet();
         StyleConstants.setForeground(att, Color.orange);
         DIFF_STYLES.put(DiffType.MODIFIED, att);
+        
+        att = new SimpleAttributeSet();
+        StyleConstants.setForeground(att, Color.orange);
+        DIFF_STYLES.put(DiffType.SQL_MODIFIED, att);
 
         att = new SimpleAttributeSet();
         StyleConstants.setForeground(att, Color.blue);
@@ -260,11 +264,12 @@ public class CompareDMFormatter {
                 if (chunk.getData() instanceof SQLColumn) {
                     SQLColumn c = (SQLColumn) chunk.getData();
                     gen.modifyColumn(c);
-                } else if (chunk.getData() instanceof SQLTable) {
-                    SQLTable t = (SQLTable) chunk.getData();
-                    gen.modifyComment(t);
-                } else {
-                    throw new IllegalStateException("DiffChunk is an unexpected type.");
+                }
+                for (PropertyChange change : chunk.getPropertyChanges()) {
+                    if (change.getPropertyName().equals("remarks")) {
+                        gen.modifyComment(chunk.getData());
+                        break;
+                    }
                 }
             } else if (chunk.getType() == DiffType.SAME) {
                 //do nothing when they're the same
