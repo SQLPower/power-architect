@@ -40,7 +40,7 @@ import javax.swing.text.DefaultStyledDocument;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.swingui.CompareDMFormatter;
 import ca.sqlpower.diff.DiffChunk;
-import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.diff.DiffInfo;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -76,11 +76,11 @@ public class CompareRevisionsPanel {
             DefaultStyledDocument resultDoc = new DefaultStyledDocument();
             try {
                 if (oldRevisionNo >= 0 && newRevisionNo >= 0) {
-                    List<DiffChunk<SQLObject>> diff = session.getComparisonDiffChunks(oldRevisionNo, newRevisionNo);      
+                    List<DiffChunk<DiffInfo>> diff = session.getComparisonDiffChunks(oldRevisionNo, newRevisionNo);      
                     if (diff.size() == 0) {
                         resultDoc.insertString(0, "Revisions are identical", null);
                     } else {
-                        resultDoc = CompareDMFormatter.generateEnglishDescription(CompareDMFormatter.DIFF_STYLES, true, diff);
+                        resultDoc = CompareDMFormatter.generateEnglishDescription(CompareDMFormatter.DIFF_STYLES, diff);
                     }
                 } else {
                     JOptionPane.showMessageDialog(panel, "A revision must be selected from each table.");
