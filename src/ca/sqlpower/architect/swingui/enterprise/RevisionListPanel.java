@@ -137,7 +137,7 @@ public class RevisionListPanel {
         builder.setDefaultDialogBorder();
 
         panel = builder.getPanel();              
-        panel.setPreferredSize(new Dimension(700, 250));
+        panel.setPreferredSize(new Dimension(700, 500));
         
         refreshPanel();
         

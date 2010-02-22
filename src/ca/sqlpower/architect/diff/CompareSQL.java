@@ -225,7 +225,8 @@ public class CompareSQL implements Monitorable {
 				if (comparator.compare(sourceTable, targetTable) == 0) {	
                     List<PropertyChange> changes = generatePropertyChanges(sourceTable, targetTable);
                     if (changes.size() > 0) {
-                        if (sourceTable.getRemarks().equals(targetTable.getRemarks())) {
+                        if (sourceTable.getRemarks() == null && sourceTable.getRemarks() == null
+                                || sourceTable.getRemarks().equals(targetTable.getRemarks())) {
                             // If the remarks are the same, then don't generate SQL script
                             chunk = new DiffChunk<SQLObject>(sourceTable, DiffType.MODIFIED);   
                         } else {
