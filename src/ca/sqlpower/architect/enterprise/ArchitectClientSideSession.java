@@ -58,6 +58,7 @@ import ca.sqlpower.dao.json.SPJSONMessageDecoder;
 import ca.sqlpower.dao.json.SPJSONPersister;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.diff.DiffChunk;
+import ca.sqlpower.diff.DiffInfo;
 import ca.sqlpower.diff.SimpleDiffChunkJSONConverter;
 import ca.sqlpower.enterprise.TransactionInformation;
 import ca.sqlpower.enterprise.client.SPServerInfo;
@@ -69,7 +70,6 @@ import ca.sqlpower.sql.Olap4jDataSource;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SpecificDataSourceCollection;
-import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
@@ -416,7 +416,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	/**
      * Gets a list of DiffChunks representing the differences between the two revisions from the server.
      */
-	public List<DiffChunk<SQLObject>> getComparisonDiffChunks(int oldRevisionNo, int newRevisionNo) 
+	public List<DiffChunk<DiffInfo>> getComparisonDiffChunks(int oldRevisionNo, int newRevisionNo) 
 	throws IOException, URISyntaxException, JSONException, SPPersistenceException {
 	    
         SPServerInfo serviceInfo = projectLocation.getServiceInfo();
@@ -896,6 +896,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                     buffer.append(line).append("\n");
                 }
                 
+                logger.debug(buffer);
                 JSONObject message = new JSONObject(buffer.toString());
                 
                 // Does the response contain data? If so, return it. Communication
