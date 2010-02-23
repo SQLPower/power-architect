@@ -19,10 +19,8 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -53,7 +51,6 @@ import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
-import javax.swing.SwingUtilities;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 import javax.swing.event.DocumentEvent;
@@ -1631,8 +1628,6 @@ public class CompareDMPanel extends JPanel {
     private void associate(final JLabel l, final AbstractButton b) {
         l.addMouseListener(new MouseListener() {
             private void retarget(MouseEvent e) {
-                Point p = b.getLocation();
-                SwingUtilities.convertPointToScreen(p, (Component) e.getSource());
                 MouseEvent newEvent = new MouseEvent(
                         b,
                         e.getID(),
@@ -1640,8 +1635,6 @@ public class CompareDMPanel extends JPanel {
                         e.getModifiers(),
                         0,
                         0,
-                        p.x,
-                        p.y,
                         e.getClickCount(),
                         e.isPopupTrigger(),
                         e.getButton());
