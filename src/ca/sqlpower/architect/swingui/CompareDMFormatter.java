@@ -154,6 +154,8 @@ public class CompareDMFormatter {
                 gen.setTargetSchema(sch == null ? null : sch.getPhysicalName());
             } else if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.LIQUIBASE)) {
 				gen = new LiquibaseDDLGenerator();
+			} else {
+			    throw new IllegalStateException("Don't know what kind of SQL script to generate");
 			}
 
             List<DiffChunk<SQLObject>> addRelationships = new ArrayList<DiffChunk<SQLObject>>();
