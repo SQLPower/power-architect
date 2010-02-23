@@ -1304,14 +1304,17 @@ public class CompareDMPanel extends JPanel {
                         return;
                     }
 					logger.debug("cleanup starts"); //$NON-NLS-1$
-                    CompareDMFormatter dmFormat = new CompareDMFormatter(session, parentDialog, session.getCompareDMSettings());                  
-                    if (session.getCompareDMSettings().getOutputFormat() == CompareDMSettings.OutputFormat.SQL) {
-                        dmFormat.formatForSQLOutput((List<DiffChunk<SQLObject>>) diff, 
-                                (List<DiffChunk<SQLObject>>) diff1, left, right);
-                    } else if (session.getCompareDMSettings().getOutputFormat() == CompareDMSettings.OutputFormat.ENGLISH) {
+                    CompareDMFormatter dmFormat = new CompareDMFormatter(session, parentDialog, session.getCompareDMSettings());                   
+                    switch (session.getCompareDMSettings().getOutputFormat()) {
+                    case SQL:
+                    case LIQUIBASE:
+                        dmFormat.formatForSQLOutput(diff, diff1, left, right);
+                        break;
+                    case ENGLISH:
                         dmFormat.formatForEnglishOutput(diff, diff1, left, right);
-                    } else {
-                        throw new IllegalStateException("Don't know what type of output to make");
+                        break;
+                    default:
+                        throw new IllegalStateException("Don't know what type of output to make");                        
                     }
                     logger.debug("cleanup finished"); //$NON-NLS-1$
 				}
