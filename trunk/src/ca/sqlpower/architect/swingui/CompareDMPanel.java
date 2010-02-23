@@ -19,12 +19,16 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,6 +39,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -48,6 +53,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingUtilities;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 import javax.swing.event.DocumentEvent;
@@ -764,20 +770,24 @@ public class CompareDMPanel extends JPanel {
 
 			updatePlayPenNameLabel();
 			
+			JLabel temp;
+			
 			// now give all our shiny new components to the builder
 			builder.append(playPenRadio);
 			builder.append(playPenName, 7);
+			associate(playPenName, playPenRadio);
 			builder.nextLine();
 
 			builder.append(""); // takes up blank space //$NON-NLS-1$
 			builder.append(physicalRadio);
-			builder.append(Messages.getString("CompareDMPanel.physicalDatabaseLabel")); //$NON-NLS-1$
-			// builder.nextColumn(2);
+			temp = builder.append(Messages.getString("CompareDMPanel.physicalDatabaseLabel")); //$NON-NLS-1$
+			associate(temp, physicalRadio);
 			builder.append(catalogLabel = new JLabel(Messages.getString("CompareDMPanel.catalogLabel"))); //$NON-NLS-1$
 			builder.append(schemaLabel = new JLabel(Messages.getString("CompareDMPanel.schemaLabel"))); //$NON-NLS-1$
 			builder.appendRow(builder.getLineGapSpec());
 			builder.appendRow("pref"); //$NON-NLS-1$
 			builder.nextLine(2);
+			
 			builder.nextColumn(4);
 			builder.append(databaseDropdown);
 			builder.append(catalogDropdown, schemaDropdown, newConnButton);
@@ -785,8 +795,10 @@ public class CompareDMPanel extends JPanel {
 
 			builder.append(""); //$NON-NLS-1$
 			builder.append(loadRadio);
-			builder.append(Messages.getString("CompareDMPanel.fromFileLabel")); //$NON-NLS-1$
+			temp = builder.append(Messages.getString("CompareDMPanel.fromFileLabel")); //$NON-NLS-1$
+			associate(temp, loadRadio);
 			builder.nextLine();
+			
 			builder.append(""); // takes up blank space //$NON-NLS-1$
 			builder.add(loadFilePath, cc.xyw(5, builder.getRow(), 5));
 			builder.nextColumn(8);
@@ -794,7 +806,6 @@ public class CompareDMPanel extends JPanel {
 			builder.nextLine();
 
 		}
-
 
 		public boolean isModelWithUUID() {
 			return playPenRadio.isSelected() || loadRadio.isSelected();
@@ -1091,6 +1102,8 @@ public class CompareDMPanel extends JPanel {
 		target.physicalRadio.addActionListener(radioButtonActionEnabler);
 		target.loadRadio.addActionListener(radioButtonActionEnabler);
 
+		JLabel temp;
+		
 		builder.appendSeparator(Messages.getString("CompareDMPanel.outpurFormatSeparator")); //$NON-NLS-1$
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref"); //$NON-NLS-1$
@@ -1099,10 +1112,12 @@ public class CompareDMPanel extends JPanel {
 		builder.append(sqlButton);
 
 		JPanel ddlTypePanel = new JPanel(new BorderLayout(3, 3));
-		ddlTypePanel.add(new JLabel(Messages.getString("CompareDMPanel.sqlFor")), BorderLayout.WEST); //$NON-NLS-1$
+		ddlTypePanel.add(temp = new JLabel(Messages.getString("CompareDMPanel.sqlFor")), BorderLayout.WEST); //$NON-NLS-1$
+		associate(temp, sqlButton);
 		ddlTypePanel.add(sqlTypeDropdown, BorderLayout.CENTER); // ddl generator
 																// type list
-        ddlTypePanel.add(new JLabel(Messages.getString("CompareDMPanel.makeOlderLookLikeNewer")), BorderLayout.EAST); //$NON-NLS-1$
+        ddlTypePanel.add(temp = new JLabel(Messages.getString("CompareDMPanel.makeOlderLookLikeNewer")), BorderLayout.EAST); //$NON-NLS-1$
+        associate(temp, sqlButton);
 		builder.append(ddlTypePanel, 3);
 
 		builder.appendRow(builder.getLineGapSpec());
@@ -1110,21 +1125,24 @@ public class CompareDMPanel extends JPanel {
 		builder.nextLine(2);
 		builder.nextColumn(2);
 		builder.append(liquibaseButton);
-		builder.append(Messages.getString("CompareDMPanel.liqubaseScript")); //$NON-NLS-1$
-
+		temp = builder.append(Messages.getString("CompareDMPanel.liqubaseScript")); //$NON-NLS-1$
+		associate(temp, liquibaseButton);
+		
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref"); //$NON-NLS-1$
 		builder.nextLine(2);
 		builder.nextColumn(2);
 		builder.append(englishButton);
-		builder.append(Messages.getString("CompareDMPanel.englishDescriptions")); //$NON-NLS-1$
-
+		temp = builder.append(Messages.getString("CompareDMPanel.englishDescriptions")); //$NON-NLS-1$
+		associate(temp, englishButton);
+		
         builder.appendRow(builder.getLineGapSpec());
         builder.appendRow("pref"); //$NON-NLS-1$
         builder.nextLine(2);
         builder.nextColumn(2);
 		builder.append(showNoChanges);
-        builder.append(Messages.getString("CompareDMPanel.suppressSimilarities")); //$NON-NLS-1$
+        temp = builder.append(Messages.getString("CompareDMPanel.suppressSimilarities")); //$NON-NLS-1$
+        associate(temp, showNoChanges);
         builder.nextLine();
 
 		builder.appendSeparator(Messages.getString("CompareDMPanel.status")); //$NON-NLS-1$
@@ -1595,4 +1613,43 @@ public class CompareDMPanel extends JPanel {
             
         }
 	}
+	
+    /**
+     * Associates the given label with the given button, so that mouse
+     * events on the label behave as if they were clicks on the button. We
+     * need this because of the funny way the radio buttons and checkboxes
+     * on this panel are laid out.
+     * 
+     * @param l
+     *            The label that should be clickable like the button.
+     * @param b
+     *            The button that should receive the label's clicks.
+     */
+    private void associate(final JLabel l, final AbstractButton b) {
+        l.addMouseListener(new MouseListener() {
+            private void retarget(MouseEvent e) {
+                Point p = b.getLocation();
+                SwingUtilities.convertPointToScreen(p, (Component) e.getSource());
+                MouseEvent newEvent = new MouseEvent(
+                        b,
+                        e.getID(),
+                        e.getWhen(),
+                        e.getModifiers(),
+                        0,
+                        0,
+                        p.x,
+                        p.y,
+                        e.getClickCount(),
+                        e.isPopupTrigger(),
+                        e.getButton());
+                b.dispatchEvent(newEvent);
+            }
+            public void mouseReleased(MouseEvent e) { retarget(e); }
+            public void mousePressed(MouseEvent e)  { retarget(e); }
+            public void mouseExited(MouseEvent e)   { retarget(e); }
+            public void mouseEntered(MouseEvent e)  { retarget(e); }
+            public void mouseClicked(MouseEvent e)  { retarget(e); }
+        });
+    }
+
 }
