@@ -876,57 +876,47 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	private static class JSONResponseHandler implements ResponseHandler<JSONMessage> {
 
 	    /*
-	     * Responses from the architect-enterprise resources should always be bundled as
-	     * a JSON object of the form {"responseKind":(data or exception),"data":(data or stackTrace)}.
-	     * 
-	     * This is an extension of the basic response handler which returns data (if found), or 
-	     * reads, reconstructs, and re-throws an exception from a resource.
+	     * Unsuccessful responses should have information sent in a header, 
+	     * either as "unsuccessfulResponse" or "exceptionStackTrace"
 	     */
-	    
-        public JSONMessage handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-            try {
-                
-                BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(response.getEntity().getContent()));
-                StringBuffer buffer = new StringBuffer();
-                
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line).append("\n");
-                }
-                
-                logger.debug(buffer);
-                JSONObject message = new JSONObject(buffer.toString());
-                
-                // Does the response contain data? If so, return it. Communication
-                // with the resource has been successful.
-                if (message.getString("responseKind").equals("data")) {    
-                    return new JSONMessage(message.getString("data"), true);
-                } else {
-                    // Has the request been unsuccessful?
-                    if (message.getString("responseKind").equals("unsuccessful")) {
-                        return new JSONMessage(message.getString("data"), false);
-                    } else {
-                     // Does the response contain an exception? If so, reconstruct, and then
-                        // re-throw it. There has been an exception on the server.
-                        if (message.getString("responseKind").equals("exceptionStackTrace")) {
-                 
-                            JSONArray stackTraceStrings = new JSONArray(message.getString("data"));
-                            StringBuffer stackTraceMessage = new StringBuffer();
-                            for (int i = 0; i < stackTraceStrings.length(); i++) {
-                                stackTraceMessage.append("\n").append(stackTraceStrings.get(i));
-                            }
-                        
-                            throw new Exception(stackTraceMessage.toString());
-                        
-                        } else {
-                            // This exception represents a(n epic) client-server miscommunication
-                            throw new Exception("Unable to parse response");
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
+
+	    public JSONMessage handleResponse(HttpResponse response) {
+	        try {
+
+	            if (response.getStatusLine().getStatusCode() / 100 == 2) {
+	                
+	                BufferedReader reader = new BufferedReader(
+	                        new InputStreamReader(response.getEntity().getContent()));
+	                StringBuffer buffer = new StringBuffer();
+
+	                String line;
+	                while ((line = reader.readLine()) != null) {
+	                    buffer.append(line).append("\n");
+	                }
+
+	                logger.debug(buffer);
+	                return new JSONMessage(buffer.toString(), true);
+
+	            } else if (response.getFirstHeader("unsuccessfulResponse") != null) {
+	                
+	                String message = response.getFirstHeader("unsuccessfulResponse").getValue();
+	                return new JSONMessage(message, false);
+	                
+	            } else if (response.getFirstHeader("exceptionStackTrace") != null) {
+	                
+	                String message = response.getFirstHeader("exceptionStackTrace").getValue();
+	                JSONArray stackTraceStrings = new JSONArray(message);
+	                StringBuffer stackTraceMessage = new StringBuffer();
+	                for (int i = 0; i < stackTraceStrings.length(); i++) {
+	                    stackTraceMessage.append("\n").append(stackTraceStrings.get(i));
+	                }
+	                throw new Exception(stackTraceMessage.toString());
+	                
+	            } else {
+	                throw new RuntimeException("Unable to parse unsuccessful/exception response");
+	            }
+	        } catch (Exception ex) {
+	            throw new RuntimeException(ex);
             }
 	    }
 	}    
