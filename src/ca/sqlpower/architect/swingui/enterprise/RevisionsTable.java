@@ -92,7 +92,7 @@ public class RevisionsTable extends JTable {
             infoArea.append("\n\nAuthor: " + info.getVersionAuthor());
             infoArea.append("\nTime created: " + info.getTimeCreated().toString());
             String description = "";
-            for (String line : info.getVersionDescription().split(", ")) {
+            for (String line : info.getSimpleDescription().split(", ")) {
                 description += "\n" + line;
             }
             infoArea.append("\n\nDescription:" + description);
@@ -167,7 +167,7 @@ public class RevisionsTable extends JTable {
                 data[i][0] = String.valueOf(transaction.getVersionNumber());
                 data[i][1] = transaction.getTimeString() + " ";
                 data[i][2] = transaction.getVersionAuthor();
-                data[i][3] = transaction.getVersionDescription();
+                data[i][3] = transaction.getSimpleDescription();
                 
                 // Determine the length of each column by determining the longest piece of data within each.
                 for (int j = 0; j < HEADERS.length; j++) {
