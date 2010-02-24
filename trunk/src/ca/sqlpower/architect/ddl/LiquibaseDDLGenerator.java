@@ -120,9 +120,9 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 
 	    StringBuilder typesMismatchMsg = new StringBuilder();
 
-	    sql.append("<addForeignKeyConstraint baseTableName=\"");
+	    sql.append("<addForeignKeyConstraint ");
 		sql.append(getTableQualifier(r.getFkTable(), "baseTableName", "baseSchemaName") );
-		sql.append("\" constraintName=\"");
+		sql.append(" constraintName=\"");
 		sql.append(getName(r));
 		sql.append("\" baseColumnNames=\"");
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject> ();
