@@ -52,6 +52,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import java.awt.FontMetrics;
 
 public class CompareDMFrame extends JDialog {
 
@@ -114,6 +115,22 @@ public class CompareDMFrame extends JDialog {
 		leftOutputArea.setEditable(false);
 		JPanel comparePanel =  new JPanel(new GridLayout(1,2));
 		JScrollPane sp = new JScrollPane(comparePanel);
+		
+		int lineHeight = 16;
+		try {
+			FontMetrics fm = leftOutputArea.getFontMetrics(leftOutputArea.getFont());
+			lineHeight = fm.getHeight() + 2;
+		} catch (Exception e) {
+			lineHeight = 16;
+		}
+		// If the increments are not set, klicking on the up or down arrow of the scrollbar
+		// will scroll the display by one pixel, which is definitely not what the user wants
+		// by setting unitIncrement to the font's height the display will scroll by approx. one line
+		sp.getVerticalScrollBar().setUnitIncrement(lineHeight);
+
+		// Clicking in the "empty" area of the scrollbar will scroll by 10 lines
+		sp.getVerticalScrollBar().setBlockIncrement(lineHeight * 10);
+
 		comparePanel.add(leftOutputArea);
 		Action sourceCopy = new sourceCopyAction(sourceOutputText);
 	

@@ -14,7 +14,6 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 package ca.sqlpower.architect.diff;
 
@@ -26,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import org.apache.commons.lang.StringUtils;
 
 import org.apache.log4j.Logger;
 
@@ -54,7 +54,12 @@ public class CompareSQL implements Monitorable {
 	/**
 	 * A comparator that compares SQL Objects by name.
 	 */
-	final static Comparator<SQLObject> comparator = new SQLObjectComparator();
+	final static Comparator<SQLObject> nameComparator = new SQLObjectComparator();
+
+	/*
+	 * A comparator that detects equality by comparing the UUID
+	 */
+    final static Comparator<SQLObject> uuidComparator = new SQLObjectUUIDComparator();
 
 	/**
 	 * The source tables that this compare object will use when asked
@@ -89,7 +94,7 @@ public class CompareSQL implements Monitorable {
      * Flags whether or not this comparison has been cancelled.
      */
     private boolean cancelled;
-    
+
 	/**
 	 * The results we are working on (this will be returned by generateTableDiffs()).
 	 */
@@ -99,38 +104,45 @@ public class CompareSQL implements Monitorable {
 	 * The table we're working on right now (for the progress monitor).
 	 */
 	private String progressMessage;
-	
+
 	/**
 	 * A switch to indicate whether indices with be compared.
 	 */
 	private boolean compareIndex;
-	
+
 	/**
 	 * Flags whether or not the comparison has started.
 	 */
     private boolean started;
     private boolean suppressSimilarities;
 
+	private boolean useUUID;
+
+	public CompareSQL(
+			Collection<SQLTable> sourceTables,
+			Collection<SQLTable> targetTables, boolean suppressSimilarities) throws ArchitectDiffException {
+		this(sourceTables, targetTables, suppressSimilarities, false);
+	}
+
 	/**
-	 * The common constructor 
 	 * @throws ArchitectDiffException When the source or target table collections
 	 * contain tables that have the same name as each other.
 	 */
 	public CompareSQL(
 			Collection<SQLTable> sourceTables,
 			Collection<SQLTable> targetTables,
-			boolean suppressSimilarities) throws ArchitectDiffException {
-		
+			boolean suppressSimilarities, boolean useUUID) throws ArchitectDiffException {
+
 		boolean sourceValid = true;
 		boolean targetValid = true;
-		this.sourceTableSet = new TreeSet<SQLTable>(comparator);
+		this.sourceTableSet = new TreeSet<SQLTable>(nameComparator);
 		this.sourceTableSet.addAll(sourceTables);
-		this.targetTableSet = new TreeSet<SQLTable>(comparator);
+		this.targetTableSet = new TreeSet<SQLTable>(nameComparator);
 		this.targetTableSet.addAll(targetTables);
 		this.suppressSimilarities = suppressSimilarities;
-		
-		
-		
+		this.useUUID = useUUID;
+
+
 		if (sourceTableSet.size() != sourceTables.size()){
 			sourceValid = false;
 		}
@@ -149,17 +161,12 @@ public class CompareSQL implements Monitorable {
 			throw new ArchitectDiffException(error);
 		}
 
-		
-		
-			
 		results = new ArrayList<DiffChunk<SQLObject>>();
 		setProgress(0);
 		setJobSize(targetTableSet.size()*2 + sourceTableSet.size()*2);
 		setFinished(false);
 		setStarted(false);
-		
 	}
-	
 	public List<DiffChunk<SQLObject>> generateTableDiffs() throws SQLObjectException {
 		setStarted(true);
 		setFinished(false);
@@ -192,12 +199,12 @@ public class CompareSQL implements Monitorable {
 
 			// Will loop until one or both the list reaches its last table
 			while (sourceContinue && targetContinue && !isCancelled()) {
-			    
 			    logger.debug("Generating table diffs for " + sourceTable.getName());
 			    DiffChunk<SQLObject> chunk = null;
-			    
+			    int compareResult = getObjectComparator().compare(sourceTable, targetTable);
+
 				// bring the source table up to the same level as the target
-				if (comparator.compare(sourceTable, targetTable) < 0) {
+				if (compareResult < 0) {
 					chunk = new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY);
 					incProgress(1, sourceTable, targetTable);
 					//results.addAll(generateColumnDiffs(sourceTable, null));
@@ -205,12 +212,12 @@ public class CompareSQL implements Monitorable {
 						sourceTable = (SQLTable) sourceIter.next();
 					} else {
 						sourceContinue = false;
-						
+
 					}
 				}
 
 				// bring the target table up to the same level as the source
-				if (comparator.compare(sourceTable, targetTable) > 0) {
+				if (compareResult > 0) {
 					chunk = new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY);
 					incProgress(1, sourceTable, targetTable);
 					// now don't do the columns it's already handled
@@ -221,21 +228,23 @@ public class CompareSQL implements Monitorable {
 						targetContinue = false;
 					}
 				}
-				
-				if (comparator.compare(sourceTable, targetTable) == 0) {	
+
+				if (compareResult == 0) {
                     List<PropertyChange> changes = generatePropertyChanges(sourceTable, targetTable);
-                    if (changes.size() > 0) {
-                        if (sourceTable.getRemarks() == null && sourceTable.getRemarks() == null
-                                || sourceTable.getRemarks().equals(targetTable.getRemarks())) {
+					if (changes.size() > 0) {
+						if (nameComparator.compare(sourceTable, targetTable) != 0) {
+							chunk = new DiffChunk<SQLObject>(targetTable, DiffType.NAME_CHANGED);
+							chunk.setOriginalData(sourceTable);
+						} else if (!StringUtils.equals(sourceTable.getRemarks(), targetTable.getRemarks())) {
                             // If the remarks are the same, then don't generate SQL script
-                            chunk = new DiffChunk<SQLObject>(sourceTable, DiffType.MODIFIED);   
+                            chunk = new DiffChunk<SQLObject>(sourceTable, DiffType.SQL_MODIFIED);
                         } else {
                             // If the remarks were changed, generate SQL script for that
-                            chunk = new DiffChunk<SQLObject>(sourceTable, DiffType.SQL_MODIFIED);
+                            chunk = new DiffChunk<SQLObject>(sourceTable, DiffType.MODIFIED);
                         }
                         for (PropertyChange change : changes) {
                             chunk.addPropertyChange(change);
-                        }                                               
+                        }
                     } else {
                         chunk = new DiffChunk<SQLObject>(sourceTable, DiffType.SAME);
                     }
@@ -267,7 +276,7 @@ public class CompareSQL implements Monitorable {
 				    // If we are adding column diffs, the table diff must be in the list first.
 				    // If we are not generating column diffs, we have waited until now to add the chunk.
 				    results.add(chunk);
-				}				
+				}
 
 			}
 			// If any tables in the sourceList still exist, the changes are added
@@ -281,13 +290,13 @@ public class CompareSQL implements Monitorable {
 					sourceContinue = false;
 				}
 			}
-			
+
 			//If any remaining tables in the targetList still exist, they are now being added
 			while (targetContinue && !isCancelled()) {
 
 				results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
 				incProgress(1, null, targetTable);
-				
+
 				//results.addAll(generateColumnDiffs(null, targetTable));
 				if (targetIter.hasNext()) {
 					targetTable = (SQLTable) targetIter.next();
@@ -296,7 +305,7 @@ public class CompareSQL implements Monitorable {
 				}
 			}
 			results.addAll(generateRelationshipDiffs(sourceTableSet, targetTableSet));
-			
+
 			if (compareIndex) {
 			    results.addAll(generateIndexDiffs(sourceTableSet, targetTableSet));
 			}
@@ -309,25 +318,26 @@ public class CompareSQL implements Monitorable {
 
     private List<DiffChunk<SQLObject>> generateRelationshipDiffs(
 			Collection<SQLTable> sourceTables, Collection<SQLTable> targetTables) throws SQLObjectException {
-		SQLRelationshipComparator relComparator = new SQLRelationshipComparator();		
+		SQLRelationshipComparator relComparator = new SQLRelationshipComparator(useUUID);
 		Set<SQLRelationship> sourceRels = new TreeSet<SQLRelationship>(relComparator);
 		Set<SQLRelationship> targetRels = new TreeSet<SQLRelationship>(relComparator);
 		
+
 		for (SQLTable t : sourceTables) {
 			incProgress(1, t, null);
 			sourceRels.addAll(SQLRelationship.getExportedKeys(t.getImportedKeys()));
-		}	
-				
+		}
+
 		for (SQLTable t : targetTables) {
 			incProgress(1, null, t);
 			targetRels.addAll(SQLRelationship.getExportedKeys(t.getImportedKeys()));
 		}
-		
+
 		logger.debug("Source relationships: "+sourceRels);
 		logger.debug("Target relationships: "+targetRels);
 
 		List<DiffChunk<SQLObject>> diffs = new ArrayList<DiffChunk<SQLObject>>();
-		
+
 		Iterator<SQLRelationship> sourceIter = sourceRels.iterator();
 		Iterator<SQLRelationship> targetIter = targetRels.iterator();
 		SQLRelationship targetRel;
@@ -340,7 +350,7 @@ public class CompareSQL implements Monitorable {
 		if (sourceIter.hasNext()) {
 
 			sourceContinue = true;
-			sourceRel = sourceIter.next();			
+			sourceRel = sourceIter.next();
 		} else {
 			sourceContinue = false;
 			sourceRel = null;
@@ -348,42 +358,50 @@ public class CompareSQL implements Monitorable {
 
 		if (targetIter.hasNext()) {
 			targetContinue = true;
-			targetRel = targetIter.next();			
+			targetRel = targetIter.next();
 		} else {
 			targetContinue = false;
 			targetRel = null;
 		}
-		
+
 
 		// Will loop until one or both of the lists reaches its last table
 		while (sourceContinue && targetContinue) {
+
+			int compareResult = relComparator.compare(sourceRel, targetRel);
+
 			// bring the source table up to the same level as the target
-			if (relComparator.compare(sourceRel, targetRel) < 0) {
-				diffs.add(new DiffChunk<SQLObject>(sourceRel, DiffType.LEFTONLY));				
+			if (compareResult < 0) {
+				diffs.add(new DiffChunk<SQLObject>(sourceRel, DiffType.LEFTONLY));
 				if (sourceIter.hasNext()) {
 					sourceRel = sourceIter.next();
 				} else {
 					sourceContinue = false;
-					
 				}
 			}
 
 			// bring the target table up to the same level as the source
-			if (relComparator.compare(sourceRel, targetRel) > 0) {
+			if (compareResult > 0) {
 				diffs.add(new DiffChunk<SQLObject>(targetRel, DiffType.RIGHTONLY));
 				// now do the mappings
 				if (targetIter.hasNext()) {
 					targetRel = targetIter.next();
 				} else {
 					targetContinue = false;
-					
 				}
 			}
 
-			if (relComparator.compare(sourceRel, targetRel) == 0) {
+			if (compareResult == 0) {
 			    List<PropertyChange> changes = generatePropertyChanges(sourceRel, targetRel);
 			    if (changes.size() > 0) {
-			        DiffChunk<SQLObject> chunk = new DiffChunk<SQLObject>(sourceRel, DiffType.MODIFIED);
+
+					DiffChunk<SQLObject> chunk = null;
+					if (nameComparator.compare(sourceRel, targetRel) != 0) {
+						chunk = new DiffChunk<SQLObject>(targetRel, DiffType.NAME_CHANGED);
+						chunk.setOriginalData(sourceRel);
+					} else {
+						chunk = new DiffChunk<SQLObject>(sourceRel, DiffType.MODIFIED);
+					}
 			        for (PropertyChange change : changes) {
 			           chunk.addPropertyChange(change);
 			        }
@@ -403,7 +421,7 @@ public class CompareSQL implements Monitorable {
 				if (targetIter.hasNext()) {
 					targetRel = targetIter.next();
 				} else {
-					targetContinue = false;					
+					targetContinue = false;
 				}
 
 				if (sourceIter.hasNext()) {
@@ -423,10 +441,10 @@ public class CompareSQL implements Monitorable {
 				sourceContinue = false;
 			}
 		}
-		
+
 		//If any remaining tables in the targetList still exist, they are now being added
-		while (targetContinue) {			
-			diffs.add(new DiffChunk<SQLObject>(targetRel, DiffType.RIGHTONLY));			
+		while (targetContinue) {
+			diffs.add(new DiffChunk<SQLObject>(targetRel, DiffType.RIGHTONLY));
 			if (targetIter.hasNext()) {
 				targetRel = targetIter.next();
 			} else {
@@ -436,10 +454,12 @@ public class CompareSQL implements Monitorable {
 		return diffs;
 	}
 	
+
 	/**
      * Creates a List of DiffChunks that describe the differences between the
      * indices of the given tables.
      * 
+     *
      * @param sourceTable The "left side" for the comparison.  If null, then all indices
      * in the target table will be considered obsolete.
      * @param targetTable The "right side" for the comparison.  If null, then all indices
@@ -449,20 +469,20 @@ public class CompareSQL implements Monitorable {
      */
 	private List<DiffChunk<SQLObject>> generateIndexDiffs(
 	        Collection<SQLTable> sourceTables, Collection<SQLTable> targetTables) throws SQLObjectException {
-	    SQLIndexComparator indComparator = new SQLIndexComparator();      
+	    SQLIndexComparator indComparator = new SQLIndexComparator(useUUID);
 	    Set<SQLIndex> sourceInds = new TreeSet<SQLIndex>(indComparator);
 	    Set<SQLIndex> targetInds = new TreeSet<SQLIndex>(indComparator);
 
 	    for (SQLTable t : sourceTables) {
 	        incProgress(1, t, null);
-	        if (t.getIndices() != null){       
+	        if (t.getIndices() != null){
 	            sourceInds.addAll(t.getIndices());
 	        }
-	    }   
+	    }
 
 	    for (SQLTable t : targetTables) {
 	        incProgress(1, null, t);
-	        if (t.getIndices() != null){           
+	        if (t.getIndices() != null){
 	            targetInds.addAll(t.getIndices());
 	        }
 	    }
@@ -483,7 +503,7 @@ public class CompareSQL implements Monitorable {
 	    //the iterator is initialized for the list
 	    if (sourceIter.hasNext()) {
 	        sourceContinue = true;
-	        sourceInd = sourceIter.next();          
+	        sourceInd = sourceIter.next();
 	    } else {
 	        sourceContinue = false;
 	        sourceInd = null;
@@ -491,7 +511,7 @@ public class CompareSQL implements Monitorable {
 
 	    if (targetIter.hasNext()) {
 	        targetContinue = true;
-	        targetInd = targetIter.next();          
+	        targetInd = targetIter.next();
 	    } else {
 	        targetContinue = false;
 	        targetInd = null;
@@ -500,9 +520,11 @@ public class CompareSQL implements Monitorable {
 
 	    // Will loop until one or both of the lists reaches its last table
 	    while (sourceContinue && targetContinue) {
+
+			int compareResult = indComparator.compare(sourceInd, targetInd);
 	        // bring the source table up to the same level as the target
-	        if (indComparator.compare(sourceInd, targetInd) < 0) {
-	            diffs.add(new DiffChunk<SQLObject>(sourceInd, DiffType.LEFTONLY));              
+	        if (compareResult < 0) {
+	            diffs.add(new DiffChunk<SQLObject>(sourceInd, DiffType.LEFTONLY));
 	            if (sourceIter.hasNext()) {
 	                sourceInd = sourceIter.next();
 	            } else {
@@ -511,7 +533,7 @@ public class CompareSQL implements Monitorable {
 	        }
 
 	        // bring the target table up to the same level as the source
-	        if (indComparator.compare(sourceInd, targetInd) > 0) {
+	        if (compareResult > 0) {
 	            diffs.add(new DiffChunk<SQLObject>(targetInd, DiffType.RIGHTONLY));
 	            // now do the mappings
 	            if (targetIter.hasNext()) {
@@ -521,10 +543,17 @@ public class CompareSQL implements Monitorable {
 	            }
 	        }
 
-	        if (indComparator.compare(sourceInd, targetInd) == 0) {
+	        if (compareResult == 0) {
 	            List<PropertyChange> changes = generatePropertyChanges(sourceInd, targetInd);
+
 	            if (changes.size() > 0) {
-	                DiffChunk<SQLObject> chunk = new DiffChunk<SQLObject>(sourceInd, DiffType.MODIFIED);
+					DiffChunk<SQLObject> chunk = null;
+					if (nameComparator.compare(sourceInd, targetInd) != 0) {
+						chunk = new DiffChunk<SQLObject>(targetInd, DiffType.NAME_CHANGED);
+						chunk.setOriginalData(sourceInd);
+					} else {
+						chunk = new DiffChunk<SQLObject>(sourceInd, DiffType.MODIFIED);
+					}
 	                for (PropertyChange change : changes) {
 	                    chunk.addPropertyChange(change);
 	                }
@@ -534,7 +563,6 @@ public class CompareSQL implements Monitorable {
 	                    diffs.add(new DiffChunk<SQLObject>(sourceInd, DiffType.SAME));
 	                }
 	            }
-	                
 	            // now do the columns
 	            if (!targetIter.hasNext() && !sourceIter.hasNext()) {
 	                targetContinue = false;
@@ -543,7 +571,6 @@ public class CompareSQL implements Monitorable {
 	            if (targetIter.hasNext()) {
 	                targetInd = targetIter.next();
 	            } else {
-	                targetContinue = false;                 
 	            }
 
 	            if (sourceIter.hasNext()) {
@@ -565,21 +592,21 @@ public class CompareSQL implements Monitorable {
 	    }
 
 	    //If any remaining tables in the targetList still exist, they are now being added
-	    while (targetContinue) {            
-	        diffs.add(new DiffChunk<SQLObject>(targetInd, DiffType.RIGHTONLY));         
+	    while (targetContinue) {
+	        diffs.add(new DiffChunk<SQLObject>(targetInd, DiffType.RIGHTONLY));
 	        if (targetIter.hasNext()) {
 	            targetInd = targetIter.next();
 	        } else {
 	            targetContinue = false;
 	        }
-	    }   
+	    }
 	    return diffs;
 	}
 
 	/**
 	 * Creates a List of DiffChunks that describe the differences between the
 	 * columns of the given tables.
-	 * 
+	 *
 	 * @param sourceTable The "left side" for the comparison.  If null, then all columns
 	 * in the target table will be considered obsolete.
 	 * @param targetTable The "right side" for the comparison.  If null, then all columns
@@ -600,8 +627,8 @@ public class CompareSQL implements Monitorable {
 		boolean targetColContinue;
 		boolean keyChangeFlag = false;
 
-		sourceColumnList = new TreeSet<SQLColumn>(comparator);
-		targetColumnList = new TreeSet<SQLColumn>(comparator);
+		sourceColumnList = new TreeSet<SQLColumn>(getObjectComparator());
+		targetColumnList = new TreeSet<SQLColumn>(getObjectComparator());
 		sourceColContinue = false;
 		targetColContinue = false;
 		sourceColIter = null;
@@ -636,11 +663,12 @@ public class CompareSQL implements Monitorable {
 			targetColumn = targetColIter.next();
 			targetColContinue = true;
 		}
-		
+
 		while (sourceColContinue && targetColContinue) {
 
+			int compareResult = getObjectComparator().compare(sourceColumn, targetColumn);
 			// Comparing Columns
-			if (comparator.compare(sourceColumn, targetColumn) < 0) {
+			if (compareResult < 0) {
 				diffs.add(new DiffChunk<SQLObject>(sourceColumn,
 						DiffType.LEFTONLY));
 				logger.debug("The source column is " + sourceColumn);
@@ -652,11 +680,12 @@ public class CompareSQL implements Monitorable {
 				} else {
 					sourceColContinue = false;
 					
+
 				}
 
 			}
 			// Comparing Columns
-			if (comparator.compare(sourceColumn, targetColumn) > 0) {
+			if (compareResult > 0) {
 				diffs.add(new DiffChunk<SQLObject>(targetColumn,
 						DiffType.RIGHTONLY));
 				logger.debug("The target column is " + targetColumn);
@@ -668,25 +697,27 @@ public class CompareSQL implements Monitorable {
 				} else {
 					targetColContinue = false;
 					
+
 				}
 			}
 
 			// Comparing Columns
-			if (comparator.compare(sourceColumn, targetColumn) == 0) {
-				
+			if (compareResult == 0) {
+
 				if (targetColumn.isPrimaryKey() != sourceColumn.isPrimaryKey()){
 				    keyChangeFlag = true;
 					//diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.KEY_CHANGED));
-				}								
+				}
+
 				List<PropertyChange> changes = generatePropertyChanges(sourceColumn, targetColumn);
-				if (changes.size() > 0) {				    
-				    DiffChunk<SQLObject> chunk = new DiffChunk<SQLObject>(targetColumn, DiffType.MODIFIED);
-				    for (PropertyChange change : changes) {				        
-				        chunk.addPropertyChange(change);
-				    }				    
-				    
-				    // Make sure the changes are worthy of a SQL script generation:
-	                if (ArchitectUtils.columnsDiffer(targetColumn, sourceColumn)) {
+				if (changes.size() > 0) {
+					DiffChunk<SQLObject> chunk = null;
+
+					if (nameComparator.compare(sourceColumn, targetColumn) != 0) {
+						chunk = new DiffChunk<SQLObject>(targetColumn, DiffType.NAME_CHANGED);
+						chunk.setOriginalData(sourceColumn);
+					} else if (ArchitectUtils.columnsDiffer(targetColumn, sourceColumn)) {
+						// Make sure the changes are worthy of a SQL script generation:
 	                    if (logger.isDebugEnabled()) {
 	                        logger.debug("Column " + sourceColumn.getName() + " differs!");
 	                        logger.debug(String.format("  Type:      %10d %10d", targetColumn.getType(), sourceColumn.getType()));
@@ -695,10 +726,13 @@ public class CompareSQL implements Monitorable {
 	                        logger.debug(String.format("  Nullable:  %10d %10d", targetColumn.getNullable(), sourceColumn.getNullable()));
 	                    }
 	                    chunk = new DiffChunk<SQLObject>(targetColumn, DiffType.SQL_MODIFIED);
-	                    for (PropertyChange change : changes) {
-	                        chunk.addPropertyChange(change);
-	                    }
-	                }	                
+	                } else {
+						chunk = new DiffChunk<SQLObject>(targetColumn, DiffType.MODIFIED);
+					}
+
+				    for (PropertyChange change : changes) {
+				        chunk.addPropertyChange(change);
+				    }
 	                diffs.add(chunk);
 	                
 				} else {
@@ -707,6 +741,7 @@ public class CompareSQL implements Monitorable {
 				    }
 				}
 	
+
 				if (targetColIter.hasNext()) {
 					targetColumn = targetColIter.next();
 				} else {
@@ -747,6 +782,7 @@ public class CompareSQL implements Monitorable {
 		return diffs;
 	}
 	
+
 	/**
      * This method gets two lists of interesting properties, and compares them against each other
      * to generate a list of PropertyChange.
@@ -754,14 +790,17 @@ public class CompareSQL implements Monitorable {
 	private List<PropertyChange> generatePropertyChanges(SQLObject sourceObject, SQLObject targetObject)
 	throws SQLObjectException {
 	    
+
 	    List<PropertyChange> changes = new ArrayList<PropertyChange>();
 	    
+
 	    try {
 	        SessionPersisterSuperConverter converter = new SessionPersisterSuperConverter(null, sourceObject);
 	        Map<String, Object> sourceProperties = PersisterUtils.getInterestingProperties(sourceObject, converter);
 	        converter = new SessionPersisterSuperConverter(null, targetObject);
 	        Map<String, Object> targetProperties = PersisterUtils.getInterestingProperties(targetObject, converter);
 	        
+
 	        Iterator<String> i = sourceProperties.keySet().iterator();
 	        while (i.hasNext()) {
 	            String propertyName = i.next();
@@ -778,9 +817,13 @@ public class CompareSQL implements Monitorable {
 	        throw new SQLObjectException("Error generating property diffs", e);
 	    }
 	    
+
 	    return changes;
 	}
 
+	private Comparator<SQLObject> getObjectComparator() {
+		return useUUID ? uuidComparator : nameComparator;
+	}
 
     // ------------------ Monitorable Interface --------------------
 
@@ -816,10 +859,12 @@ public class CompareSQL implements Monitorable {
         return cancelled;
     }
 	
+
 	private synchronized void setJobSize(Integer jobSize) {
 		this.jobSize = jobSize;
 	}
 	
+
 	private synchronized void setProgress(int progress) {
 		this.progress = progress;
 	}
@@ -828,6 +873,7 @@ public class CompareSQL implements Monitorable {
 	 * Increments the progress by the given amount and changes the message
 	 * to reflect the current objects being compared.
 	 * 
+	 *
 	 * @param amount The number of units to increment progress by.
 	 * @param lhs The current left-hand object of comparison. Can be null.
 	 * @param rhs The current right-hand object of comparison. Can be null.
@@ -845,6 +891,7 @@ public class CompareSQL implements Monitorable {
 		this.progress += amount;
 	}
 	
+
 	public synchronized void setFinished(boolean finished) {
 		this.finished = finished;
 	}

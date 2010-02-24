@@ -26,6 +26,7 @@ import java.util.TreeSet;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 
@@ -33,8 +34,18 @@ public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 
 	private static Logger logger = Logger.getLogger(SQLRelationshipComparator.class);
 
-	SQLObjectComparator comparator = new SQLObjectComparator();
+	private SQLObjectComparator nameComparator = new SQLObjectComparator();
+    private SQLObjectUUIDComparator uuidComparator = new SQLObjectUUIDComparator();
+	private boolean useUUID;
 
+	public SQLRelationshipComparator() {
+		this(false);
+	}
+
+	public SQLRelationshipComparator(boolean compareWithUUID) {
+		useUUID = compareWithUUID;
+	}
+    
 	public int compare(SQLRelationship r1, SQLRelationship r2) {
 		if (r1 == r2)
 			return 0;
@@ -43,20 +54,22 @@ public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 		else if (r2 == null)
 			return 1;
 
+		Comparator<SQLObject> comparatorToUse = (useUUID ? uuidComparator : nameComparator);
+		
 		//Making sure that the PKTables are the same, else return value
-		int result = comparator.compare(r1.getPkTable(), r2.getPkTable());
+		int result = comparatorToUse.compare(r1.getPkTable(), r2.getPkTable());
 		if (result != 0)
 			return result;
 		
 		//Making sure that the FKTables are the same, else return value
-		result = comparator.compare(r1.getFkTable(), r2.getFkTable());
+		result = comparatorToUse.compare(r1.getFkTable(), r2.getFkTable());
 		if (result != 0)
 			return result;
 
-		Set<SQLColumn> sourceColPk = new TreeSet<SQLColumn>(comparator);
-		Set<SQLColumn> targetColPk = new TreeSet<SQLColumn>(comparator);
-		Set<SQLColumn> sourceColFk = new TreeSet<SQLColumn>(comparator);
-		Set<SQLColumn> targetColFk = new TreeSet<SQLColumn>(comparator);
+		Set<SQLColumn> sourceColPk = new TreeSet<SQLColumn>(comparatorToUse);
+		Set<SQLColumn> targetColPk = new TreeSet<SQLColumn>(comparatorToUse);
+		Set<SQLColumn> sourceColFk = new TreeSet<SQLColumn>(comparatorToUse);
+		Set<SQLColumn> targetColFk = new TreeSet<SQLColumn>(comparatorToUse);
 
 		for (ColumnMapping cm : r1.getChildren(ColumnMapping.class)) {
         	sourceColPk.add(cm.getPkColumn());
@@ -108,7 +121,7 @@ public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 				targetColumn = null;
 			}
 
-			int result = comparator.compare(sourceColumn, targetColumn);
+			int result = nameComparator.compare(sourceColumn, targetColumn);
 
 			if (result != 0)
 				return result;

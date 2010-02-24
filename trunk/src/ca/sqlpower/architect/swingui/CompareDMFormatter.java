@@ -15,6 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ca.sqlpower.architect.swingui;
 
@@ -48,6 +49,7 @@ import ca.sqlpower.diff.PropertyChange;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
@@ -59,6 +61,7 @@ public class CompareDMFormatter {
 
     private static final Logger logger = Logger.getLogger(CompareDMFormatter.class);
     
+
     private final ArchitectSwingSession session;
     private CompareDMSettings dmSetting;
 
@@ -67,6 +70,7 @@ public class CompareDMFormatter {
      */
     private final Dialog dialogOwner;
     
+
     /**
      * A hash map of styles which dictate the color of different kinds of changes/differences.
      */
@@ -96,6 +100,7 @@ public class CompareDMFormatter {
         StyleConstants.setForeground(att, Color.blue);
         DIFF_STYLES.put(DiffType.KEY_CHANGED, att);
         DIFF_STYLES.put(DiffType.DROP_KEY, att);
+		DIFF_STYLES.put(DiffType.NAME_CHANGED, att);
    }
 
     public CompareDMFormatter(ArchitectSwingSession session, Dialog dialogOwner, CompareDMSettings compDMSet) {
@@ -105,19 +110,23 @@ public class CompareDMFormatter {
         dmSetting = compDMSet;
     }
     
+
     public void formatForEnglishOutput(List<DiffChunk<SQLObject>> diff,
             List<DiffChunk<SQLObject>> diff1, SQLObject left, SQLObject right) {
         
+
         try {
             
+
             DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
             DefaultStyledDocument targetDoc = new DefaultStyledDocument();
             
+
             sourceDoc = generateEnglishDescription(DIFF_STYLES, convertToDiffInfo(diff));
             targetDoc = generateEnglishDescription(DIFF_STYLES, convertToDiffInfo(diff1));
-            
-            // get the title string for the compareDMFrame   
-            
+
+            // get the title string for the compareDMFrame
+
             String leftTitle = toTitleText(true, left);
             String rightTitle = toTitleText(false, right);
 
@@ -127,6 +136,7 @@ public class CompareDMFormatter {
             cf.pack();
             cf.setVisible(true);
             
+
         } catch (SQLObjectException exp) {
             ASUtils.showExceptionDialog(session, "StartCompareAction failed", exp);
             logger.error("StartCompareAction failed", exp);
@@ -177,6 +187,7 @@ public class CompareDMFormatter {
             sqlScriptGenerator(DIFF_STYLES, nonRelationship, gen);
             sqlScriptGenerator(DIFF_STYLES, addRelationships, gen);
            
+
             // get the title string for the compareDMFrame
             String titleString = "Generated SQL Script to turn "+ toTitleText(true, left)
             + " into " + toTitleText(false, right);
@@ -241,7 +252,9 @@ public class CompareDMFormatter {
                 } else if (chunk.getData() instanceof SQLRelationship) {
                     SQLRelationship r = (SQLRelationship)chunk.getData();
                     gen.dropRelationship(r);
-
+                } else if (chunk.getData() instanceof SQLIndex) {
+                    SQLIndex i = (SQLIndex)chunk.getData();
+                    gen.addIndex(i);
                 } else {
                     throw new IllegalStateException("DiffChunk is an unexpected type.");
                 }
@@ -275,12 +288,29 @@ public class CompareDMFormatter {
                 }
             } else if (chunk.getType() == DiffType.SAME) {
                 //do nothing when they're the same
+            } else if (chunk.getType() == DiffType.NAME_CHANGED) {
+                if (chunk.getData() instanceof SQLTable) {
+                    SQLTable newTable = (SQLTable)chunk.getData();
+                    SQLTable oldTable = (SQLTable)chunk.getOriginalData();
+                    gen.renameTable(oldTable, newTable);
+                } else if (chunk.getData() instanceof SQLColumn) {
+                    SQLColumn newCol = (SQLColumn)chunk.getData();
+                    SQLColumn oldCol = (SQLColumn)chunk.getOriginalData();
+                    gen.renameColumn(oldCol, newCol);
+                } else if (chunk.getData() instanceof SQLIndex) {
+                    SQLIndex newIndex = (SQLIndex)chunk.getData();
+                    SQLIndex oldIndex= (SQLIndex)chunk.getOriginalData();
+                    gen.renameIndex(oldIndex, newIndex);
                 } else {
-                throw new IllegalStateException("DiffChunk is an invalid type: " + chunk.getType());
+                    throw new IllegalStateException("DiffChunk is an unexpected type.");
+                }
+            } else {
+                throw new IllegalStateException("DiffChunk is an invalid type.");
             }
         }
     }
     
+
     /**
      * This method generates english descriptions by taking in the diff list
      * and putting the appropiate statements in the returned document.  It will iterate
@@ -288,28 +318,30 @@ public class CompareDMFormatter {
      * what kind of SQLType it is to produce the proper english description output
      * @throws BadLocationException
      * @throws SQLObjectException
-     */        
+     */
     public static DefaultStyledDocument generateEnglishDescription(
             Map<DiffType, AttributeSet> styles, List<DiffChunk<DiffInfo>> diff)
             throws BadLocationException, SQLObjectException {
         
+
         DefaultStyledDocument resultDoc = new DefaultStyledDocument();
         
+
         for (DiffChunk<DiffInfo> chunk : diff) {
-            
+
             DiffInfo info = chunk.getData();
-            
+
             if (chunk.getType().equals(DiffType.DROP_KEY)) {
                 //Drop key does will be shown here by a key changed type
                 //Drop key is mainly used in sql script generation.
                 continue;
             }
-            
+
             AttributeSet attributes = styles.get(chunk.getType());
             MutableAttributeSet boldAttributes = new SimpleAttributeSet(attributes);
             StyleConstants.setBold(boldAttributes, true);
             
-            String diffTypeEnglish;                                    
+            String diffTypeEnglish;
             switch (chunk.getType()) {
             case LEFTONLY:
                 diffTypeEnglish = "should be removed";
@@ -332,8 +364,13 @@ public class CompareDMFormatter {
                 diffTypeEnglish = "needs a different primary key";
                 break;
                 
+
             case DROP_KEY:
                 diffTypeEnglish = "needs to drop the source primary key";
+                break;
+
+            case NAME_CHANGED:
+                diffTypeEnglish = "should be renamed";
                 break;
 
             default:
@@ -347,22 +384,26 @@ public class CompareDMFormatter {
                     info.toString() + " " + diffTypeEnglish + "\n",
                     attributes);
             
+
             for (PropertyChange change : chunk.getPropertyChanges()) {
                 logger.debug("Formatting property change");
-                String s = info.getIndent() + "\t" + change.getPropertyName();           
+                String s = info.getIndent() + change.getPropertyName();
                 s += " has been changed from " + change.getOldValue();
                 s += " to " + change.getNewValue() + "\n";
                 
+
                 resultDoc.insertString(
                         resultDoc.getLength(),
                         s, attributes);
             }
         }
         
+
         return resultDoc;
 
 //        String currentTableName = "";
 //        
+//
 //        for (DiffChunk<SQLObject> chunk : diff) {
 //            SQLObject o = chunk.getData();
 //            if (suppressSimilarities && chunk.getType().equals(DiffType.SAME)) {
@@ -370,6 +411,7 @@ public class CompareDMFormatter {
 //                    currentTableName = o.getName();
 //                }
 //                    
+//
 //                continue;
 //            }
 //            if (chunk.getType().equals(DiffType.DROP_KEY)) {
@@ -403,14 +445,20 @@ public class CompareDMFormatter {
 //                    resultDoc.insertString(
 //                            resultDoc.getLength(), 
 //                            "Table ", 
+//                            resultDoc.getLength(),
+//                            "Table ",
 //                            attributes);
 //                    resultDoc.insertString(
 //                            resultDoc.getLength(), 
 //                            currentTableName, 
+//                            resultDoc.getLength(),
+//                            currentTableName,
 //                            boldAttributes);
 //                    resultDoc.insertString(
 //                            resultDoc.getLength(), 
 //                            " needs no changes\n", 
+//                            resultDoc.getLength(),
+//                            " needs no changes\n",
 //                            attributes);
 //                    currentTableName = "";
 //                }
@@ -468,6 +516,7 @@ public class CompareDMFormatter {
 //                diffTypeEnglish = "needs a different primary key";
 //                break;
 //                
+//
 //            case DROP_KEY:
 //                diffTypeEnglish = "needs to drop the source primary key";
 //                break;
@@ -485,22 +534,24 @@ public class CompareDMFormatter {
 //        }
 //        return resultDoc;
     }
-    
-//  Generates the proper title text for compareDMFrame or SQLScriptDialog                
-    private String toTitleText(boolean isSource, SQLObject leftOrRight) {                    
+
+//  Generates the proper title text for compareDMFrame or SQLScriptDialog
+    private String toTitleText(boolean isSource, SQLObject leftOrRight) {
         StringBuffer fileName = new StringBuffer();
         boolean needBrackets = false;
         SourceOrTargetSettings settings;
         
+
         if (isSource) {
             settings = dmSetting.getSourceSettings();
         } else {
             settings = dmSetting.getTargetSettings();
         }
         
+
         //Deals with the file name first if avaiable
-        if (settings.getDatastoreType().equals(CompareDMSettings.DatastoreType.FILE)) {                                
-            File f = new File(settings.getFilePath());                                                                                         
+        if (settings.getDatastoreType().equals(CompareDMSettings.DatastoreType.FILE)) {
+            File f = new File(settings.getFilePath());
             String tempName = f.getName();
             int lastIndex = tempName.lastIndexOf(".architect");
             if (lastIndex < 0) {
@@ -526,6 +577,7 @@ public class CompareDMFormatter {
             needBrackets = true;
         }
         
+
         //Add in the database name
         if (needBrackets) {
             fileName.append(" (");
@@ -534,9 +586,10 @@ public class CompareDMFormatter {
         if (needBrackets) {
             fileName.append(")");
         }
-        return fileName.toString(); 
+        return fileName.toString();
     }
     
+
     private boolean hasKey(SQLTable t) throws SQLObjectException {
         boolean hasKey = false;
         for (SQLColumn c : t.getColumns()) {
@@ -548,14 +601,16 @@ public class CompareDMFormatter {
         return hasKey;
     }
     
+
     private List<DiffChunk<DiffInfo>> convertToDiffInfo(List<DiffChunk<SQLObject>> diff) {
         
+
         List<DiffChunk<DiffInfo>> newDiff = new ArrayList<DiffChunk<DiffInfo>>();
         List<SQLObject> ancestors = new ArrayList<SQLObject>();
         ancestors.add(new SQLTable());
         int depth = 0;
-        for (DiffChunk<SQLObject> chunk : diff) {               
-            SQLObject data = chunk.getData();                
+        for (DiffChunk<SQLObject> chunk : diff) {
+            SQLObject data = chunk.getData();
             String name;
             if (data instanceof SQLTable && data.getPhysicalName() != null) {
                 name = data.getPhysicalName();
@@ -564,6 +619,7 @@ public class CompareDMFormatter {
             }
             DiffInfo info = new DiffInfo(data.getClass().getSimpleName().replaceFirst("SQL", ""), name);
             
+
             // Set the depth property based on the object hierarchy.
             // If it is a relationship, we ignore depth, and there are only relationships left.
             if (chunk.getData() instanceof SQLRelationship) {
@@ -579,6 +635,7 @@ public class CompareDMFormatter {
                 ancestors.add(depth, data);
             }
             
+
             info.setDepth(depth);
             DiffChunk<DiffInfo> newChunk = new DiffChunk<DiffInfo>(info, chunk.getType());
             for (PropertyChange change : chunk.getPropertyChanges()) {
@@ -587,7 +644,9 @@ public class CompareDMFormatter {
             newDiff.add(newChunk);
         }
      
+
         return newDiff;
         
+
     }
 }
