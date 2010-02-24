@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
+import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * A comparator class used for SQLIndex comparisons. It will not distinguish
@@ -41,7 +42,19 @@ public class SQLIndexComparator implements Comparator<SQLIndex>, Serializable {
 
 	private static Logger logger = Logger.getLogger(SQLIndexComparator.class);
 
-	SQLObjectComparator comparator = new SQLObjectComparator();
+	private Comparator<SQLObject> comparator;
+
+	public SQLIndexComparator() {
+		this(false);
+	}
+
+	public SQLIndexComparator(boolean useUUID) {
+		if (useUUID) {
+			comparator = new SQLObjectUUIDComparator();
+		} else {
+			comparator = new SQLObjectComparator();
+		}
+	}
 
 	public int compare(SQLIndex source, SQLIndex target) {
 		if (source == target) {
@@ -72,6 +85,7 @@ public class SQLIndexComparator implements Comparator<SQLIndex>, Serializable {
         sourceVal = Boolean.valueOf(source.isPrimaryKeyIndex());
         result = sourceVal.compareTo(target.isPrimaryKeyIndex());
         if (result != 0) return result;
+
 
 		Set<Column> sourceCol = new TreeSet<Column>(comparator);
 		Set<Column> targetCol = new TreeSet<Column>(comparator);

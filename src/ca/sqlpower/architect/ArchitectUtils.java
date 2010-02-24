@@ -158,28 +158,42 @@ public class ArchitectUtils {
         int targetScale = targetColumn.getScale();
         int sourceScale = sourceColumn.getScale();
 
-        if (targetType == Types.DATE) {
-            targetPrecision = 0;
-            targetScale = 0;
-        } else if (targetType == Types.INTEGER) {
-            targetPrecision = 0;
-            targetScale = 0;
-        }
+		if (!needsScale(targetType)) {
+			targetScale = 0;
+		}
+		if (!needsPrecision(targetType)) {
+			targetPrecision = 0;
+		}
 
-        if (sourceType == Types.DATE) {
-            sourcePrecision = 0;
-            sourceScale = 0;
-        } else if (sourceType == Types.INTEGER) {
-            sourcePrecision = 0;
-            sourceScale = 0;
-        }
+		if (!needsScale(sourceType)) {
+			sourceScale = 0;
+		}
+		if (!needsPrecision(sourceType)) {
+			sourcePrecision = 0;
+		}
 
         return (sourceType != targetType)
             || (targetPrecision != sourcePrecision)
             || (targetScale != sourceScale)
             || (targetColumn.getNullable() != sourceColumn.getNullable());
     }
-    
+
+	public static boolean needsScale(int type) {
+		return (type == Types.DECIMAL ||
+		        type == Types.NUMERIC);
+	}
+
+	public static boolean needsPrecision(int type) {
+		final int NCHAR = -15; // Java6/JDBC 4.0
+		final int NVARCHAR = -9; // Java6/JDBC 4.0
+		return (type == Types.DECIMAL ||
+		        type == Types.NUMERIC ||
+				type == Types.VARCHAR ||
+				type == Types.CHAR ||
+				type == NCHAR ||
+				type == NVARCHAR);
+	}
+
     /**
      * Checks if the given column types materially differ. Some data 
      * types (for example, DECIMAL and NUMERIC) are essentially the same.

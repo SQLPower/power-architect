@@ -179,6 +179,8 @@ public class CompareDMPanel extends JPanel {
     
     private JCheckBox showNoChanges;
 
+	private JCheckBox includeIndexes;
+
 	private JLabel statusLabel;
 
 	/**
@@ -1041,8 +1043,11 @@ public class CompareDMPanel extends JPanel {
 		
         showNoChanges = new JCheckBox();
         showNoChanges.setName("showNoChanges"); //$NON-NLS-1$
-        showNoChanges.setSelected(false);
 
+		includeIndexes = new JCheckBox(Messages.getString("CompareDMPanel.includeIndexes")); //$NON-NLS-1$
+		includeIndexes.setName("includeIndexes"); //$NON-NLS-1$
+		includeIndexes.setSelected(false);
+		
 		// Group the radio buttons.
 		ButtonGroup outputGroup = new ButtonGroup();
 		outputGroup.add(sqlButton);
@@ -1140,6 +1145,7 @@ public class CompareDMPanel extends JPanel {
 		builder.append(showNoChanges);
         temp = builder.append(Messages.getString("CompareDMPanel.suppressSimilarities")); //$NON-NLS-1$
         associate(temp, showNoChanges);
+		builder.append(includeIndexes);
         builder.nextLine();
 
 		builder.appendSeparator(Messages.getString("CompareDMPanel.status")); //$NON-NLS-1$
@@ -1246,11 +1252,14 @@ public class CompareDMPanel extends JPanel {
 				} else {
 					targetTables = new ArrayList<SQLTable>();
 				}
-               
+
+				boolean useUUID = source.isModelWithUUID() && target.isModelWithUUID();
 				sourceComp = new CompareSQL(sourceTables, targetTables, 
-				        session.getCompareDMSettings().getSuppressSimilarities());
+				        session.getCompareDMSettings().getSuppressSimilarities(),
+						useUUID);
 				targetComp = new CompareSQL(targetTables, sourceTables, 
-				        session.getCompareDMSettings().getSuppressSimilarities());
+				        session.getCompareDMSettings().getSuppressSimilarities(),
+						useUUID);
 
 			} catch (SQLObjectException ex) {
 			    ASUtils.showExceptionDialog(session,
