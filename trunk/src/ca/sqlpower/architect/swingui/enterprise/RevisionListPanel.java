@@ -29,11 +29,14 @@ import java.text.NumberFormat;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.NumberFormatter;
 
 import org.apache.log4j.Logger;
@@ -49,6 +52,36 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class RevisionListPanel {
     
+    private class JLongField {
+        
+        private JFormattedTextField field;        
+        
+        public JLongField() {
+            NumberFormatter f = new NumberFormatter(NumberFormat.getInstance());
+            f.setValueClass(Long.class);
+            f.setMinimum(new Long(0));
+            field = new JFormattedTextField(f);
+        }
+        
+        public JLongField(long value) {
+            this();
+            setValue(value);
+        }
+        
+        public void setValue(long value) {
+            field.setValue(new Long(value));
+        }
+        
+        public long getValue() {
+            return ((Long) field.getValue()).longValue();
+        }
+        
+        public JFormattedTextField getField() {
+            return field;
+        }
+        
+    }
+    
     private static final Logger logger = Logger.getLogger(RevisionListPanel.class);
 
     private final Component dialogOwner;
@@ -59,42 +92,46 @@ public class RevisionListPanel {
     
     private final JPanel panel;
     
-    private JFormattedTextField fromVersion;
-    private JFormattedTextField toVersion;
+    private JLongField fromVersion;
+    private JLongField toVersion;
+    private int currentVersion;
+    
+    private final Runnable autoRefresh;
     
     private final Action refreshAction = new AbstractAction("Refresh...") {
         public void actionPerformed(ActionEvent e) {
-            int currentVersion = session.getCurrentRevisionNo();
-            String message = "ok";
-            boolean doRefresh = false;
             
-            long fromVersion = currentVersion - 100;
-            long toVersion = currentVersion;
-           
-            try {
-                fromVersion = ((Long) RevisionListPanel.this.fromVersion.getValue()).longValue();
-                toVersion = ((Long) RevisionListPanel.this.toVersion.getValue()).longValue();
-                
-                if (toVersion > currentVersion) {
-                    message = "Revisions up to " + toVersion + " cannot be shown " +
-                        "because the current revision is only " + currentVersion;
-                } else if (fromVersion > toVersion) {
-                    message = "Cannot show revisions from a higher version to a lower version";
-                } else {
-                    doRefresh = true;
+            String message = "ok";
+            
+            // revertAction updates the currentVersion
+            int difference = session.getLocalRevisionNo() - currentVersion;
+            if (e.getSource() != revertAction) {                            
+                if (difference > 0) {
+                    currentVersion += difference;
+                    // If the end of the filter range was the previously most recent revision,
+                    // update the filter range to the new current revision number.
+                    if (toVersion.getValue() == currentVersion - difference) {                                               
+                        fromVersion.setValue(fromVersion.getValue() + difference);
+                        toVersion.setValue(currentVersion);     
+                    }
+                } else if (e.getSource() == autoRefresh) {                    
+                    return;
                 }
-            } catch (ClassCastException ex) {
-                // This shoudn't happen because of the way the text field is formatted
-                message = "Input formatted invalidly";
-                RevisionListPanel.this.fromVersion.setValue(new Long(fromVersion));
-                RevisionListPanel.this.toVersion.setValue(new Long(toVersion));
-                doRefresh = true;
             }
-            if (doRefresh) {
-                revisionsTable.refreshRevisionsList(fromVersion, toVersion);
+                        
+            if (!e.getActionCommand().equals("ignoreWarnings")) {            
+                if (toVersion.getValue() > currentVersion) {
+                    message = "Revisions up to " + toVersion.getValue() + " cannot be shown " +
+                    "because the current revision is only " + currentVersion;
+                } else if (fromVersion.getValue() > toVersion.getValue()) {
+                    message = "Cannot show revisions from a higher version to a lower version";
+                }        
+            }
+            
+            if (message.equals("ok")) {
+                revisionsTable.refreshRevisionsList(fromVersion.getValue(), toVersion.getValue());
                 refreshPanel();
-            }
-            if (!message.equals("ok")) {
+            } else {
                 JOptionPane.showMessageDialog(dialogOwner, message);
             }
         }
@@ -106,20 +143,24 @@ public class RevisionListPanel {
             int response = JOptionPane.showConfirmDialog(dialogOwner, 
                     "Are you sure you would like to revert to version " + revisionNo,
                     "Revert...", JOptionPane.OK_CANCEL_OPTION);
-            if (response == JOptionPane.OK_OPTION) {
+            if (response == JOptionPane.OK_OPTION) {                
                 try {
-                    session.revertServerWorkspace(revisionNo);
+                    int currentVersion = session.revertServerWorkspace(revisionNo);
+                    if (currentVersion == -1) {
+                        JOptionPane.showMessageDialog(dialogOwner, "The server did not revert" +
+                        " because the target and current revisions are identical");
+                    } else {                        
+                        RevisionListPanel.this.currentVersion = currentVersion;
+                        long range = toVersion.getValue() - fromVersion.getValue();
+                        fromVersion.setValue(currentVersion - range);
+                        toVersion.setValue(currentVersion);
+                        refreshAction.actionPerformed(new ActionEvent(this, 0, "ignoreWarnings"));          
+                        int last = revisionsTable.getRowCount() - 1;
+                        revisionsTable.getSelectionModel().setSelectionInterval(last, last);
+                    }
                 } catch (Throwable t) {
                     throw new RuntimeException("Error requesting server revert", t);
-                }  
-                // TODO make this wait for the client to update before refreshing
-                // Can't do it now because client is currently broken
-                int currentVersion = session.getCurrentRevisionNo(); 
-                fromVersion.setValue((long) currentVersion - 100);
-                toVersion.setValue((long) currentVersion);
-                refreshAction.actionPerformed(null);          
-                int last = revisionsTable.getRowCount() - 1;
-                revisionsTable.getSelectionModel().setSelectionInterval(last, last);
+                }
             }
         }
     };
@@ -138,20 +179,9 @@ public class RevisionListPanel {
                     d.dispose();
                 }
             };
-            
-            long fromVersion;
-            long toVersion;
-            try {
-                fromVersion = ((Long) RevisionListPanel.this.fromVersion.getValue()).longValue();
-            } catch (ClassCastException ex) {
-                fromVersion = ((Integer) RevisionListPanel.this.fromVersion.getValue()).longValue();
-            }
-            try {
-                toVersion = ((Long) RevisionListPanel.this.toVersion.getValue()).longValue();
-            } catch (ClassCastException ex) {
-                toVersion = ((Integer) RevisionListPanel.this.toVersion.getValue()).longValue();
-            } 
-            CompareRevisionsPanel p = new CompareRevisionsPanel(session, closeAction, fromVersion, toVersion);
+             
+            CompareRevisionsPanel p = new CompareRevisionsPanel(session, closeAction, 
+                    fromVersion.getValue(), toVersion.getValue());
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(p.getPanel());
             
@@ -173,16 +203,13 @@ public class RevisionListPanel {
                 "pref, 2dlu, default:grow"));                                 
         
                
-        int currentRevision = session.getCurrentRevisionNo();
-        NumberFormatter f = new NumberFormatter(NumberFormat.getInstance());
-        f.setValueClass(Long.class);
-        f.setMinimum(new Long(0));
-        fromVersion = new JFormattedTextField(f);        
-        toVersion = new JFormattedTextField(f);        
-        fromVersion.setValue(new Long(currentRevision - 100));        
-        toVersion.setValue(new Long(currentRevision));
+        int currentRevision = session.getLocalRevisionNo();
+        long from = currentRevision - 100;
+        if (from < 0) from = 0;
+        fromVersion = new JLongField(from);        
+        toVersion = new JLongField(currentRevision);
         
-        revisionsTable = new RevisionsTable(this.session, currentRevision - 100, currentRevision);
+        revisionsTable = new RevisionsTable(this.session, from, currentRevision);
         revisionsTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -195,20 +222,43 @@ public class RevisionListPanel {
         builder.add(revisionsTable.getScrollPane(), cc.xy(1, 3));              
         
         DefaultFormBuilder textFieldBuilder = new DefaultFormBuilder(new FormLayout("pref, pref"));
-        textFieldBuilder.append(new JLabel("from version "), fromVersion);
-        textFieldBuilder.append(new JLabel("to version "), toVersion);
+        textFieldBuilder.append(new JLabel("from version "), fromVersion.getField());
+        textFieldBuilder.append(new JLabel("to version "), toVersion.getField());
         
         DefaultFormBuilder filterBuilder = new DefaultFormBuilder(new FormLayout("pref"));
-        filterBuilder.append(new JLabel("Display revisions "));
+        filterBuilder.append(new JLabel("Display revisions "));      
         filterBuilder.append(textFieldBuilder.getPanel());
+        
+        final JCheckBox autoRefreshBox = new JCheckBox("Auto-refresh", false);
+        autoRefresh = new Runnable() {
+            public void run() {
+                while (autoRefreshBox.isSelected()) {
+                    refreshAction.actionPerformed(new ActionEvent(this, 0, "ignoreWarnings"));
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                        break;
+                    }
+                }
+            }
+        };        
+        autoRefreshBox.addChangeListener(new ChangeListener() {            
+            public void stateChanged(ChangeEvent e) {
+                new Thread(autoRefresh).start();
+            }
+        });  
+        autoRefreshBox.setSelected(true);
                
-        DefaultFormBuilder buttonBarBuilder = new DefaultFormBuilder(new FormLayout("pref"));      
+        DefaultFormBuilder buttonBarBuilder = new DefaultFormBuilder(new FormLayout("pref"));
+        buttonBarBuilder.append(filterBuilder.getPanel());
+        buttonBarBuilder.append(new JLabel("\n"));
         buttonBarBuilder.append(new JButton(refreshAction));
         buttonBarBuilder.append(new JButton(revertAction));
         buttonBarBuilder.append(new JButton(openAction));
         buttonBarBuilder.append(new JButton(compareAction));
-        buttonBarBuilder.append(new JButton(closeAction)); 
-        buttonBarBuilder.append(filterBuilder.getPanel());
+        buttonBarBuilder.append(new JButton(closeAction));
+        buttonBarBuilder.append(autoRefreshBox);
+        
         builder.add(buttonBarBuilder.getPanel(), cc.xy(3, 3));
         builder.setDefaultDialogBorder();
 

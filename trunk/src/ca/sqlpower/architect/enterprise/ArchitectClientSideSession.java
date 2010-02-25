@@ -389,8 +389,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     	}
     }
 	
-	public void revertServerWorkspace(int revisionNo) throws IOException, URISyntaxException {
-	    revertServerWorkspace(projectLocation, revisionNo);
+	public int revertServerWorkspace(int revisionNo) throws IOException, URISyntaxException, JSONException {
+	    return revertServerWorkspace(projectLocation, revisionNo);
 	}
 	
 	/**
@@ -399,25 +399,33 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	 * 
 	 * All sessions should automatically update to the reverted revision due to their Updater.
 	 * 
+	 * @returns The new global revision number, right after the reversion, or -1 if the server did not revert.
 	 * @throws IOException
 	 * @throws URISyntaxException
+	 * @throws JSONException 
 	 */
-	public static void revertServerWorkspace(ProjectLocation projectLocation, int revisionNo) throws IOException, URISyntaxException {
+	public static int revertServerWorkspace(ProjectLocation projectLocation, int revisionNo)
+	throws IOException, URISyntaxException, JSONException {
         SPServerInfo serviceInfo = projectLocation.getServiceInfo();
         HttpClient httpClient = createHttpClient(serviceInfo);
         
         try {
-            executeServerRequest(httpClient, projectLocation.getServiceInfo(),
+            JSONMessage message = executeServerRequest(httpClient, projectLocation.getServiceInfo(),
                     "/project/" + projectLocation.getUUID() + "/revert",
                     "revisionNo=" + revisionNo, 
-                    new JSONResponseHandler());       
+                    new JSONResponseHandler());    
+            if (message.isSuccessful()) {
+                return new JSONObject(message.getBody()).getInt("currentRevision");
+            } else {
+                return -1;
+            }
         } finally {
             httpClient.getConnectionManager().shutdown();
         }
-	    
+        
 	}
 	
-	public int getCurrentRevisionNo() {
+	public int getLocalRevisionNo() {
 	    return currentRevision;
 	}
 	
@@ -638,7 +646,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 					    URI uri = getServerURI(projectLocation.getServiceInfo(), contextRelativePath, 
 					            "oldRevisionNo=" + currentRevision);
 					    HttpUriRequest request = new HttpGet(uri);
-	                        
+					    
                         JSONMessage message = inboundHttpClient.execute(request, new JSONResponseHandler());
                         final JSONObject json = new JSONObject(message.getBody());
                         final String jsonArray = json.getString("data");
