@@ -272,6 +272,9 @@ public class CompareDMFormatter {
                 } else if (chunk.getData() instanceof SQLRelationship) {
                     SQLRelationship r = (SQLRelationship)chunk.getData();
                     gen.addRelationship(r);
+                } else if (chunk.getData() instanceof SQLIndex) {
+                    SQLIndex i = (SQLIndex)chunk.getData();
+                    gen.addIndex(i);
                 } else {
                     throw new IllegalStateException("DiffChunk is an unexpected type.");
                 }
