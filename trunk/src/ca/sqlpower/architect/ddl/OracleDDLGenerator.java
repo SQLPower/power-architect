@@ -326,6 +326,19 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		endStatement(DDLStatement.StatementType.MODIFY, c);
 	}
 
+    protected String columnNullability(SQLColumn c) {
+        GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);
+        if (c.isDefinitelyNullable()) {
+			if (! td.isNullable()) {
+				throw new UnsupportedOperationException
+					("The data type "+td.getName()+" is not nullable on the target database platform.");
+			}
+			return " NULL";
+		} else {
+			return " NOT NULL";
+		}
+    }
+    
     /**
      * Different from the generic generator because the "COLUMN"
      * keyword is forbidden in Oracle.
