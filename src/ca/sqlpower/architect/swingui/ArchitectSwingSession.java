@@ -303,6 +303,20 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> listener);
     
     /**
+     * Shows the connection manager dialog for this session's data source collection. 
+     * 
+     * @param owner The owner of the dialog.
+     */
+    public void showConnectionManager(Window owner);
+    
+    /**
+     * Shows the user preferences dialog for this session's context and data sources.
+     * 
+     * @param owner The owner of the dialog
+     */
+    public void showPreferenceDialog(Window owner);
+    
+    /**
      * Creates a new JMenu containing one item per data source in this
      * session context's data source collection. When an item from this
      * menu is selected, a new connection to that database will be created

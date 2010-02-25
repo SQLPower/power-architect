@@ -881,7 +881,8 @@ public class ArchitectFrame extends JFrame {
         prefs.put(DefaultColumnUserSettings.DEFAULT_COLUMN_REMARKS, SQLColumn.getDefaultRemarks());
         prefs.put(DefaultColumnUserSettings.DEFAULT_COLUMN_DEFAULT_VALUE, SQLColumn.getDefaultForDefaultValue());
 		try {
-            session.getContext().getPlDotIni().write(new File(session.getContext().getPlDotIniPath()));
+		    if (!session.isEnterpriseSession())
+		        session.getDataSources().write(new File(session.getContext().getPlDotIniPath()));
         } catch (IOException e) {
             logger.error("Couldn't save PL.INI file!", e); //$NON-NLS-1$
         }

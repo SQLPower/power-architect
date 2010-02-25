@@ -183,7 +183,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
      */
     private List<String> getIndexTypes() {
         List<String> indexTypes = new ArrayList<String>();
-        List<JDBCDataSourceType> dsTypes = this.session.getContext().getPlDotIni().getDataSourceTypes();
+        List<JDBCDataSourceType> dsTypes = this.session.getDataSources().getDataSourceTypes();
         for (JDBCDataSourceType dsType : dsTypes) {
             for (int dataTypeCount = 0;; dataTypeCount += 1) {
                 String supportedType = dsType.getProperty(SQLIndex.INDEX_TYPE_DESCRIPTOR + "_" + dataTypeCount); //$NON-NLS-1$

@@ -155,7 +155,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		sender = new Sender(outboundHttpClient, projectLocation.getServiceInfo(), projectLocation.getUUID());
 		jsonPersister = new SPJSONPersister(sender);
 		
-		dataSourceCollection = getDataSourceCollection();
+		dataSourceCollection = getDataSources();
 		
 		sessionPersister = new ArchitectSessionPersister("inbound-" + projectLocation.getUUID(), getWorkspace(), 
 				new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
@@ -207,7 +207,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
         return super.close();
     }
 	
-	public DataSourceCollection <JDBCDataSource> getDataSourceCollection () {
+	@Override
+	public DataSourceCollection<JDBCDataSource> getDataSources() {
 		if (dataSourceCollection != null) {
 			return dataSourceCollection;
 		}
@@ -223,7 +224,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                 PlDotIni plIni;
                 try {
 					plIni = new PlDotIni(
-                    		getServerURI(projectLocation.getServiceInfo(), "/jdbc"),
+                    		getServerURI(projectLocation.getServiceInfo(), "/jdbc/"),
                     		getServerURI(projectLocation.getServiceInfo(), MONDRIAN_SCHEMA_REL_PATH));
                     plIni.read(response.getEntity().getContent());
                     logger.debug("Data source collection has URI " + plIni.getServerBaseURI());
@@ -543,7 +544,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             		            throw new RuntimeException("Out of sync with server");
             		        }
             			} catch (JSONException e) {
-                            throw new RuntimeException(e);
+            			    throw new RuntimeException(e);
                         } finally {
             				persistingToServer = false;
                             try {
@@ -555,7 +556,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                     }
                 });    
 		    } catch (UnsupportedEncodingException e) {
-		        throw new SPPersistenceException(null, e);
+                throw new SPPersistenceException(null, e);
             } catch (URISyntaxException e) {
                 throw new SPPersistenceException(null, e);
             } catch (ClientProtocolException e) {
@@ -649,15 +650,12 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                                     if (!persistingToServer) {
                                         int newRevision = json.getInt("currentRevision"); 
                                         if (currentRevision < newRevision) {
-                                            logger.debug("CurrentRevision = " + currentRevision + " JSON:");
-                                            logger.debug(jsonArray);
                                             currentRevision = newRevision;
                                             jsonDecoder.decode(jsonArray);
                                         }
                                     }
                                 } catch (SPPersistenceException e) {
                                     logger.error("Update from server failed!", e);
-                                    //logger.warn(jsonArray);
                                     throw new RuntimeException("Please hit the refresh button that does not exist", e);
                                     // TODO discard session and reload
                                 } catch (JSONException e) {
@@ -826,7 +824,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                             // success!
                             return null;
                         }
-                        
                     }
                 };
 				httpClient.execute(request, responseHandler);
@@ -863,7 +860,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     }
 
 	private static class JSONMessage {
-	    
 	    private final String message;
 	    private final boolean successful;
 	    
@@ -899,7 +895,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                 while ((line = reader.readLine()) != null) {
                     buffer.append(line).append("\n");
                 }
-                
                 JSONObject message = new JSONObject(buffer.toString());
                 
                 // Does the response contain data? If so, return it. Communication
@@ -911,7 +906,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                     if (message.getString("responseKind").equals("unsuccessful")) {
                         return new JSONMessage(message.getString("data"), false);
                     } else {
-                     // Does the response contain an exception? If so, reconstruct, and then
+                        // Does the response contain an exception? If so, reconstruct, and then
                         // re-throw it. There has been an exception on the server.
                         if (message.getString("responseKind").equals("exceptionStackTrace")) {
                  
@@ -925,7 +920,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                         
                         } else {
                             // This exception represents a(n epic) client-server miscommunication
-                            throw new Exception("Unable to parse response");
+                            throw new Exception("Unable to parse response ");
                         }
                     }
                 }

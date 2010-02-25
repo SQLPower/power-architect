@@ -248,5 +248,9 @@ public class ArchitectSessionImpl implements ArchitectSession {
         return isEnterpriseSession;
     }
 
+    public DataSourceCollection<JDBCDataSource> getDataSources() {
+        return context.getPlDotIni();
+    }
+
 }
 

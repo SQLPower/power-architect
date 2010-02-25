@@ -131,7 +131,7 @@ public class DataMoverPanel {
         pb.add(new JScrollPane(sourceTree), cc.xy(1, 3));
         pb.add(new JScrollPane(destTree), cc.xy(3, 3));
         
-        session.getContext().getPlDotIni().addDatabaseListChangeListener(new DatabaseListChangeListener() {
+        session.getDataSources().addDatabaseListChangeListener(new DatabaseListChangeListener() {
             public void databaseAdded(DatabaseListChangeEvent e) {
                 try {
                     setupDBTrees();                            

@@ -124,7 +124,7 @@ public class DDLExportPanel implements DataEntryPanel {
         
         panelProperties.add(new JLabel(Messages.getString("DDLExportPanel.generateDDLForDbType"))); //$NON-NLS-1$
         DDLGenerator ddlg = session.getDDLGenerator();
-		plDotIni = session.getContext().getPlDotIni();
+		plDotIni = session.getDataSources();
 		plDotIni.addDatabaseListChangeListener(databaseListChangeListener);
         Vector<Class<? extends DDLGenerator>> ddlTypes =
             DDLUtils.getDDLTypes(plDotIni);

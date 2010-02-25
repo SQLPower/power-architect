@@ -434,7 +434,7 @@ public class ProjectLoader {
      */
     private class DBCSFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
-            JDBCDataSource dbcs = new JDBCDataSource(getSession().getContext().getPlDotIni());
+            JDBCDataSource dbcs = new JDBCDataSource(getSession().getDataSources());
             
             String id = attributes.getValue("id");
             if (id != null) {

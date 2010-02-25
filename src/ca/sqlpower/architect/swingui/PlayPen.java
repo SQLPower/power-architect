@@ -454,7 +454,7 @@ public class PlayPen extends JPanel
 		// And you get fireworks if you call setDataSource() on a non-playpen connection
 		newdb.setPlayPenDatabase(true);
 
-		JDBCDataSource dbcs = new JDBCDataSource(session.getContext().getPlDotIni());
+		JDBCDataSource dbcs = new JDBCDataSource(session.getDataSources());
         newdb.setDataSource(dbcs);
 
         SQLPowerUtils.listenToHierarchy(newdb, this);

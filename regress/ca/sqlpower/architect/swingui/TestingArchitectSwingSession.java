@@ -417,4 +417,18 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         // TODO Auto-generated method stub
         return null;
     }
+
+    public DataSourceCollection<JDBCDataSource> getDataSources() {
+        return context.getPlDotIni();
+    }
+
+    public void showConnectionManager(Window owner) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void showPreferenceDialog(Window owner) {
+        // TODO Auto-generated method stub
+        
+    }
 }
