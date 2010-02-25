@@ -691,9 +691,9 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
                 }
                 
                 if (componentEnabledMap.get(colInPK).isSelected()) {
-                    if (colInPK.isSelected()) {
+                    if (colInPK.isSelected() && !column.isPrimaryKey()) {
                         column.getParent().addToPK(column);
-                    } else {
+                    } else if (!colInPK.isSelected() && column.isPrimaryKey()) {
                         column.getParent().moveAfterPK(column);
                     }
                 }
