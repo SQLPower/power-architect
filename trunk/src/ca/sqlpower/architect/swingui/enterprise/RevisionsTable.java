@@ -20,6 +20,7 @@
 package ca.sqlpower.architect.swingui.enterprise;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -33,7 +34,9 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -56,6 +59,8 @@ public class RevisionsTable extends JTable {
     private ArchitectClientSideSession session;
     
     private List<TransactionInformation> transactions = new ArrayList<TransactionInformation>();
+    
+    private JScrollPane scrollPane;
     
     /**
      * Displays information about a revision when it is double clicked
@@ -111,25 +116,32 @@ public class RevisionsTable extends JTable {
         
     }
     
-    /**
-     * Creates a RevisionsTable with a custom mouse listener, or none.
-     * @param session
-     * @param listener
-     */
-    public RevisionsTable(ArchitectClientSideSession session) {
+    private class NoFocusTableCellRenderer extends DefaultTableCellRenderer {
+        public Component getTableCellRendererComponent(
+                JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            return super.getTableCellRendererComponent(table, value, isSelected, false, row, column);
+        }
+     }
+    
+    public RevisionsTable(ArchitectClientSideSession session, long fromRevision, long toRevision) {
         super();
         
-        this.session = session;
+        this.session = session;      
         
+        this.setCellSelectionEnabled(false);
         this.setColumnSelectionAllowed(false);
+        this.setRowSelectionAllowed(true);
         this.setShowVerticalLines(false);
-        this.setShowHorizontalLines(false);
-        this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);       
-        
-        refreshRevisionsList();
+        this.setShowHorizontalLines(false);        
+        this.setAutoscrolls(false);
+        this.setIntercellSpacing(new Dimension(0, 0));
+        this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);      
         
         ListSelectionModel selectionModel = this.getSelectionModel();
-        selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);                       
+         
+        // Make it so there are no focus borders around individual cells.
+        this.setDefaultRenderer(Object.class, new NoFocusTableCellRenderer());
         
         this.addMouseListener(new MouseAdapter() {            
             public void mouseClicked(MouseEvent e) {           
@@ -139,12 +151,16 @@ public class RevisionsTable extends JTable {
                 }
             }
         });
+        
+        scrollPane = new JScrollPane(this);
+        scrollPane.setPreferredSize(new Dimension(2000, 2000));
+        refreshRevisionsList(fromRevision, toRevision);
     }
     
     /**
      * Gets the revision list from the server and puts it into a table model.
      */
-    public void refreshRevisionsList() {               
+    public void refreshRevisionsList(long fromRevision, long toRevision) {               
         
         String[][] data = {{""}};
         int selected = this.getSelectedRow();
@@ -158,15 +174,15 @@ public class RevisionsTable extends JTable {
         }
       
         try {
-            transactions = session.getTransactionList();
+            transactions = session.getTransactionList(fromRevision, toRevision);
             
             data = new String[transactions.size()][HEADERS.length];                      
             
             for (int i = 0; i < transactions.size(); i++) {                
                 TransactionInformation transaction = transactions.get(i);
-                data[i][0] = String.valueOf(transaction.getVersionNumber());
+                data[i][0] = String.valueOf(transaction.getVersionNumber()) + " ";
                 data[i][1] = transaction.getTimeString() + " ";
-                data[i][2] = transaction.getVersionAuthor();
+                data[i][2] = transaction.getVersionAuthor() + " ";
                 data[i][3] = transaction.getSimpleDescription();
                 
                 // Determine the length of each column by determining the longest piece of data within each.
@@ -194,6 +210,19 @@ public class RevisionsTable extends JTable {
             if (selected < data.length && selected != -1) {
                 this.setRowSelectionInterval(selected, selected);
             }
+            
+            DefaultTableCellRenderer r = new NoFocusTableCellRenderer();
+            r.setHorizontalAlignment(JLabel.RIGHT);
+            this.getColumnModel().getColumn(0).setCellRenderer(r);
+            
+            // Set the scroll bar to the bottom of the list.
+            // For some reason, it must be invoked later for it to work.
+            final JScrollBar v = scrollPane.getVerticalScrollBar();
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    v.setValue(v.getMaximum());      
+                }
+            });              
         }
 
         
@@ -201,8 +230,12 @@ public class RevisionsTable extends JTable {
     
     public TransactionInformation getRevisionInformation(int revisionNo) {        
         
-        return transactions.get(revisionNo);
-        
+        for (TransactionInformation transaction : transactions) {
+            if (transaction.getVersionNumber() == revisionNo) {
+                return transaction;
+            }
+        }
+        return null;
     }
 
     public int getSelectedRevisionNumber() {
@@ -212,7 +245,12 @@ public class RevisionsTable extends JTable {
                 headersColumn = i;
             }
         }
-        return Integer.parseInt((String) this.getModel().getValueAt(this.getSelectedRow(), headersColumn));
+        String number = (String) this.getModel().getValueAt(this.getSelectedRow(), headersColumn);
+        return Integer.parseInt(number.trim());
+    }
+    
+    public JScrollPane getScrollPane() {
+        return scrollPane;
     }
 
 }
