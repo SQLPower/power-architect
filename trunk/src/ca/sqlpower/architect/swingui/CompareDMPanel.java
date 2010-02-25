@@ -269,7 +269,7 @@ public class CompareDMPanel extends JPanel {
 		private Action newConnectionAction = new AbstractAction(Messages.getString("CompareDMPanel.newConnectionActionName")) { //$NON-NLS-1$
 			public void actionPerformed(ActionEvent e) {
 
-                final DataSourceCollection plDotIni = session.getContext().getPlDotIni();
+                final DataSourceCollection plDotIni = session.getDataSources();
                 final JDBCDataSource dataSource = new JDBCDataSource(plDotIni);
                 Runnable onAccept = new Runnable() {
                     public void run() {
@@ -702,7 +702,7 @@ public class CompareDMPanel extends JPanel {
 
 			databaseDropdown = new JComboBox();
 			databaseDropdown.setName(prefix + "DatabaseDropdown"); //$NON-NLS-1$
-			databaseDropdown.setModel(new ConnectionComboBoxModel(session.getContext().getPlDotIni()));
+			databaseDropdown.setModel(new ConnectionComboBoxModel(session.getDataSources()));
 			databaseDropdown.setEnabled(false);
 			databaseDropdown.setRenderer(dataSourceRenderer);
 
@@ -1013,7 +1013,7 @@ public class CompareDMPanel extends JPanel {
 		progressBar.setIndeterminate(true);
 		progressBar.setVisible(false);
 
-		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes(session.getContext().getPlDotIni()));
+		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes(session.getDataSources()));
         sqlTypeDropdown.setRenderer(new DDLGeneratorListCellRenderer());
 		sqlTypeDropdown.setName("sqlTypeDropDown"); //$NON-NLS-1$
 		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown);

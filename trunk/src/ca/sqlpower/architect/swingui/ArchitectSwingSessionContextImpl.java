@@ -20,7 +20,6 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Component;
 import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
@@ -36,7 +35,6 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.ImageIcon;
-import javax.swing.JDialog;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.log4j.Logger;
@@ -52,13 +50,8 @@ import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.SPServerInfoManager;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
-import ca.sqlpower.sql.Olap4jDataSource;
-import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.SPSUtils;
-import ca.sqlpower.swingui.db.DataSourceDialogFactory;
-import ca.sqlpower.swingui.db.DataSourceTypeDialogFactory;
-import ca.sqlpower.swingui.db.DatabaseConnectionManager;
 import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
@@ -118,50 +111,12 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     private ArchitectSessionContext delegateContext;
    
     /**
-     * The database connection manager GUI for this session context (because all sessions
-     * share the same set of database connections).
-     */
-    private final DatabaseConnectionManager dbConnectionManager;
-
-    /**
-     * The Preferences editor for this application context.
-     */
-    private final PreferencesEditor prefsEditor;
-    
-    /**
      * This internal clipboard allows copying and pasting objects within
      * the app to stay as objects. The system clipboard throws modification
      * exceptions when it is used with SQLObjects.
      */
     private final Clipboard clipboard = new Clipboard("Internal clipboard");
     
-    /**
-     * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, SPDataSource, Runnable)}
-     * method.
-     */
-    private final DataSourceDialogFactory dsDialogFactory = new DataSourceDialogFactory() {
-
-        public JDialog showDialog(Window parentWindow, JDBCDataSource dataSource, Runnable onAccept) {
-            return ASUtils.showDbcsDialog(parentWindow, dataSource, onAccept);
-        }
-
-        public JDialog showDialog(Window parentWindow, Olap4jDataSource dataSource,
-                DataSourceCollection<? super JDBCDataSource> dsCollection, Runnable onAccept) {
-            throw new UnsupportedOperationException("There is no editor dialog for Olap4j connections in Architect.");
-        }
-        
-    };
-    
-    /**
-     * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, SPDataSource, Runnable)}
-     * method.
-     */
-    private final DataSourceTypeDialogFactory dsTypeDialogFactory = new DataSourceTypeDialogFactory() {
-        public Window showDialog(Window owner) {
-            return prefsEditor.showJDBCDriverPreferences(owner, ArchitectSwingSessionContextImpl.this);
-        }
-    };
-
     /**
      * Creates a new session context.  You will normally only need one of these
      * per JVM, but there is no technical barrier to creating multiple contexts.
@@ -187,9 +142,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         logger.debug("new motion threshold is: " + System.getProperty("awt.dnd.drag.threshold")); //$NON-NLS-1$ //$NON-NLS-2$
 
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
-        
-        dbConnectionManager = new DatabaseConnectionManager(getPlDotIni(), dsDialogFactory,dsTypeDialogFactory);
-        prefsEditor = new PreferencesEditor();
 
         // sets the icon so exception dialogs handled by SPSUtils instead
         // of ASUtils can still have the correct icon
@@ -217,7 +169,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         ArchitectSwingSession session = createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.projectLoadingDialogTitle"), false, null); //$NON-NLS-1$
         
         try {
-            session.getProjectLoader().load(in, getPlDotIni());
+            session.getProjectLoader().load(in, session.getDataSources());
 
             if (showGUI) {
                 session.initGUI();
@@ -389,14 +341,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         }
     }
 
-    public void showConnectionManager(Window owner) {
-        dbConnectionManager.showDialog(owner);
-    }
-
-    public void showPreferenceDialog(Window owner) {
-        prefsEditor.showPreferencesDialog(owner, ArchitectSwingSessionContextImpl.this);
-    }
-    
     /**
      * Attempts to close all sessions that were created by this context.  The
      * user might abort some or all of the session closes by choosing to cancel
@@ -423,7 +367,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         return delegateContext.getConnections();
     }
 
-    public DataSourceCollection getPlDotIni() {
+    public DataSourceCollection<JDBCDataSource> getPlDotIni() {
         return delegateContext.getPlDotIni();
     }
 

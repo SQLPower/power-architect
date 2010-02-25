@@ -166,7 +166,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
 
         @Override
         public void doStuff() throws Exception {
-            session.getProjectLoader().load(in, context.getPlDotIni());
+            session.getProjectLoader().load(in, session.getDataSources());
             session.getProjectLoader().setFile(file);
         }
 

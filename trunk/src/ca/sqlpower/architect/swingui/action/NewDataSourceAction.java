@@ -27,7 +27,7 @@ public class NewDataSourceAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent e) {
-        final DataSourceCollection plDotIni = session.getContext().getPlDotIni();
+        final DataSourceCollection plDotIni = session.getDataSources();
         final JDBCDataSource dataSource = new JDBCDataSource(plDotIni);
         Runnable onAccept = new Runnable() {
             public void run() {

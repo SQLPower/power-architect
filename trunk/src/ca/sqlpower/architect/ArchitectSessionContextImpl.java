@@ -91,7 +91,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
 
         setPlDotIniPath(ArchitectUtils.checkForValidPlDotIni(getPlDotIniPath(), "Architect"));
         
-        SPServerInfo defaultSettings = new SPServerInfo("", "", 8080, "/architect-enterprise/", "", "");
+        SPServerInfo defaultSettings = new SPServerInfo("", "", 8080, "/architect-enterprise", "", "");
         serverManager = new SPServerInfoManager(getPrefs().node("servers"), new Version(
                 ArchitectVersion.APP_FULL_VERSION.toString()), defaultSettings);
     }

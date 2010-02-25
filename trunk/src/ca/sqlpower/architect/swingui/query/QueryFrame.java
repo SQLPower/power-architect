@@ -77,7 +77,7 @@ public class QueryFrame extends JFrame {
        TreeModel model = session.getSourceDatabases().getModel();
        dbTree.setModel(model);
         
-        queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getContext().getPlDotIni(), session, this, db, initialSQL);
+        queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getDataSources(), session, this, db, initialSQL);
         queryPanel.setMinimumSize(new Dimension(100,100));
         
         buildUI(session);

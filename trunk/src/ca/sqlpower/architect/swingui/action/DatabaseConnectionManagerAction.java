@@ -11,7 +11,6 @@ public class DatabaseConnectionManagerAction extends AbstractArchitectAction  {
     }
 
     public void actionPerformed(ActionEvent e) {
-        session.getContext().showConnectionManager(session.getArchitectFrame());
+        session.showConnectionManager(session.getArchitectFrame());
     }
-
 }

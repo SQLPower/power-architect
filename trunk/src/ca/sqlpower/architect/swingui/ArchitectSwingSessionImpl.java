@@ -74,6 +74,7 @@ import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.Olap4jDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -83,6 +84,9 @@ import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.SwingUIUserPrompterFactory;
+import ca.sqlpower.swingui.db.DataSourceDialogFactory;
+import ca.sqlpower.swingui.db.DataSourceTypeDialogFactory;
+import ca.sqlpower.swingui.db.DatabaseConnectionManager;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.SQLPowerUtils;
@@ -198,6 +202,45 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private static final JColorChooser colourChooser = new JColorChooser();
 
     /**
+     * The database connection manager GUI for this session (because all sessions
+     * do not share the same set of connections, some get theirs locally, and others
+     * get theirs from a server).
+     */
+    private final DatabaseConnectionManager dbConnectionManager;
+    
+    /**
+     * The Preferences editor for this application.
+     */
+    private final PreferencesEditor prefsEditor;
+    
+    /**
+     * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, SPDataSource, Runnable)}
+     * method.
+     */
+    private final DataSourceDialogFactory dsDialogFactory = new DataSourceDialogFactory() {
+
+        public JDialog showDialog(Window parentWindow, JDBCDataSource dataSource, Runnable onAccept) {
+            return ASUtils.showDbcsDialog(parentWindow, dataSource, onAccept);
+        }
+
+        public JDialog showDialog(Window parentWindow, Olap4jDataSource dataSource,
+                DataSourceCollection<? super JDBCDataSource> dsCollection, Runnable onAccept) {
+            throw new UnsupportedOperationException("There is no editor dialog for Olap4j connections in Architect.");
+        }
+        
+    };
+    
+    /**
+     * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, SPDataSource, Runnable)}
+     * method.
+     */
+    private final DataSourceTypeDialogFactory dsTypeDialogFactory = new DataSourceTypeDialogFactory() {
+        public Window showDialog(Window owner) {
+            return prefsEditor.showJDBCDriverPreferences(owner, ArchitectSwingSessionImpl.this);
+        }
+    };
+    
+    /**
      * Creates a new swing session, including a new visible architect frame, with
      * the given parent context and the given name.
      * 
@@ -234,9 +277,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             }
         };
 
-        // Make sure we can load the pl.ini file so we can handle exceptions
-        // XXX this is probably redundant now, since the context owns the pl.ini
-        getContext().getPlDotIni();
+        dbConnectionManager = new DatabaseConnectionManager(
+                delegateSession.getDataSources(), dsDialogFactory, dsTypeDialogFactory);
 
         setProjectLoader(new SwingUIProjectLoader(this));
 
@@ -284,6 +326,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         olapEditSessions = new ArrayList<OLAPEditSession>();
         
         printSettings = new PrintSettings();
+        
+        prefsEditor = new PreferencesEditor();
     }
 
     public void initGUI() throws SQLObjectException {
@@ -465,7 +509,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                         return saveOrSaveAs(true, separateThread);
                     }
                 }
-
 
                 //creates an empty file if "file" does not exist 
                 //so that the new file can be found by the recent menu
@@ -710,6 +753,14 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
     }
 
+    public String getServerName() {
+        if (delegateSession instanceof ArchitectClientSideSession) {
+            return ((ArchitectClientSideSession) delegateSession).getProjectLocation().getServiceInfo().getName();
+        } else {
+            return null;
+        }
+    }
+    
     /**
      * Gets the value of name
      *
@@ -953,7 +1004,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         dbcsMenu.addSeparator();
 
         // populate
-        for (SPDataSource dbcs : getContext().getConnections()) {
+        for (SPDataSource dbcs : getDataSources().getConnections()) {
             dbcsMenu.add(new JMenuItem(new AddDataSourceAction(sourceDatabases, dbcs)));
         }
         SPSUtils.breakLongMenu(getArchitectFrame(), dbcsMenu);
@@ -1077,5 +1128,17 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         } else {
             throw new RuntimeException("This swing session is not an enterprise session");
         }
+    }
+
+    public DataSourceCollection<JDBCDataSource> getDataSources() {
+        return delegateSession.getDataSources();
+    }
+
+    public void showConnectionManager(Window owner) {
+        dbConnectionManager.showDialog(owner);
+    }
+
+    public void showPreferenceDialog(Window owner) {
+        prefsEditor.showPreferencesDialog(owner, ArchitectSwingSessionImpl.this);
     }
 }

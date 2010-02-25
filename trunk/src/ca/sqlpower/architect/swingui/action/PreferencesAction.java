@@ -35,6 +35,6 @@ public class PreferencesAction extends AbstractArchitectAction {
 	 * Calls the session context's showPreferencesDialog method
 	 */
 	public void actionPerformed(ActionEvent evt) {
-		session.getContext().showPreferenceDialog(session.getArchitectFrame());
+		session.showPreferenceDialog(session.getArchitectFrame());
 	}
 }

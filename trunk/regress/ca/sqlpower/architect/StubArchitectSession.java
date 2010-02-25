@@ -159,4 +159,9 @@ public class StubArchitectSession implements ArchitectSession {
         return false;
     }
 
+    public DataSourceCollection<JDBCDataSource> getDataSources() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

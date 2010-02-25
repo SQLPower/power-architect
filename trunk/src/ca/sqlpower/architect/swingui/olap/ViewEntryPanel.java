@@ -71,7 +71,7 @@ class ViewEntryPanel implements DataEntryPanel {
         this.cubeEditPanel = cubeEditPanel;
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref, 5dlu:grow, pref, 3dlu, pref", "pref, fill:pref:grow"));
         
-        queryComponents = new SQLQueryUIComponents(session, session.getContext().getPlDotIni(), session, builder.getPanel());
+        queryComponents = new SQLQueryUIComponents(session, session.getDataSources(), session, builder.getPanel());
         queryComponents.getRowLimitSpinner().setValue(Integer.valueOf(1000));
         queryComponents.getDatabaseComboBox().setSelectedItem(db.getDataSource());
         
