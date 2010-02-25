@@ -24,6 +24,9 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -313,9 +316,18 @@ public class ServerProjectsManagerPanel {
         SPServerInfo serviceInfo = getSelectedServerInfo();
         if (serviceInfo != null) {
             try {
-                for (ProjectLocation pl : ArchitectClientSideSession.getWorkspaceNames(serviceInfo)) {
+                // Sorts the project locations alphabetically
+                List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo);
+                Collections.sort(projects, new Comparator<ProjectLocation>() {
+                    public int compare(ProjectLocation proj1, ProjectLocation proj2) {
+                        return proj1.getName().compareTo(proj2.getName());
+                    }
+                });
+                
+                for (ProjectLocation pl : projects) {
                     model.addElement(pl);
                 } 
+                
                 connected = true;
             } catch (Exception ex) {
                 model.removeAllElements();
