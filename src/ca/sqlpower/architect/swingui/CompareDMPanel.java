@@ -1257,9 +1257,11 @@ public class CompareDMPanel extends JPanel {
 				sourceComp = new CompareSQL(sourceTables, targetTables, 
 				        session.getCompareDMSettings().getSuppressSimilarities(),
 						useUUID);
+                sourceComp.setCompareIndices(includeIndexes.isSelected());
 				targetComp = new CompareSQL(targetTables, sourceTables, 
 				        session.getCompareDMSettings().getSuppressSimilarities(),
 						useUUID);
+                targetComp.setCompareIndices(includeIndexes.isSelected());
 
 			} catch (SQLObjectException ex) {
 			    ASUtils.showExceptionDialog(session,
