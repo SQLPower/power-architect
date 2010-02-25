@@ -336,7 +336,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
      * @throws JSONException
      * @throws ParseException
      */
-    public List<TransactionInformation> getTransactionList() throws IOException, URISyntaxException, JSONException, ParseException {
+    public List<TransactionInformation> getTransactionList(long fromVersion, long toVersion)
+    throws IOException, URISyntaxException, JSONException, ParseException {
         
         SPServerInfo serviceInfo = projectLocation.getServiceInfo();
         HttpClient httpClient = createHttpClient(serviceInfo);
@@ -344,8 +345,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
         
         try {
             
+            logger.info("Getting transactions between " + fromVersion + " and " + toVersion);
             JSONMessage message = executeServerRequest(httpClient, projectLocation.getServiceInfo(),
-                    "/project/" + projectLocation.getUUID() + "/revision_list", 
+                    "/project/" + projectLocation.getUUID() + "/revision_list",
+                    "versions=" + fromVersion + ":" + toVersion,
                     new JSONResponseHandler());
             JSONArray jsonArray = new JSONArray(message.getBody());
             
@@ -411,6 +414,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             httpClient.getConnectionManager().shutdown();
         }
 	    
+	}
+	
+	public int getCurrentRevisionNo() {
+	    return currentRevision;
 	}
 	
 	/**
@@ -631,7 +638,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 					            "oldRevisionNo=" + currentRevision);
 					    HttpUriRequest request = new HttpGet(uri);
 	                        
-                        JSONMessage message = inboundHttpClient.execute(request, new JSONResponseHandler());                     
+                        JSONMessage message = inboundHttpClient.execute(request, new JSONResponseHandler());
                         final JSONObject json = new JSONObject(message.getBody());
                         final String jsonArray = json.getString("data");
 
@@ -883,7 +890,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 
 	    public JSONMessage handleResponse(HttpResponse response) {
             try {
-                
+                                
                 BufferedReader reader = new BufferedReader(
                         new InputStreamReader(response.getEntity().getContent()));
                 StringBuffer buffer = new StringBuffer();

@@ -22,19 +22,21 @@ package ca.sqlpower.architect.swingui.enterprise;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.text.DefaultStyledDocument;
 
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
@@ -59,11 +61,14 @@ public class CompareRevisionsPanel {
     private final JTextPane comparePane;
     
     private final JPanel panel;
+    
+    private final long fromRevision;
+    private final long toRevision;
 
     private final Action refreshAction = new AbstractAction("Refresh...") {
         public void actionPerformed(ActionEvent e) {
-            revisionsTableLeft.refreshRevisionsList();
-            revisionsTableRight.refreshRevisionsList();
+            revisionsTableLeft.refreshRevisionsList(fromRevision, toRevision);
+            revisionsTableRight.refreshRevisionsList(fromRevision, toRevision);
             refreshPanel();
         }
     };
@@ -75,7 +80,8 @@ public class CompareRevisionsPanel {
             
             DefaultStyledDocument resultDoc = new DefaultStyledDocument();
             try {
-                if (oldRevisionNo >= 0 && newRevisionNo >= 0) {
+                this.setEnabled(false);
+                if (oldRevisionNo >= 0 && newRevisionNo >= 0) {                    
                     List<DiffChunk<DiffInfo>> diff = session.getComparisonDiffChunks(oldRevisionNo, newRevisionNo);      
                     if (diff.size() == 0) {
                         resultDoc.insertString(0, "Revisions are identical", null);
@@ -87,42 +93,50 @@ public class CompareRevisionsPanel {
                 }
             } catch (Throwable t) {
                 throw new RuntimeException("Error making comparison", t);
+            } finally {
+                refreshPanel();
             }
             
             comparePane.setStyledDocument(resultDoc);
         }
     };
 
-    public CompareRevisionsPanel(ArchitectClientSideSession session, Action closeAction) {
+    public CompareRevisionsPanel(ArchitectClientSideSession session, 
+            Action closeAction, long fromRevision, long toRevision) {
 
         this.session = session;               
-
-        revisionsTableLeft = new RevisionsTable(this.session);
-        revisionsTableRight = new RevisionsTable(this.session);      
+        this.fromRevision = fromRevision;
+        this.toRevision = toRevision;
+        
+        revisionsTableLeft = new RevisionsTable(this.session, fromRevision, toRevision);
+        revisionsTableRight = new RevisionsTable(this.session, fromRevision, toRevision);
+        
+        final JCheckBox autoCompare = new JCheckBox("Auto-compare", true);
                 
-        MouseListener tableListener = new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
+        final ListSelectionListener changeListener = new ListSelectionListener() {            
+            public void valueChanged(ListSelectionEvent e) {
                 refreshPanel();
+                if (autoCompare.isSelected()
+                        && revisionsTableLeft.getSelectedRow() > -1
+                        && revisionsTableRight.getSelectedRow() > -1) {
+                    compareAction.actionPerformed(null);
+                }
             }
         };
         
-        revisionsTableLeft.addMouseListener(tableListener);
-        revisionsTableRight.addMouseListener(tableListener);
-        
-        JScrollPane revisionsPaneLeft = new JScrollPane(revisionsTableLeft);                
-        JScrollPane revisionsPaneRight = new JScrollPane(revisionsTableRight);
-        
-        revisionsPaneLeft.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        revisionsPaneRight.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        revisionsPaneLeft.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        revisionsPaneRight.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);       
+        autoCompare.addChangeListener(new ChangeListener() {            
+            public void stateChanged(ChangeEvent e) {
+                changeListener.valueChanged(null);
+            }
+        });       
+        revisionsTableLeft.getSelectionModel().addListSelectionListener(changeListener);
+        revisionsTableRight.getSelectionModel().addListSelectionListener(changeListener);
         
         comparePane = new JTextPane();
         comparePane.setEditable(false);
         comparePane.setMargin(new Insets(6, 10, 4, 6));
         JScrollPane sp = new JScrollPane(comparePane);
-        sp.setPreferredSize(revisionsPaneLeft.getPreferredSize());
+        sp.setPreferredSize(revisionsTableLeft.getScrollPane().getPreferredSize());
 
         CellConstraints cc = new CellConstraints();
         
@@ -130,13 +144,14 @@ public class CompareRevisionsPanel {
                 new FormLayout("default:grow, 5dlu, default:grow", "pref, 2dlu, default:grow"));
         revisionListsBuilder.add(new JLabel("From revision..."), cc.xy(1, 1));
         revisionListsBuilder.add(new JLabel("To revision..."), cc.xy(3, 1));
-        revisionListsBuilder.add(revisionsPaneLeft, cc.xy(1, 3));
-        revisionListsBuilder.add(revisionsPaneRight, cc.xy(3, 3));
+        revisionListsBuilder.add(revisionsTableLeft.getScrollPane(), cc.xy(1, 3));
+        revisionListsBuilder.add(revisionsTableRight.getScrollPane(), cc.xy(3, 3));
 
         DefaultFormBuilder buttonBarBuilder = new DefaultFormBuilder(new FormLayout("pref"));      
         buttonBarBuilder.append(new JButton(refreshAction));
         buttonBarBuilder.append(new JButton(compareAction));
-        buttonBarBuilder.append(new JButton(closeAction));
+        buttonBarBuilder.append(new JButton(closeAction));  
+        buttonBarBuilder.append(autoCompare);
         
         DefaultFormBuilder bottomBuilder = new DefaultFormBuilder(
                 new FormLayout("default:grow, right:default", "default:grow"));
