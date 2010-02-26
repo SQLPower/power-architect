@@ -48,6 +48,7 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.dao.HttpMessageSender;
 import ca.sqlpower.dao.SPPersistenceException;
@@ -374,7 +375,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
         
     }
 
-    public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo, String name) throws URISyntaxException, ClientProtocolException, IOException, JSONException {
+    public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo, String name)
+    throws URISyntaxException, ClientProtocolException, IOException, JSONException {
+        
     	HttpClient httpClient = createHttpClient(serviceInfo);
     	try {
     		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/jcr/projects/new", "name=" + name));
@@ -423,6 +426,47 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             httpClient.getConnectionManager().shutdown();
         }
         
+	}
+	
+	public void persistRevisionFromServer(int revisionNo, SPJSONMessageDecoder targetDecoder)
+	throws IOException, URISyntaxException, SPPersistenceException, IllegalArgumentException {
+	    ArchitectClientSideSession.persistRevisionFromServer(projectLocation, revisionNo, targetDecoder);
+	}
+	
+	/**
+	 * Requests the server for persist calls from version 0 to the given revision
+	 * of the given project, and persists them to the given decoder.
+	 * 
+	 * @param projectLocation
+	 * @param revisionNo Must be greater than zero, and no greater than the current revision number
+	 * @param decoder
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 * @throws SPPersistenceException
+	 * @throws IllegalArgumentException Thrown if the server rejects the given revisionNo
+	 */
+	public static void persistRevisionFromServer(ProjectLocation projectLocation, 
+	        int revisionNo, SPJSONMessageDecoder decoder)
+	throws IOException, URISyntaxException, SPPersistenceException, IllegalArgumentException {
+	    
+	    SPServerInfo serviceInfo = projectLocation.getServiceInfo();
+	    HttpClient httpClient = createHttpClient(serviceInfo);
+        
+        try {
+            JSONMessage response = executeServerRequest(httpClient, serviceInfo,
+                    "/project/" + projectLocation.getUUID() + "/" + revisionNo,
+                    new JSONResponseHandler());            
+            
+            if (response.isSuccessful()) {
+                decoder.decode(response.getBody());                
+            } else {
+                throw new IllegalArgumentException("The server rejected the revision number " +
+                		"(it must be greater than 0, and no greater than the current revision number)");
+            }
+            
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }   
 	}
 	
 	public int getLocalRevisionNo() {
@@ -936,5 +980,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                 throw new RuntimeException(ex);
             }
 	    }
-	}    
+	}
+
+    public void createRevisionSession(int revisionNo, ArchitectSwingSession swingSession) {
+        // TODO Auto-generated method stub
+        
+    }    
 }

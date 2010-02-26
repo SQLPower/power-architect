@@ -22,6 +22,8 @@ package ca.sqlpower.architect.swingui.enterprise;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
@@ -35,15 +37,18 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.SwingUtilities;
 import javax.swing.text.NumberFormatter;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
+import ca.sqlpower.architect.enterprise.ArchitectSessionPersister;
+import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.dao.json.SPJSONMessageDecoder;
+import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -54,30 +59,39 @@ public class RevisionListPanel {
     
     private class JLongField {
         
-        private JFormattedTextField field;        
-        
-        public JLongField() {
-            NumberFormatter f = new NumberFormatter(NumberFormat.getInstance());
-            f.setValueClass(Long.class);
-            f.setMinimum(new Long(0));
-            field = new JFormattedTextField(f);
-        }
+        private JFormattedTextField field;
+        private long value;
         
         public JLongField(long value) {
-            this();
+            NumberFormatter f = new NumberFormatter(NumberFormat.getInstance());
+            f.setValueClass(Long.class);
+            f.setMinimum(new Long(1));
+            field = new JFormattedTextField(f); 
             setValue(value);
         }
         
         public void setValue(long value) {
+            this.value = value;
             field.setValue(new Long(value));
         }
         
         public long getValue() {
-            return ((Long) field.getValue()).longValue();
+            return getValue(true);
         }
+        
+        public long getValue(boolean update) {
+            if (update) {
+                this.value = ((Long) field.getValue()).longValue();           
+            }
+            return this.value;
+        }        
         
         public JFormattedTextField getField() {
             return field;
+        }
+        
+        public boolean update() {
+            return (this.value != this.getValue(true)); 
         }
         
     }
@@ -96,78 +110,112 @@ public class RevisionListPanel {
     private JLongField toVersion;
     private int currentVersion;
     
+    private final JCheckBox autoRefreshBox;
     private final Runnable autoRefresh;
     
     private final Action refreshAction = new AbstractAction("Refresh...") {
         public void actionPerformed(ActionEvent e) {
-            
-            String message = "ok";
-            
-            // revertAction updates the currentVersion
+
+            boolean filterChange = fromVersion.update() || toVersion.update();
+
             int difference = session.getLocalRevisionNo() - currentVersion;
-            if (e.getSource() != revertAction) {                            
-                if (difference > 0) {
-                    currentVersion += difference;
-                    // If the end of the filter range was the previously most recent revision,
-                    // update the filter range to the new current revision number.
-                    if (toVersion.getValue() == currentVersion - difference) {                                               
-                        fromVersion.setValue(fromVersion.getValue() + difference);
-                        toVersion.setValue(currentVersion);     
-                    }
-                } else if (e.getSource() == autoRefresh) {                    
-                    return;
-                }
-            }
-                        
-            if (!e.getActionCommand().equals("ignoreWarnings")) {            
-                if (toVersion.getValue() > currentVersion) {
-                    message = "Revisions up to " + toVersion.getValue() + " cannot be shown " +
-                    "because the current revision is only " + currentVersion;
-                } else if (fromVersion.getValue() > toVersion.getValue()) {
-                    message = "Cannot show revisions from a higher version to a lower version";
-                }        
-            }
+            if (difference > 0) currentVersion += difference;
             
-            if (message.equals("ok")) {
+            String message = null;            
+            if (toVersion.getValue() > currentVersion) {
+                message = "Revisions up to " + toVersion.getValue() + " cannot be shown " +
+                "because the current revision is only " + currentVersion;
+                toVersion.setValue(currentVersion);
+            } else if (fromVersion.getValue() > toVersion.getValue()) {
+                message = "Cannot show revisions from a higher version to a lower version";
+                long to = toVersion.getValue() - 100;
+                if (to <= 0) to = 1;
+                fromVersion.setValue(to);
+            }
+            if (message != null) {
+                JOptionPane.showMessageDialog(dialogOwner, message);
+            }
+
+            if (difference > 0) {                    
+                // If the end of the filter range was the previously most recent revision,
+                // update the filter range to the new current revision number.
+                if (toVersion.getValue() == currentVersion - difference) {                                               
+                    fromVersion.setValue(fromVersion.getValue() + difference);
+                    toVersion.setValue(currentVersion);    
+                }
+            }            
+            if (difference > 0 || filterChange) {
                 revisionsTable.refreshRevisionsList(fromVersion.getValue(), toVersion.getValue());
                 refreshPanel();
-            } else {
-                JOptionPane.showMessageDialog(dialogOwner, message);
             }
         }
     };
     
     private final Action revertAction = new AbstractAction("Revert...") {
         public void actionPerformed(ActionEvent e) {
-            int revisionNo = revisionsTable.getSelectedRevisionNumber();
+            final int revisionNo = revisionsTable.getSelectedRevisionNumber();
+            if (revisionNo >= currentVersion) {
+                JOptionPane.showMessageDialog(dialogOwner, "Cannot revert to the current version number");
+                return;
+            }
             int response = JOptionPane.showConfirmDialog(dialogOwner, 
                     "Are you sure you would like to revert to version " + revisionNo,
                     "Revert...", JOptionPane.OK_CANCEL_OPTION);
-            if (response == JOptionPane.OK_OPTION) {                
-                try {
-                    int currentVersion = session.revertServerWorkspace(revisionNo);
-                    if (currentVersion == -1) {
-                        JOptionPane.showMessageDialog(dialogOwner, "The server did not revert" +
-                        " because the target and current revisions are identical");
-                    } else {                        
-                        RevisionListPanel.this.currentVersion = currentVersion;
-                        long range = toVersion.getValue() - fromVersion.getValue();
-                        fromVersion.setValue(currentVersion - range);
-                        toVersion.setValue(currentVersion);
-                        refreshAction.actionPerformed(new ActionEvent(this, 0, "ignoreWarnings"));          
-                        int last = revisionsTable.getRowCount() - 1;
-                        revisionsTable.getSelectionModel().setSelectionInterval(last, last);
+            if (response == JOptionPane.OK_OPTION) {
+                revertAction.setEnabled(false);                
+                new Thread(new Runnable() {
+                    public void run() {
+                        try {
+                            int currentVersion = session.revertServerWorkspace(revisionNo);
+                            if (currentVersion == -1) {
+                                JOptionPane.showMessageDialog(dialogOwner, "The server did not revert" +
+                                " because the target and current revisions are identical");
+                            } else {
+                                RevisionListPanel.this.currentVersion = currentVersion;
+                                long range = toVersion.getValue() - fromVersion.getValue();
+                                fromVersion.setValue(currentVersion - range);
+                                toVersion.setValue(currentVersion);
+                                revisionsTable.refreshRevisionsList(fromVersion.getValue(), toVersion.getValue());                                 
+                                int last = revisionsTable.getRowCount() - 1;
+                                revisionsTable.getSelectionModel().setSelectionInterval(last, last);
+                            }
+                        } catch (Throwable t) {
+                            throw new RuntimeException("Error requesting server revert", t);                    
+                        } finally {
+                            refreshPanel();
+                        }   
                     }
-                } catch (Throwable t) {
-                    throw new RuntimeException("Error requesting server revert", t);
-                }
+                }).start();
             }
         }
     };
     
     private final Action openAction = new AbstractAction("Open...") {
         public void actionPerformed(ActionEvent e) {
-            JOptionPane.showMessageDialog(dialogOwner, "This feature is not yet supported. Try again soon!");
+            int revisionNo = revisionsTable.getSelectedRevisionNumber();
+            ProjectLocation location = session.getProjectLocation();
+            ArchitectSwingSession revisionSession = null;            
+            try {            
+                revisionSession = swingSession.getContext().createSession(false);
+                revisionSession.setName(location.getName() + " - Revision " + revisionNo);                
+
+                ArchitectSessionPersister sessionPersister = new ArchitectSessionPersister(
+                        "inbound-" + location.getUUID(), revisionSession.getWorkspace(),
+                        new SessionPersisterSuperConverter(
+                                revisionSession.getDataSources(), revisionSession.getWorkspace()));
+
+                sessionPersister.setSession(revisionSession);
+
+                SPJSONMessageDecoder decoder = new SPJSONMessageDecoder(sessionPersister);           
+
+                session.persistRevisionFromServer(revisionNo, decoder);
+                revisionSession.initGUI(swingSession);
+            } catch (Exception ex) {
+                if (revisionSession != null) {
+                    revisionSession.close();
+                }
+                throw new RuntimeException(ex);
+            }
         }
     };   
 
@@ -205,7 +253,7 @@ public class RevisionListPanel {
                
         int currentRevision = session.getLocalRevisionNo();
         long from = currentRevision - 100;
-        if (from < 0) from = 0;
+        if (from <= 0) from = 1;
         fromVersion = new JLongField(from);        
         toVersion = new JLongField(currentRevision);
         
@@ -229,26 +277,32 @@ public class RevisionListPanel {
         filterBuilder.append(new JLabel("Display revisions "));      
         filterBuilder.append(textFieldBuilder.getPanel());
         
-        final JCheckBox autoRefreshBox = new JCheckBox("Auto-refresh", false);
+        autoRefreshBox = new JCheckBox("Auto-refresh", false);
         autoRefresh = new Runnable() {
             public void run() {
                 while (autoRefreshBox.isSelected()) {
-                    refreshAction.actionPerformed(new ActionEvent(this, 0, "ignoreWarnings"));
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {                    
+                            refreshAction.actionPerformed(null);
+                        }
+                    });
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException ex) {
-                        break;
+                        autoRefreshBox.setSelected(false);                        
                     }
                 }
             }
-        };        
-        autoRefreshBox.addChangeListener(new ChangeListener() {            
-            public void stateChanged(ChangeEvent e) {
-                new Thread(autoRefresh).start();
+        };       
+        autoRefreshBox.addItemListener(new ItemListener() { 
+            public void itemStateChanged(ItemEvent e) {
+                if (autoRefreshBox.isSelected()) {
+                    new Thread(autoRefresh).start();
+                }
             }
-        });  
+        });
         autoRefreshBox.setSelected(true);
-               
+        
         DefaultFormBuilder buttonBarBuilder = new DefaultFormBuilder(new FormLayout("pref"));
         buttonBarBuilder.append(filterBuilder.getPanel());
         buttonBarBuilder.append(new JLabel("\n"));

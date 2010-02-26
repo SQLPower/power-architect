@@ -37,7 +37,11 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.SimpleAttributeSet;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.swingui.CompareDMFormatter;
@@ -54,6 +58,8 @@ import com.jgoodies.forms.layout.FormLayout;
  */
 public class CompareRevisionsPanel {
     
+    private static final Logger logger = Logger.getLogger(CompareRevisionsPanel.class);
+    
     private final ArchitectClientSideSession session;
 
     private final RevisionsTable revisionsTableLeft;
@@ -66,7 +72,7 @@ public class CompareRevisionsPanel {
     private final long toRevision;
 
     private final Action refreshAction = new AbstractAction("Refresh...") {
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(ActionEvent e) {            
             revisionsTableLeft.refreshRevisionsList(fromRevision, toRevision);
             revisionsTableRight.refreshRevisionsList(fromRevision, toRevision);
             refreshPanel();
@@ -75,29 +81,20 @@ public class CompareRevisionsPanel {
 
     private final Action compareAction = new AbstractAction("Compare...") {
         public void actionPerformed(ActionEvent e) {
-            int oldRevisionNo = revisionsTableLeft.getSelectedRevisionNumber();
-            int newRevisionNo = revisionsTableRight.getSelectedRevisionNumber();
-            
-            DefaultStyledDocument resultDoc = new DefaultStyledDocument();
+            this.setEnabled(false);
+            DefaultStyledDocument d = new DefaultStyledDocument();
             try {
-                this.setEnabled(false);
-                if (oldRevisionNo >= 0 && newRevisionNo >= 0) {                    
-                    List<DiffChunk<DiffInfo>> diff = session.getComparisonDiffChunks(oldRevisionNo, newRevisionNo);      
-                    if (diff.size() == 0) {
-                        resultDoc.insertString(0, "Revisions are identical", null);
-                    } else {
-                        resultDoc = CompareDMFormatter.generateEnglishDescription(CompareDMFormatter.DIFF_STYLES, diff);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(panel, "A revision must be selected from each table.");
-                }
-            } catch (Throwable t) {
-                throw new RuntimeException("Error making comparison", t);
-            } finally {
-                refreshPanel();
+                d.insertString(0, "...", new SimpleAttributeSet());
+            } catch (BadLocationException ex) {
+                // Impossible
+                logger.error(ex);
             }
-            
-            comparePane.setStyledDocument(resultDoc);
+            comparePane.setStyledDocument(d);
+            new Thread(new Runnable() {
+                public void run() {
+                    doCompare();
+                }
+            }).start();            
         }
     };
 
@@ -179,5 +176,29 @@ public class CompareRevisionsPanel {
     public JPanel getPanel() {
         return panel;
     }
-
+    
+    private void doCompare() {
+        int oldRevisionNo = revisionsTableLeft.getSelectedRevisionNumber();
+        int newRevisionNo = revisionsTableRight.getSelectedRevisionNumber();
+        
+        DefaultStyledDocument resultDoc = new DefaultStyledDocument();
+        try {                
+            if (oldRevisionNo >= 0 && newRevisionNo >= 0) {                    
+                List<DiffChunk<DiffInfo>> diff = session.getComparisonDiffChunks(oldRevisionNo, newRevisionNo);      
+                if (diff.size() == 0) {
+                    resultDoc.insertString(0, "Revisions are identical", null);
+                } else {
+                    resultDoc = CompareDMFormatter.generateEnglishDescription(CompareDMFormatter.DIFF_STYLES, diff);
+                }
+            } else {
+                JOptionPane.showMessageDialog(panel, "A revision must be selected from each table.");
+            }
+        } catch (Throwable t) {
+            throw new RuntimeException("Error making comparison", t);
+        } finally {
+            refreshPanel();
+        }
+        comparePane.setStyledDocument(resultDoc);        
+    }
 }
+
