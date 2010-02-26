@@ -12,6 +12,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.prefs.Preferences;
 
 import javax.swing.SwingUtilities;
@@ -545,7 +546,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	
 	// Contained classes --------------------------------------------------------------------
 	
-	boolean persistingToServer = false;
+	private AtomicBoolean persistingToServer = new AtomicBoolean();
 	
 	/**
 	 * Sends outgoing JSON
@@ -566,47 +567,46 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		private boolean flushAgain = false;
 		public void flush() throws SPPersistenceException {
 		    try {
-		        if (persistingToServer) {
-		            flushAgain = true;
-		            return;
-		        }
-
-		        persistingToServer = true;
-		        flushAgain = false;
-    		    
-    		    URI serverURI = getServerURI();
-                HttpPost postRequest = new HttpPost(serverURI);
-                
-                postRequest.setEntity(new StringEntity(message.toString()));
-                postRequest.setHeader("Content-Type", "application/json");
-                HttpUriRequest request = postRequest;
-                clear();
-                
-                final JSONMessage response = getHttpClient().execute(request, new JSONResponseHandler());
-    		    runInForeground(new Runnable() {
-    		        public void run() {
-            		    try {
-            		        if (response.isSuccessful()) {
-            		            // Message was sent successfully and accepted by the server.
-            		            currentRevision = (new JSONObject(response.getBody())).getInt("currentRevision");
-            		        } else {
-            		            // Message was sent successfully but rejected by the server. We must rollback our
-            		            // changes and update to the head revision.
-            		            logger.debug("Response unsuccessful");
-            		            throw new RuntimeException("Out of sync with server");
-            		        }
-            			} catch (JSONException e) {
-            			    throw new RuntimeException(e);
-                        } finally {
-            				persistingToServer = false;
-                            try {
-                                if (flushAgain) flush();
-                            } catch (SPPersistenceException e) {
-                                throw new RuntimeException(e);
-                            }
-            			}
-                    }
-                });    
+		        if (persistingToServer.compareAndSet(false, true)) {
+    		        flushAgain = false;
+        		    
+        		    URI serverURI = getServerURI();
+                    HttpPost postRequest = new HttpPost(serverURI);
+                    
+                    postRequest.setEntity(new StringEntity(message.toString()));
+                    postRequest.setHeader("Content-Type", "application/json");
+                    HttpUriRequest request = postRequest;
+                    clear();
+                    
+                    final JSONMessage response = getHttpClient().execute(request, new JSONResponseHandler());
+        		    runInForeground(new Runnable() {
+        		        public void run() {
+                		    try {
+                		        if (response.isSuccessful()) {
+                		            // Message was sent successfully and accepted by the server.
+                		            currentRevision = (new JSONObject(response.getBody())).getInt("currentRevision");
+                		        } else {
+                		            // Message was sent successfully but rejected by the server. We must rollback our
+                		            // changes and update to the head revision.
+                		            logger.debug("Response unsuccessful");
+                		            throw new RuntimeException("Out of sync with server");
+                		        }
+                			} catch (JSONException e) {
+                			    throw new RuntimeException(e);
+                            } finally {
+                				persistingToServer.set(false);
+                                try {
+                                    if (flushAgain) flush();
+                                } catch (SPPersistenceException e) {
+                                    throw new RuntimeException(e);
+                                }
+                			}
+                        }
+                    });  
+		    } else {
+		        flushAgain = true;
+                return;
+		    }
 		    } catch (UnsupportedEncodingException e) {
                 throw new SPPersistenceException(null, e);
             } catch (URISyntaxException e) {
@@ -699,7 +699,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                         runInForeground(new Runnable() {
                             public void run() {
                                 try {
-                                    if (!persistingToServer) {
+                                    if (!persistingToServer.get()) {
                                         int newRevision = json.getInt("currentRevision"); 
                                         if (currentRevision < newRevision) {
                                             currentRevision = newRevision;
