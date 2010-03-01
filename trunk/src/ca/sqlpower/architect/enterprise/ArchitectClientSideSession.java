@@ -595,7 +595,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		        
     		    URI serverURI = getServerURI();
                 HttpPost postRequest = new HttpPost(serverURI);
-                postRequest.setEntity(new StringEntity(messageQueue.get(0).toString()));                    
+                postRequest.setEntity(new StringEntity(messageQueue.get(0).toString())); 
+                
                 postRequest.setHeader("Content-Type", "application/json");
                 HttpUriRequest request = postRequest;
                 clear();
@@ -644,7 +645,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		}
 
 		public void send(JSONObject content) throws SPPersistenceException {
-		    if (content.toString().equals("{\"uuid\":null,\"method\":\"begin\"}")) {
+		    // Transactions can start with a begin or a rollback
+		    if (content.toString().equals("{\"uuid\":null,\"method\":\"begin\"}") ||
+		            content.toString().equals("{\"uuid\":null,\"method\":\"rollback\"}")) {
 		        messageQueue.add(new JSONArray());
 		    } 
 		    messageQueue.get(messageQueue.size() - 1).put(content);
