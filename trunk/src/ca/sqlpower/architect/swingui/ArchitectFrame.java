@@ -39,6 +39,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Types;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -67,6 +68,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -256,6 +258,21 @@ public class ArchitectFrame extends JFrame {
                     } else {
                         JOptionPane.showMessageDialog(ArchitectFrame.this, "Please select a server", "", JOptionPane.INFORMATION_MESSAGE);
                     }
+                }
+            });
+            
+            sim.setTestAction(new AbstractAction("Test Server") {
+                public void actionPerformed(ActionEvent e) {
+                    String msg = "Unable to connect to server";
+                    try {
+                        List l = ArchitectClientSideSession.getWorkspaceNames(sim.getSelectedServer());
+                        if (l != null) {
+                            msg = "Successfuly connected to server";
+                        }
+                    } catch (Exception ex) {
+                    }
+                    
+                    JOptionPane.showMessageDialog(ArchitectFrame.this, msg);
                 }
             });
             
