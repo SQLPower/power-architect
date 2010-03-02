@@ -647,7 +647,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	public void dropPrimaryKey(SQLTable t) throws SQLObjectException {
 	    SQLIndex pk = t.getPrimaryKeyIndex();
 	    println("<dropPrimaryKey " + getTableQualifier(t)
-		  + "\" constraintName=\"" + getName(pk) + "\"/>");
+		  + " constraintName=\"" + getName(pk) + "\"/>");
 		endStatement(DDLStatement.StatementType.XMLTAG, t);
 	}
 
