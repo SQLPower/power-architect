@@ -59,7 +59,7 @@ public class ServerProjectsManagerPanel {
     private JList projects;
     private JList servers;
     
-    private Action refreshAction = new AbstractAction("Refresh...") {
+    private Action refreshAction = new AbstractAction("Refresh") {
         public void actionPerformed(ActionEvent e) {
             refreshInfoList();
         }
@@ -85,7 +85,7 @@ public class ServerProjectsManagerPanel {
         }
     };
     
-    private Action openAction = new AbstractAction("Open...") {
+    private Action openAction = new AbstractAction("Open") {
         public void actionPerformed(ActionEvent e) {
             
             if (getSelectedServerInfo() != null) {
@@ -117,7 +117,7 @@ public class ServerProjectsManagerPanel {
     }; 
    
     
-    private Action deleteAction = new AbstractAction("Delete...") {
+    private Action deleteAction = new AbstractAction("Delete") {
         public void actionPerformed(ActionEvent e) {
          
             if (getSelectedServerInfo() != null) {
