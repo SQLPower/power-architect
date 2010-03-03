@@ -319,12 +319,6 @@ public class ArchitectFrame extends JFrame {
             };
             
             final RevisionListPanel p = new RevisionListPanel(session, ArchitectFrame.this, closeAction);
-            d.addWindowListener(new WindowAdapter() {
-                public void windowClosing(WindowEvent e) {                    
-                    p.stopAutoRefresh();
-                    super.windowClosing(e);                    
-                }
-            });
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(p.getPanel());
             
