@@ -90,8 +90,10 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 
-                double width = Math.max(pp.getUsedArea().getWidth(), pp.getViewportSize().getWidth());
-                double height = Math.max(pp.getUsedArea().getHeight(), pp.getViewportSize().getHeight());
+                double width = Math.max(pp.getPanel().getUsedArea().getWidth(), 
+                        pp.getPanel().getViewportSize().getWidth());
+                double height = Math.max(pp.getPanel().getUsedArea().getHeight(), 
+                        pp.getPanel().getViewportSize().getHeight());
 
                 scaleFactor = Math.min(SCALED_IMAGE_WIDTH / width, SCALED_IMAGE_HEIGHT / height);
                 ((Graphics2D) g).scale(scaleFactor, scaleFactor);
@@ -101,18 +103,18 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
                     if (pp.isRenderingAntialiased() == true) {
                         try {
                             pp.setRenderingAntialiased(false);
-                            pp.paintComponent(g);
+                            pp.getPanel().paintComponent(g);
                         } finally {
                             pp.setRenderingAntialiased(true);
                         }
                     } else {
-                        pp.paintComponent(g);
+                        pp.getPanel().paintComponent(g);
                     }
                 } finally {
                     currentManager.setDoubleBufferingEnabled(true);
                 }
 
-                Rectangle view = pp.getVisibleRect();
+                Rectangle view = pp.getPanel().getVisibleRect();
                 g.setColor(Color.GREEN);
                 ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
                 g.drawRect(view.x, view.y, view.width, view.height-5);
@@ -162,8 +164,8 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
      */
     private void adjustViewPort(Point pointOnNavigator) {
         Point pointOnPlaypen = getPointOnPlaypen(pointOnNavigator);
-        Dimension viewSize = pp.getViewportSize();
-        Dimension usedArea = pp.getUsedArea();
+        Dimension viewSize = pp.getPanel().getViewportSize();
+        Dimension usedArea = pp.getPanel().getUsedArea();
 
         // makes the given point the center of the resulting viewport
         pointOnPlaypen.translate(-viewSize.width / 2, -viewSize.height / 2);
@@ -186,7 +188,7 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
             y = yBoundary;
         }
         
-        pp.setViewPosition(new Point(x, y));
+        pp.getPanel().setViewPosition(new Point(x, y));
         
         navigationPanel.repaint();
     }

@@ -69,7 +69,7 @@ public class AlignTableAction extends AbstractArchitectAction{
         }
         selection = Collections.unmodifiableList(selection);
         if (selection.size() < 2) {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("AlignTableAction.selectAtLeastTwoTables")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("AlignTableAction.selectAtLeastTwoTables")); //$NON-NLS-1$
         } else if (selection.size() >= 2) {
             int min = Integer.MAX_VALUE;
             playpen.startCompoundEdit("Aligning tables"); //$NON-NLS-1$
@@ -95,7 +95,7 @@ public class AlignTableAction extends AbstractArchitectAction{
             }
             playpen.endCompoundEdit("Ending the alignment of tables"); //$NON-NLS-1$
         } else {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("AlignTableAction.selectAtLeastTwoTables")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("AlignTableAction.selectAtLeastTwoTables")); //$NON-NLS-1$
         }
     }
 }

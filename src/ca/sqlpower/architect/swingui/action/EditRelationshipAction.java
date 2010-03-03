@@ -62,21 +62,21 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 		if (evt.getActionCommand().equals(PlayPen.ACTION_COMMAND_SRC_PLAYPEN)) {
 			List<PlayPenComponent> selection = playpen.getSelectedItems();
 			if (selection.size() < 1) {
-				JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("EditRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
 			} else if (selection.size() > 1) {
-				JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.multipleItemsSelected")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("EditRelationshipAction.multipleItemsSelected")); //$NON-NLS-1$
 			} else if (selection.get(0) instanceof Relationship) {
 				Relationship r = (Relationship) selection.get(0);
 				makeDialog(r.getModel());
 			} else {
-				JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.pleaseSelectRelationship")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("EditRelationshipAction.pleaseSelectRelationship")); //$NON-NLS-1$
 			}
 		} else if (evt.getActionCommand().equals(DBTree.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
 			if (selections.length < 1) {
 				JOptionPane.showMessageDialog(dbt, Messages.getString("EditRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
 			} else if (selections.length > 2) {
-			    JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.multipleItemsSelected")); //$NON-NLS-1$
+			    JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("EditRelationshipAction.multipleItemsSelected")); //$NON-NLS-1$
 			} else {
 			    TreePath tp = selections[0];
 			    SQLObject so = (SQLObject) tp.getLastPathComponent();

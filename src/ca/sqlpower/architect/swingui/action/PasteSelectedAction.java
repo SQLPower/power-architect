@@ -56,12 +56,12 @@ public class PasteSelectedAction extends AbstractArchitectAction {
                 PasteSelectedAction.this.setEnabled(true);
             }
         };
-        session.getPlayPen().addFocusListener(focusListener);
+        session.getPlayPen().getPanel().addFocusListener(focusListener);
         
         final SessionLifecycleListener<ArchitectSession> lifecycleListener = new SessionLifecycleListener<ArchitectSession>() {
         
             public void sessionClosing(SessionLifecycleEvent<ArchitectSession> e) {
-                session.getPlayPen().removeFocusListener(focusListener);
+                session.getPlayPen().getPanel().removeFocusListener(focusListener);
             }
         };
         session.addSessionLifecycleListener(lifecycleListener);
@@ -70,7 +70,7 @@ public class PasteSelectedAction extends AbstractArchitectAction {
     public void actionPerformed(ActionEvent e) {
         PlayPen playPen = session.getPlayPen();
         final Component focusOwner = session.getArchitectFrame().getFocusOwner();
-        if (playPen.isAncestorOf(focusOwner) || playPen == focusOwner) {
+        if (playPen.getPanel().isAncestorOf(focusOwner) || playPen.getPanel() == focusOwner) {
             Transferable clipboardContents = session.getContext().getClipboardContents();
             logger.debug("Pasting " + clipboardContents + " into the playpen.");
             if (clipboardContents != null) {

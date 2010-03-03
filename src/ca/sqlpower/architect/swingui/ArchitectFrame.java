@@ -318,7 +318,13 @@ public class ArchitectFrame extends JFrame {
                 }
             };
             
-            RevisionListPanel p = new RevisionListPanel(session, ArchitectFrame.this, closeAction);
+            final RevisionListPanel p = new RevisionListPanel(session, ArchitectFrame.this, closeAction);
+            d.addWindowListener(new WindowAdapter() {
+                public void windowClosing(WindowEvent e) {                    
+                    p.stopAutoRefresh();
+                    super.windowClosing(e);                    
+                }
+            });
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(p.getPanel());
             
@@ -360,10 +366,10 @@ public class ArchitectFrame extends JFrame {
 
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(new JScrollPane(SPSUtils.getBrandedTreePanel(dbTree)));
-        playpenScrollPane = new JScrollPane(playpen);
+        playpenScrollPane = new JScrollPane(playpen.getPanel());
         
         splitPane.setRightComponent(playpenScrollPane);
-        playpen.setInitialViewPosition();
+        playpen.getPanel().setInitialViewPosition();
 
         final Preferences prefs = context.getPrefs();
         

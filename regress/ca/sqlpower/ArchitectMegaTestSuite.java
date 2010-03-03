@@ -20,11 +20,10 @@ package ca.sqlpower;
 
 import java.io.IOException;
 
-import ca.sqlpower.architect.profile.ProfileTests;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import ca.sqlpower.architect.profile.ProfileTests;
 
 /**
  * All of the junit tests that we currently have for the Architect.  Combines

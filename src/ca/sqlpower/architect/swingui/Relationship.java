@@ -198,7 +198,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
                         componentList.append(columnMap).append("\n"); //$NON-NLS-1$
                     }
                     
-                    JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JTextArea(componentList.toString())));
+                    JOptionPane.showMessageDialog(getPlayPen().getPanel(), new JScrollPane(new JTextArea(componentList.toString())));
                 }
             });
             popup.add(mi);
@@ -370,9 +370,9 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 			this.startingPk = new Point(r.getPkConnectionPoint().x, r.getPkConnectionPoint().y);
 			this.startingFk = new Point(r.getFkConnectionPoint().x, r.getFkConnectionPoint().y);
 			r.getModel().begin("Reposition relationship");
-			r.getPlayPen().addMouseMotionListener(this);
-			r.getPlayPen().addMouseListener(this);
-			r.getPlayPen().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+			r.getPlayPen().getPanel().addMouseMotionListener(this);
+			r.getPlayPen().getPanel().addMouseListener(this);
+			r.getPlayPen().getPanel().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 		}
 
 		/**
@@ -433,9 +433,9 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 		}
 
 		protected void cleanup() {
-			r.getPlayPen().removeMouseMotionListener(this);
-			r.getPlayPen().removeMouseListener(this);
-			r.getPlayPen().setCursor(null);
+			r.getPlayPen().getPanel().removeMouseMotionListener(this);
+			r.getPlayPen().getPanel().removeMouseListener(this);
+			r.getPlayPen().getPanel().setCursor(null);
 			r.getModel().commit();
 		}
 	}

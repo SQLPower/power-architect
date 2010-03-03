@@ -183,7 +183,7 @@ public class SearchReplace {
     public void showSearchDialog(final PlayPen pp) {
     	// XXX need to convert to an ArchitectPanel before switching
     	// this to use ArchitectPanelBuilder.
-        final JDialog d = new JDialog((Frame) SwingUtilities.getAncestorOfClass(JFrame.class, pp), Messages.getString("SearchReplace.dialogTitle")); //$NON-NLS-1$
+        final JDialog d = new JDialog((Frame) SwingUtilities.getAncestorOfClass(JFrame.class, pp.getPanel()), Messages.getString("SearchReplace.dialogTitle")); //$NON-NLS-1$
 
         ButtonGroup matchType = new ButtonGroup();
         matchType.add(substringMatch = new JRadioButton(Messages.getString("SearchReplace.substringCompareByOption"))); //$NON-NLS-1$
@@ -262,7 +262,7 @@ public class SearchReplace {
         d.getRootPane().setDefaultButton(searchButton);
 
         d.pack();
-        d.setLocationRelativeTo(pp);
+        d.setLocationRelativeTo(pp.getPanel());
         d.setVisible(true);
         searchExpression.requestFocus();
     }

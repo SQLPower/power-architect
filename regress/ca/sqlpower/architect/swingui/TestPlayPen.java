@@ -282,6 +282,7 @@ public class TestPlayPen extends TestCase {
 	        copyIgnoreProperties.add("ancestorListeners");
 	        copyIgnoreProperties.add("autoscrolls");
 	        copyIgnoreProperties.add("border");
+	        copyIgnoreProperties.add("class");
 	        copyIgnoreProperties.add("component");
 	        copyIgnoreProperties.add("componentPopupMenu");
 	        copyIgnoreProperties.add("containerListeners");
@@ -315,7 +316,8 @@ public class TestPlayPen extends TestCase {
 	        copyIgnoreProperties.add("optimizedDrawingEnabled");
 	        copyIgnoreProperties.add("paintingEnabled");
 	        copyIgnoreProperties.add("paintingTile");
-	        copyIgnoreProperties.add("playPenContentPane");
+	        copyIgnoreProperties.add("panel");
+	        copyIgnoreProperties.add("playPenContentPane");	        
 	        copyIgnoreProperties.add("preferredScrollableViewportSize");
 	        copyIgnoreProperties.add("preferredSize");
 	        copyIgnoreProperties.add("registeredKeyStrokes");
@@ -386,6 +388,7 @@ public class TestPlayPen extends TestCase {
 	        // between the two objects, but have the same values. 
 	        PlayPen duplicate = new PlayPen(pp.getSession(), pp);
 	        for (PropertyDescriptor property : settableProperties) {
+	            logger.info(property.getName() + property.getDisplayName() + property.getShortDescription());
 	            if (copyIgnoreProperties.contains(property.getName())) continue;
 	            Object oldVal;
 	            try {

@@ -58,7 +58,7 @@ public class CreateCubeUsageAction extends CreateUsageAction<CubePane, VirtualCu
         } else {
             String errorMsg = "Cube Usage \"" + cp.getModel().getName() + "\" alreadys exists in \"" +
                     vcp.getModel().getName() + "\"\nCube Usage was not created.";
-            JOptionPane.showMessageDialog(playpen, errorMsg, "Duplicate Cube Usage", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(playpen.getPanel(), errorMsg, "Duplicate Cube Usage", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 

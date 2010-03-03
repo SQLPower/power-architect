@@ -84,9 +84,9 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
         } else if (relationshipsSelected && !tablesSelected) {
             session.getArchitectFrame().getEditRelationshipAction().actionPerformed(e);
         } else if (selection.size() > 0) {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.multipleItemsSelected")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("EditSelectedAction.multipleItemsSelected")); //$NON-NLS-1$
         } else {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.noItemsSelected")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("EditSelectedAction.noItemsSelected")); //$NON-NLS-1$
         }
     }
 
