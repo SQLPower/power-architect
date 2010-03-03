@@ -87,9 +87,8 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	    
 	    this.context = context;
 	    this.project = new ArchitectProject();
-	    project.init(this);
+	    project.setSession(this);
 	    ProfileManagerImpl manager = new ProfileManagerImpl();
-	    manager.setUserPrompterFactory(this);
 	    this.project.setProfileManager(manager);
 	    this.name = name;	           
         this.projectLoader = new ProjectLoader(this);   
@@ -210,7 +209,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
     public void runInForeground(Runnable runner) {
         runner.run();
     }
-
+    
     public void addPropertyChangeListener(PropertyChangeListener l) {
         pcs.addPropertyChangeListener(l);        
     }

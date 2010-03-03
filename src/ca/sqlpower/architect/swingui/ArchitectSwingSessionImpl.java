@@ -260,9 +260,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.isNew = true;
         this.context = context;
         this.delegateSession = delegateSession;
+        delegateSession.getWorkspace().setSession(this);
         this.olapRootObject = new OLAPRootObject(delegateSession);
         ProfileManagerImpl profileManager = new ProfileManagerImpl();
-        profileManager.setUserPrompterFactory(this);
         ((ArchitectSessionImpl)delegateSession).setProfileManager(profileManager);
         ((ArchitectSessionImpl)delegateSession).setUserPrompterFactory(this);
         this.recent = new RecentMenu(this.getClass()) {
@@ -1082,7 +1082,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
 
     public boolean isForegroundThread() {
-        return SwingUtilities.isEventDispatchThread();
+        //Until the GUI is initialized we may be running headless in which case
+        //we will not be using the EDT.
+        if (frame != null) {
+            return SwingUtilities.isEventDispatchThread();
+        } else {
+            return true;
+        }
     }
 
     public void runInBackground(final Runnable runner) {
@@ -1103,13 +1109,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
 
     public void runInForeground(Runnable runner) {
-        if (SwingUtilities.isEventDispatchThread()) {
+        //Until the GUI is initialized we may be running headless in which case
+        //we will not be using the EDT.
+        if (frame == null || SwingUtilities.isEventDispatchThread()) {
             runner.run();
         } else {
             SwingUtilities.invokeLater(runner);
         }     
     }
-
+    
     public void addPropertyChangeListener(PropertyChangeListener l) {
         delegateSession.addPropertyChangeListener(l);
     }

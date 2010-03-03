@@ -177,6 +177,15 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 throw new RuntimeException(e);
             }
         }
+        
+        @Override
+        public Throwable getChildrenInaccessibleReason(Class<? extends SQLObject> childType) {
+            if (childType == containingChildType || childType == SQLObject.class) {
+                return parentTable.getChildrenInaccessibleReason(containingChildType);
+            } else {
+                return null;
+            }
+        }
 	    
 	}
 	
