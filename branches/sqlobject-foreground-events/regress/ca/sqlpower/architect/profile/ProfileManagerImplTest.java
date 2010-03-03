@@ -41,9 +41,14 @@ public class ProfileManagerImplTest extends PersistedSPObjectTest {
         super.setUp();
     
         profileManager = new ProfileManagerImpl();
-        ArchitectProject project = (ArchitectProject) new ArchitectNewValueMaker(
+        final ArchitectProject project = (ArchitectProject) new ArchitectNewValueMaker(
                 getRootObject(), getPLIni()).makeNewValue(ArchitectProject.class, null, "");
-        project.init(new StubArchitectSession());
+        project.setSession(new StubArchitectSession() {
+            @Override
+            public ArchitectProject getWorkspace() {
+                return project;
+            }
+        });
         project.setProfileManager(profileManager);
         
         getRootObject().addChild(project, 0);

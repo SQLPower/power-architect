@@ -32,7 +32,6 @@ import java.util.concurrent.Future;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectProject;
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.object.AbstractSPObject;
@@ -50,7 +49,6 @@ import ca.sqlpower.sqlobject.SQLObjectPreEvent;
 import ca.sqlpower.sqlobject.SQLObjectPreEventListener;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.UserPrompter;
-import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
@@ -82,7 +80,7 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
 
         public void dbChildrenPreRemove(SQLObjectPreEvent e) {
             logger.debug("Pre-remove on profile manager");
-            UserPrompter up = session.createUserPrompter(
+            UserPrompter up = getParent().getSession().createUserPrompter(
                     "{0} tables have been profiled from the database {1}.\n" +
                     "\n" +
                     "If you proceed, the profiling information from the database" +
@@ -129,11 +127,6 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
      * {@link #removeResults(List)}, and {@link #clear()}.
      */
     private final List<TableProfileResult> results = new ArrayList<TableProfileResult>();
-    
-    /**
-     * The user prompter for the profile manager.
-     */
-    private UserPrompterFactory session;
     
     /**
      * The defaults that new profile results will be created with.
@@ -203,11 +196,6 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
         setName("Profile Manager");
     }
     
-    @Transient @Mutator
-    public void setUserPrompterFactory(ArchitectSession session) {
-        this.session = session;
-    }
-    
     @Override @Mutator
     public void setParent(SPObject parent) {
         SPObject oldParent = getParent();
@@ -215,8 +203,9 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
             ((ArchitectProject) getParent()).getRootObject().removeSQLObjectPreEventListener(databaseRemovalWatcher);
         }
         super.setParent(parent);
-        if (parent != null && ((ArchitectProject) parent).getRootObject() != null) {
-            ((ArchitectProject) parent).getRootObject().addSQLObjectPreEventListener(databaseRemovalWatcher);
+        final ArchitectProject architectProject = (ArchitectProject) parent;
+        if (parent != null && architectProject.getRootObject() != null) {
+            architectProject.getRootObject().addSQLObjectPreEventListener(databaseRemovalWatcher);
         }
         firePropertyChange("parent", oldParent, parent);
     }
