@@ -207,9 +207,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
         }
         
         // set the view positions again in the case that the viewport was invalid earlier.
-        getSession().getPlayPen().setInitialViewPosition();
+        getSession().getPlayPen().getPanel().setInitialViewPosition();
         for (OLAPEditSession editSession : getSession().getOLAPEditSessions()) {
-            editSession.getOlapPlayPen().setInitialViewPosition();
+            editSession.getOlapPlayPen().getPanel().setInitialViewPosition();
         }
         
         // TODO change this to load the undo history from a file
@@ -382,9 +382,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
         
         if (viewportX != null && viewportY != null) {
             Point viewPoint = new Point(Integer.parseInt(viewportX), Integer.parseInt(viewportY));
-            pp.setViewPosition(viewPoint);
+            pp.getPanel().setViewPosition(viewPoint);
         }
-        logger.debug("Viewport position is " + pp.getViewPosition()); //$NON-NLS-1$
+        logger.debug("Viewport position is " + pp.getPanel().getViewPosition()); //$NON-NLS-1$
     }
 
     private class TablePaneFactory extends AbstractObjectCreationFactory {
@@ -986,8 +986,8 @@ public class SwingUIProjectLoader extends ProjectLoader {
     private void savePlayPen(PrintWriter out, PlayPen pp, boolean isRelational) {
         StringBuilder tagText = new StringBuilder();
         tagText.append("<play-pen zoom=\"").append(pp.getZoom()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-        tagText.append(" viewportX=\"").append(pp.getViewPosition().x).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-        tagText.append(" viewportY=\"").append(pp.getViewPosition().y).append("\"");  //$NON-NLS-1$ //$NON-NLS-2$
+        tagText.append(" viewportX=\"").append(pp.getPanel().getViewPosition().x).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+        tagText.append(" viewportY=\"").append(pp.getPanel().getViewPosition().y).append("\"");  //$NON-NLS-1$ //$NON-NLS-2$
         
         if (isRelational) {
             String relStyle = getSession().getRelationshipLinesDirect() ?

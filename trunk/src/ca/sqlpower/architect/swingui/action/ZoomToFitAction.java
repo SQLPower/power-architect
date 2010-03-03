@@ -91,14 +91,14 @@ public class ZoomToFitAction extends AbstractArchitectAction {
         Rectangle zoomBounds = calcBoundingRectangle(playpen);
         if (zoomBounds == null) return;
     
-        double zoom = Math.min(playpen.getViewportSize().getHeight()/zoomBounds.height,
-                               playpen.getViewportSize().getWidth()/zoomBounds.width);
+        double zoom = Math.min(playpen.getPanel().getViewportSize().getHeight()/zoomBounds.height,
+                               playpen.getPanel().getViewportSize().getWidth()/zoomBounds.width);
         zoom *= OVER_ZOOM_COEFF;
         zoom = Math.min(zoom, MIN_ZOOM);
 
         // When I get the playpen's animated zoom working properly, I'll change this to use it
         playpen.setZoom(zoom);
-        playpen.scrollRectToVisible(zoomBounds);
+        playpen.getPanel().scrollRectToVisible(zoomBounds);
     }
     
     /**

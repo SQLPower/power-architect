@@ -340,7 +340,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
 
         // makes the tool tips show up on these components 
-        ToolTipManager.sharedInstance().registerComponent(playPen);
+        ToolTipManager.sharedInstance().registerComponent(playPen.getPanel());
         ToolTipManager.sharedInstance().registerComponent(sourceDatabases);
 
         if (openingSession != null) {
@@ -885,7 +885,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public void setRelationshipLinesDirect(boolean relationshipLinesDirect) {
         this.relationshipLinesDirect = relationshipLinesDirect;
-        getPlayPen().repaint();
+        getPlayPen().getPanel().repaint();
     }
 
     public boolean getRelationshipLinesDirect() {
@@ -898,7 +898,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     public void setUsingLogicalNames(boolean usingLogicalNames) {
         this.usingLogicalNames = usingLogicalNames;
-        getPlayPen().repaint();
+        getPlayPen().getPanel().repaint();
     }
 
     public SQLObjectRoot getRootObject() {

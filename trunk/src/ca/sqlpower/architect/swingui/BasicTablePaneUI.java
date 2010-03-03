@@ -169,7 +169,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			int maxDescent = metrics.getMaxDescent();
 			int y = 0;
 			
-			g2.setColor(c.getPlayPen().getBackground());
+			g2.setColor(c.getPlayPen().getPanel().getBackground());
 			g2.fillRect(0, 0, width, height);
 			// no need to reset to foreground: next operation always changes the colour
 

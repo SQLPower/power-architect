@@ -105,7 +105,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 			r.revalidate();
 		} catch (SQLObjectException ex) {
 			logger.error("Couldn't create relationship", ex); //$NON-NLS-1$
-			ASUtils.showExceptionDialogNoReport(pp, Messages.getString("CreateRelationshipAction.couldNotCreateRelationship"), ex); //$NON-NLS-1$
+			ASUtils.showExceptionDialogNoReport(pp.getPanel(), Messages.getString("CreateRelationshipAction.couldNotCreateRelationship"), ex); //$NON-NLS-1$
 		} finally {
 			pp.endCompoundEdit("Ending the creation of a relationship"); //$NON-NLS-1$
 		}

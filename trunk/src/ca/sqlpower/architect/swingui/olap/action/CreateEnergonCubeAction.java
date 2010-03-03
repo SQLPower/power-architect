@@ -79,7 +79,7 @@ public class CreateEnergonCubeAction extends AbstractArchitectAction {
         final JLabel energon = new JLabel(bg);
         timer = new Timer(200, new FrameAdvancer(energon));
         
-        JDialog d = SPSUtils.makeOwnedDialog(playpen, "New Energon Cube");
+        JDialog d = SPSUtils.makeOwnedDialog(playpen.getPanel(), "New Energon Cube");
         d.setContentPane(energon);
         d.setModal(true);
         d.pack();

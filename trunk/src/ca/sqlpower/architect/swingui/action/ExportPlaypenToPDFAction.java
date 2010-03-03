@@ -80,7 +80,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
         
         File file = null;
         while (true) {
-            int response = chooser.showSaveDialog(playpen);
+            int response = chooser.showSaveDialog(playpen.getPanel());
 
             if (response != JFileChooser.APPROVE_OPTION) {
                 return false;
@@ -129,8 +129,8 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
          * we multiply by 2 so we can accomodate the translate and ensure
          * nothing gets drawn outside of the document size.
          */
-        final int width = pp.getBounds().width + 2*OUTSIDE_PADDING;
-        final int height = pp.getBounds().height + 2*OUTSIDE_PADDING;
+        final int width = pp.getPanel().getBounds().width + 2*OUTSIDE_PADDING;
+        final int height = pp.getPanel().getBounds().height + 2*OUTSIDE_PADDING;
         final Rectangle ppSize = new Rectangle(width, height);
         
         OutputStream out = null;
@@ -164,7 +164,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                 monitor.setProgress(j);
                 j++;
             }
-            pp.paintComponent(g);
+            pp.getPanel().paintComponent(g);
             g.dispose();
         } catch (Exception ex) {
             ASUtils.showExceptionDialog(session, 

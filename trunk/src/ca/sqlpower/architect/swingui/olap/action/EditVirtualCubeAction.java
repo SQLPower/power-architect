@@ -52,7 +52,7 @@ public class EditVirtualCubeAction extends AbstractArchitectAction{
                 "Virtual Cube Properties...",
                 "Edit the properties of "+vCube.getName()+" in a dialog",
                 (String) null);
-        this.dialogOwner = SwingUtilities.getWindowAncestor(pp);
+        this.dialogOwner = SwingUtilities.getWindowAncestor(pp.getPanel());
         this.vCube = vCube;
     }
 
