@@ -524,6 +524,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
                 getRecentMenu().putRecentFileName(file.getAbsolutePath());
                 project.setFile(file);
+                project.clearFileVersion();
                 String projName = file.getName().substring(0, file.getName().length()-".architect".length()); //$NON-NLS-1$
                 setName(projName);
                 frame.setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", projName)); //$NON-NLS-1$
