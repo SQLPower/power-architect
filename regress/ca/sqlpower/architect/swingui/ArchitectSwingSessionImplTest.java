@@ -37,6 +37,7 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.util.DefaultUserPrompterFactory;
 
 public class ArchitectSwingSessionImplTest extends TestCase {
 
@@ -167,6 +168,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         ArchitectSwingSessionContext context = new StubContext();
         ArchitectSwingSession session = context.createSession(false);
         assertTrue(session.isNew());
+        ((ArchitectSwingSessionImpl) session).setUserPrompterFactory(new DefaultUserPrompterFactory());
         
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         session.getProjectLoader().load(r, new PlDotIni());
@@ -215,6 +217,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
     public void testSaveAndLoadRelationshipLineType() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
         ArchitectSwingSession session = context.createSession(false);
+        ((ArchitectSwingSessionImpl) session).setUserPrompterFactory(new DefaultUserPrompterFactory());
         session.getProjectLoader().load(new ByteArrayInputStream(testData.getBytes()), new PlDotIni());
         
         boolean newValueForStraightLines = !session.getRelationshipLinesDirect();
@@ -224,6 +227,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         session.getProjectLoader().save(out, "utf-8");
         
         ArchitectSwingSession loadedSession = context.createSession(false);
+        ((ArchitectSwingSessionImpl) loadedSession).setUserPrompterFactory(new DefaultUserPrompterFactory());
         loadedSession.getProjectLoader().load(new ByteArrayInputStream(out.toByteArray()), new PlDotIni());
         assertEquals(newValueForStraightLines, loadedSession.getRelationshipLinesDirect());
         

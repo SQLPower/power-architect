@@ -37,6 +37,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
+import org.apache.commons.digester.Rule;
 import org.apache.commons.digester.SetPropertiesRule;
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
@@ -65,6 +66,12 @@ import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.BrowserUtil;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 import ca.sqlpower.xml.UnescapingSaxParser;
 
 public class ProjectLoader {
@@ -198,6 +205,11 @@ public class ProjectLoader {
                 digester = setupDigester();
                 digester.parse(uin);
             } catch (SAXException ex) {
+                //The digester likes to wrap the cancelled exception in a SAXException.
+                if (ex.getException() instanceof DigesterCancelledException) {
+                    //Digeseter was cancelled by the user. Do not load anything.
+                    return;
+                }
                 logger.error("SAX Exception in project file parse!", ex);
                 String message;
                 if (digester == null) {
@@ -293,6 +305,42 @@ public class ProjectLoader {
         d.setValidating(false);
         d.push(session);
         
+        //app version number
+        d.addRule("architect-project", new Rule() {
+            @Override
+            public void begin(String namespace, String name, Attributes attributes) throws Exception {
+                String appVersion = attributes.getValue("appversion");
+                String loadingMessage;
+                try {
+                    if (appVersion == null) {
+                        loadingMessage = "The version of the file cannot be found.";
+                    } else if (ArchitectVersion.APP_FULL_VERSION.compareTo(
+                            new ArchitectVersion(appVersion)) < 0) {
+                        loadingMessage = "This file was last saved with a newer version.\n" +
+                        		"Loading with an older version may cause data loss.";
+                    } else {
+                        return;
+                    }
+                } catch (Exception e) {
+                    loadingMessage = "The version of the file cannot be understood.";
+                }
+                UserPrompter loadingWarningPrompt = session.createUserPrompter(
+                        loadingMessage + "\nDo you wish to try and open the file?", 
+                        UserPromptType.BOOLEAN, UserPromptOptions.OK_NOTOK_CANCEL, 
+                        UserPromptResponse.OK, UserPromptResponse.OK, "Try loading", 
+                        "Upgrade...", "Cancel");
+                UserPromptResponse response = loadingWarningPrompt.promptUser();
+                if (response == UserPromptResponse.OK) {
+                    //continue to try loading
+                } else if (response == UserPromptResponse.NOT_OK) {
+                    BrowserUtil.launch(SPSUtils.SQLP_ARCHITECT_URL);
+                    throw new DigesterCancelledException();
+                } else if (response == UserPromptResponse.CANCEL) {
+                    throw new DigesterCancelledException();
+                }
+            }
+        });
+
         // project name
         d.addCallMethod("architect-project/project-name", "setName", 0); // argument is element body text
 

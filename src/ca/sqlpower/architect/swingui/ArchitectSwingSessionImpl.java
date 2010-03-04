@@ -92,6 +92,7 @@ import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
 import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
@@ -192,7 +193,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * This user prompter factory will create all the necessary GUI user prompts
      * for Architect.
      */
-    private final SwingUIUserPrompterFactory swinguiUserPrompterFactory;
+    private UserPrompterFactory swinguiUserPrompterFactory;
 
     /**
      * A colour chooser used by the {@link RelationshipEditPanel}, and possibly
@@ -354,7 +355,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             frame = new ArchitectFrame(this, null);
         }
 
-        swinguiUserPrompterFactory.setParentFrame(frame);
+        if (swinguiUserPrompterFactory instanceof SwingUIUserPrompterFactory) {
+            ((SwingUIUserPrompterFactory) swinguiUserPrompterFactory).setParentFrame(frame);
+        }
         
         // MUST be called after constructed to set up the actions
         frame.init(); 
@@ -1140,5 +1143,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public void showPreferenceDialog(Window owner) {
         prefsEditor.showPreferencesDialog(owner, ArchitectSwingSessionImpl.this);
+    }
+
+    /**
+     * Protected method for setting the user prompter factory delegate to
+     * something other than the UI user prompter factory. This allows
+     * the tests to define a user prompter factory that does not block 
+     * waiting for user response.
+     */
+    void setUserPrompterFactory(UserPrompterFactory newUPF) {
+        swinguiUserPrompterFactory = newUPF;
     }
 }
