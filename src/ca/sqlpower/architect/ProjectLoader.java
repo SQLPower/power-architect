@@ -988,6 +988,15 @@ public class ProjectLoader {
     public void setFile(File argFile) {
         this.file = argFile;
     }
+    
+    /**
+     * Clears the file version if the file to save to is being changed to a 
+     * new location.
+     */
+    public void clearFileVersion() {
+        fileVersion = null;
+    }
+    
     /**
      * Adds all the tables in the given database into the playpen database.  This is really only
      * for loading projects, so please think twice about using it for other stuff.
