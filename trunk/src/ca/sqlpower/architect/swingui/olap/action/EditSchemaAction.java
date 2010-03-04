@@ -54,7 +54,7 @@ public class EditSchemaAction extends AbstractArchitectAction{
 
     public EditSchemaAction(ArchitectSwingSession session, Schema schema, PlayPen pp) {
         super(session, pp, "Schema Properties...", "Edit the properties of "+schema.getName()+" in a dialog", (String) null);
-        this.dialogOwner = SwingUtilities.getWindowAncestor(pp.getPanel());
+        this.dialogOwner = SwingUtilities.getWindowAncestor(pp);
         this.schema = schema;
         this.session = session;
     }

@@ -55,14 +55,14 @@ public class EditTableAction extends AbstractArchitectAction {
 		if (evt.getActionCommand().equals(PlayPen.ACTION_COMMAND_SRC_PLAYPEN)) {
 			List selection = playpen.getSelectedItems();
 			if (selection.size() < 1) {
-				JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("EditTableAction.noTablesSelected")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditTableAction.noTablesSelected")); //$NON-NLS-1$
 			} else if (selection.size() > 1) {
-				JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("EditTableAction.multipleTablesSelected")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditTableAction.multipleTablesSelected")); //$NON-NLS-1$
 			} else if (selection.get(0) instanceof TablePane) {
 				TablePane tp = (TablePane) selection.get(0);
 				makeDialog(tp.getModel());				
 			} else {
-				JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("EditTableAction.cannotRecognizeItem")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(playpen, Messages.getString("EditTableAction.cannotRecognizeItem")); //$NON-NLS-1$
 			}
 
 		} else if (evt.getActionCommand().equals(DBTree.ACTION_COMMAND_SRC_DBTREE)) {

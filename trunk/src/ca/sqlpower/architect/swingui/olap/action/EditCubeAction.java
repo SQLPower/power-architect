@@ -48,7 +48,7 @@ public class EditCubeAction extends AbstractArchitectAction{
 
     public EditCubeAction(ArchitectSwingSession session, Cube cube, PlayPen pp) {
         super(session, pp, "Cube Properties...", "Edit the properties of "+cube.getName()+" in a dialog", (String) null);
-        this.dialogOwner = SwingUtilities.getWindowAncestor(pp.getPanel());
+        this.dialogOwner = SwingUtilities.getWindowAncestor(pp);
         this.cube = cube;
     }
 

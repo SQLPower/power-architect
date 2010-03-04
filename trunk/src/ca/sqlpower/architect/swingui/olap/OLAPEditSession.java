@@ -242,7 +242,7 @@ public class OLAPEditSession implements OLAPChildListener {
         
         toolbar.add(exportSchemaAction);
         
-        ppScrollPane = new JScrollPane(pp.getPanel());
+        ppScrollPane = new JScrollPane(pp);
         JPanel panel = new JPanel(new BorderLayout());
         final JSplitPane splitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
@@ -277,7 +277,7 @@ public class OLAPEditSession implements OLAPChildListener {
         }
         
         OLAPPlayPenFactory.setupOLAPMouseWheelActions(pp, this);
-        OLAPPlayPenFactory.setupOLAPKeyboardActions(pp.getPanel(), this);
+        OLAPPlayPenFactory.setupOLAPKeyboardActions(pp, this);
         
         undoManager.rememberPosition();
     }

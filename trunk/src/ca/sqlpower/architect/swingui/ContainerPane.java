@@ -284,7 +284,7 @@ implements DragSourceListener, LayoutNode {
         PlayPen pp = getPlayPen();
         getLocation(p);
         pp.zoomPoint(p);
-        SwingUtilities.convertPointToScreen(p, pp.getPanel());
+        SwingUtilities.convertPointToScreen(p, pp);
         return p;
     }
 

@@ -63,7 +63,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 	    }
 	        
 	    if (selectedCols.isEmpty()) {
-	        JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("EditColumnAction.noColumnSelected")); //$NON-NLS-1$
+	        JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.noColumnSelected")); //$NON-NLS-1$
 	        return;
 	    }
 	    

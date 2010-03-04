@@ -47,7 +47,7 @@ public class TestAutoLayoutAction extends TestCase {
         PlayPen pp = session.getPlayPen();
 		layoutAction = new AutoLayoutAction(session, session.getPlayPen(), "Tree Layout", "Basic tree layout", "auto_layout");
 		layout = new BasicTreeAutoLayout();
-		pp.getPanel().repaint();
+		pp.repaint();
 		//action = af.getAutoLayoutAction();
 		//layoutAction.setPlayPen(pp); Shouldn't have to do this anymore
 		layoutAction.setLayout(layout);
@@ -102,7 +102,7 @@ public class TestAutoLayoutAction extends TestCase {
 		SQLRelationship sr2 = new SQLRelationship();
 		sr2.attachRelationship(tables[1],tables[3],false);
 
-		pp.getPanel().setVisible(true);
+		pp.setVisible(true);
 		Relationship r1 = new Relationship(sr1, pp.getContentPane());
 		Relationship r2 = new Relationship(sr2, pp.getContentPane());
 		

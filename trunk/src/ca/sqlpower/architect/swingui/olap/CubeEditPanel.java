@@ -121,7 +121,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         final JButton viewEditButton = new JButton(new AbstractAction("Edit...") {
             public void actionPerformed(ActionEvent e) {
                 JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(new ViewEntryPanel(
-                        playPen.getSession(), getDatabase(), CubeEditPanel.this), playPen.getPanel(), "View Builder", "OK");
+                        playPen.getSession(), getDatabase(), CubeEditPanel.this), playPen, "View Builder", "OK");
                 dialog.pack();
                 dialog.setVisible(true);        
             }
