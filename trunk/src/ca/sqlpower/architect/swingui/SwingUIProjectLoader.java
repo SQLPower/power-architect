@@ -637,6 +637,29 @@ public class SwingUIProjectLoader extends ProjectLoader {
             // write problems with architect file will muck up the save process
             throw new SQLObjectException(Messages.getString("SwingUIProject.errorSavingProject", file.getAbsolutePath())); //$NON-NLS-1$
         }
+        
+        if (fileVersion != null && !fileVersion.equals(ArchitectVersion.APP_FULL_VERSION.toString())) {
+            String message;
+            try {
+                ArchitectVersion oldFileVersion = new ArchitectVersion(fileVersion);
+                if (oldFileVersion.compareTo(ArchitectVersion.APP_FULL_VERSION) < 0) {
+                    message = "Overwriting older file. Older versions may have problems " +
+                    		"loading the newer file format.";
+                } else {
+                    message = "Overwriting newer file. Some data loss from loading may occur.";
+                }
+            } catch (Exception e) {
+                message = "Overwriting file with an invalid version.";
+            }
+            UserPrompter prompter = getSession().createUserPrompter(message + 
+                    "\nDo you wish to continue?", UserPromptType.BOOLEAN, 
+                    UserPromptOptions.OK_CANCEL, UserPromptResponse.OK, 
+                    UserPromptResponse.OK, "OK", "Cancel");
+            UserPromptResponse response = prompter.promptUser();
+            if (response.equals(UserPromptResponse.CANCEL)) {
+                return;
+            }
+        }
 
         File backupFile = new File (file.getParent(), file.getName()+"~"); //$NON-NLS-1$
 
@@ -699,6 +722,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
                     Messages.getString("SwingUIProject.couldNotRenameTempFile", tempFile.toString(), file.toString()))); //$NON-NLS-1$
         }
         logger.debug("rename tempFile to current file: " + fstatus); //$NON-NLS-1$
+        fileVersion = ArchitectVersion.APP_FULL_VERSION.toString();
     }
 
     XMLHelper ioo = new XMLHelper();

@@ -174,6 +174,15 @@ public class ProjectLoader {
     protected int progress = 0;
     
     protected ArchitectSession session;
+
+    /**
+     * This stores the version of the file that this project loader would
+     * overwrite on save. If the user is overwriting a file that is not the same
+     * version as the Architect that they are using they should be prompted.
+     * This will be null if the current project was not loaded or saved (ie: it
+     * is new).
+     */
+    protected String fileVersion;
     
     public ProjectLoader(ArchitectSession session) {
         this.session = session;
@@ -309,13 +318,14 @@ public class ProjectLoader {
         d.addRule("architect-project", new Rule() {
             @Override
             public void begin(String namespace, String name, Attributes attributes) throws Exception {
-                String appVersion = attributes.getValue("appversion");
+                fileVersion = attributes.getValue("appversion");
                 String loadingMessage;
                 try {
-                    if (appVersion == null) {
+                    if (fileVersion == null) {
                         loadingMessage = "The version of the file cannot be found.";
+                        fileVersion = "0";
                     } else if (ArchitectVersion.APP_FULL_VERSION.compareTo(
-                            new ArchitectVersion(appVersion)) < 0) {
+                            new ArchitectVersion(fileVersion)) < 0) {
                         loadingMessage = "This file was last saved with a newer version.\n" +
                         		"Loading with an older version may cause data loss.";
                     } else {
