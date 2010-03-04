@@ -55,7 +55,6 @@ import ca.sqlpower.util.TransactionEvent;
 
 /**
  * A tree model that displays {@link SQLObject}s contained in a {@link SQLObjectRoot}.
- * Each object is displayed as is and will not cause the {@link SQLObject}s to populate.
  */
 public class DBTreeModel implements TreeModel, java.io.Serializable {
 
@@ -91,7 +90,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 	    
 	    public List<? extends SQLObject> getChildren() {
-	        return parentTable.getChildrenWithoutPopulating(containingChildType);
+	        return parentTable.getChildren(containingChildType);
 	    }
 	    
 	    public Class<? extends SPObject> getContainingChildType() {
@@ -384,7 +383,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		SQLObject sqlParent = (SQLObject) parent;
 		try {
             if (logger.isDebugEnabled()) logger.debug("returning "+sqlParent.getChildrenWithoutPopulating().size()); //$NON-NLS-1$
-			return sqlParent.getChildrenWithoutPopulating().size();
+			return sqlParent.getChildren().size();
 		} catch (Exception e) {
 		    throw new RuntimeException(e);
 		}
