@@ -154,8 +154,8 @@ import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 @SuppressWarnings(
         justification = "PlayPen is not meant to be serializable",
         value = {"SE_BAD_FIELD"})
-public class PlayPen
-	implements SPListener, SelectionListener {
+public class PlayPen extends JPanel
+	implements SPListener, SelectionListener, Scrollable {
 
     public interface CancelableListener {
 
@@ -177,308 +177,283 @@ public class PlayPen
 						MULTI_SELECT,
 						RUBBERBAND_MOVE}
 	private MouseModeType mouseMode = MouseModeType.IDLE;
-	
-    /**
-     * The cursor manager for this play pen.
-     */
-    private final CursorManager cursorManager;
-    
-    /**
-     * Basically a container class, required because of how the
-     * PlayPenDropListener only gets a Component passed in events,
-     * but needs a reference to the PlayPen object.
-     */
-    public class PlayPenPanel extends JPanel implements Scrollable {
-        
-        PlayPen pp;
-        
-        public PlayPenPanel(PlayPen pp) {            
-            this.pp = pp;            
-        }
-        
-        public PlayPen getPlayPen() {
-            return pp;
-        }
-        
-        protected void addImpl(Component c, Object constraints, int index) {
-            throw new UnsupportedOperationException("You can't add swing component for argument"); //$NON-NLS-1$
-        }
-        
-        // --- Scrollable Methods --- //
-        public Dimension getPreferredScrollableViewportSize() {
-            // return getPreferredSize();
-            return new Dimension(800,600);
-        }
 
-        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
-            if (orientation == SwingConstants.HORIZONTAL) {
-                return visibleRect.width;
-            } else { // SwingConstants.VERTICAL
-                return visibleRect.height;
-            }
-        }
-        
-        public boolean getScrollableTracksViewportHeight() {
-            return false;
-        }
+	/**
+	 * The cursor manager for this play pen.
+	 */
+	private final CursorManager cursorManager;
 
-        public boolean getScrollableTracksViewportWidth() {
-            return false;
-        }
+	protected void addImpl(Component c, Object constraints, int index) {
+	    throw new UnsupportedOperationException("You can't add swing component for argument"); //$NON-NLS-1$
+	}
 
-        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
-            if (orientation == SwingConstants.HORIZONTAL) {
-                return visibleRect.width/5;
-            } else { // SwingConstants.VERTICAL
-                return visibleRect.height/5;
-            }
-        }
-        
-        // -------------------------- JComponent overrides ---------------------------
+	// --- Scrollable Methods --- //
+	public Dimension getPreferredScrollableViewportSize() {
+	    // return getPreferredSize();
+	    return new Dimension(800,600);
+	}
 
-        /**
-         * Calculates the smallest rectangle that will completely
-         * enclose the visible components.
-         *
-         * This is then compared to the viewport size, one dimension
-         * at a time.  To ensure the whole playpen is "live", always
-         * choose the larger number in each Dimension.
-         *
-         * There is also a lower bound on how small the playpen can get.  The
-         * layout manager returns a preferred size of (100,100) when asked.
-         */
-        public Dimension getPreferredSize() {
+	public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+	    if (orientation == SwingConstants.HORIZONTAL) {
+	        return visibleRect.width;
+	    } else { // SwingConstants.VERTICAL
+	        return visibleRect.height;
+	    }
+	}
 
-            Dimension usedSpace = getUsedArea();
-            Dimension vpSize = getViewportSize();
-            Dimension ppSize = null;
+	public boolean getScrollableTracksViewportHeight() {
+	    return false;
+	}
 
-            // viewport seems to never come back as null, but protect anyways...
-            if (vpSize != null) {
-                ppSize = new Dimension(Math.max(usedSpace.width, vpSize.width),
-                        Math.max(usedSpace.height, vpSize.height));
-            }
+	public boolean getScrollableTracksViewportWidth() {
+	    return false;
+	}
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("minsize is: " + playPenPanel.getMinimumSize()); //$NON-NLS-1$
-                logger.debug("unzoomed userDim is: " + unzoomPoint(new Point(usedSpace.width,usedSpace.height))); //$NON-NLS-1$
-                logger.debug("zoom="+zoom+",usedSpace size is " + usedSpace); //$NON-NLS-1$ //$NON-NLS-2$
-            }
+	public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+	    if (orientation == SwingConstants.HORIZONTAL) {
+	        return visibleRect.width/5;
+	    } else { // SwingConstants.VERTICAL
+	        return visibleRect.height/5;
+	    }
+	}
 
-            if (ppSize != null) {
-                logger.debug("preferred size is ppSize (viewport size was null): " + ppSize); //$NON-NLS-1$
-                return ppSize;
-            } else {
-                logger.debug("preferred size is usedSpace: " + usedSpace); //$NON-NLS-1$
-                return usedSpace;
-            }
-        }
+	// -------------------------- JComponent overrides ---------------------------
 
-        public Dimension getUsedArea() {
-            Rectangle cbounds = null;
-            int minx = 0, miny = 0, maxx = 0, maxy = 0;
-            for (int i = 0; i < contentPane.getComponentCount(); i++) {
-                PlayPenComponent c = contentPane.getComponent(i);
-                cbounds = c.getBounds(cbounds);
-                minx = Math.min(cbounds.x, minx);
-                miny = Math.min(cbounds.y, miny);
-                maxx = Math.max(cbounds.x + cbounds.width , maxx);
-                maxy = Math.max(cbounds.y + cbounds.height, maxy);
-            }
+	/**
+	 * Calculates the smallest rectangle that will completely
+	 * enclose the visible components.
+	 *
+	 * This is then compared to the viewport size, one dimension
+	 * at a time.  To ensure the whole playpen is "live", always
+	 * choose the larger number in each Dimension.
+	 *
+	 * There is also a lower bound on how small the playpen can get.  The
+	 * layout manager returns a preferred size of (100,100) when asked.
+	 */
+	public Dimension getPreferredSize() {
 
-            return new Dimension((int) ((double) Math.max(maxx - minx, playPenPanel.getMinimumSize().width) * zoom),
-                    (int) ((double) Math.max(maxy - miny, playPenPanel.getMinimumSize().height) * zoom));
-        }
+	    Dimension usedSpace = getUsedArea();
+	    Dimension vpSize = getViewportSize();
+	    Dimension ppSize = null;
 
-        // get the size of the viewport that we are sitting in (return null if there isn't one);
-        public Dimension getViewportSize() {
-            Container c = SwingUtilities.getAncestorOfClass(JViewport.class, playPenPanel);
-            if (c != null) {
-                JViewport jvp = (JViewport) c;
-                logger.debug("viewport size is: " + jvp.getSize()); //$NON-NLS-1$
-                return jvp.getSize();
-            } else {
-                logger.debug("viewport size is NULL"); //$NON-NLS-1$
-                return null;
-            }
-        }
+	    // viewport seems to never come back as null, but protect anyways...
+	    if (vpSize != null) {
+	        ppSize = new Dimension(Math.max(usedSpace.width, vpSize.width),
+	                Math.max(usedSpace.height, vpSize.height));
+	    }
 
-        // set the size of the viewport that we are sitting in (return null if there isn't one);
-        public void setViewportSize(int width, int height) {
-            Container c = SwingUtilities.getAncestorOfClass(JViewport.class, playPenPanel);
-            if (c != null) {
-                JViewport jvp = (JViewport) c;
-                logger.debug("viewport size set to: " + width + "," + height); //$NON-NLS-1$ //$NON-NLS-2$
-                jvp.setSize(width,height);
-            }
-        }
+	    if (logger.isDebugEnabled()) {
+	        logger.debug("minsize is: " + this.getMinimumSize()); //$NON-NLS-1$
+	        logger.debug("unzoomed userDim is: " + unzoomPoint(new Point(usedSpace.width,usedSpace.height))); //$NON-NLS-1$
+	        logger.debug("zoom="+zoom+",usedSpace size is " + usedSpace); //$NON-NLS-1$ //$NON-NLS-2$
+	    }
 
-        /**
-         * If some playPen components get dragged into a negative range all tables are then shifted
-         * so that the lowest x and y values are 0.  The tables will retain their relative location.
-         *
-         * If this function is moved into a layout manager it causes problems with undo because we do
-         * no know when this gets called.
-         */
-        protected void normalize() {
-            if (normalizing) return;
-            normalizing=true;
-            int minX = 0;
-            int minY = 0;
-            
-            for (PlayPenComponent ppc : getPlayPenComponents()) {
-                minX = Math.min(minX, ppc.getX());
-                minY = Math.min(minY, ppc.getY());
-            }       
+	    if (ppSize != null) {
+	        logger.debug("preferred size is ppSize (viewport size was null): " + ppSize); //$NON-NLS-1$
+	        return ppSize;
+	    } else {
+	        logger.debug("preferred size is usedSpace: " + usedSpace); //$NON-NLS-1$
+	        return usedSpace;
+	    }
+	}
 
-            //Readjusts the playPen's components, since minX and min <= 0,
-            //the adjustments of subtracting minX and/or minY makes sense.
-            if ( minX < 0 || minY < 0 ) {           
-                for (PlayPenComponent ppc : getPlayPenComponents()) {
-                    ppc.setLocation(ppc.getX()-minX, ppc.getY()-minY);
-                }
+	public Dimension getUsedArea() {
+	    Rectangle cbounds = null;
+	    int minx = 0, miny = 0, maxx = 0, maxy = 0;
+	    for (int i = 0; i < contentPane.getComponentCount(); i++) {
+	        PlayPenComponent c = contentPane.getComponent(i);
+	        cbounds = c.getBounds(cbounds);
+	        minx = Math.min(cbounds.x, minx);
+	        miny = Math.min(cbounds.y, miny);
+	        maxx = Math.max(cbounds.x + cbounds.width , maxx);
+	        maxy = Math.max(cbounds.y + cbounds.height, maxy);
+	    }
 
-                // This function may have expanded the playpen's minimum
-                // and preferred sizes, so the original repaint region could be
-                // too small!
-                playPenPanel.repaint();
-            }
-            normalizing = false;
-        }
+	    return new Dimension((int) ((double) Math.max(maxx - minx, this.getMinimumSize().width) * zoom),
+	            (int) ((double) Math.max(maxy - miny, this.getMinimumSize().height) * zoom));
+	}
 
-    //   get the position of the viewport that we are sitting in
-        public Point getViewPosition() {
-            Container c = SwingUtilities.getAncestorOfClass(JViewport.class, playPenPanel);
-            if (c != null) {
-                JViewport jvp = (JViewport) c;
-                Point viewPosition = jvp.getViewPosition();
-                logger.debug("view position is: " + viewPosition); //$NON-NLS-1$
-                return viewPosition;
-            } else {
-                return new Point(0, 0);
-            }
-        }
+	// get the size of the viewport that we are sitting in (return null if there isn't one);
+	public Dimension getViewportSize() {
+	    Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
+	    if (c != null) {
+	        JViewport jvp = (JViewport) c;
+	        logger.debug("viewport size is: " + jvp.getSize()); //$NON-NLS-1$
+	        return jvp.getSize();
+	    } else {
+	        logger.debug("viewport size is NULL"); //$NON-NLS-1$
+	        return null;
+	    }
+	}
 
-        // set the position of the viewport that we are sitting in
-        public void setViewPosition(Point p) {
-            Container c = SwingUtilities.getAncestorOfClass(JViewport.class, playPenPanel);
-            if (c != null) {
-                JViewport jvp = (JViewport) c;
-                logger.debug("view position set to: " + p); //$NON-NLS-1$
-                if (p != null) {
-                    jvp.setViewPosition(p);
-                }
+	// set the size of the viewport that we are sitting in (return null if there isn't one);
+	public void setViewportSize(int width, int height) {
+	    Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
+	    if (c != null) {
+	        JViewport jvp = (JViewport) c;
+	        logger.debug("viewport size set to: " + width + "," + height); //$NON-NLS-1$ //$NON-NLS-2$
+	        jvp.setSize(width,height);
+	    }
+	}
 
-            }
-            viewportPosition = p;
-        }
-        
-        public void setInitialViewPosition() {
-            setViewPosition(viewportPosition);
-        }
+	/**
+	 * If some playPen components get dragged into a negative range all tables are then shifted
+	 * so that the lowest x and y values are 0.  The tables will retain their relative location.
+	 *
+	 * If this function is moved into a layout manager it causes problems with undo because we do
+	 * no know when this gets called.
+	 */
+	protected void normalize() {
+	    if (normalizing) return;
+	    normalizing=true;
+	    int minX = 0;
+	    int minY = 0;
 
-        /** See {@link #paintingEnabled}. */
-        public void setPaintingEnabled(boolean paintingEnabled) {
-            PlayPen.this.paintingEnabled = paintingEnabled;
-        }
+	    for (PlayPenComponent ppc : getPlayPenComponents()) {
+	        minX = Math.min(minX, ppc.getX());
+	        minY = Math.min(minY, ppc.getY());
+	    }       
 
-        /** See {@link #paintingEnabled}. */
-        public boolean isPaintingEnabled() {
-            return paintingEnabled;
-        }
+	    //Readjusts the playPen's components, since minX and min <= 0,
+	    //the adjustments of subtracting minX and/or minY makes sense.
+	    if ( minX < 0 || minY < 0 ) {           
+	        for (PlayPenComponent ppc : getPlayPenComponents()) {
+	            ppc.setLocation(ppc.getX()-minX, ppc.getY()-minY);
+	        }
 
-        public void paintComponent(Graphics g) {
-            if (!paintingEnabled) return;
+	        // This function may have expanded the playpen's minimum
+	        // and preferred sizes, so the original repaint region could be
+	        // too small!
+	        this.repaint();
+	    }
+	    normalizing = false;
+	}
 
-            logger.debug("start of paintComponent, width=" + playPenPanel.getWidth() +
-                    ",height=" + playPenPanel.getHeight()); //$NON-NLS-1$ //$NON-NLS-2$
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setColor(playPenPanel.getBackground());
-            g2.fillRect(0, 0, playPenPanel.getWidth(), playPenPanel.getHeight());
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialiasSetting);
+	//   get the position of the viewport that we are sitting in
+	public Point getViewPosition() {
+	    Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
+	    if (c != null) {
+	        JViewport jvp = (JViewport) c;
+	        Point viewPosition = jvp.getViewPosition();
+	        logger.debug("view position is: " + viewPosition); //$NON-NLS-1$
+	        return viewPosition;
+	    } else {
+	        return new Point(0, 0);
+	    }
+	}
 
-            if (isDebugEnabled()) {
-                Rectangle clip = g2.getClipBounds();
-                if (clip != null) {
-                    g2.setColor(Color.green);
-                    clip.width--;
-                    clip.height--;
-                    g2.draw(clip);
-                    g2.setColor(playPenPanel.getBackground());
-                    logger.debug("Clipping region: "+g2.getClip()); //$NON-NLS-1$
-                } else {
-                    logger.debug("Null clipping region"); //$NON-NLS-1$
-                }
-            }
+	// set the position of the viewport that we are sitting in
+	public void setViewPosition(Point p) {
+	    Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
+	    if (c != null) {
+	        JViewport jvp = (JViewport) c;
+	        logger.debug("view position set to: " + p); //$NON-NLS-1$
+	        if (p != null) {
+	            jvp.setViewPosition(p);
+	        }
 
-            Rectangle bounds = new Rectangle();
-            AffineTransform backup = g2.getTransform();
-            g2.scale(zoom, zoom);
-            AffineTransform zoomedOrigin = g2.getTransform();
+	    }
+	    viewportPosition = p;
+	}
 
-            // counting down so visual z-order matches click detection z-order
-            for (int i = contentPane.getComponentCount() - 1; i >= 0; i--) {
-                PlayPenComponent c = contentPane.getComponent(i);
-                c.getBounds(bounds);
-                //expanding width and height by 1 as lines have 0 width or height when vertical/horizontal
-                if ( g2.hitClip(bounds.x, bounds.y, bounds.width + 1, bounds.height + 1)) {
-                    if (logger.isDebugEnabled()) logger.debug("Painting visible component "+c); //$NON-NLS-1$
-                    g2.translate(c.getLocation().x, c.getLocation().y);
-                    Font g2Font = g2.getFont();
-                    c.paint(g2);
-                    g2.setFont(g2Font);
-                    g2.setTransform(zoomedOrigin);
-                } else {
-                    if (logger.isDebugEnabled()) logger.debug("paint: SKIPPING "+c); //$NON-NLS-1$
-                    logger.debug(" skipped bounds are: x=" + bounds.x + " y=" + bounds.y + " width=" + bounds.width + " height=" + bounds.height);
-                    logger.debug(" clipping rectangle: x=" + g2.getClipBounds().x + " y=" + g2.getClipBounds().y + " width=" + g2.getClipBounds().width + " height=" + g2.getClipBounds().height);
-                }
-            }
+	public void setInitialViewPosition() {
+	    setViewPosition(viewportPosition);
+	}
 
-            if (rubberBand != null && !rubberBand.isEmpty()) {
-                if (logger.isDebugEnabled()) logger.debug("painting rubber band "+rubberBand); //$NON-NLS-1$
-                g2.setColor(rubberBandColor);
-                Composite backupComp = g2.getComposite();
-                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
-                g2.fillRect(rubberBand.x, rubberBand.y, rubberBand.width-1, rubberBand.height-1);
-                g2.setComposite(backupComp);
-                g2.drawRect(rubberBand.x, rubberBand.y, rubberBand.width-1, rubberBand.height-1);
-            }
+	/** See {@link #paintingEnabled}. */
+	public void setPaintingEnabled(boolean paintingEnabled) {
+	    PlayPen.this.paintingEnabled = paintingEnabled;
+	}
 
-            g2.setTransform(backup);
+	/** See {@link #paintingEnabled}. */
+	public boolean isPaintingEnabled() {
+	    return paintingEnabled;
+	}
 
-            logger.debug("end of paintComponent, width=" + playPenPanel.getWidth() +
-                    ",height=" + playPenPanel.getHeight()); //$NON-NLS-1$ //$NON-NLS-2$
+	public void paintComponent(Graphics g) {
+	    if (!paintingEnabled) return;
 
-        }
-        
-        protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-            super.firePropertyChange(propertyName, oldValue, newValue);
-        }
-                
-        
-        /**
-         * Delegates to the content pane.
-         *
-         * <p>Important Note: If you want tooltips to be active on this PlayPen instance,
-         * you have to call <tt>ToolTipManager.sharedInstance().registerComponent(pp)</tt> on this
-         * instance (where <tt>pp</tt> is whatever your reference to this playpen is called).
-         */
-        public String getToolTipText(MouseEvent e) {
-            Point zp = unzoomPoint(e.getPoint());
-            MouseEvent zoomedEvent =
-                new MouseEvent((Component) e.getSource(), e.getID(), e.getWhen(), e.getModifiers(),
-                        zp.x, zp.y, e.getClickCount(), e.isPopupTrigger(), e.getButton());
-            return contentPane.getToolTipText(zoomedEvent);
-        }
-        
-    }
-    
-    /**
-     * The PlayPen object used to be a JPanel, but now it contains one instead
-     * in favour of being an AbstractSPObject, instead. (getParent method conflict)
-     */
-    private final PlayPenPanel playPenPanel;    
+	    logger.debug("start of paintComponent, width=" + this.getWidth() +
+	            ",height=" + this.getHeight()); //$NON-NLS-1$ //$NON-NLS-2$
+	    Graphics2D g2 = (Graphics2D) g;
+	    g2.setColor(this.getBackground());
+	    g2.fillRect(0, 0, this.getWidth(), this.getHeight());
+	    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialiasSetting);
+
+	    if (isDebugEnabled()) {
+	        Rectangle clip = g2.getClipBounds();
+	        if (clip != null) {
+	            g2.setColor(Color.green);
+	            clip.width--;
+	            clip.height--;
+	            g2.draw(clip);
+	            g2.setColor(this.getBackground());
+	            logger.debug("Clipping region: "+g2.getClip()); //$NON-NLS-1$
+	        } else {
+	            logger.debug("Null clipping region"); //$NON-NLS-1$
+	        }
+	    }
+
+	    Rectangle bounds = new Rectangle();
+	    AffineTransform backup = g2.getTransform();
+	    g2.scale(zoom, zoom);
+	    AffineTransform zoomedOrigin = g2.getTransform();
+
+	    // counting down so visual z-order matches click detection z-order
+	    for (int i = contentPane.getComponentCount() - 1; i >= 0; i--) {
+	        PlayPenComponent c = contentPane.getComponent(i);
+	        c.getBounds(bounds);
+	        //expanding width and height by 1 as lines have 0 width or height when vertical/horizontal
+	        if ( g2.hitClip(bounds.x, bounds.y, bounds.width + 1, bounds.height + 1)) {
+	            if (logger.isDebugEnabled()) logger.debug("Painting visible component "+c); //$NON-NLS-1$
+	            g2.translate(c.getLocation().x, c.getLocation().y);
+	            Font g2Font = g2.getFont();
+	            c.paint(g2);
+	            g2.setFont(g2Font);
+	            g2.setTransform(zoomedOrigin);
+	        } else {
+	            if (logger.isDebugEnabled()) logger.debug("paint: SKIPPING "+c); //$NON-NLS-1$
+	            logger.debug(" skipped bounds are: x=" + bounds.x + " y=" + bounds.y + " width=" + bounds.width + " height=" + bounds.height);
+	            logger.debug(" clipping rectangle: x=" + g2.getClipBounds().x + " y=" + g2.getClipBounds().y + " width=" + g2.getClipBounds().width + " height=" + g2.getClipBounds().height);
+	        }
+	    }
+
+	    if (rubberBand != null && !rubberBand.isEmpty()) {
+	        if (logger.isDebugEnabled()) logger.debug("painting rubber band "+rubberBand); //$NON-NLS-1$
+	        g2.setColor(rubberBandColor);
+	        Composite backupComp = g2.getComposite();
+	        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+	        g2.fillRect(rubberBand.x, rubberBand.y, rubberBand.width-1, rubberBand.height-1);
+	        g2.setComposite(backupComp);
+	        g2.drawRect(rubberBand.x, rubberBand.y, rubberBand.width-1, rubberBand.height-1);
+	    }
+
+	    g2.setTransform(backup);
+
+	    logger.debug("end of paintComponent, width=" + this.getWidth() +
+	            ",height=" + this.getHeight()); //$NON-NLS-1$ //$NON-NLS-2$
+
+	}
+
+	protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
+	    super.firePropertyChange(propertyName, oldValue, newValue);
+	}
+
+
+	/**
+	 * Delegates to the content pane.
+	 *
+	 * <p>Important Note: If you want tooltips to be active on this PlayPen instance,
+	 * you have to call <tt>ToolTipManager.sharedInstance().registerComponent(pp)</tt> on this
+	 * instance (where <tt>pp</tt> is whatever your reference to this playpen is called).
+	 */
+	public String getToolTipText(MouseEvent e) {
+	    Point zp = unzoomPoint(e.getPoint());
+	    MouseEvent zoomedEvent =
+	        new MouseEvent((Component) e.getSource(), e.getID(), e.getWhen(), e.getModifiers(),
+	                zp.x, zp.y, e.getClickCount(), e.isPopupTrigger(), e.getButton());
+	    return contentPane.getToolTipText(zoomedEvent);
+	}       
     
 	/**
 	 * Links this PlayPen with an instance of PlayPenDropListener so
@@ -634,29 +609,28 @@ public class PlayPen
      */
 	public PlayPen(ArchitectSwingSession session) {
         if (session == null) throw new NullPointerException("A null session is not allowed here."); //$NON-NLS-1$
-		this.session = session;
-		this.playPenPanel = new PlayPenPanel(this);
+		this.session = session;		
 		setDatabase(session.getTargetDatabase());
         zoom = 1.0;
         viewportPosition = new Point(0, 0);
-		playPenPanel.setBackground(java.awt.Color.white);
+		this.setBackground(java.awt.Color.white);
 		contentPane = new PlayPenContentPane(this);
-		playPenPanel.setName("Play Pen"); //$NON-NLS-1$
-		playPenPanel.setMinimumSize(new Dimension(1,1));
-		dt = new DropTarget(playPenPanel, new PlayPenDropListener());
+		this.setName("Play Pen"); //$NON-NLS-1$
+		this.setMinimumSize(new Dimension(1,1));
+		dt = new DropTarget(this, new PlayPenDropListener());
 		bringToFrontAction = new BringToFrontAction(this);
 		sendToBackAction = new SendToBackAction(this);
 		ppMouseListener = new PPMouseListener();
-		playPenPanel.addMouseListener(ppMouseListener);
-		playPenPanel.addMouseMotionListener(ppMouseListener);
-		playPenPanel.addMouseWheelListener(ppMouseListener);
+		this.addMouseListener(ppMouseListener);
+		this.addMouseMotionListener(ppMouseListener);
+		this.addMouseWheelListener(ppMouseListener);
 		
-		cursorManager = new CursorManager(playPenPanel);
+		cursorManager = new CursorManager(this);
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
-		ds.createDefaultDragGestureRecognizer(playPenPanel, DnDConstants.ACTION_MOVE, dgl);
+		ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
 		logger.debug("DragGestureRecognizer motion threshold: " + 
-		        playPenPanel.getToolkit().getDesktopProperty("DnD.gestureMotionThreshold")); //$NON-NLS-1$ //$NON-NLS-2$
+		        this.getToolkit().getDesktopProperty("DnD.gestureMotionThreshold")); //$NON-NLS-1$ //$NON-NLS-2$
 		fontRenderContext = null;
 	}
 
@@ -678,9 +652,9 @@ public class PlayPen
 		logger.debug("Copying PlayPen@" + System.identityHashCode(pp) + " into " + System.identityHashCode(this));
 		this.antialiasSetting = pp.antialiasSetting;
 				
-		playPenPanel.setFont(pp.getPanel().getFont());
-		playPenPanel.setForeground(pp.getPanel().getForeground());
-		playPenPanel.setBackground(pp.getPanel().getBackground());
+		this.setFont(pp.getFont());
+		this.setForeground(pp.getForeground());
+		this.setBackground(pp.getBackground());
 		
 		// XXX this should be done by making PlayPenComponent cloneable.
 		// it's silly that playpen has to know about every subclass of ppc
@@ -711,12 +685,8 @@ public class PlayPen
 			            ppc.getClass().getName());
 			}
 		}		
-		playPenPanel.setSize(playPenPanel.getPreferredSize());
+		this.setSize(this.getPreferredSize());
 	}
-    
-    public PlayPenPanel getPanel() {
-        return playPenPanel;
-    }
     
     /**
      * Adds the given component to this PlayPen's content pane.  Does
@@ -821,17 +791,17 @@ public class PlayPen
      * playpen.
      */
     public void setupKeyboardActions() {
-        InputMap inputMap = playPenPanel.getInputMap(JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        InputMap inputMap = this.getInputMap(JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         
-        playPenPanel.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW).put(
+        this.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW).put(
                 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL"); //$NON-NLS-1$
-        playPenPanel.getActionMap().put("CANCEL", new CancelAction(this)); //$NON-NLS-1$
+        this.getActionMap().put("CANCEL", new CancelAction(this)); //$NON-NLS-1$
 
         final Object KEY_SELECT_UPWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_UPWARD"; //$NON-NLS-1$
         final Object KEY_SELECT_DOWNWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_DOWNWARD"; //$NON-NLS-1$
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), KEY_SELECT_UPWARD);
-        playPenPanel.getActionMap().put(KEY_SELECT_UPWARD, new AbstractAction() {
+        this.getActionMap().put(KEY_SELECT_UPWARD, new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 List<PlayPenComponent> items = getSelectedItems();
                 if (items.size() == 1) {
@@ -864,7 +834,7 @@ public class PlayPen
         });
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), KEY_SELECT_DOWNWARD);
-        playPenPanel.getActionMap().put(KEY_SELECT_DOWNWARD, new AbstractAction() {
+        this.getActionMap().put(KEY_SELECT_DOWNWARD, new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 List<PlayPenComponent> items = getSelectedItems();
                 if (items.size() == 1) {
@@ -906,7 +876,7 @@ public class PlayPen
             }
         });
         
-        playPenPanel.addKeyListener(new KeyListener() {
+        this.addKeyListener(new KeyListener() {
 
             private void changeCursor(KeyEvent e) {
                 if ((e.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) != 0) {
@@ -1093,9 +1063,9 @@ public class PlayPen
 		if (newZoom != zoom) {
 			double oldZoom = zoom;
 			zoom = newZoom;
-			playPenPanel.firePropertyChange("zoom", oldZoom, newZoom); //$NON-NLS-1$
-			playPenPanel.revalidate();
-			playPenPanel.repaint();
+			this.firePropertyChange("zoom", oldZoom, newZoom); //$NON-NLS-1$
+			this.revalidate();
+			this.repaint();
 		}
 	}
 
@@ -1109,7 +1079,7 @@ public class PlayPen
 	    } else {
 	        antialiasSetting = RenderingHints.VALUE_ANTIALIAS_OFF;
 	    }
-	    playPenPanel.repaint();
+	    this.repaint();
 	}
 
 	public boolean isRenderingAntialiased() {
@@ -1475,7 +1445,7 @@ public class PlayPen
 	 */
 	public synchronized void addObjects(List<SQLObject> list, Point preferredLocation, SPSwingWorker nextProcess, TransferStyles transferStyle) throws SQLObjectException {
 		ProgressMonitor pm
-		 = new ProgressMonitor(playPenPanel,
+		 = new ProgressMonitor(this,
 		                      Messages.getString("PlayPen.copyingObjectsToThePlaypen"), //$NON-NLS-1$
 		                      "...", //$NON-NLS-1$
 		                      0,
@@ -1726,7 +1696,7 @@ public class PlayPen
         }
 
 		if (fireEvent) {
-		    playPenPanel.firePropertyChange("model.children", null, null); //$NON-NLS-1$
+		    this.firePropertyChange("model.children", null, null); //$NON-NLS-1$
 		}
 	}
 
@@ -1769,7 +1739,7 @@ public class PlayPen
 
 		if (foundRemovedComponent) {
 		    childRemoved = true;
-		    playPenPanel.firePropertyChange("model.children", null, null); //$NON-NLS-1$
+		    this.firePropertyChange("model.children", null, null); //$NON-NLS-1$
 		}
 	}
 
@@ -1780,7 +1750,7 @@ public class PlayPen
 	 * delegate) with a ChangeEvent.
 	 */
 	public void propertyChanged(PropertyChangeEvent e) {
-	    playPenPanel.firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
+	    this.firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
 	}
 	
 	public void transactionStarted(TransactionEvent e) {
@@ -1791,10 +1761,10 @@ public class PlayPen
 	    transactionCount--;
 	    if (transactionCount == 0) {
 	        if (childAdded || propertyChanged) {
-	            playPenPanel.revalidate();
+	            this.revalidate();
 	        }
 	        if (childRemoved) {
-	            playPenPanel.repaint();
+	            this.repaint();
 	        }
 	        childAdded = false;
 	        childRemoved = false;
@@ -2037,7 +2007,7 @@ public class PlayPen
 		 * the DropTarget registered with this listener.
 		 */
 		public void dragOver(DropTargetDragEvent dtde) {
-			PlayPen pp = ((PlayPenPanel) dtde.getDropTargetContext().getComponent()).getPlayPen();
+			PlayPen pp = (PlayPen) dtde.getDropTargetContext().getComponent();
 			Point sp = pp.unzoomPoint(new Point(dtde.getLocation()));
 			PlayPenComponent ppc = pp.contentPane.getComponentAt(sp);
 			ContainerPane<?, ?> tp;
@@ -2081,7 +2051,7 @@ public class PlayPen
 			}
 			
 			Transferable t = dtde.getTransferable();
-			PlayPen playpen = ((PlayPenPanel) dtde.getDropTargetContext().getComponent()).getPlayPen();
+			PlayPen playpen = (PlayPen) dtde.getDropTargetContext().getComponent();
 			try {
 			    Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));
 			    if (playpen.addTransferable(t, dropLoc, TransferStyles.REVERSE_ENGINEER)){
@@ -2227,14 +2197,14 @@ public class PlayPen
             }
             return;
         }
-	    Point p = playPenPanel.getMousePosition();
+	    Point p = this.getMousePosition();
 	    if (p == null) {
 	        p = new Point(0, 0);
 	    }
 	    unzoomPoint(p);
 	    try {
             if (!addTransferable(t, p, TransferStyles.COPY)) {
-                JOptionPane.showMessageDialog(playPenPanel, "Cannot paste the copied objects. Unknown object type.", "Cannot Paste Objects", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Cannot paste the copied objects. Unknown object type.", "Cannot Paste Objects", JOptionPane.WARNING_MESSAGE);
             }
         } catch (UnsupportedFlavorException e) {
             throw new RuntimeException("Could not paste copied object type.", e);
@@ -2364,7 +2334,7 @@ public class PlayPen
 
 
 		public void mousePressed(MouseEvent evt) {
-		    playPenPanel.requestFocus();
+		    requestFocus();
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
@@ -2402,14 +2372,14 @@ public class PlayPen
 			    }
 			}
 			maybeShowPopup(evt);
-			playPenPanel.repaint();
+			repaint();
 //            updateDBTree();
 		}
 
 		// ---------------- MOUSEMOTION LISTENER INTERFACE -----------------
 		public void mouseDragged(MouseEvent evt) {
 			mouseMoved(evt);
-		}
+		}	
 
 		public void mouseMoved(MouseEvent evt) {
 			if (rubberBand != null) {
@@ -2447,7 +2417,7 @@ public class PlayPen
 			dirtyRegion.y -= 3;
 			dirtyRegion.width += 6;
 			dirtyRegion.height += 6;
-			playPenPanel.repaint(dirtyRegion);
+			repaint(dirtyRegion);
 		}
 
 		/**
@@ -2557,15 +2527,15 @@ public class PlayPen
 		public FloatingContainerPaneListener(PlayPen pp, ContainerPane<?, ?> cp, Point handle) {
 			this.pp = pp;
 			Point pointerLocation = MouseInfo.getPointerInfo().getLocation();
-			SwingUtilities.convertPointFromScreen(pointerLocation,pp.getPanel());
+			SwingUtilities.convertPointFromScreen(pointerLocation,pp);
 			logger.debug("Adding floating container pane at:"+ pointerLocation); //$NON-NLS-1$
 			p = new Point(pointerLocation.x - handle.x, pointerLocation.y - handle.y);
 
 			this.cp = cp;
 			this.handle = handle;
 
-			pp.getPanel().addMouseMotionListener(this);
-			pp.getPanel().addMouseListener(this); // the click that ends this operation
+			pp.addMouseMotionListener(this);
+			pp.addMouseListener(this); // the click that ends this operation
 
 			pp.cursorManager.tableDragStarted();
 			pp.startCompoundEdit("Move " + cp.getName()); //$NON-NLS-1$
@@ -2579,13 +2549,13 @@ public class PlayPen
 			pp.zoomPoint(e.getPoint());
 			p.setLocation(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
 			pp.setChildPosition(cp, p);
-			JViewport viewport = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, pp.getPanel());
+			JViewport viewport = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, pp);
 	        if(viewport==null || pp.getSelectedItems().size() < 1) 
 	            return; 
 	        
 	        // Theoretically should re-validate after each scroll. But that would 
 	        // cause the selected component to fall off the border.
-	        pp.getPanel().revalidate();
+	        pp.revalidate();
 	        Point viewPos = viewport.getViewPosition(); 
 	        Rectangle view = viewport.getViewRect();
 	        int viewHeight = viewport.getHeight(); 
@@ -2603,7 +2573,7 @@ public class PlayPen
 	            view.x = bounds.x + bounds.width - viewWidth + scrollUnits.right;
 	        }
 	        logger.debug(viewport.getViewPosition());
-	        pp.getPanel().scrollRectToVisible(view);
+	        pp.scrollRectToVisible(view);
 	        // Necessary to stop tables from flashing.
 	        if (cp != null) {
 	            cp.repaint();
@@ -2621,13 +2591,13 @@ public class PlayPen
 			try {
 	            pp.cursorManager.placeModeFinished();
 	            pp.cursorManager.tableDragFinished();
-	            pp.getPanel().removeMouseMotionListener(this);
-	            pp.getPanel().removeMouseListener(this);
+	            pp.removeMouseMotionListener(this);
+	            pp.removeMouseListener(this);
 	            
 	            // normalize changes to table panes are part
 	            // of this compound edit, refer to bug 1592.
-				pp.getPanel().normalize();
-				pp.getPanel().revalidate();
+				pp.normalize();
+				pp.revalidate();
 			} finally {
 			    pp.endCompoundEdit("Ending move for table "+cp.getName()); //$NON-NLS-1$
 			}
@@ -2653,7 +2623,7 @@ public class PlayPen
 					pp.contentPane.add(c, 0);
 				}
 			}
-			pp.getPanel().repaint();
+			pp.repaint();
 		}
 	}
 
@@ -2675,7 +2645,7 @@ public class PlayPen
 					pp.contentPane.add(c, pp.contentPane.getFirstRelationIndex());
 				}
 			}
-			pp.getPanel().repaint();
+			pp.repaint();
 		}
 	}
 
@@ -2685,7 +2655,7 @@ public class PlayPen
      */
     public FontRenderContext getFontRenderContext() {
         
-        Graphics2D g2 = (Graphics2D) playPenPanel.getGraphics();
+        Graphics2D g2 = (Graphics2D) this.getGraphics();
         FontRenderContext frc = null;
         if (g2 != null) {
             g2.scale(zoom, zoom);
@@ -3267,7 +3237,7 @@ public class PlayPen
             }
         }
         
-        Rectangle visibleRect = unzoomRect(playPenPanel.getVisibleRect());
+        Rectangle visibleRect = unzoomRect(this.getVisibleRect());
         // adjustments for when visible size is too small
         if (r.getHeight() > visibleRect.height) {
             r.setLocation(minY.getLocation());
@@ -3278,7 +3248,7 @@ public class PlayPen
             r.setSize(visibleRect.width, r.height);
         }
         
-        playPenPanel.scrollRectToVisible(zoomRect(r));
+        this.scrollRectToVisible(zoomRect(r));
     }
     
     public void updateTablePanes() {

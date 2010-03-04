@@ -54,7 +54,7 @@ public class EditDimensionAction extends AbstractArchitectAction {
                 "Dimension Properties...",
                 "Edit the properties of "+dimension.getName()+" in a dialog",
                 (String) null);
-        this.dialogOwner = SwingUtilities.getWindowAncestor(pp.getPanel());
+        this.dialogOwner = SwingUtilities.getWindowAncestor(pp);
         this.dimension = dimension;
     }
 

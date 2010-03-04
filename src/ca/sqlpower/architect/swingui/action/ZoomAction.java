@@ -52,7 +52,7 @@ public class ZoomAction extends AbstractArchitectAction implements PropertyChang
               amount > 0.0 ? Messages.getString("ZoomAction.zoomInActionDescription") : Messages.getString("ZoomAction.zoomOutActionDescription"), //$NON-NLS-1$ //$NON-NLS-2$
               amount > 0.0 ? "zoom_in" : "zoom_out");         //$NON-NLS-1$ //$NON-NLS-2$
 		this.zoomStep = amount;
-        playpen.getPanel().addPropertyChangeListener(this);
+        playpen.addPropertyChangeListener(this);
         if (amount > 0.0) {
             // According to my probing of key events on OS X 10.4.11, you can't get a VK_PLUS
             // event when modifiers in addition to SHIFT are present.. it's always VK_EQUALS.
@@ -86,7 +86,7 @@ public class ZoomAction extends AbstractArchitectAction implements PropertyChang
 		}
 		if (scrollTo != null && !scrollTo.isEmpty()) {
 			playpen.zoomRect(scrollTo);
-			playpen.getPanel().scrollRectToVisible(scrollTo);
+			playpen.scrollRectToVisible(scrollTo);
 		}
 	}
 

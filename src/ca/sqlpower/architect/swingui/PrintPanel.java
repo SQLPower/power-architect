@@ -236,7 +236,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 		// widths are in points (1/72 inch units)
 	    
 	    pp.setZoom(1.0);
-		Dimension ppSize = pp.getPanel().getPreferredSize();
+		Dimension ppSize = pp.getPreferredSize();
 		
 		double ppWidth = ppSize.width;
 		double ppHeight = ppSize.height;
@@ -305,7 +305,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			AffineTransform backupXform = g2.getTransform();
 			g2.translate(leftMargin - col*width, topMargin - row*height);
 			g2.scale(zoom, zoom);
-			pp.getPanel().print(g2);
+			pp.print(g2);
 			
 			g2.setTransform(backupXform);
 			if (printPageNumbersBox.isSelected()) {
@@ -383,8 +383,8 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			PreviewZoomAdjuster adjuster = new PreviewZoomAdjuster(); 
 			addMouseMotionListener(adjuster);
 			addMouseListener(adjuster);
-			playPenPreferredSize = pp.getPanel().getPreferredSize();
-			fontContextGraphic = session.getPlayPen().getPanel().getGraphics().create();
+			playPenPreferredSize = pp.getPreferredSize();
+			fontContextGraphic = session.getPlayPen().getGraphics().create();
 		}
 
 		/**
@@ -431,7 +431,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 	        pp.setFontRenderContext(frc);
 
 			pp.setZoom(zoom);
-			pp.getPanel().paintComponent(g);
+			pp.paintComponent(g);
 			pp.setZoom(1.0);
 			
 	        int scaledWidth = (int) (getWidth()/zoom);
@@ -443,7 +443,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			logger.debug("Painting print preview: play pen zoom " + zoom + ", print panel zoom " + PrintPanel.this.zoom + ", page width " + iW);
 
 			g2.scale(1/PrintPanel.this.zoom, 1/PrintPanel.this.zoom);
-			g2.setColor(pp.getPanel().getForeground());
+			g2.setColor(pp.getForeground());
 			for (int i = 0; i <= pagesAcross; i++) {
 				g2.drawLine((int) (i * iW * zoom), 0, (int) (i * iW * zoom), (int) (scaledHeight*PrintPanel.this.zoom * zoom));
 				if (logger.isDebugEnabled()) logger.debug("Drew page separator at x="+(i*iW)); //$NON-NLS-1$

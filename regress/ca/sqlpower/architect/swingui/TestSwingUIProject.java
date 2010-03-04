@@ -1020,7 +1020,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         PlayPen oldPP = session.getPlayPen();
         oldPP.setZoom(123.45);
-        oldPP.getPanel().setViewPosition(new Point(5,4));
+        oldPP.setViewPosition(new Point(5,4));
         session.setRelationshipLinesDirect(false);
         session.setShowPkTag(false);
         session.setShowFkTag(false);
@@ -1037,8 +1037,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
         PlayPen newPP = project2.getSession().getPlayPen();
         ArchitectSwingSession newSession = project2.getSession();
         assertEquals(oldPP.getZoom(), newPP.getZoom());
-        assertEquals(oldPP.getPanel().getViewPosition().getX(), newPP.getPanel().getViewPosition().getX());
-        assertEquals(oldPP.getPanel().getViewPosition().getY(), newPP.getPanel().getViewPosition().getY());
+        assertEquals(oldPP.getViewPosition().getX(), newPP.getViewPosition().getX());
+        assertEquals(oldPP.getViewPosition().getY(), newPP.getViewPosition().getY());
         assertEquals("Relationship Line Style", session.getRelationshipLinesDirect(), newSession.getRelationshipLinesDirect());
         assertEquals("PK Tag", session.isShowPkTag(), newSession.isShowPkTag());
         assertEquals("FK Tag", session.isShowFkTag(), newSession.isShowFkTag());
@@ -1054,8 +1054,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
         PlayPen oldPP = project.getSession().getPlayPen();
         
         assertEquals(12.3, oldPP.getZoom());
-        assertEquals(20, oldPP.getPanel().getViewPosition().y);
-        assertEquals(200, oldPP.getPanel().getViewPosition().x);
+        assertEquals(20, oldPP.getViewPosition().y);
+        assertEquals(200, oldPP.getViewPosition().x);
         assertEquals("Relationship Line Style", false, session.getRelationshipLinesDirect());
         assertEquals("PK Tag", true, session.isShowPkTag());
         assertEquals("FK Tag", true, session.isShowFkTag());

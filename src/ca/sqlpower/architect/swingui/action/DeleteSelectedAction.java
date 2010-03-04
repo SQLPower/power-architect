@@ -79,7 +79,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
         logger.debug("ACTION COMMAND: " + evt.getActionCommand()); //$NON-NLS-1$
 
         if (dbt.getSelectionCount() < 1) {
-            JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("DeleteSelectedAction.noItemsToDelete")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(playpen, Messages.getString("DeleteSelectedAction.noItemsToDelete")); //$NON-NLS-1$
             return;
         }
         
@@ -145,7 +145,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                         }
                     }
                 } catch (LockedColumnException ex) {
-                    int decision = JOptionPane.showConfirmDialog(playpen.getPanel(),
+                    int decision = JOptionPane.showConfirmDialog(playpen,
                             Messages.getString("DeleteSelectedAction.couldNotDeleteColumnContinueConfirmation", o.getName(), ex.getLockingRelationship().toString()), //$NON-NLS-1$
                             Messages.getString("DeleteSelectedAction.couldNotDeleteColumnDialogTitle"), //$NON-NLS-1$
                             JOptionPane.YES_NO_OPTION);

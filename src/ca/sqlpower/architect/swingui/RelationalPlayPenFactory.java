@@ -79,7 +79,7 @@ public class RelationalPlayPenFactory {
         pp.addSelectionListener(synchronizer);
         dbTree.addTreeSelectionListener(synchronizer);
         pp.getContentPane().addPlayPenContentListener(synchronizer);
-        pp.getPanel().addMouseListener(synchronizer);
+        pp.addMouseListener(synchronizer);
         return pp;
     }
 
@@ -126,7 +126,7 @@ public class RelationalPlayPenFactory {
                 mi = new JMenuItem("Show Relationships"); //$NON-NLS-1$
                 mi.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent evt) {
-                        JOptionPane.showMessageDialog(pp.getPanel(), new JScrollPane(new JList(new java.util.Vector<Relationship>(
+                        JOptionPane.showMessageDialog(pp, new JScrollPane(new JList(new java.util.Vector<Relationship>(
                                 pp.getRelationships()))));
                     }
                 });
@@ -141,7 +141,7 @@ public class RelationalPlayPenFactory {
                             PlayPenComponent c = pp.getContentPane().getComponent(i);
                             componentList.append(c).append("[" + c.getModel() + "]\n"); //$NON-NLS-1$ //$NON-NLS-2$
                         }
-                        JOptionPane.showMessageDialog(pp.getPanel(), new JScrollPane(new JTextArea(componentList.toString())));
+                        JOptionPane.showMessageDialog(pp, new JScrollPane(new JTextArea(componentList.toString())));
                     }
                 });
                 menu.add(mi);
@@ -150,7 +150,7 @@ public class RelationalPlayPenFactory {
                 mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
                 mi.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent evt) {
-                        JOptionPane.showMessageDialog(pp.getPanel(), new JScrollPane(new JTextArea(session.getUndoManager()
+                        JOptionPane.showMessageDialog(pp, new JScrollPane(new JTextArea(session.getUndoManager()
                                 .printUndoVector())));
                     }
                 });
@@ -180,57 +180,57 @@ public class RelationalPlayPenFactory {
 
         String KEY_DELETE_SELECTED = "ca.sqlpower.architect.swingui.PlayPen.KEY_DELETE_SELECTED"; //$NON-NLS-1$
 
-        InputMap inputMap = pp.getPanel().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        InputMap inputMap = pp.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), KEY_DELETE_SELECTED);
-        pp.getPanel().getActionMap().put(KEY_DELETE_SELECTED, af.getDeleteSelectedAction());
+        pp.getActionMap().put(KEY_DELETE_SELECTED, af.getDeleteSelectedAction());
         if (af.getDeleteSelectedAction() == null)
             logger.warn("af.deleteSelectedAction is null!"); //$NON-NLS-1$
 
-        pp.getPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 (KeyStroke) af.getZoomToFitAction().getValue(Action.ACCELERATOR_KEY), "ZOOM TO FIT"); //$NON-NLS-1$
-        pp.getPanel().getActionMap().put("ZOOM TO FIT", af.getZoomToFitAction()); //$NON-NLS-1$
+        pp.getActionMap().put("ZOOM TO FIT", af.getZoomToFitAction()); //$NON-NLS-1$
 
-        pp.getPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 (KeyStroke) af.getZoomInAction().getValue(Action.ACCELERATOR_KEY), "ZOOM IN"); //$NON-NLS-1$
-        pp.getPanel().getActionMap().put("ZOOM IN", af.getZoomInAction()); //$NON-NLS-1$
+        pp.getActionMap().put("ZOOM IN", af.getZoomInAction()); //$NON-NLS-1$
 
-        pp.getPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 (KeyStroke) af.getZoomOutAction().getValue(Action.ACCELERATOR_KEY), "ZOOM OUT"); //$NON-NLS-1$
-        pp.getPanel().getActionMap().put("ZOOM OUT", af.getZoomOutAction()); //$NON-NLS-1$
+        pp.getActionMap().put("ZOOM OUT", af.getZoomOutAction()); //$NON-NLS-1$
 
-        pp.getPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 (KeyStroke) af.getZoomResetAction().getValue(Action.ACCELERATOR_KEY), "ZOOM RESET"); //$NON-NLS-1$
-        pp.getPanel().getActionMap().put("ZOOM RESET", af.getZoomResetAction()); //$NON-NLS-1$
+        pp.getActionMap().put("ZOOM RESET", af.getZoomResetAction()); //$NON-NLS-1$
 
-        pp.getPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 (KeyStroke) af.getCreateTableAction().getValue(Action.ACCELERATOR_KEY), "NEW TABLE"); //$NON-NLS-1$
-        pp.getPanel().getActionMap().put("NEW TABLE", af.getCreateTableAction()); //$NON-NLS-1$
+        pp.getActionMap().put("NEW TABLE", af.getCreateTableAction()); //$NON-NLS-1$
 
-        pp.getPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 (KeyStroke) af.getInsertColumnAction().getValue(Action.ACCELERATOR_KEY), "NEW COLUMN"); //$NON-NLS-1$
-        pp.getPanel().getActionMap().put("NEW COLUMN", af.getInsertColumnAction()); //$NON-NLS-1$
+        pp.getActionMap().put("NEW COLUMN", af.getInsertColumnAction()); //$NON-NLS-1$
 
-        pp.getPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 (KeyStroke) af.getInsertIndexAction().getValue(Action.ACCELERATOR_KEY), "NEW INDEX"); //$NON-NLS-1$
-        pp.getPanel().getActionMap().put("NEW INDEX", af.getInsertIndexAction()); //$NON-NLS-1$
+        pp.getActionMap().put("NEW INDEX", af.getInsertIndexAction()); //$NON-NLS-1$
 
-        pp.getPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 (KeyStroke) af.getCreateIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY),
                 "NEW IDENTIFYING RELATION"); //$NON-NLS-1$
-        pp.getPanel().getActionMap().put("NEW IDENTIFYING RELATION", af.getCreateIdentifyingRelationshipAction()); //$NON-NLS-1$
+        pp.getActionMap().put("NEW IDENTIFYING RELATION", af.getCreateIdentifyingRelationshipAction()); //$NON-NLS-1$
 
-        pp.getPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+        pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 (KeyStroke) af.getCreateNonIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY),
                 "NEW NON IDENTIFYING RELATION"); //$NON-NLS-1$
-        pp.getPanel().getActionMap().put("NEW NON IDENTIFYING RELATION", af.getCreateNonIdentifyingRelationshipAction()); //$NON-NLS-1$
+        pp.getActionMap().put("NEW NON IDENTIFYING RELATION", af.getCreateNonIdentifyingRelationshipAction()); //$NON-NLS-1$
 
         final Object KEY_EDIT_SELECTION = "ca.sqlpower.architect.PlayPen.KEY_EDIT_SELECTION"; //$NON-NLS-1$
 
-        pp.getPanel().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+        pp.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
                 KEY_EDIT_SELECTION);
-        pp.getPanel().getActionMap().put(KEY_EDIT_SELECTION, new AbstractAction() {
+        pp.getActionMap().put(KEY_EDIT_SELECTION, new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 ActionEvent ev = new ActionEvent(e.getSource(), e.getID(),
                         PlayPen.ACTION_COMMAND_SRC_PLAYPEN, e.getWhen(), e.getModifiers());
@@ -422,7 +422,7 @@ public class RelationalPlayPenFactory {
         }
 
         public void mouseReleased(MouseEvent e) {
-            if (e.getSource() == pp.getPanel()) {
+            if (e.getSource() == pp) {
                 eventDepth++;
                 try {
                     updateDBTree();

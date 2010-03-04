@@ -48,7 +48,7 @@ public class EditHierarchyAction extends AbstractArchitectAction{
 
     public EditHierarchyAction(ArchitectSwingSession session, Hierarchy hierarchy, PlayPen pp) {
         super(session, pp, "Hierarchy Properties...", "Edit the properties of "+hierarchy.getName()+" in a dialog", (String) null);
-        this.dialogOwner = SwingUtilities.getWindowAncestor(pp.getPanel());
+        this.dialogOwner = SwingUtilities.getWindowAncestor(pp);
         this.hierarchy = hierarchy;
     }
 

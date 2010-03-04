@@ -50,7 +50,6 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenComponentLocationEdit;
-import ca.sqlpower.architect.swingui.PlayPen.PlayPenPanel;
 import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
 import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
 import ca.sqlpower.architect.swingui.event.PlayPenContentEvent;
@@ -116,8 +115,8 @@ public class OLAPPlayPenFactory {
      *            The session pp belongs to, also the session that owns the
      *            actions to register.
      */
-    static void setupOLAPKeyboardActions(PlayPenPanel pp, OLAPEditSession oSession) {
-        pp.getPlayPen().setupKeyboardActions();
+    static void setupOLAPKeyboardActions(PlayPen pp, OLAPEditSession oSession) {
+        pp.setupKeyboardActions();
         
         InputMap im = pp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = pp.getActionMap();
