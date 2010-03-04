@@ -272,7 +272,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         SQLDatabase target = session.getTargetDatabase();
         
-        SQLTable t1 = (SQLTable) target.getChildByName("mm_project");
+        SQLTable t1 = target.getChildByName("mm_project", SQLTable.class);
         assertEquals(1, t1.getPkSize());
         assertEquals(t1.getPrimaryKeyIndex().getChild(0).getColumn(), t1.getColumn(0));
         assertTrue(t1.getColumn(0).isPrimaryKey());
@@ -807,7 +807,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // grab the second database in the dbtree's model (the first is the play pen)
         ppdb = (SQLDatabase) session2.getTargetDatabase();
         
-        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getChildByName(index.getName());
+        index = ((SQLTable) ppdb.getTableByName(tableName)).getChildByName(index.getName(), SQLIndex.class);
         
         Map<String, Object> newDescription =
             ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
@@ -1107,7 +1107,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLDatabase db = new SQLDatabase(ds);
         dbtreeRoot.addChild(db);
    
-        SQLSchema mooSchema = (SQLSchema) db.getChildByName("moo_schema");
+        SQLSchema mooSchema = db.getChildByName("moo_schema", SQLSchema.class);
         
         // we were only running into this bug on schemas that are already populated
         // so this step is the key to waking up the bug!

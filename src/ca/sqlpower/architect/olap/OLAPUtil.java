@@ -395,7 +395,7 @@ public class OLAPUtil {
         String qualifier = table.getSchema();
         String name = table.getName();
         if (qualifier == null || qualifier.length() == 0) {
-            return (SQLTable) database.getChildByName(name);
+            return database.getChildByName(name, SQLTable.class);
         } else if (qualifier.contains(".")) {
             String cat = qualifier.substring(0, qualifier.indexOf('.'));
             String schema = qualifier.substring(qualifier.indexOf('.') + 1);
