@@ -319,8 +319,8 @@ public class RelationshipEditPanel extends AbstractSPListener implements DataEnt
 	
 	public boolean applyChanges() {
 	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
-		relationship.begin(Messages.getString("RelationshipEditPanel.modifyRelationshipProperties")); //$NON-NLS-1$
 		try {
+		    relationship.begin(Messages.getString("RelationshipEditPanel.modifyRelationshipProperties")); //$NON-NLS-1$
 			relationship.setName(relationshipName.getText());
 			relationship.setPhysicalName(relationshipName.getText());
 			// set the parent label text of relationship lines
@@ -388,8 +388,10 @@ public class RelationshipEditPanel extends AbstractSPListener implements DataEnt
                 relationship.setDeleteRule(UpdateDeleteRule.SET_NULL);
             }
             
-		} finally {
-			relationship.commit();
+            relationship.commit();
+		} catch (Exception e) {
+		    relationship.rollback(e.getMessage());
+		    throw new RuntimeException(e);
 		}
 		return true;
 	}
