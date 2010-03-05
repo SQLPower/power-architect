@@ -350,7 +350,11 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         boolean first = true;
         for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
             if (!first) print(", ");
-            print(c.getColumn().getPhysicalName());
+            if (c.getColumn() != null) {
+                print(c.getColumn().getPhysicalName());
+            } else {
+                print(c.getName());
+            }
             //TODO: ASC and DESC are not supported in the current version of PostgreSQL (8.2.3)
             //but is expected to be added in later versions (8.3 for example)
 			//Thomas Kellerer: ASC/DESC is available since 8.3.0...
