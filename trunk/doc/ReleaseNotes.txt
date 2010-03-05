@@ -1,5 +1,16 @@
 SQL Power Architect Release Notes
 
+0.9.16
+  Updates:
+    * Updated the SQL Server driver. Users can now connect to SQL Server 2008 (Requires Java 6 and up).
+    * Improved saving. Users will now be warned if they are about to save over a file with a different
+      version. Additionally, users will be warned if they are trying to open a file that has been
+      saved with a newer version.
+
+  Bug Fixes:
+    * Fixed the Copy Table Data panel. Users can expand and navigate the data sources again.
+    * Other minor bug fixes.
+
 0.9.15
   Bug Fixes:
     * Fixed comments in MySQL's DDL generator
