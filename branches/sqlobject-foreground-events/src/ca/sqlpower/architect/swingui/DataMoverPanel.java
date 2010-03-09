@@ -259,13 +259,12 @@ public class DataMoverPanel {
         String destCatalogName = null;
         String destSchemaName = null;
         String destTableName = sourceTable.getName();
-        SQLObject tmpSqlObj = destObject;
-        List<SQLObject> ancestorList = SQLObjectUtils.ancestorList(tmpSqlObj);
+        List<SQLObject> ancestorList = SQLObjectUtils.ancestorList(destObject);
         for (SQLObject ancestor : ancestorList) {
             // walk up the ancestors and set table, catalog, and schema name as appropriate
-            if (tmpSqlObj instanceof SQLTable) destTableName = ancestor.getName();
-            if (tmpSqlObj instanceof SQLCatalog) destCatalogName = ancestor.getName();
-            if (tmpSqlObj instanceof SQLSchema) destSchemaName = ancestor.getName();
+            if (ancestor instanceof SQLTable) destTableName = ancestor.getName();
+            if (ancestor instanceof SQLCatalog) destCatalogName = ancestor.getName();
+            if (ancestor instanceof SQLSchema) destSchemaName = ancestor.getName();
         }
         
         boolean needToCreate = false;

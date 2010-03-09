@@ -63,7 +63,7 @@ public abstract class AbstractPlacer extends MouseAdapter implements CancelableL
         logger.debug("Placing item at: " + p); //$NON-NLS-1$
         try {
             DataEntryPanel editPanel = place(p);
-            Window owner = SwingUtilities.getWindowAncestor(playpen.getPanel());
+            Window owner = SwingUtilities.getWindowAncestor(playpen);
             JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                     editPanel, owner,
                     getEditDialogTitle(),
@@ -118,7 +118,7 @@ public abstract class AbstractPlacer extends MouseAdapter implements CancelableL
     public void dirtyup() {
         playpen.fireCancel();
         playpen.getCursorManager().placeModeStarted();
-        playpen.getPanel().addMouseListener(this);
+        playpen.addMouseListener(this);
         playpen.addCancelableListener(this);
     }
 
@@ -129,7 +129,7 @@ public abstract class AbstractPlacer extends MouseAdapter implements CancelableL
      */
     private void cleanup() {
         playpen.removeCancelableListener(this);
-        playpen.getPanel().removeMouseListener(this);
+        playpen.removeMouseListener(this);
         playpen.getCursorManager().placeModeFinished();
     }
     

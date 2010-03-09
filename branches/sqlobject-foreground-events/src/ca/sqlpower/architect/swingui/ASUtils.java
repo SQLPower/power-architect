@@ -632,7 +632,7 @@ public class ASUtils {
             for (int i = 2; i < ancestors.size(); i++) {
                 SQLObject ancestor = ancestors.get(i);
                 System.out.println("Child " + child + " ancestor " + ancestor);
-                child = child.getChildByName(ancestor.getName());
+                child = child.getChildByName(ancestor.getName(), ancestor.getClass());
             }
             column.setSourceColumn((SQLColumn) child);
             

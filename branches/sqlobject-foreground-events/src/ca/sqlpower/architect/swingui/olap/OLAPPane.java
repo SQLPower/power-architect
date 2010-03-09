@@ -192,7 +192,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                             // panel should've been null if the coordinate was invalid.
                             editObject = clickedCoor.getItem();
                         }
-                        Window owner = SwingUtilities.getWindowAncestor(getPlayPen().getPanel());
+                        Window owner = SwingUtilities.getWindowAncestor(getPlayPen());
                         JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, owner,
                                  editObject.getClass().getSimpleName() + " Properties", "OK");
                         dialog.setLocationRelativeTo(owner);
@@ -200,7 +200,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                     }
                 } catch (Exception e) {
                     logger.debug("Error from creating edit dialog at coordinate: " + clickedCoor, e);
-                    ASUtils.showExceptionDialogNoReport(SwingUtilities.getWindowAncestor(getPlayPen().getPanel()),
+                    ASUtils.showExceptionDialogNoReport(SwingUtilities.getWindowAncestor(getPlayPen()),
                             "Failed to create edit dialog!", e);
                 }
             }

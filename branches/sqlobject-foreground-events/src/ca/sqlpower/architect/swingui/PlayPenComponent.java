@@ -141,7 +141,7 @@ public abstract class PlayPenComponent implements Selectable {
             final int xAdjust = 5;  // ensure menu doesn't appear directly under pointer
             p.translate(getX(), getY());
             getPlayPen().zoomPoint(p);
-            menu.show(getPlayPen().getPanel(), p.x + xAdjust, p.y);
+            menu.show(getPlayPen(), p.x + xAdjust, p.y);
         }
     }
     
@@ -174,7 +174,7 @@ public abstract class PlayPenComponent implements Selectable {
         }
         pp.zoomRect(r);
         if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$
-        pp.getPanel().repaint(r);
+        pp.repaint(r);
     }
 
     /**
@@ -393,7 +393,7 @@ public abstract class PlayPenComponent implements Selectable {
             x2++;
             y2++;
         }
-        owner.getPanel().repaint(x1, y1, (x2 - x1), (y2 - y1));
+        owner.repaint(x1, y1, (x2 - x1), (y2 - y1));
     }
     
     public boolean isOpaque() {
@@ -407,7 +407,7 @@ public abstract class PlayPenComponent implements Selectable {
 
     public Color getBackgroundColor() {
         if (backgroundColor == null) {
-            return getPlayPen().getPanel().getBackground();
+            return getPlayPen().getBackground();
         }
         return backgroundColor;
     }
@@ -421,7 +421,7 @@ public abstract class PlayPenComponent implements Selectable {
 
     public Color getForegroundColor() {
         if (foregroundColor == null) {
-            return getPlayPen().getPanel().getForeground();
+            return getPlayPen().getForeground();
         }
         return foregroundColor;
     }
@@ -445,11 +445,11 @@ public abstract class PlayPenComponent implements Selectable {
     }
 
     public Font getFont() {
-        return getPlayPen().getPanel().getFont();
+        return getPlayPen().getFont();
     }
 
     public FontMetrics getFontMetrics(Font f) {
-        return getPlayPen().getPanel().getFontMetrics(f);
+        return getPlayPen().getFontMetrics(f);
     }
     
     public FontRenderContext getFontRenderContext() {

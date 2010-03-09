@@ -474,7 +474,11 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         boolean first = true;
         for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
             if (!first) print(", ");
-            print(c.getColumn().getPhysicalName());
+            if (c.getColumn() != null) {
+                print(c.getColumn().getPhysicalName());
+            } else {
+                print(c.getName());
+            }
             first = false;
         }
         print(" )\n");

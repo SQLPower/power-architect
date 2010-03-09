@@ -44,7 +44,7 @@ public class PlayPenContentPane {
 	public PlayPenContentPane(PlayPen owner) {
 		this.owner = owner;
 		propertyChangeEventPassthrough = new PropertyChangeEventPassthrough();
-		owner.getPanel().addPropertyChangeListener("zoom", new ZoomFixer()); //$NON-NLS-1$
+		owner.addPropertyChangeListener("zoom", new ZoomFixer()); //$NON-NLS-1$
 	}
 	
 	
@@ -170,7 +170,7 @@ public class PlayPenContentPane {
 			relations.remove(j-children.size());
 		}
 		firePlayPenContentRemoved(c);
-		getOwner().getPanel().repaint(r);
+		getOwner().repaint(r);
 	}
 	
 	public void remove(PlayPenComponent c) {

@@ -92,6 +92,7 @@ import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
 import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
@@ -192,7 +193,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * This user prompter factory will create all the necessary GUI user prompts
      * for Architect.
      */
-    private final SwingUIUserPrompterFactory swinguiUserPrompterFactory;
+    private UserPrompterFactory swinguiUserPrompterFactory;
 
     /**
      * A colour chooser used by the {@link RelationshipEditPanel}, and possibly
@@ -340,7 +341,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
 
         // makes the tool tips show up on these components 
-        ToolTipManager.sharedInstance().registerComponent(playPen.getPanel());
+        ToolTipManager.sharedInstance().registerComponent(playPen);
         ToolTipManager.sharedInstance().registerComponent(sourceDatabases);
 
         if (openingSession != null) {
@@ -354,7 +355,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             frame = new ArchitectFrame(this, null);
         }
 
-        swinguiUserPrompterFactory.setParentFrame(frame);
+        if (swinguiUserPrompterFactory instanceof SwingUIUserPrompterFactory) {
+            ((SwingUIUserPrompterFactory) swinguiUserPrompterFactory).setParentFrame(frame);
+        }
         
         // MUST be called after constructed to set up the actions
         frame.init(); 
@@ -521,6 +524,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
                 getRecentMenu().putRecentFileName(file.getAbsolutePath());
                 project.setFile(file);
+                project.clearFileVersion();
                 String projName = file.getName().substring(0, file.getName().length()-".architect".length()); //$NON-NLS-1$
                 setName(projName);
                 frame.setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", projName)); //$NON-NLS-1$
@@ -885,7 +889,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public void setRelationshipLinesDirect(boolean relationshipLinesDirect) {
         this.relationshipLinesDirect = relationshipLinesDirect;
-        getPlayPen().getPanel().repaint();
+        getPlayPen().repaint();
     }
 
     public boolean getRelationshipLinesDirect() {
@@ -898,7 +902,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     public void setUsingLogicalNames(boolean usingLogicalNames) {
         this.usingLogicalNames = usingLogicalNames;
-        getPlayPen().getPanel().repaint();
+        getPlayPen().repaint();
     }
 
     public SQLObjectRoot getRootObject() {
@@ -1091,21 +1095,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
     }
 
-    public void runInBackground(final Runnable runner) {
-        SPSwingWorker worker = new SPSwingWorker(this) {
-            
-            @Override
-            public void doStuff() throws Exception {
-                runner.run();
-            }
-
-            @Override
-            public void cleanup() throws Exception {
-                //do nothing
-            }
-            
-        };
-        new Thread(worker).start();       
+    public void runInBackground(Runnable runner) {
+        runInBackground(runner, "worker");
+    }
+    
+    public void runInBackground(final Runnable runner, String name) {
+        new Thread(runner, name).start();       
     }
 
     public void runInForeground(Runnable runner) {
@@ -1148,5 +1143,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public void showPreferenceDialog(Window owner) {
         prefsEditor.showPreferencesDialog(owner, ArchitectSwingSessionImpl.this);
+    }
+
+    /**
+     * Protected method for setting the user prompter factory delegate to
+     * something other than the UI user prompter factory. This allows
+     * the tests to define a user prompter factory that does not block 
+     * waiting for user response.
+     */
+    void setUserPrompterFactory(UserPrompterFactory newUPF) {
+        swinguiUserPrompterFactory = newUPF;
     }
 }

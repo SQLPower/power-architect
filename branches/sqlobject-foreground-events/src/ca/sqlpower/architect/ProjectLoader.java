@@ -37,6 +37,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
+import org.apache.commons.digester.Rule;
 import org.apache.commons.digester.SetPropertiesRule;
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
@@ -66,6 +67,12 @@ import ca.sqlpower.sqlobject.SQLIndex.Column;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.BrowserUtil;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 import ca.sqlpower.xml.UnescapingSaxParser;
 
 public class ProjectLoader {
@@ -168,6 +175,15 @@ public class ProjectLoader {
     protected int progress = 0;
     
     protected ArchitectSession session;
+
+    /**
+     * This stores the version of the file that this project loader would
+     * overwrite on save. If the user is overwriting a file that is not the same
+     * version as the Architect that they are using they should be prompted.
+     * This will be null if the current project was not loaded or saved (ie: it
+     * is new).
+     */
+    protected String fileVersion;
     
     public ProjectLoader(ArchitectSession session) {
         this.session = session;
@@ -199,6 +215,11 @@ public class ProjectLoader {
                 digester = setupDigester();
                 digester.parse(uin);
             } catch (SAXException ex) {
+                //The digester likes to wrap the cancelled exception in a SAXException.
+                if (ex.getException() instanceof DigesterCancelledException) {
+                    //Digeseter was cancelled by the user. Do not load anything.
+                    return;
+                }
                 logger.error("SAX Exception in project file parse!", ex);
                 String message;
                 if (digester == null) {
@@ -294,6 +315,43 @@ public class ProjectLoader {
         d.setValidating(false);
         d.push(session);
         
+        //app version number
+        d.addRule("architect-project", new Rule() {
+            @Override
+            public void begin(String namespace, String name, Attributes attributes) throws Exception {
+                fileVersion = attributes.getValue("appversion");
+                String loadingMessage;
+                try {
+                    if (fileVersion == null) {
+                        loadingMessage = "The version of the file cannot be found.";
+                        fileVersion = "0";
+                    } else if (ArchitectVersion.APP_FULL_VERSION.compareTo(
+                            new ArchitectVersion(fileVersion)) < 0) {
+                        loadingMessage = "This file was last saved with a newer version.\n" +
+                        		"Loading with an older version may cause data loss.";
+                    } else {
+                        return;
+                    }
+                } catch (Exception e) {
+                    loadingMessage = "The version of the file cannot be understood.";
+                }
+                UserPrompter loadingWarningPrompt = session.createUserPrompter(
+                        loadingMessage + "\nDo you wish to try and open the file?", 
+                        UserPromptType.BOOLEAN, UserPromptOptions.OK_NOTOK_CANCEL, 
+                        UserPromptResponse.OK, UserPromptResponse.OK, "Try loading", 
+                        "Upgrade...", "Cancel");
+                UserPromptResponse response = loadingWarningPrompt.promptUser();
+                if (response == UserPromptResponse.OK) {
+                    //continue to try loading
+                } else if (response == UserPromptResponse.NOT_OK) {
+                    BrowserUtil.launch(SPSUtils.SQLP_ARCHITECT_URL);
+                    throw new DigesterCancelledException();
+                } else if (response == UserPromptResponse.CANCEL) {
+                    throw new DigesterCancelledException();
+                }
+            }
+        });
+
         // project name
         d.addCallMethod("architect-project/project-name", "setName", 0); // argument is element body text
 
@@ -965,6 +1023,15 @@ public class ProjectLoader {
     public void setFile(File argFile) {
         this.file = argFile;
     }
+    
+    /**
+     * Clears the file version if the file to save to is being changed to a 
+     * new location.
+     */
+    public void clearFileVersion() {
+        fileVersion = null;
+    }
+    
     /**
      * Adds all the tables in the given database into the playpen database.  This is really only
      * for loading projects, so please think twice about using it for other stuff.

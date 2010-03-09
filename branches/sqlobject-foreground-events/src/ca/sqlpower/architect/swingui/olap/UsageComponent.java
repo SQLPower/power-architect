@@ -123,14 +123,14 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
                         DimensionUsage du = (DimensionUsage) model;
                         DataEntryPanel panel = new DimensionUsageEditPanel(du);
                         if (panel != null) {
-                            Window owner = SwingUtilities.getWindowAncestor(getPlayPen().getPanel());
+                            Window owner = SwingUtilities.getWindowAncestor(getPlayPen());
                             JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, owner,
                                     "Modify Properties", "OK");
                             dialog.setLocationRelativeTo(owner);
                             dialog.setVisible(true);
                         }
                     } catch (Exception e) {
-                        ASUtils.showExceptionDialogNoReport(SwingUtilities.getWindowAncestor(getPlayPen().getPanel()),
+                        ASUtils.showExceptionDialogNoReport(SwingUtilities.getWindowAncestor(getPlayPen()),
                                 "Failed to create edit dialog!", e);
                     }
                 }

@@ -208,9 +208,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
         }
         
         // set the view positions again in the case that the viewport was invalid earlier.
-        getSession().getPlayPen().getPanel().setInitialViewPosition();
+        getSession().getPlayPen().setInitialViewPosition();
         for (OLAPEditSession editSession : getSession().getOLAPEditSessions()) {
-            editSession.getOlapPlayPen().getPanel().setInitialViewPosition();
+            editSession.getOlapPlayPen().setInitialViewPosition();
         }
         
         // TODO change this to load the undo history from a file
@@ -383,9 +383,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
         
         if (viewportX != null && viewportY != null) {
             Point viewPoint = new Point(Integer.parseInt(viewportX), Integer.parseInt(viewportY));
-            pp.getPanel().setViewPosition(viewPoint);
+            pp.setViewPosition(viewPoint);
         }
-        logger.debug("Viewport position is " + pp.getPanel().getViewPosition()); //$NON-NLS-1$
+        logger.debug("Viewport position is " + pp.getViewPosition()); //$NON-NLS-1$
     }
 
     private class TablePaneFactory extends AbstractObjectCreationFactory {
@@ -638,6 +638,29 @@ public class SwingUIProjectLoader extends ProjectLoader {
             // write problems with architect file will muck up the save process
             throw new SQLObjectException(Messages.getString("SwingUIProject.errorSavingProject", file.getAbsolutePath())); //$NON-NLS-1$
         }
+        
+        if (fileVersion != null && !fileVersion.equals(ArchitectVersion.APP_FULL_VERSION.toString())) {
+            String message;
+            try {
+                ArchitectVersion oldFileVersion = new ArchitectVersion(fileVersion);
+                if (oldFileVersion.compareTo(ArchitectVersion.APP_FULL_VERSION) < 0) {
+                    message = "Overwriting older file. Older versions may have problems " +
+                    		"loading the newer file format.";
+                } else {
+                    message = "Overwriting newer file. Some data loss from loading may occur.";
+                }
+            } catch (Exception e) {
+                message = "Overwriting file with an invalid version.";
+            }
+            UserPrompter prompter = getSession().createUserPrompter(message + 
+                    "\nDo you wish to continue?", UserPromptType.BOOLEAN, 
+                    UserPromptOptions.OK_CANCEL, UserPromptResponse.OK, 
+                    UserPromptResponse.OK, "OK", "Cancel");
+            UserPromptResponse response = prompter.promptUser();
+            if (response.equals(UserPromptResponse.CANCEL)) {
+                return;
+            }
+        }
 
         File backupFile = new File (file.getParent(), file.getName()+"~"); //$NON-NLS-1$
 
@@ -700,6 +723,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
                     Messages.getString("SwingUIProject.couldNotRenameTempFile", tempFile.toString(), file.toString()))); //$NON-NLS-1$
         }
         logger.debug("rename tempFile to current file: " + fstatus); //$NON-NLS-1$
+        fileVersion = ArchitectVersion.APP_FULL_VERSION.toString();
     }
 
     XMLHelper ioo = new XMLHelper();
@@ -987,8 +1011,8 @@ public class SwingUIProjectLoader extends ProjectLoader {
     private void savePlayPen(PrintWriter out, PlayPen pp, boolean isRelational) {
         StringBuilder tagText = new StringBuilder();
         tagText.append("<play-pen zoom=\"").append(pp.getZoom()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-        tagText.append(" viewportX=\"").append(pp.getPanel().getViewPosition().x).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
-        tagText.append(" viewportY=\"").append(pp.getPanel().getViewPosition().y).append("\"");  //$NON-NLS-1$ //$NON-NLS-2$
+        tagText.append(" viewportX=\"").append(pp.getViewPosition().x).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+        tagText.append(" viewportY=\"").append(pp.getViewPosition().y).append("\"");  //$NON-NLS-1$ //$NON-NLS-2$
         
         if (isRelational) {
             String relStyle = getSession().getRelationshipLinesDirect() ?

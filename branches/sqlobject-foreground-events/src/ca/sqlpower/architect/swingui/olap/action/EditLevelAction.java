@@ -48,7 +48,7 @@ public class EditLevelAction extends AbstractArchitectAction{
 
     public EditLevelAction(ArchitectSwingSession session, Level level, PlayPen pp) {
         super(session, pp, "Level Properties...", "Edit the properties of "+level.getName()+" in a dialog", (String) null);
-        this.dialogOwner = SwingUtilities.getWindowAncestor(pp.getPanel());
+        this.dialogOwner = SwingUtilities.getWindowAncestor(pp);
         this.level = level;
     }
 

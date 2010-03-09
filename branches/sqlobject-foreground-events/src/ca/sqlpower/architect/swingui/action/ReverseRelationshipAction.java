@@ -66,11 +66,11 @@ public class ReverseRelationshipAction extends AbstractArchitectAction {
     public void actionPerformed(ActionEvent e) {
         List<PlayPenComponent> selection = playpen.getSelectedItems();
         if (selection.size() != 1) {
-            JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("ReverseRelationshipAction.multipleSelected")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(playpen, Messages.getString("ReverseRelationshipAction.multipleSelected")); //$NON-NLS-1$
         } else if (selection.get(0) instanceof Relationship) {
             reverseRelationship((Relationship) selection.get(0));
         } else {
-            JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("ReverseRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(playpen, Messages.getString("ReverseRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
         }
     }        
 
@@ -102,7 +102,7 @@ public class ReverseRelationshipAction extends AbstractArchitectAction {
             r.revalidate();
         } catch (SQLObjectException ex) {
             logger.error("Couldn't reverse relationship", ex); //$NON-NLS-1$
-            ASUtils.showExceptionDialogNoReport(playpen.getPanel(),
+            ASUtils.showExceptionDialogNoReport(playpen,
                     Messages.getString("ReverseRelationshipAction.couldNotReverseRelationship"), ex); //$NON-NLS-1$
         } finally {
             playpen.endCompoundEdit("Reverse Relationship"); //$NON-NLS-1$

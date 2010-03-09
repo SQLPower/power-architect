@@ -76,7 +76,7 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
                 return;
             }
         } else if (itemsToDelete.size() < 1) {
-            JOptionPane.showMessageDialog(playpen.getPanel(), "No items to delete!");
+            JOptionPane.showMessageDialog(playpen, "No items to delete!");
             return;
         }   
         try {

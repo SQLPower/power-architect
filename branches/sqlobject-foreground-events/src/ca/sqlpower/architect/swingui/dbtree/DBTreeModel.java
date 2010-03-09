@@ -55,7 +55,6 @@ import ca.sqlpower.util.TransactionEvent;
 
 /**
  * A tree model that displays {@link SQLObject}s contained in a {@link SQLObjectRoot}.
- * Each object is displayed as is and will not cause the {@link SQLObject}s to populate.
  */
 public class DBTreeModel implements TreeModel, java.io.Serializable {
 
@@ -91,7 +90,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 	    
 	    public List<? extends SQLObject> getChildren() {
-	        return parentTable.getChildrenWithoutPopulating(containingChildType);
+	        return parentTable.getChildren(containingChildType);
 	    }
 	    
 	    public Class<? extends SPObject> getContainingChildType() {
@@ -223,6 +222,11 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	        public EventType getType() {
                 return type;
             }
+	        
+	        @Override
+	        public String toString() {
+	            return evt.toString() + ", " + type;
+	        }
 	    }
 
         /**
@@ -238,6 +242,9 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	    private int transactionCount = 0;
 	    
         public void childAdded(SPChildEvent e) {
+            if (!root.getSession().isForegroundThread()) 
+                throw new IllegalStateException("Adding a child " + e.getChild() + " to " + e.getSource() + 
+                        " not on the foreground thread.");
             if (logger.isDebugEnabled()) {
                 logger.debug("dbChildrenInserted. source="+e.getSource() //$NON-NLS-1$
                         +" index: "+e.getIndex() //$NON-NLS-1$
@@ -278,6 +285,9 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 
         public void childRemoved(SPChildEvent e) {
+            if (!root.getSession().isForegroundThread()) 
+                throw new IllegalStateException("Removing a child " + e.getChild() + " to " + e.getSource() + 
+                        " not on the foreground thread.");
             if (logger.isDebugEnabled()) {
                 logger.debug("dbchildrenremoved. source="+e.getSource() //$NON-NLS-1$
                         +" index: "+e.getIndex() //$NON-NLS-1$
@@ -300,12 +310,16 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 
         public void transactionEnded(TransactionEvent e) {
+            if (!root.getSession().isForegroundThread()) 
+                throw new IllegalStateException("Transaction ended for " + e.getSource() + 
+                        " while not on the foreground thread.");
             if (transactionCount == 0) {
                 throw new IllegalStateException("Transaction ended outside of a transaction.");
             }
             transactionCount--;
             if (transactionCount == 0) {
-                for (TreeEventWithType evt : allEvents) {
+                List<TreeEventWithType> currentEvents = new ArrayList<TreeEventWithType>(allEvents);
+                for (TreeEventWithType evt : currentEvents) {
                     if (evt.getType() == EventType.INSERT) {
                         fireTreeNodesInserted(evt.getEvt());
                     } else if (evt.getType() == EventType.REMOVE) {
@@ -321,15 +335,24 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 
         public void transactionRollback(TransactionEvent e) {
+            if (!root.getSession().isForegroundThread()) 
+                throw new IllegalStateException("Transaction rolled back for " + e.getSource() + 
+                        " while not on the foreground thread.");
             transactionCount = 0;
             allEvents.clear();
         }
 
         public void transactionStarted(TransactionEvent e) {
+            if (!root.getSession().isForegroundThread()) 
+                throw new IllegalStateException("Transaction started for " + e.getSource() + 
+                        " while not on the foreground thread.");
             transactionCount++;
         }
 
         public void propertyChanged(PropertyChangeEvent e) {
+            if (!root.getSession().isForegroundThread()) 
+                throw new IllegalStateException("Changing the property" + e.getPropertyName() + " on " + e.getSource() + 
+                        " not on the foreground thread.");
             logger.debug("dbObjectChanged. source="+e.getSource()); //$NON-NLS-1$
             if ((!SwingUtilities.isEventDispatchThread()) && (!refireOnAnyThread)) {
                 logger.warn("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$

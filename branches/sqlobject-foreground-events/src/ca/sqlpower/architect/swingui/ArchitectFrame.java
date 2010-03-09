@@ -360,10 +360,10 @@ public class ArchitectFrame extends JFrame {
 
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(new JScrollPane(SPSUtils.getBrandedTreePanel(dbTree)));
-        playpenScrollPane = new JScrollPane(playpen.getPanel());
+        playpenScrollPane = new JScrollPane(playpen);
         
         splitPane.setRightComponent(playpenScrollPane);
-        playpen.getPanel().setInitialViewPosition();
+        playpen.setInitialViewPosition();
 
         final Preferences prefs = context.getPrefs();
         

@@ -715,7 +715,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	            // start a thread to poke the new SQLDatabase object...
 	            logger.debug("start poking database " + newDB.getName()); //$NON-NLS-1$
 	            PokeDBWorker poker = new PokeDBWorker(newDB);
-	            new Thread(poker, "PokeDB: " + newDB.getName()).start(); //$NON-NLS-1$
+	            session.runInBackground(poker, "PokeDB: " + newDB.getName()); //$NON-NLS-1$
 	        } else {
 	            JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.cannotAddConnectionType", dbcs.getClass().toString()), 
 	                    Messages.getString("DBTree.cannotAddConnectionTypeTitle"), JOptionPane.INFORMATION_MESSAGE);

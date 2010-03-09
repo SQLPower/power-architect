@@ -482,7 +482,11 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
             if (!first)
                 print(", ");
-            print(c.getColumn().getPhysicalName());
+            if (c.getColumn() != null) {
+                print(c.getColumn().getPhysicalName());
+            } else {
+                print(c.getName());
+            }
             print(c.getAscendingOrDescending() == AscendDescend.ASCENDING ? " ASC" : "");
             print(c.getAscendingOrDescending() == AscendDescend.DESCENDING ? " DESC" : "");
             first = false;

@@ -389,6 +389,10 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public void runInBackground(Runnable runner) {
         runner.run();
     }
+    
+    public void runInBackground(Runnable runner, String threadName) {
+        runner.run();
+    }
 
     public void runInForeground(Runnable runner) {
         runner.run();
