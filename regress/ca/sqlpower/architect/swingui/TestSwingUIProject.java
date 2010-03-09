@@ -272,7 +272,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         SQLDatabase target = session.getTargetDatabase();
         
-        SQLTable t1 = (SQLTable) target.getChildByName("mm_project");
+        SQLTable t1 = target.getChildByName("mm_project", SQLTable.class);
         assertEquals(1, t1.getPkSize());
         assertEquals(t1.getPrimaryKeyIndex().getChild(0).getColumn(), t1.getColumn(0));
         assertTrue(t1.getColumn(0).isPrimaryKey());
@@ -807,7 +807,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // grab the second database in the dbtree's model (the first is the play pen)
         ppdb = (SQLDatabase) session2.getTargetDatabase();
         
-        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getChildByName(index.getName());
+        index = ((SQLTable) ppdb.getTableByName(tableName)).getChildByName(index.getName(), SQLIndex.class);
         
         Map<String, Object> newDescription =
             ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(index, propertiesToIgnore);
@@ -1020,7 +1020,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         PlayPen oldPP = session.getPlayPen();
         oldPP.setZoom(123.45);
-        oldPP.getPanel().setViewPosition(new Point(5,4));
+        oldPP.setViewPosition(new Point(5,4));
         session.setRelationshipLinesDirect(false);
         session.setShowPkTag(false);
         session.setShowFkTag(false);
@@ -1037,8 +1037,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
         PlayPen newPP = project2.getSession().getPlayPen();
         ArchitectSwingSession newSession = project2.getSession();
         assertEquals(oldPP.getZoom(), newPP.getZoom());
-        assertEquals(oldPP.getPanel().getViewPosition().getX(), newPP.getPanel().getViewPosition().getX());
-        assertEquals(oldPP.getPanel().getViewPosition().getY(), newPP.getPanel().getViewPosition().getY());
+        assertEquals(oldPP.getViewPosition().getX(), newPP.getViewPosition().getX());
+        assertEquals(oldPP.getViewPosition().getY(), newPP.getViewPosition().getY());
         assertEquals("Relationship Line Style", session.getRelationshipLinesDirect(), newSession.getRelationshipLinesDirect());
         assertEquals("PK Tag", session.isShowPkTag(), newSession.isShowPkTag());
         assertEquals("FK Tag", session.isShowFkTag(), newSession.isShowFkTag());
@@ -1054,8 +1054,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
         PlayPen oldPP = project.getSession().getPlayPen();
         
         assertEquals(12.3, oldPP.getZoom());
-        assertEquals(20, oldPP.getPanel().getViewPosition().y);
-        assertEquals(200, oldPP.getPanel().getViewPosition().x);
+        assertEquals(20, oldPP.getViewPosition().y);
+        assertEquals(200, oldPP.getViewPosition().x);
         assertEquals("Relationship Line Style", false, session.getRelationshipLinesDirect());
         assertEquals("PK Tag", true, session.isShowPkTag());
         assertEquals("FK Tag", true, session.isShowFkTag());
@@ -1107,7 +1107,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLDatabase db = new SQLDatabase(ds);
         dbtreeRoot.addChild(db);
    
-        SQLSchema mooSchema = (SQLSchema) db.getChildByName("moo_schema");
+        SQLSchema mooSchema = db.getChildByName("moo_schema", SQLSchema.class);
         
         // we were only running into this bug on schemas that are already populated
         // so this step is the key to waking up the bug!

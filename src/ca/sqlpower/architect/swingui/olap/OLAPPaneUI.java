@@ -222,7 +222,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         int ascent = metrics.getAscent();
         int y = 0;
 
-        g2.setColor(op.getPlayPen().getPanel().getBackground());
+        g2.setColor(op.getPlayPen().getBackground());
         g2.fillRect(0, 0, width, height);
         // no need to reset to foreground: next operation always changes the colour
 

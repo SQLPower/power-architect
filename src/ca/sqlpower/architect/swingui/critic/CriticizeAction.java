@@ -68,12 +68,12 @@ public class CriticizeAction extends AbstractArchitectAction {
         }
         
         FancyExportableJTable table = new FancyExportableJTable(new CriticismTableModel(criticizer));
-        JDialog d = SPSUtils.makeOwnedDialog(session.getPlayPen().getPanel(), "Data Model Evaluation");
+        JDialog d = SPSUtils.makeOwnedDialog(session.getPlayPen(), "Data Model Evaluation");
         SPSUtils.makeJDialogCancellable(d, null);
         d.setContentPane(new JScrollPane(table));
         d.pack();
         d.setSize(table.getPreferredSize().width, d.getHeight());
-        d.setLocationRelativeTo(session.getPlayPen().getPanel());
+        d.setLocationRelativeTo(session.getPlayPen());
         d.setVisible(true);
     }
 

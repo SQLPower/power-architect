@@ -130,12 +130,12 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
         };
         JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 mep,
-                SwingUtilities.getWindowAncestor(playpen.getPanel()),
+                SwingUtilities.getWindowAncestor(playpen),
                 friendlyChildName + " Properties",
                 "OK",
                 okCall,
                 cancelCall);
-        d.setLocationRelativeTo(playpen.getPanel());
+        d.setLocationRelativeTo(playpen);
         d.setVisible(true);
     }
 

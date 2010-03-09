@@ -329,4 +329,12 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public boolean isEnterpriseSession();
     
     public ArchitectClientSideSession getEnterpriseSession();
+    
+    /**
+     * Works the same as {@link #runInBackground(Runnable)} but lets you 
+     * name the background thread for easier debugging.
+     * @param runner
+     * @param threadName
+     */
+    public void runInBackground(Runnable runner, String threadName);
 }

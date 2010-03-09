@@ -278,6 +278,8 @@ public class CompareDMFormatter {
                 } else {
                     throw new IllegalStateException("DiffChunk is an unexpected type.");
                 }
+            } else if (chunk.getType() == DiffType.MODIFIED) {
+                // do nothing because it has not been modified enough (see next case)
             } else if (chunk.getType() == DiffType.SQL_MODIFIED) {
                 if (chunk.getData() instanceof SQLColumn) {
                     SQLColumn c = (SQLColumn) chunk.getData();

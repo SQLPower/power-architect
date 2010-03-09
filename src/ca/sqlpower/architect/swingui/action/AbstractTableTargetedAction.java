@@ -64,14 +64,14 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
             if (evt.getActionCommand().equals(PlayPen.ACTION_COMMAND_SRC_PLAYPEN)) {
                 List selection = playpen.getSelectedItems();
                 if (selection.size() < 1) {
-                    JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("AbstractTableTargetedAction.selectTable")); //$NON-NLS-1$
+                    JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.selectTable")); //$NON-NLS-1$
                 } else if (selection.size() > 1) {
-                    JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("AbstractTableTargetedAction.multipleItemsSelected")); //$NON-NLS-1$
+                    JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.multipleItemsSelected")); //$NON-NLS-1$
                 } else if (selection.get(0) instanceof TablePane) {
                     TablePane tp = (TablePane) selection.get(0);
                     processTablePane(tp);
                 } else {
-                    JOptionPane.showMessageDialog(playpen.getPanel(), Messages.getString("AbstractTableTargetedAction.selectedItemNotRecognized")); //$NON-NLS-1$
+                    JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.selectedItemNotRecognized")); //$NON-NLS-1$
                 }
             } else if (evt.getActionCommand().equals(DBTree.ACTION_COMMAND_SRC_DBTREE)) {
                 TreePath [] selections = dbt.getSelectionPaths();

@@ -57,7 +57,7 @@ public class LayoutAnimator implements ActionListener {
 			pp.endCompoundEdit("Layout animation finished"); //$NON-NLS-1$
 		} else {
 			layout.nextFrame();
-			pp.getPanel().revalidate();
+			pp.revalidate();
 		}
 	}
     

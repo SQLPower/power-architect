@@ -198,8 +198,8 @@ public class TestDBTree extends TestCase {
         //The SQLDatabase representing the SPDataSource
         SQLDatabase db = (SQLDatabase) dbTree.getModel().getChild(dbTree.getModel().getRoot(), 2);
         db.populate();
-        SQLObject schema = db.getChildByName("PUBLIC");
-        SQLObject table = schema.getChildByName("TEST1");
+        SQLObject schema = db.getChildByName("PUBLIC", SQLSchema.class);
+        SQLObject table = schema.getChildByName("TEST1", SQLTable.class);
         assertNotNull(table);
         TreePath path = new TreePath(new Object[]{dbTree.getModel().getRoot(), db, schema, table});
         dbTree.setSelectionPath(path);
@@ -226,8 +226,8 @@ public class TestDBTree extends TestCase {
         //The SQLDatabase representing the SPDataSource
         SQLDatabase db = (SQLDatabase) dbTree.getModel().getChild(dbTree.getModel().getRoot(), 2);
         db.populate();
-        SQLObject schema = db.getChildByNameIgnoreCase("PUBLIC");
-        SQLTable table = (SQLTable) schema.getChildByNameIgnoreCase("TEST2");
+        SQLObject schema = db.getChildByNameIgnoreCase("PUBLIC", SQLSchema.class);
+        SQLTable table = schema.getChildByNameIgnoreCase("TEST2", SQLTable.class);
         SQLObject col1 = table.getColumnByName("COL1");
         SQLObject col2 = table.getColumnByName("COL2");
         assertNotNull(col1);
@@ -263,11 +263,11 @@ public class TestDBTree extends TestCase {
         //The SQLDatabase representing the SPDataSource
         SQLDatabase db = (SQLDatabase) dbTree.getModel().getChild(dbTree.getModel().getRoot(), 2);
         db.populate();
-        SQLObject schema = db.getChildByNameIgnoreCase("PUBLIC");
-        SQLTable table = (SQLTable) schema.getChildByNameIgnoreCase("TEST3");
+        SQLSchema schema = db.getChildByNameIgnoreCase("PUBLIC", SQLSchema.class);
+        SQLTable table = schema.getChildByNameIgnoreCase("TEST3", SQLTable.class);
         SQLObject col1 = table.getColumnByName("COL1");
         SQLObject col2 = table.getColumnByName("COL2");
-        SQLObject table2 = schema.getChildByNameIgnoreCase("test4");
+        SQLTable table2 = schema.getChildByNameIgnoreCase("test4", SQLTable.class);
         assertNotNull(col1);
         assertNotNull(col2);
         TreePath tablePath = new TreePath(new Object[]{dbTree.getModel().getRoot(), db, schema, table2});

@@ -690,7 +690,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
         logger.debug("Drop target drop event on "+getName()+": "+dtde); //$NON-NLS-1$ //$NON-NLS-2$
         Transferable t = dtde.getTransferable();
-        DataFlavor importFlavor = bestImportFlavor(pp.getPanel(), t.getTransferDataFlavors());
+        DataFlavor importFlavor = bestImportFlavor(pp, t.getTransferDataFlavors());
         if (importFlavor == null) {
             dtde.rejectDrop();
             setInsertionPoint(ITEM_INDEX_NONE);
@@ -718,7 +718,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 logger.error("Error processing drop operation", ex); //$NON-NLS-1$
                 dtde.rejectDrop();
                 dtde.dropComplete(false);
-                ASUtils.showExceptionDialogNoReport(getParent().getOwner().getPanel(),
+                ASUtils.showExceptionDialogNoReport(getParent().getOwner(),
                         "Error processing drop operation", ex); //$NON-NLS-1$
             } finally {
                 setInsertionPoint(ITEM_INDEX_NONE);
@@ -793,7 +793,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 if (logger.isDebugEnabled()) {
                     ex.printStackTrace();
                 }
-                JOptionPane.showConfirmDialog(pp.getPanel(),
+                JOptionPane.showConfirmDialog(pp,
                         "Could not delete the column " + //$NON-NLS-1$
                         ex.getCol().getName() +
                         " because it is part of\n" + //$NON-NLS-1$
@@ -810,7 +810,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
     }
     
     public void pasteData(Transferable t) {
-        Point loc = getPlayPen().unzoomPoint(getPlayPen().getPanel().getMousePosition());
+        Point loc = getPlayPen().unzoomPoint(getPlayPen().getMousePosition());
         if (loc == null) {
             loc = new Point(0, getHeight());
         } else {
@@ -822,7 +822,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         try {
             getPlayPen().startCompoundEdit("Transfering data"); //$NON-NLS-1$
             
-            bestImportFlavor = bestImportFlavor(getPlayPen().getPanel(), t.getTransferDataFlavors());
+            bestImportFlavor = bestImportFlavor(getPlayPen(), t.getTransferDataFlavors());
             addTransferable(loc, t, bestImportFlavor, false);
         } catch (UnsupportedFlavorException e) {
             throw new RuntimeException("Cannot add items to a table of type " + bestImportFlavor, e);
@@ -1115,9 +1115,9 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                         List<PlayPenComponent> selection = getPlayPen().getSelectedItems();
                         if (selection.size() == 1) {
                             TablePane tp = (TablePane) selection.get(0);
-                            JOptionPane.showMessageDialog(getPlayPen().getPanel(), new JScrollPane(new JList(tp.getModel().getSPListeners().toArray())));
+                            JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JList(tp.getModel().getSPListeners().toArray())));
                         } else {
-                            JOptionPane.showMessageDialog(getPlayPen().getPanel(), "You can only show listeners on one item at a time"); //$NON-NLS-1$
+                            JOptionPane.showMessageDialog(getPlayPen(), "You can only show listeners on one item at a time"); //$NON-NLS-1$
                         }
                     }
                 });
@@ -1130,9 +1130,9 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                         List<PlayPenComponent> selection = getPlayPen().getSelectedItems();
                         if (selection.size() == 1) {
                             TablePane tp = (TablePane) selection.get(0);
-                            JOptionPane.showMessageDialog(getPlayPen().getPanel(), new JScrollPane(new JList(tp.getSelectedItems().toArray())));
+                            JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JList(tp.getSelectedItems().toArray())));
                         } else {
-                            JOptionPane.showMessageDialog(getPlayPen().getPanel(), "You can only show selected columns on one item at a time"); //$NON-NLS-1$
+                            JOptionPane.showMessageDialog(getPlayPen(), "You can only show selected columns on one item at a time"); //$NON-NLS-1$
                         }
                     }
                 });
