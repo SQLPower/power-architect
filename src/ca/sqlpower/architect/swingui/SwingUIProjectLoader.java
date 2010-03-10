@@ -80,6 +80,7 @@ import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.util.ExceptionReport;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.UserPrompter;
@@ -1265,8 +1266,11 @@ public class SwingUIProjectLoader extends ProjectLoader {
         propNames.put("name", o.getName()); // note: there was no name attrib for SQLDatabase, SQLRelationship.ColumnMapping, and SQLExceptionNode //$NON-NLS-1$
         propNames.put("UUID", o.getUUID());
         
-        if (o.getChildrenInaccessibleReason() != null) {
-            propNames.put("sql-exception", o.getChildrenInaccessibleReason().getMessage()); //$NON-NLS-1$
+        if (!o.getChildrenInaccessibleReasons().isEmpty()) {
+            //Only storing the top exception to prevent file format changes
+            //Only the SQLTable should have multiple children inaccessible reasons.
+            Throwable topException = o.getChildrenInaccessibleReason(SQLObject.class);
+            propNames.put("sql-exception", topException); //$NON-NLS-1$
         }
 
         if (o instanceof SQLDatabase) {
@@ -1394,20 +1398,47 @@ public class SwingUIProjectLoader extends ProjectLoader {
             String indicesFolder = null;
             if (o instanceof SQLTable) {
                 SQLTable table = (SQLTable) o;
+                String exception;
+                if (table.getChildrenInaccessibleReason(SQLColumn.class) != null) {
+                    exception = "sql-exception=\"" + 
+                    table.getChildrenInaccessibleReason(SQLColumn.class) + "\" ";
+                } else {
+                    exception = "";
+                }
                 ioo.println(out, "<folder id=\"FOL" + id + "1\" populated=\"" + 
                         table.isColumnsPopulated() + "\" name=\"Columns\" " +
-                        		"physicalName=\"Columns\" type=\"1\">");
+                        		"physicalName=\"Columns\" " + exception + "type=\"1\">");
                 ioo.indent++;
                 
+                if (table.getChildrenInaccessibleReason(SQLImportedKey.class) != null) {
+                    exception = "sql-exception=\"" + 
+                    table.getChildrenInaccessibleReason(SQLImportedKey.class) + "\" ";
+                } else {
+                    exception = "";
+                }
                 importedKeysFolder = "<folder id=\"FOL" + id + "2\" populated=\"" + 
                     table.isImportedKeysPopulated() + "\" name=\"Imported Keys\" " +
-                    "physicalName=\"Imported Keys\" type=\"2\">";
+                    "physicalName=\"Imported Keys\" " + exception + "type=\"2\">";
+                
+                if (table.getChildrenInaccessibleReason(SQLRelationship.class) != null) {
+                    exception = "sql-exception=\"" + 
+                    table.getChildrenInaccessibleReason(SQLRelationship.class) + "\" ";
+                } else {
+                    exception = "";
+                }
                 exportedKeysFolder = "<folder id=\"FOL" + id + "3\" populated=\"" + 
                     table.isExportedKeysPopulated() + "\" name=\"Exported Keys\" " +
-                    "physicalName=\"Exported Keys\" type=\"3\">";
+                    "physicalName=\"Exported Keys\" " + exception + "type=\"3\">";
+                
+                if (table.getChildrenInaccessibleReason(SQLIndex.class) != null) {
+                    exception = "sql-exception=\"" + 
+                    table.getChildrenInaccessibleReason(SQLIndex.class) + "\" ";
+                } else {
+                    exception = "";
+                }
                 indicesFolder = "<folder id=\"FOL" + id + "4\" populated=\"" + 
                     table.isIndicesPopulated() + "\" name=\"Indices\" " +
-                    "physicalName=\"Indices\" type=\"4\">";
+                    "physicalName=\"Indices\" " + exception + "type=\"4\">";
             }
             while (children.hasNext()) {
                 SQLObject child = (SQLObject) children.next();

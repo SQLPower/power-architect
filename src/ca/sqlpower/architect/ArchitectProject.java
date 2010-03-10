@@ -31,6 +31,7 @@ import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
@@ -40,7 +41,7 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
-import ca.sqlpower.util.SPSession;
+import ca.sqlpower.util.SessionNotFoundException;
 
 /**
  * 
@@ -69,6 +70,11 @@ public class ArchitectProject extends AbstractSPObject {
     private ProfileManager profileManager; 
     
     /**
+     * The current integrity watcher on the project.
+     */
+    private SourceObjectIntegrityWatcher currentWatcher;
+    
+    /**
      * Constructs an architect project. The init method must be called immediately
      * after creating a project.
      * @throws SQLObjectException
@@ -93,16 +99,24 @@ public class ArchitectProject extends AbstractSPObject {
     public ArchitectProject(@ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject) 
             throws SQLObjectException {
         this.rootObject = rootObject;
+        rootObject.setParent(this);
+        setName("Architect Project");
     }
 
     /**
      * Call this to initialize the session and the children of the project.
      */
-    public void init(ArchitectSession session) {
+    @Transient @Mutator
+    public void setSession(ArchitectSession session) {
+        if (this.session != null) {
+            rootObject.removeSQLObjectPreEventListener(currentWatcher);
+            currentWatcher = null;
+        }
         this.session = session;
-        rootObject.addSQLObjectPreEventListener(new SourceObjectIntegrityWatcher(session));                        
-        rootObject.setParent(this);
-        setName("Architect Project");
+        if (this.session != null) {
+            currentWatcher = new SourceObjectIntegrityWatcher(session);
+            rootObject.addSQLObjectPreEventListener(currentWatcher);
+        }
     }
     
     /**
@@ -187,8 +201,13 @@ public class ArchitectProject extends AbstractSPObject {
     }        
     
     @Transient @Accessor
-    public SPSession getSession() {
-        return session;
+    public ArchitectSession getSession() throws SessionNotFoundException {
+        if (session != null) {
+            return session;
+        } else {
+            throw new SessionNotFoundException("The project has not been given a session yet. " +
+            		"This should only happen during the construction of the project.");
+        }
     }
 
     public boolean allowsChildren() {

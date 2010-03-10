@@ -31,7 +31,6 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.testutil.GenericNewValueMaker;
-import ca.sqlpower.util.SPSession;
 
 public class ArchitectNewValueMaker extends GenericNewValueMaker {
 
@@ -69,12 +68,7 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             ArchitectProject project;
             final SPObject rootObject = getRootObject();
             try {
-                project = new ArchitectProject() {
-                    @Override
-                    public SPSession getSession() {
-                        return rootObject.getSession();
-                    }
-                };
+                project = new ArchitectProject();
             } catch (SQLObjectException e) {
                 throw new RuntimeException(e);
             }

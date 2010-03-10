@@ -160,9 +160,12 @@ public class DBTree extends JTree implements DragSourceListener {
             public void mouseReleased(MouseEvent e) {
                 if (getPathForLocation(e.getX(), e.getY()) != null) {
                     Object node = getPathForLocation(e.getX(), e.getY()).getLastPathComponent();
-                    if (e.getClickCount() == 2 && node instanceof SQLObject && ((SQLObject) node).getChildrenInaccessibleReason() != null) {
+                    if (e.getClickCount() == 2 && node instanceof SQLObject && 
+                            !((SQLObject) node).getChildrenInaccessibleReasons().isEmpty()) {
+                        Throwable firstException = ((SQLObject) node).
+                            getChildrenInaccessibleReasons().entrySet().iterator().next().getValue();
                         SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
-                                Messages.getString("DBTree.exceptionNodeReport"), ((SQLObject) node).getChildrenInaccessibleReason()); //$NON-NLS-1$
+                                Messages.getString("DBTree.exceptionNodeReport"), firstException); //$NON-NLS-1$
                     }
                 }
             }
@@ -286,7 +289,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			session.getArchitectFrame().setCursor(null);
 		}
 	}
-
+	
 	// ---------- methods of DragSourceListener -----------
 	public void dragEnter(DragSourceDragEvent dsde) {
 		logger.debug("DBTree: got dragEnter event"); //$NON-NLS-1$
@@ -555,7 +558,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			        //tree only has one child
 			        if (!tempDB.isCatalogContainer() && !tempDB.isSchemaContainer() && 
 			                (!(tempDB.getChildCount() == 1) || 
-			                        tempDB.getChildrenInaccessibleReason() == null))
+			                        tempDB.getChildrenInaccessibleReasons().isEmpty()))
 			        {
 			            //a new action is needed to maintain the database variable
 			            CompareToCurrentAction compareToCurrentAction = new CompareToCurrentAction();
@@ -618,18 +621,21 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 
 		// Show exception details (SQLException node can appear anywhere in the hierarchy)
-		if (p != null && p.getLastPathComponent() instanceof SQLObject && ((SQLObject) p.getLastPathComponent()).getChildrenInaccessibleReason() != null) {
+		if (p != null && p.getLastPathComponent() instanceof SQLObject && 
+		        !((SQLObject) p.getLastPathComponent()).getChildrenInaccessibleReasons().isEmpty()) {
 			newMenu.addSeparator();
             final SQLObject node = (SQLObject) p.getLastPathComponent();
             newMenu.add(new JMenuItem(new AbstractAction(Messages.getString("DBTree.showExceptionDetails")) { //$NON-NLS-1$
                 public void actionPerformed(ActionEvent e) {
+                    Throwable firstException = ((SQLObject) node).
+                        getChildrenInaccessibleReasons().entrySet().iterator().next().getValue();
                     SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
-                            Messages.getString("DBTree.exceptionNodeReport"), node.getChildrenInaccessibleReason()); //$NON-NLS-1$
+                            Messages.getString("DBTree.exceptionNodeReport"), firstException); //$NON-NLS-1$
                 }
             }));
 
             // If the sole child is an exception node, we offer the user a way to re-try the operation
-            if (node.getChildrenInaccessibleReason() != null) {
+            if (!node.getChildrenInaccessibleReasons().isEmpty()) {
                 newMenu.add(new JMenuItem(new AbstractAction(Messages.getString("DBTree.retryActionName")) { //$NON-NLS-1$
                     public void actionPerformed(ActionEvent e) {
                         node.setPopulated(false);
@@ -709,7 +715,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	            // start a thread to poke the new SQLDatabase object...
 	            logger.debug("start poking database " + newDB.getName()); //$NON-NLS-1$
 	            PokeDBWorker poker = new PokeDBWorker(newDB);
-	            new Thread(poker, "PokeDB: " + newDB.getName()).start(); //$NON-NLS-1$
+	            session.runInBackground(poker, "PokeDB: " + newDB.getName()); //$NON-NLS-1$
 	        } else {
 	            JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.cannotAddConnectionType", dbcs.getClass().toString()), 
 	                    Messages.getString("DBTree.cannotAddConnectionTypeTitle"), JOptionPane.INFORMATION_MESSAGE);

@@ -41,7 +41,6 @@ import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
@@ -98,7 +97,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
             }
         };
         this.delegateSession = new ArchitectSessionImpl(context, "test");
-        ((ProfileManagerImpl) delegateSession.getProfileManager()).setUserPrompterFactory(this);
+        delegateSession.getWorkspace().setSession(this);
         project = new SwingUIProjectLoader(this);
         userSettings = context.getUserSettings();
         sourceDatabases = new DBTree(this);
@@ -384,18 +383,19 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public boolean isForegroundThread() {
-        // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 
     public void runInBackground(Runnable runner) {
-        // TODO Auto-generated method stub
-        
+        runner.run();
+    }
+    
+    public void runInBackground(Runnable runner, String threadName) {
+        runner.run();
     }
 
     public void runInForeground(Runnable runner) {
-        // TODO Auto-generated method stub
-        
+        runner.run();
     }
 
     public void addPropertyChangeListener(PropertyChangeListener l) {

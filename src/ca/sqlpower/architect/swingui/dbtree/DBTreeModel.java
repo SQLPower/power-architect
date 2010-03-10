@@ -176,7 +176,25 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 throw new RuntimeException(e);
             }
         }
+        
+        @Override
+        public Throwable getChildrenInaccessibleReason(Class<? extends SQLObject> childType) {
+            if (childType == containingChildType || childType == SQLObject.class) {
+                return parentTable.getChildrenInaccessibleReason(containingChildType);
+            } else {
+                return null;
+            }
+        }
 	    
+	}
+	
+	/**
+	 * For use in the {@link DBTreeSPListener}.
+	 */
+	private enum EventType {
+	    INSERT,
+	    REMOVE,
+	    CHANGE
 	}
 	
 	/**
@@ -185,7 +203,48 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	 */
 	private class DBTreeSPListener implements SPListener {
 	    
+	    /**
+	     * Small inner class to group the tree event with the type of event it is.
+	     */
+	    private class TreeEventWithType {
+	        private final TreeModelEvent evt;
+	        private final EventType type;
+	        
+	        public TreeEventWithType(TreeModelEvent evt, EventType type) {
+                this.evt = evt;
+                this.type = type;
+	        }
+	        
+	        public TreeModelEvent getEvt() {
+                return evt;
+            }
+	        
+	        public EventType getType() {
+                return type;
+            }
+	        
+	        @Override
+	        public String toString() {
+	            return evt.toString() + ", " + type;
+	        }
+	    }
+
+        /**
+         * List to hold all of the events. The events are to be pooled during a
+         * transaction and only acted upon when the transaction is complete.
+         * This gives methods like populate the ability to fire multiple child
+         * events but not cause the tree model to get the children of the
+         * objects it is looking at which would cause populate to start over
+         * again when it is already in the middle of populating.
+         */
+	    private List<TreeEventWithType> allEvents = new ArrayList<TreeEventWithType>();
+	    
+	    private int transactionCount = 0;
+	    
         public void childAdded(SPChildEvent e) {
+            if (!root.getSession().isForegroundThread()) 
+                throw new IllegalStateException("Adding a child " + e.getChild() + " to " + e.getSource() + 
+                        " not on the foreground thread.");
             if (logger.isDebugEnabled()) {
                 logger.debug("dbChildrenInserted. source="+e.getSource() //$NON-NLS-1$
                         +" index: "+e.getIndex() //$NON-NLS-1$
@@ -197,7 +256,11 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             
             Set<TreeModelEvent> events = createTreeEvents(e);
             for (TreeModelEvent evt : events) {
-                fireTreeNodesInserted(evt);
+                if (transactionCount > 0) {
+                    allEvents.add(new TreeEventWithType(evt, EventType.INSERT));
+                } else {
+                    fireTreeNodesInserted(evt);
+                }
             }
 
             if (e.getChild() instanceof SQLTable && foldersInTables.get(e.getChild()) == null) {
@@ -208,8 +271,13 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 for (int i = 0; i < folderList.size(); i++) {
                     positions[i] = i;
                 }
-                fireTreeNodesInserted(new TreeModelEvent(table, getPathToNode(table), 
-                        positions, folderList.toArray()));
+                final TreeModelEvent evt = new TreeModelEvent(table, getPathToNode(table), 
+                        positions, folderList.toArray());
+                if (transactionCount > 0) {
+                    allEvents.add(new TreeEventWithType(evt, EventType.INSERT));
+                } else {
+                    fireTreeNodesInserted(evt);
+                }
             } else {
                 setupTreeForNode((SQLObject) e.getChild());
             }
@@ -217,6 +285,9 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 
         public void childRemoved(SPChildEvent e) {
+            if (!root.getSession().isForegroundThread()) 
+                throw new IllegalStateException("Removing a child " + e.getChild() + " to " + e.getSource() + 
+                        " not on the foreground thread.");
             if (logger.isDebugEnabled()) {
                 logger.debug("dbchildrenremoved. source="+e.getSource() //$NON-NLS-1$
                         +" index: "+e.getIndex() //$NON-NLS-1$
@@ -230,23 +301,58 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             
             Set<TreeModelEvent> events = createTreeEvents(e);
             for (TreeModelEvent evt : events) {
-                fireTreeNodesRemoved(evt);
+                if (transactionCount > 0) {
+                    allEvents.add(new TreeEventWithType(evt, EventType.REMOVE));
+                } else {
+                    fireTreeNodesRemoved(evt);
+                }
             }
         }
 
         public void transactionEnded(TransactionEvent e) {
-            //do nothing
+            if (!root.getSession().isForegroundThread()) 
+                throw new IllegalStateException("Transaction ended for " + e.getSource() + 
+                        " while not on the foreground thread.");
+            if (transactionCount == 0) {
+                throw new IllegalStateException("Transaction ended outside of a transaction.");
+            }
+            transactionCount--;
+            if (transactionCount == 0) {
+                List<TreeEventWithType> currentEvents = new ArrayList<TreeEventWithType>(allEvents);
+                for (TreeEventWithType evt : currentEvents) {
+                    if (evt.getType() == EventType.INSERT) {
+                        fireTreeNodesInserted(evt.getEvt());
+                    } else if (evt.getType() == EventType.REMOVE) {
+                        fireTreeNodesRemoved(evt.getEvt());
+                    } else if (evt.getType() == EventType.CHANGE) {
+                        fireTreeNodesChanged(evt.getEvt());
+                    } else {
+                        throw new IllegalStateException("Unknown event type " + evt.getType());
+                    }
+                }
+                allEvents.clear();
+            }
         }
 
         public void transactionRollback(TransactionEvent e) {
-            //do nothing            
+            if (!root.getSession().isForegroundThread()) 
+                throw new IllegalStateException("Transaction rolled back for " + e.getSource() + 
+                        " while not on the foreground thread.");
+            transactionCount = 0;
+            allEvents.clear();
         }
 
         public void transactionStarted(TransactionEvent e) {
-            //do nothing            
+            if (!root.getSession().isForegroundThread()) 
+                throw new IllegalStateException("Transaction started for " + e.getSource() + 
+                        " while not on the foreground thread.");
+            transactionCount++;
         }
 
         public void propertyChanged(PropertyChangeEvent e) {
+            if (!root.getSession().isForegroundThread()) 
+                throw new IllegalStateException("Changing the property" + e.getPropertyName() + " on " + e.getSource() + 
+                        " not on the foreground thread.");
             logger.debug("dbObjectChanged. source="+e.getSource()); //$NON-NLS-1$
             if ((!SwingUtilities.isEventDispatchThread()) && (!refireOnAnyThread)) {
                 logger.warn("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$
@@ -291,7 +397,12 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 refreshTreeStructure();
                 logger.info("Changing a UUID. This should only be done during load.");
             } else {
-                fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
+                final TreeModelEvent evt = new TreeModelEvent(this, getPathToNode(source));
+                if (transactionCount > 0) {
+                    allEvents.add(new TreeEventWithType(evt, EventType.CHANGE));
+                } else {
+                    fireTreeNodesChanged(evt);
+                }
             }
         }
 	    
@@ -382,7 +493,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		
 		SQLObject sqlParent = (SQLObject) parent;
 		try {
-            if (logger.isDebugEnabled()) logger.debug("returning "+sqlParent.getChildrenWithoutPopulating().size()); //$NON-NLS-1$
+            if (logger.isDebugEnabled()) logger.debug("returning "+sqlParent.getChildren().size()); //$NON-NLS-1$
 			return sqlParent.getChildren().size();
 		} catch (Exception e) {
 		    throw new RuntimeException(e);
@@ -402,16 +513,17 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	}
 
 	public int getIndexOfChild(Object parent, Object child) {
-		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getIndexOfChild("+parent+","+child+"): returning "+((SQLObject) parent).getChildren().indexOf(child)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	    SPObject spChild = (SPObject) child;
+		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getIndexOfChild("+parent+","+child+"): returning "+((SQLObject) parent).getChildren(spChild.getClass()).indexOf(child)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		
 		if (parent instanceof FolderNode) {
-            return ((FolderNode) parent).getChildren().indexOf(child);
+            return ((FolderNode) parent).getChildren(spChild.getClass()).indexOf(child);
         } else if (parent instanceof SQLTable) {
             if (foldersInTables.get((SQLTable) parent) == null) return -1;
             return foldersInTables.get((SQLTable) parent).indexOf(child);
         }
 		
-        return ((SQLObject) parent).getChildrenWithoutPopulating().indexOf(child);
+        return ((SQLObject) parent).getChildren(spChild.getClass()).indexOf(child);
 	}
 
 	// -------------- treeModel event source support -----------------

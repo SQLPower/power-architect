@@ -483,7 +483,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		// grab the second database in the dbtree's model (the first is the play pen)
 		db = (SQLDatabase) session2.getSourceDatabases().getDatabaseList().get(1);
 		
-		System.out.println("DB has child exception " + db.getChildrenInaccessibleReason());
+		System.out.println("DB has child exception " + db.getChildrenInaccessibleReasons());
 		
 		Map<String, Object> newDescription =
 			ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(db, propertiesToIgnore);
