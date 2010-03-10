@@ -65,6 +65,7 @@ import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.BrowserUtil;
@@ -95,7 +96,7 @@ public class ProjectLoader {
         String message = attr.getValue("sql-exception");
         if (message != null) {
             try {
-                obj.setChildrenInaccessibleReason(new SQLObjectException(message), false);
+                obj.setChildrenInaccessibleReason(new SQLObjectException(message), SQLObject.class, false);
             } catch (SQLObjectException e) {
                 throw new AssertionError("Unreachable code");
             }
@@ -628,10 +629,10 @@ public class ProjectLoader {
             return tab;
         }
     }
-    
+
     /**
-     * XXX Temporary factory for folders until the file format changes and the folders
-     * are removed permanently.
+     * XXX Temporary factory for folders until the file format changes and the
+     * folders are removed permanently.
      */
     private class SQLFolderFactory extends AbstractObjectCreationFactory {
         @Override
@@ -639,14 +640,48 @@ public class ProjectLoader {
             String type = attributes.getValue("type"); //1=col, 2=import, 3=export, 4=index
             boolean isPopulated = Boolean.valueOf(attributes.getValue("populated"));
             
+            String message = attributes.getValue("sql-exception");
+            
             if (type.equals("1")) {
                 currentTable.setColumnsPopulated(isPopulated);
+                if (message != null) {
+                    try {
+                        currentTable.setChildrenInaccessibleReason(new SQLObjectException(message), 
+                                SQLColumn.class, false);
+                    } catch (SQLObjectException e) {
+                        throw new AssertionError("Unreachable code");
+                    }
+                }
             } else if (type.equals("2")) {
                 currentTable.setImportedKeysPopulated(isPopulated);
+                if (message != null) {
+                    try {
+                        currentTable.setChildrenInaccessibleReason(new SQLObjectException(message), 
+                                SQLImportedKey.class, false);
+                    } catch (SQLObjectException e) {
+                        throw new AssertionError("Unreachable code");
+                    }
+                }
             } else if (type.equals("3")) {
                 currentTable.setExportedKeysPopulated(isPopulated);
+                if (message != null) {
+                    try {
+                        currentTable.setChildrenInaccessibleReason(new SQLObjectException(message), 
+                                SQLRelationship.class, false);
+                    } catch (SQLObjectException e) {
+                        throw new AssertionError("Unreachable code");
+                    }
+                }
             } else if (type.equals("4")) {
                 currentTable.setIndicesPopulated(isPopulated);
+                if (message != null) {
+                    try {
+                        currentTable.setChildrenInaccessibleReason(new SQLObjectException(message), 
+                                SQLIndex.class, false);
+                    } catch (SQLObjectException e) {
+                        throw new AssertionError("Unreachable code");
+                    }
+                }
             }
             
             return currentTable;

@@ -147,14 +147,14 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 			setIcon(null);
 		}
         
-        if (value instanceof SQLObject && ((SQLObject) value).getChildrenInaccessibleReason() != null) {
+        if (value instanceof SQLObject && !((SQLObject) value).getChildrenInaccessibleReasons().isEmpty()) {
             logger.debug("Children are not accessible from the node " + ((SQLObject) value).getName());
             if (getIcon() == null) {
                 setIcon(ERROR_BADGE);
             } else {
                 setIcon(new ComposedIcon(Arrays.asList(getIcon(), ERROR_BADGE)));
             }
-            setToolTipText("Inaccessible: " + ((SQLObject) value).getChildrenInaccessibleReason());
+            setToolTipText("Inaccessible: " + ((SQLObject) value).getChildrenInaccessibleReasons());
         }
 
 		this.selected = sel;

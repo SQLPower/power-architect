@@ -38,7 +38,7 @@ public class ArchitectProjectTest extends PersistedSPObjectTest {
         super.setUp();
         ArchitectSession session = new StubArchitectSession();
         objectUnderTest = new ArchitectProject();
-        objectUnderTest.init(session);
+        objectUnderTest.setSession(session);
         getRootObject().addChild(objectUnderTest, 0);
     }
     

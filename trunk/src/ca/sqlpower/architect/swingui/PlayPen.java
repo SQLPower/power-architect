@@ -1493,24 +1493,45 @@ public class PlayPen extends JPanel
 		public void doStuff() {
 			logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName()); //$NON-NLS-1$
 			session.getArchitectFrame().getContentPane().setCursor(new Cursor(Cursor.WAIT_CURSOR));
+			
 			try {
-				int tableCount = 0;
-				
-				Iterator<SQLObject> soIt = sqlObjects.iterator();
-				// first pass: figure out how much work we need to do...
-				while (soIt.hasNext() && !isCancelled()) {
-					SQLObject so = soIt.next();
-                    tableCount += SQLObjectUtils.countTablesSnapshot(so);
-				}
-				setJobSize(new Integer(tableCount));
-
-				ensurePopulated(sqlObjects);
-				
+			    Iterator<SQLObject> soIt = sqlObjects.iterator();
+			    // first pass: Cause all of the SQLObjects between the given 
+			    // ones and the table descendents to populate...
+			    while (soIt.hasNext() && !isCancelled()) {
+			        SQLObject so = soIt.next();
+			        SQLObjectUtils.countTablesSnapshot(so);
+			    }
 			} catch (SQLObjectException e) {
-				logger.error("Unexpected exception during populate", e); //$NON-NLS-1$
+                logger.error("Unexpected exception during populate", e); //$NON-NLS-1$
                 setDoStuffException(e);
-				errorMessage = "Unexpected exception during populate: " + e.getMessage(); //$NON-NLS-1$
-			}
+                errorMessage = "Unexpected exception during populate: " + e.getMessage(); //$NON-NLS-1$
+            }
+			
+			//Second pass: count the tables. Done in the foreground to 
+			//wait for the objects to be fully populated by pass 1.
+			session.runInForeground(new Runnable() {
+			    public void run() {
+			        try {
+			            int tableCount = 0;
+			            Iterator<SQLObject> soIt = sqlObjects.iterator();
+			            while (soIt.hasNext() && !isCancelled()) {
+			                SQLObject so = soIt.next();
+			                tableCount += SQLObjectUtils.countTablesSnapshot(so);
+			            }
+			            setJobSize(new Integer(tableCount));
+			        } catch (SQLObjectException e) {
+			            logger.error("Unexpected exception, objects should be populated by " +
+			            		"this pass.", e); //$NON-NLS-1$
+			            setDoStuffException(e);
+			            errorMessage = "Unexpected exception, objects should be populated " +
+			            		"by this pass: " + e.getMessage(); //$NON-NLS-1$
+			        }
+			    }
+			});
+
+			ensurePopulated(sqlObjects);
+
 			logger.info("AddObjectsTask done"); //$NON-NLS-1$
 		}
 
@@ -1525,7 +1546,15 @@ public class PlayPen extends JPanel
 		private void ensurePopulated(List<? extends SQLObject> soList) {
 			for (SQLObject so : soList) {
 				if (isCancelled()) break;
-				if (so instanceof SQLTable) setProgress(getProgress() + 1);
+				if (so instanceof SQLTable) {
+				    //pushing updates to foreground as population happens on the foreground
+				    //and this will keep the progress bar more honest with what is happening.
+				    session.runInForeground(new Runnable(){
+                        public void run() {
+                            setProgress(getProgress() + 1);                            
+                        }
+                    });
+				}
                 ensurePopulated(so.getChildren());
 			}
 		}
