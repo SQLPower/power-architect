@@ -89,6 +89,38 @@ public class ArchitectSessionPersisterTest extends DatabaseConnectedTestCase {
     }
     
     /**
+     * Test changing the project name through the {@link SPJSONPersister}
+     */
+    public void testRemoveObjectWithJSONPersister() throws Exception {
+        SPJSONMessageDecoder decoder = new SPJSONMessageDecoder(persister);
+        SPJSONPersister jsonPersister = new SPJSONPersister(new DirectJsonMessageSender(decoder));
+        
+        jsonPersister.begin();
+        String rootUUID = session.getRootObject().getUUID();
+        jsonPersister.persistObject(rootUUID, SQLDatabase.class.getName(), "database", 0);
+        jsonPersister.persistProperty("database", "dataSource", DataType.STRING, "regression_test");
+        jsonPersister.commit();
+        
+        // Ensure database was added
+        SQLObjectRoot root = session.getRootObject();
+        SQLObject rootChild = root.getChild(0);
+        assertTrue(rootChild instanceof SQLDatabase);
+        assertEquals("database", rootChild.getUUID());
+        
+        // Now remove it
+        int oldChildCount = root.getChildCount();
+        jsonPersister.begin();
+        jsonPersister.removeObject(rootUUID, "database");
+        jsonPersister.commit();
+        assertEquals(oldChildCount - 1, root.getChildCount());
+        for (SQLObject child: root.getChildren()) {
+            if ("database".equals(child.getUUID())) {
+                fail("Child of root with UUID 'database' still exists. Expected to have been removed");
+            }
+        }
+    }
+    
+    /**
      * Sends JSON messages directly to the JSON decoder
      */
     private class DirectJsonMessageSender implements MessageSender<JSONObject> {
