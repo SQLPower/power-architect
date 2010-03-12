@@ -24,8 +24,8 @@ import org.json.JSONObject;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.ArchitectSessionImpl;
+import ca.sqlpower.architect.TestingArchitectSessionContext;
 import ca.sqlpower.dao.MessageSender;
 import ca.sqlpower.dao.SPPersistenceException;
 import ca.sqlpower.dao.SPPersister.DataType;
@@ -47,7 +47,7 @@ public class ArchitectSessionPersisterTest extends DatabaseConnectedTestCase {
     
     protected void setUp() throws Exception {
         super.setUp();
-        session = new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "test");
+        session = new ArchitectSessionImpl(new TestingArchitectSessionContext(), "test");
         SessionPersisterSuperConverter converter = new ArchitectPersisterSuperConverter(getPLIni(), session.getWorkspace());
         persister = new ArchitectSessionPersister("test", session.getWorkspace(), converter);
         persister.setSession(session);
@@ -89,7 +89,7 @@ public class ArchitectSessionPersisterTest extends DatabaseConnectedTestCase {
     }
     
     /**
-     * Test changing the project name through the {@link SPJSONPersister}
+     * Test adding and then removing the database through the {@link SPJSONPersister}
      */
     public void testRemoveObjectWithJSONPersister() throws Exception {
         SPJSONMessageDecoder decoder = new SPJSONMessageDecoder(persister);
@@ -113,11 +113,27 @@ public class ArchitectSessionPersisterTest extends DatabaseConnectedTestCase {
         jsonPersister.removeObject(rootUUID, "database");
         jsonPersister.commit();
         assertEquals(oldChildCount - 1, root.getChildCount());
-        for (SQLObject child: root.getChildren()) {
-            if ("database".equals(child.getUUID())) {
-                fail("Child of root with UUID 'database' still exists. Expected to have been removed");
-            }
-        }
+        assertNull(root.getChildByName("regression_test", SQLDatabase.class));
+    }
+    
+    /**
+     * Tests adding a SQLDatabase to an ArchitectSession through an
+     * {@link SPJSONPersister} hooked up to n {@link ArchitectSessionPersister}
+     */
+    public void testRollbackWithJSONPersister() throws Exception {
+        SPJSONMessageDecoder decoder = new SPJSONMessageDecoder(persister);
+        SPJSONPersister jsonPersister = new SPJSONPersister(new DirectJsonMessageSender(decoder));
+        
+        int oldChildCount = session.getRootObject().getChildCount();
+        
+        jsonPersister.begin();
+        jsonPersister.persistObject(session.getRootObject().getUUID(), SQLDatabase.class.getName(), "database", 0);
+        jsonPersister.persistProperty("database", "dataSource", DataType.STRING, "regression_test");
+        jsonPersister.rollback();
+        
+        SQLObjectRoot rootObject = session.getRootObject();
+        assertEquals(oldChildCount, rootObject.getChildCount());
+        assertNull(rootObject.getChildByName("regression_test", SQLDatabase.class));
     }
     
     /**
