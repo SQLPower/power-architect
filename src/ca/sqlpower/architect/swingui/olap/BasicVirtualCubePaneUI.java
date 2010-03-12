@@ -20,16 +20,18 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.OLAPObject;
-import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenComponentUI;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
+import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
 public class BasicVirtualCubePaneUI extends OLAPPaneUI<VirtualCube, OLAPObject> {
 
@@ -46,15 +48,15 @@ public class BasicVirtualCubePaneUI extends OLAPPaneUI<VirtualCube, OLAPObject> 
     public void installUI(PlayPenComponent c) {
         super.installUI(c);
         VirtualCubePane vcp = (VirtualCubePane) c;
-        OLAPUtil.listenToHierarchy(vcp.getModel().getCubeUsage(), modelEventHandler, modelEventHandler);
-        vcp.getModel().addPropertyChangeListener(cubeUsageWatcher);
+        SQLPowerUtils.listenToHierarchy(vcp.getModel().getCubeUsage(), modelEventHandler);
+        vcp.getModel().addSPListener(cubeUsageWatcher);
     }
     
     @Override
     public void uninstallUI(PlayPenComponent c) {
         VirtualCubePane vcp = (VirtualCubePane) c;
-        OLAPUtil.unlistenToHierarchy(vcp.getModel().getCubeUsage(), modelEventHandler, modelEventHandler);
-        vcp.getModel().removePropertyChangeListener(cubeUsageWatcher);
+        SQLPowerUtils.unlistenToHierarchy(vcp.getModel().getCubeUsage(), modelEventHandler);
+        vcp.getModel().removeSPListener(cubeUsageWatcher);
         super.uninstallUI(c);
     }
 
@@ -68,15 +70,35 @@ public class BasicVirtualCubePaneUI extends OLAPPaneUI<VirtualCube, OLAPObject> 
      * {@link VirtualCube#setCubeUsage(CubeUsages)}? Well, it's CubeUsageWatcher
      * to the rescue.
      */
-    private class CubeUsageWatcher implements PropertyChangeListener {
+    private class CubeUsageWatcher implements SPListener {
 
-        public void propertyChange(PropertyChangeEvent evt) {
+        public void propertyChanged(PropertyChangeEvent evt) {
             if (evt.getSource() == olapPane.getModel() && "cubeUsage".equals(evt.getPropertyName())) {
                 CubeUsages oldUsages = (CubeUsages) evt.getOldValue();
                 CubeUsages newUsages = (CubeUsages) evt.getNewValue();
-                OLAPUtil.unlistenToHierarchy(oldUsages, modelEventHandler, modelEventHandler);
-                OLAPUtil.listenToHierarchy(newUsages, modelEventHandler, modelEventHandler);
+                SQLPowerUtils.unlistenToHierarchy(oldUsages, modelEventHandler);
+                SQLPowerUtils.listenToHierarchy(newUsages, modelEventHandler);
             }
+        }
+
+        public void childAdded(SPChildEvent e) {
+            //no-op
+        }
+
+        public void childRemoved(SPChildEvent e) {
+            //no-op            
+        }
+
+        public void transactionEnded(TransactionEvent e) {
+            //no-op            
+        }
+
+        public void transactionRollback(TransactionEvent e) {
+            //no-op            
+        }
+
+        public void transactionStarted(TransactionEvent e) {
+            //no-op            
         }
         
     }

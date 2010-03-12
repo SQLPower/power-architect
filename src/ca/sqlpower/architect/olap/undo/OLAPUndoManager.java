@@ -20,7 +20,6 @@
 package ca.sqlpower.architect.olap.undo;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,12 +36,13 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.CompoundEditEvent;
 import ca.sqlpower.architect.olap.CompoundEditListener;
-import ca.sqlpower.architect.olap.OLAPChildEvent;
-import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 import ca.sqlpower.sqlobject.undo.PropertyChangeEdit;
+import ca.sqlpower.util.TransactionEvent;
 
 /**
  * A customized undo manager that works well with the OLAP business model and GUI.
@@ -73,7 +73,7 @@ public class OLAPUndoManager extends UndoManager implements NotifyingUndoManager
     private WeakReference<UndoableEdit> rememberedPosition;
     
     public OLAPUndoManager(OLAPObject root) {
-        OLAPUtil.listenToHierarchy(root, eventHandler, eventHandler, eventHandler);
+        OLAPUtil.listenToHierarchy(root, eventHandler, eventHandler);
         // TODO need to track the playpen components as well
     }
     
@@ -177,19 +177,19 @@ public class OLAPUndoManager extends UndoManager implements NotifyingUndoManager
         }
     }
     
-    private class UndoableEventHandler implements OLAPChildListener, PropertyChangeListener, CompoundEditListener {
+    private class UndoableEventHandler implements SPListener, CompoundEditListener {
 
-        public void olapChildAdded(OLAPChildEvent e) {
+        public void childAdded(SPChildEvent e) {
             addEdit(new OLAPChildEdit(e, false));
-            OLAPUtil.listenToHierarchy(e.getChild(), this, this, this);
+            OLAPUtil.listenToHierarchy((OLAPObject) e.getChild(), this, this);
         }
 
-        public void olapChildRemoved(OLAPChildEvent e) {
+        public void childRemoved(SPChildEvent e) {
             addEdit(new OLAPChildEdit(e, true));
-            OLAPUtil.unlistenToHierarchy(e.getChild(), this, this, this);
+            OLAPUtil.unlistenToHierarchy((OLAPObject) e.getChild(), this, this);
         }
 
-        public void propertyChange(PropertyChangeEvent e) {
+        public void propertyChanged(PropertyChangeEvent e) {
             addEdit(new PropertyChangeEdit(e));
         }
 
@@ -199,6 +199,18 @@ public class OLAPUndoManager extends UndoManager implements NotifyingUndoManager
 
         public void compoundEditEnded(CompoundEditEvent evt) {
             endCompoundEdit();
+        }
+
+        public void transactionEnded(TransactionEvent e) {
+            //no-op            
+        }
+
+        public void transactionRollback(TransactionEvent e) {
+            //no-op            
+        }
+
+        public void transactionStarted(TransactionEvent e) {
+            //no-op            
         }
         
     }

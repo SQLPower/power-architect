@@ -36,14 +36,16 @@ import javax.swing.Icon;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.olap.OLAPChildEvent;
-import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
+import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
 /**
  * Does all of the generic painting and event handling that applies to
@@ -165,12 +167,12 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
 
     public void installUI(PlayPenComponent c) {
         olapPane = (OLAPPane<T, C>) c;
-        OLAPUtil.listenToHierarchy(olapPane.getModel(), modelEventHandler, modelEventHandler);
+        SQLPowerUtils.listenToHierarchy(olapPane.getModel(), modelEventHandler);
         olapPane.addPropertyChangeListener(paneEventHandler);
     }
 
     public void uninstallUI(PlayPenComponent c) {
-        OLAPUtil.unlistenToHierarchy(olapPane.getModel(), modelEventHandler, modelEventHandler);
+        SQLPowerUtils.unlistenToHierarchy(olapPane.getModel(), modelEventHandler);
         olapPane.removePropertyChangeListener(paneEventHandler);
     }
     
@@ -606,9 +608,9 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         return width;
     }
 
-    private class ModelEventHandler implements PropertyChangeListener, OLAPChildListener {
+    private class ModelEventHandler implements SPListener {
 
-        public void propertyChange(PropertyChangeEvent evt) {
+        public void propertyChanged(PropertyChangeEvent evt) {
             logger.debug("Property Change: " +
                     evt.getPropertyName() + ": " +
                     evt.getOldValue() + " -> " + evt.getNewValue());
@@ -619,14 +621,26 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
             }
         }
 
-        public void olapChildAdded(OLAPChildEvent e) {
-            OLAPUtil.listenToHierarchy(e.getChild(), this, this);
+        public void childAdded(SPChildEvent e) {
+            SQLPowerUtils.listenToHierarchy(e.getChild(), this);
             olapPane.revalidate();
         }
 
-        public void olapChildRemoved(OLAPChildEvent e) {
-            OLAPUtil.unlistenToHierarchy(e.getChild(), this, this);
+        public void childRemoved(SPChildEvent e) {
+            SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
             olapPane.revalidate();
+        }
+
+        public void transactionEnded(TransactionEvent e) {
+            //no-op            
+        }
+
+        public void transactionRollback(TransactionEvent e) {
+            //no-op            
+        }
+
+        public void transactionStarted(TransactionEvent e) {
+            //no-op            
         }
         
     }

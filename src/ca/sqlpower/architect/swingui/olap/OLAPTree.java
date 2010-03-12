@@ -41,6 +41,7 @@ import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.swingui.JTreeCollapseAllAction;
 import ca.sqlpower.swingui.JTreeExpandAllAction;
 
@@ -122,8 +123,8 @@ public class OLAPTree extends JTree{
      * @param obj OLAPObject to build TreePath upon.
      * @return TreePath for given object.
      */
-    public TreePath getTreePathForNode(OLAPObject o) {
-        List<OLAPObject> path = new ArrayList<OLAPObject>();
+    public TreePath getTreePathForNode(SPObject o) {
+        List<SPObject> path = new ArrayList<SPObject>();
         while (o != null) {
             path.add(0, o);
             if (o == schema) break;

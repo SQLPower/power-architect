@@ -23,7 +23,7 @@ import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 
-import ca.sqlpower.architect.olap.OLAPChildEvent;
+import ca.sqlpower.object.SPChildEvent;
 
 public class OLAPChildEdit extends AbstractUndoableEdit {
 
@@ -31,7 +31,7 @@ public class OLAPChildEdit extends AbstractUndoableEdit {
      * The event that this edit encapsulates. It may represent either an
      * addition or removal of a child.
      */
-    private final OLAPChildEvent event;
+    private final SPChildEvent event;
 
     /**
      * Indicates whether the event in this edit represents an initial removal or
@@ -46,7 +46,7 @@ public class OLAPChildEdit extends AbstractUndoableEdit {
      * event must be properly formed
      * @param removal
      */
-    public OLAPChildEdit(OLAPChildEvent event, boolean removal) {
+    public OLAPChildEdit(SPChildEvent event, boolean removal) {
         if (event == null) {
             throw new NullPointerException("Null event");
         }
@@ -90,11 +90,15 @@ public class OLAPChildEdit extends AbstractUndoableEdit {
     }
     
     private void addChild() {
-        event.getSource().addChild(event.getIndex(), event.getChild());
+        event.getSource().addChild(event.getChild(), event.getIndex());
     }
 
     private void removeChild() {
-        event.getSource().removeChild(event.getChild());
+        try {
+            event.getSource().removeChild(event.getChild());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
     
     @Override

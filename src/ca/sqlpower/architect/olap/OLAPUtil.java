@@ -19,7 +19,6 @@
 
 package ca.sqlpower.architect.olap;
 
-import java.beans.PropertyChangeListener;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -47,6 +46,8 @@ import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.olap.MondrianModel.View;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
+import ca.sqlpower.object.SPListener;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -81,10 +82,11 @@ public class OLAPUtil {
      *         such ancestor.
      */
     public static OLAPSession getSession(OLAPObject oo) {
-        while (oo != null && !(oo instanceof OLAPSession)) {
-            oo = oo.getParent();
+        SPObject o = (SPObject) oo;
+        while (o != null && !(o instanceof OLAPSession)) {
+            o = o.getParent();
         }
-        return (OLAPSession) oo;
+        return (OLAPSession) o;
     }
 
     /**
@@ -110,14 +112,10 @@ public class OLAPUtil {
      * Adds the given OLAPChildListener and optional PropertyChangeListener to
      * the given root object and all of its descendants.
      * 
-     * @param ocl
-     *            The OLAPChildListener to add to the subtree of OLAPObjects
-     *            rooted at root.
-     * @param pcl
-     *            The PropertyChangeListener to add to the subtree of
-     *            OLAPObjects rooted at root. If you don't want to know about
-     *            property changes to the nodes themselves, you can leave this
-     *            parameter as null.
+     * @param spl
+     *            The {@link SPListener} to add to the subtree of OLAPObjects
+     *            rooted at root. This will be informed of all child and property
+     *            changes. If null no listener will be added.
      * @param cel
      *            The CompoundEditListener to add to the subtree of OLAPObjects
      *            rooted at root. If you don't want to know about compound edit
@@ -125,59 +123,29 @@ public class OLAPUtil {
      */
     public static void listenToHierarchy(
             OLAPObject root,
-            OLAPChildListener ocl,
-            PropertyChangeListener pcl,
+            SPListener spl,
             CompoundEditListener cel) {
-        root.addChildListener(ocl);
-        if (pcl != null) {
-            root.addPropertyChangeListener(pcl);
+        if (spl != null) {
+            root.addSPListener(spl);
         }
         if (cel != null) {
             root.addCompoundEditListener(cel);
         }
-        for (OLAPObject child : root.getChildren()) {
-            listenToHierarchy(child, ocl, pcl, cel);
+        for (OLAPObject child : root.getChildren(OLAPObject.class)) {
+            listenToHierarchy(child, spl, cel);
         }
-    }
-
-    /**
-     * Adds the given OLAPChildListener and optional PropertyChangeListener to
-     * the given root object and all of its descendants.
-     * 
-     * @param ocl
-     *            The OLAPChildListener to add to the subtree of OLAPObjects
-     *            rooted at root.
-     * @param pcl
-     *            The PropertyChangeListener to add to the subtree of
-     *            OLAPObjects rooted at root. If you don't want to know about
-     *            property changes to the nodes themselves, you can leave this
-     *            parameter as null.
-     */
-    public static void listenToHierarchy(
-            OLAPObject root,
-            OLAPChildListener ocl,
-            PropertyChangeListener pcl) {
-        listenToHierarchy(root, ocl, pcl, null);
     }
 
     /**
      * Removes the given OLAPChildListener and optional PropertyChangeListener
      * from the given root object and all of its descendants.
      * 
-     * @param ocl
-     *            The OLAPChildListener to remove from the subtree of
+     * @param spl
+     *            The {@link SPListener} to remove from the subtree of
      *            OLAPObjects rooted at root. It is not an error if the listener
      *            is not registered with any or all of the objects in the
      *            subtree, so it's safe to call this with the root of the tree
      *            if you want.
-     * @param pcl
-     *            The PropertyChangeListener to add to the subtree of
-     *            OLAPObjects rooted at root. It is not an error if the listener
-     *            is not registered with any or all of the objects in the
-     *            subtree, so it's safe to call this with the root of the tree
-     *            if you want. If you weren't listening for property change
-     *            events, you can leave this parameter as null. Note that this
-     *            parameter is pronounced "pockle," not "pickle."
      * @param cel
      *            The CompoundEditListener to add to the subtree of
      *            OLAPObjects rooted at root. It is not an error if the listener
@@ -188,45 +156,15 @@ public class OLAPUtil {
      */
     public static void unlistenToHierarchy(
             OLAPObject root,
-            OLAPChildListener ocl,
-            PropertyChangeListener pcl,
+            SPListener spl,
             CompoundEditListener cel) {
-        root.removeChildListener(ocl);
-        if (pcl != null) {
-            root.removePropertyChangeListener(pcl);
-        }
+        root.removeSPListener(spl);
         if (cel != null) {
             root.removeCompoundEditListener(cel);
         }
-        for (OLAPObject child : root.getChildren()) {
-            unlistenToHierarchy(child, ocl, pcl, cel);
+        for (OLAPObject child : root.getChildren(OLAPObject.class)) {
+            unlistenToHierarchy(child, spl, cel);
         }
-    }
-
-    /**
-     * Removes the given OLAPChildListener and optional PropertyChangeListener
-     * from the given root object and all of its descendants.
-     * 
-     * @param ocl
-     *            The OLAPChildListener to remove from the subtree of
-     *            OLAPObjects rooted at root. It is not an error if the listener
-     *            is not registered with any or all of the objects in the
-     *            subtree, so it's safe to call this with the root of the tree
-     *            if you want.
-     * @param pcl
-     *            The PropertyChangeListener to add to the subtree of
-     *            OLAPObjects rooted at root. It is not an error if the listener
-     *            is not registered with any or all of the objects in the
-     *            subtree, so it's safe to call this with the root of the tree
-     *            if you want. If you weren't listening for property change
-     *            events, you can leave this parameter as null. Note that this
-     *            parameter is pronounced "pockle," not "pickle."
-     */
-    public static void unlistenToHierarchy(
-            OLAPObject root,
-            OLAPChildListener ocl,
-            PropertyChangeListener pcl) {
-        unlistenToHierarchy(root, ocl, pcl, null);
     }
 
     /**
@@ -252,8 +190,10 @@ public class OLAPUtil {
             } else {
                 return obj.getName();
             }
-        } else {
+        } else if (obj.getName() != null && obj.getName().trim().length() > 0) {
             return obj.getName();
+        } else {
+            return obj.getClass().getSimpleName();
         }
     }
 

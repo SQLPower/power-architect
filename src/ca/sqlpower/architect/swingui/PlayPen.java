@@ -3126,7 +3126,7 @@ public class PlayPen extends JPanel
      */
     private DimensionPane selectHierarchy(Hierarchy hierarchy, List<OLAPObject> ignoredObjs, List<OLAPObject> extraSelections, OLAPTree tree) {
         if (hierarchy.getParent() instanceof MondrianModel.Dimension) {
-            DimensionPane dp = (DimensionPane)selectDimension(hierarchy.getParent(), ignoredObjs, extraSelections, tree);
+            DimensionPane dp = (DimensionPane)selectDimension((OLAPObject) hierarchy.getParent(), ignoredObjs, extraSelections, tree);
             if (dp != null) {
                 selectParents(hierarchy, dp.getModel(), tree, extraSelections);
                 dp.selectSection(dp.findSection((Hierarchy) hierarchy));
@@ -3158,7 +3158,7 @@ public class PlayPen extends JPanel
      */
     private DimensionPane selectLevel(Level level, List<OLAPObject> ignoredObjs, List<OLAPObject> extraSelections, OLAPTree tree) {
         if (level.getParent() instanceof Hierarchy) {
-            DimensionPane dp = (DimensionPane)selectDimension(level.getParent().getParent(), ignoredObjs, extraSelections, tree);
+            DimensionPane dp = (DimensionPane)selectDimension((OLAPObject) level.getParent().getParent(), ignoredObjs, extraSelections, tree);
             if (dp != null) {
                 selectParents(level, dp.getModel(), tree, extraSelections);
                 dp.selectItem((Level) level);

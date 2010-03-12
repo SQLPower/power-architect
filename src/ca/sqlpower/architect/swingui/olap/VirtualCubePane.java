@@ -84,7 +84,7 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
         // Return the children and all the cubeUsages.
         List<OLAPObject> items = new ArrayList<OLAPObject>();
         items.addAll(model.getCubeUsage().getCubeUsages());
-        items.addAll(model.getChildren());
+        items.addAll(model.getChildren(OLAPObject.class));
         return items;
     }
 

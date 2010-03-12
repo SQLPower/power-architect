@@ -81,7 +81,7 @@ public class CreateDimensionAction extends AbstractArchitectAction {
 
         @Override
         public DataEntryPanel place(Point p) throws SQLObjectException {
-            schema.startCompoundEdit("Create a dimension");
+            schema.begin("Create a dimension");
             schema.addDimension(dp.getModel());
             playpen.selectNone();
             playpen.addPlayPenComponent(dp, p);
@@ -91,13 +91,13 @@ public class CreateDimensionAction extends AbstractArchitectAction {
                 @Override
                 public void discardChanges() {
                     schema.removeDimension(dp.getModel());
-                    schema.endCompoundEdit();
+                    schema.commit();
                 }
                 
                 @Override
                 public boolean applyChanges() {
                     boolean applied = super.applyChanges();
-                    schema.endCompoundEdit();
+                    schema.commit();
                     return applied;
                 }
             };

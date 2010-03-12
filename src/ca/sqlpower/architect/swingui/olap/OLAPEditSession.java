@@ -37,8 +37,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
-import ca.sqlpower.architect.olap.OLAPChildEvent;
-import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.undo.OLAPUndoManager;
@@ -63,10 +61,13 @@ import ca.sqlpower.architect.swingui.olap.action.CreateMeasureAction;
 import ca.sqlpower.architect.swingui.olap.action.CreateVirtualCubeAction;
 import ca.sqlpower.architect.swingui.olap.action.ExportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPDeleteSelectedAction;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
+import ca.sqlpower.util.TransactionEvent;
 
-public class OLAPEditSession implements OLAPChildListener {
+public class OLAPEditSession implements SPListener {
 
     private final OLAPTree tree;
     
@@ -144,7 +145,7 @@ public class OLAPEditSession implements OLAPChildListener {
         this.swingSession = swingSession;
 
         // listen for when to remove this from the architect session.
-        swingSession.getOLAPRootObject().addChildListener(this);
+        swingSession.getOLAPRootObject().addSPListener(this);
         
         // add to the architect session's list of edit sessions.
         swingSession.getOLAPEditSessions().add(this);
@@ -257,11 +258,31 @@ public class OLAPEditSession implements OLAPChildListener {
         panel.add(splitPane, BorderLayout.CENTER);
         panel.add(toolbar, BorderLayout.EAST);
         
-        olapSession.getSchema().addPropertyChangeListener(new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent evt) {
+        olapSession.getSchema().addSPListener(new SPListener() {
+            public void propertyChanged(PropertyChangeEvent evt) {
                 if (evt.getPropertyName().equals("name")) {
                     frame.setTitle(generateDialogTitle());
                 }
+            }
+
+            public void childAdded(SPChildEvent e) {
+                //no-op
+            }
+
+            public void childRemoved(SPChildEvent e) {
+                //no-op
+            }
+
+            public void transactionEnded(TransactionEvent e) {
+                //no-op
+            }
+
+            public void transactionRollback(TransactionEvent e) {
+                //no-op                
+            }
+
+            public void transactionStarted(TransactionEvent e) {
+                //no-op                
             }
         });
         frame.setContentPane(panel);
@@ -389,19 +410,35 @@ public class OLAPEditSession implements OLAPChildListener {
     
     // ------ OLAPChildListener methods ------ //
 
-    public void olapChildAdded(OLAPChildEvent e) {
+    public void childAdded(SPChildEvent e) {
         // do nothing
     }
 
-    public void olapChildRemoved(OLAPChildEvent e) {
+    public void childRemoved(SPChildEvent e) {
         if (e.getChild() == olapSession) {
             // remove from architect's list of edit sessions and stop listening
             swingSession.getOLAPEditSessions().remove(this);
-            swingSession.getOLAPRootObject().removeChildListener(this);
+            swingSession.getOLAPRootObject().removeSPListener(this);
             frame.dispose();
         }
     }
 
+    public void propertyChanged(PropertyChangeEvent evt) {
+        //no-op        
+    }
+    
+    public void transactionEnded(TransactionEvent e) {
+        //no-op        
+    }
+    
+    public void transactionRollback(TransactionEvent e) {
+        //no-op        
+    }
+    
+    public void transactionStarted(TransactionEvent e) {
+        //no-op        
+    }
+    
     public ZoomAction getZoomInAction() {
         return zoomInAction;
     }

@@ -49,6 +49,7 @@ import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPTree;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
+import ca.sqlpower.object.SPObject;
 
 /**
  * This action deletes OLAPObjects that are selected on the OLAPTree using removeChild methods. 
@@ -83,7 +84,11 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
             playpen.startCompoundEdit("OLAP Delete");
             for (OLAPObject oo : itemsToDelete) {
                 if (!parentWasDeleted(oo)) {
-                    oo.getParent().removeChild(oo);
+                    try {
+                        oo.getParent().removeChild(oo);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         } finally {
@@ -102,7 +107,7 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
         if (oo instanceof Schema) {
             return false;
         } 
-        return parentWasDeleted(oo.getParent());
+        return parentWasDeleted((OLAPObject) oo.getParent());
     }
 
     /**
@@ -127,7 +132,7 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
         
         // A set of OLAPObjects of which are selected automatically because their 
         // child has been selected.  
-        Set<OLAPObject> objectsWithSelectedItems = new HashSet<OLAPObject>();
+        Set<SPObject> objectsWithSelectedItems = new HashSet<SPObject>();
         
         for (ListIterator<OLAPObject> it = deleteItems.listIterator(); it.hasNext(); ) {
             OLAPObject item = it.next();

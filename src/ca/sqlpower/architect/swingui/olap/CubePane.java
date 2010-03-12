@@ -82,7 +82,7 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
     
     @Override
     protected List<OLAPObject> getItems() {
-        return model.getChildren();
+        return model.getChildren(OLAPObject.class);
     }
 
     public void updateUI() {
@@ -157,12 +157,16 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
             contentPane.add(uc, contentPane.getComponentCount());
         }
         logger.debug(" Dragging and dropping item of type " + item.getClass().getName());
-        if (insertSection != null && insertIndex >= 0 && insertSection.getItemType().isInstance(item)) {
-            item.getParent().removeChild(item);
-            insertSection.addItem(insertIndex++, newItem);
-        } else {
-            item.getParent().removeChild(item);
-            getModel().addChild(newItem);
+        try {
+            if (insertSection != null && insertIndex >= 0 && insertSection.getItemType().isInstance(item)) {
+                item.getParent().removeChild(item);
+                insertSection.addItem(insertIndex++, newItem);
+            } else {
+                item.getParent().removeChild(item);
+                getModel().addChild(newItem);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
         return insertIndex;

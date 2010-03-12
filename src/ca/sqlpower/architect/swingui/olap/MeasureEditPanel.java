@@ -32,6 +32,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
@@ -159,7 +160,7 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
             expRadioButton.doClick();
         }
         
-        Validator validator = new OLAPObjectNameValidator(measure.getParent(), measure, false);
+        Validator validator = new OLAPObjectNameValidator((OLAPObject) measure.getParent(), measure, false);
         handler.addValidateObject(name, validator);
         handler.addValidateObject(columnChooser, new NotNullValidator("Value column"));
         
@@ -167,7 +168,7 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
     }
     
     public boolean applyChanges() {
-        measure.startCompoundEdit("Modify measure properties");
+        measure.begin("Modify measure properties");
         measure.setName(name.getText());
         if (!(captionField.getText().equals(""))) {
             measure.setCaption(captionField.getText());
@@ -207,7 +208,7 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
             measure.setMeasureExp(null);
         }
         
-        measure.endCompoundEdit();
+        measure.commit();
         return true;
     }
 

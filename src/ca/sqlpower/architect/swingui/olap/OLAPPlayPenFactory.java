@@ -39,8 +39,6 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.olap.OLAPChildEvent;
-import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
@@ -59,10 +57,13 @@ import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.undo.CompoundEventListener;
 import ca.sqlpower.sqlobject.undo.PropertyChangeEdit;
+import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
 
 public class OLAPPlayPenFactory {
@@ -86,7 +87,7 @@ public class OLAPPlayPenFactory {
         pp.addPlayPenLifecycleListener(ppcl);
         
         pp.setPopupFactory(new OLAPContextMenuFactory(session, oSession));
-        OLAPUtil.listenToHierarchy(oSession.getOlapSession().getSchema(), ppcl, null);
+        SQLPowerUtils.listenToHierarchy(oSession.getOlapSession().getSchema(), ppcl);
         
         SelectionSynchronizer synchronizer = new SelectionSynchronizer(oSession.getOlapTree(), pp);
         pp.addSelectionListener(synchronizer);
@@ -198,7 +199,7 @@ public class OLAPPlayPenFactory {
      * It is used for playpen to update its contentpane when business model
      * structure changes.
      */
-    private static class OLAPModelListener implements OLAPChildListener, PlayPenLifecycleListener {
+    private static class OLAPModelListener implements SPListener, PlayPenLifecycleListener {
         
         private final PlayPen pp;
         private final OLAPEditSession session;
@@ -257,8 +258,8 @@ public class OLAPPlayPenFactory {
             session = oSession;
         }
         
-        public void olapChildAdded(OLAPChildEvent e) {
-            OLAPUtil.listenToHierarchy(e.getChild(), this, null);
+        public void childAdded(SPChildEvent e) {
+            SQLPowerUtils.listenToHierarchy(e.getChild(), this);
             RemovedComponentInfo compInfo = removedPPCs.get(e.getChild());
             logger.debug("OLAP Child was added. Previously removed component: " + compInfo);
             if (compInfo != null) {
@@ -268,15 +269,15 @@ public class OLAPPlayPenFactory {
             }
         }
 
-        public void olapChildRemoved(OLAPChildEvent e) {
-            OLAPUtil.unlistenToHierarchy(e.getChild(), this, null);
+        public void childRemoved(SPChildEvent e) {
+            SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
             // Go through the list backwards when removing to eliminate problems.
             for (int j = pp.getContentPane().getComponentCount() - 1; j >= 0; j--) {
                 PlayPenComponent ppc = pp.getContentPane().getComponent(j);
                 if (ppc.getModel() == e.getChild()) {
                     ppc.setSelected(false, SelectionEvent.SINGLE_SELECT);
                     pp.getContentPane().remove(j);
-                    removedPPCs.put(e.getChild(), new RemovedComponentInfo(ppc, j));
+                    removedPPCs.put((OLAPObject) e.getChild(), new RemovedComponentInfo(ppc, j));
                     logger.debug("Put dead component in map: " + e.getChild().getName() + " -> " + ppc + " @ " + j);
                 }
             } 
@@ -290,6 +291,22 @@ public class OLAPPlayPenFactory {
          */
         public void PlayPenLifeEnding(PlayPenLifecycleEvent e) {
             OLAPUtil.unlistenToHierarchy(session.getOlapSession().getSchema(), this, null);
+        }
+
+        public void propertyChanged(PropertyChangeEvent evt) {
+            //no-op            
+        }
+
+        public void transactionEnded(TransactionEvent e) {
+            //no-op            
+        }
+
+        public void transactionRollback(TransactionEvent e) {
+            //no-op            
+        }
+
+        public void transactionStarted(TransactionEvent e) {
+            //no-op            
         }
     }
     
