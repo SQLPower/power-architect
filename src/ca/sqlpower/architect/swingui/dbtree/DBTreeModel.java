@@ -242,6 +242,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	    private int transactionCount = 0;
 	    
         public void childAdded(SPChildEvent e) {
+            if (!SQLPowerUtils.getAncestorList(e.getSource()).contains(root) && !e.getSource().equals(root)) return;
+            
             if (!root.getSession().isForegroundThread()) 
                 throw new IllegalStateException("Adding a child " + e.getChild() + " to " + e.getSource() + 
                         " not on the foreground thread.");
@@ -285,6 +287,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 
         public void childRemoved(SPChildEvent e) {
+            if (!SQLPowerUtils.getAncestorList(e.getSource()).contains(root) && !e.getSource().equals(root)) return;
+            
             if (!root.getSession().isForegroundThread()) 
                 throw new IllegalStateException("Removing a child " + e.getChild() + " to " + e.getSource() + 
                         " not on the foreground thread.");
@@ -350,6 +354,9 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 
         public void propertyChanged(PropertyChangeEvent e) {
+            if (!SQLPowerUtils.getAncestorList(((SPObject) e.getSource())).contains(root) && !e.getSource().equals(root)) return;
+            
+            
             if (!root.getSession().isForegroundThread()) 
                 throw new IllegalStateException("Changing the property" + e.getPropertyName() + " on " + e.getSource() + 
                         " not on the foreground thread.");
@@ -442,7 +449,12 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	public DBTreeModel(SQLObjectRoot root) throws SQLObjectException {
 		this.root = root;
 		this.treeModelListeners = new LinkedList();
-		SQLPowerUtils.listenToHierarchy(root, treeListener);
+		SQLPowerUtils.listenToHierarchy(root, treeListener); 
+		
+ 		for (SPObject ancestor : SQLPowerUtils.getAncestorList(root)) {
+		    ancestor.addSPListener(treeListener);
+		}
+		
 		setupTreeForNode(root);
 	}
 	
@@ -486,7 +498,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChildCount("+parent+")"); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		if (parent instanceof FolderNode) {
-            return ((FolderNode) parent).getChildren().size();
+		    return ((FolderNode) parent).getChildren().size();
         } else if (parent instanceof SQLTable) {
             return foldersInTables.get((SQLTable) parent).size();
         }

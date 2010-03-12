@@ -2,10 +2,7 @@ package ca.sqlpower.architect.enterprise;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
@@ -29,7 +26,6 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -50,7 +46,6 @@ import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
-import ca.sqlpower.dao.HttpMessageSender;
 import ca.sqlpower.dao.SPPersistenceException;
 import ca.sqlpower.dao.SPPersisterListener;
 import ca.sqlpower.dao.SPSessionPersister;
@@ -114,8 +109,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	 * server changes to the {@link #sessionPersister}.
 	 */
 	private final SPJSONPersister jsonPersister;
-	private final Updater updater;
-	private final Sender sender;
+	private final NetworkConflictResolver updater;
 	private final SPJSONMessageDecoder jsonMessageDecoder;
 	private final DataSourceCollectionUpdater dataSourceCollectionUpdater = new DataSourceCollectionUpdater();
 	
@@ -152,18 +146,20 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		}
 		
 		outboundHttpClient = createHttpClient(projectLocation.getServiceInfo());
-		
-		sender = new Sender(outboundHttpClient, projectLocation.getServiceInfo(), projectLocation.getUUID());
-		jsonPersister = new SPJSONPersister(sender);
-		
 		dataSourceCollection = getDataSources();
-		
 		sessionPersister = new ArchitectSessionPersister("inbound-" + projectLocation.getUUID(), getWorkspace(), 
-				new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
+		        new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
 		sessionPersister.setSession(this);
 		
 		jsonMessageDecoder = new SPJSONMessageDecoder(sessionPersister);
-		updater = new Updater(projectLocation.getUUID(), jsonMessageDecoder);
+		
+		updater = new NetworkConflictResolver(
+		        projectLocation, 
+		        jsonMessageDecoder, 
+		        createHttpClient(projectLocation.getServiceInfo()), 
+		        outboundHttpClient, this);
+		
+		jsonPersister = new SPJSONPersister(updater);
 	}
 
 	// -
@@ -249,12 +245,15 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	}
 	
 	public void startUpdaterThread() {
-		updater.start();
 		
 		final SPPersisterListener listener = new SPPersisterListener(jsonPersister, sessionPersister,
 						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
-		
 		SQLPowerUtils.listenToHierarchy(getWorkspace(), listener);
+		
+		updater.setListener(listener);
+		updater.setPersister(sessionPersister);
+		updater.setConverter(new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
+		updater.start();
 		
 		addSessionLifecycleListener(new SessionLifecycleListener<ArchitectSession>() {
 			public void sessionClosing(SessionLifecycleEvent<ArchitectSession> e) {
@@ -543,228 +542,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
         return httpClient;
 	}
 	
-	// Contained classes --------------------------------------------------------------------
-	
-	private boolean persistingToServer = false;
-	
-	/**
-	 * Sends outgoing JSON
-	 */
-	private class Sender extends HttpMessageSender<JSONObject> {
-
-		private List<JSONArray> messageQueue;
-		
-		/**
-		 * This variable keeps track of the number of calls to flush that were made while
-		 * executing flush. It is used so that each flush call will be executed individually.
-		 * The method flush does not continue flushing until the queue is empty because the
-		 * last message in the queue may be incomplete, and transactions should be sent
-		 * atomically.
-		 */
-		private int flushDepth = 0;
-		
-		public Sender(HttpClient httpClient, SPServerInfo serverInfo, String rootUUID) {
-			super(httpClient, serverInfo, rootUUID);
-			messageQueue = new ArrayList<JSONArray>();
-		}
-
-		public void clear() {
-			if (messageQueue.size() > 0) {
-			    messageQueue.remove(0);
-			}
-		}
-
-		public void flush() throws SPPersistenceException {
-		    try {
-		        synchronized (this) {
-		            if (persistingToServer) {
-		                flushDepth++;
-		                return;
-		            } else {
-		                if (messageQueue.size() > 0) {
-		                    persistingToServer = true;
-		                } else {
-		                    // If flush was called but no message was given,
-		                    // don't bother sending anything. (This is not a
-		                    // special precaution, it does happen.)
-		                    persistingToServer = false;
-		                    return;
-		                }
-		            }
-		        }
-		        
-    		    URI serverURI = getServerURI();
-                HttpPost postRequest = new HttpPost(serverURI);
-                postRequest.setEntity(new StringEntity(messageQueue.get(0).toString())); 
-                
-                postRequest.setHeader("Content-Type", "application/json");
-                HttpUriRequest request = postRequest;
-                clear();
-                final JSONMessage response = getHttpClient().execute(request, new JSONResponseHandler());
-    		    
-                runInForeground(new Runnable() {
-    		        public void run() {
-            		    try {
-            		        if (response.isSuccessful()) {
-            		            // Message was sent successfully and accepted by the server.
-            		            currentRevision = (new JSONObject(response.getBody())).getInt("currentRevision");
-            		        } else {
-            		            // Message was sent successfully but rejected by the server. We must rollback our
-            		            // changes and update to the head revision.
-            		            logger.debug("Response unsuccessful");
-            		            throw new RuntimeException("Out of sync with server");
-            		        }
-            			} catch (JSONException e) {
-            			    throw new RuntimeException(e);
-                        } finally {
-                            synchronized (sender) {
-                                persistingToServer = false;
-                                try {
-                                    if (flushDepth > 0) {
-                                        flushDepth--;
-                                        flush();
-                                    }
-                                } catch (SPPersistenceException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-            			}
-                    }
-                });  
-		    } catch (UnsupportedEncodingException e) {
-                throw new SPPersistenceException(null, e);
-            } catch (URISyntaxException e) {
-                throw new SPPersistenceException(null, e);
-            } catch (ClientProtocolException e) {
-                throw new SPPersistenceException(null, e);
-            } catch (IOException e) {
-                throw new SPPersistenceException(null, e);
-            } catch (RuntimeException e) {
-                throw new SPPersistenceException(null, e);
-            } 
-		}
-
-		public void send(JSONObject content) throws SPPersistenceException {
-		    // Transactions can start with a begin or a rollback
-		    if (content.toString().equals("{\"uuid\":null,\"method\":\"begin\"}") ||
-		            content.toString().equals("{\"uuid\":null,\"method\":\"rollback\"}")) {
-		        messageQueue.add(new JSONArray());
-		    } 
-		    messageQueue.get(messageQueue.size() - 1).put(content);
-		}
-		
-		public URI getServerURI() throws URISyntaxException {
-			String contextPath = getServerInfo().getPath();
-	        return new URI("http", null, getServerInfo().getServerAddress(), getServerInfo().getPort(),
-	                contextPath + "/project/" + getProjectLocation().getUUID(), "currentRevision=" + currentRevision, null);
-		}
-	}
-	
-	
-	/**
-	 * Polls this session's server for updates until interrupted. There should
-	 * be exactly one instance of this class per ArchitectServerSession.
-	 */
-	private class Updater extends Thread {
-		
-		/**
-		 * How long we will pause after an update error before attempting to
-		 * contact the server again.
-		 */
-		private long retryDelay = 1000;
-		
-		private final SPJSONMessageDecoder jsonDecoder;
-
-		/**
-		 * Used by the Updater to handle inbound HTTP updates
-		 */
-		private final HttpClient inboundHttpClient;
-		
-		final String contextRelativePath = "/project/" + projectLocation.getUUID();
-
-		private volatile boolean cancelled;
-		
-		/**
-		 * Creates, but does not start, the updater thread.
-		 * 
-		 * @param projectUUID
-		 *            the ID of the workspace this updater is responsible for. This is
-		 *            used in creating the thread's name.
-		 */
-		Updater(String projectUUID, SPJSONMessageDecoder jsonDecoder) {
-			super("updater-" + projectUUID);
-			this.jsonDecoder = jsonDecoder;
-			inboundHttpClient = createHttpClient(projectLocation.getServiceInfo());
-		}
-		
-		public void interrupt() {
-			super.interrupt();
-			cancelled = true;
-		}
-        
-		boolean updating = false;
-		
-		@Override
-		public void run() {
-			logger.info("Updater thread starting");
-			try {
-				while (!this.isInterrupted() && !cancelled) {
-					try {
-					    while (updating) {
-					        synchronized (this) {
-					            wait();
-					        }
-					    }
-					    
-					    URI uri = getServerURI(projectLocation.getServiceInfo(), contextRelativePath, 
-					            "oldRevisionNo=" + currentRevision);
-					    HttpUriRequest request = new HttpGet(uri);
-					    
-                        JSONMessage message = inboundHttpClient.execute(request, new JSONResponseHandler());
-                        final JSONObject json = new JSONObject(message.getBody());
-                        final String jsonArray = json.getString("data");
-
-                        updating = true;
-                        runInForeground(new Runnable() {
-                            public void run() {
-                                try {
-                                    synchronized (sender) {
-                                        if (!persistingToServer) {
-                                            int newRevision = json.getInt("currentRevision"); 
-                                            if (currentRevision < newRevision) {
-                                                currentRevision = newRevision;
-                                                jsonDecoder.decode(jsonArray);
-                                            }
-                                        }
-                                    }
-                                } catch (SPPersistenceException e) {
-                                    logger.error("Update from server failed!", e);
-                                    throw new RuntimeException("Please hit the refresh button that does not exist", e);
-                                    // TODO discard session and reload
-                                } catch (JSONException e) {
-                                    logger.error("Update from server failed!", e);
-                                } finally {
-                                    updating = false;
-                                    synchronized (updater) {
-                                        updater.notify();
-                                    }
-                                }
-                            }
-                        });
-                        
-					} catch (Exception ex) {    
-						logger.error("Failed to contact server. Will retry in " + retryDelay + " ms.", ex);
-						Thread.sleep(retryDelay);
-					}
-				}
-			} catch (InterruptedException ex) {
-				logger.info("Updater thread exiting normally due to interruption.");
-			}
-			
-			inboundHttpClient.getConnectionManager().shutdown();
-		}
-	}
-	
 	private class DataSourceCollectionUpdater implements DatabaseListChangeListener, PropertyChangeListener {
     	
     	/**
@@ -941,77 +718,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                     "data-sources/" + type + "/" + ds.getName());
         }
     }
-
-	private static class JSONMessage {
-	    private final String message;
-	    private final boolean successful;
-	    
-	    public JSONMessage(String message, boolean successful) {
-	        this.message = message;
-	        this.successful = successful;
-	    }
-	    
-	    public String getBody() {
-	        return message;
-	    }
-	    
-	    public boolean isSuccessful() {
-	        return successful;
-	    }
-	}
-	
-	private static class JSONResponseHandler implements ResponseHandler<JSONMessage> {
-
-	    /*
-	     * Unsuccessful responses should have information sent in a header, 
-	     * either as "unsuccessfulResponse" or "exceptionStackTrace"
-	     */
-
-	    public JSONMessage handleResponse(HttpResponse response) {
-            try {
-                                
-                BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(response.getEntity().getContent()));
-                StringBuffer buffer = new StringBuffer();
-                
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line).append("\n");
-                }
-                JSONObject message = new JSONObject(buffer.toString());
-                
-                // Does the response contain data? If so, return it. Communication
-                // with the resource has been successful.
-                if (message.getString("responseKind").equals("data")) {    
-                    return new JSONMessage(message.getString("data"), true);
-                } else {
-                    // Has the request been unsuccessful?
-                    if (message.getString("responseKind").equals("unsuccessful")) {
-                        return new JSONMessage(message.getString("data"), false);
-                    } else {
-                        // Does the response contain an exception? If so, reconstruct, and then
-                        // re-throw it. There has been an exception on the server.
-                        if (message.getString("responseKind").equals("exceptionStackTrace")) {
-                 
-                            JSONArray stackTraceStrings = new JSONArray(message.getString("data"));
-                            StringBuffer stackTraceMessage = new StringBuffer();
-                            for (int i = 0; i < stackTraceStrings.length(); i++) {
-                                stackTraceMessage.append("\n").append(stackTraceStrings.get(i));
-                            }
-                        
-                            throw new Exception(stackTraceMessage.toString());
-                        
-                        } else {
-                            // This exception represents a(n epic) client-server miscommunication
-                            throw new Exception("Unable to parse response ");
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
-	    }
-	}
 
     public void createRevisionSession(int revisionNo, ArchitectSwingSession swingSession) {
         // TODO Auto-generated method stub
