@@ -26,6 +26,13 @@ import java.util.List;
 
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonProperty;
+import ca.sqlpower.object.annotation.Transient;
+import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.sqlobject.SQLDatabase;
 
 /**
@@ -65,7 +72,9 @@ public class OLAPSession extends OLAPObject {
      * 
      * @param schema The schema this session owns.
      */
-    public OLAPSession(Schema schema) {
+    @Constructor
+    public OLAPSession(
+            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="schema") Schema schema) {
         if (schema.getParent() != null) {
             throw new IllegalStateException(
                     "The given schema already belongs to an OLAP Session");
@@ -79,6 +88,7 @@ public class OLAPSession extends OLAPObject {
      * Returns the SQLDatabase this session's schema works with.
      * @return
      */
+    @Accessor
     public SQLDatabase getDatabase() {
         return database;
     }
@@ -101,6 +111,7 @@ public class OLAPSession extends OLAPObject {
      * @param database
      *            The new database to use with this session's schema.
      */
+    @Mutator
     public void setDatabase(SQLDatabase database) {
         this.database = database;
     }
@@ -108,6 +119,7 @@ public class OLAPSession extends OLAPObject {
     /**
      * Returns this session's schema.
      */
+    @NonProperty
     public Schema getSchema() {
         return schema;
     }
@@ -119,6 +131,7 @@ public class OLAPSession extends OLAPObject {
     /**
      * Returns a list with exactly one entry: this session's schema.
      */
+    @NonProperty
     public List<Schema> getChildren() {
         return Collections.singletonList(schema);
     }
@@ -152,10 +165,12 @@ public class OLAPSession extends OLAPObject {
         }
     }
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
 
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         return Collections.singletonList(database);
     }
@@ -165,6 +180,7 @@ public class OLAPSession extends OLAPObject {
     }
     
     @Override
+    @Mutator
     public void setParent(SPObject parent) {
         if (parent != null && !(parent instanceof OLAPRootObject)) {
             throw new IllegalArgumentException("The parent of " + OLAPSession.class + 
@@ -174,6 +190,7 @@ public class OLAPSession extends OLAPObject {
     }
     
     @Override
+    @Accessor
     public OLAPRootObject getParent() {
         return (OLAPRootObject) super.getParent();
     }

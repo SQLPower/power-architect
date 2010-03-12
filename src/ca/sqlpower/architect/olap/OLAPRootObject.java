@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.object.SPObject;
 
 /**
@@ -42,16 +41,9 @@ public class OLAPRootObject extends OLAPObject {
                 Arrays.asList(OLAPSession.class)));
 
 
-    /**
-     * The session this OLAPRootObject belongs to. Each Architect Session should
-     * have one OLAP Root Object, which can in turn have zero or more OLAP Sessions.
-     */
-    private final ArchitectSession architectSession;
-
     private final List<OLAPSession> olapSessions = new ArrayList<OLAPSession>();
     
-    public OLAPRootObject(ArchitectSession session) {
-        this.architectSession = session;
+    public OLAPRootObject() {
     }
 
     @Override
@@ -99,13 +91,6 @@ public class OLAPRootObject extends OLAPObject {
             fireChildRemoved(OLAPSession.class, removedItem, pos);
         }
         return removedItem;
-    }
-    
-    /**
-     * Returns the ArchtectSession this OLAP Root Object belongs to.
-     */
-    public ArchitectSession getArchitectSession() {
-        return architectSession;
     }
     
     public boolean allowsChildren() {

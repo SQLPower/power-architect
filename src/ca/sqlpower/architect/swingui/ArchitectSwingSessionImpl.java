@@ -262,7 +262,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.context = context;
         this.delegateSession = delegateSession;
         delegateSession.getWorkspace().setSession(this);
-        this.olapRootObject = new OLAPRootObject(delegateSession);
+        this.olapRootObject = new OLAPRootObject();
         ProfileManagerImpl profileManager = new ProfileManagerImpl();
         ((ArchitectSessionImpl)delegateSession).setProfileManager(profileManager);
         ((ArchitectSessionImpl)delegateSession).setUserPrompterFactory(this);
