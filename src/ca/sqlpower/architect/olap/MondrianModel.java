@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonProperty;
+import ca.sqlpower.object.annotation.Transient;
 
 
 /**
@@ -25,6 +29,7 @@ public static class Schema extends OLAPObject {
      * set to their defaults.
      */
     public Schema() {
+        setName("New Schema");
     }
     
     /**
@@ -66,10 +71,12 @@ public static class Schema extends OLAPObject {
     /** Name of this schema */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -82,10 +89,12 @@ public static class Schema extends OLAPObject {
              */
     private String /* */ measuresCaption;
     
+    @Accessor
     public String /* */ getMeasuresCaption() {
         return measuresCaption;
     }
     
+    @Mutator
     public void setMeasuresCaption(String /* */ newval) {
         String /* */ oldval = measuresCaption;
         measuresCaption = newval;
@@ -95,10 +104,12 @@ public static class Schema extends OLAPObject {
     /** The name of the default role for connections to this schema */
     private String /* */ defaultRole;
     
+    @Accessor
     public String /* */ getDefaultRole() {
         return defaultRole;
     }
     
+    @Mutator
     public void setDefaultRole(String /* */ newval) {
         String /* */ oldval = defaultRole;
         defaultRole = newval;
@@ -160,6 +171,7 @@ public static class Schema extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<Parameter> getParameters() {
         return Collections.unmodifiableList(parameters);
     }
@@ -220,6 +232,7 @@ public static class Schema extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<Dimension> getDimensions() {
         return Collections.unmodifiableList(dimensions);
     }
@@ -280,6 +293,7 @@ public static class Schema extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<Cube> getCubes() {
         return Collections.unmodifiableList(cubes);
     }
@@ -340,6 +354,7 @@ public static class Schema extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<VirtualCube> getVirtualCubes() {
         return Collections.unmodifiableList(virtualCubes);
     }
@@ -400,6 +415,7 @@ public static class Schema extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<NamedSet> getNamedSets() {
         return Collections.unmodifiableList(namedSets);
     }
@@ -460,6 +476,7 @@ public static class Schema extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<Role> getRoles() {
         return Collections.unmodifiableList(roles);
     }
@@ -520,12 +537,14 @@ public static class Schema extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<UserDefinedFunction> getUserDefinedFunctions() {
         return Collections.unmodifiableList(userDefinedFunctions);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -534,6 +553,8 @@ public static class Schema extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -555,6 +576,7 @@ public static class Schema extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -624,80 +646,80 @@ public static class Schema extends OLAPObject {
         
         } else if (child instanceof Parameter) {
             int offset = childPositionOffset(Parameter.class);
-            if ((index - offset) < 0 || (index - offset) > parameters.size()) {
+            if (index < 0 || index > parameters.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + parameters.size());
             }
-            addParameter(index - offset, (Parameter) child);
+            addParameter(index, (Parameter) child);
         
         } else if (child instanceof Dimension) {
             int offset = childPositionOffset(Dimension.class);
-            if ((index - offset) < 0 || (index - offset) > dimensions.size()) {
+            if (index < 0 || index > dimensions.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + dimensions.size());
             }
-            addDimension(index - offset, (Dimension) child);
+            addDimension(index, (Dimension) child);
         
         } else if (child instanceof Cube) {
             int offset = childPositionOffset(Cube.class);
-            if ((index - offset) < 0 || (index - offset) > cubes.size()) {
+            if (index < 0 || index > cubes.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + cubes.size());
             }
-            addCube(index - offset, (Cube) child);
+            addCube(index, (Cube) child);
         
         } else if (child instanceof VirtualCube) {
             int offset = childPositionOffset(VirtualCube.class);
-            if ((index - offset) < 0 || (index - offset) > virtualCubes.size()) {
+            if (index < 0 || index > virtualCubes.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + virtualCubes.size());
             }
-            addVirtualCube(index - offset, (VirtualCube) child);
+            addVirtualCube(index, (VirtualCube) child);
         
         } else if (child instanceof NamedSet) {
             int offset = childPositionOffset(NamedSet.class);
-            if ((index - offset) < 0 || (index - offset) > namedSets.size()) {
+            if (index < 0 || index > namedSets.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + namedSets.size());
             }
-            addNamedSet(index - offset, (NamedSet) child);
+            addNamedSet(index, (NamedSet) child);
         
         } else if (child instanceof Role) {
             int offset = childPositionOffset(Role.class);
-            if ((index - offset) < 0 || (index - offset) > roles.size()) {
+            if (index < 0 || index > roles.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + roles.size());
             }
-            addRole(index - offset, (Role) child);
+            addRole(index, (Role) child);
         
         } else if (child instanceof UserDefinedFunction) {
             int offset = childPositionOffset(UserDefinedFunction.class);
-            if ((index - offset) < 0 || (index - offset) > userDefinedFunctions.size()) {
+            if (index < 0 || index > userDefinedFunctions.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + userDefinedFunctions.size());
             }
-            addUserDefinedFunction(index - offset, (UserDefinedFunction) child);
+            addUserDefinedFunction(index, (UserDefinedFunction) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -750,6 +772,7 @@ public abstract static class CubeDimension extends OLAPObject {
      * set to their defaults.
      */
     public CubeDimension() {
+    setName("New CubeDimension");
     }
     
     /**
@@ -771,10 +794,12 @@ public abstract static class CubeDimension extends OLAPObject {
     /**  */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -787,10 +812,12 @@ public abstract static class CubeDimension extends OLAPObject {
              */
     private String /* */ caption;
     
+    @Accessor
     public String /* */ getCaption() {
         return caption;
     }
     
+    @Mutator
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
@@ -805,10 +832,12 @@ public abstract static class CubeDimension extends OLAPObject {
              */
     private String /* */ foreignKey;
     
+    @Accessor
     public String /* */ getForeignKey() {
         return foreignKey;
     }
     
+    @Mutator
     public void setForeignKey(String /* */ newval) {
         String /* */ oldval = foreignKey;
         foreignKey = newval;
@@ -839,6 +868,7 @@ public abstract static class CubeDimension extends OLAPObject {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -847,6 +877,8 @@ public abstract static class CubeDimension extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -859,7 +891,7 @@ public abstract static class CubeDimension extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -914,6 +946,7 @@ public static class Cube extends OLAPObject {
      * set to their defaults.
      */
     public Cube() {
+        setName("New Cube");
     }
     
     /**
@@ -975,10 +1008,12 @@ public static class Cube extends OLAPObject {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -991,10 +1026,12 @@ public static class Cube extends OLAPObject {
              */
     private String /* */ caption;
     
+    @Accessor
     public String /* */ getCaption() {
         return caption;
     }
     
+    @Mutator
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
@@ -1007,10 +1044,12 @@ public static class Cube extends OLAPObject {
              */
     private String /* */ defaultMeasure;
     
+    @Accessor
     public String /* */ getDefaultMeasure() {
         return defaultMeasure;
     }
     
+    @Mutator
     public void setDefaultMeasure(String /* */ newval) {
         String /* */ oldval = defaultMeasure;
         defaultMeasure = newval;
@@ -1024,10 +1063,12 @@ public static class Cube extends OLAPObject {
              */
     private Boolean /* */ cache;
     
+    @Accessor
     public Boolean /* */ getCache() {
         return cache;
     }
     
+    @Mutator
     public void setCache(Boolean /* */ newval) {
         Boolean /* */ oldval = cache;
         cache = newval;
@@ -1040,10 +1081,12 @@ public static class Cube extends OLAPObject {
              */
     private Boolean /* */ enabled;
     
+    @Accessor
     public Boolean /* */ getEnabled() {
         return enabled;
     }
     
+    @Mutator
     public void setEnabled(Boolean /* */ newval) {
         Boolean /* */ oldval = enabled;
         enabled = newval;
@@ -1057,10 +1100,12 @@ public static class Cube extends OLAPObject {
              */
     private Relation /* */ fact;
     
+    @NonProperty
     public Relation /* */ getFact() {
         return fact;
     }
     
+    @NonProperty
     public void setFact(Relation /* */ newval) {
         Relation /* */ oldval = fact;
         if (oldval == newval) {
@@ -1124,6 +1169,7 @@ public static class Cube extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<CubeDimension> getDimensions() {
         return Collections.unmodifiableList(dimensions);
     }
@@ -1178,6 +1224,7 @@ public static class Cube extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<Measure> getMeasures() {
         return Collections.unmodifiableList(measures);
     }
@@ -1238,6 +1285,7 @@ public static class Cube extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<CalculatedMember> getCalculatedMembers() {
         return Collections.unmodifiableList(calculatedMembers);
     }
@@ -1298,12 +1346,14 @@ public static class Cube extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<NamedSet> getNamedSets() {
         return Collections.unmodifiableList(namedSets);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -1312,6 +1362,8 @@ public static class Cube extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -1333,6 +1385,7 @@ public static class Cube extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -1394,47 +1447,47 @@ public static class Cube extends OLAPObject {
         
         } else if (child instanceof CubeDimension) {
             int offset = childPositionOffset(CubeDimension.class);
-            if ((index - offset) < 0 || (index - offset) > dimensions.size()) {
+            if (index < 0 || index > dimensions.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + dimensions.size());
             }
-            addDimension(index - offset, (CubeDimension) child);
+            addDimension(index, (CubeDimension) child);
         
         } else if (child instanceof Measure) {
             int offset = childPositionOffset(Measure.class);
-            if ((index - offset) < 0 || (index - offset) > measures.size()) {
+            if (index < 0 || index > measures.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + measures.size());
             }
-            addMeasure(index - offset, (Measure) child);
+            addMeasure(index, (Measure) child);
         
         } else if (child instanceof CalculatedMember) {
             int offset = childPositionOffset(CalculatedMember.class);
-            if ((index - offset) < 0 || (index - offset) > calculatedMembers.size()) {
+            if (index < 0 || index > calculatedMembers.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + calculatedMembers.size());
             }
-            addCalculatedMember(index - offset, (CalculatedMember) child);
+            addCalculatedMember(index, (CalculatedMember) child);
         
         } else if (child instanceof NamedSet) {
             int offset = childPositionOffset(NamedSet.class);
-            if ((index - offset) < 0 || (index - offset) > namedSets.size()) {
+            if (index < 0 || index > namedSets.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + namedSets.size());
             }
-            addNamedSet(index - offset, (NamedSet) child);
+            addNamedSet(index, (NamedSet) child);
         
         } else if (child instanceof Relation) {
             setFact((Relation) child);
@@ -1485,6 +1538,7 @@ public static class VirtualCube extends OLAPObject {
      * set to their defaults.
      */
     public VirtualCube() {
+        setName("New VirtualCube");
     }
     
     /**
@@ -1541,10 +1595,12 @@ public static class VirtualCube extends OLAPObject {
              */
     private Boolean /* */ enabled;
     
+    @Accessor
     public Boolean /* */ getEnabled() {
         return enabled;
     }
     
+    @Mutator
     public void setEnabled(Boolean /* */ newval) {
         Boolean /* */ oldval = enabled;
         enabled = newval;
@@ -1554,10 +1610,12 @@ public static class VirtualCube extends OLAPObject {
     /**  */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -1569,10 +1627,12 @@ public static class VirtualCube extends OLAPObject {
              */
     private String /* */ defaultMeasure;
     
+    @Accessor
     public String /* */ getDefaultMeasure() {
         return defaultMeasure;
     }
     
+    @Mutator
     public void setDefaultMeasure(String /* */ newval) {
         String /* */ oldval = defaultMeasure;
         defaultMeasure = newval;
@@ -1585,10 +1645,12 @@ public static class VirtualCube extends OLAPObject {
              */
     private String /* */ caption;
     
+    @Accessor
     public String /* */ getCaption() {
         return caption;
     }
     
+    @Mutator
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
@@ -1598,10 +1660,12 @@ public static class VirtualCube extends OLAPObject {
     /**  */
     private CubeUsages /* */ cubeUsage;
     
+    @NonProperty
     public CubeUsages /* */ getCubeUsage() {
         return cubeUsage;
     }
     
+    @NonProperty
     public void setCubeUsage(CubeUsages /* */ newval) {
         CubeUsages /* */ oldval = cubeUsage;
         if (oldval == newval) {
@@ -1665,6 +1729,7 @@ public static class VirtualCube extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<VirtualCubeDimension> getDimensions() {
         return Collections.unmodifiableList(dimensions);
     }
@@ -1719,6 +1784,7 @@ public static class VirtualCube extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<VirtualCubeMeasure> getMeasures() {
         return Collections.unmodifiableList(measures);
     }
@@ -1785,6 +1851,7 @@ public static class VirtualCube extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<CalculatedMember> getCalculatedMembers() {
         return Collections.unmodifiableList(calculatedMembers);
     }
@@ -1845,12 +1912,14 @@ public static class VirtualCube extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<NamedSet> getNamedSets() {
         return Collections.unmodifiableList(namedSets);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -1859,6 +1928,8 @@ public static class VirtualCube extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -1880,6 +1951,7 @@ public static class VirtualCube extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -1941,47 +2013,47 @@ public static class VirtualCube extends OLAPObject {
         
         } else if (child instanceof VirtualCubeDimension) {
             int offset = childPositionOffset(VirtualCubeDimension.class);
-            if ((index - offset) < 0 || (index - offset) > dimensions.size()) {
+            if (index < 0 || index > dimensions.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + dimensions.size());
             }
-            addDimension(index - offset, (VirtualCubeDimension) child);
+            addDimension(index, (VirtualCubeDimension) child);
         
         } else if (child instanceof VirtualCubeMeasure) {
             int offset = childPositionOffset(VirtualCubeMeasure.class);
-            if ((index - offset) < 0 || (index - offset) > measures.size()) {
+            if (index < 0 || index > measures.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + measures.size());
             }
-            addMeasure(index - offset, (VirtualCubeMeasure) child);
+            addMeasure(index, (VirtualCubeMeasure) child);
         
         } else if (child instanceof CalculatedMember) {
             int offset = childPositionOffset(CalculatedMember.class);
-            if ((index - offset) < 0 || (index - offset) > calculatedMembers.size()) {
+            if (index < 0 || index > calculatedMembers.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + calculatedMembers.size());
             }
-            addCalculatedMember(index - offset, (CalculatedMember) child);
+            addCalculatedMember(index, (CalculatedMember) child);
         
         } else if (child instanceof NamedSet) {
             int offset = childPositionOffset(NamedSet.class);
-            if ((index - offset) < 0 || (index - offset) > namedSets.size()) {
+            if (index < 0 || index > namedSets.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + namedSets.size());
             }
-            addNamedSet(index - offset, (NamedSet) child);
+            addNamedSet(index, (NamedSet) child);
         
         } else if (child instanceof CubeUsages) {
             setCubeUsage((CubeUsages) child);
@@ -2031,6 +2103,7 @@ public static class CubeUsages extends OLAPObject {
      * set to their defaults.
      */
     public CubeUsages() {
+        setName("New CubeUsages");
     }
     
     /**
@@ -2100,12 +2173,14 @@ public static class CubeUsages extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<CubeUsage> getCubeUsages() {
         return Collections.unmodifiableList(cubeUsages);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -2114,6 +2189,8 @@ public static class CubeUsages extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -2135,6 +2212,7 @@ public static class CubeUsages extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -2174,14 +2252,14 @@ public static class CubeUsages extends OLAPObject {
         
         } else if (child instanceof CubeUsage) {
             int offset = childPositionOffset(CubeUsage.class);
-            if ((index - offset) < 0 || (index - offset) > cubeUsages.size()) {
+            if (index < 0 || index > cubeUsages.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + cubeUsages.size());
             }
-            addCubeUsage(index - offset, (CubeUsage) child);
+            addCubeUsage(index, (CubeUsage) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -2213,6 +2291,7 @@ public static class CubeUsage extends OLAPObject {
      * set to their defaults.
      */
     public CubeUsage() {
+        setName("New CubeUsage");
     }
     
     /**
@@ -2250,10 +2329,12 @@ public static class CubeUsage extends OLAPObject {
              */
     private String /* */ cubeName;
     
+    @Accessor
     public String /* */ getCubeName() {
         return cubeName;
     }
     
+    @Mutator
     public void setCubeName(String /* */ newval) {
         String /* */ oldval = cubeName;
         cubeName = newval;
@@ -2266,10 +2347,12 @@ public static class CubeUsage extends OLAPObject {
              */
     private Boolean /* */ ignoreUnrelatedDimensions;
     
+    @Accessor
     public Boolean /* */ getIgnoreUnrelatedDimensions() {
         return ignoreUnrelatedDimensions;
     }
     
+    @Mutator
     public void setIgnoreUnrelatedDimensions(Boolean /* */ newval) {
         Boolean /* */ oldval = ignoreUnrelatedDimensions;
         ignoreUnrelatedDimensions = newval;
@@ -2277,6 +2360,7 @@ public static class CubeUsage extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -2285,6 +2369,8 @@ public static class CubeUsage extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -2297,7 +2383,7 @@ public static class CubeUsage extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -2352,6 +2438,7 @@ public static class VirtualCubeDimension extends CubeDimension {
      * set to their defaults.
      */
     public VirtualCubeDimension() {
+        setName("New VirtualCubeDimension");
     }
     
     /**
@@ -2394,10 +2481,12 @@ public static class VirtualCubeDimension extends CubeDimension {
              */
     private String /* */ cubeName;
     
+    @Accessor
     public String /* */ getCubeName() {
         return cubeName;
     }
     
+    @Mutator
     public void setCubeName(String /* */ newval) {
         String /* */ oldval = cubeName;
         cubeName = newval;
@@ -2409,10 +2498,12 @@ public static class VirtualCubeDimension extends CubeDimension {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -2420,6 +2511,7 @@ public static class VirtualCubeDimension extends CubeDimension {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -2428,6 +2520,8 @@ public static class VirtualCubeDimension extends CubeDimension {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -2440,7 +2534,7 @@ public static class VirtualCubeDimension extends CubeDimension {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     CubeDimension.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -2495,6 +2589,7 @@ public static class VirtualCubeMeasure extends OLAPObject {
      * set to their defaults.
      */
     public VirtualCubeMeasure() {
+        setName("New VirtualCubeMeasure");
     }
     
     /**
@@ -2538,10 +2633,12 @@ public static class VirtualCubeMeasure extends OLAPObject {
              */
     private String /* */ cubeName;
     
+    @Accessor
     public String /* */ getCubeName() {
         return cubeName;
     }
     
+    @Mutator
     public void setCubeName(String /* */ newval) {
         String /* */ oldval = cubeName;
         cubeName = newval;
@@ -2553,10 +2650,12 @@ public static class VirtualCubeMeasure extends OLAPObject {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -2569,10 +2668,12 @@ public static class VirtualCubeMeasure extends OLAPObject {
              */
     private Boolean /* */ visible;
     
+    @Accessor
     public Boolean /* */ getVisible() {
         return visible;
     }
     
+    @Mutator
     public void setVisible(Boolean /* */ newval) {
         Boolean /* */ oldval = visible;
         visible = newval;
@@ -2580,6 +2681,7 @@ public static class VirtualCubeMeasure extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -2588,6 +2690,8 @@ public static class VirtualCubeMeasure extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -2600,7 +2704,7 @@ public static class VirtualCubeMeasure extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -2656,6 +2760,7 @@ public static class DimensionUsage extends CubeDimension {
      * set to their defaults.
      */
     public DimensionUsage() {
+        setName("New DimensionUsage");
     }
     
     /**
@@ -2702,10 +2807,12 @@ public static class DimensionUsage extends CubeDimension {
             this schema. Case-sensitive. */
     private String /* */ source;
     
+    @Accessor
     public String /* */ getSource() {
         return source;
     }
     
+    @Mutator
     public void setSource(String /* */ newval) {
         String /* */ oldval = source;
         source = newval;
@@ -2718,10 +2825,12 @@ public static class DimensionUsage extends CubeDimension {
              */
     private String /* */ level;
     
+    @Accessor
     public String /* */ getLevel() {
         return level;
     }
     
+    @Mutator
     public void setLevel(String /* */ newval) {
         String /* */ oldval = level;
         level = newval;
@@ -2737,10 +2846,12 @@ public static class DimensionUsage extends CubeDimension {
              */
     private String /* */ usagePrefix;
     
+    @Accessor
     public String /* */ getUsagePrefix() {
         return usagePrefix;
     }
     
+    @Mutator
     public void setUsagePrefix(String /* */ newval) {
         String /* */ oldval = usagePrefix;
         usagePrefix = newval;
@@ -2748,6 +2859,7 @@ public static class DimensionUsage extends CubeDimension {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -2756,6 +2868,8 @@ public static class DimensionUsage extends CubeDimension {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -2768,7 +2882,7 @@ public static class DimensionUsage extends CubeDimension {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     CubeDimension.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -2828,6 +2942,7 @@ public static class Dimension extends CubeDimension {
      * set to their defaults.
      */
     public Dimension() {
+        setName("New Dimension");
     }
     
     /**
@@ -2879,10 +2994,12 @@ public static class Dimension extends CubeDimension {
     /**  */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -2899,10 +3016,12 @@ public static class Dimension extends CubeDimension {
              */
     private String /* */ type;
     
+    @Accessor
     public String /* */ getType() {
         return type;
     }
     
+    @Mutator
     public void setType(String /* */ newval) {
         String /* */ oldval = type;
         type = newval;
@@ -2915,10 +3034,12 @@ public static class Dimension extends CubeDimension {
              */
     private String /* */ caption;
     
+    @Accessor
     public String /* */ getCaption() {
         return caption;
     }
     
+    @Mutator
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
@@ -2934,10 +3055,12 @@ public static class Dimension extends CubeDimension {
              */
     private String /* */ usagePrefix;
     
+    @Accessor
     public String /* */ getUsagePrefix() {
         return usagePrefix;
     }
     
+    @Mutator
     public void setUsagePrefix(String /* */ newval) {
         String /* */ oldval = usagePrefix;
         usagePrefix = newval;
@@ -2993,12 +3116,14 @@ public static class Dimension extends CubeDimension {
         return removedItem;
     }
 
+    @NonProperty
     public List<Hierarchy> getHierarchies() {
         return Collections.unmodifiableList(hierarchies);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -3007,6 +3132,8 @@ public static class Dimension extends CubeDimension {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -3028,6 +3155,7 @@ public static class Dimension extends CubeDimension {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -3067,14 +3195,14 @@ public static class Dimension extends CubeDimension {
         
         } else if (child instanceof Hierarchy) {
             int offset = childPositionOffset(Hierarchy.class);
-            if ((index - offset) < 0 || (index - offset) > hierarchies.size()) {
+            if (index < 0 || index > hierarchies.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + hierarchies.size());
             }
-            addHierarchy(index - offset, (Hierarchy) child);
+            addHierarchy(index, (Hierarchy) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -3113,6 +3241,7 @@ public static class Hierarchy extends OLAPObject {
      * set to their defaults.
      */
     public Hierarchy() {
+        setName("New Hierarchy");
     }
     
     /**
@@ -3205,10 +3334,12 @@ public static class Hierarchy extends OLAPObject {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -3220,10 +3351,12 @@ public static class Hierarchy extends OLAPObject {
              */
     private Boolean /* */ hasAll;
     
+    @Accessor
     public Boolean /* */ getHasAll() {
         return hasAll;
     }
     
+    @Mutator
     public void setHasAll(Boolean /* */ newval) {
         Boolean /* */ oldval = hasAll;
         hasAll = newval;
@@ -3237,10 +3370,12 @@ public static class Hierarchy extends OLAPObject {
              */
     private String /* */ allMemberName;
     
+    @Accessor
     public String /* */ getAllMemberName() {
         return allMemberName;
     }
     
+    @Mutator
     public void setAllMemberName(String /* */ newval) {
         String /* */ oldval = allMemberName;
         allMemberName = newval;
@@ -3253,10 +3388,12 @@ public static class Hierarchy extends OLAPObject {
              */
     private String /* */ allMemberCaption;
     
+    @Accessor
     public String /* */ getAllMemberCaption() {
         return allMemberCaption;
     }
     
+    @Mutator
     public void setAllMemberCaption(String /* */ newval) {
         String /* */ oldval = allMemberCaption;
         allMemberCaption = newval;
@@ -3270,10 +3407,12 @@ public static class Hierarchy extends OLAPObject {
              */
     private String /* */ allLevelName;
     
+    @Accessor
     public String /* */ getAllLevelName() {
         return allLevelName;
     }
     
+    @Mutator
     public void setAllLevelName(String /* */ newval) {
         String /* */ oldval = allLevelName;
         allLevelName = newval;
@@ -3288,10 +3427,12 @@ public static class Hierarchy extends OLAPObject {
              */
     private String /* */ primaryKey;
     
+    @Accessor
     public String /* */ getPrimaryKey() {
         return primaryKey;
     }
     
+    @Mutator
     public void setPrimaryKey(String /* */ newval) {
         String /* */ oldval = primaryKey;
         primaryKey = newval;
@@ -3305,10 +3446,12 @@ public static class Hierarchy extends OLAPObject {
              */
     private String /* */ primaryKeyTable;
     
+    @Accessor
     public String /* */ getPrimaryKeyTable() {
         return primaryKeyTable;
     }
     
+    @Mutator
     public void setPrimaryKeyTable(String /* */ newval) {
         String /* */ oldval = primaryKeyTable;
         primaryKeyTable = newval;
@@ -3318,10 +3461,12 @@ public static class Hierarchy extends OLAPObject {
     /**  */
     private String /* */ defaultMember;
     
+    @Accessor
     public String /* */ getDefaultMember() {
         return defaultMember;
     }
     
+    @Mutator
     public void setDefaultMember(String /* */ newval) {
         String /* */ oldval = defaultMember;
         defaultMember = newval;
@@ -3334,10 +3479,12 @@ public static class Hierarchy extends OLAPObject {
              */
     private String /* */ memberReaderClass;
     
+    @Accessor
     public String /* */ getMemberReaderClass() {
         return memberReaderClass;
     }
     
+    @Mutator
     public void setMemberReaderClass(String /* */ newval) {
         String /* */ oldval = memberReaderClass;
         memberReaderClass = newval;
@@ -3351,10 +3498,12 @@ public static class Hierarchy extends OLAPObject {
              */
     private String /* */ caption;
     
+    @Accessor
     public String /* */ getCaption() {
         return caption;
     }
     
+    @Mutator
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
@@ -3370,10 +3519,12 @@ public static class Hierarchy extends OLAPObject {
              */
     private RelationOrJoin /* */ relation;
     
+    @NonProperty
     public RelationOrJoin /* */ getRelation() {
         return relation;
     }
     
+    @NonProperty
     public void setRelation(RelationOrJoin /* */ newval) {
         RelationOrJoin /* */ oldval = relation;
         if (oldval == newval) {
@@ -3437,6 +3588,7 @@ public static class Hierarchy extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<Level> getLevels() {
         return Collections.unmodifiableList(levels);
     }
@@ -3491,12 +3643,14 @@ public static class Hierarchy extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<MemberReaderParameter> getMemberReaderParameters() {
         return Collections.unmodifiableList(memberReaderParameters);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -3505,6 +3659,8 @@ public static class Hierarchy extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -3526,6 +3682,7 @@ public static class Hierarchy extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -3577,25 +3734,25 @@ public static class Hierarchy extends OLAPObject {
         
         } else if (child instanceof Level) {
             int offset = childPositionOffset(Level.class);
-            if ((index - offset) < 0 || (index - offset) > levels.size()) {
+            if (index < 0 || index > levels.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + levels.size());
             }
-            addLevel(index - offset, (Level) child);
+            addLevel(index, (Level) child);
         
         } else if (child instanceof MemberReaderParameter) {
             int offset = childPositionOffset(MemberReaderParameter.class);
-            if ((index - offset) < 0 || (index - offset) > memberReaderParameters.size()) {
+            if (index < 0 || index > memberReaderParameters.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + memberReaderParameters.size());
             }
-            addMemberReaderParameter(index - offset, (MemberReaderParameter) child);
+            addMemberReaderParameter(index, (MemberReaderParameter) child);
         
         } else if (child instanceof RelationOrJoin) {
             setRelation((RelationOrJoin) child);
@@ -3637,6 +3794,7 @@ public static class Level extends OLAPObject {
      * set to their defaults.
      */
     public Level() {
+        setName("New Level");
     }
     
     /**
@@ -3785,10 +3943,12 @@ public static class Level extends OLAPObject {
              */
     private String /* */ approxRowCount;
     
+    @Accessor
     public String /* */ getApproxRowCount() {
         return approxRowCount;
     }
     
+    @Mutator
     public void setApproxRowCount(String /* */ newval) {
         String /* */ oldval = approxRowCount;
         approxRowCount = newval;
@@ -3798,10 +3958,12 @@ public static class Level extends OLAPObject {
     /**  */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -3816,10 +3978,12 @@ public static class Level extends OLAPObject {
              */
     private String /* */ table;
     
+    @Accessor
     public String /* */ getTable() {
         return table;
     }
     
+    @Mutator
     public void setTable(String /* */ newval) {
         String /* */ oldval = table;
         table = newval;
@@ -3832,10 +3996,12 @@ public static class Level extends OLAPObject {
              */
     private String /* */ column;
     
+    @Accessor
     public String /* */ getColumn() {
         return column;
     }
     
+    @Mutator
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
@@ -3848,10 +4014,12 @@ public static class Level extends OLAPObject {
              */
     private String /* */ nameColumn;
     
+    @Accessor
     public String /* */ getNameColumn() {
         return nameColumn;
     }
     
+    @Mutator
     public void setNameColumn(String /* */ newval) {
         String /* */ oldval = nameColumn;
         nameColumn = newval;
@@ -3865,10 +4033,12 @@ public static class Level extends OLAPObject {
              */
     private String /* */ ordinalColumn;
     
+    @Accessor
     public String /* */ getOrdinalColumn() {
         return ordinalColumn;
     }
     
+    @Mutator
     public void setOrdinalColumn(String /* */ newval) {
         String /* */ oldval = ordinalColumn;
         ordinalColumn = newval;
@@ -3881,10 +4051,12 @@ public static class Level extends OLAPObject {
              */
     private String /* */ parentColumn;
     
+    @Accessor
     public String /* */ getParentColumn() {
         return parentColumn;
     }
     
+    @Mutator
     public void setParentColumn(String /* */ newval) {
         String /* */ oldval = parentColumn;
         parentColumn = newval;
@@ -3897,10 +4069,12 @@ public static class Level extends OLAPObject {
              */
     private String /* */ nullParentValue;
     
+    @Accessor
     public String /* */ getNullParentValue() {
         return nullParentValue;
     }
     
+    @Mutator
     public void setNullParentValue(String /* */ newval) {
         String /* */ oldval = nullParentValue;
         nullParentValue = newval;
@@ -3920,10 +4094,12 @@ public static class Level extends OLAPObject {
              */
     private String /* */ type;
     
+    @Accessor
     public String /* */ getType() {
         return type;
     }
     
+    @Mutator
     public void setType(String /* */ newval) {
         String /* */ oldval = type;
         type = newval;
@@ -3937,10 +4113,12 @@ public static class Level extends OLAPObject {
              */
     private Boolean /* */ uniqueMembers;
     
+    @Accessor
     public Boolean /* */ getUniqueMembers() {
         return uniqueMembers;
     }
     
+    @Mutator
     public void setUniqueMembers(Boolean /* */ newval) {
         Boolean /* */ oldval = uniqueMembers;
         uniqueMembers = newval;
@@ -3954,10 +4132,12 @@ public static class Level extends OLAPObject {
              */
     private String /* */ levelType;
     
+    @Accessor
     public String /* */ getLevelType() {
         return levelType;
     }
     
+    @Mutator
     public void setLevelType(String /* */ newval) {
         String /* */ oldval = levelType;
         levelType = newval;
@@ -3979,10 +4159,12 @@ public static class Level extends OLAPObject {
                 matches the parent's. */
     private String /* */ hideMemberIf;
     
+    @Accessor
     public String /* */ getHideMemberIf() {
         return hideMemberIf;
     }
     
+    @Mutator
     public void setHideMemberIf(String /* */ newval) {
         String /* */ oldval = hideMemberIf;
         hideMemberIf = newval;
@@ -3995,10 +4177,12 @@ public static class Level extends OLAPObject {
              */
     private String /* */ formatter;
     
+    @Accessor
     public String /* */ getFormatter() {
         return formatter;
     }
     
+    @Mutator
     public void setFormatter(String /* */ newval) {
         String /* */ oldval = formatter;
         formatter = newval;
@@ -4011,10 +4195,12 @@ public static class Level extends OLAPObject {
              */
     private String /* */ caption;
     
+    @Accessor
     public String /* */ getCaption() {
         return caption;
     }
     
+    @Mutator
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
@@ -4027,10 +4213,12 @@ public static class Level extends OLAPObject {
              */
     private String /* */ captionColumn;
     
+    @Accessor
     public String /* */ getCaptionColumn() {
         return captionColumn;
     }
     
+    @Mutator
     public void setCaptionColumn(String /* */ newval) {
         String /* */ oldval = captionColumn;
         captionColumn = newval;
@@ -4042,10 +4230,12 @@ public static class Level extends OLAPObject {
              */
     private KeyExpression /* */ keyExp;
     
+    @NonProperty
     public KeyExpression /* */ getKeyExp() {
         return keyExp;
     }
     
+    @NonProperty
     public void setKeyExp(KeyExpression /* */ newval) {
         KeyExpression /* */ oldval = keyExp;
         if (oldval == newval) {
@@ -4066,10 +4256,12 @@ public static class Level extends OLAPObject {
              */
     private NameExpression /* */ nameExp;
     
+    @NonProperty
     public NameExpression /* */ getNameExp() {
         return nameExp;
     }
     
+    @NonProperty
     public void setNameExp(NameExpression /* */ newval) {
         NameExpression /* */ oldval = nameExp;
         if (oldval == newval) {
@@ -4089,10 +4281,12 @@ public static class Level extends OLAPObject {
              */
     private OrdinalExpression /* */ ordinalExp;
     
+    @NonProperty
     public OrdinalExpression /* */ getOrdinalExp() {
         return ordinalExp;
     }
     
+    @NonProperty
     public void setOrdinalExp(OrdinalExpression /* */ newval) {
         OrdinalExpression /* */ oldval = ordinalExp;
         if (oldval == newval) {
@@ -4113,10 +4307,12 @@ public static class Level extends OLAPObject {
              */
     private ParentExpression /* */ parentExp;
     
+    @NonProperty
     public ParentExpression /* */ getParentExp() {
         return parentExp;
     }
     
+    @NonProperty
     public void setParentExp(ParentExpression /* */ newval) {
         ParentExpression /* */ oldval = parentExp;
         if (oldval == newval) {
@@ -4134,10 +4330,12 @@ public static class Level extends OLAPObject {
     /**  */
     private Closure /* */ closure;
     
+    @NonProperty
     public Closure /* */ getClosure() {
         return closure;
     }
     
+    @NonProperty
     public void setClosure(Closure /* */ newval) {
         Closure /* */ oldval = closure;
         if (oldval == newval) {
@@ -4201,12 +4399,14 @@ public static class Level extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<Property> getProperties() {
         return Collections.unmodifiableList(properties);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -4215,6 +4415,8 @@ public static class Level extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -4236,6 +4438,7 @@ public static class Level extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -4310,14 +4513,14 @@ public static class Level extends OLAPObject {
         
         } else if (child instanceof Property) {
             int offset = childPositionOffset(Property.class);
-            if ((index - offset) < 0 || (index - offset) > properties.size()) {
+            if (index < 0 || index > properties.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + properties.size());
             }
-            addProperty(index - offset, (Property) child);
+            addProperty(index, (Property) child);
         
         } else if (child instanceof KeyExpression) {
             setKeyExp((KeyExpression) child);
@@ -4389,6 +4592,7 @@ public static class Closure extends OLAPObject {
      * set to their defaults.
      */
     public Closure() {
+        setName("New Closure");
     }
     
     /**
@@ -4430,10 +4634,12 @@ public static class Closure extends OLAPObject {
     /**  */
     private String /* */ parentColumn;
     
+    @Accessor
     public String /* */ getParentColumn() {
         return parentColumn;
     }
     
+    @Mutator
     public void setParentColumn(String /* */ newval) {
         String /* */ oldval = parentColumn;
         parentColumn = newval;
@@ -4443,10 +4649,12 @@ public static class Closure extends OLAPObject {
     /**  */
     private String /* */ childColumn;
     
+    @Accessor
     public String /* */ getChildColumn() {
         return childColumn;
     }
     
+    @Mutator
     public void setChildColumn(String /* */ newval) {
         String /* */ oldval = childColumn;
         childColumn = newval;
@@ -4456,10 +4664,12 @@ public static class Closure extends OLAPObject {
     /**  */
     private Table /* */ table;
     
+    @NonProperty
     public Table /* */ getTable() {
         return table;
     }
     
+    @NonProperty
     public void setTable(Table /* */ newval) {
         Table /* */ oldval = table;
         if (oldval == newval) {
@@ -4475,6 +4685,7 @@ public static class Closure extends OLAPObject {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -4483,6 +4694,8 @@ public static class Closure extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -4504,6 +4717,7 @@ public static class Closure extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -4579,6 +4793,7 @@ public static class Property extends OLAPObject {
      * set to their defaults.
      */
     public Property() {
+        setName("New Property");
     }
     
     /**
@@ -4632,10 +4847,12 @@ public static class Property extends OLAPObject {
     /**  */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -4645,10 +4862,12 @@ public static class Property extends OLAPObject {
     /**  */
     private String /* */ column;
     
+    @Accessor
     public String /* */ getColumn() {
         return column;
     }
     
+    @Mutator
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
@@ -4661,10 +4880,12 @@ public static class Property extends OLAPObject {
              */
     private String /* */ type;
     
+    @Accessor
     public String /* */ getType() {
         return type;
     }
     
+    @Mutator
     public void setType(String /* */ newval) {
         String /* */ oldval = type;
         type = newval;
@@ -4679,10 +4900,12 @@ public static class Property extends OLAPObject {
              */
     private String /* */ formatter;
     
+    @Accessor
     public String /* */ getFormatter() {
         return formatter;
     }
     
+    @Mutator
     public void setFormatter(String /* */ newval) {
         String /* */ oldval = formatter;
         formatter = newval;
@@ -4695,10 +4918,12 @@ public static class Property extends OLAPObject {
              */
     private String /* */ caption;
     
+    @Accessor
     public String /* */ getCaption() {
         return caption;
     }
     
+    @Mutator
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
@@ -4706,6 +4931,7 @@ public static class Property extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -4714,6 +4940,8 @@ public static class Property extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -4726,7 +4954,7 @@ public static class Property extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -4779,6 +5007,7 @@ public static class Measure extends OLAPObject {
      * set to their defaults.
      */
     public Measure() {
+        setName("New Measure");
     }
     
     /**
@@ -4856,10 +5085,12 @@ public static class Measure extends OLAPObject {
     /** Name of this measure. */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -4872,10 +5103,12 @@ public static class Measure extends OLAPObject {
              */
     private String /* */ column;
     
+    @Accessor
     public String /* */ getColumn() {
         return column;
     }
     
+    @Mutator
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
@@ -4892,10 +5125,12 @@ public static class Measure extends OLAPObject {
              */
     private String /* */ datatype;
     
+    @Accessor
     public String /* */ getDatatype() {
         return datatype;
     }
     
+    @Mutator
     public void setDatatype(String /* */ newval) {
         String /* */ oldval = datatype;
         datatype = newval;
@@ -4908,10 +5143,12 @@ public static class Measure extends OLAPObject {
              */
     private String /* */ formatString;
     
+    @Accessor
     public String /* */ getFormatString() {
         return formatString;
     }
     
+    @Mutator
     public void setFormatString(String /* */ newval) {
         String /* */ oldval = formatString;
         formatString = newval;
@@ -4926,10 +5163,12 @@ public static class Measure extends OLAPObject {
              */
     private String /* */ aggregator;
     
+    @Accessor
     public String /* */ getAggregator() {
         return aggregator;
     }
     
+    @Mutator
     public void setAggregator(String /* */ newval) {
         String /* */ oldval = aggregator;
         aggregator = newval;
@@ -4942,10 +5181,12 @@ public static class Measure extends OLAPObject {
              */
     private String /* */ formatter;
     
+    @Accessor
     public String /* */ getFormatter() {
         return formatter;
     }
     
+    @Mutator
     public void setFormatter(String /* */ newval) {
         String /* */ oldval = formatter;
         formatter = newval;
@@ -4958,10 +5199,12 @@ public static class Measure extends OLAPObject {
              */
     private String /* */ caption;
     
+    @Accessor
     public String /* */ getCaption() {
         return caption;
     }
     
+    @Mutator
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
@@ -4974,10 +5217,12 @@ public static class Measure extends OLAPObject {
              */
     private Boolean /* */ visible;
     
+    @Accessor
     public Boolean /* */ getVisible() {
         return visible;
     }
     
+    @Mutator
     public void setVisible(Boolean /* */ newval) {
         Boolean /* */ oldval = visible;
         visible = newval;
@@ -4990,10 +5235,12 @@ public static class Measure extends OLAPObject {
              */
     private MeasureExpression /* */ measureExp;
     
+    @NonProperty
     public MeasureExpression /* */ getMeasureExp() {
         return measureExp;
     }
     
+    @NonProperty
     public void setMeasureExp(MeasureExpression /* */ newval) {
         MeasureExpression /* */ oldval = measureExp;
         if (oldval == newval) {
@@ -5057,12 +5304,14 @@ public static class Measure extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<CalculatedMemberProperty> getMemberProperties() {
         return Collections.unmodifiableList(memberProperties);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -5071,6 +5320,8 @@ public static class Measure extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -5092,6 +5343,7 @@ public static class Measure extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -5138,14 +5390,14 @@ public static class Measure extends OLAPObject {
         
         } else if (child instanceof CalculatedMemberProperty) {
             int offset = childPositionOffset(CalculatedMemberProperty.class);
-            if ((index - offset) < 0 || (index - offset) > memberProperties.size()) {
+            if (index < 0 || index > memberProperties.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + memberProperties.size());
             }
-            addMemberPropertie(index - offset, (CalculatedMemberProperty) child);
+            addMemberPropertie(index, (CalculatedMemberProperty) child);
         
         } else if (child instanceof MeasureExpression) {
             setMeasureExp((MeasureExpression) child);
@@ -5184,6 +5436,7 @@ public static class CalculatedMember extends OLAPObject {
      * set to their defaults.
      */
     public CalculatedMember() {
+        setName("New CalculatedMember");
     }
     
     /**
@@ -5251,10 +5504,12 @@ public static class CalculatedMember extends OLAPObject {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -5267,10 +5522,12 @@ public static class CalculatedMember extends OLAPObject {
              */
     private String /* */ formatString;
     
+    @Accessor
     public String /* */ getFormatString() {
         return formatString;
     }
     
+    @Mutator
     public void setFormatString(String /* */ newval) {
         String /* */ oldval = formatString;
         formatString = newval;
@@ -5283,10 +5540,12 @@ public static class CalculatedMember extends OLAPObject {
              */
     private String /* */ caption;
     
+    @Accessor
     public String /* */ getCaption() {
         return caption;
     }
     
+    @Mutator
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
@@ -5299,10 +5558,12 @@ public static class CalculatedMember extends OLAPObject {
              */
     private String /* */ formula;
     
+    @Accessor
     public String /* */ getFormula() {
         return formula;
     }
     
+    @Mutator
     public void setFormula(String /* */ newval) {
         String /* */ oldval = formula;
         formula = newval;
@@ -5314,10 +5575,12 @@ public static class CalculatedMember extends OLAPObject {
              */
     private String /* */ dimension;
     
+    @Accessor
     public String /* */ getDimension() {
         return dimension;
     }
     
+    @Mutator
     public void setDimension(String /* */ newval) {
         String /* */ oldval = dimension;
         dimension = newval;
@@ -5330,10 +5593,12 @@ public static class CalculatedMember extends OLAPObject {
              */
     private Boolean /* */ visible;
     
+    @Accessor
     public Boolean /* */ getVisible() {
         return visible;
     }
     
+    @Mutator
     public void setVisible(Boolean /* */ newval) {
         Boolean /* */ oldval = visible;
         visible = newval;
@@ -5345,10 +5610,12 @@ public static class CalculatedMember extends OLAPObject {
              */
     private Formula /* */ formulaElement;
     
+    @NonProperty
     public Formula /* */ getFormulaElement() {
         return formulaElement;
     }
     
+    @NonProperty
     public void setFormulaElement(Formula /* */ newval) {
         Formula /* */ oldval = formulaElement;
         if (oldval == newval) {
@@ -5412,12 +5679,14 @@ public static class CalculatedMember extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<CalculatedMemberProperty> getMemberProperties() {
         return Collections.unmodifiableList(memberProperties);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -5426,6 +5695,8 @@ public static class CalculatedMember extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -5447,6 +5718,7 @@ public static class CalculatedMember extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -5493,14 +5765,14 @@ public static class CalculatedMember extends OLAPObject {
         
         } else if (child instanceof CalculatedMemberProperty) {
             int offset = childPositionOffset(CalculatedMemberProperty.class);
-            if ((index - offset) < 0 || (index - offset) > memberProperties.size()) {
+            if (index < 0 || index > memberProperties.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + memberProperties.size());
             }
-            addMemberPropertie(index - offset, (CalculatedMemberProperty) child);
+            addMemberPropertie(index, (CalculatedMemberProperty) child);
         
         } else if (child instanceof Formula) {
             setFormulaElement((Formula) child);
@@ -5542,6 +5814,7 @@ public static class CalculatedMemberProperty extends OLAPObject {
      * set to their defaults.
      */
     public CalculatedMemberProperty() {
+        setName("New CalculatedMemberProperty");
     }
     
     /**
@@ -5591,10 +5864,12 @@ public static class CalculatedMemberProperty extends OLAPObject {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -5607,10 +5882,12 @@ public static class CalculatedMemberProperty extends OLAPObject {
              */
     private String /* */ caption;
     
+    @Accessor
     public String /* */ getCaption() {
         return caption;
     }
     
+    @Mutator
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
@@ -5624,10 +5901,12 @@ public static class CalculatedMemberProperty extends OLAPObject {
              */
     private String /* */ expression;
     
+    @Accessor
     public String /* */ getExpression() {
         return expression;
     }
     
+    @Mutator
     public void setExpression(String /* */ newval) {
         String /* */ oldval = expression;
         expression = newval;
@@ -5641,10 +5920,12 @@ public static class CalculatedMemberProperty extends OLAPObject {
              */
     private String /* */ value;
     
+    @Accessor
     public String /* */ getValue() {
         return value;
     }
     
+    @Mutator
     public void setValue(String /* */ newval) {
         String /* */ oldval = value;
         value = newval;
@@ -5652,6 +5933,7 @@ public static class CalculatedMemberProperty extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -5660,6 +5942,8 @@ public static class CalculatedMemberProperty extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -5672,7 +5956,7 @@ public static class CalculatedMemberProperty extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -5742,6 +6026,7 @@ public static class NamedSet extends OLAPObject {
      * set to their defaults.
      */
     public NamedSet() {
+        setName("New NamedSet");
     }
     
     /**
@@ -5785,10 +6070,12 @@ public static class NamedSet extends OLAPObject {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -5801,10 +6088,12 @@ public static class NamedSet extends OLAPObject {
              */
     private String /* */ formula;
     
+    @Accessor
     public String /* */ getFormula() {
         return formula;
     }
     
+    @Mutator
     public void setFormula(String /* */ newval) {
         String /* */ oldval = formula;
         formula = newval;
@@ -5816,10 +6105,12 @@ public static class NamedSet extends OLAPObject {
              */
     private Formula /* */ formulaElement;
     
+    @NonProperty
     public Formula /* */ getFormulaElement() {
         return formulaElement;
     }
     
+    @NonProperty
     public void setFormulaElement(Formula /* */ newval) {
         Formula /* */ oldval = formulaElement;
         if (oldval == newval) {
@@ -5835,6 +6126,7 @@ public static class NamedSet extends OLAPObject {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -5843,6 +6135,8 @@ public static class NamedSet extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -5864,6 +6158,7 @@ public static class NamedSet extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -5937,6 +6232,7 @@ public static class Formula extends OLAPObject {
      * set to their defaults.
      */
     public Formula() {
+        setName("New Formula");
     }
     
     /**
@@ -5963,10 +6259,12 @@ public static class Formula extends OLAPObject {
 
 	private String text;
 	
+	@Accessor
 	public String getText() {
 		return text;
 	}
 	
+	@Mutator
 	public void setText(String newval) {
 		String oldval = text;
 		text = newval;
@@ -5975,6 +6273,7 @@ public static class Formula extends OLAPObject {
 
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -5983,6 +6282,8 @@ public static class Formula extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -5995,7 +6296,7 @@ public static class Formula extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -6048,6 +6349,7 @@ public static class MemberReaderParameter extends OLAPObject {
      * set to their defaults.
      */
     public MemberReaderParameter() {
+        setName("New MemberReaderParameter");
     }
     
     /**
@@ -6083,10 +6385,12 @@ public static class MemberReaderParameter extends OLAPObject {
     /**  */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -6096,10 +6400,12 @@ public static class MemberReaderParameter extends OLAPObject {
     /**  */
     private String /* */ value;
     
+    @Accessor
     public String /* */ getValue() {
         return value;
     }
     
+    @Mutator
     public void setValue(String /* */ newval) {
         String /* */ oldval = value;
         value = newval;
@@ -6107,6 +6413,7 @@ public static class MemberReaderParameter extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -6115,6 +6422,8 @@ public static class MemberReaderParameter extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -6127,7 +6436,7 @@ public static class MemberReaderParameter extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -6180,6 +6489,7 @@ public abstract static class RelationOrJoin extends OLAPObject {
      * set to their defaults.
      */
     public RelationOrJoin() {
+    setName("New RelationOrJoin");
     }
     
     /**
@@ -6204,6 +6514,7 @@ public abstract static class RelationOrJoin extends OLAPObject {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -6212,6 +6523,8 @@ public abstract static class RelationOrJoin extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -6224,7 +6537,7 @@ public abstract static class RelationOrJoin extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -6277,6 +6590,7 @@ public abstract static class Relation extends RelationOrJoin {
      * set to their defaults.
      */
     public Relation() {
+    setName("New Relation");
     }
     
     /**
@@ -6305,6 +6619,7 @@ public abstract static class Relation extends RelationOrJoin {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -6313,6 +6628,8 @@ public abstract static class Relation extends RelationOrJoin {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -6325,7 +6642,7 @@ public abstract static class Relation extends RelationOrJoin {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     RelationOrJoin.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -6380,6 +6697,7 @@ public static class View extends Relation {
      * set to their defaults.
      */
     public View() {
+        setName("New View");
     }
     
     /**
@@ -6413,10 +6731,12 @@ public static class View extends Relation {
     /**  */
     private String /* */ alias;
     
+    @Accessor
     public String /* */ getAlias() {
         return alias;
     }
     
+    @Mutator
     public void setAlias(String /* */ newval) {
         String /* */ oldval = alias;
         alias = newval;
@@ -6472,12 +6792,14 @@ public static class View extends Relation {
         return removedItem;
     }
 
+    @NonProperty
     public List<SQL> getSelects() {
         return Collections.unmodifiableList(selects);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -6486,6 +6808,8 @@ public static class View extends Relation {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -6507,6 +6831,7 @@ public static class View extends Relation {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -6546,14 +6871,14 @@ public static class View extends Relation {
         
         } else if (child instanceof SQL) {
             int offset = childPositionOffset(SQL.class);
-            if ((index - offset) < 0 || (index - offset) > selects.size()) {
+            if (index < 0 || index > selects.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + selects.size());
             }
-            addSelect(index - offset, (SQL) child);
+            addSelect(index, (SQL) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -6585,6 +6910,7 @@ public static class SQL extends OLAPObject {
      * set to their defaults.
      */
     public SQL() {
+        setName("New SQL");
     }
     
     /**
@@ -6620,10 +6946,12 @@ public static class SQL extends OLAPObject {
              */
     private String /* */ dialect;
     
+    @Accessor
     public String /* */ getDialect() {
         return dialect;
     }
     
+    @Mutator
     public void setDialect(String /* */ newval) {
         String /* */ oldval = dialect;
         dialect = newval;
@@ -6632,10 +6960,12 @@ public static class SQL extends OLAPObject {
 
 	private String text;
 	
+	@Accessor
 	public String getText() {
 		return text;
 	}
 	
+	@Mutator
 	public void setText(String newval) {
 		String oldval = text;
 		text = newval;
@@ -6644,6 +6974,7 @@ public static class SQL extends OLAPObject {
 
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -6652,6 +6983,8 @@ public static class SQL extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -6664,7 +6997,7 @@ public static class SQL extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -6717,6 +7050,7 @@ public static class Join extends RelationOrJoin {
      * set to their defaults.
      */
     public Join() {
+        setName("New Join");
     }
     
     /**
@@ -6783,10 +7117,12 @@ public static class Join extends RelationOrJoin {
              */
     private String /* */ leftAlias;
     
+    @Accessor
     public String /* */ getLeftAlias() {
         return leftAlias;
     }
     
+    @Mutator
     public void setLeftAlias(String /* */ newval) {
         String /* */ oldval = leftAlias;
         leftAlias = newval;
@@ -6796,10 +7132,12 @@ public static class Join extends RelationOrJoin {
     /**  */
     private String /* */ leftKey;
     
+    @Accessor
     public String /* */ getLeftKey() {
         return leftKey;
     }
     
+    @Mutator
     public void setLeftKey(String /* */ newval) {
         String /* */ oldval = leftKey;
         leftKey = newval;
@@ -6812,10 +7150,12 @@ public static class Join extends RelationOrJoin {
              */
     private String /* */ rightAlias;
     
+    @Accessor
     public String /* */ getRightAlias() {
         return rightAlias;
     }
     
+    @Mutator
     public void setRightAlias(String /* */ newval) {
         String /* */ oldval = rightAlias;
         rightAlias = newval;
@@ -6825,10 +7165,12 @@ public static class Join extends RelationOrJoin {
     /**  */
     private String /* */ rightKey;
     
+    @Accessor
     public String /* */ getRightKey() {
         return rightKey;
     }
     
+    @Mutator
     public void setRightKey(String /* */ newval) {
         String /* */ oldval = rightKey;
         rightKey = newval;
@@ -6838,10 +7180,12 @@ public static class Join extends RelationOrJoin {
     /**  */
     private RelationOrJoin /* */ left;
     
+    @NonProperty
     public RelationOrJoin /* */ getLeft() {
         return left;
     }
     
+    @NonProperty
     public void setLeft(RelationOrJoin /* */ newval) {
         RelationOrJoin /* */ oldval = left;
         if (oldval == newval) {
@@ -6859,10 +7203,12 @@ public static class Join extends RelationOrJoin {
     /**  */
     private RelationOrJoin /* */ right;
     
+    @NonProperty
     public RelationOrJoin /* */ getRight() {
         return right;
     }
     
+    @NonProperty
     public void setRight(RelationOrJoin /* */ newval) {
         RelationOrJoin /* */ oldval = right;
         if (oldval == newval) {
@@ -6878,6 +7224,7 @@ public static class Join extends RelationOrJoin {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -6886,6 +7233,8 @@ public static class Join extends RelationOrJoin {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -6907,6 +7256,7 @@ public static class Join extends RelationOrJoin {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -6994,6 +7344,7 @@ public static class Table extends Relation {
      * set to their defaults.
      */
     public Table() {
+        setName("New Table");
     }
     
     /**
@@ -7045,10 +7396,12 @@ public static class Table extends Relation {
     /**  */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -7060,10 +7413,12 @@ public static class Table extends Relation {
              */
     private String /* */ schema;
     
+    @Accessor
     public String /* */ getSchema() {
         return schema;
     }
     
+    @Mutator
     public void setSchema(String /* */ newval) {
         String /* */ oldval = schema;
         schema = newval;
@@ -7079,10 +7434,12 @@ public static class Table extends Relation {
              */
     private String /* */ alias;
     
+    @Accessor
     public String /* */ getAlias() {
         return alias;
     }
     
+    @Mutator
     public void setAlias(String /* */ newval) {
         String /* */ oldval = alias;
         alias = newval;
@@ -7094,10 +7451,12 @@ public static class Table extends Relation {
          */
     private SQL /* */ filter;
     
+    @NonProperty
     public SQL /* */ getFilter() {
         return filter;
     }
     
+    @NonProperty
     public void setFilter(SQL /* */ newval) {
         SQL /* */ oldval = filter;
         if (oldval == newval) {
@@ -7161,6 +7520,7 @@ public static class Table extends Relation {
         return removedItem;
     }
 
+    @NonProperty
     public List<AggExclude> getAggExcludes() {
         return Collections.unmodifiableList(aggExcludes);
     }
@@ -7215,12 +7575,14 @@ public static class Table extends Relation {
         return removedItem;
     }
 
+    @NonProperty
     public List<AggTable> getAggTables() {
         return Collections.unmodifiableList(aggTables);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -7229,6 +7591,8 @@ public static class Table extends Relation {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -7250,6 +7614,7 @@ public static class Table extends Relation {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -7301,25 +7666,25 @@ public static class Table extends Relation {
         
         } else if (child instanceof AggExclude) {
             int offset = childPositionOffset(AggExclude.class);
-            if ((index - offset) < 0 || (index - offset) > aggExcludes.size()) {
+            if (index < 0 || index > aggExcludes.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + aggExcludes.size());
             }
-            addAggExclude(index - offset, (AggExclude) child);
+            addAggExclude(index, (AggExclude) child);
         
         } else if (child instanceof AggTable) {
             int offset = childPositionOffset(AggTable.class);
-            if ((index - offset) < 0 || (index - offset) > aggTables.size()) {
+            if (index < 0 || index > aggTables.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + aggTables.size());
             }
-            addAggTable(index - offset, (AggTable) child);
+            addAggTable(index, (AggTable) child);
         
         } else if (child instanceof SQL) {
             setFilter((SQL) child);
@@ -7361,6 +7726,7 @@ public static class InlineTable extends Relation {
      * set to their defaults.
      */
     public InlineTable() {
+        setName("New InlineTable");
     }
     
     /**
@@ -7412,10 +7778,12 @@ public static class InlineTable extends Relation {
              */
     private String /* */ alias;
     
+    @Accessor
     public String /* */ getAlias() {
         return alias;
     }
     
+    @Mutator
     public void setAlias(String /* */ newval) {
         String /* */ oldval = alias;
         alias = newval;
@@ -7425,10 +7793,12 @@ public static class InlineTable extends Relation {
     /**  */
     private ColumnDefs /* */ columnDefs;
     
+    @NonProperty
     public ColumnDefs /* */ getColumnDefs() {
         return columnDefs;
     }
     
+    @NonProperty
     public void setColumnDefs(ColumnDefs /* */ newval) {
         ColumnDefs /* */ oldval = columnDefs;
         if (oldval == newval) {
@@ -7446,10 +7816,12 @@ public static class InlineTable extends Relation {
     /**  */
     private Rows /* */ rows;
     
+    @NonProperty
     public Rows /* */ getRows() {
         return rows;
     }
     
+    @NonProperty
     public void setRows(Rows /* */ newval) {
         Rows /* */ oldval = rows;
         if (oldval == newval) {
@@ -7465,6 +7837,7 @@ public static class InlineTable extends Relation {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -7473,6 +7846,8 @@ public static class InlineTable extends Relation {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -7494,6 +7869,7 @@ public static class InlineTable extends Relation {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -7581,6 +7957,7 @@ public static class ColumnDefs extends OLAPObject {
      * set to their defaults.
      */
     public ColumnDefs() {
+        setName("New ColumnDefs");
     }
     
     /**
@@ -7650,12 +8027,14 @@ public static class ColumnDefs extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<ColumnDef> getArray() {
         return Collections.unmodifiableList(array);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -7664,6 +8043,8 @@ public static class ColumnDefs extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -7685,6 +8066,7 @@ public static class ColumnDefs extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -7724,14 +8106,14 @@ public static class ColumnDefs extends OLAPObject {
         
         } else if (child instanceof ColumnDef) {
             int offset = childPositionOffset(ColumnDef.class);
-            if ((index - offset) < 0 || (index - offset) > array.size()) {
+            if (index < 0 || index > array.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + array.size());
             }
-            addArray(index - offset, (ColumnDef) child);
+            addArray(index, (ColumnDef) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -7765,6 +8147,7 @@ public static class ColumnDef extends OLAPObject {
      * set to their defaults.
      */
     public ColumnDef() {
+        setName("New ColumnDef");
     }
     
     /**
@@ -7802,10 +8185,12 @@ public static class ColumnDef extends OLAPObject {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -7818,10 +8203,12 @@ public static class ColumnDef extends OLAPObject {
              */
     private String /* */ type;
     
+    @Accessor
     public String /* */ getType() {
         return type;
     }
     
+    @Mutator
     public void setType(String /* */ newval) {
         String /* */ oldval = type;
         type = newval;
@@ -7829,6 +8216,7 @@ public static class ColumnDef extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -7837,6 +8225,8 @@ public static class ColumnDef extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -7849,7 +8239,7 @@ public static class ColumnDef extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -7902,6 +8292,7 @@ public static class Rows extends OLAPObject {
      * set to their defaults.
      */
     public Rows() {
+        setName("New Rows");
     }
     
     /**
@@ -7971,12 +8362,14 @@ public static class Rows extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<Row> getArray() {
         return Collections.unmodifiableList(array);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -7985,6 +8378,8 @@ public static class Rows extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -8006,6 +8401,7 @@ public static class Rows extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -8045,14 +8441,14 @@ public static class Rows extends OLAPObject {
         
         } else if (child instanceof Row) {
             int offset = childPositionOffset(Row.class);
-            if ((index - offset) < 0 || (index - offset) > array.size()) {
+            if (index < 0 || index > array.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + array.size());
             }
-            addArray(index - offset, (Row) child);
+            addArray(index, (Row) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -8087,6 +8483,7 @@ public static class Row extends OLAPObject {
      * set to their defaults.
      */
     public Row() {
+        setName("New Row");
     }
     
     /**
@@ -8156,12 +8553,14 @@ public static class Row extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<Value> getValues() {
         return Collections.unmodifiableList(values);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -8170,6 +8569,8 @@ public static class Row extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -8191,6 +8592,7 @@ public static class Row extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -8230,14 +8632,14 @@ public static class Row extends OLAPObject {
         
         } else if (child instanceof Value) {
             int offset = childPositionOffset(Value.class);
-            if ((index - offset) < 0 || (index - offset) > values.size()) {
+            if (index < 0 || index > values.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + values.size());
             }
-            addValue(index - offset, (Value) child);
+            addValue(index, (Value) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -8272,6 +8674,7 @@ public static class Value extends OLAPObject {
      * set to their defaults.
      */
     public Value() {
+        setName("New Value");
     }
     
     /**
@@ -8307,10 +8710,12 @@ public static class Value extends OLAPObject {
              */
     private String /* */ column;
     
+    @Accessor
     public String /* */ getColumn() {
         return column;
     }
     
+    @Mutator
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
@@ -8319,10 +8724,12 @@ public static class Value extends OLAPObject {
 
 	private String text;
 	
+	@Accessor
 	public String getText() {
 		return text;
 	}
 	
+	@Mutator
 	public void setText(String newval) {
 		String oldval = text;
 		text = newval;
@@ -8331,6 +8738,7 @@ public static class Value extends OLAPObject {
 
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -8339,6 +8747,8 @@ public static class Value extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -8351,7 +8761,7 @@ public static class Value extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -8408,6 +8818,7 @@ public abstract static class AggTable extends OLAPObject {
      * set to their defaults.
      */
     public AggTable() {
+    setName("New AggTable");
     }
     
     /**
@@ -8429,10 +8840,12 @@ public abstract static class AggTable extends OLAPObject {
              */
     private Boolean /* */ ignorecase;
     
+    @Accessor
     public Boolean /* */ getIgnorecase() {
         return ignorecase;
     }
     
+    @Mutator
     public void setIgnorecase(Boolean /* */ newval) {
         Boolean /* */ oldval = ignorecase;
         ignorecase = newval;
@@ -8444,10 +8857,12 @@ public abstract static class AggTable extends OLAPObject {
              */
     private AggFactCount /* */ factcount;
     
+    @NonProperty
     public AggFactCount /* */ getFactcount() {
         return factcount;
     }
     
+    @NonProperty
     public void setFactcount(AggFactCount /* */ newval) {
         AggFactCount /* */ oldval = factcount;
         if (oldval == newval) {
@@ -8511,6 +8926,7 @@ public abstract static class AggTable extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<AggIgnoreColumn> getIgnoreColumns() {
         return Collections.unmodifiableList(ignoreColumns);
     }
@@ -8565,6 +8981,7 @@ public abstract static class AggTable extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<AggForeignKey> getForeignKeys() {
         return Collections.unmodifiableList(foreignKeys);
     }
@@ -8619,6 +9036,7 @@ public abstract static class AggTable extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<AggMeasure> getMeasures() {
         return Collections.unmodifiableList(measures);
     }
@@ -8673,6 +9091,7 @@ public abstract static class AggTable extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<AggLevel> getLevels() {
         return Collections.unmodifiableList(levels);
     }
@@ -8698,6 +9117,7 @@ public abstract static class AggTable extends OLAPObject {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -8706,6 +9126,8 @@ public abstract static class AggTable extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -8727,6 +9149,7 @@ public abstract static class AggTable extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -8788,47 +9211,47 @@ public abstract static class AggTable extends OLAPObject {
         
         } else if (child instanceof AggIgnoreColumn) {
             int offset = childPositionOffset(AggIgnoreColumn.class);
-            if ((index - offset) < 0 || (index - offset) > ignoreColumns.size()) {
+            if (index < 0 || index > ignoreColumns.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + ignoreColumns.size());
             }
-            addIgnoreColumn(index - offset, (AggIgnoreColumn) child);
+            addIgnoreColumn(index, (AggIgnoreColumn) child);
         
         } else if (child instanceof AggForeignKey) {
             int offset = childPositionOffset(AggForeignKey.class);
-            if ((index - offset) < 0 || (index - offset) > foreignKeys.size()) {
+            if (index < 0 || index > foreignKeys.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + foreignKeys.size());
             }
-            addForeignKey(index - offset, (AggForeignKey) child);
+            addForeignKey(index, (AggForeignKey) child);
         
         } else if (child instanceof AggMeasure) {
             int offset = childPositionOffset(AggMeasure.class);
-            if ((index - offset) < 0 || (index - offset) > measures.size()) {
+            if (index < 0 || index > measures.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + measures.size());
             }
-            addMeasure(index - offset, (AggMeasure) child);
+            addMeasure(index, (AggMeasure) child);
         
         } else if (child instanceof AggLevel) {
             int offset = childPositionOffset(AggLevel.class);
-            if ((index - offset) < 0 || (index - offset) > levels.size()) {
+            if (index < 0 || index > levels.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + levels.size());
             }
-            addLevel(index - offset, (AggLevel) child);
+            addLevel(index, (AggLevel) child);
         
         } else if (child instanceof AggFactCount) {
             setFactcount((AggFactCount) child);
@@ -8876,6 +9299,7 @@ public static class AggName extends AggTable {
      * set to their defaults.
      */
     public AggName() {
+        setName("New AggName");
     }
     
     /**
@@ -8911,10 +9335,12 @@ public static class AggName extends AggTable {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -8922,6 +9348,7 @@ public static class AggName extends AggTable {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -8930,6 +9357,8 @@ public static class AggName extends AggTable {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -8942,7 +9371,7 @@ public static class AggName extends AggTable {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     AggTable.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -8995,6 +9424,7 @@ public static class AggPattern extends AggTable {
      * set to their defaults.
      */
     public AggPattern() {
+        setName("New AggPattern");
     }
     
     /**
@@ -9030,10 +9460,12 @@ public static class AggPattern extends AggTable {
              */
     private String /* */ pattern;
     
+    @Accessor
     public String /* */ getPattern() {
         return pattern;
     }
     
+    @Mutator
     public void setPattern(String /* */ newval) {
         String /* */ oldval = pattern;
         pattern = newval;
@@ -9089,12 +9521,14 @@ public static class AggPattern extends AggTable {
         return removedItem;
     }
 
+    @NonProperty
     public List<AggExclude> getExcludes() {
         return Collections.unmodifiableList(excludes);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -9103,6 +9537,8 @@ public static class AggPattern extends AggTable {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -9124,6 +9560,7 @@ public static class AggPattern extends AggTable {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -9163,14 +9600,14 @@ public static class AggPattern extends AggTable {
         
         } else if (child instanceof AggExclude) {
             int offset = childPositionOffset(AggExclude.class);
-            if ((index - offset) < 0 || (index - offset) > excludes.size()) {
+            if (index < 0 || index > excludes.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + excludes.size());
             }
-            addExclude(index - offset, (AggExclude) child);
+            addExclude(index, (AggExclude) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -9202,6 +9639,7 @@ public static class AggExclude extends OLAPObject {
      * set to their defaults.
      */
     public AggExclude() {
+        setName("New AggExclude");
     }
     
     /**
@@ -9245,10 +9683,12 @@ public static class AggExclude extends OLAPObject {
              */
     private String /* */ pattern;
     
+    @Accessor
     public String /* */ getPattern() {
         return pattern;
     }
     
+    @Mutator
     public void setPattern(String /* */ newval) {
         String /* */ oldval = pattern;
         pattern = newval;
@@ -9260,10 +9700,12 @@ public static class AggExclude extends OLAPObject {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -9275,10 +9717,12 @@ public static class AggExclude extends OLAPObject {
              */
     private Boolean /* */ ignorecase;
     
+    @Accessor
     public Boolean /* */ getIgnorecase() {
         return ignorecase;
     }
     
+    @Mutator
     public void setIgnorecase(Boolean /* */ newval) {
         Boolean /* */ oldval = ignorecase;
         ignorecase = newval;
@@ -9286,6 +9730,7 @@ public static class AggExclude extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -9294,6 +9739,8 @@ public static class AggExclude extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -9306,7 +9753,7 @@ public static class AggExclude extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -9359,6 +9806,7 @@ public abstract static class AggColumnName extends OLAPObject {
      * set to their defaults.
      */
     public AggColumnName() {
+    setName("New AggColumnName");
     }
     
     /**
@@ -9378,10 +9826,12 @@ public abstract static class AggColumnName extends OLAPObject {
              */
     private String /* */ column;
     
+    @Accessor
     public String /* */ getColumn() {
         return column;
     }
     
+    @Mutator
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
@@ -9404,6 +9854,7 @@ public abstract static class AggColumnName extends OLAPObject {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -9412,6 +9863,8 @@ public abstract static class AggColumnName extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -9424,7 +9877,7 @@ public abstract static class AggColumnName extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -9477,6 +9930,7 @@ public static class AggFactCount extends AggColumnName {
      * set to their defaults.
      */
     public AggFactCount() {
+        setName("New AggFactCount");
     }
     
     /**
@@ -9502,6 +9956,7 @@ public static class AggFactCount extends AggColumnName {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -9510,6 +9965,8 @@ public static class AggFactCount extends AggColumnName {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -9522,7 +9979,7 @@ public static class AggFactCount extends AggColumnName {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     AggColumnName.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -9575,6 +10032,7 @@ public static class AggIgnoreColumn extends AggColumnName {
      * set to their defaults.
      */
     public AggIgnoreColumn() {
+        setName("New AggIgnoreColumn");
     }
     
     /**
@@ -9600,6 +10058,7 @@ public static class AggIgnoreColumn extends AggColumnName {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -9608,6 +10067,8 @@ public static class AggIgnoreColumn extends AggColumnName {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -9620,7 +10081,7 @@ public static class AggIgnoreColumn extends AggColumnName {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     AggColumnName.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -9676,6 +10137,7 @@ public static class AggForeignKey extends OLAPObject {
      * set to their defaults.
      */
     public AggForeignKey() {
+        setName("New AggForeignKey");
     }
     
     /**
@@ -9713,10 +10175,12 @@ public static class AggForeignKey extends OLAPObject {
              */
     private String /* */ factColumn;
     
+    @Accessor
     public String /* */ getFactColumn() {
         return factColumn;
     }
     
+    @Mutator
     public void setFactColumn(String /* */ newval) {
         String /* */ oldval = factColumn;
         factColumn = newval;
@@ -9728,10 +10192,12 @@ public static class AggForeignKey extends OLAPObject {
              */
     private String /* */ aggColumn;
     
+    @Accessor
     public String /* */ getAggColumn() {
         return aggColumn;
     }
     
+    @Mutator
     public void setAggColumn(String /* */ newval) {
         String /* */ oldval = aggColumn;
         aggColumn = newval;
@@ -9739,6 +10205,7 @@ public static class AggForeignKey extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -9747,6 +10214,8 @@ public static class AggForeignKey extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -9759,7 +10228,7 @@ public static class AggForeignKey extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -9812,6 +10281,7 @@ public static class AggLevel extends OLAPObject {
      * set to their defaults.
      */
     public AggLevel() {
+        setName("New AggLevel");
     }
     
     /**
@@ -9849,10 +10319,12 @@ public static class AggLevel extends OLAPObject {
              */
     private String /* */ column;
     
+    @Accessor
     public String /* */ getColumn() {
         return column;
     }
     
+    @Mutator
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
@@ -9864,10 +10336,12 @@ public static class AggLevel extends OLAPObject {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -9875,6 +10349,7 @@ public static class AggLevel extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -9883,6 +10358,8 @@ public static class AggLevel extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -9895,7 +10372,7 @@ public static class AggLevel extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -9948,6 +10425,7 @@ public static class AggMeasure extends OLAPObject {
      * set to their defaults.
      */
     public AggMeasure() {
+        setName("New AggMeasure");
     }
     
     /**
@@ -9985,10 +10463,12 @@ public static class AggMeasure extends OLAPObject {
              */
     private String /* */ column;
     
+    @Accessor
     public String /* */ getColumn() {
         return column;
     }
     
+    @Mutator
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
@@ -10000,10 +10480,12 @@ public static class AggMeasure extends OLAPObject {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -10011,6 +10493,7 @@ public static class AggMeasure extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -10019,6 +10502,8 @@ public static class AggMeasure extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -10031,7 +10516,7 @@ public static class AggMeasure extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -10084,6 +10569,7 @@ public abstract static class Expression extends OLAPObject {
      * set to their defaults.
      */
     public Expression() {
+    setName("New Expression");
     }
     
     /**
@@ -10108,6 +10594,7 @@ public abstract static class Expression extends OLAPObject {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -10116,6 +10603,8 @@ public abstract static class Expression extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -10128,7 +10617,7 @@ public abstract static class Expression extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -10181,6 +10670,7 @@ public static class Column extends Expression {
      * set to their defaults.
      */
     public Column() {
+        setName("New Column");
     }
     
     /**
@@ -10223,10 +10713,12 @@ public static class Column extends Expression {
              */
     private String /* */ table;
     
+    @Accessor
     public String /* */ getTable() {
         return table;
     }
     
+    @Mutator
     public void setTable(String /* */ newval) {
         String /* */ oldval = table;
         table = newval;
@@ -10238,10 +10730,12 @@ public static class Column extends Expression {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -10249,6 +10743,7 @@ public static class Column extends Expression {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -10257,6 +10752,8 @@ public static class Column extends Expression {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -10269,7 +10766,7 @@ public static class Column extends Expression {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Expression.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -10324,6 +10821,7 @@ public abstract static class ExpressionView extends Expression {
      * set to their defaults.
      */
     public ExpressionView() {
+    setName("New ExpressionView");
     }
     
     /**
@@ -10385,6 +10883,7 @@ public abstract static class ExpressionView extends Expression {
         return removedItem;
     }
 
+    @NonProperty
     public List<SQL> getExpressions() {
         return Collections.unmodifiableList(expressions);
     }
@@ -10406,6 +10905,7 @@ public abstract static class ExpressionView extends Expression {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -10414,6 +10914,8 @@ public abstract static class ExpressionView extends Expression {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -10435,6 +10937,7 @@ public abstract static class ExpressionView extends Expression {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -10474,14 +10977,14 @@ public abstract static class ExpressionView extends Expression {
         
         } else if (child instanceof SQL) {
             int offset = childPositionOffset(SQL.class);
-            if ((index - offset) < 0 || (index - offset) > expressions.size()) {
+            if (index < 0 || index > expressions.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + expressions.size());
             }
-            addExpression(index - offset, (SQL) child);
+            addExpression(index, (SQL) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -10513,6 +11016,7 @@ public static class KeyExpression extends ExpressionView {
      * set to their defaults.
      */
     public KeyExpression() {
+        setName("New KeyExpression");
     }
     
     /**
@@ -10538,6 +11042,7 @@ public static class KeyExpression extends ExpressionView {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -10546,6 +11051,8 @@ public static class KeyExpression extends ExpressionView {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -10558,7 +11065,7 @@ public static class KeyExpression extends ExpressionView {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     ExpressionView.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -10611,6 +11118,7 @@ public static class ParentExpression extends ExpressionView {
      * set to their defaults.
      */
     public ParentExpression() {
+        setName("New ParentExpression");
     }
     
     /**
@@ -10636,6 +11144,7 @@ public static class ParentExpression extends ExpressionView {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -10644,6 +11153,8 @@ public static class ParentExpression extends ExpressionView {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -10656,7 +11167,7 @@ public static class ParentExpression extends ExpressionView {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     ExpressionView.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -10709,6 +11220,7 @@ public static class OrdinalExpression extends ExpressionView {
      * set to their defaults.
      */
     public OrdinalExpression() {
+        setName("New OrdinalExpression");
     }
     
     /**
@@ -10734,6 +11246,7 @@ public static class OrdinalExpression extends ExpressionView {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -10742,6 +11255,8 @@ public static class OrdinalExpression extends ExpressionView {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -10754,7 +11269,7 @@ public static class OrdinalExpression extends ExpressionView {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     ExpressionView.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -10807,6 +11322,7 @@ public static class NameExpression extends ExpressionView {
      * set to their defaults.
      */
     public NameExpression() {
+        setName("New NameExpression");
     }
     
     /**
@@ -10832,6 +11348,7 @@ public static class NameExpression extends ExpressionView {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -10840,6 +11357,8 @@ public static class NameExpression extends ExpressionView {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -10852,7 +11371,7 @@ public static class NameExpression extends ExpressionView {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     ExpressionView.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -10905,6 +11424,7 @@ public static class CaptionExpression extends ExpressionView {
      * set to their defaults.
      */
     public CaptionExpression() {
+        setName("New CaptionExpression");
     }
     
     /**
@@ -10930,6 +11450,7 @@ public static class CaptionExpression extends ExpressionView {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -10938,6 +11459,8 @@ public static class CaptionExpression extends ExpressionView {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -10950,7 +11473,7 @@ public static class CaptionExpression extends ExpressionView {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     ExpressionView.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -11003,6 +11526,7 @@ public static class MeasureExpression extends ExpressionView {
      * set to their defaults.
      */
     public MeasureExpression() {
+        setName("New MeasureExpression");
     }
     
     /**
@@ -11028,6 +11552,7 @@ public static class MeasureExpression extends ExpressionView {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -11036,6 +11561,8 @@ public static class MeasureExpression extends ExpressionView {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -11048,7 +11575,7 @@ public static class MeasureExpression extends ExpressionView {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     ExpressionView.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -11104,6 +11631,7 @@ public static class Role extends OLAPObject {
      * set to their defaults.
      */
     public Role() {
+        setName("New Role");
     }
     
     /**
@@ -11139,10 +11667,12 @@ public static class Role extends OLAPObject {
     /**  */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -11198,6 +11728,7 @@ public static class Role extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<SchemaGrant> getSchemaGrants() {
         return Collections.unmodifiableList(schemaGrants);
     }
@@ -11206,10 +11737,12 @@ public static class Role extends OLAPObject {
     /**  */
     private Union /* */ union;
     
+    @NonProperty
     public Union /* */ getUnion() {
         return union;
     }
     
+    @NonProperty
     public void setUnion(Union /* */ newval) {
         Union /* */ oldval = union;
         if (oldval == newval) {
@@ -11225,6 +11758,7 @@ public static class Role extends OLAPObject {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -11233,6 +11767,8 @@ public static class Role extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -11254,6 +11790,7 @@ public static class Role extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -11300,14 +11837,14 @@ public static class Role extends OLAPObject {
         
         } else if (child instanceof SchemaGrant) {
             int offset = childPositionOffset(SchemaGrant.class);
-            if ((index - offset) < 0 || (index - offset) > schemaGrants.size()) {
+            if (index < 0 || index > schemaGrants.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + schemaGrants.size());
             }
-            addSchemaGrant(index - offset, (SchemaGrant) child);
+            addSchemaGrant(index, (SchemaGrant) child);
         
         } else if (child instanceof Union) {
             setUnion((Union) child);
@@ -11346,6 +11883,7 @@ public abstract static class Grant extends OLAPObject {
      * set to their defaults.
      */
     public Grant() {
+    setName("New Grant");
     }
     
     /**
@@ -11363,10 +11901,12 @@ public abstract static class Grant extends OLAPObject {
     /** Values correspond to Access. */
     private String /* */ access;
     
+    @Accessor
     public String /* */ getAccess() {
         return access;
     }
     
+    @Mutator
     public void setAccess(String /* */ newval) {
         String /* */ oldval = access;
         access = newval;
@@ -11389,6 +11929,7 @@ public abstract static class Grant extends OLAPObject {
 	}
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -11397,6 +11938,8 @@ public abstract static class Grant extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -11409,7 +11952,7 @@ public abstract static class Grant extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -11468,6 +12011,7 @@ public static class SchemaGrant extends Grant {
      * set to their defaults.
      */
     public SchemaGrant() {
+        setName("New SchemaGrant");
     }
     
     /**
@@ -11541,12 +12085,14 @@ public static class SchemaGrant extends Grant {
         return removedItem;
     }
 
+    @NonProperty
     public List<CubeGrant> getCubeGrants() {
         return Collections.unmodifiableList(cubeGrants);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -11555,6 +12101,8 @@ public static class SchemaGrant extends Grant {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -11576,6 +12124,7 @@ public static class SchemaGrant extends Grant {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -11615,14 +12164,14 @@ public static class SchemaGrant extends Grant {
         
         } else if (child instanceof CubeGrant) {
             int offset = childPositionOffset(CubeGrant.class);
-            if ((index - offset) < 0 || (index - offset) > cubeGrants.size()) {
+            if (index < 0 || index > cubeGrants.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + cubeGrants.size());
             }
-            addCubeGrant(index - offset, (CubeGrant) child);
+            addCubeGrant(index, (CubeGrant) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -11658,6 +12207,7 @@ public static class CubeGrant extends Grant {
      * set to their defaults.
      */
     public CubeGrant() {
+        setName("New CubeGrant");
     }
     
     /**
@@ -11691,10 +12241,12 @@ public static class CubeGrant extends Grant {
     /** The unique name of the cube */
     private String /* */ cube;
     
+    @Accessor
     public String /* */ getCube() {
         return cube;
     }
     
+    @Mutator
     public void setCube(String /* */ newval) {
         String /* */ oldval = cube;
         cube = newval;
@@ -11750,6 +12302,7 @@ public static class CubeGrant extends Grant {
         return removedItem;
     }
 
+    @NonProperty
     public List<DimensionGrant> getDimensionGrants() {
         return Collections.unmodifiableList(dimensionGrants);
     }
@@ -11804,12 +12357,14 @@ public static class CubeGrant extends Grant {
         return removedItem;
     }
 
+    @NonProperty
     public List<HierarchyGrant> getHierarchyGrants() {
         return Collections.unmodifiableList(hierarchyGrants);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -11818,6 +12373,8 @@ public static class CubeGrant extends Grant {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -11839,6 +12396,7 @@ public static class CubeGrant extends Grant {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -11883,25 +12441,25 @@ public static class CubeGrant extends Grant {
         
         } else if (child instanceof DimensionGrant) {
             int offset = childPositionOffset(DimensionGrant.class);
-            if ((index - offset) < 0 || (index - offset) > dimensionGrants.size()) {
+            if (index < 0 || index > dimensionGrants.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + dimensionGrants.size());
             }
-            addDimensionGrant(index - offset, (DimensionGrant) child);
+            addDimensionGrant(index, (DimensionGrant) child);
         
         } else if (child instanceof HierarchyGrant) {
             int offset = childPositionOffset(HierarchyGrant.class);
-            if ((index - offset) < 0 || (index - offset) > hierarchyGrants.size()) {
+            if (index < 0 || index > hierarchyGrants.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + hierarchyGrants.size());
             }
-            addHierarchyGrant(index - offset, (HierarchyGrant) child);
+            addHierarchyGrant(index, (HierarchyGrant) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -11943,6 +12501,7 @@ public static class DimensionGrant extends Grant {
      * set to their defaults.
      */
     public DimensionGrant() {
+        setName("New DimensionGrant");
     }
     
     /**
@@ -11976,10 +12535,12 @@ public static class DimensionGrant extends Grant {
     /** The unique name of the dimension */
     private String /* */ dimension;
     
+    @Accessor
     public String /* */ getDimension() {
         return dimension;
     }
     
+    @Mutator
     public void setDimension(String /* */ newval) {
         String /* */ oldval = dimension;
         dimension = newval;
@@ -11987,6 +12548,7 @@ public static class DimensionGrant extends Grant {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -11995,6 +12557,8 @@ public static class DimensionGrant extends Grant {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -12007,7 +12571,7 @@ public static class DimensionGrant extends Grant {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Grant.allowedChildTypes;
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -12067,6 +12631,7 @@ public static class HierarchyGrant extends Grant {
      * set to their defaults.
      */
     public HierarchyGrant() {
+        setName("New HierarchyGrant");
     }
     
     /**
@@ -12118,10 +12683,12 @@ public static class HierarchyGrant extends Grant {
     /** The unique name of the hierarchy */
     private String /* */ hierarchy;
     
+    @Accessor
     public String /* */ getHierarchy() {
         return hierarchy;
     }
     
+    @Mutator
     public void setHierarchy(String /* */ newval) {
         String /* */ oldval = hierarchy;
         hierarchy = newval;
@@ -12134,10 +12701,12 @@ public static class HierarchyGrant extends Grant {
             specified, role can see members up to the top level. */
     private String /* */ topLevel;
     
+    @Accessor
     public String /* */ getTopLevel() {
         return topLevel;
     }
     
+    @Mutator
     public void setTopLevel(String /* */ newval) {
         String /* */ oldval = topLevel;
         topLevel = newval;
@@ -12150,10 +12719,12 @@ public static class HierarchyGrant extends Grant {
             specified, role can see members down to the leaf level. */
     private String /* */ bottomLevel;
     
+    @Accessor
     public String /* */ getBottomLevel() {
         return bottomLevel;
     }
     
+    @Mutator
     public void setBottomLevel(String /* */ newval) {
         String /* */ oldval = bottomLevel;
         bottomLevel = newval;
@@ -12166,10 +12737,12 @@ public static class HierarchyGrant extends Grant {
                 'partial', and 'hidden'. */
     private String /* */ rollupPolicy;
     
+    @Accessor
     public String /* */ getRollupPolicy() {
         return rollupPolicy;
     }
     
+    @Mutator
     public void setRollupPolicy(String /* */ newval) {
         String /* */ oldval = rollupPolicy;
         rollupPolicy = newval;
@@ -12225,12 +12798,14 @@ public static class HierarchyGrant extends Grant {
         return removedItem;
     }
 
+    @NonProperty
     public List<MemberGrant> getMemberGrants() {
         return Collections.unmodifiableList(memberGrants);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -12239,6 +12814,8 @@ public static class HierarchyGrant extends Grant {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -12260,6 +12837,7 @@ public static class HierarchyGrant extends Grant {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -12299,14 +12877,14 @@ public static class HierarchyGrant extends Grant {
         
         } else if (child instanceof MemberGrant) {
             int offset = childPositionOffset(MemberGrant.class);
-            if ((index - offset) < 0 || (index - offset) > memberGrants.size()) {
+            if (index < 0 || index > memberGrants.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + memberGrants.size());
             }
-            addMemberGrant(index - offset, (MemberGrant) child);
+            addMemberGrant(index, (MemberGrant) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -12343,6 +12921,7 @@ public static class MemberGrant extends OLAPObject {
      * set to their defaults.
      */
     public MemberGrant() {
+        setName("New MemberGrant");
     }
     
     /**
@@ -12378,10 +12957,12 @@ public static class MemberGrant extends OLAPObject {
     /** The unique name of the member */
     private String /* */ member;
     
+    @Accessor
     public String /* */ getMember() {
         return member;
     }
     
+    @Mutator
     public void setMember(String /* */ newval) {
         String /* */ oldval = member;
         member = newval;
@@ -12391,10 +12972,12 @@ public static class MemberGrant extends OLAPObject {
     /**  */
     private String /* */ access;
     
+    @Accessor
     public String /* */ getAccess() {
         return access;
     }
     
+    @Mutator
     public void setAccess(String /* */ newval) {
         String /* */ oldval = access;
         access = newval;
@@ -12402,6 +12985,7 @@ public static class MemberGrant extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -12410,6 +12994,8 @@ public static class MemberGrant extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -12422,7 +13008,7 @@ public static class MemberGrant extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -12479,6 +13065,7 @@ public static class Union extends OLAPObject {
      * set to their defaults.
      */
     public Union() {
+        setName("New Union");
     }
     
     /**
@@ -12548,12 +13135,14 @@ public static class Union extends OLAPObject {
         return removedItem;
     }
 
+    @NonProperty
     public List<RoleUsage> getRoleUsages() {
         return Collections.unmodifiableList(roleUsages);
     }
     
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -12562,6 +13151,8 @@ public static class Union extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -12583,6 +13174,7 @@ public static class Union extends OLAPObject {
         
     }
       
+    @NonProperty
     public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -12622,14 +13214,14 @@ public static class Union extends OLAPObject {
         
         } else if (child instanceof RoleUsage) {
             int offset = childPositionOffset(RoleUsage.class);
-            if ((index - offset) < 0 || (index - offset) > roleUsages.size()) {
+            if (index < 0 || index > roleUsages.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + roleUsages.size());
             }
-            addRoleUsage(index - offset, (RoleUsage) child);
+            addRoleUsage(index, (RoleUsage) child);
         
         } else {
             super.addChildImpl(child, index);
@@ -12663,6 +13255,7 @@ public static class RoleUsage extends OLAPObject {
      * set to their defaults.
      */
     public RoleUsage() {
+        setName("New RoleUsage");
     }
     
     /**
@@ -12692,10 +13285,12 @@ public static class RoleUsage extends OLAPObject {
     /**  */
     private String /* */ roleName;
     
+    @Accessor
     public String /* */ getRoleName() {
         return roleName;
     }
     
+    @Mutator
     public void setRoleName(String /* */ newval) {
         String /* */ oldval = roleName;
         roleName = newval;
@@ -12703,6 +13298,7 @@ public static class RoleUsage extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -12711,6 +13307,8 @@ public static class RoleUsage extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -12723,7 +13321,7 @@ public static class RoleUsage extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -12781,6 +13379,7 @@ public static class UserDefinedFunction extends OLAPObject {
      * set to their defaults.
      */
     public UserDefinedFunction() {
+        setName("New UserDefinedFunction");
     }
     
     /**
@@ -12816,10 +13415,12 @@ public static class UserDefinedFunction extends OLAPObject {
     /** Name with which the user-defined function will be referenced in MDX expressions. */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -12833,10 +13434,12 @@ public static class UserDefinedFunction extends OLAPObject {
              */
     private String /* */ className;
     
+    @Accessor
     public String /* */ getClassName() {
         return className;
     }
     
+    @Mutator
     public void setClassName(String /* */ newval) {
         String /* */ oldval = className;
         className = newval;
@@ -12844,6 +13447,7 @@ public static class UserDefinedFunction extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -12852,6 +13456,8 @@ public static class UserDefinedFunction extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -12864,7 +13470,7 @@ public static class UserDefinedFunction extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
@@ -12921,6 +13527,7 @@ public static class Parameter extends OLAPObject {
      * set to their defaults.
      */
     public Parameter() {
+        setName("New Parameter");
     }
     
     /**
@@ -12976,10 +13583,12 @@ public static class Parameter extends OLAPObject {
              */
     private String /* */ name;
     
+    @Accessor
     public String /* */ getName() {
         return name;
     }
     
+    @Mutator
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
@@ -12991,10 +13600,12 @@ public static class Parameter extends OLAPObject {
              */
     private String /* */ description;
     
+    @Accessor
     public String /* */ getDescription() {
         return description;
     }
     
+    @Mutator
     public void setDescription(String /* */ newval) {
         String /* */ oldval = description;
         description = newval;
@@ -13007,10 +13618,12 @@ public static class Parameter extends OLAPObject {
              */
     private String /* */ type;
     
+    @Accessor
     public String /* */ getType() {
         return type;
     }
     
+    @Mutator
     public void setType(String /* */ newval) {
         String /* */ oldval = type;
         type = newval;
@@ -13025,10 +13638,12 @@ public static class Parameter extends OLAPObject {
              */
     private Boolean /* */ modifiable;
     
+    @Accessor
     public Boolean /* */ getModifiable() {
         return modifiable;
     }
     
+    @Mutator
     public void setModifiable(Boolean /* */ newval) {
         Boolean /* */ oldval = modifiable;
         modifiable = newval;
@@ -13040,10 +13655,12 @@ public static class Parameter extends OLAPObject {
              */
     private String /* */ defaultValue;
     
+    @Accessor
     public String /* */ getDefaultValue() {
         return defaultValue;
     }
     
+    @Mutator
     public void setDefaultValue(String /* */ newval) {
         String /* */ oldval = defaultValue;
         defaultValue = newval;
@@ -13051,6 +13668,7 @@ public static class Parameter extends OLAPObject {
     }
 
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -13059,6 +13677,8 @@ public static class Parameter extends OLAPObject {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -13071,7 +13691,7 @@ public static class Parameter extends OLAPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes =
     Collections.emptyList();
         
-    
+    @NonProperty
     public List<SPObject> getChildren() {
         return Collections.emptyList();
     }

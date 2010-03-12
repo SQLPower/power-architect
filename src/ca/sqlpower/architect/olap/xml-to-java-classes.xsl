@@ -26,6 +26,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonProperty;
+import ca.sqlpower.object.annotation.Transient;
 
 
 /**
@@ -51,6 +55,7 @@ public static class <xsl:value-of select="@type"/> extends <xsl:call-template na
      * set to their defaults.
      */
     public <xsl:value-of select="@type"/>() {
+        setName("New <xsl:value-of select="@type"/>");
     }
     
     /**
@@ -113,6 +118,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
      * set to their defaults.
      */
     public <xsl:value-of select="@class"/>() {
+    setName("New <xsl:value-of select="@class"/>");
     }
     
     /**
@@ -169,10 +175,12 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
     /** <xsl:copy-of select="Doc"/> */
     private <xsl:call-template name="attribute-type"/> /* */ <xsl:value-of select="@name"/>;
     
+    @Accessor
     public <xsl:call-template name="attribute-type"/> /* */ get<xsl:call-template name="name-initcap"/>() {
         return <xsl:value-of select="@name"/>;
     }
     
+    @Mutator
     public void set<xsl:call-template name="name-initcap"/>(<xsl:call-template name="attribute-type"/> /* */ newval) {
         <xsl:call-template name="attribute-type"/> /* */ oldval = <xsl:value-of select="@name"/>;
         <xsl:value-of select="@name"/> = newval;
@@ -187,10 +195,12 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
     /** <xsl:copy-of select="Doc"/> */
     private <xsl:call-template name="attribute-type"/> /* */ <xsl:value-of select="@name"/>;
     
+    @NonProperty
     public <xsl:call-template name="attribute-type"/> /* */ get<xsl:call-template name="name-initcap"/>() {
         return <xsl:value-of select="@name"/>;
     }
     
+    @NonProperty
     public void set<xsl:call-template name="name-initcap"/>(<xsl:call-template name="attribute-type"/> /* */ newval) {
         <xsl:call-template name="attribute-type"/> /* */ oldval = <xsl:value-of select="@name"/>;
         if (oldval == newval) {
@@ -211,10 +221,12 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
 <xsl:template match="CData">
 	private String text;
 	
+	@Accessor
 	public String getText() {
 		return text;
 	}
 	
+	@Mutator
 	public void setText(String newval) {
 		String oldval = text;
 		text = newval;
@@ -281,6 +293,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         return removedItem;
     }
 
+    @NonProperty
     public List&lt;<xsl:value-of select="@type"/>&gt; get<xsl:call-template name="name-initcap"/>() {
         return Collections.unmodifiableList(<xsl:value-of select="@name"/>);
     }
@@ -289,6 +302,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
 
 <xsl:template name="children-methods">
 
+    @Transient @Accessor
     public List&lt;Class&lt;? extends SPObject&gt;&gt; getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -297,6 +311,8 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");        
     }
+    
+    @Transient @Accessor
     public List&lt;? extends SPObject&gt; getDependencies() {
         throw new IllegalStateException("Dependency management has not been setup for " + 
             "OLAP objects because they reference each other by name.");
@@ -330,6 +346,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         
     }
       
+    @NonProperty
     public List&lt;SPObject&gt; getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
@@ -382,7 +399,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         <xsl:otherwise>Collections.emptyList();</xsl:otherwise>
     </xsl:choose>
         
-    
+    @NonProperty
     public List&lt;SPObject&gt; getChildren() {
         return Collections.emptyList();
     }
@@ -425,14 +442,14 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         <xsl:for-each select="Array">
         } else if (child instanceof <xsl:value-of select="@type"/>) {
             int offset = childPositionOffset(<xsl:value-of select="@type"/>.class);
-            if ((index - offset) &lt; 0 || (index - offset) &gt; <xsl:value-of select="@name"/>.size()) {
+            if (index &lt; 0 || index &gt; <xsl:value-of select="@name"/>.size()) {
                 throw new IllegalArgumentException(
                     "Index out of bounds for this child type. " +
                     "You gave: " + index +
-                    ". min= " + offset +
+                    ". min= " + 0 +
                     "; max=" + <xsl:value-of select="@name"/>.size());
             }
-            add<xsl:call-template name="name-initcap-nonplural"/>(index - offset, (<xsl:value-of select="@type"/>) child);
+            add<xsl:call-template name="name-initcap-nonplural"/>(index, (<xsl:value-of select="@type"/>) child);
         </xsl:for-each>
         <xsl:for-each select="Object">
         } else if (child instanceof <xsl:value-of select="@type"/>) {

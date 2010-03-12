@@ -25,6 +25,9 @@ import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.NonProperty;
+import ca.sqlpower.object.annotation.Transient;
 
 /**
  * The top of the OLAP business model. This root object contains OLAPSessions, each
@@ -44,6 +47,7 @@ public class OLAPRootObject extends OLAPObject {
     private final List<OLAPSession> olapSessions = new ArrayList<OLAPSession>();
     
     public OLAPRootObject() {
+        setName("OLAP Root Object");
     }
 
     @Override
@@ -97,6 +101,7 @@ public class OLAPRootObject extends OLAPObject {
         return true;
     }
 
+    @NonProperty
     public List<OLAPSession> getChildren() {
         return Collections.unmodifiableList(olapSessions);
     }
@@ -110,10 +115,12 @@ public class OLAPRootObject extends OLAPObject {
         }
     }
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
 
+    @Transient @Accessor
     public List<? extends SPObject> getDependencies() {
         return Collections.emptyList();
     }

@@ -108,11 +108,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private final ArchitectSession delegateSession;
     
     /**
-     * This OLAP object contains the OLAP session.
-     */
-    private OLAPRootObject olapRootObject;
-
-    /**
      * The Frame where the main part of the GUI for this session appears.
      */
     private ArchitectFrame frame;
@@ -262,7 +257,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.context = context;
         this.delegateSession = delegateSession;
         delegateSession.getWorkspace().setSession(this);
-        this.olapRootObject = new OLAPRootObject();
         ProfileManagerImpl profileManager = new ProfileManagerImpl();
         ((ArchitectSessionImpl)delegateSession).setProfileManager(profileManager);
         ((ArchitectSessionImpl)delegateSession).setUserPrompterFactory(this);
@@ -918,7 +912,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
     
     public OLAPRootObject getOLAPRootObject() {
-        return olapRootObject;
+        return getWorkspace().getOlapRootObject();
     }
     
     /**

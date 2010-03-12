@@ -47,8 +47,7 @@ public abstract class OLAPObject extends AbstractSPObject {
     }
     
     public void addChild(SPObject child) {
-        addChild(child, childPositionOffset(child.getClass()) + 
-                getChildren(child.getClass()).size());
+        addChild(child, getChildren(child.getClass()).size());
     }
     
     protected OLAPObject(OLAPObject original) {

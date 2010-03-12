@@ -75,6 +75,7 @@ public class OLAPSession extends OLAPObject {
     @Constructor
     public OLAPSession(
             @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="schema") Schema schema) {
+        setName("New Session");
         if (schema.getParent() != null) {
             throw new IllegalStateException(
                     "The given schema already belongs to an OLAP Session");
@@ -113,7 +114,9 @@ public class OLAPSession extends OLAPObject {
      */
     @Mutator
     public void setDatabase(SQLDatabase database) {
+        SQLDatabase oldDB = this.database;
         this.database = database;
+        firePropertyChange("database", oldDB, database);
     }
     
     /**

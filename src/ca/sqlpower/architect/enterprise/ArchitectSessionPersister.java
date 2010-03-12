@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.dao.PersistedSPOProperty;
 import ca.sqlpower.dao.PersistedSPObject;
 import ca.sqlpower.dao.SPSessionPersister;
@@ -52,6 +53,14 @@ public class ArchitectSessionPersister extends SPSessionPersister {
         ArchitectProject architectProject = (ArchitectProject) root;
         architectProject.getRootObject().setUUID(rootObjectUUID);
         persistedRootObject.setLoaded(true);
+        
+        String olapRootObjectUUID = (String) AbstractSPPersisterHelper.findPropertyAndRemove(
+                pso.getUUID(), "olapRootObject", persistedProperties);
+        
+        PersistedSPObject persistedOlapRootObject = AbstractSPPersisterHelper.findPersistedSPObject(
+                pso.getUUID(), OLAPRootObject.class.getName(), olapRootObjectUUID, persistedObjects);
+        architectProject.getOlapRootObject().setUUID(olapRootObjectUUID);
+        persistedOlapRootObject.setLoaded(true);
         
         List<PersistedSPObject> databases = new ArrayList<PersistedSPObject>();
         for (PersistedSPObject o : persistedObjects) {

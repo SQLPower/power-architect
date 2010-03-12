@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
@@ -60,7 +61,7 @@ public class ArchitectProject extends AbstractSPObject {
     @SuppressWarnings("unchecked")
     public static List<Class<? extends SPObject>> allowedChildTypes = 
         Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Arrays.asList(SQLObjectRoot.class, ProfileManager.class)));
+                Arrays.asList(SQLObjectRoot.class, ProfileManager.class, OLAPRootObject.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -68,6 +69,11 @@ public class ArchitectProject extends AbstractSPObject {
     private ArchitectSession session;
     private final SQLObjectRoot rootObject;
     private ProfileManager profileManager; 
+    
+    /**
+     * This OLAP object contains the OLAP session.
+     */
+    private final OLAPRootObject olapRootObject;
     
     /**
      * The current integrity watcher on the project.
@@ -80,7 +86,7 @@ public class ArchitectProject extends AbstractSPObject {
      * @throws SQLObjectException
      */
     public ArchitectProject() throws SQLObjectException {
-        this(new SQLObjectRoot());
+        this(new SQLObjectRoot(), new OLAPRootObject());
         
         SQLDatabase targetDatabase = new SQLDatabase();
         targetDatabase.setPlayPenDatabase(true);
@@ -96,10 +102,14 @@ public class ArchitectProject extends AbstractSPObject {
      *            current project.
      */
     @Constructor
-    public ArchitectProject(@ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject) 
+    public ArchitectProject(
+            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject,
+            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="olapRootObject") OLAPRootObject olapRootObject) 
             throws SQLObjectException {
         this.rootObject = rootObject;
         rootObject.setParent(this);
+        this.olapRootObject = olapRootObject;
+        olapRootObject.setParent(this);
         setName("Architect Project");
     }
 
@@ -220,6 +230,8 @@ public class ArchitectProject extends AbstractSPObject {
             return 0;
         } else if (ProfileManager.class.isAssignableFrom(childType)) {
             return 1;
+        } else if (OLAPRootObject.class.isAssignableFrom(childType)) {
+            return 2;
         } else {
             throw new IllegalArgumentException();
         }
@@ -237,6 +249,7 @@ public class ArchitectProject extends AbstractSPObject {
         if (profileManager != null) {
             allChildren.add(profileManager);
         }
+        allChildren.add(olapRootObject);
         return allChildren;
     }
     
@@ -248,6 +261,7 @@ public class ArchitectProject extends AbstractSPObject {
     public void removeDependency(SPObject dependency) {
         rootObject.removeDependency(dependency);
         profileManager.removeDependency(dependency);
+        olapRootObject.removeDependency(dependency);
     }
     
     protected void addChildImpl(SPObject child, int index) {
@@ -257,5 +271,10 @@ public class ArchitectProject extends AbstractSPObject {
             throw new IllegalArgumentException("Cannot add child of type " + 
                     child.getClass() + " to the project once it has been created.");
         }
+    }
+
+    @Accessor
+    public OLAPRootObject getOlapRootObject() {
+        return olapRootObject;
     }
 }
