@@ -20,6 +20,9 @@
 package ca.sqlpower.architect.util;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.olap.OLAPRootObject;
+import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileSettings;
@@ -74,6 +77,12 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             }
             getRootObject().addChild(project, 0);
             return project;
+        } else if (valueType == OLAPSession.class) {
+            OLAPSession session = new OLAPSession(new Schema());
+            OLAPRootObject root = new OLAPRootObject();
+            root.addChild(session);
+            getRootObject().addChild(root, 0);
+            return session;
         } else {
             return super.makeNewValue(valueType, oldVal, propName);
         }
