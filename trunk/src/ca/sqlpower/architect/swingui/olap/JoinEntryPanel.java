@@ -249,7 +249,7 @@ public class JoinEntryPanel implements DataEntryPanel {
             InlineTable table = (InlineTable) relation;
             
             Container inlineContainer = new ItemContainer(table.getName());
-            for (OLAPObject child : table.getChildren()) {
+            for (OLAPObject child : table.getChildren(OLAPObject.class)) {
                 Item childItem = new StringItem(child.getName());
                 inlineContainer.addItem(childItem);
             }

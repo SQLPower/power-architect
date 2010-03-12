@@ -20,16 +20,27 @@
 package ca.sqlpower.architect.olap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.object.SPObject;
 
 /**
  * The top of the OLAP business model. This root object contains OLAPSessions, each
  * of which contains exactly one Schema object.
  */
 public class OLAPRootObject extends OLAPObject {
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    @SuppressWarnings("unchecked")
+    public static List<Class<? extends SPObject>> allowedChildTypes = 
+        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
+                Arrays.asList(OLAPSession.class)));
+
 
     /**
      * The session this OLAPRootObject belongs to. Each Architect Session should
@@ -44,22 +55,22 @@ public class OLAPRootObject extends OLAPObject {
     }
 
     @Override
-    public void addChild(OLAPObject child) {
+    protected void addChildImpl(SPObject child, int index) {
         if (child instanceof OLAPSession) {
-            olapSessions.add((OLAPSession) child);
+            olapSessions.add(index, (OLAPSession) child);
             child.setParent(this);
-            fireChildAdded(OLAPSession.class, olapSessions.size(), child);
+            fireChildAdded(OLAPSession.class, child, index);
         }
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    protected boolean removeChildImpl(SPObject child) {
         if (child instanceof OLAPSession) {
             return removeOLAPSession((OLAPSession) child);
-        } else {
-            return super.removeChild(child);
         }
+        return false;
     }
+    
     
     /** 
      * Removes the given child object, firing an OLAPChildEvent if the child was found.
@@ -85,7 +96,7 @@ public class OLAPRootObject extends OLAPObject {
         OLAPSession removedItem = olapSessions.remove(pos);
         if (removedItem != null) {
             removedItem.setParent(null);
-            fireChildRemoved(OLAPSession.class, pos, removedItem);
+            fireChildRemoved(OLAPSession.class, removedItem, pos);
         }
         return removedItem;
     }
@@ -97,13 +108,32 @@ public class OLAPRootObject extends OLAPObject {
         return architectSession;
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
 
-    @Override
     public List<OLAPSession> getChildren() {
         return Collections.unmodifiableList(olapSessions);
+    }
+
+    public int childPositionOffset(Class<? extends SPObject> childType) {
+        if (OLAPSession.class.equals(childType)) {
+            return 0;
+        } else {
+            throw new IllegalArgumentException("Child type " + childType + 
+                    " is not a valid child type of " + OLAPRootObject.class);        
+        }
+    }
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public List<? extends SPObject> getDependencies() {
+        return Collections.emptyList();
+    }
+
+    public void removeDependency(SPObject dependency) {
+        //no-op
     }
 }

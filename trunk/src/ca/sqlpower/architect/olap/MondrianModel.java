@@ -2,8 +2,11 @@
 package ca.sqlpower.architect.olap;
 
 import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import ca.sqlpower.object.SPObject;
 
 
 /**
@@ -70,7 +73,7 @@ public static class Schema extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -86,7 +89,7 @@ public static class Schema extends OLAPObject {
     public void setMeasuresCaption(String /* */ newval) {
         String /* */ oldval = measuresCaption;
         measuresCaption = newval;
-        pcs.firePropertyChange("measuresCaption", oldval, newval);
+        firePropertyChange("measuresCaption", oldval, newval);
     }
 
     /** The name of the default role for connections to this schema */
@@ -99,7 +102,7 @@ public static class Schema extends OLAPObject {
     public void setDefaultRole(String /* */ newval) {
         String /* */ oldval = defaultRole;
         defaultRole = newval;
-        pcs.firePropertyChange("defaultRole", oldval, newval);
+        firePropertyChange("defaultRole", oldval, newval);
     }
 
     /** 
@@ -116,7 +119,7 @@ public static class Schema extends OLAPObject {
         parameters.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(Parameter.class) + pos;
-        fireChildAdded(Parameter.class, overallPosition, newChild);
+        fireChildAdded(Parameter.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -150,9 +153,9 @@ public static class Schema extends OLAPObject {
     public Parameter removeParameter(int pos) {
         Parameter removedItem = parameters.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(Parameter.class) + pos;
-            fireChildRemoved(Parameter.class, overallPosition, removedItem);
+            fireChildRemoved(Parameter.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -176,7 +179,7 @@ public static class Schema extends OLAPObject {
         dimensions.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(Dimension.class) + pos;
-        fireChildAdded(Dimension.class, overallPosition, newChild);
+        fireChildAdded(Dimension.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -210,9 +213,9 @@ public static class Schema extends OLAPObject {
     public Dimension removeDimension(int pos) {
         Dimension removedItem = dimensions.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(Dimension.class) + pos;
-            fireChildRemoved(Dimension.class, overallPosition, removedItem);
+            fireChildRemoved(Dimension.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -236,7 +239,7 @@ public static class Schema extends OLAPObject {
         cubes.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(Cube.class) + pos;
-        fireChildAdded(Cube.class, overallPosition, newChild);
+        fireChildAdded(Cube.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -270,9 +273,9 @@ public static class Schema extends OLAPObject {
     public Cube removeCube(int pos) {
         Cube removedItem = cubes.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(Cube.class) + pos;
-            fireChildRemoved(Cube.class, overallPosition, removedItem);
+            fireChildRemoved(Cube.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -296,7 +299,7 @@ public static class Schema extends OLAPObject {
         virtualCubes.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(VirtualCube.class) + pos;
-        fireChildAdded(VirtualCube.class, overallPosition, newChild);
+        fireChildAdded(VirtualCube.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -330,9 +333,9 @@ public static class Schema extends OLAPObject {
     public VirtualCube removeVirtualCube(int pos) {
         VirtualCube removedItem = virtualCubes.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(VirtualCube.class) + pos;
-            fireChildRemoved(VirtualCube.class, overallPosition, removedItem);
+            fireChildRemoved(VirtualCube.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -356,7 +359,7 @@ public static class Schema extends OLAPObject {
         namedSets.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(NamedSet.class) + pos;
-        fireChildAdded(NamedSet.class, overallPosition, newChild);
+        fireChildAdded(NamedSet.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -390,9 +393,9 @@ public static class Schema extends OLAPObject {
     public NamedSet removeNamedSet(int pos) {
         NamedSet removedItem = namedSets.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(NamedSet.class) + pos;
-            fireChildRemoved(NamedSet.class, overallPosition, removedItem);
+            fireChildRemoved(NamedSet.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -416,7 +419,7 @@ public static class Schema extends OLAPObject {
         roles.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(Role.class) + pos;
-        fireChildAdded(Role.class, overallPosition, newChild);
+        fireChildAdded(Role.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -450,9 +453,9 @@ public static class Schema extends OLAPObject {
     public Role removeRole(int pos) {
         Role removedItem = roles.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(Role.class) + pos;
-            fireChildRemoved(Role.class, overallPosition, removedItem);
+            fireChildRemoved(Role.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -476,7 +479,7 @@ public static class Schema extends OLAPObject {
         userDefinedFunctions.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(UserDefinedFunction.class) + pos;
-        fireChildAdded(UserDefinedFunction.class, overallPosition, newChild);
+        fireChildAdded(UserDefinedFunction.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -510,9 +513,9 @@ public static class Schema extends OLAPObject {
     public UserDefinedFunction removeUserDefinedFunction(int pos) {
         UserDefinedFunction removedItem = userDefinedFunctions.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(UserDefinedFunction.class) + pos;
-            fireChildRemoved(UserDefinedFunction.class, overallPosition, removedItem);
+            fireChildRemoved(UserDefinedFunction.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -522,12 +525,41 @@ public static class Schema extends OLAPObject {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            Parameter.class, Dimension.class, Cube.class, VirtualCube.class, NamedSet.class, Role.class, UserDefinedFunction.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(parameters);
         
@@ -546,7 +578,6 @@ public static class Schema extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -559,67 +590,35 @@ public static class Schema extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == Parameter.class) return offset;
+        if (Parameter.class.isAssignableFrom(childClass)) return offset;
         offset += parameters.size();
         
-        if (childClass == Dimension.class) return offset;
+        if (Dimension.class.isAssignableFrom(childClass)) return offset;
         offset += dimensions.size();
         
-        if (childClass == Cube.class) return offset;
+        if (Cube.class.isAssignableFrom(childClass)) return offset;
         offset += cubes.size();
         
-        if (childClass == VirtualCube.class) return offset;
+        if (VirtualCube.class.isAssignableFrom(childClass)) return offset;
         offset += virtualCubes.size();
         
-        if (childClass == NamedSet.class) return offset;
+        if (NamedSet.class.isAssignableFrom(childClass)) return offset;
         offset += namedSets.size();
         
-        if (childClass == Role.class) return offset;
+        if (Role.class.isAssignableFrom(childClass)) return offset;
         offset += roles.size();
         
-        if (childClass == UserDefinedFunction.class) return offset;
+        if (UserDefinedFunction.class.isAssignableFrom(childClass)) return offset;
         offset += userDefinedFunctions.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof Parameter) {
-            addParameter((Parameter) child);
-        
-        } else if (child instanceof Dimension) {
-            addDimension((Dimension) child);
-        
-        } else if (child instanceof Cube) {
-            addCube((Cube) child);
-        
-        } else if (child instanceof VirtualCube) {
-            addVirtualCube((VirtualCube) child);
-        
-        } else if (child instanceof NamedSet) {
-            addNamedSet((NamedSet) child);
-        
-        } else if (child instanceof Role) {
-            addRole((Role) child);
-        
-        } else if (child instanceof UserDefinedFunction) {
-            addUserDefinedFunction((UserDefinedFunction) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -701,13 +700,13 @@ public static class Schema extends OLAPObject {
             addUserDefinedFunction(index - offset, (UserDefinedFunction) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -734,7 +733,7 @@ public static class Schema extends OLAPObject {
             return removeUserDefinedFunction((UserDefinedFunction) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -779,7 +778,7 @@ public abstract static class CubeDimension extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -795,7 +794,7 @@ public abstract static class CubeDimension extends OLAPObject {
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
-        pcs.firePropertyChange("caption", oldval, newval);
+        firePropertyChange("caption", oldval, newval);
     }
 
     /** 
@@ -813,7 +812,7 @@ public abstract static class CubeDimension extends OLAPObject {
     public void setForeignKey(String /* */ newval) {
         String /* */ oldval = foreignKey;
         foreignKey = newval;
-        pcs.firePropertyChange("foreignKey", oldval, newval);
+        firePropertyChange("foreignKey", oldval, newval);
     }
 
 
@@ -839,46 +838,67 @@ public abstract static class CubeDimension extends OLAPObject {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -962,7 +982,7 @@ public static class Cube extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -978,7 +998,7 @@ public static class Cube extends OLAPObject {
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
-        pcs.firePropertyChange("caption", oldval, newval);
+        firePropertyChange("caption", oldval, newval);
     }
 
     /** 
@@ -994,7 +1014,7 @@ public static class Cube extends OLAPObject {
     public void setDefaultMeasure(String /* */ newval) {
         String /* */ oldval = defaultMeasure;
         defaultMeasure = newval;
-        pcs.firePropertyChange("defaultMeasure", oldval, newval);
+        firePropertyChange("defaultMeasure", oldval, newval);
     }
 
     /** 
@@ -1011,7 +1031,7 @@ public static class Cube extends OLAPObject {
     public void setCache(Boolean /* */ newval) {
         Boolean /* */ oldval = cache;
         cache = newval;
-        pcs.firePropertyChange("cache", oldval, newval);
+        firePropertyChange("cache", oldval, newval);
     }
 
     /** 
@@ -1027,7 +1047,7 @@ public static class Cube extends OLAPObject {
     public void setEnabled(Boolean /* */ newval) {
         Boolean /* */ oldval = enabled;
         enabled = newval;
-        pcs.firePropertyChange("enabled", oldval, newval);
+        firePropertyChange("enabled", oldval, newval);
     }
 
     /** 
@@ -1048,11 +1068,11 @@ public static class Cube extends OLAPObject {
         }
         int overallPosition = childPositionOffset(Relation.class);
         if (fact != null) {
-            fireChildRemoved(Relation.class, overallPosition, oldval);
+            fireChildRemoved(Relation.class, oldval, overallPosition);
         }
         fact = newval;
         fact.setParent(this);
-        fireChildAdded(Relation.class, overallPosition, fact);
+        fireChildAdded(Relation.class, fact, overallPosition);
 	}
 
     /**  */
@@ -1065,7 +1085,7 @@ public static class Cube extends OLAPObject {
         dimensions.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(CubeDimension.class) + pos;
-        fireChildAdded(CubeDimension.class, overallPosition, newChild);
+        fireChildAdded(CubeDimension.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1097,9 +1117,9 @@ public static class Cube extends OLAPObject {
     public CubeDimension removeDimension(int pos) {
         CubeDimension removedItem = dimensions.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(CubeDimension.class) + pos;
-            fireChildRemoved(CubeDimension.class, overallPosition, removedItem);
+            fireChildRemoved(CubeDimension.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -1119,7 +1139,7 @@ public static class Cube extends OLAPObject {
         measures.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(Measure.class) + pos;
-        fireChildAdded(Measure.class, overallPosition, newChild);
+        fireChildAdded(Measure.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1151,9 +1171,9 @@ public static class Cube extends OLAPObject {
     public Measure removeMeasure(int pos) {
         Measure removedItem = measures.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(Measure.class) + pos;
-            fireChildRemoved(Measure.class, overallPosition, removedItem);
+            fireChildRemoved(Measure.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -1177,7 +1197,7 @@ public static class Cube extends OLAPObject {
         calculatedMembers.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(CalculatedMember.class) + pos;
-        fireChildAdded(CalculatedMember.class, overallPosition, newChild);
+        fireChildAdded(CalculatedMember.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1211,9 +1231,9 @@ public static class Cube extends OLAPObject {
     public CalculatedMember removeCalculatedMember(int pos) {
         CalculatedMember removedItem = calculatedMembers.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(CalculatedMember.class) + pos;
-            fireChildRemoved(CalculatedMember.class, overallPosition, removedItem);
+            fireChildRemoved(CalculatedMember.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -1237,7 +1257,7 @@ public static class Cube extends OLAPObject {
         namedSets.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(NamedSet.class) + pos;
-        fireChildAdded(NamedSet.class, overallPosition, newChild);
+        fireChildAdded(NamedSet.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1271,9 +1291,9 @@ public static class Cube extends OLAPObject {
     public NamedSet removeNamedSet(int pos) {
         NamedSet removedItem = namedSets.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(NamedSet.class) + pos;
-            fireChildRemoved(NamedSet.class, overallPosition, removedItem);
+            fireChildRemoved(NamedSet.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -1283,12 +1303,41 @@ public static class Cube extends OLAPObject {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            CubeDimension.class, Measure.class, CalculatedMember.class, NamedSet.class,Relation.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(dimensions);
         
@@ -1305,7 +1354,6 @@ public static class Cube extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -1318,55 +1366,29 @@ public static class Cube extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == CubeDimension.class) return offset;
+        if (CubeDimension.class.isAssignableFrom(childClass)) return offset;
         offset += dimensions.size();
         
-        if (childClass == Measure.class) return offset;
+        if (Measure.class.isAssignableFrom(childClass)) return offset;
         offset += measures.size();
         
-        if (childClass == CalculatedMember.class) return offset;
+        if (CalculatedMember.class.isAssignableFrom(childClass)) return offset;
         offset += calculatedMembers.size();
         
-        if (childClass == NamedSet.class) return offset;
+        if (NamedSet.class.isAssignableFrom(childClass)) return offset;
         offset += namedSets.size();
         
-        if (childClass == Relation.class) return offset;
+        if (Relation.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof CubeDimension) {
-            addDimension((CubeDimension) child);
-        
-        } else if (child instanceof Measure) {
-            addMeasure((Measure) child);
-        
-        } else if (child instanceof CalculatedMember) {
-            addCalculatedMember((CalculatedMember) child);
-        
-        } else if (child instanceof NamedSet) {
-            addNamedSet((NamedSet) child);
-        
-        } else if (child instanceof Relation) {
-            setFact((Relation) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -1418,13 +1440,13 @@ public static class Cube extends OLAPObject {
             setFact((Relation) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -1446,7 +1468,7 @@ public static class Cube extends OLAPObject {
             return true;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -1526,7 +1548,7 @@ public static class VirtualCube extends OLAPObject {
     public void setEnabled(Boolean /* */ newval) {
         Boolean /* */ oldval = enabled;
         enabled = newval;
-        pcs.firePropertyChange("enabled", oldval, newval);
+        firePropertyChange("enabled", oldval, newval);
     }
 
     /**  */
@@ -1539,7 +1561,7 @@ public static class VirtualCube extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** The name of the measure that would be taken as the default
@@ -1554,7 +1576,7 @@ public static class VirtualCube extends OLAPObject {
     public void setDefaultMeasure(String /* */ newval) {
         String /* */ oldval = defaultMeasure;
         defaultMeasure = newval;
-        pcs.firePropertyChange("defaultMeasure", oldval, newval);
+        firePropertyChange("defaultMeasure", oldval, newval);
     }
 
     /** 
@@ -1570,7 +1592,7 @@ public static class VirtualCube extends OLAPObject {
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
-        pcs.firePropertyChange("caption", oldval, newval);
+        firePropertyChange("caption", oldval, newval);
     }
 
     /**  */
@@ -1587,11 +1609,11 @@ public static class VirtualCube extends OLAPObject {
         }
         int overallPosition = childPositionOffset(CubeUsages.class);
         if (cubeUsage != null) {
-            fireChildRemoved(CubeUsages.class, overallPosition, oldval);
+            fireChildRemoved(CubeUsages.class, oldval, overallPosition);
         }
         cubeUsage = newval;
         cubeUsage.setParent(this);
-        fireChildAdded(CubeUsages.class, overallPosition, cubeUsage);
+        fireChildAdded(CubeUsages.class, cubeUsage, overallPosition);
 	}
 
     /**  */
@@ -1604,7 +1626,7 @@ public static class VirtualCube extends OLAPObject {
         dimensions.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(VirtualCubeDimension.class) + pos;
-        fireChildAdded(VirtualCubeDimension.class, overallPosition, newChild);
+        fireChildAdded(VirtualCubeDimension.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1636,9 +1658,9 @@ public static class VirtualCube extends OLAPObject {
     public VirtualCubeDimension removeDimension(int pos) {
         VirtualCubeDimension removedItem = dimensions.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(VirtualCubeDimension.class) + pos;
-            fireChildRemoved(VirtualCubeDimension.class, overallPosition, removedItem);
+            fireChildRemoved(VirtualCubeDimension.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -1658,7 +1680,7 @@ public static class VirtualCube extends OLAPObject {
         measures.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(VirtualCubeMeasure.class) + pos;
-        fireChildAdded(VirtualCubeMeasure.class, overallPosition, newChild);
+        fireChildAdded(VirtualCubeMeasure.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1690,9 +1712,9 @@ public static class VirtualCube extends OLAPObject {
     public VirtualCubeMeasure removeMeasure(int pos) {
         VirtualCubeMeasure removedItem = measures.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(VirtualCubeMeasure.class) + pos;
-            fireChildRemoved(VirtualCubeMeasure.class, overallPosition, removedItem);
+            fireChildRemoved(VirtualCubeMeasure.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -1720,7 +1742,7 @@ public static class VirtualCube extends OLAPObject {
         calculatedMembers.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(CalculatedMember.class) + pos;
-        fireChildAdded(CalculatedMember.class, overallPosition, newChild);
+        fireChildAdded(CalculatedMember.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1756,9 +1778,9 @@ public static class VirtualCube extends OLAPObject {
     public CalculatedMember removeCalculatedMember(int pos) {
         CalculatedMember removedItem = calculatedMembers.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(CalculatedMember.class) + pos;
-            fireChildRemoved(CalculatedMember.class, overallPosition, removedItem);
+            fireChildRemoved(CalculatedMember.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -1782,7 +1804,7 @@ public static class VirtualCube extends OLAPObject {
         namedSets.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(NamedSet.class) + pos;
-        fireChildAdded(NamedSet.class, overallPosition, newChild);
+        fireChildAdded(NamedSet.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -1816,9 +1838,9 @@ public static class VirtualCube extends OLAPObject {
     public NamedSet removeNamedSet(int pos) {
         NamedSet removedItem = namedSets.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(NamedSet.class) + pos;
-            fireChildRemoved(NamedSet.class, overallPosition, removedItem);
+            fireChildRemoved(NamedSet.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -1828,12 +1850,41 @@ public static class VirtualCube extends OLAPObject {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            VirtualCubeDimension.class, VirtualCubeMeasure.class, CalculatedMember.class, NamedSet.class,CubeUsages.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(dimensions);
         
@@ -1850,7 +1901,6 @@ public static class VirtualCube extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -1863,55 +1913,29 @@ public static class VirtualCube extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == VirtualCubeDimension.class) return offset;
+        if (VirtualCubeDimension.class.isAssignableFrom(childClass)) return offset;
         offset += dimensions.size();
         
-        if (childClass == VirtualCubeMeasure.class) return offset;
+        if (VirtualCubeMeasure.class.isAssignableFrom(childClass)) return offset;
         offset += measures.size();
         
-        if (childClass == CalculatedMember.class) return offset;
+        if (CalculatedMember.class.isAssignableFrom(childClass)) return offset;
         offset += calculatedMembers.size();
         
-        if (childClass == NamedSet.class) return offset;
+        if (NamedSet.class.isAssignableFrom(childClass)) return offset;
         offset += namedSets.size();
         
-        if (childClass == CubeUsages.class) return offset;
+        if (CubeUsages.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof VirtualCubeDimension) {
-            addDimension((VirtualCubeDimension) child);
-        
-        } else if (child instanceof VirtualCubeMeasure) {
-            addMeasure((VirtualCubeMeasure) child);
-        
-        } else if (child instanceof CalculatedMember) {
-            addCalculatedMember((CalculatedMember) child);
-        
-        } else if (child instanceof NamedSet) {
-            addNamedSet((NamedSet) child);
-        
-        } else if (child instanceof CubeUsages) {
-            setCubeUsage((CubeUsages) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -1963,13 +1987,13 @@ public static class VirtualCube extends OLAPObject {
             setCubeUsage((CubeUsages) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -1991,7 +2015,7 @@ public static class VirtualCube extends OLAPObject {
             return true;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -2037,7 +2061,7 @@ public static class CubeUsages extends OLAPObject {
         cubeUsages.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(CubeUsage.class) + pos;
-        fireChildAdded(CubeUsage.class, overallPosition, newChild);
+        fireChildAdded(CubeUsage.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -2069,9 +2093,9 @@ public static class CubeUsages extends OLAPObject {
     public CubeUsage removeCubeUsage(int pos) {
         CubeUsage removedItem = cubeUsages.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(CubeUsage.class) + pos;
-            fireChildRemoved(CubeUsage.class, overallPosition, removedItem);
+            fireChildRemoved(CubeUsage.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -2081,19 +2105,47 @@ public static class CubeUsages extends OLAPObject {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            CubeUsage.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(cubeUsages);
         
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -2106,31 +2158,17 @@ public static class CubeUsages extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == CubeUsage.class) return offset;
+        if (CubeUsage.class.isAssignableFrom(childClass)) return offset;
         offset += cubeUsages.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof CubeUsage) {
-            addCubeUsage((CubeUsage) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -2146,13 +2184,13 @@ public static class CubeUsages extends OLAPObject {
             addCubeUsage(index - offset, (CubeUsage) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -2161,7 +2199,7 @@ public static class CubeUsages extends OLAPObject {
             return removeCubeUsage((CubeUsage) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -2219,7 +2257,7 @@ public static class CubeUsage extends OLAPObject {
     public void setCubeName(String /* */ newval) {
         String /* */ oldval = cubeName;
         cubeName = newval;
-        pcs.firePropertyChange("cubeName", oldval, newval);
+        firePropertyChange("cubeName", oldval, newval);
     }
 
     /** 
@@ -2235,49 +2273,70 @@ public static class CubeUsage extends OLAPObject {
     public void setIgnoreUnrelatedDimensions(Boolean /* */ newval) {
         Boolean /* */ oldval = ignoreUnrelatedDimensions;
         ignoreUnrelatedDimensions = newval;
-        pcs.firePropertyChange("ignoreUnrelatedDimensions", oldval, newval);
+        firePropertyChange("ignoreUnrelatedDimensions", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -2342,7 +2401,7 @@ public static class VirtualCubeDimension extends CubeDimension {
     public void setCubeName(String /* */ newval) {
         String /* */ oldval = cubeName;
         cubeName = newval;
-        pcs.firePropertyChange("cubeName", oldval, newval);
+        firePropertyChange("cubeName", oldval, newval);
     }
 
     /** 
@@ -2357,49 +2416,70 @@ public static class VirtualCubeDimension extends CubeDimension {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    CubeDimension.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -2465,7 +2545,7 @@ public static class VirtualCubeMeasure extends OLAPObject {
     public void setCubeName(String /* */ newval) {
         String /* */ oldval = cubeName;
         cubeName = newval;
-        pcs.firePropertyChange("cubeName", oldval, newval);
+        firePropertyChange("cubeName", oldval, newval);
     }
 
     /** 
@@ -2480,7 +2560,7 @@ public static class VirtualCubeMeasure extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -2496,49 +2576,70 @@ public static class VirtualCubeMeasure extends OLAPObject {
     public void setVisible(Boolean /* */ newval) {
         Boolean /* */ oldval = visible;
         visible = newval;
-        pcs.firePropertyChange("visible", oldval, newval);
+        firePropertyChange("visible", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -2608,7 +2709,7 @@ public static class DimensionUsage extends CubeDimension {
     public void setSource(String /* */ newval) {
         String /* */ oldval = source;
         source = newval;
-        pcs.firePropertyChange("source", oldval, newval);
+        firePropertyChange("source", oldval, newval);
     }
 
     /** 
@@ -2624,7 +2725,7 @@ public static class DimensionUsage extends CubeDimension {
     public void setLevel(String /* */ newval) {
         String /* */ oldval = level;
         level = newval;
-        pcs.firePropertyChange("level", oldval, newval);
+        firePropertyChange("level", oldval, newval);
     }
 
     /** 
@@ -2643,49 +2744,70 @@ public static class DimensionUsage extends CubeDimension {
     public void setUsagePrefix(String /* */ newval) {
         String /* */ oldval = usagePrefix;
         usagePrefix = newval;
-        pcs.firePropertyChange("usagePrefix", oldval, newval);
+        firePropertyChange("usagePrefix", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    CubeDimension.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -2764,7 +2886,7 @@ public static class Dimension extends CubeDimension {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -2784,7 +2906,7 @@ public static class Dimension extends CubeDimension {
     public void setType(String /* */ newval) {
         String /* */ oldval = type;
         type = newval;
-        pcs.firePropertyChange("type", oldval, newval);
+        firePropertyChange("type", oldval, newval);
     }
 
     /** 
@@ -2800,7 +2922,7 @@ public static class Dimension extends CubeDimension {
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
-        pcs.firePropertyChange("caption", oldval, newval);
+        firePropertyChange("caption", oldval, newval);
     }
 
     /** 
@@ -2819,7 +2941,7 @@ public static class Dimension extends CubeDimension {
     public void setUsagePrefix(String /* */ newval) {
         String /* */ oldval = usagePrefix;
         usagePrefix = newval;
-        pcs.firePropertyChange("usagePrefix", oldval, newval);
+        firePropertyChange("usagePrefix", oldval, newval);
     }
 
     /**  */
@@ -2832,7 +2954,7 @@ public static class Dimension extends CubeDimension {
         hierarchies.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(Hierarchy.class) + pos;
-        fireChildAdded(Hierarchy.class, overallPosition, newChild);
+        fireChildAdded(Hierarchy.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -2864,9 +2986,9 @@ public static class Dimension extends CubeDimension {
     public Hierarchy removeHierarchy(int pos) {
         Hierarchy removedItem = hierarchies.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(Hierarchy.class) + pos;
-            fireChildRemoved(Hierarchy.class, overallPosition, removedItem);
+            fireChildRemoved(Hierarchy.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -2876,19 +2998,47 @@ public static class Dimension extends CubeDimension {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            Hierarchy.class));  
+        childTypes.addAll(CubeDimension.allowedChildTypes);
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(hierarchies);
         
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -2901,31 +3051,17 @@ public static class Dimension extends CubeDimension {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == Hierarchy.class) return offset;
+        if (Hierarchy.class.isAssignableFrom(childClass)) return offset;
         offset += hierarchies.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof Hierarchy) {
-            addHierarchy((Hierarchy) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -2941,13 +3077,13 @@ public static class Dimension extends CubeDimension {
             addHierarchy(index - offset, (Hierarchy) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -2956,7 +3092,7 @@ public static class Dimension extends CubeDimension {
             return removeHierarchy((Hierarchy) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -3076,7 +3212,7 @@ public static class Hierarchy extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -3091,7 +3227,7 @@ public static class Hierarchy extends OLAPObject {
     public void setHasAll(Boolean /* */ newval) {
         Boolean /* */ oldval = hasAll;
         hasAll = newval;
-        pcs.firePropertyChange("hasAll", oldval, newval);
+        firePropertyChange("hasAll", oldval, newval);
     }
 
     /** 
@@ -3108,7 +3244,7 @@ public static class Hierarchy extends OLAPObject {
     public void setAllMemberName(String /* */ newval) {
         String /* */ oldval = allMemberName;
         allMemberName = newval;
-        pcs.firePropertyChange("allMemberName", oldval, newval);
+        firePropertyChange("allMemberName", oldval, newval);
     }
 
     /** 
@@ -3124,7 +3260,7 @@ public static class Hierarchy extends OLAPObject {
     public void setAllMemberCaption(String /* */ newval) {
         String /* */ oldval = allMemberCaption;
         allMemberCaption = newval;
-        pcs.firePropertyChange("allMemberCaption", oldval, newval);
+        firePropertyChange("allMemberCaption", oldval, newval);
     }
 
     /** 
@@ -3141,7 +3277,7 @@ public static class Hierarchy extends OLAPObject {
     public void setAllLevelName(String /* */ newval) {
         String /* */ oldval = allLevelName;
         allLevelName = newval;
-        pcs.firePropertyChange("allLevelName", oldval, newval);
+        firePropertyChange("allLevelName", oldval, newval);
     }
 
     /** 
@@ -3159,7 +3295,7 @@ public static class Hierarchy extends OLAPObject {
     public void setPrimaryKey(String /* */ newval) {
         String /* */ oldval = primaryKey;
         primaryKey = newval;
-        pcs.firePropertyChange("primaryKey", oldval, newval);
+        firePropertyChange("primaryKey", oldval, newval);
     }
 
     /** 
@@ -3176,7 +3312,7 @@ public static class Hierarchy extends OLAPObject {
     public void setPrimaryKeyTable(String /* */ newval) {
         String /* */ oldval = primaryKeyTable;
         primaryKeyTable = newval;
-        pcs.firePropertyChange("primaryKeyTable", oldval, newval);
+        firePropertyChange("primaryKeyTable", oldval, newval);
     }
 
     /**  */
@@ -3189,7 +3325,7 @@ public static class Hierarchy extends OLAPObject {
     public void setDefaultMember(String /* */ newval) {
         String /* */ oldval = defaultMember;
         defaultMember = newval;
-        pcs.firePropertyChange("defaultMember", oldval, newval);
+        firePropertyChange("defaultMember", oldval, newval);
     }
 
     /** 
@@ -3205,7 +3341,7 @@ public static class Hierarchy extends OLAPObject {
     public void setMemberReaderClass(String /* */ newval) {
         String /* */ oldval = memberReaderClass;
         memberReaderClass = newval;
-        pcs.firePropertyChange("memberReaderClass", oldval, newval);
+        firePropertyChange("memberReaderClass", oldval, newval);
     }
 
     /** 
@@ -3222,7 +3358,7 @@ public static class Hierarchy extends OLAPObject {
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
-        pcs.firePropertyChange("caption", oldval, newval);
+        firePropertyChange("caption", oldval, newval);
     }
 
     /** 
@@ -3245,11 +3381,11 @@ public static class Hierarchy extends OLAPObject {
         }
         int overallPosition = childPositionOffset(RelationOrJoin.class);
         if (relation != null) {
-            fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
+            fireChildRemoved(RelationOrJoin.class, oldval, overallPosition);
         }
         relation = newval;
         relation.setParent(this);
-        fireChildAdded(RelationOrJoin.class, overallPosition, relation);
+        fireChildAdded(RelationOrJoin.class, relation, overallPosition);
 	}
 
     /**  */
@@ -3262,7 +3398,7 @@ public static class Hierarchy extends OLAPObject {
         levels.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(Level.class) + pos;
-        fireChildAdded(Level.class, overallPosition, newChild);
+        fireChildAdded(Level.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -3294,9 +3430,9 @@ public static class Hierarchy extends OLAPObject {
     public Level removeLevel(int pos) {
         Level removedItem = levels.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(Level.class) + pos;
-            fireChildRemoved(Level.class, overallPosition, removedItem);
+            fireChildRemoved(Level.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -3316,7 +3452,7 @@ public static class Hierarchy extends OLAPObject {
         memberReaderParameters.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(MemberReaderParameter.class) + pos;
-        fireChildAdded(MemberReaderParameter.class, overallPosition, newChild);
+        fireChildAdded(MemberReaderParameter.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -3348,9 +3484,9 @@ public static class Hierarchy extends OLAPObject {
     public MemberReaderParameter removeMemberReaderParameter(int pos) {
         MemberReaderParameter removedItem = memberReaderParameters.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(MemberReaderParameter.class) + pos;
-            fireChildRemoved(MemberReaderParameter.class, overallPosition, removedItem);
+            fireChildRemoved(MemberReaderParameter.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -3360,12 +3496,41 @@ public static class Hierarchy extends OLAPObject {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            Level.class, MemberReaderParameter.class,RelationOrJoin.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(levels);
         
@@ -3378,7 +3543,6 @@ public static class Hierarchy extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -3391,43 +3555,23 @@ public static class Hierarchy extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == Level.class) return offset;
+        if (Level.class.isAssignableFrom(childClass)) return offset;
         offset += levels.size();
         
-        if (childClass == MemberReaderParameter.class) return offset;
+        if (MemberReaderParameter.class.isAssignableFrom(childClass)) return offset;
         offset += memberReaderParameters.size();
         
-        if (childClass == RelationOrJoin.class) return offset;
+        if (RelationOrJoin.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof Level) {
-            addLevel((Level) child);
-        
-        } else if (child instanceof MemberReaderParameter) {
-            addMemberReaderParameter((MemberReaderParameter) child);
-        
-        } else if (child instanceof RelationOrJoin) {
-            setRelation((RelationOrJoin) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -3457,13 +3601,13 @@ public static class Hierarchy extends OLAPObject {
             setRelation((RelationOrJoin) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -3479,7 +3623,7 @@ public static class Hierarchy extends OLAPObject {
             return true;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -3648,7 +3792,7 @@ public static class Level extends OLAPObject {
     public void setApproxRowCount(String /* */ newval) {
         String /* */ oldval = approxRowCount;
         approxRowCount = newval;
-        pcs.firePropertyChange("approxRowCount", oldval, newval);
+        firePropertyChange("approxRowCount", oldval, newval);
     }
 
     /**  */
@@ -3661,7 +3805,7 @@ public static class Level extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -3679,7 +3823,7 @@ public static class Level extends OLAPObject {
     public void setTable(String /* */ newval) {
         String /* */ oldval = table;
         table = newval;
-        pcs.firePropertyChange("table", oldval, newval);
+        firePropertyChange("table", oldval, newval);
     }
 
     /** 
@@ -3695,7 +3839,7 @@ public static class Level extends OLAPObject {
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
-        pcs.firePropertyChange("column", oldval, newval);
+        firePropertyChange("column", oldval, newval);
     }
 
     /** 
@@ -3711,7 +3855,7 @@ public static class Level extends OLAPObject {
     public void setNameColumn(String /* */ newval) {
         String /* */ oldval = nameColumn;
         nameColumn = newval;
-        pcs.firePropertyChange("nameColumn", oldval, newval);
+        firePropertyChange("nameColumn", oldval, newval);
     }
 
     /** 
@@ -3728,7 +3872,7 @@ public static class Level extends OLAPObject {
     public void setOrdinalColumn(String /* */ newval) {
         String /* */ oldval = ordinalColumn;
         ordinalColumn = newval;
-        pcs.firePropertyChange("ordinalColumn", oldval, newval);
+        firePropertyChange("ordinalColumn", oldval, newval);
     }
 
     /** 
@@ -3744,7 +3888,7 @@ public static class Level extends OLAPObject {
     public void setParentColumn(String /* */ newval) {
         String /* */ oldval = parentColumn;
         parentColumn = newval;
-        pcs.firePropertyChange("parentColumn", oldval, newval);
+        firePropertyChange("parentColumn", oldval, newval);
     }
 
     /** 
@@ -3760,7 +3904,7 @@ public static class Level extends OLAPObject {
     public void setNullParentValue(String /* */ newval) {
         String /* */ oldval = nullParentValue;
         nullParentValue = newval;
-        pcs.firePropertyChange("nullParentValue", oldval, newval);
+        firePropertyChange("nullParentValue", oldval, newval);
     }
 
     /** 
@@ -3783,7 +3927,7 @@ public static class Level extends OLAPObject {
     public void setType(String /* */ newval) {
         String /* */ oldval = type;
         type = newval;
-        pcs.firePropertyChange("type", oldval, newval);
+        firePropertyChange("type", oldval, newval);
     }
 
     /** 
@@ -3800,7 +3944,7 @@ public static class Level extends OLAPObject {
     public void setUniqueMembers(Boolean /* */ newval) {
         Boolean /* */ oldval = uniqueMembers;
         uniqueMembers = newval;
-        pcs.firePropertyChange("uniqueMembers", oldval, newval);
+        firePropertyChange("uniqueMembers", oldval, newval);
     }
 
     /** 
@@ -3817,7 +3961,7 @@ public static class Level extends OLAPObject {
     public void setLevelType(String /* */ newval) {
         String /* */ oldval = levelType;
         levelType = newval;
-        pcs.firePropertyChange("levelType", oldval, newval);
+        firePropertyChange("levelType", oldval, newval);
     }
 
     /** 
@@ -3842,7 +3986,7 @@ public static class Level extends OLAPObject {
     public void setHideMemberIf(String /* */ newval) {
         String /* */ oldval = hideMemberIf;
         hideMemberIf = newval;
-        pcs.firePropertyChange("hideMemberIf", oldval, newval);
+        firePropertyChange("hideMemberIf", oldval, newval);
     }
 
     /** 
@@ -3858,7 +4002,7 @@ public static class Level extends OLAPObject {
     public void setFormatter(String /* */ newval) {
         String /* */ oldval = formatter;
         formatter = newval;
-        pcs.firePropertyChange("formatter", oldval, newval);
+        firePropertyChange("formatter", oldval, newval);
     }
 
     /** 
@@ -3874,7 +4018,7 @@ public static class Level extends OLAPObject {
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
-        pcs.firePropertyChange("caption", oldval, newval);
+        firePropertyChange("caption", oldval, newval);
     }
 
     /** 
@@ -3890,7 +4034,7 @@ public static class Level extends OLAPObject {
     public void setCaptionColumn(String /* */ newval) {
         String /* */ oldval = captionColumn;
         captionColumn = newval;
-        pcs.firePropertyChange("captionColumn", oldval, newval);
+        firePropertyChange("captionColumn", oldval, newval);
     }
 
     /** 
@@ -3909,11 +4053,11 @@ public static class Level extends OLAPObject {
         }
         int overallPosition = childPositionOffset(KeyExpression.class);
         if (keyExp != null) {
-            fireChildRemoved(KeyExpression.class, overallPosition, oldval);
+            fireChildRemoved(KeyExpression.class, oldval, overallPosition);
         }
         keyExp = newval;
         keyExp.setParent(this);
-        fireChildAdded(KeyExpression.class, overallPosition, keyExp);
+        fireChildAdded(KeyExpression.class, keyExp, overallPosition);
 	}
 
     /** 
@@ -3933,11 +4077,11 @@ public static class Level extends OLAPObject {
         }
         int overallPosition = childPositionOffset(NameExpression.class);
         if (nameExp != null) {
-            fireChildRemoved(NameExpression.class, overallPosition, oldval);
+            fireChildRemoved(NameExpression.class, oldval, overallPosition);
         }
         nameExp = newval;
         nameExp.setParent(this);
-        fireChildAdded(NameExpression.class, overallPosition, nameExp);
+        fireChildAdded(NameExpression.class, nameExp, overallPosition);
 	}
 
     /** 
@@ -3956,11 +4100,11 @@ public static class Level extends OLAPObject {
         }
         int overallPosition = childPositionOffset(OrdinalExpression.class);
         if (ordinalExp != null) {
-            fireChildRemoved(OrdinalExpression.class, overallPosition, oldval);
+            fireChildRemoved(OrdinalExpression.class, oldval, overallPosition);
         }
         ordinalExp = newval;
         ordinalExp.setParent(this);
-        fireChildAdded(OrdinalExpression.class, overallPosition, ordinalExp);
+        fireChildAdded(OrdinalExpression.class, ordinalExp, overallPosition);
 	}
 
     /** 
@@ -3980,11 +4124,11 @@ public static class Level extends OLAPObject {
         }
         int overallPosition = childPositionOffset(ParentExpression.class);
         if (parentExp != null) {
-            fireChildRemoved(ParentExpression.class, overallPosition, oldval);
+            fireChildRemoved(ParentExpression.class, oldval, overallPosition);
         }
         parentExp = newval;
         parentExp.setParent(this);
-        fireChildAdded(ParentExpression.class, overallPosition, parentExp);
+        fireChildAdded(ParentExpression.class, parentExp, overallPosition);
 	}
 
     /**  */
@@ -4001,11 +4145,11 @@ public static class Level extends OLAPObject {
         }
         int overallPosition = childPositionOffset(Closure.class);
         if (closure != null) {
-            fireChildRemoved(Closure.class, overallPosition, oldval);
+            fireChildRemoved(Closure.class, oldval, overallPosition);
         }
         closure = newval;
         closure.setParent(this);
-        fireChildAdded(Closure.class, overallPosition, closure);
+        fireChildAdded(Closure.class, closure, overallPosition);
 	}
 
     /**  */
@@ -4018,7 +4162,7 @@ public static class Level extends OLAPObject {
         properties.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(Property.class) + pos;
-        fireChildAdded(Property.class, overallPosition, newChild);
+        fireChildAdded(Property.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -4050,9 +4194,9 @@ public static class Level extends OLAPObject {
     public Property removeProperty(int pos) {
         Property removedItem = properties.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(Property.class) + pos;
-            fireChildRemoved(Property.class, overallPosition, removedItem);
+            fireChildRemoved(Property.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -4062,12 +4206,41 @@ public static class Level extends OLAPObject {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            Property.class,KeyExpression.class, NameExpression.class, OrdinalExpression.class, ParentExpression.class, Closure.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(properties);
         
@@ -4094,7 +4267,6 @@ public static class Level extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -4107,61 +4279,32 @@ public static class Level extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == Property.class) return offset;
+        if (Property.class.isAssignableFrom(childClass)) return offset;
         offset += properties.size();
         
-        if (childClass == KeyExpression.class) return offset;
+        if (KeyExpression.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        if (childClass == NameExpression.class) return offset;
+        if (NameExpression.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        if (childClass == OrdinalExpression.class) return offset;
+        if (OrdinalExpression.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        if (childClass == ParentExpression.class) return offset;
+        if (ParentExpression.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        if (childClass == Closure.class) return offset;
+        if (Closure.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof Property) {
-            addProperty((Property) child);
-        
-        } else if (child instanceof KeyExpression) {
-            setKeyExp((KeyExpression) child);
-        
-        } else if (child instanceof NameExpression) {
-            setNameExp((NameExpression) child);
-        
-        } else if (child instanceof OrdinalExpression) {
-            setOrdinalExp((OrdinalExpression) child);
-        
-        } else if (child instanceof ParentExpression) {
-            setParentExp((ParentExpression) child);
-        
-        } else if (child instanceof Closure) {
-            setClosure((Closure) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -4192,13 +4335,13 @@ public static class Level extends OLAPObject {
             setClosure((Closure) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -4227,7 +4370,7 @@ public static class Level extends OLAPObject {
             return true;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -4294,7 +4437,7 @@ public static class Closure extends OLAPObject {
     public void setParentColumn(String /* */ newval) {
         String /* */ oldval = parentColumn;
         parentColumn = newval;
-        pcs.firePropertyChange("parentColumn", oldval, newval);
+        firePropertyChange("parentColumn", oldval, newval);
     }
 
     /**  */
@@ -4307,7 +4450,7 @@ public static class Closure extends OLAPObject {
     public void setChildColumn(String /* */ newval) {
         String /* */ oldval = childColumn;
         childColumn = newval;
-        pcs.firePropertyChange("childColumn", oldval, newval);
+        firePropertyChange("childColumn", oldval, newval);
     }
 
     /**  */
@@ -4324,19 +4467,48 @@ public static class Closure extends OLAPObject {
         }
         int overallPosition = childPositionOffset(Table.class);
         if (table != null) {
-            fireChildRemoved(Table.class, overallPosition, oldval);
+            fireChildRemoved(Table.class, oldval, overallPosition);
         }
         table = newval;
         table.setParent(this);
-        fireChildAdded(Table.class, overallPosition, table);
+        fireChildAdded(Table.class, table, overallPosition);
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            Table.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         if (table != null) {
         	children.add(table);
@@ -4345,7 +4517,6 @@ public static class Closure extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -4358,17 +4529,17 @@ public static class Closure extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == Table.class) return offset;
+        if (Table.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -4376,27 +4547,13 @@ public static class Closure extends OLAPObject {
             setTable((Table) child);
         
         } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof Table) {
-            setTable((Table) child);
-        
-        } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -4406,7 +4563,7 @@ public static class Closure extends OLAPObject {
             return true;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -4482,7 +4639,7 @@ public static class Property extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /**  */
@@ -4495,7 +4652,7 @@ public static class Property extends OLAPObject {
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
-        pcs.firePropertyChange("column", oldval, newval);
+        firePropertyChange("column", oldval, newval);
     }
 
     /** 
@@ -4511,7 +4668,7 @@ public static class Property extends OLAPObject {
     public void setType(String /* */ newval) {
         String /* */ oldval = type;
         type = newval;
-        pcs.firePropertyChange("type", oldval, newval);
+        firePropertyChange("type", oldval, newval);
     }
 
     /** 
@@ -4529,7 +4686,7 @@ public static class Property extends OLAPObject {
     public void setFormatter(String /* */ newval) {
         String /* */ oldval = formatter;
         formatter = newval;
-        pcs.firePropertyChange("formatter", oldval, newval);
+        firePropertyChange("formatter", oldval, newval);
     }
 
     /** 
@@ -4545,49 +4702,70 @@ public static class Property extends OLAPObject {
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
-        pcs.firePropertyChange("caption", oldval, newval);
+        firePropertyChange("caption", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -4685,7 +4863,7 @@ public static class Measure extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -4701,7 +4879,7 @@ public static class Measure extends OLAPObject {
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
-        pcs.firePropertyChange("column", oldval, newval);
+        firePropertyChange("column", oldval, newval);
     }
 
     /** 
@@ -4721,7 +4899,7 @@ public static class Measure extends OLAPObject {
     public void setDatatype(String /* */ newval) {
         String /* */ oldval = datatype;
         datatype = newval;
-        pcs.firePropertyChange("datatype", oldval, newval);
+        firePropertyChange("datatype", oldval, newval);
     }
 
     /** 
@@ -4737,7 +4915,7 @@ public static class Measure extends OLAPObject {
     public void setFormatString(String /* */ newval) {
         String /* */ oldval = formatString;
         formatString = newval;
-        pcs.firePropertyChange("formatString", oldval, newval);
+        firePropertyChange("formatString", oldval, newval);
     }
 
     /** 
@@ -4755,7 +4933,7 @@ public static class Measure extends OLAPObject {
     public void setAggregator(String /* */ newval) {
         String /* */ oldval = aggregator;
         aggregator = newval;
-        pcs.firePropertyChange("aggregator", oldval, newval);
+        firePropertyChange("aggregator", oldval, newval);
     }
 
     /** 
@@ -4771,7 +4949,7 @@ public static class Measure extends OLAPObject {
     public void setFormatter(String /* */ newval) {
         String /* */ oldval = formatter;
         formatter = newval;
-        pcs.firePropertyChange("formatter", oldval, newval);
+        firePropertyChange("formatter", oldval, newval);
     }
 
     /** 
@@ -4787,7 +4965,7 @@ public static class Measure extends OLAPObject {
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
-        pcs.firePropertyChange("caption", oldval, newval);
+        firePropertyChange("caption", oldval, newval);
     }
 
     /** 
@@ -4803,7 +4981,7 @@ public static class Measure extends OLAPObject {
     public void setVisible(Boolean /* */ newval) {
         Boolean /* */ oldval = visible;
         visible = newval;
-        pcs.firePropertyChange("visible", oldval, newval);
+        firePropertyChange("visible", oldval, newval);
     }
 
     /** 
@@ -4823,11 +5001,11 @@ public static class Measure extends OLAPObject {
         }
         int overallPosition = childPositionOffset(MeasureExpression.class);
         if (measureExp != null) {
-            fireChildRemoved(MeasureExpression.class, overallPosition, oldval);
+            fireChildRemoved(MeasureExpression.class, oldval, overallPosition);
         }
         measureExp = newval;
         measureExp.setParent(this);
-        fireChildAdded(MeasureExpression.class, overallPosition, measureExp);
+        fireChildAdded(MeasureExpression.class, measureExp, overallPosition);
 	}
 
     /**  */
@@ -4840,7 +5018,7 @@ public static class Measure extends OLAPObject {
         memberProperties.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(CalculatedMemberProperty.class) + pos;
-        fireChildAdded(CalculatedMemberProperty.class, overallPosition, newChild);
+        fireChildAdded(CalculatedMemberProperty.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -4872,9 +5050,9 @@ public static class Measure extends OLAPObject {
     public CalculatedMemberProperty removeMemberPropertie(int pos) {
         CalculatedMemberProperty removedItem = memberProperties.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(CalculatedMemberProperty.class) + pos;
-            fireChildRemoved(CalculatedMemberProperty.class, overallPosition, removedItem);
+            fireChildRemoved(CalculatedMemberProperty.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -4884,12 +5062,41 @@ public static class Measure extends OLAPObject {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            CalculatedMemberProperty.class,MeasureExpression.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(memberProperties);
         
@@ -4900,7 +5107,6 @@ public static class Measure extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -4913,37 +5119,20 @@ public static class Measure extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == CalculatedMemberProperty.class) return offset;
+        if (CalculatedMemberProperty.class.isAssignableFrom(childClass)) return offset;
         offset += memberProperties.size();
         
-        if (childClass == MeasureExpression.class) return offset;
+        if (MeasureExpression.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof CalculatedMemberProperty) {
-            addMemberPropertie((CalculatedMemberProperty) child);
-        
-        } else if (child instanceof MeasureExpression) {
-            setMeasureExp((MeasureExpression) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -4962,13 +5151,13 @@ public static class Measure extends OLAPObject {
             setMeasureExp((MeasureExpression) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -4981,7 +5170,7 @@ public static class Measure extends OLAPObject {
             return true;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -5069,7 +5258,7 @@ public static class CalculatedMember extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -5085,7 +5274,7 @@ public static class CalculatedMember extends OLAPObject {
     public void setFormatString(String /* */ newval) {
         String /* */ oldval = formatString;
         formatString = newval;
-        pcs.firePropertyChange("formatString", oldval, newval);
+        firePropertyChange("formatString", oldval, newval);
     }
 
     /** 
@@ -5101,7 +5290,7 @@ public static class CalculatedMember extends OLAPObject {
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
-        pcs.firePropertyChange("caption", oldval, newval);
+        firePropertyChange("caption", oldval, newval);
     }
 
     /** 
@@ -5117,7 +5306,7 @@ public static class CalculatedMember extends OLAPObject {
     public void setFormula(String /* */ newval) {
         String /* */ oldval = formula;
         formula = newval;
-        pcs.firePropertyChange("formula", oldval, newval);
+        firePropertyChange("formula", oldval, newval);
     }
 
     /** 
@@ -5132,7 +5321,7 @@ public static class CalculatedMember extends OLAPObject {
     public void setDimension(String /* */ newval) {
         String /* */ oldval = dimension;
         dimension = newval;
-        pcs.firePropertyChange("dimension", oldval, newval);
+        firePropertyChange("dimension", oldval, newval);
     }
 
     /** 
@@ -5148,7 +5337,7 @@ public static class CalculatedMember extends OLAPObject {
     public void setVisible(Boolean /* */ newval) {
         Boolean /* */ oldval = visible;
         visible = newval;
-        pcs.firePropertyChange("visible", oldval, newval);
+        firePropertyChange("visible", oldval, newval);
     }
 
     /** 
@@ -5167,11 +5356,11 @@ public static class CalculatedMember extends OLAPObject {
         }
         int overallPosition = childPositionOffset(Formula.class);
         if (formulaElement != null) {
-            fireChildRemoved(Formula.class, overallPosition, oldval);
+            fireChildRemoved(Formula.class, oldval, overallPosition);
         }
         formulaElement = newval;
         formulaElement.setParent(this);
-        fireChildAdded(Formula.class, overallPosition, formulaElement);
+        fireChildAdded(Formula.class, formulaElement, overallPosition);
 	}
 
     /**  */
@@ -5184,7 +5373,7 @@ public static class CalculatedMember extends OLAPObject {
         memberProperties.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(CalculatedMemberProperty.class) + pos;
-        fireChildAdded(CalculatedMemberProperty.class, overallPosition, newChild);
+        fireChildAdded(CalculatedMemberProperty.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -5216,9 +5405,9 @@ public static class CalculatedMember extends OLAPObject {
     public CalculatedMemberProperty removeMemberPropertie(int pos) {
         CalculatedMemberProperty removedItem = memberProperties.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(CalculatedMemberProperty.class) + pos;
-            fireChildRemoved(CalculatedMemberProperty.class, overallPosition, removedItem);
+            fireChildRemoved(CalculatedMemberProperty.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -5228,12 +5417,41 @@ public static class CalculatedMember extends OLAPObject {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            CalculatedMemberProperty.class,Formula.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(memberProperties);
         
@@ -5244,7 +5462,6 @@ public static class CalculatedMember extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -5257,37 +5474,20 @@ public static class CalculatedMember extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == CalculatedMemberProperty.class) return offset;
+        if (CalculatedMemberProperty.class.isAssignableFrom(childClass)) return offset;
         offset += memberProperties.size();
         
-        if (childClass == Formula.class) return offset;
+        if (Formula.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof CalculatedMemberProperty) {
-            addMemberPropertie((CalculatedMemberProperty) child);
-        
-        } else if (child instanceof Formula) {
-            setFormulaElement((Formula) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -5306,13 +5506,13 @@ public static class CalculatedMember extends OLAPObject {
             setFormulaElement((Formula) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -5325,7 +5525,7 @@ public static class CalculatedMember extends OLAPObject {
             return true;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -5398,7 +5598,7 @@ public static class CalculatedMemberProperty extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -5414,7 +5614,7 @@ public static class CalculatedMemberProperty extends OLAPObject {
     public void setCaption(String /* */ newval) {
         String /* */ oldval = caption;
         caption = newval;
-        pcs.firePropertyChange("caption", oldval, newval);
+        firePropertyChange("caption", oldval, newval);
     }
 
     /** 
@@ -5431,7 +5631,7 @@ public static class CalculatedMemberProperty extends OLAPObject {
     public void setExpression(String /* */ newval) {
         String /* */ oldval = expression;
         expression = newval;
-        pcs.firePropertyChange("expression", oldval, newval);
+        firePropertyChange("expression", oldval, newval);
     }
 
     /** 
@@ -5448,49 +5648,70 @@ public static class CalculatedMemberProperty extends OLAPObject {
     public void setValue(String /* */ newval) {
         String /* */ oldval = value;
         value = newval;
-        pcs.firePropertyChange("value", oldval, newval);
+        firePropertyChange("value", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -5571,7 +5792,7 @@ public static class NamedSet extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -5587,7 +5808,7 @@ public static class NamedSet extends OLAPObject {
     public void setFormula(String /* */ newval) {
         String /* */ oldval = formula;
         formula = newval;
-        pcs.firePropertyChange("formula", oldval, newval);
+        firePropertyChange("formula", oldval, newval);
     }
 
     /** 
@@ -5606,19 +5827,48 @@ public static class NamedSet extends OLAPObject {
         }
         int overallPosition = childPositionOffset(Formula.class);
         if (formulaElement != null) {
-            fireChildRemoved(Formula.class, overallPosition, oldval);
+            fireChildRemoved(Formula.class, oldval, overallPosition);
         }
         formulaElement = newval;
         formulaElement.setParent(this);
-        fireChildAdded(Formula.class, overallPosition, formulaElement);
+        fireChildAdded(Formula.class, formulaElement, overallPosition);
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            Formula.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         if (formulaElement != null) {
         	children.add(formulaElement);
@@ -5627,7 +5877,6 @@ public static class NamedSet extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -5640,17 +5889,17 @@ public static class NamedSet extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == Formula.class) return offset;
+        if (Formula.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -5658,27 +5907,13 @@ public static class NamedSet extends OLAPObject {
             setFormulaElement((Formula) child);
         
         } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof Formula) {
-            setFormulaElement((Formula) child);
-        
-        } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -5688,7 +5923,7 @@ public static class NamedSet extends OLAPObject {
             return true;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -5735,50 +5970,71 @@ public static class Formula extends OLAPObject {
 	public void setText(String newval) {
 		String oldval = text;
 		text = newval;
-		pcs.firePropertyChange("text", oldval, newval);
+		firePropertyChange("text", oldval, newval);
 	}
 
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -5834,7 +6090,7 @@ public static class MemberReaderParameter extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /**  */
@@ -5847,49 +6103,70 @@ public static class MemberReaderParameter extends OLAPObject {
     public void setValue(String /* */ newval) {
         String /* */ oldval = value;
         value = newval;
-        pcs.firePropertyChange("value", oldval, newval);
+        firePropertyChange("value", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -5926,46 +6203,67 @@ public abstract static class RelationOrJoin extends OLAPObject {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -6006,46 +6304,67 @@ public abstract static class Relation extends RelationOrJoin {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    RelationOrJoin.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -6101,7 +6420,7 @@ public static class View extends Relation {
     public void setAlias(String /* */ newval) {
         String /* */ oldval = alias;
         alias = newval;
-        pcs.firePropertyChange("alias", oldval, newval);
+        firePropertyChange("alias", oldval, newval);
     }
 
     /**  */
@@ -6114,7 +6433,7 @@ public static class View extends Relation {
         selects.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(SQL.class) + pos;
-        fireChildAdded(SQL.class, overallPosition, newChild);
+        fireChildAdded(SQL.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -6146,9 +6465,9 @@ public static class View extends Relation {
     public SQL removeSelect(int pos) {
         SQL removedItem = selects.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(SQL.class) + pos;
-            fireChildRemoved(SQL.class, overallPosition, removedItem);
+            fireChildRemoved(SQL.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -6158,19 +6477,47 @@ public static class View extends Relation {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            SQL.class));  
+        childTypes.addAll(Relation.allowedChildTypes);
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(selects);
         
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -6183,31 +6530,17 @@ public static class View extends Relation {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == SQL.class) return offset;
+        if (SQL.class.isAssignableFrom(childClass)) return offset;
         offset += selects.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof SQL) {
-            addSelect((SQL) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -6223,13 +6556,13 @@ public static class View extends Relation {
             addSelect(index - offset, (SQL) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -6238,7 +6571,7 @@ public static class View extends Relation {
             return removeSelect((SQL) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -6294,7 +6627,7 @@ public static class SQL extends OLAPObject {
     public void setDialect(String /* */ newval) {
         String /* */ oldval = dialect;
         dialect = newval;
-        pcs.firePropertyChange("dialect", oldval, newval);
+        firePropertyChange("dialect", oldval, newval);
     }
 
 	private String text;
@@ -6306,50 +6639,71 @@ public static class SQL extends OLAPObject {
 	public void setText(String newval) {
 		String oldval = text;
 		text = newval;
-		pcs.firePropertyChange("text", oldval, newval);
+		firePropertyChange("text", oldval, newval);
 	}
 
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -6436,7 +6790,7 @@ public static class Join extends RelationOrJoin {
     public void setLeftAlias(String /* */ newval) {
         String /* */ oldval = leftAlias;
         leftAlias = newval;
-        pcs.firePropertyChange("leftAlias", oldval, newval);
+        firePropertyChange("leftAlias", oldval, newval);
     }
 
     /**  */
@@ -6449,7 +6803,7 @@ public static class Join extends RelationOrJoin {
     public void setLeftKey(String /* */ newval) {
         String /* */ oldval = leftKey;
         leftKey = newval;
-        pcs.firePropertyChange("leftKey", oldval, newval);
+        firePropertyChange("leftKey", oldval, newval);
     }
 
     /** 
@@ -6465,7 +6819,7 @@ public static class Join extends RelationOrJoin {
     public void setRightAlias(String /* */ newval) {
         String /* */ oldval = rightAlias;
         rightAlias = newval;
-        pcs.firePropertyChange("rightAlias", oldval, newval);
+        firePropertyChange("rightAlias", oldval, newval);
     }
 
     /**  */
@@ -6478,7 +6832,7 @@ public static class Join extends RelationOrJoin {
     public void setRightKey(String /* */ newval) {
         String /* */ oldval = rightKey;
         rightKey = newval;
-        pcs.firePropertyChange("rightKey", oldval, newval);
+        firePropertyChange("rightKey", oldval, newval);
     }
 
     /**  */
@@ -6495,11 +6849,11 @@ public static class Join extends RelationOrJoin {
         }
         int overallPosition = childPositionOffset(RelationOrJoin.class);
         if (left != null) {
-            fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
+            fireChildRemoved(RelationOrJoin.class, oldval, overallPosition);
         }
         left = newval;
         left.setParent(this);
-        fireChildAdded(RelationOrJoin.class, overallPosition, left);
+        fireChildAdded(RelationOrJoin.class, left, overallPosition);
 	}
 
     /**  */
@@ -6516,19 +6870,48 @@ public static class Join extends RelationOrJoin {
         }
         int overallPosition = childPositionOffset(RelationOrJoin.class);
         if (right != null) {
-            fireChildRemoved(RelationOrJoin.class, overallPosition, oldval);
+            fireChildRemoved(RelationOrJoin.class, oldval, overallPosition);
         }
         right = newval;
         right.setParent(this);
-        fireChildAdded(RelationOrJoin.class, overallPosition, right);
+        fireChildAdded(RelationOrJoin.class, right, overallPosition);
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            RelationOrJoin.class, RelationOrJoin.class));  
+        childTypes.addAll(RelationOrJoin.allowedChildTypes);
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         if (left != null) {
         	children.add(left);
@@ -6541,7 +6924,6 @@ public static class Join extends RelationOrJoin {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -6554,37 +6936,20 @@ public static class Join extends RelationOrJoin {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == RelationOrJoin.class) return offset;
+        if (RelationOrJoin.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        if (childClass == RelationOrJoin.class) return offset;
+        if (RelationOrJoin.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-		if (false) {
-		
-		} else if (child instanceof RelationOrJoin) {
-            if (getLeft() == null) {
-                setLeft((RelationOrJoin) child);
-            } else if (getRight() == null) {
-                setRight((RelationOrJoin) child);
-            }
-        } else {
-        	super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
 		if (false) {
 		
@@ -6601,7 +6966,7 @@ public static class Join extends RelationOrJoin {
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
 		if (false) {
 			return false;
@@ -6615,7 +6980,7 @@ public static class Join extends RelationOrJoin {
             }
             return false;
         } else {
-        	return super.removeChild(child);
+        	return super.removeChildImpl(child);
         }
 			    
     }
@@ -6687,7 +7052,7 @@ public static class Table extends Relation {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -6702,7 +7067,7 @@ public static class Table extends Relation {
     public void setSchema(String /* */ newval) {
         String /* */ oldval = schema;
         schema = newval;
-        pcs.firePropertyChange("schema", oldval, newval);
+        firePropertyChange("schema", oldval, newval);
     }
 
     /** 
@@ -6721,7 +7086,7 @@ public static class Table extends Relation {
     public void setAlias(String /* */ newval) {
         String /* */ oldval = alias;
         alias = newval;
-        pcs.firePropertyChange("alias", oldval, newval);
+        firePropertyChange("alias", oldval, newval);
     }
 
     /** 
@@ -6740,11 +7105,11 @@ public static class Table extends Relation {
         }
         int overallPosition = childPositionOffset(SQL.class);
         if (filter != null) {
-            fireChildRemoved(SQL.class, overallPosition, oldval);
+            fireChildRemoved(SQL.class, oldval, overallPosition);
         }
         filter = newval;
         filter.setParent(this);
-        fireChildAdded(SQL.class, overallPosition, filter);
+        fireChildAdded(SQL.class, filter, overallPosition);
 	}
 
     /**  */
@@ -6757,7 +7122,7 @@ public static class Table extends Relation {
         aggExcludes.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(AggExclude.class) + pos;
-        fireChildAdded(AggExclude.class, overallPosition, newChild);
+        fireChildAdded(AggExclude.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -6789,9 +7154,9 @@ public static class Table extends Relation {
     public AggExclude removeAggExclude(int pos) {
         AggExclude removedItem = aggExcludes.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(AggExclude.class) + pos;
-            fireChildRemoved(AggExclude.class, overallPosition, removedItem);
+            fireChildRemoved(AggExclude.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -6811,7 +7176,7 @@ public static class Table extends Relation {
         aggTables.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(AggTable.class) + pos;
-        fireChildAdded(AggTable.class, overallPosition, newChild);
+        fireChildAdded(AggTable.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -6843,9 +7208,9 @@ public static class Table extends Relation {
     public AggTable removeAggTable(int pos) {
         AggTable removedItem = aggTables.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(AggTable.class) + pos;
-            fireChildRemoved(AggTable.class, overallPosition, removedItem);
+            fireChildRemoved(AggTable.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -6855,12 +7220,41 @@ public static class Table extends Relation {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            AggExclude.class, AggTable.class,SQL.class));  
+        childTypes.addAll(Relation.allowedChildTypes);
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(aggExcludes);
         
@@ -6873,7 +7267,6 @@ public static class Table extends Relation {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -6886,43 +7279,23 @@ public static class Table extends Relation {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == AggExclude.class) return offset;
+        if (AggExclude.class.isAssignableFrom(childClass)) return offset;
         offset += aggExcludes.size();
         
-        if (childClass == AggTable.class) return offset;
+        if (AggTable.class.isAssignableFrom(childClass)) return offset;
         offset += aggTables.size();
         
-        if (childClass == SQL.class) return offset;
+        if (SQL.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof AggExclude) {
-            addAggExclude((AggExclude) child);
-        
-        } else if (child instanceof AggTable) {
-            addAggTable((AggTable) child);
-        
-        } else if (child instanceof SQL) {
-            setFilter((SQL) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -6952,13 +7325,13 @@ public static class Table extends Relation {
             setFilter((SQL) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -6974,7 +7347,7 @@ public static class Table extends Relation {
             return true;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -7046,7 +7419,7 @@ public static class InlineTable extends Relation {
     public void setAlias(String /* */ newval) {
         String /* */ oldval = alias;
         alias = newval;
-        pcs.firePropertyChange("alias", oldval, newval);
+        firePropertyChange("alias", oldval, newval);
     }
 
     /**  */
@@ -7063,11 +7436,11 @@ public static class InlineTable extends Relation {
         }
         int overallPosition = childPositionOffset(ColumnDefs.class);
         if (columnDefs != null) {
-            fireChildRemoved(ColumnDefs.class, overallPosition, oldval);
+            fireChildRemoved(ColumnDefs.class, oldval, overallPosition);
         }
         columnDefs = newval;
         columnDefs.setParent(this);
-        fireChildAdded(ColumnDefs.class, overallPosition, columnDefs);
+        fireChildAdded(ColumnDefs.class, columnDefs, overallPosition);
 	}
 
     /**  */
@@ -7084,19 +7457,48 @@ public static class InlineTable extends Relation {
         }
         int overallPosition = childPositionOffset(Rows.class);
         if (rows != null) {
-            fireChildRemoved(Rows.class, overallPosition, oldval);
+            fireChildRemoved(Rows.class, oldval, overallPosition);
         }
         rows = newval;
         rows.setParent(this);
-        fireChildAdded(Rows.class, overallPosition, rows);
+        fireChildAdded(Rows.class, rows, overallPosition);
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            ColumnDefs.class, Rows.class));  
+        childTypes.addAll(Relation.allowedChildTypes);
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         if (columnDefs != null) {
         	children.add(columnDefs);
@@ -7109,7 +7511,6 @@ public static class InlineTable extends Relation {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -7122,20 +7523,20 @@ public static class InlineTable extends Relation {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == ColumnDefs.class) return offset;
+        if (ColumnDefs.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        if (childClass == Rows.class) return offset;
+        if (Rows.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -7146,30 +7547,13 @@ public static class InlineTable extends Relation {
             setRows((Rows) child);
         
         } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof ColumnDefs) {
-            setColumnDefs((ColumnDefs) child);
-        
-        } else if (child instanceof Rows) {
-            setRows((Rows) child);
-        
-        } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -7183,7 +7567,7 @@ public static class InlineTable extends Relation {
             return true;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -7227,7 +7611,7 @@ public static class ColumnDefs extends OLAPObject {
         array.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(ColumnDef.class) + pos;
-        fireChildAdded(ColumnDef.class, overallPosition, newChild);
+        fireChildAdded(ColumnDef.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -7259,9 +7643,9 @@ public static class ColumnDefs extends OLAPObject {
     public ColumnDef removeArray(int pos) {
         ColumnDef removedItem = array.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(ColumnDef.class) + pos;
-            fireChildRemoved(ColumnDef.class, overallPosition, removedItem);
+            fireChildRemoved(ColumnDef.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -7271,19 +7655,47 @@ public static class ColumnDefs extends OLAPObject {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            ColumnDef.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(array);
         
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -7296,31 +7708,17 @@ public static class ColumnDefs extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == ColumnDef.class) return offset;
+        if (ColumnDef.class.isAssignableFrom(childClass)) return offset;
         offset += array.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof ColumnDef) {
-            addArray((ColumnDef) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -7336,13 +7734,13 @@ public static class ColumnDefs extends OLAPObject {
             addArray(index - offset, (ColumnDef) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -7351,7 +7749,7 @@ public static class ColumnDefs extends OLAPObject {
             return removeArray((ColumnDef) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -7411,7 +7809,7 @@ public static class ColumnDef extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -7427,49 +7825,70 @@ public static class ColumnDef extends OLAPObject {
     public void setType(String /* */ newval) {
         String /* */ oldval = type;
         type = newval;
-        pcs.firePropertyChange("type", oldval, newval);
+        firePropertyChange("type", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -7513,7 +7932,7 @@ public static class Rows extends OLAPObject {
         array.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(Row.class) + pos;
-        fireChildAdded(Row.class, overallPosition, newChild);
+        fireChildAdded(Row.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -7545,9 +7964,9 @@ public static class Rows extends OLAPObject {
     public Row removeArray(int pos) {
         Row removedItem = array.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(Row.class) + pos;
-            fireChildRemoved(Row.class, overallPosition, removedItem);
+            fireChildRemoved(Row.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -7557,19 +7976,47 @@ public static class Rows extends OLAPObject {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            Row.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(array);
         
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -7582,31 +8029,17 @@ public static class Rows extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == Row.class) return offset;
+        if (Row.class.isAssignableFrom(childClass)) return offset;
         offset += array.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof Row) {
-            addArray((Row) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -7622,13 +8055,13 @@ public static class Rows extends OLAPObject {
             addArray(index - offset, (Row) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -7637,7 +8070,7 @@ public static class Rows extends OLAPObject {
             return removeArray((Row) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -7684,7 +8117,7 @@ public static class Row extends OLAPObject {
         values.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(Value.class) + pos;
-        fireChildAdded(Value.class, overallPosition, newChild);
+        fireChildAdded(Value.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -7716,9 +8149,9 @@ public static class Row extends OLAPObject {
     public Value removeValue(int pos) {
         Value removedItem = values.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(Value.class) + pos;
-            fireChildRemoved(Value.class, overallPosition, removedItem);
+            fireChildRemoved(Value.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -7728,19 +8161,47 @@ public static class Row extends OLAPObject {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            Value.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(values);
         
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -7753,31 +8214,17 @@ public static class Row extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == Value.class) return offset;
+        if (Value.class.isAssignableFrom(childClass)) return offset;
         offset += values.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof Value) {
-            addValue((Value) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -7793,13 +8240,13 @@ public static class Row extends OLAPObject {
             addValue(index - offset, (Value) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -7808,7 +8255,7 @@ public static class Row extends OLAPObject {
             return removeValue((Value) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -7867,7 +8314,7 @@ public static class Value extends OLAPObject {
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
-        pcs.firePropertyChange("column", oldval, newval);
+        firePropertyChange("column", oldval, newval);
     }
 
 	private String text;
@@ -7879,50 +8326,71 @@ public static class Value extends OLAPObject {
 	public void setText(String newval) {
 		String oldval = text;
 		text = newval;
-		pcs.firePropertyChange("text", oldval, newval);
+		firePropertyChange("text", oldval, newval);
 	}
 
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -7968,7 +8436,7 @@ public abstract static class AggTable extends OLAPObject {
     public void setIgnorecase(Boolean /* */ newval) {
         Boolean /* */ oldval = ignorecase;
         ignorecase = newval;
-        pcs.firePropertyChange("ignorecase", oldval, newval);
+        firePropertyChange("ignorecase", oldval, newval);
     }
 
     /** 
@@ -7987,11 +8455,11 @@ public abstract static class AggTable extends OLAPObject {
         }
         int overallPosition = childPositionOffset(AggFactCount.class);
         if (factcount != null) {
-            fireChildRemoved(AggFactCount.class, overallPosition, oldval);
+            fireChildRemoved(AggFactCount.class, oldval, overallPosition);
         }
         factcount = newval;
         factcount.setParent(this);
-        fireChildAdded(AggFactCount.class, overallPosition, factcount);
+        fireChildAdded(AggFactCount.class, factcount, overallPosition);
 	}
 
     /**  */
@@ -8004,7 +8472,7 @@ public abstract static class AggTable extends OLAPObject {
         ignoreColumns.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(AggIgnoreColumn.class) + pos;
-        fireChildAdded(AggIgnoreColumn.class, overallPosition, newChild);
+        fireChildAdded(AggIgnoreColumn.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -8036,9 +8504,9 @@ public abstract static class AggTable extends OLAPObject {
     public AggIgnoreColumn removeIgnoreColumn(int pos) {
         AggIgnoreColumn removedItem = ignoreColumns.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(AggIgnoreColumn.class) + pos;
-            fireChildRemoved(AggIgnoreColumn.class, overallPosition, removedItem);
+            fireChildRemoved(AggIgnoreColumn.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -8058,7 +8526,7 @@ public abstract static class AggTable extends OLAPObject {
         foreignKeys.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(AggForeignKey.class) + pos;
-        fireChildAdded(AggForeignKey.class, overallPosition, newChild);
+        fireChildAdded(AggForeignKey.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -8090,9 +8558,9 @@ public abstract static class AggTable extends OLAPObject {
     public AggForeignKey removeForeignKey(int pos) {
         AggForeignKey removedItem = foreignKeys.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(AggForeignKey.class) + pos;
-            fireChildRemoved(AggForeignKey.class, overallPosition, removedItem);
+            fireChildRemoved(AggForeignKey.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -8112,7 +8580,7 @@ public abstract static class AggTable extends OLAPObject {
         measures.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(AggMeasure.class) + pos;
-        fireChildAdded(AggMeasure.class, overallPosition, newChild);
+        fireChildAdded(AggMeasure.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -8144,9 +8612,9 @@ public abstract static class AggTable extends OLAPObject {
     public AggMeasure removeMeasure(int pos) {
         AggMeasure removedItem = measures.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(AggMeasure.class) + pos;
-            fireChildRemoved(AggMeasure.class, overallPosition, removedItem);
+            fireChildRemoved(AggMeasure.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -8166,7 +8634,7 @@ public abstract static class AggTable extends OLAPObject {
         levels.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(AggLevel.class) + pos;
-        fireChildAdded(AggLevel.class, overallPosition, newChild);
+        fireChildAdded(AggLevel.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -8198,9 +8666,9 @@ public abstract static class AggTable extends OLAPObject {
     public AggLevel removeLevel(int pos) {
         AggLevel removedItem = levels.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(AggLevel.class) + pos;
-            fireChildRemoved(AggLevel.class, overallPosition, removedItem);
+            fireChildRemoved(AggLevel.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -8229,12 +8697,41 @@ public abstract static class AggTable extends OLAPObject {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            AggIgnoreColumn.class, AggForeignKey.class, AggMeasure.class, AggLevel.class,AggFactCount.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(ignoreColumns);
         
@@ -8251,7 +8748,6 @@ public abstract static class AggTable extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -8264,55 +8760,29 @@ public abstract static class AggTable extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == AggIgnoreColumn.class) return offset;
+        if (AggIgnoreColumn.class.isAssignableFrom(childClass)) return offset;
         offset += ignoreColumns.size();
         
-        if (childClass == AggForeignKey.class) return offset;
+        if (AggForeignKey.class.isAssignableFrom(childClass)) return offset;
         offset += foreignKeys.size();
         
-        if (childClass == AggMeasure.class) return offset;
+        if (AggMeasure.class.isAssignableFrom(childClass)) return offset;
         offset += measures.size();
         
-        if (childClass == AggLevel.class) return offset;
+        if (AggLevel.class.isAssignableFrom(childClass)) return offset;
         offset += levels.size();
         
-        if (childClass == AggFactCount.class) return offset;
+        if (AggFactCount.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof AggIgnoreColumn) {
-            addIgnoreColumn((AggIgnoreColumn) child);
-        
-        } else if (child instanceof AggForeignKey) {
-            addForeignKey((AggForeignKey) child);
-        
-        } else if (child instanceof AggMeasure) {
-            addMeasure((AggMeasure) child);
-        
-        } else if (child instanceof AggLevel) {
-            addLevel((AggLevel) child);
-        
-        } else if (child instanceof AggFactCount) {
-            setFactcount((AggFactCount) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -8364,13 +8834,13 @@ public abstract static class AggTable extends OLAPObject {
             setFactcount((AggFactCount) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -8392,7 +8862,7 @@ public abstract static class AggTable extends OLAPObject {
             return true;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -8448,49 +8918,70 @@ public static class AggName extends AggTable {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    AggTable.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -8546,7 +9037,7 @@ public static class AggPattern extends AggTable {
     public void setPattern(String /* */ newval) {
         String /* */ oldval = pattern;
         pattern = newval;
-        pcs.firePropertyChange("pattern", oldval, newval);
+        firePropertyChange("pattern", oldval, newval);
     }
 
     /**  */
@@ -8559,7 +9050,7 @@ public static class AggPattern extends AggTable {
         excludes.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(AggExclude.class) + pos;
-        fireChildAdded(AggExclude.class, overallPosition, newChild);
+        fireChildAdded(AggExclude.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -8591,9 +9082,9 @@ public static class AggPattern extends AggTable {
     public AggExclude removeExclude(int pos) {
         AggExclude removedItem = excludes.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(AggExclude.class) + pos;
-            fireChildRemoved(AggExclude.class, overallPosition, removedItem);
+            fireChildRemoved(AggExclude.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -8603,19 +9094,47 @@ public static class AggPattern extends AggTable {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            AggExclude.class));  
+        childTypes.addAll(AggTable.allowedChildTypes);
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(excludes);
         
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -8628,31 +9147,17 @@ public static class AggPattern extends AggTable {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == AggExclude.class) return offset;
+        if (AggExclude.class.isAssignableFrom(childClass)) return offset;
         offset += excludes.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof AggExclude) {
-            addExclude((AggExclude) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -8668,13 +9173,13 @@ public static class AggPattern extends AggTable {
             addExclude(index - offset, (AggExclude) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -8683,7 +9188,7 @@ public static class AggPattern extends AggTable {
             return removeExclude((AggExclude) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -8747,7 +9252,7 @@ public static class AggExclude extends OLAPObject {
     public void setPattern(String /* */ newval) {
         String /* */ oldval = pattern;
         pattern = newval;
-        pcs.firePropertyChange("pattern", oldval, newval);
+        firePropertyChange("pattern", oldval, newval);
     }
 
     /** 
@@ -8762,7 +9267,7 @@ public static class AggExclude extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -8777,49 +9282,70 @@ public static class AggExclude extends OLAPObject {
     public void setIgnorecase(Boolean /* */ newval) {
         Boolean /* */ oldval = ignorecase;
         ignorecase = newval;
-        pcs.firePropertyChange("ignorecase", oldval, newval);
+        firePropertyChange("ignorecase", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -8859,7 +9385,7 @@ public abstract static class AggColumnName extends OLAPObject {
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
-        pcs.firePropertyChange("column", oldval, newval);
+        firePropertyChange("column", oldval, newval);
     }
 
 
@@ -8877,46 +9403,67 @@ public abstract static class AggColumnName extends OLAPObject {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -8954,46 +9501,67 @@ public static class AggFactCount extends AggColumnName {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    AggColumnName.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -9031,46 +9599,67 @@ public static class AggIgnoreColumn extends AggColumnName {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    AggColumnName.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -9131,7 +9720,7 @@ public static class AggForeignKey extends OLAPObject {
     public void setFactColumn(String /* */ newval) {
         String /* */ oldval = factColumn;
         factColumn = newval;
-        pcs.firePropertyChange("factColumn", oldval, newval);
+        firePropertyChange("factColumn", oldval, newval);
     }
 
     /** 
@@ -9146,49 +9735,70 @@ public static class AggForeignKey extends OLAPObject {
     public void setAggColumn(String /* */ newval) {
         String /* */ oldval = aggColumn;
         aggColumn = newval;
-        pcs.firePropertyChange("aggColumn", oldval, newval);
+        firePropertyChange("aggColumn", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -9246,7 +9856,7 @@ public static class AggLevel extends OLAPObject {
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
-        pcs.firePropertyChange("column", oldval, newval);
+        firePropertyChange("column", oldval, newval);
     }
 
     /** 
@@ -9261,49 +9871,70 @@ public static class AggLevel extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -9361,7 +9992,7 @@ public static class AggMeasure extends OLAPObject {
     public void setColumn(String /* */ newval) {
         String /* */ oldval = column;
         column = newval;
-        pcs.firePropertyChange("column", oldval, newval);
+        firePropertyChange("column", oldval, newval);
     }
 
     /** 
@@ -9376,49 +10007,70 @@ public static class AggMeasure extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -9455,46 +10107,67 @@ public abstract static class Expression extends OLAPObject {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -9557,7 +10230,7 @@ public static class Column extends Expression {
     public void setTable(String /* */ newval) {
         String /* */ oldval = table;
         table = newval;
-        pcs.firePropertyChange("table", oldval, newval);
+        firePropertyChange("table", oldval, newval);
     }
 
     /** 
@@ -9572,49 +10245,70 @@ public static class Column extends Expression {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Expression.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -9652,7 +10346,7 @@ public abstract static class ExpressionView extends Expression {
         expressions.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(SQL.class) + pos;
-        fireChildAdded(SQL.class, overallPosition, newChild);
+        fireChildAdded(SQL.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -9684,9 +10378,9 @@ public abstract static class ExpressionView extends Expression {
     public SQL removeExpression(int pos) {
         SQL removedItem = expressions.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(SQL.class) + pos;
-            fireChildRemoved(SQL.class, overallPosition, removedItem);
+            fireChildRemoved(SQL.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -9711,19 +10405,47 @@ public abstract static class ExpressionView extends Expression {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            SQL.class));  
+        childTypes.addAll(Expression.allowedChildTypes);
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(expressions);
         
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -9736,31 +10458,17 @@ public abstract static class ExpressionView extends Expression {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == SQL.class) return offset;
+        if (SQL.class.isAssignableFrom(childClass)) return offset;
         offset += expressions.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof SQL) {
-            addExpression((SQL) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -9776,13 +10484,13 @@ public abstract static class ExpressionView extends Expression {
             addExpression(index - offset, (SQL) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -9791,7 +10499,7 @@ public abstract static class ExpressionView extends Expression {
             return removeExpression((SQL) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -9829,46 +10537,67 @@ public static class KeyExpression extends ExpressionView {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    ExpressionView.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -9906,46 +10635,67 @@ public static class ParentExpression extends ExpressionView {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    ExpressionView.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -9983,46 +10733,67 @@ public static class OrdinalExpression extends ExpressionView {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    ExpressionView.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -10060,46 +10831,67 @@ public static class NameExpression extends ExpressionView {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    ExpressionView.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -10137,46 +10929,67 @@ public static class CaptionExpression extends ExpressionView {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    ExpressionView.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -10214,46 +11027,67 @@ public static class MeasureExpression extends ExpressionView {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    ExpressionView.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -10312,7 +11146,7 @@ public static class Role extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /**  */
@@ -10325,7 +11159,7 @@ public static class Role extends OLAPObject {
         schemaGrants.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(SchemaGrant.class) + pos;
-        fireChildAdded(SchemaGrant.class, overallPosition, newChild);
+        fireChildAdded(SchemaGrant.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -10357,9 +11191,9 @@ public static class Role extends OLAPObject {
     public SchemaGrant removeSchemaGrant(int pos) {
         SchemaGrant removedItem = schemaGrants.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(SchemaGrant.class) + pos;
-            fireChildRemoved(SchemaGrant.class, overallPosition, removedItem);
+            fireChildRemoved(SchemaGrant.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -10383,19 +11217,48 @@ public static class Role extends OLAPObject {
         }
         int overallPosition = childPositionOffset(Union.class);
         if (union != null) {
-            fireChildRemoved(Union.class, overallPosition, oldval);
+            fireChildRemoved(Union.class, oldval, overallPosition);
         }
         union = newval;
         union.setParent(this);
-        fireChildAdded(Union.class, overallPosition, union);
+        fireChildAdded(Union.class, union, overallPosition);
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            SchemaGrant.class,Union.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(schemaGrants);
         
@@ -10406,7 +11269,6 @@ public static class Role extends OLAPObject {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -10419,37 +11281,20 @@ public static class Role extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == SchemaGrant.class) return offset;
+        if (SchemaGrant.class.isAssignableFrom(childClass)) return offset;
         offset += schemaGrants.size();
         
-        if (childClass == Union.class) return offset;
+        if (Union.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof SchemaGrant) {
-            addSchemaGrant((SchemaGrant) child);
-        
-        } else if (child instanceof Union) {
-            setUnion((Union) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -10468,13 +11313,13 @@ public static class Role extends OLAPObject {
             setUnion((Union) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -10487,7 +11332,7 @@ public static class Role extends OLAPObject {
             return true;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -10525,7 +11370,7 @@ public abstract static class Grant extends OLAPObject {
     public void setAccess(String /* */ newval) {
         String /* */ oldval = access;
         access = newval;
-        pcs.firePropertyChange("access", oldval, newval);
+        firePropertyChange("access", oldval, newval);
     }
 
 
@@ -10543,46 +11388,67 @@ public abstract static class Grant extends OLAPObject {
 	    return retStr.toString();
 	}
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -10636,7 +11502,7 @@ public static class SchemaGrant extends Grant {
         cubeGrants.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(CubeGrant.class) + pos;
-        fireChildAdded(CubeGrant.class, overallPosition, newChild);
+        fireChildAdded(CubeGrant.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -10668,9 +11534,9 @@ public static class SchemaGrant extends Grant {
     public CubeGrant removeCubeGrant(int pos) {
         CubeGrant removedItem = cubeGrants.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(CubeGrant.class) + pos;
-            fireChildRemoved(CubeGrant.class, overallPosition, removedItem);
+            fireChildRemoved(CubeGrant.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -10680,19 +11546,47 @@ public static class SchemaGrant extends Grant {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            CubeGrant.class));  
+        childTypes.addAll(Grant.allowedChildTypes);
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(cubeGrants);
         
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -10705,31 +11599,17 @@ public static class SchemaGrant extends Grant {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == CubeGrant.class) return offset;
+        if (CubeGrant.class.isAssignableFrom(childClass)) return offset;
         offset += cubeGrants.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof CubeGrant) {
-            addCubeGrant((CubeGrant) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -10745,13 +11625,13 @@ public static class SchemaGrant extends Grant {
             addCubeGrant(index - offset, (CubeGrant) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -10760,7 +11640,7 @@ public static class SchemaGrant extends Grant {
             return removeCubeGrant((CubeGrant) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -10818,7 +11698,7 @@ public static class CubeGrant extends Grant {
     public void setCube(String /* */ newval) {
         String /* */ oldval = cube;
         cube = newval;
-        pcs.firePropertyChange("cube", oldval, newval);
+        firePropertyChange("cube", oldval, newval);
     }
 
     /**  */
@@ -10831,7 +11711,7 @@ public static class CubeGrant extends Grant {
         dimensionGrants.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(DimensionGrant.class) + pos;
-        fireChildAdded(DimensionGrant.class, overallPosition, newChild);
+        fireChildAdded(DimensionGrant.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -10863,9 +11743,9 @@ public static class CubeGrant extends Grant {
     public DimensionGrant removeDimensionGrant(int pos) {
         DimensionGrant removedItem = dimensionGrants.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(DimensionGrant.class) + pos;
-            fireChildRemoved(DimensionGrant.class, overallPosition, removedItem);
+            fireChildRemoved(DimensionGrant.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -10885,7 +11765,7 @@ public static class CubeGrant extends Grant {
         hierarchyGrants.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(HierarchyGrant.class) + pos;
-        fireChildAdded(HierarchyGrant.class, overallPosition, newChild);
+        fireChildAdded(HierarchyGrant.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -10917,9 +11797,9 @@ public static class CubeGrant extends Grant {
     public HierarchyGrant removeHierarchyGrant(int pos) {
         HierarchyGrant removedItem = hierarchyGrants.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(HierarchyGrant.class) + pos;
-            fireChildRemoved(HierarchyGrant.class, overallPosition, removedItem);
+            fireChildRemoved(HierarchyGrant.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -10929,12 +11809,41 @@ public static class CubeGrant extends Grant {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            DimensionGrant.class, HierarchyGrant.class));  
+        childTypes.addAll(Grant.allowedChildTypes);
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(dimensionGrants);
         
@@ -10943,7 +11852,6 @@ public static class CubeGrant extends Grant {
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -10956,37 +11864,20 @@ public static class CubeGrant extends Grant {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == DimensionGrant.class) return offset;
+        if (DimensionGrant.class.isAssignableFrom(childClass)) return offset;
         offset += dimensionGrants.size();
         
-        if (childClass == HierarchyGrant.class) return offset;
+        if (HierarchyGrant.class.isAssignableFrom(childClass)) return offset;
         offset += hierarchyGrants.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof DimensionGrant) {
-            addDimensionGrant((DimensionGrant) child);
-        
-        } else if (child instanceof HierarchyGrant) {
-            addHierarchyGrant((HierarchyGrant) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -11013,13 +11904,13 @@ public static class CubeGrant extends Grant {
             addHierarchyGrant(index - offset, (HierarchyGrant) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -11031,7 +11922,7 @@ public static class CubeGrant extends Grant {
             return removeHierarchyGrant((HierarchyGrant) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -11092,49 +11983,70 @@ public static class DimensionGrant extends Grant {
     public void setDimension(String /* */ newval) {
         String /* */ oldval = dimension;
         dimension = newval;
-        pcs.firePropertyChange("dimension", oldval, newval);
+        firePropertyChange("dimension", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Grant.allowedChildTypes;
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -11213,7 +12125,7 @@ public static class HierarchyGrant extends Grant {
     public void setHierarchy(String /* */ newval) {
         String /* */ oldval = hierarchy;
         hierarchy = newval;
-        pcs.firePropertyChange("hierarchy", oldval, newval);
+        firePropertyChange("hierarchy", oldval, newval);
     }
 
     /** Unique name of the highest level of the hierarchy from which
@@ -11229,7 +12141,7 @@ public static class HierarchyGrant extends Grant {
     public void setTopLevel(String /* */ newval) {
         String /* */ oldval = topLevel;
         topLevel = newval;
-        pcs.firePropertyChange("topLevel", oldval, newval);
+        firePropertyChange("topLevel", oldval, newval);
     }
 
     /** Unique name of the lowest level of the hierarchy from which
@@ -11245,7 +12157,7 @@ public static class HierarchyGrant extends Grant {
     public void setBottomLevel(String /* */ newval) {
         String /* */ oldval = bottomLevel;
         bottomLevel = newval;
-        pcs.firePropertyChange("bottomLevel", oldval, newval);
+        firePropertyChange("bottomLevel", oldval, newval);
     }
 
     /** Policy which determines how cell values are calculated if
@@ -11261,7 +12173,7 @@ public static class HierarchyGrant extends Grant {
     public void setRollupPolicy(String /* */ newval) {
         String /* */ oldval = rollupPolicy;
         rollupPolicy = newval;
-        pcs.firePropertyChange("rollupPolicy", oldval, newval);
+        firePropertyChange("rollupPolicy", oldval, newval);
     }
 
     /**  */
@@ -11274,7 +12186,7 @@ public static class HierarchyGrant extends Grant {
         memberGrants.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(MemberGrant.class) + pos;
-        fireChildAdded(MemberGrant.class, overallPosition, newChild);
+        fireChildAdded(MemberGrant.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -11306,9 +12218,9 @@ public static class HierarchyGrant extends Grant {
     public MemberGrant removeMemberGrant(int pos) {
         MemberGrant removedItem = memberGrants.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(MemberGrant.class) + pos;
-            fireChildRemoved(MemberGrant.class, overallPosition, removedItem);
+            fireChildRemoved(MemberGrant.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -11318,19 +12230,47 @@ public static class HierarchyGrant extends Grant {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            MemberGrant.class));  
+        childTypes.addAll(Grant.allowedChildTypes);
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(memberGrants);
         
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -11343,31 +12283,17 @@ public static class HierarchyGrant extends Grant {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == MemberGrant.class) return offset;
+        if (MemberGrant.class.isAssignableFrom(childClass)) return offset;
         offset += memberGrants.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof MemberGrant) {
-            addMemberGrant((MemberGrant) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -11383,13 +12309,13 @@ public static class HierarchyGrant extends Grant {
             addMemberGrant(index - offset, (MemberGrant) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -11398,7 +12324,7 @@ public static class HierarchyGrant extends Grant {
             return removeMemberGrant((MemberGrant) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -11459,7 +12385,7 @@ public static class MemberGrant extends OLAPObject {
     public void setMember(String /* */ newval) {
         String /* */ oldval = member;
         member = newval;
-        pcs.firePropertyChange("member", oldval, newval);
+        firePropertyChange("member", oldval, newval);
     }
 
     /**  */
@@ -11472,49 +12398,70 @@ public static class MemberGrant extends OLAPObject {
     public void setAccess(String /* */ newval) {
         String /* */ oldval = access;
         access = newval;
-        pcs.firePropertyChange("access", oldval, newval);
+        firePropertyChange("access", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -11562,7 +12509,7 @@ public static class Union extends OLAPObject {
         roleUsages.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(RoleUsage.class) + pos;
-        fireChildAdded(RoleUsage.class, overallPosition, newChild);
+        fireChildAdded(RoleUsage.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -11594,9 +12541,9 @@ public static class Union extends OLAPObject {
     public RoleUsage removeRoleUsage(int pos) {
         RoleUsage removedItem = roleUsages.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(RoleUsage.class) + pos;
-            fireChildRemoved(RoleUsage.class, overallPosition, removedItem);
+            fireChildRemoved(RoleUsage.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -11606,19 +12553,47 @@ public static class Union extends OLAPObject {
     }
     
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends SPObject>> childTypes = new ArrayList<Class<? extends SPObject>>(
+                    Arrays.asList(
+            RoleUsage.class));  
+        
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List<SPObject> getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List<OLAPObject> children = new ArrayList<OLAPObject>();
+        List<SPObject> children = new ArrayList<SPObject>();
         
         children.addAll(roleUsages);
         
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -11631,31 +12606,17 @@ public static class Union extends OLAPObject {
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class<? extends OLAPObject> childClass) {
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
         int offset = 0;
         
-        if (childClass == RoleUsage.class) return offset;
+        if (RoleUsage.class.isAssignableFrom(childClass)) return offset;
         offset += roleUsages.size();
         
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     
     @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else if (child instanceof RoleUsage) {
-            addRoleUsage((RoleUsage) child);
-        
-        } else {
-            super.addChild(child);
-        }
-			    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
@@ -11671,13 +12632,13 @@ public static class Union extends OLAPObject {
             addRoleUsage(index - offset, (RoleUsage) child);
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
@@ -11686,7 +12647,7 @@ public static class Union extends OLAPObject {
             return removeRoleUsage((RoleUsage) child);
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -11738,49 +12699,70 @@ public static class RoleUsage extends OLAPObject {
     public void setRoleName(String /* */ newval) {
         String /* */ oldval = roleName;
         roleName = newval;
-        pcs.firePropertyChange("roleName", oldval, newval);
+        firePropertyChange("roleName", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -11841,7 +12823,7 @@ public static class UserDefinedFunction extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -11858,49 +12840,70 @@ public static class UserDefinedFunction extends OLAPObject {
     public void setClassName(String /* */ newval) {
         String /* */ oldval = className;
         className = newval;
-        pcs.firePropertyChange("className", oldval, newval);
+        firePropertyChange("className", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }
@@ -11980,7 +12983,7 @@ public static class Parameter extends OLAPObject {
     public void setName(String /* */ newval) {
         String /* */ oldval = name;
         name = newval;
-        pcs.firePropertyChange("name", oldval, newval);
+        firePropertyChange("name", oldval, newval);
     }
 
     /** 
@@ -11995,7 +12998,7 @@ public static class Parameter extends OLAPObject {
     public void setDescription(String /* */ newval) {
         String /* */ oldval = description;
         description = newval;
-        pcs.firePropertyChange("description", oldval, newval);
+        firePropertyChange("description", oldval, newval);
     }
 
     /** 
@@ -12011,7 +13014,7 @@ public static class Parameter extends OLAPObject {
     public void setType(String /* */ newval) {
         String /* */ oldval = type;
         type = newval;
-        pcs.firePropertyChange("type", oldval, newval);
+        firePropertyChange("type", oldval, newval);
     }
 
     /** 
@@ -12029,7 +13032,7 @@ public static class Parameter extends OLAPObject {
     public void setModifiable(Boolean /* */ newval) {
         Boolean /* */ oldval = modifiable;
         modifiable = newval;
-        pcs.firePropertyChange("modifiable", oldval, newval);
+        firePropertyChange("modifiable", oldval, newval);
     }
 
     /** 
@@ -12044,49 +13047,70 @@ public static class Parameter extends OLAPObject {
     public void setDefaultValue(String /* */ newval) {
         String /* */ oldval = defaultValue;
         defaultValue = newval;
-        pcs.firePropertyChange("defaultValue", oldval, newval);
+        firePropertyChange("defaultValue", oldval, newval);
     }
 
-    @Override
-    public List<OLAPObject> getChildren() {
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List<? extends SPObject> getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+    Collections.emptyList();
+        
+    
+    public List<SPObject> getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
     }
     
-    @Override
-    public void addChild(OLAPObject child) {
-		
-        if (false) {
-        
-        } else {
-            super.addChild(child);
-        }
-			    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class<? extends SPObject> childClass) {
+        return super.childPositionOffset(childClass);
     }
-
+    
     @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		
         if (false) {
         
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		
         if (false) {
         	return false;
         
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			    
     }

@@ -176,7 +176,7 @@ public class ImportSchemaAction extends AbstractArchitectAction {
         int vCubeMaxHeight = 0;
         
         // creates the gui components for container panes.
-        for (OLAPObject child : schema.getChildren()) {
+        for (OLAPObject child : schema.getChildren(OLAPObject.class)) {
             if (child instanceof Dimension) {
                 Dimension dim = (Dimension) child;
                 DimensionPane dimPane = new DimensionPane(dim, pp.getContentPane());
@@ -217,7 +217,7 @@ public class ImportSchemaAction extends AbstractArchitectAction {
         }
         
         // creates the gui components for the usages.
-        for (OLAPObject child : schema.getChildren()) {
+        for (OLAPObject child : schema.getChildren(OLAPObject.class)) {
             if (child instanceof VirtualCube) {
                 VirtualCube vCube = (VirtualCube) child;
                 if (vCube.getCubeUsage() == null) continue;

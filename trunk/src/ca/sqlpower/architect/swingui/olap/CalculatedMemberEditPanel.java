@@ -68,7 +68,7 @@ public class CalculatedMemberEditPanel implements DataEntryPanel {
     }
     
     public boolean applyChanges() {
-        calculatedMember.startCompoundEdit("Modifying Calculated Measure Properties");
+        calculatedMember.begin("Modifying Calculated Measure Properties");
         calculatedMember.setName(nameField.getText());
         calculatedMember.setCaption(captionField.getText());
         calculatedMember.setDimension(dimensionField.getText());
@@ -81,7 +81,7 @@ public class CalculatedMemberEditPanel implements DataEntryPanel {
             calculatedMember.getFormulaElement().setText(formulaTextArea.getText());
         }
         calculatedMember.setFormatString(formatField.getText());
-        calculatedMember.endCompoundEdit();
+        calculatedMember.commit();
         return true;
     }
 

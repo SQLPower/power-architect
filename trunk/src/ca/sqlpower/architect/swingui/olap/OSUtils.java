@@ -188,21 +188,4 @@ public class OSUtils {
         return BlankIcon.getInstance(16, 16);
     }
     
-    /**
-     * Returns the first ancestor of <tt>so</tt> which is of the given type, or
-     * <tt>null</tt> if <tt>so</tt> doesn't have an ancestor whose class is
-     * <tt>ancestorType</tt>.
-     * 
-     * @param so
-     *            The object for whose ancestor to look. (Thanks, Winston).
-     * @return The nearest ancestor of type ancestorType, or null if no such
-     *         ancestor exists.
-     */
-    public static <T extends OLAPObject> T getAncestor(OLAPObject so, Class<T> ancestorType) {
-        while (so != null) {
-            if (so.getClass().equals(ancestorType)) return (T) so;
-            so = so.getParent();
-        }
-        return null;
-    }
 }

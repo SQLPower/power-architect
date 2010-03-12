@@ -14,14 +14,18 @@
 
 <xsl:strip-space elements="*"/>
 
-<!-- TODO: copy xml subtree of Doc elements verbatim (to preserve HTML in comments) -->
+<!-- TODO: copy xml subtree of Doc elements verbatim (to preserve HTML in comments)
+-->
 
 <xsl:template match="/">
 package ca.sqlpower.architect.olap;
 
 import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import ca.sqlpower.object.SPObject;
 
 
 /**
@@ -96,7 +100,6 @@ public static class <xsl:value-of select="@type"/> extends <xsl:call-template na
 </xsl:template> 
 
 
-
 <!--
     ================ Class stuff ================
  -->
@@ -159,7 +162,9 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
   </xsl:choose>
 </xsl:template> 
 
-<!-- Private instance variable with getter/setter pair. (i.e. a bound JavaBean property) -->
+
+<!-- Private instance variable with getter/setter pair. (i.e. a bound JavaBean property)
+-->
 <xsl:template match="Attribute">
     /** <xsl:copy-of select="Doc"/> */
     private <xsl:call-template name="attribute-type"/> /* */ <xsl:value-of select="@name"/>;
@@ -171,12 +176,12 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
     public void set<xsl:call-template name="name-initcap"/>(<xsl:call-template name="attribute-type"/> /* */ newval) {
         <xsl:call-template name="attribute-type"/> /* */ oldval = <xsl:value-of select="@name"/>;
         <xsl:value-of select="@name"/> = newval;
-        pcs.firePropertyChange("<xsl:value-of select="@name"/>", oldval, newval);
+        firePropertyChange("<xsl:value-of select="@name"/>", oldval, newval);
     }
 </xsl:template>
 
-<!-- Private instance variable with getter/setter pair. (i.e. a bound JavaBean property) -->
-<!-- This is different than attribute because objects considered children of the so the -->
+<!-- Private instance variable with getter/setter pair. (i.e. a bound JavaBean property)-->
+<!-- This is different than attribute because objects considered children of the so the-->
 <!-- Parent must be set. -->
 <xsl:template match="Object">
     /** <xsl:copy-of select="Doc"/> */
@@ -193,15 +198,16 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         }
         int overallPosition = childPositionOffset(<xsl:call-template name="attribute-type"/>.class);
         if (<xsl:value-of select="@name"/> != null) {
-            fireChildRemoved(<xsl:call-template name="attribute-type"/>.class, overallPosition, oldval);
+            fireChildRemoved(<xsl:call-template name="attribute-type"/>.class, oldval, overallPosition);
         }
         <xsl:value-of select="@name"/> = newval;
         <xsl:value-of select="@name"/>.setParent(this);
-        fireChildAdded(<xsl:call-template name="attribute-type"/>.class, overallPosition, <xsl:value-of select="@name"/>);
+        fireChildAdded(<xsl:call-template name="attribute-type"/>.class, <xsl:value-of select="@name"/>, overallPosition);
 	}
 </xsl:template>
 
-<!-- Private instance variable with getter/setter pair. (i.e. a bound JavaBean property) -->
+<!-- Private instance variable with getter/setter pair. (i.e. a bound JavaBean property)
+-->
 <xsl:template match="CData">
 	private String text;
 	
@@ -212,7 +218,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
 	public void setText(String newval) {
 		String oldval = text;
 		text = newval;
-		pcs.firePropertyChange("text", oldval, newval);
+		firePropertyChange("text", oldval, newval);
 	}
 
 </xsl:template>
@@ -236,7 +242,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         <xsl:value-of select="@name"/>.add(pos, newChild);
         newChild.setParent(this);
         int overallPosition = childPositionOffset(<xsl:value-of select="@type"/>.class) + pos;
-        fireChildAdded(<xsl:value-of select="@type"/>.class, overallPosition, newChild);
+        fireChildAdded(<xsl:value-of select="@type"/>.class, newChild, overallPosition);
     }
 
     /** Adds the given child object at the end of the child list, firing an OLAPChildEvent.
@@ -268,9 +274,9 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
     public <xsl:value-of select="@type"/> remove<xsl:call-template name="name-initcap-nonplural"/>(int pos) {
         <xsl:value-of select="@type"/> removedItem = <xsl:value-of select="@name"/>.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             int overallPosition = childPositionOffset(<xsl:value-of select="@type"/>.class) + pos;
-            fireChildRemoved(<xsl:value-of select="@type"/>.class, overallPosition, removedItem);
+            fireChildRemoved(<xsl:value-of select="@type"/>.class, removedItem, overallPosition);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
@@ -282,14 +288,53 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
 </xsl:template>
 
 <xsl:template name="children-methods">
+
+    public List&lt;Class&lt;? extends SPObject&gt;&gt; getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");        
+    }
+    public List&lt;? extends SPObject&gt; getDependencies() {
+        throw new IllegalStateException("Dependency management has not been setup for " + 
+            "OLAP objects because they reference each other by name.");
+    }
+
     <xsl:choose>
       <xsl:when test="Array|Object">
-    @Override
-    public List&lt;OLAPObject&gt; getChildren() {
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List&lt;Class&lt;? extends SPObject&gt;&gt; allowedChildTypes;
+    static {
+        @SuppressWarnings("unchecked")
+        List&lt;Class&lt;? extends SPObject&gt;&gt; childTypes = new ArrayList&lt;Class&lt;? extends SPObject&gt;&gt;(
+                    Arrays.asList(
+            <xsl:for-each select="Array">
+                <xsl:value-of select="@type"/>.class<xsl:if test="position()!=last()">, </xsl:if>
+            </xsl:for-each>
+            <xsl:variable name="arraySize" select="count(Array)" />
+            <xsl:variable name="objectSize" select="count(Object)" />
+            <xsl:if test="$arraySize > 0 and $objectSize > 0">,</xsl:if>
+            <xsl:for-each select="Object">
+                <xsl:value-of select="@type"/>.class<xsl:if test="position()!=last()">, </xsl:if>
+            </xsl:for-each>));  
+        <xsl:choose>
+            <xsl:when test="name() = 'Element' and @class">childTypes.addAll(<xsl:value-of select="@class"/>.allowedChildTypes);</xsl:when>
+            <xsl:when test="name() = 'Class' and @superclass">childTypes.addAll(<xsl:value-of select="@superclass"/>.allowedChildTypes);</xsl:when>
+        </xsl:choose>
+        allowedChildTypes = Collections.unmodifiableList(childTypes);
+        
+    }
+      
+    public List&lt;SPObject&gt; getChildren() {
         /* This might be noticeably more efficient if we use a data structure (ConcatenatedList?) that holds
          * each list and implements optimized get() and iterator() methods instead of just making a new
          * ArrayList with a copy of the union of all the other lists as we are now. */
-        List&lt;OLAPObject&gt; children = new ArrayList&lt;OLAPObject&gt;();
+        List&lt;SPObject&gt; children = new ArrayList&lt;SPObject&gt;();
         <xsl:for-each select="Array">
         children.addAll(<xsl:value-of select="@name"/>);
         </xsl:for-each>
@@ -301,7 +346,6 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         return Collections.unmodifiableList(children);
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -314,66 +358,54 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
      * @throws IllegalArgumentException if the given child class is not valid for
      * this OLAPObject.
      */
-    private int childPositionOffset(Class&lt;? extends OLAPObject&gt; childClass) {
+    public int childPositionOffset(Class&lt;? extends SPObject&gt; childClass) {
         int offset = 0;
         <xsl:for-each select="Array">
-        if (childClass == <xsl:value-of select="@type"/>.class) return offset;
+        if (<xsl:value-of select="@type"/>.class.isAssignableFrom(childClass)) return offset;
         offset += <xsl:value-of select="@name"/>.size();
         </xsl:for-each>
         <xsl:for-each select="Object">
-        if (childClass == <xsl:value-of select="@type"/>.class) return offset;
+        if (<xsl:value-of select="@type"/>.class.isAssignableFrom(childClass)) return offset;
         offset += 1;
         </xsl:for-each>
-        return offset;
+        return offset + super.childPositionOffset(childClass);
     }
     </xsl:when>
     <xsl:otherwise>
-    @Override
-    public List&lt;OLAPObject&gt; getChildren() {
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    public static final List&lt;Class&lt;? extends SPObject&gt;&gt; allowedChildTypes =
+    <xsl:choose>
+        <xsl:when test="name() = 'Element' and @class"><xsl:value-of select="@class"/>.allowedChildTypes;</xsl:when>
+        <xsl:when test="name() = 'Class' and @superclass"><xsl:value-of select="@superclass"/>.allowedChildTypes;</xsl:when>
+        <xsl:otherwise>Collections.emptyList();</xsl:otherwise>
+    </xsl:choose>
+        
+    
+    public List&lt;SPObject&gt; getChildren() {
         return Collections.emptyList();
     }
     
-    @Override
     public boolean allowsChildren() {
         return false;
+    }
+    
+    /**
+     * Returns the position in the list that would be returned by getChildren()
+     * that the first object of type childClass is, or where it would be if
+     * there were any children of that type.
+     *
+     * @throws IllegalArgumentException if the given child class is not valid for
+     * this OLAPObject.
+     */
+    public int childPositionOffset(Class&lt;? extends SPObject&gt; childClass) {
+        return super.childPositionOffset(childClass);
     }
     </xsl:otherwise>
   </xsl:choose>
     @Override
-    public void addChild(OLAPObject child) {
-		<xsl:choose>
-			<xsl:when test="@type='Join'">
-		if (false) {
-		
-		} else if (child instanceof RelationOrJoin) {
-            if (getLeft() == null) {
-                setLeft((RelationOrJoin) child);
-            } else if (getRight() == null) {
-                setRight((RelationOrJoin) child);
-            }
-        } else {
-        	super.addChild(child);
-        }
-			</xsl:when>
-			<xsl:otherwise>
-        if (false) {
-        <xsl:for-each select="Array">
-        } else if (child instanceof <xsl:value-of select="@type"/>) {
-            add<xsl:call-template name="name-initcap-nonplural"/>((<xsl:value-of select="@type"/>) child);
-        </xsl:for-each>
-        <xsl:for-each select="Object">
-        } else if (child instanceof <xsl:value-of select="@type"/>) {
-            set<xsl:call-template name="name-initcap"/>((<xsl:value-of select="@type"/>) child);
-        </xsl:for-each>
-        } else {
-            super.addChild(child);
-        }
-			</xsl:otherwise>    
-		</xsl:choose>    
-    }
-
-    @Override
-    public void addChild(int index, OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
 		<xsl:choose>
 			<xsl:when test="@type='Join'">
 		if (false) {
@@ -407,14 +439,14 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
             set<xsl:call-template name="name-initcap"/>((<xsl:value-of select="@type"/>) child);
         </xsl:for-each>
         } else {
-            super.addChild(index, child);
+            super.addChildImpl(child, index);
         }
 			</xsl:otherwise>
 		</xsl:choose>
     }
     
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
 		<xsl:choose>
 			<xsl:when test="@type='Join'">
 		if (false) {
@@ -429,7 +461,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
             }
             return false;
         } else {
-        	return super.removeChild(child);
+        	return super.removeChildImpl(child);
         }
 			</xsl:when>
 			<xsl:otherwise>
@@ -445,7 +477,7 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
             return true;
         </xsl:for-each>
         } else {
-            return super.removeChild(child);
+            return super.removeChildImpl(child);
         }
 			</xsl:otherwise>    
 		</xsl:choose>    

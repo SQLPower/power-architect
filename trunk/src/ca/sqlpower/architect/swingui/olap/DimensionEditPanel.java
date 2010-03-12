@@ -24,6 +24,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
@@ -91,7 +92,7 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
         }
         
         handler = new FormValidationHandler(status, true);
-        Validator validator = new OLAPObjectNameValidator(dimension.getParent(), dimension, false);
+        Validator validator = new OLAPObjectNameValidator((OLAPObject) dimension.getParent(), dimension, false);
         handler.addValidateObject(nameField, validator);
         
         // private dimensions only.
@@ -120,7 +121,7 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
         panel = builder.getPanel();
     }
     public boolean applyChanges() {
-        dimension.startCompoundEdit("Started modifying dimension properties");
+        dimension.begin("Started modifying dimension properties");
         dimension.setName(nameField.getText());
         if (!(captionField.getText().equals(""))) {
             dimension.setCaption(captionField.getText());
@@ -140,7 +141,7 @@ public class DimensionEditPanel implements ValidatableDataEntryPanel {
             dimension.setForeignKey(pk);
         }
         
-        dimension.endCompoundEdit();
+        dimension.commit();
         return true;
     }
 

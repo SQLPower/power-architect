@@ -27,6 +27,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.validation.Validator;
@@ -82,14 +83,14 @@ public class VirtualCubeEditPanel implements ValidatableDataEntryPanel {
         }
         
         handler = new FormValidationHandler(status);
-        Validator validator = new OLAPObjectNameValidator(vCube.getParent(), vCube, false);
+        Validator validator = new OLAPObjectNameValidator((OLAPObject) vCube.getParent(), vCube, false);
         handler.addValidateObject(nameField, validator);
         
         panel = builder.getPanel();
     }
     
     public boolean applyChanges() {
-        vCube.startCompoundEdit("Started modifying virtual cube properties");
+        vCube.begin("Started modifying virtual cube properties");
         vCube.setName(nameField.getText());
         if (!(captionField.getText().equals(""))) {
             vCube.setCaption(captionField.getText());
@@ -98,7 +99,7 @@ public class VirtualCubeEditPanel implements ValidatableDataEntryPanel {
         }
         VirtualCubeMeasure ms = (VirtualCubeMeasure) defMeasure.getSelectedItem();
         vCube.setDefaultMeasure(ms == null ? null : ms.getName());
-        vCube.endCompoundEdit();
+        vCube.commit();
         return true;
     }
 

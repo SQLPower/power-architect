@@ -20,7 +20,6 @@
 package ca.sqlpower.architect.olap;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +36,10 @@ import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
+import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
 /**
  * A listener class that watches a Schema for name changes and removal of
@@ -45,7 +48,7 @@ import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
  * assumption that OLAPObjects have unique names within the Schema.
  * 
  */
-public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener {
+public class SchemaWatcher implements SPListener {
 
     private static final Logger logger = Logger.getLogger(SchemaWatcher.class);
 
@@ -90,7 +93,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
         populateNameToObjectMaps(schema);
         populateParentToReferencesMaps(schema);
         
-        OLAPUtil.listenToHierarchy(schema, this, this);
+        SQLPowerUtils.listenToHierarchy(schema, this);
     }
     
     /**
@@ -102,7 +105,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
      *            The parent object to search through.
      */
     private void populateNameToObjectMaps(OLAPObject parent) {
-        for (OLAPObject child : parent.getChildren()) {
+        for (OLAPObject child : parent.getChildren(OLAPObject.class)) {
             if (child instanceof Cube) {
                 cubes.put(child.getName().toLowerCase(), (Cube) child);
             } else if (parent instanceof Cube && child instanceof CubeDimension) {
@@ -130,7 +133,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
      *            The parent object to search through.
      */
     private void populateParentToReferencesMaps(OLAPObject parent) {
-        for (OLAPObject child : parent.getChildren()) {
+        for (OLAPObject child : parent.getChildren(OLAPObject.class)) {
             if (child instanceof DimensionUsage) {
                 DimensionUsage du = (DimensionUsage) child;
                 addToDimensionUsagesMap(du);
@@ -228,7 +231,7 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
         }
     }
 
-    public void olapChildAdded(OLAPChildEvent e) {
+    public void childAdded(SPChildEvent e) {
         if (e.getSource() instanceof Cube && e.getChild() instanceof CubeDimension) {
             Cube c = (Cube) e.getSource();
             CubeDimension cd = (CubeDimension) e.getChild();
@@ -273,15 +276,15 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
                 for (CubeUsage cu : cubeUsages.getCubeUsages()) {
                     addToCubeUsagesMap(cu);
                 }
-                OLAPUtil.listenToHierarchy(cubeUsages, this, this);
+                SQLPowerUtils.listenToHierarchy(cubeUsages, this);
             }
-            vc.addPropertyChangeListener(this);
+            vc.addSPListener(this);
         }
 
-        OLAPUtil.listenToHierarchy(e.getChild(), this, this);
+        SQLPowerUtils.listenToHierarchy(e.getChild(), this);
     }
 
-    public void olapChildRemoved(OLAPChildEvent e) {
+    public void childRemoved(SPChildEvent e) {
         if (e.getSource() instanceof Cube && e.getChild() instanceof CubeDimension) {
             CubeDimension cd = (CubeDimension) e.getChild();
             Cube c = (Cube) e.getSource();
@@ -368,19 +371,19 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
                 for (List<CubeUsage> usagesList : cubeUsageMap.values()) {
                     usagesList.removeAll(cubeUsages.getCubeUsages());
                 }
-                OLAPUtil.unlistenToHierarchy(cubeUsages, this, this);
+                SQLPowerUtils.unlistenToHierarchy(cubeUsages, this);
             }
-            vc.removePropertyChangeListener(this);
+            vc.removeSPListener(this);
         } else if (e.getChild() instanceof VirtualCubeDimension) {
             for (List<VirtualCubeDimension> vCubeDims : vCubeDimensionMap.values()) {
                 vCubeDims.remove(e.getChild());
             }
         }
 
-        OLAPUtil.unlistenToHierarchy(e.getChild(), this, this);
+        SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
     }
 
-    public void propertyChange(PropertyChangeEvent evt) {
+    public void propertyChanged(PropertyChangeEvent evt) {
         if ("cubeUsage".equals(evt.getPropertyName())) {
             // This handles {@link VirtualCube#setCubeUsage(CubeUsages)}
             // explicitly because CubeUsages are a property of VirtualCube
@@ -392,14 +395,14 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
                 for (List<CubeUsage> usagesList : cubeUsageMap.values()) {
                     usagesList.removeAll(oldUsages.getCubeUsages());
                 }
-                OLAPUtil.unlistenToHierarchy(oldUsages, this, this);
+                SQLPowerUtils.unlistenToHierarchy(oldUsages, this);
             }
             
             if (newUsages != null) {
                 for (CubeUsage cu : newUsages.getCubeUsages()) {
                     addToCubeUsagesMap(cu);
                 }
-                OLAPUtil.listenToHierarchy(newUsages, this, this);
+                SQLPowerUtils.listenToHierarchy(newUsages, this);
             }
         } else if ("name".equals(evt.getPropertyName())) {
             if (evt.getSource() instanceof Dimension) {
@@ -539,5 +542,17 @@ public class SchemaWatcher implements OLAPChildListener, PropertyChangeListener 
         public String toString() {
             return getCubeName() + "." + getDimensionName();
         }
+    }
+    
+    public void transactionEnded(TransactionEvent e) {
+        //no-op        
+    }
+    
+    public void transactionRollback(TransactionEvent e) {
+        //no-op
+    }
+    
+    public void transactionStarted(TransactionEvent e) {
+        //no-op        
     }
 }

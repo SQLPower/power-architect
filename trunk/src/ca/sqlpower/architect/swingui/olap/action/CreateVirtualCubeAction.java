@@ -78,7 +78,7 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
 
         @Override
         public DataEntryPanel place(Point p) throws SQLObjectException {
-            schema.startCompoundEdit("Create a virtual cube");
+            schema.begin("Create a virtual cube");
             schema.addVirtualCube(vcp.getModel());
             
             playpen.selectNone();
@@ -89,13 +89,13 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
                 @Override
                 public void discardChanges() {
                     schema.removeVirtualCube(vcp.getModel());
-                    schema.endCompoundEdit();
+                    schema.commit();
                 }
                 
                 @Override
                 public boolean applyChanges() {
                     boolean applied = super.applyChanges();
-                    schema.endCompoundEdit();
+                    schema.commit();
                     return applied;
                 }
             };

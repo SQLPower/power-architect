@@ -26,7 +26,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -44,8 +43,6 @@ import javax.swing.table.TableModel;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.olap.OLAPChildEvent;
-import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
@@ -53,7 +50,10 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.olap.action.ExportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.TransactionEvent;
 
 import com.jgoodies.forms.builder.ButtonStackBuilder;
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -267,13 +267,13 @@ public class OLAPSchemaManager {
 
     }
 
-    private class SchemaTableModel extends AbstractTableModel implements OLAPChildListener, PropertyChangeListener {
+    private class SchemaTableModel extends AbstractTableModel implements SPListener {
 
         public SchemaTableModel(OLAPRootObject rootObj) {
             super();
-            rootObj.addChildListener(this);
+            rootObj.addSPListener(this);
             for (OLAPSession osession : olapSessions) {
-                osession.getSchema().addPropertyChangeListener(this);
+                osession.getSchema().addSPListener(this);
             }
         }
 
@@ -304,18 +304,30 @@ public class OLAPSchemaManager {
             return olapSessions == null ? null : olapSessions.get(rowIndex).getSchema().getName();
         }
         
-        public void olapChildAdded(OLAPChildEvent e) {
+        public void childAdded(SPChildEvent e) {
             fireTableDataChanged();
-            ((OLAPSession) e.getChild()).getSchema().addPropertyChangeListener(this);
+            ((OLAPSession) e.getChild()).getSchema().addSPListener(this);
         }
 
-        public void olapChildRemoved(OLAPChildEvent e) {
+        public void childRemoved(SPChildEvent e) {
             fireTableDataChanged();
-            ((OLAPSession) e.getChild()).getSchema().removePropertyChangeListener(this);
+            ((OLAPSession) e.getChild()).getSchema().removeSPListener(this);
         }
 
-        public void propertyChange(PropertyChangeEvent evt) {
+        public void propertyChanged(PropertyChangeEvent evt) {
             fireTableDataChanged();
+        }
+
+        public void transactionEnded(TransactionEvent e) {
+            //no-op
+        }
+
+        public void transactionRollback(TransactionEvent e) {
+            //no-op            
+        }
+
+        public void transactionStarted(TransactionEvent e) {
+            //no-op            
         }
 
     }

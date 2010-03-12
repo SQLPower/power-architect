@@ -483,7 +483,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
         logger.debug("Drop target drop event on "+getName()+": "+dtde); //$NON-NLS-1$ //$NON-NLS-2$
         Schema schema = OLAPUtil.getSession(getModel()).getSchema();
         try {
-            schema.startCompoundEdit("Drag and Drop");
+            schema.begin("Drag and Drop");
             Transferable t = dtde.getTransferable();
             DataFlavor importFlavor = bestImportFlavor(null, t.getTransferDataFlavors());
             logger.debug("Import flavor: " + importFlavor);
@@ -558,7 +558,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
             throw new RuntimeException(e);
         } finally {
             setInsertionPoint(null);
-            schema.endCompoundEdit();
+            schema.commit();
         }
     }
 
@@ -569,7 +569,11 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      */
     protected int dndRemoveAndAdd(PaneSection<OLAPObject> insertSection, int insertIndex, C item) {
         if (insertSection != null && insertIndex >= 0 && insertSection.getItemType().isInstance(item)) {
-            item.getParent().removeChild(item);
+            try {
+                item.getParent().removeChild(item);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
             insertSection.addItem(insertIndex++, item);
         } else {
             transferInvalidIndexItem(item, insertSection);
@@ -612,8 +616,12 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * @param insertSection The section to be inserted into.
      */
     protected void transferInvalidIndexItem(OLAPObject item, PaneSection<OLAPObject> insertSection) {
-        item.getParent().removeChild(item);
-        getModel().addChild(item);
+        try {
+            item.getParent().removeChild(item);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        getModel().addChild(item, getModel().getChildren().size());
     }
 
     /**

@@ -20,13 +20,12 @@
 package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.datatransfer.Transferable;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.olap.OLAPChildEvent;
-import ca.sqlpower.architect.olap.OLAPChildListener;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
@@ -34,8 +33,11 @@ import ca.sqlpower.architect.olap.MondrianModel.Level;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.util.TransactionEvent;
 
 /**
  * Visual representation of a dimension. It keeps its sections in sync with the
@@ -46,17 +48,33 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
     
     private static final Logger logger = Logger.getLogger(DimensionPane.class);
 
-    private class HierarchyWatcher implements OLAPChildListener {
+    private class HierarchyWatcher implements SPListener {
 
-        public void olapChildAdded(OLAPChildEvent e) {
+        public void childAdded(SPChildEvent e) {
             Hierarchy hierarchy = (Hierarchy) e.getChild();
             sections.add(e.getIndex(), new HierarchySection(hierarchy));
             revalidate();
         }
 
-        public void olapChildRemoved(OLAPChildEvent e) {
+        public void childRemoved(SPChildEvent e) {
             sections.remove(e.getIndex());
             revalidate();
+        }
+
+        public void propertyChanged(PropertyChangeEvent evt) {
+            //no-op
+        }
+
+        public void transactionEnded(TransactionEvent e) {
+            //no-op            
+        }
+
+        public void transactionRollback(TransactionEvent e) {
+            //no-op            
+        }
+
+        public void transactionStarted(TransactionEvent e) {
+            //no-op            
         }
         
     }
@@ -116,7 +134,7 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
         for (Hierarchy h : model.getHierarchies()) {
             sections.add(new HierarchySection(h));
         }
-        model.addChildListener(hierarchyWatcher); // FIXME clean up listener reference
+        model.addSPListener(hierarchyWatcher); // FIXME clean up listener reference
         setRounded(true);
         updateUI();
     }
@@ -236,7 +254,11 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
     
     @Override
     protected void transferInvalidIndexItem(OLAPObject item, PaneSection<OLAPObject> insertSection) {
-        item.getParent().removeChild(item);
+        try {
+            item.getParent().removeChild(item);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         if (item instanceof Level) {
             if (insertSection == null || sections.isEmpty()) {
                 // If a pane has no sections, then we must add one to put the

@@ -40,6 +40,7 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
@@ -48,6 +49,7 @@ import ca.sqlpower.architect.olap.MondrianModel.SQL;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.olap.MondrianModel.View;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLDatabaseMapping;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -204,13 +206,13 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
         panel = builder.getPanel();
         
         handler = new FormValidationHandler(status);
-        Validator validator = new OLAPObjectNameValidator(cube.getParent(), cube, false);
+        Validator validator = new OLAPObjectNameValidator((OLAPObject) cube.getParent(), cube, false);
         handler.addValidateObject(nameField, validator);
     }
 
     public boolean applyChanges() {
         try {
-            cube.startCompoundEdit("Modify cube properties");
+            cube.begin("Modify cube properties");
             if (tableRadioButton.isSelected()) {
                 if (tableChooser.isEnabled()) {
                     SQLTable table = (SQLTable) tableChooser.getSelectedItem();
@@ -239,7 +241,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
             Measure ms = (Measure) defMeasure.getSelectedItem();
             cube.setDefaultMeasure(ms == null ? null : ms.getName());
         } finally {
-            cube.endCompoundEdit();
+            cube.commit();
         }
         return true;
     }
@@ -265,7 +267,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
      * cube can be made from tables in this database.
      */
     private SQLDatabase getDatabase() {
-        return OSUtils.getAncestor(CubeEditPanel.this.cube, OLAPSession.class).getDatabase();
+        return SPObjectUtils.getAncestor(CubeEditPanel.this.cube, OLAPSession.class).getDatabase();
     }
 
     public String getSelectText() {

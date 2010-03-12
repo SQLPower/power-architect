@@ -30,6 +30,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
@@ -112,7 +113,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
         });
         
         handler = new FormValidationHandler(status, true);
-        Validator validator = new OLAPObjectNameValidator(hierarchy.getParent(), hierarchy, true);
+        Validator validator = new OLAPObjectNameValidator((OLAPObject) hierarchy.getParent(), hierarchy, true);
         handler.addValidateObject(name, validator);
         handler.addValidateObject(primaryKey, new NotNullValidator("Primary key"));
         
@@ -148,7 +149,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
     }
     
     public boolean applyChanges() {
-        hierarchy.startCompoundEdit("Modify hierarchy properties");
+        hierarchy.begin("Modify hierarchy properties");
         if (!(name.getText().equals(""))) {
             hierarchy.setName(name.getText());
         } else {
@@ -173,7 +174,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
                 hierarchy.setPrimaryKey(column.getName());
             }
         }
-        hierarchy.endCompoundEdit();
+        hierarchy.commit();
         return true;
     }
 

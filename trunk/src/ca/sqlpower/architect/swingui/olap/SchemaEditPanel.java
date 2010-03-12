@@ -81,12 +81,12 @@ public class SchemaEditPanel implements ValidatableDataEntryPanel {
 
     public boolean applyChanges() {
         try {
-            schema.startCompoundEdit("Modify Schema Properties");
+            schema.begin("Modify Schema Properties");
             schema.setName(nameField.getText());
             OLAPSession osession = OLAPUtil.getSession(schema);
             osession.setDatabase((SQLDatabase) databaseBox.getSelectedItem());
         } finally {
-            schema.endCompoundEdit();
+            schema.commit();
         }
         return true;
     }

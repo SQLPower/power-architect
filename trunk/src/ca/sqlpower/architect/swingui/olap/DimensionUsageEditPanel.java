@@ -97,7 +97,7 @@ public class DimensionUsageEditPanel implements DataEntryPanel{
     }
 
     public boolean applyChanges() {
-        dimensionUsage.startCompoundEdit("Modify Dimension Usage Properties");
+        dimensionUsage.begin("Modify Dimension Usage Properties");
         if (!(captionField.getText().equals(""))) {
             dimensionUsage.setCaption(captionField.getText());
         } else {
@@ -109,7 +109,7 @@ public class DimensionUsageEditPanel implements DataEntryPanel{
             String pk = selectedCol.getName();
             dimensionUsage.setForeignKey(pk);
         }
-        dimensionUsage.endCompoundEdit();
+        dimensionUsage.commit();
         return true;
     }
 

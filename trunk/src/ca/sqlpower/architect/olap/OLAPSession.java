@@ -19,10 +19,13 @@
 
 package ca.sqlpower.architect.olap;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLDatabase;
 
 /**
@@ -30,6 +33,14 @@ import ca.sqlpower.sqlobject.SQLDatabase;
  * Contains the schema as its one and only child, and belongs to an OLAPRootObject.
  */
 public class OLAPSession extends OLAPObject {
+    
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     */
+    @SuppressWarnings("unchecked")
+    public static List<Class<? extends SPObject>> allowedChildTypes = 
+        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
+                Arrays.asList(Schema.class)));
 
     /**
      * The database this session's schema uses.
@@ -101,7 +112,6 @@ public class OLAPSession extends OLAPObject {
         return schema;
     }
     
-    @Override
     public boolean allowsChildren() {
         return true;
     }
@@ -109,7 +119,6 @@ public class OLAPSession extends OLAPObject {
     /**
      * Returns a list with exactly one entry: this session's schema.
      */
-    @Override
     public List<Schema> getChildren() {
         return Collections.singletonList(schema);
     }
@@ -119,7 +128,7 @@ public class OLAPSession extends OLAPObject {
      * type of OLAP Object.
      */
     @Override
-    public void addChild(OLAPObject child) {
+    public void addChildImpl(SPObject child, int index) {
         throw new UnsupportedOperationException(
                 "OLAPSession has exactly one child (the Schema) for its entire lifetime");
     }
@@ -129,8 +138,43 @@ public class OLAPSession extends OLAPObject {
      * type of OLAP Object.
      */
     @Override
-    public boolean removeChild(OLAPObject child) {
+    public boolean removeChildImpl(SPObject child) {
         throw new UnsupportedOperationException(
                 "OLAPSession has exactly one child (the Schema) for its entire lifetime");
+    }
+
+    public int childPositionOffset(Class<? extends SPObject> childType) {
+        if (Schema.class.equals(childType)) {
+            return 0;
+        } else {
+            throw new IllegalArgumentException("Child type " + childType + 
+                    " is not a valid child type of " + OLAPSession.class);
+        }
+    }
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+
+    public List<? extends SPObject> getDependencies() {
+        return Collections.singletonList(database);
+    }
+
+    public void removeDependency(SPObject dependency) {
+        getParent().removeOLAPSession(this);
+    }
+    
+    @Override
+    public void setParent(SPObject parent) {
+        if (parent != null && !(parent instanceof OLAPRootObject)) {
+            throw new IllegalArgumentException("The parent of " + OLAPSession.class + 
+                    "s are " + OLAPRootObject.class + "s not " + parent);
+        }
+        super.setParent(parent);
+    }
+    
+    @Override
+    public OLAPRootObject getParent() {
+        return (OLAPRootObject) super.getParent();
     }
 }

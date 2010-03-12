@@ -23,6 +23,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,8 +45,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableModel;
 
-import ca.sqlpower.architect.olap.OLAPChildEvent;
-import ca.sqlpower.architect.olap.OLAPChildListener;
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
@@ -58,10 +58,13 @@ import ca.sqlpower.architect.olap.MondrianModel.Property;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.swingui.SQLObjectComboBoxModel;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.table.EditableJTable;
+import ca.sqlpower.util.TransactionEvent;
 import ca.sqlpower.validation.Status;
 import ca.sqlpower.validation.ValidateResult;
 import ca.sqlpower.validation.Validator;
@@ -231,7 +234,7 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
         }
         
         handler = new FormValidationHandler(status, true);
-        Validator validator = new OLAPObjectNameValidator(level.getParent(), level, false);
+        Validator validator = new OLAPObjectNameValidator((OLAPObject) level.getParent(), level, false);
         handler.addValidateObject(name, validator);
         handler.addValidateObject(columnChooser, new NotNullValidator("Column"));
         
@@ -243,7 +246,7 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
     }
     
     public boolean applyChanges() {
-        level.startCompoundEdit("Modify Level Properties");
+        level.begin("Modify Level Properties");
         level.setName(name.getText());
   
         if (columnChooser.isEnabled()) {
@@ -270,7 +273,7 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
         } else {
             level.setLevelType(null);
         }
-        level.endCompoundEdit();
+        level.commit();
         return true;
     }
 
@@ -413,7 +416,7 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
             
         }
         
-        private class PropertiesTableModel extends AbstractTableModel implements OLAPChildListener {
+        private class PropertiesTableModel extends AbstractTableModel implements SPListener {
             
             /**
              * Determines whether the column attributes can be modified.
@@ -422,7 +425,7 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
 
             public PropertiesTableModel(boolean disableColumns) {
                 this.disableColumns = disableColumns;
-                level.addChildListener(this);
+                level.addSPListener(this);
             }
             
             public int getRowCount() {
@@ -522,12 +525,28 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
                 return result.toString();
             }
 
-            public void olapChildAdded(OLAPChildEvent e) {
+            public void childAdded(SPChildEvent e) {
                 fireTableDataChanged();
             }
 
-            public void olapChildRemoved(OLAPChildEvent e) {
+            public void childRemoved(SPChildEvent e) {
                 fireTableDataChanged();
+            }
+
+            public void propertyChanged(PropertyChangeEvent evt) {
+                //no-op
+            }
+
+            public void transactionEnded(TransactionEvent e) {
+                //no-op                
+            }
+
+            public void transactionRollback(TransactionEvent e) {
+                //no-op                
+            }
+
+            public void transactionStarted(TransactionEvent e) {
+                //no-op                
             }
         }
     }
