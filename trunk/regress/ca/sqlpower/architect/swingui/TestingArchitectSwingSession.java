@@ -103,7 +103,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         sourceDatabases = new DBTree(this);
         playpen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
         undoManager = new ArchitectUndoManager(playpen);
-        olapRootObject = new OLAPRootObject(delegateSession);
+        olapRootObject = new OLAPRootObject();
         
         compareDMSettings = new CompareDMSettings();
         
