@@ -117,6 +117,7 @@ import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
+import ca.sqlpower.architect.swingui.action.enterprise.RefreshProjectAction;
 import ca.sqlpower.architect.swingui.enterprise.RevisionListPanel;
 import ca.sqlpower.architect.swingui.enterprise.ServerProjectsManagerPanel;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
@@ -209,6 +210,8 @@ public class ArchitectFrame extends JFrame {
     private CopySelectedAction copyAction;
     private CutSelectedAction cutAction;
     private PasteSelectedAction pasteAction;
+    
+    private RefreshProjectAction refreshProjectAction;
     
     /**
      * Closes all sessions and terminates the JVM.
@@ -428,6 +431,8 @@ public class ArchitectFrame extends JFrame {
                 }
             }
         });
+        
+        refreshProjectAction = new RefreshProjectAction(session);
 	}
 
     /**
@@ -558,6 +563,10 @@ public class ArchitectFrame extends JFrame {
         projectBar.add(openProjectAction);
         projectBar.add(saveProjectAction);
         projectBar.addSeparator();
+        
+        projectBar.add(refreshProjectAction);
+        projectBar.addSeparator();
+        
         projectBar.add(printAction);
         projectBar.addSeparator();
         projectBar.add(undoAction);
@@ -751,6 +760,7 @@ public class ArchitectFrame extends JFrame {
         enterpriseMenu.add(openProjectManagerAction);
         openRevisionListAction.setEnabled(session.isEnterpriseSession());
         enterpriseMenu.add(openRevisionListAction);
+        enterpriseMenu.add(refreshProjectAction);
         menuBar.add(enterpriseMenu);
         
         JMenu toolsMenu = new JMenu(Messages.getString("ArchitectFrame.toolsMenu")); //$NON-NLS-1$

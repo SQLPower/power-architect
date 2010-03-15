@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.enterprise;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -91,6 +92,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     private List<PersistedPropertiesEntry> outboundPropertiesToChangeRollbackList = new LinkedList<PersistedPropertiesEntry>();
     private List<RemovedObjectEntry> outboundObjectsToRemoveRollbackList = new LinkedList<RemovedObjectEntry>();
     
+    private List<UpdateListener> updateListeners = new ArrayList<UpdateListener>();
+    
     public NetworkConflictResolver(
             ProjectLocation projectLocation, 
             SPJSONMessageDecoder jsonDecoder, 
@@ -119,6 +122,10 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     
     public void setPersister(SPSessionPersister persister) {
         this.persister = persister;
+    }
+    
+    public List<UpdateListener> getListeners() {
+        return updateListeners;
     }
     
     public void flush() {
@@ -197,7 +204,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         
         if (reflush) {
             inboundObjectsToAdd.clear();
-            inboundPropertiesToChange.clear();
+            inboundPropertiesToChange.clear();  // XXX does this cause lists to retain old objects?
             inboundObjectsToRemove.clear();
             
             outboundObjectsToAdd.clear();
@@ -274,7 +281,15 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 // Now we can apply the update ...
                 jsonDecoder.decode(jsonArray);
                 currentRevision = newRevision;
-            }
+                
+                List<UpdateListener> listenersToRemove = new ArrayList<UpdateListener>();
+                for (UpdateListener listener : updateListeners) {
+                    if (listener.updatePerformed(this)) {
+                        listenersToRemove.add(listener);
+                    }
+                }
+                updateListeners.removeAll(listenersToRemove);
+            } 
         } catch (Exception e) {
             throw new RuntimeException("Failed to decode the message: " + jsonArray, e);
         }
@@ -416,5 +431,18 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         } catch (Exception ex) {
             throw new RuntimeException("Unable to get json from server: " + ex.getMessage());
         }
+    }
+    
+    public int getRevision() {
+        return currentRevision;
+    }
+
+    public void addListener(UpdateListener listener) {
+        updateListeners.add(listener);
+    }
+    
+    public static interface UpdateListener {
+        // true indicates that the updater should be removed from the list.
+        public boolean updatePerformed(NetworkConflictResolver resolver);
     }
 }
