@@ -178,7 +178,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     	
     	try {
     	    //TODO: Figure out how to de-register the session &c.
-    	    getContext().getSessions().remove(this);
 		} catch (Exception e) {
 			try {
 				logger.error(e);
@@ -721,6 +720,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 
     public void createRevisionSession(int revisionNo, ArchitectSwingSession swingSession) {
         // TODO Auto-generated method stub
-        
     }    
+    
+    public NetworkConflictResolver getUpdater() {
+        return updater;
+    }
 }

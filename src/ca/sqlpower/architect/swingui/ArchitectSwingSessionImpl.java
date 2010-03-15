@@ -39,9 +39,12 @@ import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
@@ -56,6 +59,7 @@ import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
+import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -95,6 +99,9 @@ import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+
+import com.jgoodies.forms.builder.DefaultFormBuilder;
+import com.jgoodies.forms.layout.FormLayout;
 
 public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
@@ -580,19 +587,24 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * shutting down running threads, and so on.
      */
     public boolean close() {
+        return close(true);
+    }
+    
+    private boolean close(boolean promptForSave) {
+     // IMPORTANT NOTE: If the GUI hasn't been initialized, frame will be null.
 
-        // IMPORTANT NOTE: If the GUI hasn't been initialized, frame will be null.
-
-        if (getProjectLoader().isSaveInProgress()) {
-            // project save is in progress, don't allow exit
-            JOptionPane.showMessageDialog(frame,
-                    Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSaving"), //$NON-NLS-1$
-                    Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSavingDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
-            return false;
-        }
-
-        if (!promptForUnsavedModifications()) {
-            return false;
+        if (promptForSave) {
+            if (getProjectLoader().isSaveInProgress()) {
+                // project save is in progress, don't allow exit
+                JOptionPane.showMessageDialog(frame,
+                        Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSaving"), //$NON-NLS-1$
+                        Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSavingDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
+                return false;
+            }
+            
+            if (!promptForUnsavedModifications()) {
+                return false;
+            }
         }
         
         if (!delegateSession.close()) {
@@ -1147,5 +1159,57 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      */
     void setUserPrompterFactory(UserPrompterFactory newUPF) {
         swinguiUserPrompterFactory = newUPF;
+    }
+
+    public void refresh() {
+        if (isEnterpriseSession()) {
+            try {
+                // Save the frame's position so that the new session's frame is in the same place.
+                if (frame != null) {
+                    frame.saveSettings();
+                }
+                
+                ArchitectSession newSession = ((ArchitectSwingSessionContextImpl) getContext())
+                    .createServerSession(((ArchitectClientSideSession) delegateSession).getProjectLocation(), true, false);
+
+                JFrame newFrame = ((ArchitectSwingSessionImpl) newSession).getArchitectFrame();
+                JLabel messageLabel = new JLabel("Refreshing");
+                JProgressBar progressBar = new JProgressBar();
+                progressBar.setIndeterminate(true);
+                
+                final JDialog dialog = new JDialog(newFrame, "Refreshing");
+                DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow, 5dlu, pref"));
+                builder.setDefaultDialogBorder();
+                builder.append(messageLabel, 3);
+                builder.nextLine();
+                builder.append(progressBar, 3);
+                dialog.add(builder.getPanel());
+                
+                dialog.pack();
+                dialog.setLocation(newFrame.getX() + (newFrame.getWidth() - dialog.getWidth())/2, 
+                                   newFrame.getY() + (newFrame.getHeight() - dialog.getHeight())/2);
+                dialog.setAlwaysOnTop(true);
+                dialog.setVisible(true);
+                
+                close(false);
+
+                ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) newSession).getDelegateSession())
+                    .getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
+                    public boolean updatePerformed(NetworkConflictResolver updater) {
+                       dialog.dispose();
+                       return true; // true indicates that the listener should be removed
+                    }
+                });
+                
+                ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) newSession).getDelegateSession()).startUpdaterThread();
+                
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to refresh", e);
+            }
+        } 
+    }
+    
+    public ArchitectSession getDelegateSession() {
+        return delegateSession;
     }
 }

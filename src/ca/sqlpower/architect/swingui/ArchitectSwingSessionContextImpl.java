@@ -221,7 +221,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     
     public ArchitectSwingSession createNewServerSession(SPServerInfo serverInfo, boolean initGUI) throws SQLObjectException, ClientProtocolException, URISyntaxException, IOException, JSONException {
         ProjectLocation projectLocation = ArchitectClientSideSession.createNewServerSession(serverInfo, "New_Project");
-        ArchitectSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);     
+        ArchitectSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);   
         ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
         getSessions().add(swingSession);
         swingSession.addSessionLifecycleListener(sessionLifecycleListener);
@@ -233,10 +233,15 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         return swingSession;
     }
     
-    public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, boolean initGUI) throws SQLObjectException {
+    public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, boolean initGUI, boolean autoStartUpdater) throws SQLObjectException {
+
         ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);
         ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
-        clientSession.startUpdaterThread();
+        
+        if (autoStartUpdater) {
+            clientSession.startUpdaterThread();
+        }
+        
         getSessions().add(swingSession);
         swingSession.addSessionLifecycleListener(sessionLifecycleListener);
         

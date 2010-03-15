@@ -32,17 +32,23 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
+import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
 import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -103,7 +109,38 @@ public class ServerProjectsManagerPanel {
                         if (obj instanceof ProjectLocation) {
                             ProjectLocation location = (ProjectLocation) obj;
                             try {
-                                ((ArchitectSwingSessionContextImpl) context).createServerSession(location, true);
+                                
+                                ArchitectSession newSession = ((ArchitectSwingSessionContextImpl) context).createServerSession(location, true, false);
+                                JFrame frame = ((ArchitectSwingSessionImpl) newSession).getArchitectFrame();
+                                
+                                JLabel messageLabel = new JLabel("Opening");
+                                JProgressBar progressBar = new JProgressBar();
+                                progressBar.setIndeterminate(true);
+                                
+                                final JDialog dialog = new JDialog(frame, "Opening");
+                                DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow, 5dlu, pref"));
+                                builder.setDefaultDialogBorder();
+                                builder.append(messageLabel, 3);
+                                builder.nextLine();
+                                builder.append(progressBar, 3);
+                                dialog.add(builder.getPanel());
+                                
+                                dialog.pack();
+                                dialog.setLocation(frame.getX() + (frame.getWidth() - dialog.getWidth())/2, 
+                                                   frame.getY() + (frame.getHeight() - dialog.getHeight())/2);
+                                dialog.setAlwaysOnTop(true);
+                                dialog.setVisible(true);
+                                
+                                ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) newSession).getDelegateSession())
+                                .getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
+                                    public boolean updatePerformed(NetworkConflictResolver resolver) {
+                                        dialog.dispose();
+                                        return true;
+                                    }
+                                });
+                                
+                                ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) newSession).getDelegateSession()).startUpdaterThread();
+                            
                             } catch (Exception ex) {
                                 throw new RuntimeException("Unable to open project", ex);
                             }
