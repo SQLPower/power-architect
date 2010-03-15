@@ -273,7 +273,7 @@ public class ArchitectProject extends AbstractSPObject {
         }
     }
 
-    @Accessor
+    @NonProperty
     public OLAPRootObject getOlapRootObject() {
         return olapRootObject;
     }
