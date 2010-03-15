@@ -56,7 +56,7 @@ public class TestDBTree extends TestCase {
 	
 	public void testdbcsAlreadyExists() throws SQLObjectException {
 	    JDBCDataSource ds2 = new JDBCDataSource(new PlDotIni());
-		assertTrue("ds2 must .equals ds for this test to work", ds.equals(ds2));
+		assertTrue("ds2ds must .equals ds for this test to work", db2ds.equals(ds2));
 		assertFalse("dbcsAlreadyExists Should not find ds2", dbTree.dbcsAlreadyExists(ds2));
 		assertTrue("db2ds should be in the list",dbTree.dbcsAlreadyExists(db2ds));
 	}
