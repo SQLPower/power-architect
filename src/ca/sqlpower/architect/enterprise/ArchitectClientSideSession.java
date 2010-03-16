@@ -2,6 +2,7 @@ package ca.sqlpower.architect.enterprise;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,6 +13,8 @@ import java.util.Map;
 import java.util.prefs.Preferences;
 
 import javax.swing.SwingUtilities;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -26,6 +29,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -61,6 +65,7 @@ import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.Olap4jDataSource;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
@@ -541,7 +546,15 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
         return httpClient;
 	}
 	
-	private class DataSourceCollectionUpdater implements DatabaseListChangeListener, PropertyChangeListener {
+	public void createRevisionSession(int revisionNo, ArchitectSwingSession swingSession) {
+        // TODO Auto-generated method stub
+    }    
+    
+    public NetworkConflictResolver getUpdater() {
+        return updater;
+    }
+	
+	private class DataSourceCollectionUpdater implements DatabaseListChangeListener, PropertyChangeListener, UndoableEditListener {
     	
     	/**
     	 * If true this updater is currently posting properties to the server. If
@@ -551,8 +564,27 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     	 */
     	private boolean postingProperties = false;
 
+    	private final ResponseHandler<Void> responseHandler = new ResponseHandler<Void>() {
+            public Void handleResponse(HttpResponse response)
+            throws ClientProtocolException, IOException {
+                if (response.getStatusLine().getStatusCode() != 200) {
+                    throw new ClientProtocolException(
+                            "Failed to create/update data source on server. Reason:\n" +
+                            EntityUtils.toString(response.getEntity()));
+                } else {
+                    return null;
+                }
+            }
+        };
+    	
         public void attach(DataSourceCollection<JDBCDataSource> dsCollection) {
             dsCollection.addDatabaseListChangeListener(this);
+            dsCollection.addUndoableEditListener(this);
+            
+            for (JDBCDataSourceType jdst : dsCollection.getDataSourceTypes()) {
+                jdst.addPropertyChangeListener(this);
+            }
+            
             for (SPDataSource ds : dsCollection.getConnections()) {
                 ds.addPropertyChangeListener(this);
             }
@@ -560,6 +592,12 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
         
         public void detach(DataSourceCollection<JDBCDataSource> dsCollection) {
             dsCollection.removeDatabaseListChangeListener(this);
+            dsCollection.removeUndoableEditListener(this);
+            
+            for (JDBCDataSourceType jdst : dsCollection.getDataSourceTypes()) {
+                jdst.removePropertyChangeListener(this);
+            }
+            
             for (SPDataSource ds : dsCollection.getConnections()) {
                 ds.removePropertyChangeListener(this);
             }
@@ -572,15 +610,21 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
          * {@link #attach(DataSourceCollection)} was invoked.
          */
         public void databaseAdded(DatabaseListChangeEvent e) {
-            SPDataSource newDS = e.getDataSource();
-            newDS.addPropertyChangeListener(this);
+            SPDataSource source = e.getDataSource();
+            source.addPropertyChangeListener(this);
             
             List<NameValuePair> properties = new ArrayList<NameValuePair>();
-            for (Map.Entry<String, String> ent : newDS.getPropertiesMap().entrySet()) {
+            for (Map.Entry<String, String> ent : source.getPropertiesMap().entrySet()) {
                 properties.add(new BasicNameValuePair(ent.getKey(), ent.getValue()));
             }
             
-            postPropertiesToServer(newDS, properties);
+            if (source instanceof JDBCDataSource) {
+                postJDBCDataSourceProperties((JDBCDataSource) source, properties);
+            }
+            
+            if (source instanceof Olap4jDataSource) {
+                postOlapDataSourceProperties((Olap4jDataSource) source, properties);
+            }
         }
 
         /**
@@ -600,58 +644,99 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
          *            data source object which was modified.
          */
         public void propertyChange(PropertyChangeEvent evt) {
-            SPDataSource ds = (SPDataSource) evt.getSource();
-            ds.addPropertyChangeListener(this);
-            
             // Updating all properties is less than ideal, but a property change event does
             // not tell us what the "pl.ini" key for the property is.
-            List<NameValuePair> properties = new ArrayList<NameValuePair>();
-            for (Map.Entry<String, String> ent : ds.getPropertiesMap().entrySet()) {
-                properties.add(new BasicNameValuePair(ent.getKey(), ent.getValue()));
+
+            Object source = evt.getSource();
+            
+            if (source instanceof SPDataSource) {
+                SPDataSource ds = (SPDataSource) source;
+                ds.addPropertyChangeListener(this);
+                
+                List<NameValuePair> properties = new ArrayList<NameValuePair>();
+                for (Map.Entry<String, String> ent : ds.getPropertiesMap().entrySet()) {
+                    properties.add(new BasicNameValuePair(ent.getKey(), ent.getValue()));
+                }
+                
+                if (ds instanceof JDBCDataSource) {
+                    postJDBCDataSourceProperties((JDBCDataSource) ds, properties);
+                }
+                
+                if (ds instanceof Olap4jDataSource) {
+                    postOlapDataSourceProperties((Olap4jDataSource) ds, properties);
+                }
             }
             
-            postPropertiesToServer(ds, properties);
+            if (source instanceof JDBCDataSourceType) {
+                JDBCDataSourceType jdst = (JDBCDataSourceType) source;
+                jdst.addPropertyChangeListener(this);
+                
+                List<NameValuePair> properties = new ArrayList<NameValuePair>();
+                for (String name : jdst.getPropertyNames()) {
+                    properties.add(new BasicNameValuePair(name, jdst.getProperty(name)));
+                }
+                
+                postJDBCDataSourceTypeProperties(jdst, properties);
+            }
         }
 
-        /**
-         * Modifies the properties of the given data source on the server. If
-         * the given data source does not exist on the server, it will be
-         * created with all of the given properties.
-         * 
-         * @param ds
-         *            The data source to update on the server.
-         * @param properties
-         *            The properties to update. No properties will be removed
-         *            from the server, and only the given properties will be
-         *            updated or created.
-         */
-        private void postPropertiesToServer(SPDataSource ds,
+        private void postJDBCDataSourceProperties(JDBCDataSource ds,
                 List<NameValuePair> properties) {
         	if (postingProperties) return;
         	
             HttpClient httpClient = createHttpClient(projectLocation.getServiceInfo());
             try {
-            	final ResponseHandler<Void> responseHandler = new ResponseHandler<Void>() {
-            		public Void handleResponse(HttpResponse response)
-            		throws ClientProtocolException, IOException {
-            			
-            			if (response.getStatusLine().getStatusCode() != 200) {
-            				throw new ClientProtocolException(
-            						"Failed to create/update data source on server. Reason:\n" +
-            						EntityUtils.toString(response.getEntity()));
-            			} else {
-            				// success!
-            				return null;
-            			}
-            			
-            		}
-            	};
-            	
-                HttpPost request = new HttpPost(dataSourceURI(ds));
-                
+                HttpPost request = new HttpPost(jdbcDataSourceURI(ds));
                 request.setEntity(new UrlEncodedFormEntity(properties));
 				httpClient.execute(request, responseHandler);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            } finally {
+                httpClient.getConnectionManager().shutdown();
+            }
+        }
+        
+        private void postOlapDataSourceProperties(Olap4jDataSource ods,
+                List<NameValuePair> properties) {
+            if (postingProperties) return;
+            
+            HttpClient httpClient = createHttpClient(projectLocation.getServiceInfo());
+            try {
+                File schemaFile = new File(ods.getMondrianSchema());
                 
+                if (!schemaFile.exists()) 
+                    logger.error("Schema file " + schemaFile.getAbsolutePath() + 
+                            " does not exist for data source " + ods.getName());
+                
+                HttpPost request = new HttpPost(
+                        getServerURI(projectLocation.getServiceInfo(), 
+                                MONDRIAN_SCHEMA_REL_PATH + schemaFile.getName()));
+                
+                request.setEntity(new FileEntity(schemaFile, "text/xml"));
+                httpClient.execute(request, responseHandler);
+                
+                //updating new data source to point to the server's schema.
+                for (int i = properties.size() - 1; i >= 0; i--) {
+                    NameValuePair pair = properties.get(i);
+                    if (pair.getName().equals(Olap4jDataSource.MONDRIAN_SCHEMA)) {
+                        properties.add(new BasicNameValuePair(
+                                Olap4jDataSource.MONDRIAN_SCHEMA, 
+                                SPDataSource.SERVER + schemaFile.getName()));
+                        properties.remove(pair);
+                        break;
+                    }
+                }
+                
+                try {
+                    postingProperties = true;
+                    ods.setMondrianSchema(new URI(SPDataSource.SERVER + schemaFile.getName()));
+                } finally {
+                    postingProperties = false;
+                }
+                
+                request = new HttpPost(olapDataSourceURI(ods));
+                request.setEntity(new UrlEncodedFormEntity(properties));
+                httpClient.execute(request, responseHandler);
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             } finally {
@@ -659,6 +744,22 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             }
         }
 
+        private void postJDBCDataSourceTypeProperties(JDBCDataSourceType jdst,
+                List<NameValuePair> properties) {
+            if (postingProperties) return;
+            
+            HttpClient httpClient = createHttpClient(projectLocation.getServiceInfo());
+            try {
+                HttpPost request = new HttpPost(jdbcDataSourceTypeURI(jdst));
+                request.setEntity(new UrlEncodedFormEntity(properties));
+                httpClient.execute(request, responseHandler);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            } finally {
+                httpClient.getConnectionManager().shutdown();
+            }
+        }
+        
         /**
          * Handles deleting of a database entry by requesting that the server
          * deletes it. Also unlistens to the data source to prevent memory
@@ -668,25 +769,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             HttpClient httpClient = createHttpClient(projectLocation.getServiceInfo());
             try {
                 SPDataSource removedDS = e.getDataSource();
-                
-                HttpDelete request = new HttpDelete(dataSourceURI(removedDS));
-                
-                final ResponseHandler<Void> responseHandler = new ResponseHandler<Void>() {
-                    public Void handleResponse(HttpResponse response)
-                            throws ClientProtocolException, IOException {
-                        
-                        if (response.getStatusLine().getStatusCode() != 200) {
-                            throw new ClientProtocolException(
-                                    "Failed to delete data source on server. Reason:\n" +
-                                    EntityUtils.toString(response.getEntity()));
-                        } else {
-                            // success!
-                            return null;
-                        }
-                    }
-                };
+                HttpDelete request = new HttpDelete(jdbcDataSourceURI(removedDS));
 				httpClient.execute(request, responseHandler);
-				
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             } finally {
@@ -694,35 +778,56 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             }
         }
         
-        /**
-         * Returns the URI that references the given data source on the server.
-         * 
-         * @param ds
-         *            The data source whose server URI to return.
-         * @return An absolute URI for the given data source on this session's
-         *         Architect server.
-         */
-        private URI dataSourceURI(SPDataSource ds) throws URISyntaxException {
-            String type;
-            if (ds instanceof JDBCDataSource) {
-                type = "jdbc";
-            } else if (ds instanceof Olap4jDataSource) {
-                type = "olap4j";
-            } else {
-                throw new UnsupportedOperationException(
-                        "Data source type " + ds.getClass() + " is not known");
+        public void removeJDBCDataSourceType(JDBCDataSourceType jdst) {
+            HttpClient httpClient = createHttpClient(projectLocation.getServiceInfo());
+            try {
+                HttpDelete request = new HttpDelete(jdbcDataSourceTypeURI(jdst));
+                httpClient.execute(request, responseHandler);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            } finally {
+                httpClient.getConnectionManager().shutdown();
             }
+        }
+        
+        private URI jdbcDataSourceURI(SPDataSource jds) throws URISyntaxException {
+            if (!(jds instanceof JDBCDataSource)) throw new IllegalStateException("DataSource must be an instance of JDBCDataSource");
             
             return getServerURI(projectLocation.getServiceInfo(),
-                    "data-sources/" + type + "/" + ds.getName());
+                    "/data-sources/JDBCDataSource/" + jds.getName());
         }
-    }
+        
+        private URI olapDataSourceURI(SPDataSource jds) throws URISyntaxException {
+            if (!(jds instanceof Olap4jDataSource)) throw new IllegalStateException("DataSource must be an instance of JDBCDataSource");
+            
+            return getServerURI(projectLocation.getServiceInfo(),
+                    "/data-sources/Olap4jDataSource/" + jds.getName());
+        }
+        
+        private URI jdbcDataSourceTypeURI(JDBCDataSourceType jdst) throws URISyntaxException {
+            return getServerURI(projectLocation.getServiceInfo(),
+                    "/data-sources/type/" + jdst.getName());
+        }
 
-    public void createRevisionSession(int revisionNo, ArchitectSwingSession swingSession) {
-        // TODO Auto-generated method stub
-    }    
-    
-    public NetworkConflictResolver getUpdater() {
-        return updater;
+        public void undoableEditHappened(UndoableEditEvent e) {
+            if (e.getEdit() instanceof PlDotIni.AddDSTypeUndoableEdit) {
+                JDBCDataSourceType jdst = ((PlDotIni.AddDSTypeUndoableEdit) e.getEdit()).getType();
+                jdst.addPropertyChangeListener(this);
+                
+                List<NameValuePair> properties = new ArrayList<NameValuePair>();
+                for (String name : jdst.getPropertyNames()) {
+                    properties.add(new BasicNameValuePair(name, jdst.getProperty(name)));
+                }
+                
+                postJDBCDataSourceTypeProperties(jdst, properties);
+            }
+            
+            if (e.getEdit() instanceof PlDotIni.RemoveDSTypeUndoableEdit) {
+                JDBCDataSourceType jdst = ((PlDotIni.RemoveDSTypeUndoableEdit) e.getEdit()).getType();
+                jdst.removePropertyChangeListener(this);
+                
+                removeJDBCDataSourceType(jdst);
+            }
+        }
     }
 }

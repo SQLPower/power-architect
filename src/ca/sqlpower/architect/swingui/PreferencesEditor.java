@@ -147,7 +147,7 @@ public class PreferencesEditor {
         cp.add(createLabelPanel(session), BorderLayout.NORTH);
         
         final DataSourceTypeEditor dsTypeEditor =
-            new DataSourceTypeEditor(session.getDataSources(), owner);
+            new DataSourceTypeEditor(session.getDataSources(), owner, session.isEnterpriseSession());
 
         // Add the Kettle Options Panel as a tab to the SPDataSourceTypePanel
         final KettleDataSourceTypeOptionPanel kettleOptsPanel = new KettleDataSourceTypeOptionPanel();
