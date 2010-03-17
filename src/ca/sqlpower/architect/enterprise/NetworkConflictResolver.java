@@ -60,7 +60,6 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     private boolean updating = false;
     
     private SPPersisterListener listener;
-    private SPSessionPersister persister;
     private SessionPersisterSuperConverter converter;
     private final SPSession session;
     
@@ -118,10 +117,6 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
 
     public void setConverter(SessionPersisterSuperConverter converter) {
         this.converter = converter;
-    }
-    
-    public void setPersister(SPSessionPersister persister) {
-        this.persister = persister;
     }
     
     public List<UpdateListener> getListeners() {

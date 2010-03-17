@@ -352,12 +352,14 @@ public class KettleJobPanel implements DataEntryPanel {
     private void copySettingsToProject() {
         logger.debug("Saving settings to the project..."); //$NON-NLS-1$
         KettleJob settings = session.getKettleJob();
+        session.getWorkspace().begin("Saving kettle settings");
         settings.setJobName(nameField.getText());
         settings.setSchemaName(schemaName.getText());
         settings.setKettleJoinType(defaultJoinType.getSelectedIndex());
         settings.setFilePath(filePath.getText());
         settings.setRepository((JDBCDataSource)reposDB.getSelectedItem());
         settings.setSavingToFile(isSaveFile());
+        session.getWorkspace().commit();
     }
 
     public boolean hasUnsavedChanges() {

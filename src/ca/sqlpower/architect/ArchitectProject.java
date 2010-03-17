@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.object.AbstractSPObject;
@@ -61,7 +62,7 @@ public class ArchitectProject extends AbstractSPObject {
     @SuppressWarnings("unchecked")
     public static List<Class<? extends SPObject>> allowedChildTypes = 
         Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Arrays.asList(SQLObjectRoot.class, ProfileManager.class, OLAPRootObject.class)));
+                Arrays.asList(SQLObjectRoot.class, ProfileManager.class, OLAPRootObject.class, KettleSettings.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -80,14 +81,15 @@ public class ArchitectProject extends AbstractSPObject {
      */
     private SourceObjectIntegrityWatcher currentWatcher;
     
+    private final KettleSettings kettleSettings;
+    
     /**
      * Constructs an architect project. The init method must be called immediately
      * after creating a project.
      * @throws SQLObjectException
      */
     public ArchitectProject() throws SQLObjectException {
-        this(new SQLObjectRoot(), new OLAPRootObject());
-        
+        this(new SQLObjectRoot(), new OLAPRootObject(), new KettleSettings());
         SQLDatabase targetDatabase = new SQLDatabase();
         targetDatabase.setPlayPenDatabase(true);
         rootObject.addChild(targetDatabase, 0);
@@ -104,12 +106,15 @@ public class ArchitectProject extends AbstractSPObject {
     @Constructor
     public ArchitectProject(
             @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject,
-            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="olapRootObject") OLAPRootObject olapRootObject) 
+            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="olapRootObject") OLAPRootObject olapRootObject,
+            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="kettleSettings") KettleSettings kettleSettings) 
             throws SQLObjectException {
         this.rootObject = rootObject;
         rootObject.setParent(this);
         this.olapRootObject = olapRootObject;
         olapRootObject.setParent(this);
+        this.kettleSettings = kettleSettings;
+        kettleSettings.setParent(this);
         setName("Architect Project");
     }
 
@@ -250,6 +255,7 @@ public class ArchitectProject extends AbstractSPObject {
             allChildren.add(profileManager);
         }
         allChildren.add(olapRootObject);
+        allChildren.add(kettleSettings);
         return allChildren;
     }
     
@@ -262,6 +268,7 @@ public class ArchitectProject extends AbstractSPObject {
         rootObject.removeDependency(dependency);
         profileManager.removeDependency(dependency);
         olapRootObject.removeDependency(dependency);
+        kettleSettings.removeDependency(dependency);
     }
     
     protected void addChildImpl(SPObject child, int index) {
@@ -276,5 +283,10 @@ public class ArchitectProject extends AbstractSPObject {
     @NonProperty
     public OLAPRootObject getOlapRootObject() {
         return olapRootObject;
+    }
+    
+    @NonProperty
+    public KettleSettings getKettleSettings() {
+        return kettleSettings;
     }
 }

@@ -152,6 +152,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		
 		outboundHttpClient = createHttpClient(projectLocation.getServiceInfo());
 		dataSourceCollection = getDataSources();
+		
 		sessionPersister = new ArchitectSessionPersister("inbound-" + projectLocation.getUUID(), getWorkspace(), 
 		        new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
 		sessionPersister.setSession(this);
@@ -255,7 +256,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 		SQLPowerUtils.listenToHierarchy(getWorkspace(), listener);
 		
 		updater.setListener(listener);
-		updater.setPersister(sessionPersister);
 		updater.setConverter(new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
 		updater.start();
 		
