@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.dao.PersistedSPOProperty;
 import ca.sqlpower.dao.PersistedSPObject;
@@ -61,6 +62,14 @@ public class ArchitectSessionPersister extends SPSessionPersister {
                 pso.getUUID(), OLAPRootObject.class.getName(), olapRootObjectUUID, persistedObjects);
         architectProject.getOlapRootObject().setUUID(olapRootObjectUUID);
         persistedOlapRootObject.setLoaded(true);
+        
+        String kettleSettingsUUID = (String) AbstractSPPersisterHelper.findPropertyAndRemove(
+                pso.getUUID(), "kettleSettings", persistedProperties);
+        
+        PersistedSPObject persistedKettleSettings = AbstractSPPersisterHelper.findPersistedSPObject(
+                pso.getUUID(), KettleSettings.class.getName(), kettleSettingsUUID, persistedObjects);
+        persistedKettleSettings.setLoaded(true);
+        architectProject.getKettleSettings().setUUID(kettleSettingsUUID);
         
         List<PersistedSPObject> databases = new ArrayList<PersistedSPObject>();
         for (PersistedSPObject o : persistedObjects) {

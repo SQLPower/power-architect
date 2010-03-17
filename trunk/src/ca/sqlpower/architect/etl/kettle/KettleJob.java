@@ -83,27 +83,6 @@ public class KettleJob implements Monitorable {
     private static int spacing = 150;
     
     /**
-     * The name of the Kettle job
-     */
-    private String jobName;
-    
-    /**
-     * The name of the target schema
-     */
-    private String schemaName;
-    
-    /**
-     * The default join type for Kettle. The join types are stored as int as the values
-     * are in an array in Kettle.
-     */
-    private int kettleJoinType;
-    
-    /**
-     * The path to store the Kettle job at
-     */
-    private String filePath;
-    
-    /**
      * A list of tasks that an administrator or tech will have to do to the Kettle
      * job to make it run correctly.
      */
@@ -115,15 +94,6 @@ public class KettleJob implements Monitorable {
      */
     private MonitorableImpl monitor;
     
-    /**
-     * A flag that determines whether we will save the job to an xml file or a Kettle repository 
-     */
-    private boolean savingToFile = true;
-    
-    /**
-     * The SPDataSource representation of the database with the Kettle repository we want to save to
-     */
-    private JDBCDataSource repository;
     
     /**
      * The repository directory chooser that will select, or allow the user to select, the directory to save
@@ -136,6 +106,11 @@ public class KettleJob implements Monitorable {
      */
     private final ArchitectSession session;
     
+    /**
+     * Holds the settings for persistence to server.
+     */
+    private final KettleSettings settings;
+    
     public KettleJob(ArchitectSession session, KettleRepositoryDirectoryChooser chooser) {
         this(session);
         dirChooser = chooser;
@@ -143,9 +118,13 @@ public class KettleJob implements Monitorable {
     
     public KettleJob(ArchitectSession session) {
         super();
-        filePath = "";
-        tasksToDo = new ArrayList<String>();
         this.session = session;
+        if (session.getWorkspace() != null) {
+            settings = session.getWorkspace().getKettleSettings();
+        } else {
+            settings = new KettleSettings();
+        }
+        tasksToDo = new ArrayList<String>();
         monitor = new MonitorableImpl();
         dirChooser = new RootRepositoryDirectoryChooser();
     }
@@ -258,12 +237,12 @@ public class KettleJob implements Monitorable {
                 }
 
                 List<StepMeta> mergeSteps;
-                mergeSteps = createMergeJoins(kettleJoinType, transMeta, inputSteps);
+                mergeSteps = createMergeJoins(settings.getJoinType(), transMeta, inputSteps);
 
                 TableOutputMeta tableOutputMeta = new TableOutputMeta();
                 tableOutputMeta.setDatabaseMeta(targetDatabaseMeta);
                 tableOutputMeta.setTablename(table.getName());
-                tableOutputMeta.setSchemaName(schemaName);
+                tableOutputMeta.setSchemaName(settings.getSchemaName());
                 StepMeta stepMeta = new StepMeta("TableOutput", "Output to " + table.getName(), tableOutputMeta);
                 stepMeta.setDraw(true);
                 stepMeta.setLocation((inputSteps.size()+1)*spacing, inputSteps.size()*spacing);
@@ -330,9 +309,9 @@ public class KettleJob implements Monitorable {
                 return;
             }
             
-            jm.setName(jobName);
+            jm.setName(settings.getJobName());
             
-            if (savingToFile) {
+            if (settings.isSavingToFile()) {
                 outputToXML(transformations, jm);
             } else {
                 jm.setDirectory(new RepositoryDirectory());
@@ -416,7 +395,7 @@ public class KettleJob implements Monitorable {
             trans.setFileName(getTransFilePath(trans.getName()));
         }
 
-        String fileName = filePath;
+        String fileName = settings.getFilePath();
         if (!fileName.toUpperCase().endsWith(".KJB")) {
             fileName += ".kjb";
         }
@@ -468,7 +447,7 @@ public class KettleJob implements Monitorable {
      * The file location of the transformations is based on the location of the job.
      */
     String getTransFilePath(String transName) {
-        String parentPath = new File(filePath).getParentFile().getPath();
+        String parentPath = new File(settings.getFilePath()).getParentFile().getPath();
         logger.debug("Parent file path is " + parentPath);
         return new File(parentPath, "transformation_for_table_" + transName + ".ktr").getPath();
     }
@@ -484,7 +463,7 @@ public class KettleJob implements Monitorable {
             // Pass the repository a connection straight as the Repository
             // connect method loads its own drivers and we don't want to
             // include them.
-            repo.getDatabase().setConnection(repository.createConnection());
+            repo.getDatabase().setConnection(settings.getRepository().createConnection());
             
             RepositoryDirectory directory;
             
@@ -593,12 +572,12 @@ public class KettleJob implements Monitorable {
      */
     Repository createRepository() {
 
-        DatabaseMeta kettleDBMeta = KettleUtils.createDatabaseMeta(repository);
+        DatabaseMeta kettleDBMeta = KettleUtils.createDatabaseMeta(settings.getRepository());
         RepositoryMeta repoMeta = new RepositoryMeta("", "", kettleDBMeta);
 
-        UserInfo userInfo = new UserInfo(repository.get(KettleOptions.KETTLE_REPOS_LOGIN_KEY),
-                repository.get(KettleOptions.KETTLE_REPOS_PASSWORD_KEY),
-                jobName, "", true, null);
+        UserInfo userInfo = new UserInfo(settings.getRepository().get(KettleOptions.KETTLE_REPOS_LOGIN_KEY),
+                settings.getRepository().get(KettleOptions.KETTLE_REPOS_PASSWORD_KEY),
+                settings.getJobName(), "", true, null);
         LogWriter lw = LogWriter.getInstance(); // Repository constructor needs this for some reason
 
         Repository repo = new Repository(lw, repoMeta, userInfo);
@@ -660,28 +639,28 @@ public class KettleJob implements Monitorable {
     }
     
     public String getFilePath() {
-        return filePath;
+        return settings.getFilePath();
     }
     public void setFilePath(String filePath) {
-        this.filePath = filePath;
+        settings.setFilePath(filePath);
     }
     public String getJobName() {
-        return jobName;
+        return settings.getJobName();
     }
     public void setJobName(String jobName) {
-        this.jobName = jobName;
+       settings.setJobName(jobName);
     }
     public int getKettleJoinType() {
-        return kettleJoinType;
+        return settings.getJoinType();
     }
     public void setKettleJoinType(int kettleJoinType) {
-        this.kettleJoinType = kettleJoinType;
+        settings.setJoinType(kettleJoinType);
     }
     public String getSchemaName() {
-        return schemaName;
+        return settings.getSchemaName();
     }
     public void setSchemaName(String schemaName) {
-        this.schemaName = schemaName;
+        settings.setSchemaName(schemaName);
     }
 
     public List<String> getTasksToDo() {
@@ -717,14 +696,14 @@ public class KettleJob implements Monitorable {
     }
     
     public boolean isSavingToFile() {
-        return savingToFile;
+        return settings.isSavingToFile();
     }
     public void setSavingToFile(boolean savingToFile) {
-        this.savingToFile = savingToFile;
+        settings.setSavingToFile(savingToFile);
     }
 
     public void setRepository(JDBCDataSource source) {
-        this.repository = source;
+        settings.setRepository(source);
     }
 
     public void setRepositoryDirectoryChooser(KettleRepositoryDirectoryChooser chooser) {
@@ -732,6 +711,6 @@ public class KettleJob implements Monitorable {
     }
 
     public SPDataSource getRepository() {
-        return repository;
+        return settings.getRepository();
     }
 }
