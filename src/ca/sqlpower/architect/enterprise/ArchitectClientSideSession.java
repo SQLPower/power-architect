@@ -48,7 +48,6 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.ddl.DDLGenerator;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.dao.SPPersistenceException;
 import ca.sqlpower.dao.SPPersisterListener;
@@ -545,10 +544,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             new UsernamePasswordCredentials(serviceInfo.getUsername(), serviceInfo.getPassword()));
         return httpClient;
 	}
-	
-	public void createRevisionSession(int revisionNo, ArchitectSwingSession swingSession) {
-        // TODO Auto-generated method stub
-    }    
     
     public NetworkConflictResolver getUpdater() {
         return updater;

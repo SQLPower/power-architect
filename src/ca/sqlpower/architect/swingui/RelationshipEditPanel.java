@@ -37,7 +37,7 @@ import javax.swing.JTextField;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
@@ -52,7 +52,7 @@ import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class RelationshipEditPanel extends AbstractSPListener implements DataEntryPanel {
+public class RelationshipEditPanel extends AbstractPoolingSPListener implements DataEntryPanel {
 
 	private static final Logger logger = Logger.getLogger(RelationshipEditPanel.class);
 

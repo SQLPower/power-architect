@@ -47,6 +47,7 @@ import org.xml.sax.SAXException;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.UnclosableInputStream;
+import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.olap.MondrianXMLReader;
 import ca.sqlpower.architect.olap.MondrianXMLWriter;
@@ -60,7 +61,6 @@ import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
-import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
@@ -70,12 +70,12 @@ import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
@@ -527,7 +527,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 int fkx = Integer.parseInt(attributes.getValue("fk-x")); //$NON-NLS-1$
                 int fky = Integer.parseInt(attributes.getValue("fk-y")); //$NON-NLS-1$
                 int orientation = Integer.parseInt(attributes.getValue("orientation")); //$NON-NLS-1$
-                ((RelationshipUI) r.getUI()).setOrientation(orientation);
+                r.setOrientation(orientation);
                 r.setPkConnectionPoint(new Point(pkx, pky));
                 r.setFkConnectionPoint(new Point(fkx, fky));
                 
@@ -1113,7 +1113,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
                         +" rLineColor="+quote(rColorString) //$NON-NLS-1$
                         +" pkLabelText="+quote(r.getTextForParentLabel()) //$NON-NLS-1$
                         +" fkLabelText="+quote(r.getTextForChildLabel()) //$NON-NLS-1$
-                        +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$
+                        +" orientation=\"" + r.getOrientation() + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$
             } else if (ppc instanceof UsageComponent) {
                 UsageComponent usageComp = (UsageComponent) ppc;
                 String modelId = olapObjectSaveIdMap.get(usageComp.getModel());

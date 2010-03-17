@@ -23,38 +23,88 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.event.PlayPenContentEvent;
-import ca.sqlpower.architect.swingui.event.PlayPenContentListener;
+import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.swingui.olap.CubePane;
+import ca.sqlpower.architect.swingui.olap.DimensionPane;
+import ca.sqlpower.architect.swingui.olap.UsageComponent;
+import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
+import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonBound;
+import ca.sqlpower.object.annotation.Transient;
 
-public class PlayPenContentPane {
+public class PlayPenContentPane extends AbstractSPObject {
 	private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
-	protected PlayPen owner;
+	
+	
+	public static final List<Class<? extends SPObject>> allowedChildTypes = 
+	    Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
+	            Arrays.asList(TablePane.class, Relationship.class, UsageComponent.class,
+	                    CubePane.class, DimensionPane.class, VirtualCubePane.class)));		
+	
+	protected PlayPen playPen;
 	private List<PlayPenComponent> children = new ArrayList<PlayPenComponent>();
 	private List<Relationship> relations = new ArrayList<Relationship>();
-	private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-	private PropertyChangeEventPassthrough propertyChangeEventPassthrough;
+	
+	/**
+	 * Maps component listeners by the listener that was passed in 
+	 * (and will be passed in again  on removeComponentPropertyListener calls) 
+	 * to the filtered listener that is created in addComponentPropertyListener
+	 */
+	private HashMap<SPListener, SPListener> componentListeners = new HashMap<SPListener, SPListener>();
 
-
-	public PlayPenContentPane(PlayPen owner) {
-		this.owner = owner;
-		propertyChangeEventPassthrough = new PropertyChangeEventPassthrough();
-		owner.addPropertyChangeListener("zoom", new ZoomFixer()); //$NON-NLS-1$
+	/**
+	 * This boolean becomes true when a table pane has begun moving, 
+	 * and will remain true until doneDragging() is called by the
+	 * PlayPen's mouseReleased() method. This allows for location
+	 * changes to be wrapped in a transaction.
+	 */
+	private boolean waitingToPersistLocation = false;
+	
+	@Constructor
+	public PlayPenContentPane() {
+	    this(null);	    
 	}
 	
+	public PlayPenContentPane(PlayPen owner) {
+	    super();
+	    setPlayPen(owner);
+	}
 	
 	/**
 	 * Returns the PlayPen that this content pane belongs to.
 	 */
-	public PlayPen getOwner() {
-		return owner;
+	@Transient @Accessor
+	public PlayPen getPlayPen() {
+		return playPen;
 	}
 
+	@Transient @Mutator
+	public void setPlayPen(PlayPen owner) {
+	    if (playPen != null) {
+	        throw new IllegalStateException("Cannot change PlayPen once it is already set!");
+	    }
+	    this.playPen = owner;
+	    if (owner != null) {
+	        owner.addPropertyChangeListener("zoom", new ZoomFixer()); //$NON-NLS-1$
+	        firePropertyChange("playPen", null, owner);
+	    }
+	}
+	
 	public boolean contains(Point p) {
 		return contains(p.x, p.y);
 	}
@@ -66,6 +116,7 @@ public class PlayPenContentPane {
 	/**
 	 * Returns true.
 	 */
+	@NonBound
 	public boolean isValidateRoot() {
 		logger.debug("isValidateRoot returning true"); //$NON-NLS-1$
 		return true;
@@ -75,6 +126,7 @@ public class PlayPenContentPane {
 	 * Looks for tooltip text in the component under the pointer,
 	 * respecting the current zoom level.
 	 */
+	@Transient @Accessor
 	public String getToolTipText(MouseEvent e) {
 		String text = null;
 		PlayPenComponent c = getComponentAt(e.getPoint());
@@ -89,6 +141,7 @@ public class PlayPenContentPane {
 	 *  Allows you to return the component that is at point p.  Since relations are always last 
 	 *  If a non-relationship is at the same point it gets picked first. 
 	 */
+	@NonBound
 	public PlayPenComponent getComponentAt(Point p) {
 		for (PlayPenComponent ppc : children) {
 			if (ppc.contains(p)) {
@@ -107,6 +160,7 @@ public class PlayPenContentPane {
 	/**
 	 * Get the index of the first relation
 	 */
+	@NonBound
 	public int getFirstRelationIndex() {
 		return children.size();
 	}
@@ -114,6 +168,7 @@ public class PlayPenContentPane {
 	/**
 	 * get the total number of components
 	 */
+	@NonBound
 	public int getComponentCount() {
 		return children.size()+relations.size();
 	}
@@ -123,6 +178,7 @@ public class PlayPenContentPane {
 	 * 
 	 * Note: All relations are at the end of the list 
 	 */
+	@NonBound
 	public PlayPenComponent getComponent(int i) {
 		if (i < children.size()){
 			return children.get(i);
@@ -138,14 +194,14 @@ public class PlayPenContentPane {
 	 * Note relations must be added after <code>getFirstrelaationIndex</code> and all others before
 	 */
 	public void add(PlayPenComponent c, int i) {
+	    c.setParent(this);
 		if (c instanceof Relationship) {
 			relations.add(i-children.size(),(Relationship)c);
 		} else {
 			children.add(i,c);
 		}
-		c.addPropertyChangeListener(propertyChangeEventPassthrough);
-		c.addSelectionListener(getOwner());
-		firePlayPenContentAdded(c);
+		c.addSelectionListener(getPlayPen());
+		fireChildAdded(c.getClass(), c, i);
 		c.revalidate();
 	}
 
@@ -162,22 +218,27 @@ public class PlayPenContentPane {
 		}
 		
 		Rectangle r = c.getBounds();
-		c.removePropertyChangeListener(propertyChangeEventPassthrough);
-		c.removeSelectionListener(getOwner());
+		c.removeSelectionListener(getPlayPen());
 		if (j < children.size()) {
 			children.remove(j);
 		} else {
 			relations.remove(j-children.size());
 		}
-		firePlayPenContentRemoved(c);
-		getOwner().repaint(r);
+		fireChildRemoved(c.getClass(), c, j);
+		getPlayPen().repaint(r);
 	}
 	
-	public void remove(PlayPenComponent c) {
-		int j = children.indexOf(c);
-		if ( j >= 0 ) remove(j);
-		j= relations.indexOf(c);
-		if (j>=0) remove(j+children.size());
+	public boolean remove(PlayPenComponent c) {
+	    List<? extends PlayPenComponent> targetList;
+	    if (children.contains(c)) targetList = children;
+	    else if (relations.contains(c)) targetList = relations;
+	    else return false;
+	    
+	    int i = targetList.indexOf(c);
+	    targetList.remove(c);
+	    fireChildRemoved(c.getClass(), c, i);
+	    return true;
+	    
 	}
 
 	/**
@@ -192,52 +253,148 @@ public class PlayPenContentPane {
 			}
 		}
 	}
-	
-	// ----------------- PropertyChangeListener Passthrough stuff ---------------------------
-	
-	public void addPropertyChangeListener(PropertyChangeListener l) {
-	    pcs.addPropertyChangeListener(l);
+
+	protected void addChildImpl(SPObject child, int pos) {
+	    if (child instanceof Relationship) {
+	        pos += children.size();
+	    }
+	    add((PlayPenComponent) child, pos);
 	}
-	
-	public void addPropertyChangeListener(String propertyName, PropertyChangeListener l) {
-	    pcs.addPropertyChangeListener(propertyName, l);
-	}
-	
-	public void removePropertyChangeListener(PropertyChangeListener l) {
-	    pcs.removePropertyChangeListener(l);
-	}
-	
-	private void refirePropertyChanged(PropertyChangeEvent e) {
-	    pcs.firePropertyChange(e);
-	}
-	
-	private class PropertyChangeEventPassthrough implements PropertyChangeListener {
-        public void propertyChange(PropertyChangeEvent e) {
-            refirePropertyChanged(e);
+
+    @Override
+    protected boolean removeChildImpl(SPObject child) {
+        return remove((PlayPenComponent) child);
+    }
+
+    @Accessor
+    public ArchitectProject getParent() {
+        return (ArchitectProject) super.getParent();
+    }
+    
+    public boolean allowsChildren() {
+        return true;
+    }
+
+    public int childPositionOffset(Class<? extends SPObject> childType) {
+        if (Relationship.class.isAssignableFrom(childType)) {
+            return children.size();
+        } else if (PlayPenComponent.class.isAssignableFrom(childType)) {
+            return 0;
+        } else {
+            throw new IllegalArgumentException("Not an allowed child type");
         }
-	}
-	
-	private final List<PlayPenContentListener> playPenContentListeners = new ArrayList<PlayPenContentListener>();
-	
-	private void firePlayPenContentAdded(PlayPenComponent c) {
-	    PlayPenContentEvent e = new PlayPenContentEvent(this, c);
-	    for(int i = playPenContentListeners.size() - 1; i >= 0; i--) {
-	        playPenContentListeners.get(i).PlayPenComponentAdded(e);
-	    }
-	}
-	
-	private void firePlayPenContentRemoved(PlayPenComponent c) {
-	    PlayPenContentEvent e = new PlayPenContentEvent(this, c);
-	    for(int i = playPenContentListeners.size() - 1; i >= 0; i--) {
-	        playPenContentListeners.get(i).PlayPenComponentRemoved(e);
-	    }
-	}
-	
-	public void addPlayPenContentListener(PlayPenContentListener listener) {
-	    playPenContentListeners.add(listener);
-	}
-	
-	public void removePlayPenContentListener(PlayPenContentListener listener) {
-	    playPenContentListeners.remove(listener);
-	}
+    }
+
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+    
+    public List<? extends PlayPenComponent> getChildren() {
+        List<PlayPenComponent> childrenList = new ArrayList<PlayPenComponent>();
+        childrenList.addAll(children);
+        childrenList.addAll(relations);
+        return childrenList;
+    }
+
+    @NonBound
+    public List<? extends SPObject> getDependencies() {
+        return Collections.emptyList();
+    }
+
+    public void removeDependency(SPObject dependency) {
+        throw new IllegalArgumentException("That is not a dependency, since this object has no depencies");
+    }
+
+    /**
+     * Adds a listener to this content pane that will forward
+     * a specific property's events received from its children components.
+     * @param propertyName The property of the components the listener is interested in.
+     * If null or an empty array, it will listen for all properties.
+     * @param listener The listener that the component events will be forwarded to.
+     */
+    public void addComponentPropertyListener(String[] propertyNames, final SPListener listener) {
+        
+        final List<String> filter;
+        if (propertyNames == null) {
+            filter = Collections.emptyList();
+        } else {
+            filter = Arrays.asList(propertyNames);
+        }
+        
+        final SPListener filteredListener = new AbstractSPListener() {
+            public void propertyChanged(PropertyChangeEvent evt) {
+                if (filter.size() == 0 || filter.contains(evt.getPropertyName())) {
+                    listener.propertyChanged(evt);
+                }
+            }
+        };  
+        
+        // Map the created listener by the listener passed in.
+        componentListeners.put(listener, filteredListener);
+        
+        // Add listeners to all components that already existed.
+        for (PlayPenComponent child : getChildren()) {
+            child.addSPListener(filteredListener);
+        }
+        
+        // Add a listener to add the created listener to future components,
+        // and remove it from components when they are removed.
+        addSPListener(new AbstractSPListener() {
+            public void childAdded(SPChildEvent e) {
+                e.getChild().addSPListener(filteredListener);
+            }
+            public void childRemoved(SPChildEvent e) {
+                e.getChild().removeSPListener(filteredListener);
+            }
+        });
+        
+    }
+        
+    public void addComponentPropertyListener(String propertyName, final SPListener listener) {
+        addComponentPropertyListener(new String[] {propertyName}, listener);
+    }
+    
+    /**
+     * Adds a component property listener that listens to any/all properties.
+     * @param listener
+     */
+    public void addComponentPropertyListener(SPListener listener) {
+        addComponentPropertyListener(new String[] {}, listener);
+    }
+    
+    public void removeComponentPropertyListener(SPListener listener) {
+        componentListeners.remove(listener);
+    }
+
+    @NonBound
+    public boolean isWaitingToPersistLocation() {
+        return waitingToPersistLocation;
+    }
+
+    public void startedDragging() {
+        waitingToPersistLocation = true;
+        begin("Started moving table pane");
+    }
+    
+    /**
+     * Called by PlayPen on its mouseReleased event to notify a component that
+     * it may complete its location-change transaction if it has been waiting to.
+     */
+    public void doneDragging() {
+        if (waitingToPersistLocation) {
+            waitingToPersistLocation = false;
+            commit();
+        }
+    }
+    
+    @NonBound
+    public HashMap<SPListener, SPListener> getComponentListeners() {
+        return componentListeners;
+    }
+    
+    @NonBound
+    public void setComponentListeners(HashMap<SPListener, SPListener> componentListeners) {
+        this.componentListeners = componentListeners;
+    }
+    
 }

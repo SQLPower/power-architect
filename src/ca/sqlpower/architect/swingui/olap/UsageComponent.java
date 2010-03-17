@@ -22,6 +22,7 @@ package ca.sqlpower.architect.swingui.olap;
 import java.awt.Color;
 import java.awt.Window;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 import javax.swing.JDialog;
 import javax.swing.SwingUtilities;
@@ -34,9 +35,12 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
-import ca.sqlpower.architect.swingui.event.PlayPenContentEvent;
-import ca.sqlpower.architect.swingui.event.PlayPenContentListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
@@ -70,15 +74,19 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
         updateUI();
     }
     
-    public UsageComponent(PlayPenContentPane parent, OLAPObject model, OLAPPane<?, ?> pane1, OLAPPane<?, ?> pane2) {
-        super(parent);
+    @Constructor
+    public UsageComponent(@ConstructorParameter(propertyName="parent") PlayPenContentPane parent, 
+            @ConstructorParameter(propertyName="model") OLAPObject model, 
+            @ConstructorParameter(propertyName="pane1") OLAPPane<?, ?> pane1, 
+            @ConstructorParameter(propertyName="pane2") OLAPPane<?, ?> pane2) {
+        super(model.getName(), parent);
         this.model = model;
         this.pane1 = pane1;
         this.pane2 = pane2;
         setOpaque(false);
         setForegroundColor(Color.BLACK);
         updateUI();
-        parent.addPlayPenContentListener(olapPanesWatcher);
+        parent.addSPListener(olapPanesWatcher);
     }
     
     /**
@@ -102,7 +110,7 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
     }
 
     @Override
-    public String getName() {
+    public String getModelName() {
         return model.getName();
     }
 
@@ -161,14 +169,10 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
      * Watches the panes that the usage is connected to, if either are removed,
      * then the component will remove itself.
      */
-    private class OLAPPanesWatcher implements PlayPenContentListener {
+    private class OLAPPanesWatcher extends AbstractSPListener {
 
-        public void PlayPenComponentAdded(PlayPenContentEvent e) {
-            // do nothing.
-        }
-
-        public void PlayPenComponentRemoved(PlayPenContentEvent e) {
-            if (e.getPlayPenComponent() == pane1 || e.getPlayPenComponent() == pane2) {
+        public void childRemoved(SPChildEvent evt) {
+            if (evt.getChild() == pane1 || evt.getChild() == pane2) {
                 getPlayPen().getContentPane().remove(UsageComponent.this);
             }
         }
@@ -180,5 +184,15 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
 
     public LayoutNode getTailNode() {
         return pane1;
+    }
+
+    public List<? extends SPObject> getDependencies() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        // TODO Auto-generated method stub
+        
     }
 }

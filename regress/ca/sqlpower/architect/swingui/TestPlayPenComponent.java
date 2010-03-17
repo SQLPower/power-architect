@@ -31,20 +31,26 @@ import java.util.Set;
 
 import javax.swing.JPopupMenu;
 
-import junit.framework.TestCase;
-
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
-import ca.sqlpower.sqlobject.SQLObjectException;
+import sun.font.FontManager;
+import ca.sqlpower.architect.util.ArchitectNewValueMaker;
+import ca.sqlpower.object.PersistedSPObjectTest;
+import ca.sqlpower.object.SPObject;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 
-import sun.font.FontManager;
-
-public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends TestCase {
+public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends PersistedSPObjectTest {
 	
-	protected PlayPen pp;
+	public TestPlayPenComponent(String name) {
+        super(name);
+    }
+
+    protected PlayPen pp;
 	protected ArchitectSwingSession session;
 	
 	/**
@@ -63,8 +69,9 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends T
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         session = context.createSession();
 		pp = session.getPlayPen();
+		session.getWorkspace().setPlayPenContentPane(pp.getContentPane());
+		getRootObject().addChild(session.getWorkspace(), 0);
 	}
-
 	
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.PlayPenComponent.getPlayPen()'
@@ -96,13 +103,17 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends T
 	    
 	    copyIgnoreProperties.add("UI");
 	    copyIgnoreProperties.add("UIClassID");
+	    copyIgnoreProperties.add("UUID");
+	    copyIgnoreProperties.add("allowedChildTypes");	    
 	    copyIgnoreProperties.add("background");
 	    copyIgnoreProperties.add("bounds");
 	    copyIgnoreProperties.add("class");
+	    copyIgnoreProperties.add("children");
 	    copyIgnoreProperties.add("fontRenderContext");
 	    copyIgnoreProperties.add("height");
 	    copyIgnoreProperties.add("insets");
 	    copyIgnoreProperties.add("location");
+	    copyIgnoreProperties.add("magicEnabled");
 	    copyIgnoreProperties.add("opaque");
 	    copyIgnoreProperties.add("parent");
 	    copyIgnoreProperties.add("playPen");
@@ -110,6 +121,7 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends T
 	    copyIgnoreProperties.add("preferredLocation");
 	    copyIgnoreProperties.add("preferredSize");
 	    copyIgnoreProperties.add("selected");
+	    copyIgnoreProperties.add("session");
 	    copyIgnoreProperties.add("size");
 	    copyIgnoreProperties.add("toolTipText");
 	    copyIgnoreProperties.add("width");
@@ -120,7 +132,7 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends T
         copyIgnoreProperties.add("font");
         
         // not so sure if this should be duplicated, it's changed as the model properties changes
-        copyIgnoreProperties.add("name");
+        copyIgnoreProperties.add("modelName");
         
         // copy and original should point to same business object
         copySameInstanceIgnoreProperties.add("model");
@@ -292,6 +304,15 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends T
 
 	    return newVal;
 	}
+	
+    @Override
+    public ArchitectNewValueMaker createNewValueMaker(SPObject root, DataSourceCollection<SPDataSource> dsCollection) {
+        return new ArchitectNewValueMaker(root, dsCollection);
+    }
+    
+    public Class<? extends SPObject> getChildClassType() {
+        return null;
+    }
 
 	//TODO Add test cases for other functions
 

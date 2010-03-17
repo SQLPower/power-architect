@@ -55,12 +55,20 @@ import javax.swing.JScrollPane;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.InsertionPointWatcher;
+import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.layout.LayoutEdge;
-import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
+import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonBound;
+import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.sqlobject.LockedColumnException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
@@ -80,6 +88,8 @@ import ca.sqlpower.util.TransactionEvent;
 public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
+	
+	public static final List<Class<? extends SPObject>> allowedChildTypes = PlayPenComponent.allowedChildTypes;
 
 	/**
 	 * A special column index that represents the gap between the last PK column and the PK line.
@@ -127,8 +137,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
     SPListener columnListener = new ColumnListener();
 
     public TablePane(TablePane tp, PlayPenContentPane parent) {
-		super(parent);
-		this.model = tp.model;
+		super(tp.getName(), parent);
+		this.model = tp.getModel();
 		this.margin = (Insets) tp.margin.clone();
 		this.columnHighlight = new HashMap<SQLColumn,List<Color>>(tp.columnHighlight);
 
@@ -158,13 +168,14 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 		}
     }
 
-
-	public TablePane(SQLTable m, PlayPenContentPane parent) {
-	    super(parent);
-	    this.hiddenColumns = new HashSet<SQLColumn>();
-	    setModel(m);
-	    setInsertionPoint(ITEM_INDEX_NONE);
-
+    @Constructor
+	public TablePane(@ConstructorParameter(propertyName="model") SQLTable m, 
+	        @ConstructorParameter(propertyName="parent") PlayPenContentPane parent) {
+        super(m.getName());
+        setModel(m);
+        this.hiddenColumns = new HashSet<SQLColumn>();
+        setInsertionPoint(ITEM_INDEX_NONE);
+	    setParent(parent);
 		updateUI();
 	}
 	
@@ -256,7 +267,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             SQLPowerUtils.listenToHierarchy(e.getChild(), this);
             
             updateHiddenColumns();
-            firePropertyChange("model.children", null, null); //$NON-NLS-1$
+            firePropertyChange("model.children", null, e.getChild()); //$NON-NLS-1$
             //revalidate();
         }
 
@@ -294,7 +305,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
 //            updateNameDisplay();
             updateHiddenColumns();
-            firePropertyChange("model.children", null, null); //$NON-NLS-1$
+            firePropertyChange("model.children", e.getChild(), null); //$NON-NLS-1$
             //revalidate();
         }
 
@@ -313,7 +324,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             }
 //            updateNameDisplay();
             updateHiddenColumns();
-            firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
+            firePropertyChange("model."+e.getPropertyName(), e.getOldValue(), e.getNewValue()); //$NON-NLS-1$
             //repaint();
         }
 
@@ -359,7 +370,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	}
 
 	@Override
-	public String getName() {
+	public String getModelName() {
 	    if (model == null) {
 	        return null;
 	    } else {
@@ -370,6 +381,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	/**
 	 * See {@link #insertionPoint}.
 	 */
+	@Transient @Accessor
 	public int getInsertionPoint() {
 		return insertionPoint;
 	}
@@ -377,6 +389,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	/**
 	 * See {@link #insertionPoint}.
 	 */
+	@Transient @Mutator
 	public void setInsertionPoint(int ip) {
 		int old = insertionPoint;
 		this.insertionPoint = ip;
@@ -415,6 +428,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	    }
 	}
 	
+	@Transient @Accessor
 	public boolean isUsingLogicalNames() {
 	    PlayPen pp = getPlayPen();
 	    if (pp != null) {
@@ -484,7 +498,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
 		for (int i = items.size()-1; i >= 0; i--) {
 			SQLObject someData = items.get(i);
-			DuplicateProperties duplicateProperties = ASUtils.createDuplicateProperties(getParent().getOwner().getSession(), someData);
+			DuplicateProperties duplicateProperties = ASUtils.createDuplicateProperties(getParent().getPlayPen().getSession(), someData);
 			logger.debug("insertObjects: got item of type "+someData.getClass().getName()); //$NON-NLS-1$
 			if (someData instanceof SQLTable) {
 			    SQLTable table = (SQLTable) someData;
@@ -552,6 +566,9 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
      * @param colour The new colour to show the column in.
      */
     public void addColumnHighlight(SQLColumn column, Color colour) {
+        if (columnHighlight.get(column) == null) {
+            columnHighlight.put(column, new ArrayList<Color>());
+        }
         columnHighlight.get(column).add(colour);
         repaint(); // XXX: should constrain repaint region to column i
     }
@@ -574,10 +591,12 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
      *   null indicates the current tablepane foreground colour will be used.
      * @throws SQLObjectException
      */
+    @NonBound
     public Color getColumnHighlight(int i) throws SQLObjectException {
         return getColumnHighlight(model.getColumn(i));
     }
 
+    @NonBound
     public Color getColumnHighlight(SQLColumn column) {
         logger.debug("Checking column "+column); //$NON-NLS-1$
         if (columnHighlight.get(column).isEmpty()) {
@@ -595,10 +614,12 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         }
     }
 
+    @Transient @Mutator
     public void setFullyQualifiedNameInHeader(boolean fullyQualifiedNameInHeader) {
         this.fullyQualifiedNameInHeader = fullyQualifiedNameInHeader;
     }
 
+    @Transient @Accessor
     public boolean isFullyQualifiedNameInHeader() {
         return fullyQualifiedNameInHeader;
     }
@@ -718,7 +739,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 logger.error("Error processing drop operation", ex); //$NON-NLS-1$
                 dtde.rejectDrop();
                 dtde.dropComplete(false);
-                ASUtils.showExceptionDialogNoReport(getParent().getOwner(),
+                ASUtils.showExceptionDialogNoReport(getParent().getPlayPen(),
                         "Error processing drop operation", ex); //$NON-NLS-1$
             } finally {
                 setInsertionPoint(ITEM_INDEX_NONE);
@@ -788,7 +809,23 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                         }
                     }
                 }
-                success = insertObjects(droppedItems, insertionPoint, deleteSource);
+                ArchitectProject project = this.getParent().getParent();
+                success = false;
+                try {
+                    project.begin("Inserting column(s) into table");
+                    success = insertObjects(droppedItems, insertionPoint, deleteSource);
+                    if (success) project.commit();
+                } catch (Throwable e) {                  
+                    if (e instanceof SQLObjectException) {
+                        throw new SQLObjectException(e);
+                    } else {
+                        throw new RuntimeException(e);
+                    }
+                } finally {
+                    if (!success) {
+                        project.rollback("Was unsuccessful inserting objects into table");
+                    }
+                }
             } catch (LockedColumnException ex ) {
                 if (logger.isDebugEnabled()) {
                     ex.printStackTrace();
@@ -889,6 +926,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         return bestImportFlavor(c, flavors) != null;
     }
 
+    @Transient @Accessor
     public List<LayoutEdge> getInboundEdges() {
         try {
             List<SQLRelationship> relationships = SQLRelationship.getExportedKeys(getModel().getImportedKeys());
@@ -902,6 +940,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         }
     }
 
+    @Transient @Accessor
     public List<LayoutEdge> getOutboundEdges() {
         try {
             List<SQLRelationship> relationships = getModel().getExportedKeys();
@@ -918,6 +957,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
     /**
      * Returns the number of hidden primary key columns
      */
+    @Transient @Accessor
     public int getHiddenPkCount() {
         int count = 0;
         for (SQLColumn c : hiddenColumns) {
@@ -928,6 +968,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         return count;
     }
     
+    @Transient @Accessor
     public boolean isShowPkTag(){
         PlayPen pp = getPlayPen();
         if (pp != null) {
@@ -937,6 +978,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         return true;
     }
     
+    @Transient @Accessor
     public boolean isShowFkTag(){
         PlayPen pp = getPlayPen();
         if (pp != null) {
@@ -946,6 +988,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         return true;
     }
     
+    @Transient @Accessor
     public boolean isShowAkTag(){
         PlayPen pp = getPlayPen();
         if (pp != null) {
@@ -955,6 +998,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         return true;
     }
     
+    @Transient @Accessor
     public Set<SQLColumn> getHiddenColumns() {
         return hiddenColumns;
     }
@@ -977,7 +1021,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
      * Returns an instance of the popup menu with menu items exclusive to
      * manipulating tablepanes.
      */
-    @Override
+    @Override @NonBound
     public JPopupMenu getPopup(Point p) {
         ArchitectFrame af = getPlayPen().getSession().getArchitectFrame();
         JPopupMenu tablePanePopup = new JPopupMenu();

@@ -48,7 +48,7 @@ import javax.swing.table.TableColumn;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
@@ -138,7 +138,7 @@ public class IndexColumnTable {
          * that if the user modifies the SQLIndex from the pp, the table will
          * also be updated with the proper changes.
          */
-        private class ActualIndexListener extends AbstractSPListener {
+        private class ActualIndexListener extends AbstractPoolingSPListener {
 
             @Override
             protected void transactionEndedImpl(TransactionEvent e) {

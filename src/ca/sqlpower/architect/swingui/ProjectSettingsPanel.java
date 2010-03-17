@@ -28,8 +28,9 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ProjectSettings;
+import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.profile.TableProfileCreator;
-import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -207,7 +208,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
             showFkTag.setSelected(session.isShowFkTag());
             showAkTag.setSelected(session.isShowAkTag());
             
-        ColumnVisibility choice = session.getColumnVisibility();
+        ColumnVisibility choice = session.getProjectSettings().getColumnVisibility();
         
         switch (choice) {
         case ALL:
@@ -229,7 +230,11 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
     }
 
 	public boolean applyChanges() {
-		session.setSavingEntireSource(saveEntireSource.isSelected());
+	    
+	    ProjectSettings settings = session.getProjectSettings();
+	    try {
+	    settings.begin("Applying changes to project settings...");
+		settings.setSavingEntireSource(saveEntireSource.isSelected());
 
         if ( numberOfFreqValues.getText().length() > 0 ) {
             try {
@@ -243,46 +248,48 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         session.getProfileManager().setCreator((TableProfileCreator) profileMode.getSelectedItem());
         
         if (directRelationships.isSelected()) {
-            session.setRelationshipLinesDirect(true);
+            settings.setRelationshipLinesDirect(true);
         } else {
-            session.setRelationshipLinesDirect(false);
+            settings.setRelationshipLinesDirect(false);
         }
         
         if (logicalNames.isSelected()) {
-            session.setUsingLogicalNames(true);
+            settings.setUsingLogicalNames(true);
         } else {
-            session.setUsingLogicalNames(false);
+            settings.setUsingLogicalNames(false);
         }
         
         if (displayRelationshipLabel.isSelected()) {
-            session.setDisplayRelationshipLabel(true);
+            settings.setDisplayRelationshipLabel(true);
         } else {
-            session.setDisplayRelationshipLabel(false);
+            settings.setDisplayRelationshipLabel(false);
         }
         
-        session.setShowPkTag(showPkTag.isSelected());
-        session.setShowFkTag(showFkTag.isSelected());
-        session.setShowAkTag(showAkTag.isSelected());
+        settings.setShowPkTag(showPkTag.isSelected());
+        settings.setShowFkTag(showFkTag.isSelected());
+        settings.setShowAkTag(showAkTag.isSelected());
         
         if (showAll.isSelected()) {
-            session.setColumnVisibility(ColumnVisibility.ALL);
+            settings.setColumnVisibility(ColumnVisibility.ALL);
         }
         if (showPk.isSelected()) {
-            session.setColumnVisibility(ColumnVisibility.PK);
+            settings.setColumnVisibility(ColumnVisibility.PK);
         }
         if (showPkFk.isSelected()) {
-            session.setColumnVisibility(ColumnVisibility.PK_FK);
+            settings.setColumnVisibility(ColumnVisibility.PK_FK);
         }
         if (showPkFkUnique.isSelected()) {
-            session.setColumnVisibility(ColumnVisibility.PK_FK_UNIQUE);
+            settings.setColumnVisibility(ColumnVisibility.PK_FK_UNIQUE);
         }
         if (showPkFkUniqueIndexed.isSelected()) {
-            session.setColumnVisibility(ColumnVisibility.PK_FK_UNIQUE_INDEXED);
+            settings.setColumnVisibility(ColumnVisibility.PK_FK_UNIQUE_INDEXED);
         }
         
-        // XXX this refresh should be handled via a property change event on the session
-        session.getPlayPen().updateTablePanes();
-        
+        settings.commit();
+	    } catch (Throwable e) {
+	        settings.rollback("Exception thrown when applying project settings changes");
+	        throw new RuntimeException(e);
+	    }
         return true;
 	}
 

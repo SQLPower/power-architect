@@ -21,32 +21,19 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.beans.PropertyChangeEvent;
 
-public abstract class RelationshipUI implements PlayPenComponentUI, java.io.Serializable {
+import com.enterprisedt.util.debug.Logger;
+
+import ca.sqlpower.object.AbstractSPListener;
+
+public abstract class RelationshipUI extends AbstractSPListener 
+implements PlayPenComponentUI, java.io.Serializable {
 	public static final String UI_CLASS_ID = "RelationshipUI"; //$NON-NLS-1$
-
-    /**
-     * A bitmask of the constants (PARENT|CHILD)_FACES_(LEFT|RIGHT|TOP|BOTTOM).
-     */
-    protected int orientation;
-
-    public static final int NO_FACING_EDGES = 0;
-    public static final int PARENT_FACES_RIGHT = 1;
-    public static final int PARENT_FACES_LEFT = 2;
-    public static final int PARENT_FACES_BOTTOM = 4;
-    public static final int PARENT_FACES_TOP = 8;
-    public static final int CHILD_FACES_RIGHT = 16;
-    public static final int CHILD_FACES_LEFT = 32;
-    public static final int CHILD_FACES_BOTTOM = 64;
-    public static final int CHILD_FACES_TOP = 128;
-    public static final int CHILD_MASK = 240;
-    public static final int PARENT_MASK = 15;
-
-
-	public RelationshipUI() {
-		pkConnectionPoint = new Point();
-		fkConnectionPoint = new Point();
-	}
+	
+	private static final Logger logger = Logger.getLogger(RelationshipUI.class);
+	
+	protected Relationship relationship;
 
 	/**
 	 * Adjusts the UI's connection points to the default "best" position.
@@ -76,36 +63,20 @@ public abstract class RelationshipUI implements PlayPenComponentUI, java.io.Seri
 	}
 
 	/**
-	 * This is the point where this relationship meets its PK table.
-	 * The point is in the table's coordinate space.
+	 * Copied from Relationship, since they are used
+	 * in this class an ample amount.
 	 */
-	protected Point pkConnectionPoint;
-
-	public void setPkConnectionPoint(Point p) {
-		pkConnectionPoint = p;
-	}
-
-	public Point getPkConnectionPoint() {
-		return pkConnectionPoint;
-	}
-	
-	public void setOrientation(int o) {
-	    this.orientation = o;
-	}
-
-	/**
-	 * This is the point where this relationship meets its FK table.
-	 * The point is in the table's coordinate space.
-	 */
-	protected Point fkConnectionPoint;
-
-	public void setFkConnectionPoint(Point p) {
-		fkConnectionPoint = p;
-	}
-
-	public Point getFkConnectionPoint() {
-		return fkConnectionPoint;
-	}
+    public static final int NO_FACING_EDGES = 0;
+    public static final int PARENT_FACES_RIGHT = 1;
+    public static final int PARENT_FACES_LEFT = 2;
+    public static final int PARENT_FACES_BOTTOM = 4;
+    public static final int PARENT_FACES_TOP = 8;
+    public static final int CHILD_FACES_RIGHT = 16;
+    public static final int CHILD_FACES_LEFT = 32;
+    public static final int CHILD_FACES_BOTTOM = 64;
+    public static final int CHILD_FACES_TOP = 128;
+    public static final int CHILD_MASK = 240;
+    public static final int PARENT_MASK = 15;
 
     /**
      * Determines if the given rectangle is visibly touching this component.
@@ -134,15 +105,12 @@ public abstract class RelationshipUI implements PlayPenComponentUI, java.io.Seri
 	 */
 	public abstract Shape getShape();
 	
-	public abstract int getShapeLength();
+	public abstract int getShapeLength();   
     
-    /**
-     * Returns the current orientation of this relationship; that is, which
-     * sides of its PK table and its FK table it is attached to. The return
-     * value is a bitmask of the constants
-     * (PARENT|CHILD)_FACES_(LEFT|RIGHT|TOP|BOTTOM).
-     */
-    public int getOrientation() {
-        return orientation;
+    // --------------- PropertyChangeListener ----------------------
+    public void propertyChanged(PropertyChangeEvent e) {
+        logger.debug("RelationshipUI notices change of "+e.getPropertyName()
+                     +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource());
+        relationship.revalidate();
     }
 }

@@ -21,12 +21,15 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.beans.PropertyChangeEvent;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.SPChildEvent.EventType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -36,13 +39,18 @@ import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestTablePane extends TestPlayPenComponent<TablePane> {
 
-	private SQLTable t;
+	public TestTablePane(String name) {
+        super(name);
+    }
+
+    private SQLTable t;
 	private TablePane tp;
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-		t = new SQLTable(session.getTargetDatabase(), true);
+		t = new SQLTable(null, true);
 		t.setName("Test Table");
+		db.addTable(t);		
 		SQLColumn pk1 = new SQLColumn(t, "PKColumn1", Types.INTEGER, 10,0);
 		SQLColumn pk2 = new SQLColumn(t, "PKColumn2", Types.INTEGER, 10,0);
 		SQLColumn pk3 = new SQLColumn(t, "PKColumn3", Types.INTEGER, 10,0);
@@ -59,6 +67,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
         
 		pp = session.getPlayPen();
 		tp = new TablePane(t, pp.getContentPane());
+		pp.addTablePane(tp, new Point(0, 0));
 		
 		t.addToPK(pk1);
 		t.addToPK(pk2);
@@ -354,8 +363,14 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
     }
     
     public void testSetLocationFiresEvents() {
-        PlayPenComponentEventCounter eventCounter = new PlayPenComponentEventCounter();
-        tp.addPropertyChangeListener("location", eventCounter);
+        final PlayPenComponentEventCounter eventCounter = new PlayPenComponentEventCounter();
+        tp.addSPListener(new AbstractSPListener() {
+            public void propertyChanged(PropertyChangeEvent evt) {
+                if (evt.getPropertyName().equals("bounds") && PlayPenComponent.isLocationChange(evt)) {
+                    eventCounter.propertyChange(evt);
+                }
+            }
+        });
         assertEquals("" +
                 "We started out with the wrong number of events", 0,eventCounter.getEvents() );
         pp.startCompoundEdit("Starting move");
@@ -453,11 +468,16 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
 
     @Override
     protected TablePane getTargetCopy() {
-        return new TablePane(tp, tp.getParent());
+        return new TablePane(tp, (PlayPenContentPane) tp.getParent());
     }
 
     @Override
     protected TablePane getTarget() {
+        return tp;
+    }
+
+    @Override
+    public SPObject getSPObjectUnderTest() {
         return tp;
     }
 }

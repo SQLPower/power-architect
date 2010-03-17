@@ -35,6 +35,9 @@ import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
+import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.util.TransactionEvent;
@@ -128,8 +131,10 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
         updateUI();
     }
     
-    public DimensionPane(Dimension m, PlayPenContentPane parent) {
-        super(parent);
+    @Constructor
+    public DimensionPane(@ConstructorParameter(propertyName="model") Dimension m, 
+            @ConstructorParameter(propertyName="parent") PlayPenContentPane parent) {
+        super(m.getName(), parent);
         this.model = m;
         for (Hierarchy h : model.getHierarchies()) {
             sections.add(new HierarchySection(h));
@@ -277,6 +282,16 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
 
     @Override
     public void pasteData(Transferable t) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public List<? extends SPObject> getDependencies() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void removeDependency(SPObject dependency) {
         // TODO Auto-generated method stub
         
     }

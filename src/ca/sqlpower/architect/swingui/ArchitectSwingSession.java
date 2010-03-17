@@ -26,11 +26,12 @@ import javax.swing.JMenu;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.architect.ProjectSettings;
+import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
-import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -337,4 +338,6 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * @param threadName
      */
     public void runInBackground(Runnable runner, String threadName);
+    
+    public ProjectSettings getProjectSettings();
 }

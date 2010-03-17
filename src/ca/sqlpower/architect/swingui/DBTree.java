@@ -835,11 +835,11 @@ public class DBTree extends JTree implements DragSourceListener {
             if (getValue(SCHEMA)!= null) {
                 schema = (SQLSchema)getValue(SCHEMA);
                 //oracle does not have catalogs so a check is needed
-                if (schema.getParent().getParent() == null) {
-                    db = (SQLDatabase)schema.getParent();
-                } else {
+                if (schema.getParent().getParent() instanceof SQLDatabase) {
                     db = (SQLDatabase)schema.getParent().getParent();
-                    catalog = (SQLCatalog)schema.getParent();
+                    catalog = (SQLCatalog)schema.getParent();                    
+                } else {
+                    db = (SQLDatabase)schema.getParent();                    
                 }
             } else if (getValue(CATALOG) != null) {
                 catalog = (SQLCatalog)getValue(CATALOG);
