@@ -64,11 +64,11 @@ public class PlayPenComponentEventCounter implements PropertyChangeListener {
         if(evt.getPropertyName().equals("connectionPoints")) {
             conPointsMoved++;
         }
-        else if(evt.getPropertyName().equals("location")) {
-            moved++;
-        }
         else if(evt.getPropertyName().equals("bounds")) {
             resized++;
+            if (PlayPenComponent.isLocationChange(evt)) {
+                moved++;
+            }
         }
     }
 

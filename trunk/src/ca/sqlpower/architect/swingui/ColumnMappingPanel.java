@@ -330,8 +330,8 @@ public class ColumnMappingPanel implements DataEntryPanel {
         // we'll destroy it now instead of waiting until cleanup().
         pp.destroy();
         
-        lhsTable.setLocation(0, 0);
-        rhsTable.setLocation(lhsTable.getWidth() + gap, 0);
+        lhsTable.setLocation(1, 1);
+        rhsTable.setLocation(lhsTable.getWidth() + gap, 1);
         updateMappingsFromRelationship();
         MouseHandler mouseHandler = new MouseHandler();
         panel.addMouseListener(mouseHandler);

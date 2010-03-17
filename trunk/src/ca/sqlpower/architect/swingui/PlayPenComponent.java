@@ -29,8 +29,7 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,16 +41,24 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonBound;
+import ca.sqlpower.object.annotation.Transient;
 
 /**
  * PlayPenComponent is the base class for a component that can live in the playpen's
  * content pane.
  */
-public abstract class PlayPenComponent implements Selectable {
+public abstract class PlayPenComponent extends AbstractSPObject
+implements Selectable {
 
     private static final Logger logger = Logger.getLogger(PlayPenComponent.class);
+
+    public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
     
-    private PlayPenContentPane parent;
     private Rectangle bounds = new Rectangle();
     protected Color backgroundColor;
     protected Color foregroundColor;
@@ -61,8 +68,6 @@ public abstract class PlayPenComponent implements Selectable {
     
     private PlayPenComponentUI ui;
 
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-
     /**
      * A selected component is one that the user has clicked on. It will appear
      * more prominently than non-selected ContainerPane, and its status as
@@ -71,6 +76,15 @@ public abstract class PlayPenComponent implements Selectable {
     protected boolean selected;
 
     protected boolean componentPreviouslySelected;
+    
+    protected PlayPenComponent(String name) {
+        setName(name);
+    }
+    
+    protected PlayPenComponent(String name, PlayPenContentPane parent) {
+        this(name);
+        setParent(parent);
+    }
 
     /**
      * Copy constructor. Makes deep copies of all PlayPenComponent state.
@@ -86,6 +100,7 @@ public abstract class PlayPenComponent implements Selectable {
      * @param parent the parent content pane of this new copy
      */
     protected PlayPenComponent(PlayPenComponent copyMe, PlayPenContentPane parent) {
+        this(copyMe.getName(), parent);
         backgroundColor = copyMe.backgroundColor;
         if (copyMe.bounds != null) {
             bounds = new Rectangle(copyMe.bounds);
@@ -98,31 +113,30 @@ public abstract class PlayPenComponent implements Selectable {
                     copyMe.insets.bottom, copyMe.insets.right);
         }
         opaque = copyMe.opaque;
-        this.parent = parent;
+        setParent(parent);
         // pcs should not be copied
         selected = copyMe.selected;
         // selectionListeners should not be copied
         toolTipText = copyMe.toolTipText;
         // ui should not be copied, but subclass should call updateUI()
     }
-    
-    protected PlayPenComponent(PlayPenContentPane parent) {
-        this.parent = parent;
-    }
 
+    @Transient @Accessor
     public PlayPen getPlayPen() {
-        if (parent == null) return null;
-        return parent.getOwner();
+        if (getParent() == null) return null;
+        return ((PlayPenContentPane) getParent()).getPlayPen();
     }
-
     
+    @Transient @Accessor
     public PlayPenComponentUI getUI() {
         return ui;
     }
 
+    @Transient @Mutator
     public void setUI(PlayPenComponentUI ui) {
+        PlayPenComponentUI oldValue = this.ui;
         this.ui = ui;
-        revalidate();
+        firePropertyChange("UI", oldValue, ui);
     }
 
     /**
@@ -149,6 +163,7 @@ public abstract class PlayPenComponent implements Selectable {
      * Returns a component specific popup menu. Defaulted here to null
      * so components that have popup menus must override this class. 
      */
+    @NonBound
     public JPopupMenu getPopup(Point p) {
         return null;
     }
@@ -164,17 +179,20 @@ public abstract class PlayPenComponent implements Selectable {
         if (pp == null) {
             logger.debug("getPlayPen() returned null.  Not generating repaint request."); //$NON-NLS-1$
             return;
+        } else {
+            Rectangle r = new Rectangle(bounds);
+            if (isMagicEnabled()) {                
+                PlayPenComponentUI ui = getUI();
+                if (ui != null) {
+                    ui.revalidate();
+                    Dimension ps = ui.getPreferredSize();
+                    if (ps != null) setSize(ps);
+                }            
+                if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$            
+            }
+            pp.zoomRect(r);
+            pp.repaint(r);
         }
-        Rectangle r = new Rectangle(bounds);
-        PlayPenComponentUI ui = getUI();
-        if (ui != null) {
-            ui.revalidate();
-            Dimension ps = ui.getPreferredSize();
-            if (ps != null) setSize(ps);
-        }
-        pp.zoomRect(r);
-        if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$
-        pp.repaint(r);
     }
 
     /**
@@ -186,39 +204,39 @@ public abstract class PlayPenComponent implements Selectable {
      * 
      * <p>All methods that affect the bounds rectangle should do so by calling this
      * method.
-     */
-    protected void setBoundsImpl(int x, int y, int width, int height) { 
-        Rectangle oldBounds = getBounds(); 
-        
+     */    
+    @Transient @Mutator
+    public void setBounds(int x, int y, int width, int height) { 
+        setBounds(new Rectangle(x, y, width, height));
+    }
+    
+    @Mutator
+    public void setBounds(Rectangle r) {
+        Rectangle oldBounds = getBounds();   
         repaint();
-        
+
         if (logger.isDebugEnabled()) {
             logger.debug("Updating bounds on "+getName() //$NON-NLS-1$
-                         +" to ["+x+","+y+","+width+","+height+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+                    +" to ["+r.x+","+r.y+","+r.width+","+r.height+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
         }
-        Point oldPoint = new Point(bounds.x,bounds.y);
-        bounds.setBounds(x,y,width,height);
 
-        if (oldBounds.x != x || oldBounds.y != y) {
-            firePropertyChange(new PropertyChangeEvent(this, "location", oldPoint, new Point(x,y)));
+        if (this instanceof TablePane && !getParent().isWaitingToPersistLocation()) {  
+            PlayPen pp = getParent().getPlayPen();
+            if (pp != null  && pp.isDraggingTablePanes()) {
+                getParent().startedDragging();
+            }
         }
-        if (oldBounds.width != width || oldBounds.height != height) {
-            firePropertyChange(new PropertyChangeEvent(this, "bounds", null, null));
-        }
+
+        bounds.setBounds(r.x,r.y,r.width,r.height);            
+        firePropertyChange("bounds", oldBounds, new Rectangle(bounds));
 
         repaint();
-    }
-
-    /**
-     * See setBoundsImpl.
-     */
-    public void setBounds(int x, int y, int width, int height) {
-        setBoundsImpl(x, y, width, height);
     }
 
     /**
      * Returns a copy of this component's bounding rectangle.
      */
+    @Accessor
     public Rectangle getBounds() {
         return getBounds(null);
     }
@@ -229,12 +247,14 @@ public abstract class PlayPenComponent implements Selectable {
      * @param r An existing rectangle.  If null, this method creates a new rectangle for you.
      * @return r if r was not null; a new rectangle otherwise.
      */
+    @NonBound
     public Rectangle getBounds(Rectangle r) {
         if (r == null) r = new Rectangle();
         r.setBounds(bounds);
         return r;
     }
 
+    @Transient @Accessor
     public Dimension getSize() {
         return new Dimension(bounds.width, bounds.height);
     }
@@ -244,10 +264,12 @@ public abstract class PlayPenComponent implements Selectable {
      * correct location.  This implementation just returns the current
      * location.  Override it if you need to be moved during validation.
      */
+    @Transient @Accessor
     public Point getPreferredLocation() {
         return getLocation();
     }
 
+    @Transient @Accessor
     public Point getLocation() {
         return getLocation(null);
     }
@@ -259,6 +281,7 @@ public abstract class PlayPenComponent implements Selectable {
      * create a new point for you.
      * @return p if p was not null; a new point otherwise.
      */
+    @Transient @Accessor
     public Point getLocation(Point p) {
         if (p == null) p = new Point();
         p.x = bounds.x;
@@ -271,8 +294,9 @@ public abstract class PlayPenComponent implements Selectable {
      * component to a negative co-ordinate, it will automatically be normalized (along
      * with everything else in the playpen) to non-negative coordinates.
      */
+    @Transient @Mutator
     public void setLocation(Point point) {
-        setBoundsImpl(point.x,point.y, getWidth(), getHeight());
+        setBounds(point.x,point.y, getWidth(), getHeight());
     }
 
     /**
@@ -280,12 +304,21 @@ public abstract class PlayPenComponent implements Selectable {
      * component to a negative co-ordinate, it will automatically be normalized (along
      * with everything else in the playpen) to non-negative coordinates.
      */
+    @Transient @Mutator
     public void setLocation(int x, int y) {
-        setBoundsImpl(x, y, getWidth(), getHeight());
+        setBounds(x, y, getWidth(), getHeight());
     }
     
+    @NonBound
+    public static boolean isLocationChange(PropertyChangeEvent evt) {
+        Rectangle oldVal = (Rectangle) evt.getOldValue();
+        Rectangle newVal = (Rectangle) evt.getNewValue();
+        return (oldVal.x != newVal.x || oldVal.y != newVal.y);
+    }
+    
+    @Transient @Mutator
     public void setSize(Dimension size) {
-        setBoundsImpl(getX(), getY(), size.width, size.height);
+        setBounds(getX(), getY(), size.width, size.height);
     }
 
     /**
@@ -307,65 +340,39 @@ public abstract class PlayPenComponent implements Selectable {
      * getModel().getName(), but this depends entirely on the subclass's idea
      * of what in the model constitutes its name.
      */
-    public abstract String getName();
-
-    /**
-     * Adds a property change listener to the existing list.
-     */
-    public void addPropertyChangeListener(PropertyChangeListener l) {
-        pcs.addPropertyChangeListener(l);
-    }
+    @Transient @Accessor
+    public abstract String getModelName();
     
-    /**
-     * Adds a property change listener for a specific property.
-     */
-    public void addPropertyChangeListener(String propertyName, PropertyChangeListener l) {
-        pcs.addPropertyChangeListener(propertyName, l);
-    }
-    
-    /**
-     * Removes a specific property change listener from the existing list.
-     */
-    public void removePropertyChangeListener(PropertyChangeListener l) {
-        pcs.removePropertyChangeListener(l);
-    }
-    
-    /**
-     * Notifies property change listeners of a property change event.
-     */
-    protected void firePropertyChange(String propName, Object oldValue, Object newValue) {
-        pcs.firePropertyChange(propName, oldValue, newValue);
-    }
-    
-    /**
-     * @see PlayPenComponent.firePropertyChange()
-     */
-    public void firePropertyChange(PropertyChangeEvent e) {
-        pcs.firePropertyChange(e);
-    }
-    
+    @Transient @Accessor
     public int getX() {
         return bounds.x;
     }
     
+    @Transient @Accessor
     public int getY() {
         return bounds.y;
     }
     
+    @Transient @Accessor
     public int getWidth() {
         return bounds.width;
     }
     
+    @Transient @Accessor
     public int getHeight() {
         return bounds.height;
     }
     
+    @Transient @Accessor
     public Insets getInsets() {
         return new Insets(insets.top, insets.left, insets.bottom, insets.right);
     }
 
+    @Transient @Mutator
     public void setInsets(Insets insets) {
+        Insets oldValue = this.insets;
         this.insets = new Insets(insets.top, insets.left, insets.bottom, insets.right);
+        firePropertyChange("insets", oldValue, insets);
     }
 
     /**
@@ -396,15 +403,20 @@ public abstract class PlayPenComponent implements Selectable {
         owner.repaint(x1, y1, (x2 - x1), (y2 - y1));
     }
     
+    @Accessor
     public boolean isOpaque() {
         return opaque;
     }
 
+    @Mutator
     public void setOpaque(boolean opaque) {
-        this.opaque = opaque;
-        revalidate();
+        if (this.opaque != opaque) {
+            this.opaque = opaque;
+            firePropertyChange("opaque", !opaque, opaque);
+        }
     }
 
+    @Accessor
     public Color getBackgroundColor() {
         if (backgroundColor == null) {
             return getPlayPen().getBackground();
@@ -412,46 +424,54 @@ public abstract class PlayPenComponent implements Selectable {
         return backgroundColor;
     }
     
+    @Mutator
     public void setBackgroundColor(Color c) {
         Color oldColor = backgroundColor;
         backgroundColor = c;
-        revalidate();
         firePropertyChange("backgroundColor", oldColor, backgroundColor);
     }
 
+    @Accessor
     public Color getForegroundColor() {
-        if (foregroundColor == null) {
+        if (foregroundColor == null && getPlayPen() != null) {
             return getPlayPen().getForeground();
         }
         return foregroundColor;
     }
     
+    @Mutator
     public void setForegroundColor(Color c) {
-        Color oldColor = foregroundColor;
+        Color oldColor = getForegroundColor();
         foregroundColor = c;
-        revalidate();
         firePropertyChange("foregroundColor", oldColor, foregroundColor);
     }
     
+    @Transient @Accessor
     public String getToolTipText() {
         return toolTipText;
     }
 
+    @Transient @Mutator
     public void setToolTipText(String toolTipText) {
+        String oldValue = this.toolTipText;
         if (!ArchitectUtils.areEqual(toolTipText, this.toolTipText)) {
             this.toolTipText = toolTipText;
+            firePropertyChange("tooTipText", oldValue, toolTipText);
             logger.debug("ToolTipText changed to "+toolTipText); //$NON-NLS-1$
         }
     }
 
+    @Transient @Accessor
     public Font getFont() {
         return getPlayPen().getFont();
     }
 
+    @Transient @Accessor
     public FontMetrics getFontMetrics(Font f) {
         return getPlayPen().getFontMetrics(f);
     }
     
+    @Transient @Accessor
     public FontRenderContext getFontRenderContext() {
         return getPlayPen().getFontRenderContext();
     }
@@ -472,15 +492,13 @@ public abstract class PlayPenComponent implements Selectable {
         }
     }
 
+    @Transient @Accessor
     public Dimension getPreferredSize() {
         return getUI().getPreferredSize();
     }
 
+    @Accessor
     public abstract Object getModel();
-
-    public PlayPenContentPane getParent() {
-        return parent;
-    }
     
     /**
      * Performs the component specific actions for the given MouseEvent. 
@@ -522,6 +540,7 @@ public abstract class PlayPenComponent implements Selectable {
     /**
      * See {@link #selected}.
      */
+    @Transient @Accessor
     public boolean isSelected() {
         return selected;
     }
@@ -536,11 +555,57 @@ public abstract class PlayPenComponent implements Selectable {
      * @param isSelected The new selection state for this component
      * @param multiSelectType One of the type codes from {@link SelectionEvent}.
      */
+    @Transient @Mutator
     public void setSelected(boolean isSelected, int multiSelectType) {
         if (selected != isSelected) {
             selected = isSelected;
             fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT, multiSelectType));
             repaint();
+        }
+    }
+    
+    public boolean allowsChildren() {
+        return (allowedChildTypes.size() > 0);
+    }    
+    
+    public List<Class<? extends SPObject>> getAllowedChildTypes() {
+        return allowedChildTypes;
+    }
+    
+    public int childPositionOffset(Class<? extends SPObject> childType) {
+        throw new IllegalArgumentException("This class does not allow children");
+    }
+    
+    @Accessor
+    public PlayPenContentPane getParent() {
+        return (PlayPenContentPane) super.getParent();
+    }
+    
+    @Mutator 
+    public void setParent(PlayPenContentPane parent) {
+        super.setParent(parent);
+    }
+    
+    public List<? extends SPObject> getChildren() {
+        return Collections.emptyList();
+    }
+    
+    public boolean removeChildImpl(SPObject child) {
+        return false;
+    }
+    
+    public List<? extends SPObject> getDependencies() {
+        return Collections.singletonList((SPObject) getModel());
+    }
+
+    public void removeDependency(SPObject dependency) {
+        if (dependency != getModel()) {
+            throw new IllegalArgumentException("This component is not dependant on " + dependency);
+        }
+        try {       
+            getParent().removeChild(this);
+        } catch (Exception e) {
+            throw new RuntimeException("Error removing PlayPenComponent due to dependency removal", e);
         }
     }
 }

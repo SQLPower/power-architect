@@ -305,13 +305,17 @@ public class OLAPSchemaManager {
         }
         
         public void childAdded(SPChildEvent e) {
-            fireTableDataChanged();
-            ((OLAPSession) e.getChild()).getSchema().addSPListener(this);
+            if (e.getChild() instanceof OLAPSession) {
+                fireTableDataChanged();
+                ((OLAPSession) e.getChild()).getSchema().addSPListener(this);
+            }
         }
 
         public void childRemoved(SPChildEvent e) {
-            fireTableDataChanged();
-            ((OLAPSession) e.getChild()).getSchema().removeSPListener(this);
+            if (e.getChild() instanceof OLAPSession) {
+                fireTableDataChanged();
+                ((OLAPSession) e.getChild()).getSchema().removeSPListener(this);
+            }
         }
 
         public void propertyChanged(PropertyChangeEvent evt) {

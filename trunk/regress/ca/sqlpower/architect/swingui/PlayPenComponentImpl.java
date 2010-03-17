@@ -19,12 +19,15 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.event.MouseEvent;
+import java.util.List;
+
+import ca.sqlpower.object.SPObject;
 
 public class PlayPenComponentImpl extends PlayPenComponent {
 
 
-	protected PlayPenComponentImpl(PlayPenContentPane parent) {
-		super(parent);
+	protected PlayPenComponentImpl() {
+		super("PlayPenComponent");
 	}
 
 	public void setSelected(boolean v, int multiSelectType) {
@@ -45,7 +48,17 @@ public class PlayPenComponentImpl extends PlayPenComponent {
 	}
 	
 	@Override
-	public String getName() {
+	public String getModelName() {
 	    return null;
 	}
+
+    public List<? extends SPObject> getDependencies() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        // TODO Auto-generated method stub
+        
+    }
 }

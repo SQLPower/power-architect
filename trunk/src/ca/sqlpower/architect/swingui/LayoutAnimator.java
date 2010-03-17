@@ -46,19 +46,26 @@ public class LayoutAnimator implements ActionListener {
         } else {
             timer = new Timer( (int) (1.0 / ((double) framesPerSecond) * 1000.0), null);
             timer.addActionListener(this);
+            pp.getContentPane().begin("Auto layout");
             timer.start();
         }
     }
     
 	public void actionPerformed(ActionEvent e) {
-		if (layout.isDone()) {
-			timer.stop();
-			layout.done();
-			pp.endCompoundEdit("Layout animation finished"); //$NON-NLS-1$
-		} else {
-			layout.nextFrame();
-			pp.revalidate();
-		}
+	    try {
+	        if (layout.isDone()) {
+	            timer.stop();
+	            layout.done();
+	            pp.endCompoundEdit("Layout animation finished"); //$NON-NLS-1$
+	            pp.getContentPane().commit();
+	        } else {
+	            layout.nextFrame();
+	            pp.revalidate();
+	        }
+	    } catch (Throwable t) {
+	        pp.getContentPane().rollback("Error doing auto layout");
+	        throw new RuntimeException(t);
+	    }
 	}
     
 	public ArchitectLayout getLayout() {

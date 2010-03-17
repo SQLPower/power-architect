@@ -34,7 +34,7 @@ package ca.sqlpower.architect;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.sqlobject.SQLObject;
 
@@ -74,7 +74,7 @@ public class InsertionPointWatcher<T extends SQLObject> {
         return objectUnderObservation;
     }
     
-    private class SQLObjectEventHandler extends AbstractSPListener {
+    private class SQLObjectEventHandler extends AbstractPoolingSPListener {
 
         @Override
         public void childAddedImpl(SPChildEvent e) {

@@ -36,6 +36,9 @@ import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
+import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -44,13 +47,9 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
     @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(CubePane.class);
     
-    public CubePane(CubePane copyMe, PlayPenContentPane parent) {
-        super(copyMe, parent);
-        updateUI();
-    }
-    
-    public CubePane(Cube model, PlayPenContentPane parent) {
-        super(parent);
+    @Constructor
+    public CubePane(@ConstructorParameter(propertyName="model") Cube model) {
+        super(model.getName());
         this.model = model;
         
         PaneSection<CubeDimension> dimensionSection =
@@ -77,6 +76,16 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
         sections.add(dimensionSection);
         sections.add(measureSection);
         sections.add(calculatedMemberSection);
+    }
+    
+    public CubePane(CubePane copyMe, PlayPenContentPane parent) {
+        super(copyMe, parent);
+        updateUI();
+    }
+    
+    public CubePane(Cube model, PlayPenContentPane parent) {
+        this(model);
+        setParent(parent);
         updateUI();
     }
     
@@ -174,6 +183,16 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
     
     @Override
     public void pasteData(Transferable t) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public List<? extends SPObject> getDependencies() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void removeDependency(SPObject dependency) {
         // TODO Auto-generated method stub
         
     }

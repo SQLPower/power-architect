@@ -21,7 +21,6 @@ package ca.sqlpower.architect.swingui.olap;
 
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,18 +49,16 @@ import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenComponentLocationEdit;
 import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
 import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
-import ca.sqlpower.architect.swingui.event.PlayPenContentEvent;
-import ca.sqlpower.architect.swingui.event.PlayPenContentListener;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
+import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
-import ca.sqlpower.sqlobject.undo.CompoundEventListener;
 import ca.sqlpower.sqlobject.undo.PropertyChangeEdit;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
@@ -92,13 +89,10 @@ public class OLAPPlayPenFactory {
         SelectionSynchronizer synchronizer = new SelectionSynchronizer(oSession.getOlapTree(), pp);
         pp.addSelectionListener(synchronizer);
         oSession.getOlapTree().addTreeSelectionListener(synchronizer);
-        pp.getContentPane().addPlayPenContentListener(synchronizer);
+        pp.getContentPane().addSPListener(synchronizer);
         
-        PlayPenUndoAdapter undoAdapter = new PlayPenUndoAdapter(undoManager);
-        for (PlayPenComponent ppc : pp.getPlayPenComponents()) {
-            ppc.addPropertyChangeListener(undoAdapter);
-        }
-        pp.getContentPane().addPlayPenContentListener(undoAdapter);
+        PlayPenUndoAdapter undoAdapter = new PlayPenUndoAdapter(undoManager);        
+        pp.getContentPane().addComponentPropertyListener(undoAdapter);
         pp.addUndoEventListener(undoAdapter);
         
         return pp;
@@ -310,26 +304,16 @@ public class OLAPPlayPenFactory {
         }
     }
     
-    static class PlayPenUndoAdapter implements PlayPenContentListener, PropertyChangeListener, CompoundEventListener {
+    static class PlayPenUndoAdapter extends AbstractSPListener {
 
         private final OLAPUndoManager undoManager;
 
         PlayPenUndoAdapter(OLAPUndoManager undoManager) {
             this.undoManager = undoManager;
         }
-        
-        public void PlayPenComponentAdded(PlayPenContentEvent e) {
-            logger.debug("Adding property change listener to new ppc: " + e.getPlayPenComponent());
-            e.getPlayPenComponent().addPropertyChangeListener(this);
-        }
 
-        public void PlayPenComponentRemoved(PlayPenContentEvent e) {
-            logger.debug("Removing property change listener from deleted ppc: " + e.getPlayPenComponent());
-            e.getPlayPenComponent().removePropertyChangeListener(this);
-        }
-
-        public void propertyChange(PropertyChangeEvent e) {
-            if (e.getPropertyName().equals("location")) {
+        public void propertyChanged(PropertyChangeEvent e) {
+            if (e.getPropertyName().equals("bounds") && PlayPenComponent.isLocationChange(e)) {
                 // this edit will be absorbed by our PlayPenComponentLocationEdit
                 PropertyChangeEdit edit = new PropertyChangeEdit(e);
                 undoManager.addEdit(edit);
@@ -348,9 +332,8 @@ public class OLAPPlayPenFactory {
     }
     
     static class SelectionSynchronizer 
-    implements SelectionListener,
-            ItemSelectionListener<Cube, OLAPObject>,
-            TreeSelectionListener, PlayPenContentListener {
+    extends AbstractSPListener implements SelectionListener, 
+    ItemSelectionListener<Cube, OLAPObject>, TreeSelectionListener {
 
         private int eventDepth = 0;
         private final OLAPTree tree;
@@ -494,15 +477,15 @@ public class OLAPPlayPenFactory {
             }
         }
 
-        public void PlayPenComponentAdded(PlayPenContentEvent e) {
-            if (e.getPlayPenComponent() instanceof CubePane) {
-                ((CubePane) e.getPlayPenComponent()).addItemSelectionListener(this);
+        public void childAdded(SPChildEvent evt) {
+            if (evt.getChild() instanceof CubePane) {
+                ((CubePane) evt.getChild()).addItemSelectionListener(this);
             }
         }
 
-        public void PlayPenComponentRemoved(PlayPenContentEvent e) {
-            if (e.getPlayPenComponent() instanceof CubePane) {
-                ((CubePane) e.getPlayPenComponent()).removeItemSelectionListener(this);
+        public void childRemoved(SPChildEvent evt) {
+            if (evt.getChild() instanceof CubePane) {
+                ((CubePane) evt.getChild()).removeItemSelectionListener(this);
             }
         }
 

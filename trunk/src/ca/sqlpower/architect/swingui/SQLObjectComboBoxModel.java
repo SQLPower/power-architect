@@ -26,7 +26,7 @@ import javax.swing.ComboBoxModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -92,7 +92,7 @@ public class SQLObjectComboBoxModel implements ComboBoxModel {
         }
     }
     
-    private SPListener childEventHandler = new AbstractSPListener() {
+    private SPListener childEventHandler = new AbstractPoolingSPListener() {
 
         public void childAddedImpl(SPChildEvent e) {
             fireListDataEvent(ListDataEvent.INTERVAL_ADDED, e.getIndex(), e.getIndex());

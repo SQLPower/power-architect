@@ -52,6 +52,10 @@ import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
 import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonBound;
+import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**
@@ -60,7 +64,7 @@ import ca.sqlpower.swingui.SPSUtils;
  * @param <T> Class of the model
  * @param <C> Class of the an item.
  */
-public abstract class ContainerPane<T extends Object, C extends Object>
+public abstract class ContainerPane<T, C>
 extends PlayPenComponent
 implements DragSourceListener, LayoutNode {
     
@@ -117,11 +121,16 @@ implements DragSourceListener, LayoutNode {
         rounded = copyMe.rounded;
     }
     
-    protected ContainerPane(PlayPenContentPane parent) {
-        super(parent);
+    protected ContainerPane(String name) {
+        super(name);
         this.backgroundColor = new Color(240, 240, 240);
         this.foregroundColor = Color.BLACK;
         setOpaque(true);
+    }
+    
+    protected ContainerPane(String name, PlayPenContentPane parent) {
+        this(name);
+        setParent(parent);
     }
 
     @Override
@@ -279,6 +288,7 @@ implements DragSourceListener, LayoutNode {
         }
     }
 
+    @Transient @Accessor
     public Point getLocationOnScreen() {
         Point p = new Point();
         PlayPen pp = getPlayPen();
@@ -293,11 +303,11 @@ implements DragSourceListener, LayoutNode {
      *
      * @param argMargin Value to assign to this.margin
      */
+    @Transient @Mutator
     public void setMargin(Insets argMargin) {
         Insets old = margin;
         this.margin = (Insets) argMargin.clone();
         firePropertyChange("margin", old, margin); //$NON-NLS-1$
-        revalidate();
     }
     
 
@@ -306,6 +316,7 @@ implements DragSourceListener, LayoutNode {
      *
      * @return the value of margin
      */
+    @Transient @Accessor
     public Insets getMargin()  {
         return this.margin;
     }
@@ -318,6 +329,7 @@ implements DragSourceListener, LayoutNode {
     /**
      * Indicates whether the corners are rounded. 
      */
+    @Accessor
     public boolean isRounded() {
         return rounded;
     }
@@ -325,6 +337,7 @@ implements DragSourceListener, LayoutNode {
     /**
      * Sets whether the corners are rounded. 
      */
+    @Mutator
     public void setRounded(boolean isRounded) {
         boolean oldValue = rounded;
         rounded = isRounded;
@@ -334,6 +347,7 @@ implements DragSourceListener, LayoutNode {
     /**
      * Indicates whether the lines are dashed/normal. 
      */
+    @Accessor
     public boolean isDashed() {
         return dashed;
     }
@@ -341,6 +355,7 @@ implements DragSourceListener, LayoutNode {
     /**
      * Sets whether the lines are dashed. 
      */
+    @Mutator
     public void setDashed(boolean isDashed) {
         boolean oldValue = dashed;
         dashed = isDashed;
@@ -351,7 +366,7 @@ implements DragSourceListener, LayoutNode {
      * Overridden so that the items get deselected when the whole container
      * is deselected.
      */
-    @Override
+    @Override @Transient @Mutator
     public void setSelected(boolean isSelected, int multiSelectType) {
         if (isSelected == false) {
             selectNone();
@@ -431,6 +446,7 @@ implements DragSourceListener, LayoutNode {
      * 
      * @param i index from {@link #getItems()}
      */
+    @NonBound
     public boolean isItemSelected(int i) {
         return selectedItems.contains(getItems().get(i));
     }
@@ -447,6 +463,7 @@ implements DragSourceListener, LayoutNode {
      * @return true if item is currently selected, or was selected at the time
      *         it was removed.
      */
+    @NonBound
     public boolean isItemSelected(C item) {
         return selectedItems.contains(item);
     }
@@ -457,6 +474,7 @@ implements DragSourceListener, LayoutNode {
      * remove events, you will want to know if the item that was just removed
      * used to be selected. In that case, use {@link #isItemSelected(Object)}.
      */
+    @Transient @Accessor
     public List<C> getSelectedItems() {
         List<C> selectedItems = new ArrayList<C>();
         for (int i=0; i < getItems().size(); i++) {
@@ -471,6 +489,7 @@ implements DragSourceListener, LayoutNode {
      * Returns the index of the first selected item, or
      * {@link #ITEM_INDEX_NONE} if there are no selected items.
      */
+    @Transient @Accessor
     public int getSelectedItemIndex() {
         if (selectedItems.size() > 0) {
             return getItems().indexOf(selectedItems.toArray()[0]);
@@ -629,6 +648,7 @@ implements DragSourceListener, LayoutNode {
     /**
      * Simple implementation for LayoutNode interface. Simply calls getName().
      */
+    @Transient @Accessor
     public String getNodeName() {
         return getName();
     }

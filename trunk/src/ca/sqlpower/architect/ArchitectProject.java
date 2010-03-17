@@ -27,6 +27,8 @@ import java.util.List;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
@@ -62,14 +64,17 @@ public class ArchitectProject extends AbstractSPObject {
     @SuppressWarnings("unchecked")
     public static List<Class<? extends SPObject>> allowedChildTypes = 
         Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Arrays.asList(SQLObjectRoot.class, ProfileManager.class, OLAPRootObject.class, KettleSettings.class)));
+                Arrays.asList(SQLObjectRoot.class, PlayPenContentPane.class, ProfileManager.class, 
+                OLAPRootObject.class, ProjectSettings.class, KettleSettings.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
      */
     private ArchitectSession session;
     private final SQLObjectRoot rootObject;
-    private ProfileManager profileManager; 
+    private ProfileManager profileManager;
+    private PlayPenContentPane playPenContentPane;
+    private ProjectSettings projectSettings;
     
     /**
      * This OLAP object contains the OLAP session.
@@ -113,6 +118,8 @@ public class ArchitectProject extends AbstractSPObject {
         rootObject.setParent(this);
         this.olapRootObject = olapRootObject;
         olapRootObject.setParent(this);
+        projectSettings = new ProjectSettings();
+        projectSettings.setParent(this);
         this.kettleSettings = kettleSettings;
         kettleSettings.setParent(this);
         setName("Architect Project");
@@ -229,17 +236,16 @@ public class ArchitectProject extends AbstractSPObject {
         return true;
     }
     
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        
-        if (SQLObjectRoot.class.isAssignableFrom(childType)) {
-            return 0;
-        } else if (ProfileManager.class.isAssignableFrom(childType)) {
-            return 1;
-        } else if (OLAPRootObject.class.isAssignableFrom(childType)) {
-            return 2;
-        } else {
-            throw new IllegalArgumentException();
+    public int childPositionOffset(Class<? extends SPObject> childType) {  
+        int offset = 0;
+        for (Class<? extends SPObject> type : allowedChildTypes) {
+            if (type.isAssignableFrom(childType)) {
+                return offset;
+            } else {
+                offset += getChildren(type).size();
+            }
         }
+        throw new IllegalArgumentException();
     }
 
     @Transient @Accessor
@@ -250,11 +256,16 @@ public class ArchitectProject extends AbstractSPObject {
     @NonProperty
     public List<SPObject> getChildren() {
         List<SPObject> allChildren = new ArrayList<SPObject>();
+        // When changing this, verify you maintain the order specified by allowedChildTypes
         allChildren.add(rootObject);
+        if (playPenContentPane != null) {
+            allChildren.add(playPenContentPane);
+        }
         if (profileManager != null) {
             allChildren.add(profileManager);
         }
         allChildren.add(olapRootObject);
+        allChildren.add(projectSettings);
         allChildren.add(kettleSettings);
         return allChildren;
     }
@@ -268,18 +279,70 @@ public class ArchitectProject extends AbstractSPObject {
         rootObject.removeDependency(dependency);
         profileManager.removeDependency(dependency);
         olapRootObject.removeDependency(dependency);
-        kettleSettings.removeDependency(dependency);
+        kettleSettings.removeDependency(dependency);        
     }
     
     protected void addChildImpl(SPObject child, int index) {
         if (child instanceof ProfileManager) {
             setProfileManager((ProfileManager) child);
+        } else if (child instanceof PlayPenContentPane) {
+            setPlayPenContentPane((PlayPenContentPane) child);
+        } else if (child instanceof ProjectSettings) {
+            setProjectSettings((ProjectSettings) child);            
         } else {
             throw new IllegalArgumentException("Cannot add child of type " + 
                     child.getClass() + " to the project once it has been created.");
         }
     }
 
+    /**
+     * This method sets the given content pane as the project's content pane.
+     * If the project already has one, it will simply copy the important information
+     * (just the UUID for now, since it really only acts as a container for components).
+     * 
+     * @param pane
+     */
+    @NonProperty
+    public void setPlayPenContentPane(PlayPenContentPane pane) {
+        PlayPenContentPane oldPane = playPenContentPane;
+        playPenContentPane = pane;      
+        if (oldPane != null) {
+            if (pane.getPlayPen() == null) {
+                // This is the usual scenario, where we have a PlayPenContentPane
+                // in the project initially, containing the PlayPen, and the
+                // server is trying to persist its PlayPenContentPane
+                // which does not have a PlayPen.
+                PlayPen pp = oldPane.getPlayPen();
+                pp.setContentPane(pane);
+            }            
+            pane.setComponentListeners(oldPane.getComponentListeners());
+            fireChildRemoved(oldPane.getClass(), oldPane, 0);
+        }        
+        fireChildAdded(pane.getClass(), playPenContentPane, 0);
+        pane.setParent(this);
+    }
+    
+    @NonProperty
+    public PlayPenContentPane getPlayPenContentPane() {
+        return playPenContentPane;
+    }
+    
+    @NonProperty
+    public void setProjectSettings(ProjectSettings settings) {
+        ProjectSettings oldSettings = this.projectSettings;
+        this.projectSettings = settings;        
+        if (oldSettings != null) {
+            fireChildRemoved(oldSettings.getClass(), oldSettings, 0);
+        }
+        fireChildAdded(settings.getClass(), settings, 0);
+        settings.setParent(this);
+    }
+        
+    @NonProperty
+    public ProjectSettings getProjectSettings() {
+        return projectSettings;
+    }
+    
     @NonProperty
     public OLAPRootObject getOlapRootObject() {
         return olapRootObject;

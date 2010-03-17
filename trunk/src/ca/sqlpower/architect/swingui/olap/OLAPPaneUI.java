@@ -30,7 +30,6 @@ import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import javax.swing.Icon;
 
@@ -42,6 +41,7 @@ import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
+import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.util.SQLPowerUtils;
@@ -168,12 +168,12 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     public void installUI(PlayPenComponent c) {
         olapPane = (OLAPPane<T, C>) c;
         SQLPowerUtils.listenToHierarchy(olapPane.getModel(), modelEventHandler);
-        olapPane.addPropertyChangeListener(paneEventHandler);
+        olapPane.addSPListener(paneEventHandler);
     }
 
     public void uninstallUI(PlayPenComponent c) {
         SQLPowerUtils.unlistenToHierarchy(olapPane.getModel(), modelEventHandler);
-        olapPane.removePropertyChangeListener(paneEventHandler);
+        olapPane.removeSPListener(paneEventHandler);
     }
     
     public void paint(Graphics2D g2) {
@@ -645,9 +645,9 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         
     }
     
-    private class PaneEventHandler implements PropertyChangeListener {
+    private class PaneEventHandler extends AbstractSPListener {
 
-        public void propertyChange(PropertyChangeEvent evt) {
+        public void propertyChanged(PropertyChangeEvent evt) {
             if ("insertionPoint".equals(evt.getPropertyName())) {
                 olapPane.repaint();
             }

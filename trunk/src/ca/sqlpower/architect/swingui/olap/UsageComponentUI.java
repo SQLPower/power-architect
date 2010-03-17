@@ -27,12 +27,13 @@ import java.awt.Rectangle;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenComponentUI;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPListener;
 
 public class UsageComponentUI implements PlayPenComponentUI {
     
@@ -58,18 +59,14 @@ public class UsageComponentUI implements PlayPenComponentUI {
     /**
      * Handles changes in the components that affect the appearance of this component.
      */
-    private PropertyChangeListener componentEventHandler = new PropertyChangeListener() {
+    private SPListener componentEventHandler = new AbstractSPListener() {
 
-        public void propertyChange(PropertyChangeEvent evt) {
-            if ("location".equals(evt.getPropertyName()) && evt.getSource() != c) {
-                revalidate();
-                c.repaint();
-            } else if ("bounds".equals(evt.getPropertyName()) && evt.getSource() != c) {
+        public void propertyChanged(PropertyChangeEvent evt) {
+            if ("bounds".equals(evt.getPropertyName()) && evt.getSource() != c) {
                 revalidate();
                 c.repaint();
             }
         }
-        
     };
 
     public boolean intersects(Rectangle rubberBand) {
@@ -248,9 +245,9 @@ public class UsageComponentUI implements PlayPenComponentUI {
                     "Attempted to uninstall this delegate from the wrong component");
         }
         UsageComponent uc = (UsageComponent) c;
-        uc.removePropertyChangeListener(componentEventHandler);
-        uc.getPane1().addPropertyChangeListener(componentEventHandler);
-        uc.getPane2().addPropertyChangeListener(componentEventHandler);
+        uc.removeSPListener(componentEventHandler);
+        uc.getPane1().addSPListener(componentEventHandler);
+        uc.getPane2().addSPListener(componentEventHandler);
         this.c = null;
     }
 
@@ -260,9 +257,9 @@ public class UsageComponentUI implements PlayPenComponentUI {
         }
         UsageComponent uc = (UsageComponent) c;
         this.c = uc;
-        uc.addPropertyChangeListener(componentEventHandler);
-        uc.getPane1().addPropertyChangeListener(componentEventHandler);
-        uc.getPane2().addPropertyChangeListener(componentEventHandler);
+        uc.addSPListener(componentEventHandler);
+        uc.getPane1().addSPListener(componentEventHandler);
+        uc.getPane2().addSPListener(componentEventHandler);
     }
 
 }

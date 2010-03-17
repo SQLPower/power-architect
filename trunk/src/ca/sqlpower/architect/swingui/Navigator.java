@@ -32,7 +32,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -51,7 +50,7 @@ import ca.sqlpower.util.TransactionEvent;
  * @author kaiyi
  * 
  */
-public class Navigator extends JDialog implements SPListener, AdjustmentListener, PropertyChangeListener {
+public class Navigator extends JDialog implements SPListener, AdjustmentListener {
 
     private static final int SCALED_IMAGE_WIDTH = 200;
 
@@ -78,12 +77,7 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
         
         SQLPowerUtils.listenToHierarchy(pp.getSession().getTargetDatabase(), this);
 
-        pp.getPlayPenContentPane().addPropertyChangeListener("location", this);
-        pp.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", this);
-        pp.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", this);
-        pp.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", this);
-        pp.getPlayPenContentPane().addPropertyChangeListener("dashed", this);
-        pp.getPlayPenContentPane().addPropertyChangeListener("rounded", this);
+        pp.getPlayPenContentPane().addComponentPropertyListener(this);
         
         navigationPanel = new JPanel() {
             @Override
@@ -198,11 +192,6 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
      */
     public void propertyChanged(PropertyChangeEvent evt) {
         navigationPanel.repaint();
-
-    }
-    
-    public void propertyChange(PropertyChangeEvent evt) {
-        navigationPanel.repaint();
     }
 
     /**
@@ -243,6 +232,6 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
      */
     public void cleanup() {
         SQLPowerUtils.unlistenToHierarchy(pp.getSession().getTargetDatabase(), this);
-        pp.getPlayPenContentPane().removePropertyChangeListener(this);
+        pp.getPlayPenContentPane().removeComponentPropertyListener(this);
     }
 }

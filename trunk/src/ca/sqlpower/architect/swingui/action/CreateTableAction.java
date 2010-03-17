@@ -83,9 +83,16 @@ public class CreateTableAction extends AbstractArchitectAction {
 
         @Override
         public DataEntryPanel place(Point p) throws SQLObjectException {
-            playpen.addTablePane(tp, p);
-            DataEntryPanel editPanel = null;
-            session.getTargetDatabase().addChild(tp.getModel());
+            try {          
+                session.getWorkspace().begin("Creating a SQLTable and TablePane");                
+                session.getTargetDatabase().addChild(tp.getModel());
+                playpen.addTablePane(tp, p);
+                session.getWorkspace().commit();
+            } catch (Throwable t) {
+                session.getWorkspace().rollback("Error creating table and table pane");
+                throw new RuntimeException(t);
+            }
+            DataEntryPanel editPanel = null;            
             playpen.selectNone();
             tp.setSelected(true, SelectionEvent.SINGLE_SELECT);
 

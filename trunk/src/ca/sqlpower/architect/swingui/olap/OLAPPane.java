@@ -106,8 +106,12 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
         // don't worry about preserving selections
     }
     
-    protected OLAPPane(PlayPenContentPane parent) {
-        super(parent);
+    protected OLAPPane(String name) {
+        super(name);
+    }
+    
+    protected OLAPPane(String name, PlayPenContentPane parent) {
+        super(name, parent);
     }
     
     /**
@@ -118,7 +122,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
     }
 
     @Override
-    public String getName() {
+    public String getModelName() {
         return OLAPUtil.nameFor(model);
     }
 

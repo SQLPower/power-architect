@@ -60,7 +60,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -845,7 +845,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      * column that is no longer in the model). When this editor is deemed
      * obsolete, it looks for its nearest Window ancestor and disposes it.
      */
-    private final SPListener obsolesenceListener = new AbstractSPListener() {
+    private final SPListener obsolesenceListener = new AbstractPoolingSPListener() {
         @Override
         public void childAddedImpl(SPChildEvent e) {
             logger.debug("SQLObject children got inserted: " + e); //$NON-NLS-1$

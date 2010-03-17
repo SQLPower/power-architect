@@ -21,7 +21,6 @@ package ca.sqlpower.architect.layout;
 
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.beans.PropertyChangeEvent;
 import java.util.Collection;
 
 import org.apache.log4j.Logger;
@@ -75,8 +74,10 @@ public class LineStraightenerLayout extends AbstractLayout {
                 Relationship r = (Relationship) e;
                 Point[] oldConnectionPoints = {r.getPkConnectionPoint(), r.getFkConnectionPoint()};
                 attemptToStraighten(r);
-                r.firePropertyChange(new PropertyChangeEvent(r, "connectionPoints", oldConnectionPoints, 
-                        new Point[] {r.getPkConnectionPoint(), r.getFkConnectionPoint()}));
+                // connectionPoints property no longer exists, and setting the connection points fires events,
+                // so commenting this out SHOULD be okay...
+                //r.firePropertyChange(new PropertyChangeEvent(r, "connectionPoints", oldConnectionPoints, 
+                //        new Point[] {r.getPkConnectionPoint(), r.getFkConnectionPoint()}));
             }
         }
         hasRun = true;
@@ -85,7 +86,7 @@ public class LineStraightenerLayout extends AbstractLayout {
     private void attemptToStraighten(Relationship r) {
         TablePane tp1 = r.getPkTable();
         TablePane tp2 = r.getFkTable();
-        int orientation = ((RelationshipUI) r.getUI()).getOrientation();
+        int orientation = r.getOrientation();
 
         if (logger.isDebugEnabled()) {
             logger.debug("PK Table is at " + tp1.getBounds());

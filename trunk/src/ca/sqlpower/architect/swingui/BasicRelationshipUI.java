@@ -32,8 +32,6 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import javax.swing.JLabel;
@@ -46,14 +44,11 @@ import ca.sqlpower.swingui.ColourScheme;
  * The BasicRelationshipUI is responsible for drawing the lines
  * between tables.  Subclasses decorate the ends of the lines.
  */
-public class BasicRelationshipUI extends RelationshipUI
-	implements PropertyChangeListener, java.io.Serializable {
+public class BasicRelationshipUI extends RelationshipUI implements java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(BasicRelationshipUI.class);
 	
 	private static final double NINETY_DEGREES = Math.toRadians(90.0);
-
-	protected Relationship relationship;
 
 	protected Rectangle computedBounds;
 
@@ -107,20 +102,25 @@ public class BasicRelationshipUI extends RelationshipUI
     public void installUI(PlayPenComponent c) {
 		logger.debug("Installing BasicRelationshipUI on "+c);
 		relationship = (Relationship) c;
-		fm = relationship.getFontMetrics(relationship.getFont());
-		relationship.addPropertyChangeListener(this);
+		if (relationship.getPlayPen() != null) {
+		    fm = relationship.getFontMetrics(relationship.getFont());
+		} else {
+		    fm = null;
+		}
+		computedBounds = new Rectangle(relationship.getBounds());
+		relationship.addSPListener(this);
     }
 
     public void uninstallUI(PlayPenComponent c) {
 		relationship = (Relationship) c;
-		relationship.removePropertyChangeListener(this);
+		relationship.removeSPListener(this);
     }
 	public void revalidate() {
-		Rectangle OldBounds = computedBounds;
-		Rectangle bounds = computeBounds();
-		if (!computedBounds.equals(OldBounds)) {
-			relationship.setBounds(bounds.x,bounds.y,bounds.width,bounds.height);
-		}
+	    Rectangle OldBounds = computedBounds;
+	    Rectangle bounds = computeBounds();
+	    if (!computedBounds.equals(OldBounds)) {
+	        relationship.setBounds(bounds.x,bounds.y,bounds.width,bounds.height);
+	    }
 	}
     public void paint(Graphics2D g2) {
 		paint(g2,relationship);
@@ -133,6 +133,7 @@ public class BasicRelationshipUI extends RelationshipUI
 		logger.debug("BasicRelationshipUI is painting");
 		Relationship r = (Relationship) c;
 		Graphics2D g2 = (Graphics2D) g;
+		final int orientation = r.getOrientation();
 		childToParent.setFont(g2.getFont());
 		parentToChild.setFont(g2.getFont());
 		logger.debug("orientation is: " + orientation);
@@ -156,7 +157,7 @@ public class BasicRelationshipUI extends RelationshipUI
 		}
 
 		try {
-			Point pktloc = pkConnectionPoint;
+			Point pktloc = relationship.getPkConnectionPoint();
 			Point start = new Point(pktloc.x + r.getPkTable().getLocation().x,
 			                        pktloc.y + r.getPkTable().getLocation().y);
             Point lineStart = new Point(start);
@@ -170,7 +171,7 @@ public class BasicRelationshipUI extends RelationshipUI
                 lineStart.y += getTerminationLength();
             }
             
-			Point fktloc = fkConnectionPoint;
+			Point fktloc = relationship.getFkConnectionPoint();
 			Point end = new Point(fktloc.x + r.getFkTable().getLocation().x,
 			                      fktloc.y + r.getFkTable().getLocation().y);
             Point lineEnd = new Point(end);
@@ -653,9 +654,6 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * such as computed bounds or the path.
 	 */
 	BasicRelationshipUI (BasicRelationshipUI copy) {
-	    this.fkConnectionPoint = copy.getFkConnectionPoint();
-	    this.pkConnectionPoint = copy.getPkConnectionPoint();
-	    this.orientation = copy.getOrientation();
 	    this.relationship = copy.getRelationship();
 	}
 	/**
@@ -676,12 +674,18 @@ public class BasicRelationshipUI extends RelationshipUI
         logger.debug("bestConnectionPoints()");
 		Rectangle pktBounds = relationship.getPkTable().getBounds();
 		Rectangle fktBounds = relationship.getFkTable().getBounds();
+		
+		Point fkConnectionPoint = relationship.getFkConnectionPoint();
+		Point pkConnectionPoint = relationship.getPkConnectionPoint();
+		
+		int orientation = relationship.getOrientation();
 
 		if (relationship.getPkTable() == relationship.getFkTable()) {
 			// self-referencing table
-			orientation = PARENT_FACES_BOTTOM | CHILD_FACES_LEFT;
-			pkConnectionPoint.move(pktBounds.width/2, pktBounds.height);
-			fkConnectionPoint.move(0, fktBounds.height/2);
+		    orientation = PARENT_FACES_BOTTOM | CHILD_FACES_LEFT;
+			relationship.setOrientation(orientation);
+			relationship.setPkConnectionPoint(new Point(pktBounds.width/2, pktBounds.height));
+			relationship.setFkConnectionPoint(new Point(0, fktBounds.height/2));
 			logger.debug("Self-referencing table: set connection points pk="
 						 +pkConnectionPoint+"; fk="+fkConnectionPoint);
 		} else {
@@ -689,6 +693,7 @@ public class BasicRelationshipUI extends RelationshipUI
 			Line2D.Double pkToFkBorderLine = calcConnectionPoints(pktBounds, fktBounds);
 
 			orientation = getFacingEdges(pktBounds, fktBounds);
+			relationship.setOrientation(orientation);
 
 			// make sure the connection points aren't too close to corners
 			if ( ((orientation & PARENT_FACES_BOTTOM) != 0) || ((orientation & PARENT_FACES_TOP) != 0) ) {
@@ -707,18 +712,16 @@ public class BasicRelationshipUI extends RelationshipUI
 				pkToFkBorderLine.y2 = Math.min(fktBounds.y + fktBounds.height - getTerminationWidth(), pkToFkBorderLine.y2);
 			}
 
-			pkConnectionPoint.move(
-					(int) (pkToFkBorderLine.x1 - pktBounds.x),
-					(int) (pkToFkBorderLine.y1 - pktBounds.y));
+			relationship.setPkConnectionPoint(new Point(
+			        (int) (pkToFkBorderLine.x1 - pktBounds.x),
+			        (int) (pkToFkBorderLine.y1 - pktBounds.y)));
 			
-			fkConnectionPoint.move(
+			relationship.setFkConnectionPoint(new Point(
 					(int) (pkToFkBorderLine.x2 - fktBounds.x),
-					(int) (pkToFkBorderLine.y2 - fktBounds.y));
+					(int) (pkToFkBorderLine.y2 - fktBounds.y)));
 		}
-
 		// deals with overlapping connections
-		fixConnectionPoints();
-
+        fixConnectionPoints();
 	}
 	
 	private Line2D.Double calcConnectionPoints(Rectangle pktBounds, Rectangle fktBounds) {
@@ -765,14 +768,14 @@ public class BasicRelationshipUI extends RelationshipUI
 		Point sp; // this is the stationary point at the non-moving end of the relationship
 		if (onPkTable) {
 			sp = new Point(relationship.getFkTable().getLocation());
-			translatePoint(sp, fkConnectionPoint);
+			translatePoint(sp, relationship.getFkConnectionPoint());
 			sp.x -= relationship.getPkTable().getX();
 			sp.y -= relationship.getPkTable().getY();
 			ep = checkClosestPointOnTable(tpsize, sp, p, PARENT_FACES_LEFT, PARENT_FACES_RIGHT, PARENT_FACES_TOP, PARENT_FACES_BOTTOM, CHILD_MASK, true);
 			
 		} else {
 			sp = new Point(relationship.getPkTable().getLocation());
-			translatePoint(sp, pkConnectionPoint);
+			translatePoint(sp, relationship.getPkConnectionPoint());
 			sp.x -= relationship.getFkTable().getX();
 			sp.y -= relationship.getFkTable().getY();
 			ep = checkClosestPointOnTable(tpsize, sp, p, CHILD_FACES_LEFT, CHILD_FACES_RIGHT, CHILD_FACES_TOP, CHILD_FACES_BOTTOM, PARENT_MASK, false);
@@ -795,6 +798,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	private Point checkClosestPointOnTable (Dimension tpsize, Point sp, Point p, int left, int right, int top, int bottom, int oppositeMask ,boolean pkTable)
 	{
 	    Point ep = new Point();
+	    int orientation = relationship.getOrientation();
 	    if ((orientation & left) != 0) {
             ep = new Point(0, Math.max(0, Math.min(tpsize.height, p.y)));
             logger.debug("ep is : " + ep + " sp is " + sp + " p is " + p);
@@ -806,14 +810,16 @@ public class BasicRelationshipUI extends RelationshipUI
             } else if (p.y <= 0) {
                 orientation = orientation & oppositeMask | top;
             }
+            relationship.setOrientation(orientation);
             BasicRelationshipUI newRelation = new BasicRelationshipUI(this);
             if(pkTable){
-                newRelation.setPkConnectionPoint(ep);
+                newRelation.getRelationship().setPkConnectionPoint(ep);
             }else{
-                newRelation.setFkConnectionPoint(ep);
+                newRelation.getRelationship().setFkConnectionPoint(ep);
             }
             if (!newRelation.isOrientationLegal()) {
                 orientation = orientation & oppositeMask | left;
+                relationship.setOrientation(orientation);
             }
         } else if ((orientation & right)  != 0) {
             ep = new Point(tpsize.width, Math.max(0, Math.min(tpsize.height, p.y)));
@@ -823,15 +829,17 @@ public class BasicRelationshipUI extends RelationshipUI
             } else if (p.y <= 0) {
                 orientation = orientation & oppositeMask | top;
             }
+            relationship.setOrientation(orientation);
             BasicRelationshipUI newRelation = new BasicRelationshipUI(this);
             if(pkTable){
-                newRelation.setPkConnectionPoint(ep);
+                newRelation.getRelationship().setPkConnectionPoint(ep);
             }else{
-                newRelation.setFkConnectionPoint(ep);
+                newRelation.getRelationship().setFkConnectionPoint(ep);
             }
             if (!newRelation.isOrientationLegal()) {
                 orientation = orientation & oppositeMask | right;
             }
+            relationship.setOrientation(orientation);
         } else if ((orientation & top)  != 0) {
             ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), 0);
             if (Math.abs(ep.x - sp.x) <= getSnapRadius()) ep.x = sp.x;
@@ -840,15 +848,17 @@ public class BasicRelationshipUI extends RelationshipUI
             } else if (p.x <= 0) {
                 orientation = orientation & oppositeMask | left;
             }
+            relationship.setOrientation(orientation);
             BasicRelationshipUI newRelation = new BasicRelationshipUI(this);
             if(pkTable){
-                newRelation.setPkConnectionPoint(ep);
+                newRelation.getRelationship().setPkConnectionPoint(ep);
             }else{
-                newRelation.setFkConnectionPoint(ep);
+                newRelation.getRelationship().setFkConnectionPoint(ep);
             }
             if (!newRelation.isOrientationLegal()) {
                 orientation = orientation & oppositeMask | top;
             }
+            relationship.setOrientation(orientation);
         } else if ((orientation & bottom)  != 0) {
             ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), tpsize.height);
             if (Math.abs(ep.x - sp.x) <= getSnapRadius()) ep.x = sp.x;
@@ -857,15 +867,17 @@ public class BasicRelationshipUI extends RelationshipUI
             } else if (p.x <= 0) {
                 orientation = orientation & oppositeMask | left;
             }
+            relationship.setOrientation(orientation);
             BasicRelationshipUI newRelation = new BasicRelationshipUI(this);
             if(pkTable){
-                newRelation.setPkConnectionPoint(ep);
+                newRelation.getRelationship().setPkConnectionPoint(ep);
             }else{
-                newRelation.setFkConnectionPoint(ep);
+                newRelation.getRelationship().setFkConnectionPoint(ep);
             }
             if (!newRelation.isOrientationLegal()) {
                 orientation = orientation & oppositeMask | bottom;
             }
+            relationship.setOrientation(orientation);
         } else {
             ep = new Point(p);
         }
@@ -973,7 +985,12 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * correct.  A more sophisticated implementation is warranted when
 	 * time allows.
 	 */
-	public boolean isOrientationLegal() {
+	public boolean isOrientationLegal() {	    
+	    Point fkConnectionPoint = relationship.getFkConnectionPoint();
+	    Point pkConnectionPoint = relationship.getPkConnectionPoint();
+	    
+	    final int orientation = relationship.getOrientation();
+	    
 		if (relationship.getPkTable() == relationship.getFkTable()) {
 			return (orientation == (PARENT_FACES_BOTTOM | CHILD_FACES_LEFT));
 		} else {
@@ -1076,7 +1093,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	    logger.debug("fixConnectionPoints()");
 	    PlayPen playPen = relationship.getPlayPen();
 	    Rectangle pktBounds = relationship.getPkTable().getBounds();
-        Rectangle fktBounds = relationship.getFkTable().getBounds();
+        Rectangle fktBounds = relationship.getFkTable().getBounds();      
         
         int orientation = getFacingEdges(pktBounds, fktBounds);
         // hack for the orientation of self referencing relationships
@@ -1090,7 +1107,7 @@ public class BasicRelationshipUI extends RelationshipUI
         TablePane table = relationship.getPkTable();
         
         // the last adjusted point that was not out of bounds
-        Point lastValidPoint = new Point(pkConnectionPoint);
+        Point lastValidPoint = new Point(relationship.getPkConnectionPoint());
 
         // two passes: first, the setup (directly above) causes the code in the loop
         // to update the PK connection point.  At the bottom of the loop, the setup
@@ -1148,16 +1165,16 @@ public class BasicRelationshipUI extends RelationshipUI
             
             // actual work to adjust the connection point
             if (isPkConnectionPoint) {
-                pkConnectionPoint.move(lastValidPoint.x, lastValidPoint.y);
+                relationship.setPkConnectionPoint(lastValidPoint);
             } else {
-                fkConnectionPoint.move(lastValidPoint.x, lastValidPoint.y);
+                relationship.setFkConnectionPoint(lastValidPoint);
             }
             
             // sets up for the next connection point, assumes
             // that there are only two: pkConnectionPoint, fkConnectionPoint
             isPkConnectionPoint = false;
             table = relationship.getFkTable();
-            lastValidPoint = new Point(fkConnectionPoint);
+            lastValidPoint = new Point(relationship.getFkConnectionPoint());
         }
 	}
 	
@@ -1185,12 +1202,12 @@ public class BasicRelationshipUI extends RelationshipUI
 	        tBounds = relationship.getPkTable().getBounds();
 	        orientations = new int[]{PARENT_FACES_TOP, PARENT_FACES_RIGHT,
 	                PARENT_FACES_BOTTOM, PARENT_FACES_LEFT};
-	        connectionPoint = new Point(pkConnectionPoint);
+	        connectionPoint = new Point(relationship.getPkConnectionPoint());
 	    } else {
 	        tBounds = relationship.getFkTable().getBounds();
 	        orientations = new int[]{CHILD_FACES_TOP, CHILD_FACES_RIGHT,
 	                CHILD_FACES_BOTTOM, CHILD_FACES_LEFT};
-	        connectionPoint = new Point(fkConnectionPoint);
+	        connectionPoint = new Point(relationship.getFkConnectionPoint());
 	    }
 
 	    int x = connectionPoint.x;
@@ -1224,7 +1241,10 @@ public class BasicRelationshipUI extends RelationshipUI
 
 		TablePane pkTable = relationship.getPkTable();
 		TablePane fkTable = relationship.getFkTable();
-
+		
+		Point fkConnectionPoint = relationship.getFkConnectionPoint();
+		Point pkConnectionPoint = relationship.getPkConnectionPoint();
+		
 		if (!isOrientationLegal()) {
 			// bestConnectionPoints also updates orientation as a side effect
 			bestConnectionPoints();
@@ -1245,6 +1265,8 @@ public class BasicRelationshipUI extends RelationshipUI
 			pkLimits.translate(pkTable.getX(), pkTable.getY());
 			Point fkLimits = new Point(fkConnectionPoint);
 			fkLimits.translate(fkTable.getX(), fkTable.getY());
+			
+			final int orientation = relationship.getOrientation();
 			
 			if (logger.isDebugEnabled()) {
 				logger.debug("Absolute connection points: pk="+pkLimits+"; fk="+fkLimits);
@@ -1331,8 +1353,9 @@ public class BasicRelationshipUI extends RelationshipUI
 	 */
 	public boolean isOverPkDecoration(Point p) {
 		Point pkDec = new Point
-		 (pkConnectionPoint.x + relationship.getPkTable().getX() - relationship.getX(),
-		  pkConnectionPoint.y + relationship.getPkTable().getY() - relationship.getY());
+		(relationship.getPkConnectionPoint().x + relationship.getPkTable().getX() - relationship.getX(),
+		        relationship.getPkConnectionPoint().y + relationship.getPkTable().getY() - relationship.getY());
+		final int orientation = relationship.getOrientation();
 		if (logger.isDebugEnabled()) logger.debug(
 		        "p="+p+"; pkDec = "+pkDec+"; width="+relationship.getWidth()+
 		        "; height="+relationship.getHeight()+"; orientation="+orientation);
@@ -1385,9 +1408,10 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * clicks and drags.
 	 */
 	public boolean isOverFkDecoration(Point p) {
-		Point fkDec = new Point
-		 (fkConnectionPoint.x + relationship.getFkTable().getX() - relationship.getX(),
-		  fkConnectionPoint.y + relationship.getFkTable().getY() - relationship.getY());
+	    Point fkDec = new Point
+	    (relationship.getFkConnectionPoint().x + relationship.getFkTable().getX() - relationship.getX(),
+	            relationship.getFkConnectionPoint().y + relationship.getFkTable().getY() - relationship.getY());
+	    final int orientation = relationship.getOrientation();
 		if ( (orientation & (CHILD_FACES_BOTTOM | CHILD_FACES_TOP)) != 0) {
 		    if (p.x < fkDec.x + 5 && p.x > fkDec.x - 5) {
 		        if ( (orientation & CHILD_FACES_BOTTOM) != 0) {
@@ -1428,12 +1452,6 @@ public class BasicRelationshipUI extends RelationshipUI
 		    // orientation unknown!
 			return ASUtils.distance(p, fkDec) < Math.max(getTerminationWidth(), getTerminationLength());
 		}
-	}
-
-	// --------------- PropertyChangeListener ----------------------
-	public void propertyChange(PropertyChangeEvent e) {
-		logger.debug("BasicRelationshipUI notices change of "+e.getPropertyName()
-					 +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource());
 	}
 
 	@Override

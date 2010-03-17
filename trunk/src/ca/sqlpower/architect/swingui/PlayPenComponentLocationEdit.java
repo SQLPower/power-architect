@@ -20,6 +20,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
+import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,9 +55,12 @@ public class PlayPenComponentLocationEdit extends AbstractUndoableEdit {
         if (anEdit instanceof PropertyChangeEdit) {
 
             PropertyChangeEdit pce = (PropertyChangeEdit) anEdit;
+            PropertyChangeEvent evt = new PropertyChangeEvent(
+                    pce.getSource(), pce.getPropertyName(), pce.getOldValue(), pce.getNewValue());
             
-            if (pce.getPropertyName().equals("location")
-                    && pce.getSource() instanceof PlayPenComponent) {
+            if (pce.getPropertyName().equals("bounds")
+                    && pce.getSource() instanceof PlayPenComponent
+                    && PlayPenComponent.isLocationChange(evt)) {
                 PlayPenComponent ppc = (PlayPenComponent) pce.getSource();
                 if (!initialBounds.containsKey(pce.getSource())) {
                     initialBounds.put(ppc, new Point((Point) pce.getOldValue()));

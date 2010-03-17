@@ -35,6 +35,9 @@ import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
+import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -45,8 +48,10 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
         updateUI();
     }
     
-    public VirtualCubePane(VirtualCube model, PlayPenContentPane parent) {
-        super(parent);
+    @Constructor
+    public VirtualCubePane(@ConstructorParameter(propertyName="model") VirtualCube model, 
+            @ConstructorParameter(propertyName="parent") PlayPenContentPane parent) {
+        super(model.getName(), parent);
         this.model = model;
         if (model.getCubeUsage() == null) {
             model.setCubeUsage(new CubeUsages());
@@ -146,6 +151,16 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
 
     @Override
     public void pasteData(Transferable t) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public List<? extends SPObject> getDependencies() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void removeDependency(SPObject dependency) {
         // TODO Auto-generated method stub
         
     }

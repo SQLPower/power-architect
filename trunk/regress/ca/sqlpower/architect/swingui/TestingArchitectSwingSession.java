@@ -34,6 +34,8 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.ProjectLoader;
+import ca.sqlpower.architect.ProjectSettings;
+import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
@@ -41,7 +43,6 @@ import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl.ColumnVisibility;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -378,8 +379,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public ArchitectProject getWorkspace() {
-        // TODO Auto-generated method stub
-        return null;
+        return delegateSession.getWorkspace();
     }
 
     public boolean isForegroundThread() {
@@ -393,7 +393,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public void runInBackground(Runnable runner, String threadName) {
         runner.run();
     }
-
+    
     public void runInForeground(Runnable runner) {
         runner.run();
     }
@@ -430,5 +430,10 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public void showPreferenceDialog(Window owner) {
         // TODO Auto-generated method stub
         
+    }
+
+    public ProjectSettings getProjectSettings() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

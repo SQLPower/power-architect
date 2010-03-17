@@ -27,7 +27,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -47,8 +48,16 @@ import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
+import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonBound;
+import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
@@ -59,6 +68,8 @@ import ca.sqlpower.util.WebColour;
 
 public class Relationship extends PlayPenComponent implements SPListener, LayoutEdge {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
+	
+	public static final List<Class<? extends SPObject>> allowedChildTypes = PlayPenComponent.allowedChildTypes;
 	
 	public static final String PARENT_TO_CHILD = "receives";
 	public static final String CHILD_TO_PARENT = "is received by";
@@ -73,6 +84,26 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
     private SQLRelationship model;
 	private TablePane pkTable;
 	private TablePane fkTable;
+	
+	private Point pkConnectionPoint;
+	private Point fkConnectionPoint;
+	
+    /**
+     * A bitmask of the constants (PARENT|CHILD)_FACES_(LEFT|RIGHT|TOP|BOTTOM).
+     */
+    protected int orientation;
+
+    public static final int NO_FACING_EDGES = 0;
+    public static final int PARENT_FACES_RIGHT = 1;
+    public static final int PARENT_FACES_LEFT = 2;
+    public static final int PARENT_FACES_BOTTOM = 4;
+    public static final int PARENT_FACES_TOP = 8;
+    public static final int CHILD_FACES_RIGHT = 16;
+    public static final int CHILD_FACES_LEFT = 32;
+    public static final int CHILD_FACES_BOTTOM = 64;
+    public static final int CHILD_FACES_TOP = 128;
+    public static final int CHILD_MASK = 240;
+    public static final int PARENT_MASK = 15;
 
 	private JPopupMenu popup;
 
@@ -94,10 +125,14 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
      * @param contentPane The content pane this copy will live in
      */
 	Relationship(Relationship r, PlayPenContentPane contentPane) {
-		super(contentPane);
+	    super(r.getName());
+		setParent(contentPane);
 		this.model = r.model;
+		setName(r.getName());
 		this.pkTable = r.pkTable;
 		this.fkTable = r.fkTable;
+		this.pkConnectionPoint = new Point(r.getPkConnectionPoint());
+		this.fkConnectionPoint = new Point(r.getFkConnectionPoint());
 		this.selected = false;
 		this.tpbListener = new TablePaneBehaviourListener();
 		this.columnHighlightColour = r.columnHighlightColour;
@@ -105,12 +140,15 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 		this.foregroundColor = r.getForegroundColor();
 		this.backgroundColor = r.getBackgroundColor();
 		
+		this.orientation = r.getOrientation();
+		
+		if (isMagicEnabled() != r.isMagicEnabled()) {
+		    setMagicEnabled(r.isMagicEnabled());
+		}
+		
 		try {
 			RelationshipUI ui = (RelationshipUI) r.getUI().getClass().newInstance();
 			ui.installUI(this);
-			ui.setFkConnectionPoint(new Point(((RelationshipUI) r.getUI()).getFkConnectionPoint()));
-			ui.setPkConnectionPoint(new Point(((RelationshipUI) r.getUI()).getPkConnectionPoint()));
-			ui.setOrientation(((RelationshipUI) r.getUI()).getOrientation());
 			setUI(ui);
 		} catch (InstantiationException e) {
 			throw new RuntimeException("Woops, couldn't invoke no-args constructor of "+r.getUI().getClass().getName()); //$NON-NLS-1$
@@ -118,19 +156,41 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 			throw new RuntimeException("Woops, couldn't access no-args constructor of "+r.getUI().getClass().getName()); //$NON-NLS-1$
 		}
 	}
-
+	
 	/**
 	 * This constructor simply creates a Relationship component for
-	 * the given SQLRelationship and adds it to the playpen.  It
-	 * doesn't maniuplate the model at all.
+     * the given SQLRelationship and adds it to the playpen.  It
+     * doesn't maniuplate the model at all.
 	 */
 	public Relationship(SQLRelationship model, PlayPenContentPane parent) throws SQLObjectException {
-		super(parent);
-		this.model = model;
-		setPkTable(getPlayPen().findTablePane(model.getPkTable()));
-		setFkTable(getPlayPen().findTablePane(model.getFkTable()));
+	    this(model, parent.getPlayPen().findTablePane(model.getPkTable()), 
+	            parent.getPlayPen().findTablePane(model.getFkTable()), parent);	    
+	}
+	
+	public Relationship(SQLRelationship model, TablePane pkTable, 
+	        TablePane fkTable, PlayPenContentPane parent) 
+	throws SQLObjectException {
+	    this (model, pkTable, fkTable, parent, new Point(), new Point(), 0);	    
+	}
 
-		setup();
+	@Constructor
+	public Relationship(@ConstructorParameter(propertyName="model") SQLRelationship model,
+	        @ConstructorParameter(propertyName="pkTable") TablePane pkTable,
+	        @ConstructorParameter(propertyName="fkTable") TablePane fkTable,
+	        @ConstructorParameter(propertyName="parent") PlayPenContentPane parent,
+	        @ConstructorParameter(propertyName="pkConnectionPoint") Point pkConnectionPoint,
+	        @ConstructorParameter(propertyName="fkConnectionPoint") Point fkConnectionPoint,
+	        @ConstructorParameter(propertyName="orientation") int orientation) 
+	throws SQLObjectException {
+	    super(model.getName());
+		this.model = model;
+		setPkTable(pkTable);
+		setFkTable(fkTable);
+        this.pkConnectionPoint = new Point(pkConnectionPoint);
+        this.fkConnectionPoint = new Point(fkConnectionPoint);
+		this.orientation = orientation;
+		setParent(parent);
+        setup();
 	}
 
 	/**
@@ -210,6 +270,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
         popup.add(mi);
 	}
 
+	@Transient @Accessor
 	public Point getPreferredLocation() {
 		return ((RelationshipUI) getUI()).getPreferredLocation();
 	}
@@ -222,14 +283,15 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 	// -------------------- PlayPenComponent overrides --------------------
 
     public void updateUI() {
-    		RelationshipUI ui = (RelationshipUI) IERelationshipUI.createUI(this);
-    		ui.installUI(this);
+        RelationshipUI ui = (RelationshipUI) IERelationshipUI.createUI(this);
+        ui.installUI(this);
 		setUI(ui);
 		revalidate();
     }
 
 	// --------------------- SELECTABLE SUPPORT ---------------------
 
+    @Transient @Mutator
 	public void setSelected(boolean isSelected,int multiSelectType) {
 		if (selected != isSelected) {
 		    for (SQLRelationship.ColumnMapping m : getModel().getChildren(
@@ -249,12 +311,14 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 		}
 	}
 
+	@Transient @Accessor
 	public boolean isSelected() {
 		return selected;
 	}
 
 	// -------------------- ACCESSORS AND MUTATORS ---------------------
 
+	@Transient @Accessor
     public String getUIClassID() {
         return RelationshipUI.UI_CLASS_ID;
     }
@@ -264,72 +328,94 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 	}
 
 	@Override
-	public String getName() {
+	public String getModelName() {
 	    return model.getName();
 	}
 	
+	@Mutator
 	public void setPkTable(TablePane tp) {
+	    TablePane oldPk = pkTable;
 		if (pkTable != null) {
-			pkTable.removePropertyChangeListener(tpbListener);
+			pkTable.removeSPListener(tpbListener);
 		}
 		pkTable = tp;
-		pkTable.addPropertyChangeListener(tpbListener);
+		pkTable.addSPListener(tpbListener);
+		firePropertyChange("pkTable", oldPk, pkTable);
 		// XXX: update model?
 	}
 
+	@Accessor
 	public TablePane getPkTable() {
 		return pkTable;
 	}
 
+	@Mutator
 	public void setFkTable(TablePane tp) {
+	    TablePane oldFk = fkTable;
 		if (fkTable != null) {
-			fkTable.removePropertyChangeListener(tpbListener);
+			fkTable.removeSPListener(tpbListener);			
 		}
 		fkTable = tp;
-		fkTable.addPropertyChangeListener(tpbListener);
+		fkTable.addSPListener(tpbListener);
+		firePropertyChange("fkTable", oldFk, fkTable);
 		// XXX: update model?
 	}
 
+	@Accessor
 	public TablePane getFkTable() {
 		return fkTable;
 	}
 
+	@Accessor
 	public Point getPkConnectionPoint() {
-		return ((RelationshipUI) getUI()).getPkConnectionPoint();
+		return new Point(pkConnectionPoint);
 	}
 
+	@Accessor
 	public Point getFkConnectionPoint() {
-		return ((RelationshipUI) getUI()).getFkConnectionPoint();
+		return new Point(fkConnectionPoint);
 	}
-
+	
+    /**
+     * Returns the current orientation of this relationship; that is, which
+     * sides of its PK table and its FK table it is attached to. The return
+     * value is a bitmask of the constants
+     * (PARENT|CHILD)_FACES_(LEFT|RIGHT|TOP|BOTTOM).
+     */
+	@Accessor
+	public int getOrientation() {
+	    return orientation;
+	}
+	
+	@Mutator
+	public void setOrientation(int orientation) {	    
+	    int oldValue = this.orientation;
+	    this.orientation = orientation;
+	    firePropertyChange("orientation", oldValue, orientation);	    
+	}
+	
+	@Mutator
 	public void setPkConnectionPoint(Point p) {
-		((RelationshipUI) getUI()).setPkConnectionPoint(p);
-		revalidate();
+	    Point oldValue = new Point(pkConnectionPoint);
+	    pkConnectionPoint = new Point(p);
+	    firePropertyChange("pkConnectionPoint", oldValue, new Point(p));
 	}
 
+	@Mutator
 	public void setFkConnectionPoint(Point p) {
-		((RelationshipUI) getUI()).setFkConnectionPoint(p);
-		revalidate();
+	    Point oldValue = new Point(fkConnectionPoint);	    
+		fkConnectionPoint = new Point(p);		
+		firePropertyChange("fkConnectionPoint", oldValue, new Point(p));
 	}
 
 	// ---------------- Component Listener ----------------
-	private class TablePaneBehaviourListener implements PropertyChangeListener {
+	private class TablePaneBehaviourListener extends AbstractSPListener {
 
-        public void propertyChange(PropertyChangeEvent evt) {
+        public void propertyChanged(PropertyChangeEvent evt) {
             /* (non-Javadoc)
              * @see ca.sqlpower.architect.swingui.PlayPenComponentListener#componentResized(ca.sqlpower.architect.swingui.PlayPenComponentEvent)
              */
-            if(evt.getPropertyName().equals("location")) {
-                logger.debug("Component "+((PlayPenComponent)(evt.getSource())).getName()+" moved"); //$NON-NLS-1$ //$NON-NLS-2$
-                if (((PlayPenComponent)(evt.getSource())) == pkTable || ((PlayPenComponent)(evt.getSource())) == fkTable) {
-                    revalidate();
-                }
-            }
-            
-            /* (non-Javadoc)
-             * @see ca.sqlpower.architect.swingui.PlayPenComponentListener#componentResized(ca.sqlpower.architect.swingui.PlayPenComponentEvent)
-             */
-            else if(evt.getPropertyName().equals("bounds")) {
+            if (evt.getPropertyName().equals("bounds")) {
                 logger.debug("Component "+((PlayPenComponent)(evt.getSource())).getName()+" changed size"); //$NON-NLS-1$ //$NON-NLS-2$
                 if (((PlayPenComponent)(evt.getSource())) == pkTable) {
                     setPkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(true, getPkConnectionPoint())); // true == PK
@@ -337,7 +423,17 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
                 if (((PlayPenComponent)(evt.getSource())) == fkTable) {
                     setFkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(false, getFkConnectionPoint())); // false == FK
                 }
-            }
+                
+                Rectangle oldVal = (Rectangle) evt.getOldValue();
+                Rectangle newVal = (Rectangle) evt.getNewValue();
+                if(oldVal.x != newVal.x || oldVal.y != newVal.y) {
+                    logger.debug("Component "+((PlayPenComponent)(evt.getSource())).getName()+" moved"); //$NON-NLS-1$ //$NON-NLS-2$
+                    if (((PlayPenComponent)(evt.getSource())) == pkTable || ((PlayPenComponent)(evt.getSource())) == fkTable
+                            && isMagicEnabled()) {
+                        ((BasicRelationshipUI) getUI()).revalidate();
+                    }
+                }
+            }         
         }
 	}
 	
@@ -426,9 +522,12 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 		 * instance's creator saved a reference).
 		 */
 		public void mouseReleased(MouseEvent e) {
-		    if (!(r.getPkConnectionPoint().equals(startingPk)) || !(r.getFkConnectionPoint().equals(startingFk))) 
-		        r.firePropertyChange(new PropertyChangeEvent(r, "connectionPoints", new Point[] {this.startingPk, this.startingFk}, 
-		                new Point[] {r.getPkConnectionPoint(),  r.getFkConnectionPoint()}));
+		    if (!r.getPkConnectionPoint().equals(startingPk)) {
+		        r.firePropertyChange("pkConnectionPoint", startingPk, r.getPkConnectionPoint());
+		    }
+		    if (!r.getFkConnectionPoint().equals(startingFk)) {
+		        r.firePropertyChange("fkConnectionPoint", startingFk, r.getFkConnectionPoint());
+		    }
 			cleanup();
 		}
 
@@ -446,6 +545,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
      * 
      * @return
      */
+	@Transient @Accessor
 	public Color getColumnHighlightColour() {
         return columnHighlightColour;
     }
@@ -504,15 +604,17 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
     
     // ------- LayoutEdge methods --------
 
+    @Transient @Accessor
     public LayoutNode getHeadNode() {
         return fkTable;
     }
 
+    @Transient @Accessor
     public LayoutNode getTailNode() {
         return pkTable;
     }
 
-    @Override
+    @Override @Transient @Accessor    
     public JPopupMenu getPopup(Point p) {
         // Lazy load popup if it isn't created
         // We don't create it in the constructor because the
@@ -523,6 +625,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
         return popup;
     }
     
+    @Transient @Accessor
     public boolean isStraightLine() {
         PlayPen pp = getPlayPen();
         if (pp != null) {
@@ -543,23 +646,6 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
             }
         }
         return false;
-    }
-    
-    /**
-     * Sets the connectionPoints of the relationship from an array of
-     * points. Currently, it's only accessed when undo/redo movement
-     * of relationship connection points.
-     * 
-     * @param connectionPoints, size of 2. The first element is a point 
-     *          representing the pk connection point, and the second
-     *          element is a point representing the fk connection point.
-     */
-    public void setConnectionPoints(Point[] connectionPoints) {
-        // XXX This shouldn't be here, but it's here to fix a bug with the relationship
-        // orientation when performing undo/redo after moving connection points.
-        updateUI();
-        setPkConnectionPoint(connectionPoints[0]);
-        setFkConnectionPoint(connectionPoints[1]);
     }
 
     @Override
@@ -615,19 +701,44 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
         } 
     }
 
+    @Transient @Mutator
     public void setTextForParentLabel(String textForParentLabel) {
         model.setTextForParentLabel(textForParentLabel);
     }
 
+    @Transient @Accessor
     public String getTextForParentLabel() {
         return model.getTextForParentLabel();
     }
 
+    @Transient @Mutator
     public void setTextForChildLabel(String textForChildLabel) {
         model.setTextForChildLabel(textForChildLabel);
     }
 
+    @Transient @Accessor
     public String getTextForChildLabel() {
         return model.getTextForChildLabel();
+    }
+
+    @NonBound
+    public List<? extends SPObject> getDependencies() {
+        List<SPObject> dependencies = new ArrayList<SPObject>();
+        dependencies.add(getModel());
+        dependencies.add(getFkTable());
+        dependencies.add(getPkTable());
+        return dependencies;
+    }
+
+    public void removeDependency(SPObject dependency) {
+        if (dependency == getModel()) {
+            super.removeDependency(dependency);
+        } else if (dependency == getPkTable()) {
+            setPkTable(null);
+        } else if (dependency == getFkTable()) {
+            setFkTable(null);
+        } else {
+            throw new IllegalArgumentException("This Relationship is not dependant on " + dependency);
+        }
     }
 }

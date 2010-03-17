@@ -31,7 +31,6 @@ import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,7 +43,7 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 
-public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListener, java.io.Serializable {
+public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializable {
 	private static Logger logger = Logger.getLogger(BasicTablePaneUI.class);
 
 	private static final GenericDDLGenerator ddlg;
@@ -90,12 +89,12 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	/**
 	 * Colour of the text background for selected columns.
 	 */
-	protected Color selectedColor = new Color(204, 204, 255);
+	protected final Color selectedColor = new Color(204, 204, 255);
 
 	/**
 	 * Doesn't return a preferredSize with width less than this.
 	 */
-	protected int minimumWidth = 100;
+	protected final int minimumWidth = 100;
 
 	public static PlayPenComponentUI createUI(PlayPenComponent c) {
         return new BasicTablePaneUI();
@@ -103,12 +102,12 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 
     public void installUI(PlayPenComponent c) {
 		tablePane = (TablePane) c;
-		tablePane.addPropertyChangeListener(this);
+		tablePane.addSPListener(this);
     }
 
     public void uninstallUI(PlayPenComponent c) {
 		tablePane = (TablePane) c;
-		tablePane.removePropertyChangeListener(this);
+		tablePane.removeSPListener(this);
     }
 
     public void paint(Graphics2D g) {
@@ -439,7 +438,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	 * the given property change makes this necessary (any properties
 	 * rendered visibly repainting necessary).
 	 */
-	public void propertyChange(PropertyChangeEvent e) {
+	public void propertyChanged(PropertyChangeEvent e) {
 		logger.debug("BasicTablePaneUI notices change of "+e.getPropertyName() //$NON-NLS-1$
 					 +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		if (e.getPropertyName().equals("UI")) return; //$NON-NLS-1$

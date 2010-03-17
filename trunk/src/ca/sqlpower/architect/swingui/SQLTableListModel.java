@@ -28,14 +28,14 @@ import javax.swing.event.ListDataListener;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 
-public class SQLTableListModel extends AbstractSPListener implements ListModel {
+public class SQLTableListModel extends AbstractPoolingSPListener implements ListModel {
 
 	private static final Logger logger = Logger.getLogger(SQLTableListModel.class);
 

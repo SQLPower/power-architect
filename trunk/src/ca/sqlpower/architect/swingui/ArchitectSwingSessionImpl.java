@@ -56,7 +56,9 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.ProjectLoader;
+import ca.sqlpower.architect.ProjectSettings;
 import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
@@ -73,6 +75,7 @@ import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
@@ -94,7 +97,6 @@ import ca.sqlpower.swingui.db.DatabaseConnectionManager;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.SQLPowerUtils;
-import ca.sqlpower.util.TransactionEvent;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
@@ -143,8 +145,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     private ArchitectUndoManager undoManager;
 
-    private boolean savingEntireSource;
-
     private boolean isNew;    
 
     private DBTree sourceDatabases;
@@ -157,26 +157,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private Set<SPSwingWorker> swingWorkers;
 
     private ProjectModificationWatcher projectModificationWatcher;
-    
-    private boolean displayRelationshipLabel = true;
-
-    private boolean relationshipLinesDirect;
-    
-    private boolean usingLogicalNames = true;
-
-    private boolean showPkTag = true;
-    private boolean showFkTag = true;
-    private boolean showAkTag = true;
-    
-    private ColumnVisibility columnVisibility = ColumnVisibility.ALL;
-    
-    public static enum ColumnVisibility {
-        ALL, 
-        PK, 
-        PK_FK, 
-        PK_FK_UNIQUE, 
-        PK_FK_UNIQUE_INDEXED;
-    }
 
     private List<OLAPEditSession> olapEditSessions;
     
@@ -293,13 +273,14 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.sourceDatabases = new DBTree(this);
 
         playPen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
+        this.getWorkspace().setPlayPenContentPane(playPen.getContentPane());
         UserSettings sprefs = getUserSettings().getSwingSettings();
         if (sprefs != null) {
             playPen.setRenderingAntialiased(sprefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
         }
         projectModificationWatcher = new ProjectModificationWatcher(playPen);
         
-        getRootObject().addSPListener(new AbstractSPListener() {
+        getRootObject().addSPListener(new AbstractPoolingSPListener() {
             @Override
             public void propertyChangeImpl(PropertyChangeEvent e) {
                 isNew = false;        
@@ -314,12 +295,27 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             }
         });
         undoManager = new ArchitectUndoManager(playPen);
-        playPen.getPlayPenContentPane().addPropertyChangeListener("location", undoManager.getEventAdapter()); //$NON-NLS-1$
-        playPen.getPlayPenContentPane().addPropertyChangeListener("connectionPoints", undoManager.getEventAdapter()); //$NON-NLS-1$
-        playPen.getPlayPenContentPane().addPropertyChangeListener("backgroundColor", undoManager.getEventAdapter()); //$NON-NLS-1$
-        playPen.getPlayPenContentPane().addPropertyChangeListener("foregroundColor", undoManager.getEventAdapter()); //$NON-NLS-1$
-        playPen.getPlayPenContentPane().addPropertyChangeListener("dashed", undoManager.getEventAdapter()); //$NON-NLS-1$
-        playPen.getPlayPenContentPane().addPropertyChangeListener("rounded", undoManager.getEventAdapter()); //$NON-NLS-1$
+        final PropertyChangeListener undoListener = undoManager.getEventAdapter();
+        
+        playPen.getPlayPenContentPane().addComponentPropertyListener(
+                new String[] {
+                        "bounds",
+                        "pkConnectionPoint",
+                        "fkConnectionPoint",
+                        "backgroundColor",
+                        "foregroundColor",
+                        "dashed",
+                        "rounded"
+                }, 
+                // Simple conversion from PropertyChangeListener to SPListener
+                new AbstractSPListener() {
+                    public void propertyChanged(PropertyChangeEvent evt) {
+                        undoListener.propertyChange(evt);
+                    }
+                }
+        );
+        
+        delegateSession.getWorkspace().setPlayPenContentPane(playPen.getPlayPenContentPane());
 
         lifecycleListeners = new ArrayList<SessionLifecycleListener<ArchitectSession>>();
 
@@ -330,6 +326,29 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         printSettings = new PrintSettings();
         
         prefsEditor = new PreferencesEditor();
+           
+        // Ensure the this swing session is listening to the project settings
+        // so it can repaint and update the UI when it is changed.
+        
+        final SPListener settingsListener = new AbstractSPListener() {
+            public void propertyChanged(PropertyChangeEvent evt) {
+                getPlayPen().updateTablePanes();
+                getPlayPen().repaint();
+            }
+        };
+        delegateSession.getWorkspace().addSPListener(new AbstractSPListener() {
+            public void childAdded(SPChildEvent evt) {
+                if (evt.getChildType() == ProjectSettings.class) {
+                    evt.getChild().addSPListener(settingsListener);
+                }
+            }
+            public void childRemoved(SPChildEvent evt) {
+                if (evt.getChildType() == ProjectSettings.class) {
+                    evt.getChild().removeSPListener(settingsListener);
+                }
+            }
+        });
+        delegateSession.getWorkspace().getProjectSettings().addSPListener(settingsListener);            
     }
 
     public void initGUI() throws SQLObjectException {
@@ -711,7 +730,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * <p>Note: when we implement proper undo/redo support, this class should
      * be replaced with a hook into that system.
      */
-    class ProjectModificationWatcher implements SPListener, PropertyChangeListener {
+    class ProjectModificationWatcher extends AbstractSPListener {
 
         /**
          * Sets up a new modification watcher on the given playpen.
@@ -719,7 +738,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         public ProjectModificationWatcher(PlayPen pp) {
             SQLPowerUtils.listenToHierarchy(getTargetDatabase(), this);
             PlayPenContentPane ppcp = pp.contentPane;
-            ppcp.addPropertyChangeListener(this);
+            ppcp.addComponentPropertyListener(this);
         }
 
         /** Marks project dirty, and starts listening to new kids. */
@@ -738,26 +757,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         /** Marks project dirty. */
         public void propertyChanged(PropertyChangeEvent e) {
-            getProjectLoader().setModified(true);
-            isNew = false;
-        }
-
-        public void transactionEnded(TransactionEvent e) {
-            //no-op
-        }
-
-        public void transactionRollback(TransactionEvent e) {
-            //no-op
-        }
-
-        public void transactionStarted(TransactionEvent e) {
-            //no-op
-        }
-
-        /**
-         * Marks the project dirty
-         */
-        public void propertyChange(PropertyChangeEvent evt) {
             getProjectLoader().setModified(true);
             isNew = false;
         }
@@ -836,7 +835,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * @return the value of savingEntireSource
      */
     public boolean isSavingEntireSource()  {
-        return this.savingEntireSource;
+        return getProjectSettings().isSavingEntireSource();
     }
 
     /**
@@ -845,7 +844,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * @param argSavingEntireSource Value to assign to this.savingEntireSource
      */
     public void setSavingEntireSource(boolean argSavingEntireSource) {
-        this.savingEntireSource = argSavingEntireSource;
+        getProjectSettings().setSavingEntireSource(argSavingEntireSource);
     }
 
     public KettleJob getKettleJob() {
@@ -894,21 +893,19 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
 
     public void setRelationshipLinesDirect(boolean relationshipLinesDirect) {
-        this.relationshipLinesDirect = relationshipLinesDirect;
-        getPlayPen().repaint();
+        getProjectSettings().setRelationshipLinesDirect(relationshipLinesDirect);
     }
 
     public boolean getRelationshipLinesDirect() {
-        return relationshipLinesDirect;
+        return getProjectSettings().isRelationshipLinesDirect();
     }
     
     public boolean isUsingLogicalNames() {
-        return usingLogicalNames;
+        return getProjectSettings().isUsingLogicalNames();
     }
     
     public void setUsingLogicalNames(boolean usingLogicalNames) {
-        this.usingLogicalNames = usingLogicalNames;
-        getPlayPen().repaint();
+        getProjectSettings().setUsingLogicalNames(usingLogicalNames);
     }
 
     public SQLObjectRoot getRootObject() {
@@ -939,37 +936,32 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         
     }
     
+    public ProjectSettings getProjectSettings() {
+        return delegateSession.getWorkspace().getProjectSettings();
+    }
+
     public boolean isShowPkTag() {
-        return showPkTag;
+        return getProjectSettings().isShowPkTag();
     }
 
     public void setShowPkTag(boolean showPkTag) {
-        this.showPkTag = showPkTag;
-        for (TablePane tp : getPlayPen().getTablePanes()) {
-            tp.revalidate();
-        }
+        getProjectSettings().setShowPkTag(showPkTag);
     }
 
     public boolean isShowFkTag() {
-        return showFkTag;
+        return getProjectSettings().isShowFkTag();
     }
 
     public void setShowFkTag(boolean showFkTag) {
-        this.showFkTag = showFkTag;
-        for (TablePane tp : getPlayPen().getTablePanes()) {
-            tp.revalidate();
-        }
+        getProjectSettings().setShowFkTag(showFkTag);
     }
 
     public boolean isShowAkTag() {
-        return showAkTag;
+        return getProjectSettings().isShowAkTag();
     }
 
     public void setShowAkTag(boolean showAkTag) {
-        this.showAkTag = showAkTag;
-        for (TablePane tp : getPlayPen().getTablePanes()) {
-            tp.revalidate();
-        }
+        getProjectSettings().setShowAkTag(showAkTag);
     }
 
     /**
@@ -979,12 +971,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * be shown (equivalent to specifying {@link ColumnVisibility#ALL}).
      */
     public void setColumnVisibility(ColumnVisibility option) {
-        columnVisibility = option;
-        // XXX should fire property change event, but apparently the session doesn't support that
+        getProjectSettings().setColumnVisibility(option);
     }
     
     public ColumnVisibility getColumnVisibility() {
-        return columnVisibility;
+        return getProjectSettings().getColumnVisibility();
     }
     
     public void showOLAPSchemaManager(Window owner) {
@@ -1031,13 +1022,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
 
     public boolean isDisplayRelationshipLabel() {
-        return displayRelationshipLabel;
+        return getProjectSettings().isDisplayRelationshipLabel();
     }
     
     public void setDisplayRelationshipLabel(boolean displayRelationshipLabel) {
-        this.displayRelationshipLabel = displayRelationshipLabel;
+        getProjectSettings().setDisplayRelationshipLabel(displayRelationshipLabel);
     }
-
+    
     /**
      * This method will let users select a custom colour from a colour chooser
      * and then return the colour.

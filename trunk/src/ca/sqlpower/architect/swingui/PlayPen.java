@@ -435,11 +435,6 @@ public class PlayPen extends JPanel
 
 	}
 
-	protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-	    super.firePropertyChange(propertyName, oldValue, newValue);
-	}
-
-
 	/**
 	 * Delegates to the content pane.
 	 *
@@ -1089,8 +1084,11 @@ public class PlayPen extends JPanel
 	public PlayPenContentPane getContentPane() {
 		return contentPane;
 	}
-
-
+	
+	public void setContentPane(PlayPenContentPane pane) {
+	    contentPane = pane;
+	    pane.setPlayPen(this);
+	}
 
 	public void addRelationship(Relationship r) {
 		addImpl(r, null, getPPComponentCount());
@@ -1725,7 +1723,7 @@ public class PlayPen extends JPanel
         }
 
 		if (fireEvent) {
-		    this.firePropertyChange("model.children", null, null); //$NON-NLS-1$
+		    firePropertyChange("model.children", null, child); //$NON-NLS-1$
 		}
 	}
 
@@ -1768,7 +1766,7 @@ public class PlayPen extends JPanel
 
 		if (foundRemovedComponent) {
 		    childRemoved = true;
-		    this.firePropertyChange("model.children", null, null); //$NON-NLS-1$
+		    firePropertyChange("model.children", child, null); //$NON-NLS-1$
 		}
 	}
 
@@ -1779,7 +1777,7 @@ public class PlayPen extends JPanel
 	 * delegate) with a ChangeEvent.
 	 */
 	public void propertyChanged(PropertyChangeEvent e) {
-	    this.firePropertyChange("model."+e.getPropertyName(), null, null); //$NON-NLS-1$
+	    this.firePropertyChange("model."+e.getPropertyName(), e.getOldValue(), e.getNewValue()); //$NON-NLS-1$
 	}
 	
 	public void transactionStarted(TransactionEvent e) {
@@ -2385,6 +2383,7 @@ public class PlayPen extends JPanel
 		public void mouseReleased(MouseEvent evt) {
 			draggingTablePanes = false;
             selectionInProgress = false;
+            contentPane.doneDragging();
 
 			if (rubberBand != null && evt.getButton() == MouseEvent.BUTTON1) {
 			    Rectangle dirtyRegion = rubberBand;
