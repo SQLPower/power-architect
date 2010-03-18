@@ -415,6 +415,7 @@
         <copy todir="${build}">
             <fileset dir="${src}">
                 <include name="**/*.png"/>
+                <include name="xsltStylesheets/**"/>
             </fileset>
         </copy>
         <copy todir="${build}/">
