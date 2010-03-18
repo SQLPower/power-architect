@@ -70,13 +70,15 @@ public class ArchitectProjectTest extends PersistedSPObjectTest {
         //The ArchitectProject is the root of the SPObject tree. This
         //object cannot be made straight from persist calls but must exist
         //as part of the session to start.
+        // See "ArchitectSessionPersisterTest.testRefreshRootNodeWithJSONPersister()"
     }
     
     @Override
     public void testSPListenerPersistsNewObjects() throws Exception {
-      //The ArchitectProject is the root of the SPObject tree. This
+        //The ArchitectProject is the root of the SPObject tree. This
         //object cannot be made straight from persist calls but must exist
         //as part of the session to start.
+        // See "ArchitectSessionPersisterTest.testRefreshRootNodeWithJSONPersister()"
     }
 
 }
