@@ -31,6 +31,8 @@ import ca.sqlpower.sql.JDBCDataSource;
 
 public class KettleSettings extends AbstractSPObject {
 
+    public static final List <Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
+    
     /**
      * The name of the Kettle job
      */

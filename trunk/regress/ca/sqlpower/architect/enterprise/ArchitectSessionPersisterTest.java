@@ -26,6 +26,8 @@ import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
+import ca.sqlpower.architect.etl.kettle.KettleSettings;
+import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.dao.MessageSender;
 import ca.sqlpower.dao.SPPersistenceException;
 import ca.sqlpower.dao.SPPersister.DataType;
@@ -134,6 +136,30 @@ public class ArchitectSessionPersisterTest extends DatabaseConnectedTestCase {
         SQLObjectRoot rootObject = session.getRootObject();
         assertEquals(oldChildCount, rootObject.getChildCount());
         assertNull(rootObject.getChildByName("regression_test", SQLDatabase.class));
+    }
+    
+    /**
+     * The purpose of this test is to ensure that the root node (ArchitectProject) is 
+     * correctly updated by persist calls: That it contains the correct SPObjectRoot, 
+     * OlapObjectRoot, and KettleSettings.
+     */
+    public void testRefreshRootNodeWithJSONPersister() throws Exception {
+        SPJSONMessageDecoder decoder = new SPJSONMessageDecoder(persister);
+        SPJSONPersister jsonPersister = new SPJSONPersister(new DirectJsonMessageSender(decoder));
+        
+        jsonPersister.begin();
+        jsonPersister.persistObject(null, ArchitectProject.class.getName(), "ArchitectProjectUUID", 0);
+        jsonPersister.persistObject("ArchitectProjectUUID", KettleSettings.class.getName(), "KettleSettingsUUID", 0);
+        jsonPersister.persistObject("ArchitectProjectUUID", SQLObjectRoot.class.getName(), "SQLObjectRootUUID", 0);
+        jsonPersister.persistObject("ArchitectProjectUUID", OLAPRootObject.class.getName(), "OLAPRootObjectUUID", 0);
+        jsonPersister.persistProperty("ArchitectProjectUUID", "rootObject", DataType.STRING, "SQLObjectRootUUID");
+        jsonPersister.persistProperty("ArchitectProjectUUID", "olapRootObject", DataType.STRING, "OLAPRootObjectUUID");
+        jsonPersister.persistProperty("ArchitectProjectUUID", "kettleSettings", DataType.STRING, "KettleSettingsUUID");
+        jsonPersister.commit();
+        
+        assertEquals("KettleSettingsUUID", session.getWorkspace().getKettleSettings().getUUID());
+        assertEquals("SQLObjectRootUUID", session.getWorkspace().getRootObject().getUUID());
+        assertEquals("OLAPRootObjectUUID", session.getWorkspace().getOlapRootObject().getUUID());
     }
     
     /**
