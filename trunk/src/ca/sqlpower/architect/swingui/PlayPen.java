@@ -606,7 +606,11 @@ public class PlayPen extends JPanel
         if (session == null) throw new NullPointerException("A null session is not allowed here."); //$NON-NLS-1$
 		this.session = session;		
 		setDatabase(session.getTargetDatabase());
-        zoom = 1.0;
+		if (session.isEnterpriseSession()) {
+		    zoom = session.getEnterpriseSession().getPrefDouble("zoom", 1.0);
+		} else {
+		    zoom = 1.0;
+		}
         viewportPosition = new Point(0, 0);
 		this.setBackground(java.awt.Color.white);
 		contentPane = new PlayPenContentPane(this);

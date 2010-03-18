@@ -626,6 +626,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             }
         }
         
+        if (delegateSession.isEnterpriseSession()) {
+            getEnterpriseSession().putPref("zoom", playPen.getZoom());
+        }
+        
         if (!delegateSession.close()) {
             return false;
         }
