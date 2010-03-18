@@ -825,4 +825,61 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             }
         }
     }
+	
+	// ----------- Preferences accessors and mutators -----------
+	// XXX Add different types, such as int or boolean, as needed
+
+	/**
+	 * Enters a double value as a preference for this server session.
+	 * It will be able to be loaded by this local user in the future.
+	 */
+    public void putPref(String prefName, double pref) {
+        prefs.putDouble(projectLocation.getUUID() + "." + prefName, pref);
+    }    
+    
+    /**
+     * Enters a String as a preference for this server session.
+     * It will be able to be loaded by this local user in the future.
+     */
+    public void putPref(String prefName, String pref) {
+        prefs.put(projectLocation.getUUID() + "." + prefName, pref);
+    }
+    
+    /**
+     * Retrieves a locally saved preference of type double.
+     * @param prefName The name of the previously saved preference
+     * @return The previously saved preference, or 0 if none exists yet
+     */
+    public double getPrefDouble(String prefName) {
+        return getPrefDouble(prefName, 0);
+    }
+    
+    /**
+     * Retrieves a locally saved preference of type double.
+     * @param prefName The name of the previously saved preference
+     * @param def The value this function should return 
+     * if no preference was previously saved
+     */
+    public double getPrefDouble(String prefName, double def) {
+        return prefs.getDouble(projectLocation.getUUID() + "." + prefName, def);
+    }
+    
+    /**
+     * Retrieves a locally saved preference of type String.
+     * @param prefName The name of the previously saved preference
+     * @return The previously saved preference, or null if none exists yet
+     */
+    public String getPref(String prefName) {
+        return getPref(prefName, null);
+    }
+    
+    /**
+     * Retrieves a locally saved preference of type String.
+     * @param prefName The name of the previously saved preference
+     * @param def The value this function should return 
+     * if no preference was previously saved
+     */
+    public String getPref(String prefName, String def) {
+        return prefs.get(projectLocation.getUUID() + "." + prefName, def);
+    }
 }
