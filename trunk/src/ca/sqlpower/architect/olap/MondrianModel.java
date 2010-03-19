@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonProperty;
@@ -31,6 +33,30 @@ public static class Schema extends OLAPObject {
     public Schema() {
         setName("New Schema");
     }
+    
+    
+    /**
+     * Creates a new Schema with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Schema(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "measuresCaption") 
+        String measuresCaption
+        , @ConstructorParameter(propertyName = "defaultRole") 
+        String defaultRole
+    ) {
+        this();
+        setName(name);
+        
+        setMeasuresCaption(measuresCaption);
+    
+        setDefaultRole(defaultRole);
+    
+    }
+
     
     /**
      * Creates a new Schema with all
@@ -775,6 +801,30 @@ public abstract static class CubeDimension extends OLAPObject {
     setName("New CubeDimension");
     }
     
+    
+    /**
+     * Creates a new  with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public CubeDimension(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "caption") 
+        String caption
+        , @ConstructorParameter(propertyName = "foreignKey") 
+        String foreignKey
+    ) {
+        this();
+        setName(name);
+        
+        setCaption(caption);
+    
+        setForeignKey(foreignKey);
+    
+    }
+
+    
     /**
      * Creates a new CubeDimension with all
      * attributes copied from the given CubeDimension.
@@ -948,6 +998,38 @@ public static class Cube extends OLAPObject {
     public Cube() {
         setName("New Cube");
     }
+    
+    
+    /**
+     * Creates a new Cube with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Cube(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "caption") 
+        String caption
+        , @ConstructorParameter(propertyName = "defaultMeasure") 
+        String defaultMeasure
+        , @ConstructorParameter(propertyName = "cache") 
+        Boolean cache
+        , @ConstructorParameter(propertyName = "enabled") 
+        Boolean enabled
+    ) {
+        this();
+        setName(name);
+        
+        setCaption(caption);
+    
+        setDefaultMeasure(defaultMeasure);
+    
+        setCache(cache);
+    
+        setEnabled(enabled);
+    
+    }
+
     
     /**
      * Creates a new Cube with all
@@ -1541,6 +1623,34 @@ public static class VirtualCube extends OLAPObject {
         setName("New VirtualCube");
     }
     
+    
+    /**
+     * Creates a new VirtualCube with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public VirtualCube(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "enabled") 
+        Boolean enabled
+        , @ConstructorParameter(propertyName = "defaultMeasure") 
+        String defaultMeasure
+        , @ConstructorParameter(propertyName = "caption") 
+        String caption
+    ) {
+        this();
+        setName(name);
+        
+        setEnabled(enabled);
+    
+        setDefaultMeasure(defaultMeasure);
+    
+        setCaption(caption);
+    
+    }
+
+    
     /**
      * Creates a new VirtualCube with all
      * attributes copied from the given VirtualCube.
@@ -2106,6 +2216,22 @@ public static class CubeUsages extends OLAPObject {
         setName("New CubeUsages");
     }
     
+    
+    /**
+     * Creates a new CubeUsages with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public CubeUsages(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
+    
     /**
      * Creates a new CubeUsages with all
      * attributes copied from the given CubeUsages.
@@ -2294,6 +2420,30 @@ public static class CubeUsage extends OLAPObject {
         setName("New CubeUsage");
     }
     
+    
+    /**
+     * Creates a new CubeUsage with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public CubeUsage(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "cubeName") 
+        String cubeName
+        , @ConstructorParameter(propertyName = "ignoreUnrelatedDimensions") 
+        Boolean ignoreUnrelatedDimensions
+    ) {
+        this();
+        setName(name);
+        
+        setCubeName(cubeName);
+    
+        setIgnoreUnrelatedDimensions(ignoreUnrelatedDimensions);
+    
+    }
+
+    
     /**
      * Creates a new CubeUsage with all
      * attributes copied from the given CubeUsage.
@@ -2440,6 +2590,34 @@ public static class VirtualCubeDimension extends CubeDimension {
     public VirtualCubeDimension() {
         setName("New VirtualCubeDimension");
     }
+    
+    
+    /**
+     * Creates a new VirtualCubeDimension with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public VirtualCubeDimension(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "cubeName") 
+        String cubeName
+        , @ConstructorParameter(propertyName = "caption") 
+        String caption
+        , @ConstructorParameter(propertyName = "foreignKey") 
+        String foreignKey
+    ) {
+        this();
+        setName(name);
+        
+        setCubeName(cubeName);
+    
+        setCaption(caption);
+    
+        setForeignKey(foreignKey);
+    
+    }
+
     
     /**
      * Creates a new VirtualCubeDimension with all
@@ -2591,6 +2769,30 @@ public static class VirtualCubeMeasure extends OLAPObject {
     public VirtualCubeMeasure() {
         setName("New VirtualCubeMeasure");
     }
+    
+    
+    /**
+     * Creates a new VirtualCubeMeasure with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public VirtualCubeMeasure(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "cubeName") 
+        String cubeName
+        , @ConstructorParameter(propertyName = "visible") 
+        Boolean visible
+    ) {
+        this();
+        setName(name);
+        
+        setCubeName(cubeName);
+    
+        setVisible(visible);
+    
+    }
+
     
     /**
      * Creates a new VirtualCubeMeasure with all
@@ -2762,6 +2964,42 @@ public static class DimensionUsage extends CubeDimension {
     public DimensionUsage() {
         setName("New DimensionUsage");
     }
+    
+    
+    /**
+     * Creates a new DimensionUsage with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public DimensionUsage(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "source") 
+        String source
+        , @ConstructorParameter(propertyName = "level") 
+        String level
+        , @ConstructorParameter(propertyName = "usagePrefix") 
+        String usagePrefix
+        , @ConstructorParameter(propertyName = "caption") 
+        String caption
+        , @ConstructorParameter(propertyName = "foreignKey") 
+        String foreignKey
+    ) {
+        this();
+        setName(name);
+        
+        setSource(source);
+    
+        setLevel(level);
+    
+        setUsagePrefix(usagePrefix);
+    
+        setCaption(caption);
+    
+        setForeignKey(foreignKey);
+    
+    }
+
     
     /**
      * Creates a new DimensionUsage with all
@@ -2944,6 +3182,40 @@ public static class Dimension extends CubeDimension {
     public Dimension() {
         setName("New Dimension");
     }
+    
+    
+    /**
+     * Creates a new Dimension with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Dimension(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "type") 
+        String type
+        , @ConstructorParameter(propertyName = "caption") 
+        String caption
+        , @ConstructorParameter(propertyName = "usagePrefix") 
+        String usagePrefix
+        , @ConstructorParameter(propertyName = "foreignKey") 
+        String foreignKey
+    ) {
+        this();
+        setName(name);
+        
+        setType(type);
+    
+        setCaption(caption);
+    
+        setUsagePrefix(usagePrefix);
+    
+        setCaption(caption);
+    
+        setForeignKey(foreignKey);
+    
+    }
+
     
     /**
      * Creates a new Dimension with all
@@ -3243,6 +3515,58 @@ public static class Hierarchy extends OLAPObject {
     public Hierarchy() {
         setName("New Hierarchy");
     }
+    
+    
+    /**
+     * Creates a new Hierarchy with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Hierarchy(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "hasAll") 
+        Boolean hasAll
+        , @ConstructorParameter(propertyName = "allMemberName") 
+        String allMemberName
+        , @ConstructorParameter(propertyName = "allMemberCaption") 
+        String allMemberCaption
+        , @ConstructorParameter(propertyName = "allLevelName") 
+        String allLevelName
+        , @ConstructorParameter(propertyName = "primaryKey") 
+        String primaryKey
+        , @ConstructorParameter(propertyName = "primaryKeyTable") 
+        String primaryKeyTable
+        , @ConstructorParameter(propertyName = "defaultMember") 
+        String defaultMember
+        , @ConstructorParameter(propertyName = "memberReaderClass") 
+        String memberReaderClass
+        , @ConstructorParameter(propertyName = "caption") 
+        String caption
+    ) {
+        this();
+        setName(name);
+        
+        setHasAll(hasAll);
+    
+        setAllMemberName(allMemberName);
+    
+        setAllMemberCaption(allMemberCaption);
+    
+        setAllLevelName(allLevelName);
+    
+        setPrimaryKey(primaryKey);
+    
+        setPrimaryKeyTable(primaryKeyTable);
+    
+        setDefaultMember(defaultMember);
+    
+        setMemberReaderClass(memberReaderClass);
+    
+        setCaption(caption);
+    
+    }
+
     
     /**
      * Creates a new Hierarchy with all
@@ -3796,6 +4120,78 @@ public static class Level extends OLAPObject {
     public Level() {
         setName("New Level");
     }
+    
+    
+    /**
+     * Creates a new Level with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Level(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "approxRowCount") 
+        String approxRowCount
+        , @ConstructorParameter(propertyName = "table") 
+        String table
+        , @ConstructorParameter(propertyName = "column") 
+        String column
+        , @ConstructorParameter(propertyName = "nameColumn") 
+        String nameColumn
+        , @ConstructorParameter(propertyName = "ordinalColumn") 
+        String ordinalColumn
+        , @ConstructorParameter(propertyName = "parentColumn") 
+        String parentColumn
+        , @ConstructorParameter(propertyName = "nullParentValue") 
+        String nullParentValue
+        , @ConstructorParameter(propertyName = "type") 
+        String type
+        , @ConstructorParameter(propertyName = "uniqueMembers") 
+        Boolean uniqueMembers
+        , @ConstructorParameter(propertyName = "levelType") 
+        String levelType
+        , @ConstructorParameter(propertyName = "hideMemberIf") 
+        String hideMemberIf
+        , @ConstructorParameter(propertyName = "formatter") 
+        String formatter
+        , @ConstructorParameter(propertyName = "caption") 
+        String caption
+        , @ConstructorParameter(propertyName = "captionColumn") 
+        String captionColumn
+    ) {
+        this();
+        setName(name);
+        
+        setApproxRowCount(approxRowCount);
+    
+        setTable(table);
+    
+        setColumn(column);
+    
+        setNameColumn(nameColumn);
+    
+        setOrdinalColumn(ordinalColumn);
+    
+        setParentColumn(parentColumn);
+    
+        setNullParentValue(nullParentValue);
+    
+        setType(type);
+    
+        setUniqueMembers(uniqueMembers);
+    
+        setLevelType(levelType);
+    
+        setHideMemberIf(hideMemberIf);
+    
+        setFormatter(formatter);
+    
+        setCaption(caption);
+    
+        setCaptionColumn(captionColumn);
+    
+    }
+
     
     /**
      * Creates a new Level with all
@@ -4595,6 +4991,30 @@ public static class Closure extends OLAPObject {
         setName("New Closure");
     }
     
+    
+    /**
+     * Creates a new Closure with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Closure(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "parentColumn") 
+        String parentColumn
+        , @ConstructorParameter(propertyName = "childColumn") 
+        String childColumn
+    ) {
+        this();
+        setName(name);
+        
+        setParentColumn(parentColumn);
+    
+        setChildColumn(childColumn);
+    
+    }
+
+    
     /**
      * Creates a new Closure with all
      * attributes copied from the given Closure.
@@ -4795,6 +5215,38 @@ public static class Property extends OLAPObject {
     public Property() {
         setName("New Property");
     }
+    
+    
+    /**
+     * Creates a new Property with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Property(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "column") 
+        String column
+        , @ConstructorParameter(propertyName = "type") 
+        String type
+        , @ConstructorParameter(propertyName = "formatter") 
+        String formatter
+        , @ConstructorParameter(propertyName = "caption") 
+        String caption
+    ) {
+        this();
+        setName(name);
+        
+        setColumn(column);
+    
+        setType(type);
+    
+        setFormatter(formatter);
+    
+        setCaption(caption);
+    
+    }
+
     
     /**
      * Creates a new Property with all
@@ -5009,6 +5461,50 @@ public static class Measure extends OLAPObject {
     public Measure() {
         setName("New Measure");
     }
+    
+    
+    /**
+     * Creates a new Measure with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Measure(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "column") 
+        String column
+        , @ConstructorParameter(propertyName = "datatype") 
+        String datatype
+        , @ConstructorParameter(propertyName = "formatString") 
+        String formatString
+        , @ConstructorParameter(propertyName = "aggregator") 
+        String aggregator
+        , @ConstructorParameter(propertyName = "formatter") 
+        String formatter
+        , @ConstructorParameter(propertyName = "caption") 
+        String caption
+        , @ConstructorParameter(propertyName = "visible") 
+        Boolean visible
+    ) {
+        this();
+        setName(name);
+        
+        setColumn(column);
+    
+        setDatatype(datatype);
+    
+        setFormatString(formatString);
+    
+        setAggregator(aggregator);
+    
+        setFormatter(formatter);
+    
+        setCaption(caption);
+    
+        setVisible(visible);
+    
+    }
+
     
     /**
      * Creates a new Measure with all
@@ -5439,6 +5935,42 @@ public static class CalculatedMember extends OLAPObject {
         setName("New CalculatedMember");
     }
     
+    
+    /**
+     * Creates a new CalculatedMember with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public CalculatedMember(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "formatString") 
+        String formatString
+        , @ConstructorParameter(propertyName = "caption") 
+        String caption
+        , @ConstructorParameter(propertyName = "formula") 
+        String formula
+        , @ConstructorParameter(propertyName = "dimension") 
+        String dimension
+        , @ConstructorParameter(propertyName = "visible") 
+        Boolean visible
+    ) {
+        this();
+        setName(name);
+        
+        setFormatString(formatString);
+    
+        setCaption(caption);
+    
+        setFormula(formula);
+    
+        setDimension(dimension);
+    
+        setVisible(visible);
+    
+    }
+
+    
     /**
      * Creates a new CalculatedMember with all
      * attributes copied from the given CalculatedMember.
@@ -5817,6 +6349,34 @@ public static class CalculatedMemberProperty extends OLAPObject {
         setName("New CalculatedMemberProperty");
     }
     
+    
+    /**
+     * Creates a new CalculatedMemberProperty with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public CalculatedMemberProperty(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "caption") 
+        String caption
+        , @ConstructorParameter(propertyName = "expression") 
+        String expression
+        , @ConstructorParameter(propertyName = "value") 
+        String value
+    ) {
+        this();
+        setName(name);
+        
+        setCaption(caption);
+    
+        setExpression(expression);
+    
+        setValue(value);
+    
+    }
+
+    
     /**
      * Creates a new CalculatedMemberProperty with all
      * attributes copied from the given CalculatedMemberProperty.
@@ -6029,6 +6589,26 @@ public static class NamedSet extends OLAPObject {
         setName("New NamedSet");
     }
     
+    
+    /**
+     * Creates a new NamedSet with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public NamedSet(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "formula") 
+        String formula
+    ) {
+        this();
+        setName(name);
+        
+        setFormula(formula);
+    
+    }
+
+    
     /**
      * Creates a new NamedSet with all
      * attributes copied from the given NamedSet.
@@ -6235,6 +6815,22 @@ public static class Formula extends OLAPObject {
         setName("New Formula");
     }
     
+    
+    /**
+     * Creates a new Formula with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Formula(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
+    
     /**
      * Creates a new Formula with all
      * attributes copied from the given Formula.
@@ -6351,6 +6947,26 @@ public static class MemberReaderParameter extends OLAPObject {
     public MemberReaderParameter() {
         setName("New MemberReaderParameter");
     }
+    
+    
+    /**
+     * Creates a new MemberReaderParameter with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public MemberReaderParameter(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "value") 
+        String value
+    ) {
+        this();
+        setName(name);
+        
+        setValue(value);
+    
+    }
+
     
     /**
      * Creates a new MemberReaderParameter with all
@@ -6492,6 +7108,22 @@ public abstract static class RelationOrJoin extends OLAPObject {
     setName("New RelationOrJoin");
     }
     
+    
+    /**
+     * Creates a new  with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public RelationOrJoin(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
+    
     /**
      * Creates a new RelationOrJoin with all
      * attributes copied from the given RelationOrJoin.
@@ -6592,6 +7224,22 @@ public abstract static class Relation extends RelationOrJoin {
     public Relation() {
     setName("New Relation");
     }
+    
+    
+    /**
+     * Creates a new  with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Relation(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
     
     /**
      * Creates a new Relation with all
@@ -6699,6 +7347,26 @@ public static class View extends Relation {
     public View() {
         setName("New View");
     }
+    
+    
+    /**
+     * Creates a new View with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public View(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "alias") 
+        String alias
+    ) {
+        this();
+        setName(name);
+        
+        setAlias(alias);
+    
+    }
+
     
     /**
      * Creates a new View with all
@@ -6913,6 +7581,26 @@ public static class SQL extends OLAPObject {
         setName("New SQL");
     }
     
+    
+    /**
+     * Creates a new SQL with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public SQL(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "dialect") 
+        String dialect
+    ) {
+        this();
+        setName(name);
+        
+        setDialect(dialect);
+    
+    }
+
+    
     /**
      * Creates a new SQL with all
      * attributes copied from the given SQL.
@@ -7052,6 +7740,38 @@ public static class Join extends RelationOrJoin {
     public Join() {
         setName("New Join");
     }
+    
+    
+    /**
+     * Creates a new Join with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Join(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "leftAlias") 
+        String leftAlias
+        , @ConstructorParameter(propertyName = "leftKey") 
+        String leftKey
+        , @ConstructorParameter(propertyName = "rightAlias") 
+        String rightAlias
+        , @ConstructorParameter(propertyName = "rightKey") 
+        String rightKey
+    ) {
+        this();
+        setName(name);
+        
+        setLeftAlias(leftAlias);
+    
+        setLeftKey(leftKey);
+    
+        setRightAlias(rightAlias);
+    
+        setRightKey(rightKey);
+    
+    }
+
     
     /**
      * Creates a new Join with all
@@ -7346,6 +8066,30 @@ public static class Table extends Relation {
     public Table() {
         setName("New Table");
     }
+    
+    
+    /**
+     * Creates a new Table with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Table(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "schema") 
+        String schema
+        , @ConstructorParameter(propertyName = "alias") 
+        String alias
+    ) {
+        this();
+        setName(name);
+        
+        setSchema(schema);
+    
+        setAlias(alias);
+    
+    }
+
     
     /**
      * Creates a new Table with all
@@ -7729,6 +8473,26 @@ public static class InlineTable extends Relation {
         setName("New InlineTable");
     }
     
+    
+    /**
+     * Creates a new InlineTable with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public InlineTable(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "alias") 
+        String alias
+    ) {
+        this();
+        setName(name);
+        
+        setAlias(alias);
+    
+    }
+
+    
     /**
      * Creates a new InlineTable with all
      * attributes copied from the given InlineTable.
@@ -7960,6 +8724,22 @@ public static class ColumnDefs extends OLAPObject {
         setName("New ColumnDefs");
     }
     
+    
+    /**
+     * Creates a new ColumnDefs with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public ColumnDefs(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
+    
     /**
      * Creates a new ColumnDefs with all
      * attributes copied from the given ColumnDefs.
@@ -8150,6 +8930,26 @@ public static class ColumnDef extends OLAPObject {
         setName("New ColumnDef");
     }
     
+    
+    /**
+     * Creates a new ColumnDef with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public ColumnDef(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "type") 
+        String type
+    ) {
+        this();
+        setName(name);
+        
+        setType(type);
+    
+    }
+
+    
     /**
      * Creates a new ColumnDef with all
      * attributes copied from the given ColumnDef.
@@ -8294,6 +9094,22 @@ public static class Rows extends OLAPObject {
     public Rows() {
         setName("New Rows");
     }
+    
+    
+    /**
+     * Creates a new Rows with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Rows(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
     
     /**
      * Creates a new Rows with all
@@ -8486,6 +9302,22 @@ public static class Row extends OLAPObject {
         setName("New Row");
     }
     
+    
+    /**
+     * Creates a new Row with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Row(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
+    
     /**
      * Creates a new Row with all
      * attributes copied from the given Row.
@@ -8677,6 +9509,26 @@ public static class Value extends OLAPObject {
         setName("New Value");
     }
     
+    
+    /**
+     * Creates a new Value with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Value(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "column") 
+        String column
+    ) {
+        this();
+        setName(name);
+        
+        setColumn(column);
+    
+    }
+
+    
     /**
      * Creates a new Value with all
      * attributes copied from the given Value.
@@ -8820,6 +9672,26 @@ public abstract static class AggTable extends OLAPObject {
     public AggTable() {
     setName("New AggTable");
     }
+    
+    
+    /**
+     * Creates a new  with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public AggTable(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "ignorecase") 
+        Boolean ignorecase
+    ) {
+        this();
+        setName(name);
+        
+        setIgnorecase(ignorecase);
+    
+    }
+
     
     /**
      * Creates a new AggTable with all
@@ -9302,6 +10174,26 @@ public static class AggName extends AggTable {
         setName("New AggName");
     }
     
+    
+    /**
+     * Creates a new AggName with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public AggName(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "ignorecase") 
+        Boolean ignorecase
+    ) {
+        this();
+        setName(name);
+        
+        setIgnorecase(ignorecase);
+    
+    }
+
+    
     /**
      * Creates a new AggName with all
      * attributes copied from the given AggName.
@@ -9426,6 +10318,30 @@ public static class AggPattern extends AggTable {
     public AggPattern() {
         setName("New AggPattern");
     }
+    
+    
+    /**
+     * Creates a new AggPattern with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public AggPattern(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "pattern") 
+        String pattern
+        , @ConstructorParameter(propertyName = "ignorecase") 
+        Boolean ignorecase
+    ) {
+        this();
+        setName(name);
+        
+        setPattern(pattern);
+    
+        setIgnorecase(ignorecase);
+    
+    }
+
     
     /**
      * Creates a new AggPattern with all
@@ -9642,6 +10558,30 @@ public static class AggExclude extends OLAPObject {
         setName("New AggExclude");
     }
     
+    
+    /**
+     * Creates a new AggExclude with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public AggExclude(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "pattern") 
+        String pattern
+        , @ConstructorParameter(propertyName = "ignorecase") 
+        Boolean ignorecase
+    ) {
+        this();
+        setName(name);
+        
+        setPattern(pattern);
+    
+        setIgnorecase(ignorecase);
+    
+    }
+
+    
     /**
      * Creates a new AggExclude with all
      * attributes copied from the given AggExclude.
@@ -9809,6 +10749,26 @@ public abstract static class AggColumnName extends OLAPObject {
     setName("New AggColumnName");
     }
     
+    
+    /**
+     * Creates a new  with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public AggColumnName(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "column") 
+        String column
+    ) {
+        this();
+        setName(name);
+        
+        setColumn(column);
+    
+    }
+
+    
     /**
      * Creates a new AggColumnName with all
      * attributes copied from the given AggColumnName.
@@ -9933,6 +10893,26 @@ public static class AggFactCount extends AggColumnName {
         setName("New AggFactCount");
     }
     
+    
+    /**
+     * Creates a new AggFactCount with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public AggFactCount(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "column") 
+        String column
+    ) {
+        this();
+        setName(name);
+        
+        setColumn(column);
+    
+    }
+
+    
     /**
      * Creates a new AggFactCount with all
      * attributes copied from the given AggFactCount.
@@ -10034,6 +11014,26 @@ public static class AggIgnoreColumn extends AggColumnName {
     public AggIgnoreColumn() {
         setName("New AggIgnoreColumn");
     }
+    
+    
+    /**
+     * Creates a new AggIgnoreColumn with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public AggIgnoreColumn(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "column") 
+        String column
+    ) {
+        this();
+        setName(name);
+        
+        setColumn(column);
+    
+    }
+
     
     /**
      * Creates a new AggIgnoreColumn with all
@@ -10139,6 +11139,30 @@ public static class AggForeignKey extends OLAPObject {
     public AggForeignKey() {
         setName("New AggForeignKey");
     }
+    
+    
+    /**
+     * Creates a new AggForeignKey with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public AggForeignKey(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "factColumn") 
+        String factColumn
+        , @ConstructorParameter(propertyName = "aggColumn") 
+        String aggColumn
+    ) {
+        this();
+        setName(name);
+        
+        setFactColumn(factColumn);
+    
+        setAggColumn(aggColumn);
+    
+    }
+
     
     /**
      * Creates a new AggForeignKey with all
@@ -10284,6 +11308,26 @@ public static class AggLevel extends OLAPObject {
         setName("New AggLevel");
     }
     
+    
+    /**
+     * Creates a new AggLevel with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public AggLevel(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "column") 
+        String column
+    ) {
+        this();
+        setName(name);
+        
+        setColumn(column);
+    
+    }
+
+    
     /**
      * Creates a new AggLevel with all
      * attributes copied from the given AggLevel.
@@ -10427,6 +11471,26 @@ public static class AggMeasure extends OLAPObject {
     public AggMeasure() {
         setName("New AggMeasure");
     }
+    
+    
+    /**
+     * Creates a new AggMeasure with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public AggMeasure(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "column") 
+        String column
+    ) {
+        this();
+        setName(name);
+        
+        setColumn(column);
+    
+    }
+
     
     /**
      * Creates a new AggMeasure with all
@@ -10572,6 +11636,22 @@ public abstract static class Expression extends OLAPObject {
     setName("New Expression");
     }
     
+    
+    /**
+     * Creates a new  with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Expression(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
+    
     /**
      * Creates a new Expression with all
      * attributes copied from the given Expression.
@@ -10672,6 +11752,26 @@ public static class Column extends Expression {
     public Column() {
         setName("New Column");
     }
+    
+    
+    /**
+     * Creates a new Column with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Column(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "table") 
+        String table
+    ) {
+        this();
+        setName(name);
+        
+        setTable(table);
+    
+    }
+
     
     /**
      * Creates a new Column with all
@@ -10823,6 +11923,22 @@ public abstract static class ExpressionView extends Expression {
     public ExpressionView() {
     setName("New ExpressionView");
     }
+    
+    
+    /**
+     * Creates a new  with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public ExpressionView(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
     
     /**
      * Creates a new ExpressionView with all
@@ -11019,6 +12135,22 @@ public static class KeyExpression extends ExpressionView {
         setName("New KeyExpression");
     }
     
+    
+    /**
+     * Creates a new KeyExpression with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public KeyExpression(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
+    
     /**
      * Creates a new KeyExpression with all
      * attributes copied from the given KeyExpression.
@@ -11120,6 +12252,22 @@ public static class ParentExpression extends ExpressionView {
     public ParentExpression() {
         setName("New ParentExpression");
     }
+    
+    
+    /**
+     * Creates a new ParentExpression with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public ParentExpression(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
     
     /**
      * Creates a new ParentExpression with all
@@ -11223,6 +12371,22 @@ public static class OrdinalExpression extends ExpressionView {
         setName("New OrdinalExpression");
     }
     
+    
+    /**
+     * Creates a new OrdinalExpression with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public OrdinalExpression(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
+    
     /**
      * Creates a new OrdinalExpression with all
      * attributes copied from the given OrdinalExpression.
@@ -11324,6 +12488,22 @@ public static class NameExpression extends ExpressionView {
     public NameExpression() {
         setName("New NameExpression");
     }
+    
+    
+    /**
+     * Creates a new NameExpression with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public NameExpression(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
     
     /**
      * Creates a new NameExpression with all
@@ -11427,6 +12607,22 @@ public static class CaptionExpression extends ExpressionView {
         setName("New CaptionExpression");
     }
     
+    
+    /**
+     * Creates a new CaptionExpression with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public CaptionExpression(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
+    
     /**
      * Creates a new CaptionExpression with all
      * attributes copied from the given CaptionExpression.
@@ -11528,6 +12724,22 @@ public static class MeasureExpression extends ExpressionView {
     public MeasureExpression() {
         setName("New MeasureExpression");
     }
+    
+    
+    /**
+     * Creates a new MeasureExpression with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public MeasureExpression(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
     
     /**
      * Creates a new MeasureExpression with all
@@ -11633,6 +12845,22 @@ public static class Role extends OLAPObject {
     public Role() {
         setName("New Role");
     }
+    
+    
+    /**
+     * Creates a new Role with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Role(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
     
     /**
      * Creates a new Role with all
@@ -11886,6 +13114,26 @@ public abstract static class Grant extends OLAPObject {
     setName("New Grant");
     }
     
+    
+    /**
+     * Creates a new  with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Grant(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "access") 
+        String access
+    ) {
+        this();
+        setName(name);
+        
+        setAccess(access);
+    
+    }
+
+    
     /**
      * Creates a new Grant with all
      * attributes copied from the given Grant.
@@ -12013,6 +13261,26 @@ public static class SchemaGrant extends Grant {
     public SchemaGrant() {
         setName("New SchemaGrant");
     }
+    
+    
+    /**
+     * Creates a new SchemaGrant with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public SchemaGrant(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "access") 
+        String access
+    ) {
+        this();
+        setName(name);
+        
+        setAccess(access);
+    
+    }
+
     
     /**
      * Creates a new SchemaGrant with all
@@ -12209,6 +13477,30 @@ public static class CubeGrant extends Grant {
     public CubeGrant() {
         setName("New CubeGrant");
     }
+    
+    
+    /**
+     * Creates a new CubeGrant with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public CubeGrant(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "cube") 
+        String cube
+        , @ConstructorParameter(propertyName = "access") 
+        String access
+    ) {
+        this();
+        setName(name);
+        
+        setCube(cube);
+    
+        setAccess(access);
+    
+    }
+
     
     /**
      * Creates a new CubeGrant with all
@@ -12504,6 +13796,30 @@ public static class DimensionGrant extends Grant {
         setName("New DimensionGrant");
     }
     
+    
+    /**
+     * Creates a new DimensionGrant with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public DimensionGrant(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "dimension") 
+        String dimension
+        , @ConstructorParameter(propertyName = "access") 
+        String access
+    ) {
+        this();
+        setName(name);
+        
+        setDimension(dimension);
+    
+        setAccess(access);
+    
+    }
+
+    
     /**
      * Creates a new DimensionGrant with all
      * attributes copied from the given DimensionGrant.
@@ -12633,6 +13949,42 @@ public static class HierarchyGrant extends Grant {
     public HierarchyGrant() {
         setName("New HierarchyGrant");
     }
+    
+    
+    /**
+     * Creates a new HierarchyGrant with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public HierarchyGrant(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "hierarchy") 
+        String hierarchy
+        , @ConstructorParameter(propertyName = "topLevel") 
+        String topLevel
+        , @ConstructorParameter(propertyName = "bottomLevel") 
+        String bottomLevel
+        , @ConstructorParameter(propertyName = "rollupPolicy") 
+        String rollupPolicy
+        , @ConstructorParameter(propertyName = "access") 
+        String access
+    ) {
+        this();
+        setName(name);
+        
+        setHierarchy(hierarchy);
+    
+        setTopLevel(topLevel);
+    
+        setBottomLevel(bottomLevel);
+    
+        setRollupPolicy(rollupPolicy);
+    
+        setAccess(access);
+    
+    }
+
     
     /**
      * Creates a new HierarchyGrant with all
@@ -12924,6 +14276,30 @@ public static class MemberGrant extends OLAPObject {
         setName("New MemberGrant");
     }
     
+    
+    /**
+     * Creates a new MemberGrant with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public MemberGrant(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "member") 
+        String member
+        , @ConstructorParameter(propertyName = "access") 
+        String access
+    ) {
+        this();
+        setName(name);
+        
+        setMember(member);
+    
+        setAccess(access);
+    
+    }
+
+    
     /**
      * Creates a new MemberGrant with all
      * attributes copied from the given MemberGrant.
@@ -13067,6 +14443,22 @@ public static class Union extends OLAPObject {
     public Union() {
         setName("New Union");
     }
+    
+    
+    /**
+     * Creates a new Union with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Union(
+        @ConstructorParameter(propertyName = "name") String name
+        
+    ) {
+        this();
+        setName(name);
+        
+    }
+
     
     /**
      * Creates a new Union with all
@@ -13258,6 +14650,26 @@ public static class RoleUsage extends OLAPObject {
         setName("New RoleUsage");
     }
     
+    
+    /**
+     * Creates a new RoleUsage with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public RoleUsage(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "roleName") 
+        String roleName
+    ) {
+        this();
+        setName(name);
+        
+        setRoleName(roleName);
+    
+    }
+
+    
     /**
      * Creates a new RoleUsage with all
      * attributes copied from the given RoleUsage.
@@ -13381,6 +14793,26 @@ public static class UserDefinedFunction extends OLAPObject {
     public UserDefinedFunction() {
         setName("New UserDefinedFunction");
     }
+    
+    
+    /**
+     * Creates a new UserDefinedFunction with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public UserDefinedFunction(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "className") 
+        String className
+    ) {
+        this();
+        setName(name);
+        
+        setClassName(className);
+    
+    }
+
     
     /**
      * Creates a new UserDefinedFunction with all
@@ -13529,6 +14961,38 @@ public static class Parameter extends OLAPObject {
     public Parameter() {
         setName("New Parameter");
     }
+    
+    
+    /**
+     * Creates a new Parameter with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public Parameter(
+        @ConstructorParameter(propertyName = "name") String name
+        
+        , @ConstructorParameter(propertyName = "description") 
+        String description
+        , @ConstructorParameter(propertyName = "type") 
+        String type
+        , @ConstructorParameter(propertyName = "modifiable") 
+        Boolean modifiable
+        , @ConstructorParameter(propertyName = "defaultValue") 
+        String defaultValue
+    ) {
+        this();
+        setName(name);
+        
+        setDescription(description);
+    
+        setType(type);
+    
+        setModifiable(modifiable);
+    
+        setDefaultValue(defaultValue);
+    
+    }
+
     
     /**
      * Creates a new Parameter with all

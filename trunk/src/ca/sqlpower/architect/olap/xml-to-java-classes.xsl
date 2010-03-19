@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonProperty;
@@ -57,6 +59,10 @@ public static class <xsl:value-of select="@type"/> extends <xsl:call-template na
     public <xsl:value-of select="@type"/>() {
         setName("New <xsl:value-of select="@type"/>");
     }
+    
+    <xsl:call-template name="annotated-constructor">
+        <xsl:with-param name="class-name" select="@type"/>
+    </xsl:call-template>
     
     /**
      * Creates a new <xsl:value-of select="@type"/> with all
@@ -96,6 +102,91 @@ public static class <xsl:value-of select="@type"/> extends <xsl:call-template na
 } // end of element <xsl:value-of select="@type"/>
 </xsl:template>
 
+<!-- Creates a constructor that is annotated to create a persister helper that accepts all mandatory values. -->
+<xsl:template name="annotated-constructor">
+<xsl:param name="class-name"/>
+    /**
+     * Creates a new <xsl:value-of select="@type"/> with all mandatory
+     * values passed in.
+     */
+    @Constructor
+    public <xsl:value-of select="$class-name"/>(
+        @ConstructorParameter(propertyName = "name") String name
+        <xsl:call-template name="annotated-constructor-arguments">
+            <xsl:with-param name="class-name" select="$class-name"/>
+            <xsl:with-param name="processed-names" select=". | ."/>
+        </xsl:call-template>
+    ) {
+        this();
+        setName(name);
+        <xsl:call-template name="annotated-constructor-setters">
+            <xsl:with-param name="class-name" select="$class-name"/>
+        </xsl:call-template>
+    }
+</xsl:template>
+
+<xsl:template name="annotated-constructor-arguments">
+<xsl:param name="class-name"/>
+<xsl:param name="processed-names"/>
+<xsl:for-each select="../Element[@type = $class-name]/Attribute[@name != 'name']">
+        <xsl:call-template name="annotated-constructor-argument">
+            <xsl:with-param name="property-name" select="@name"/>
+            <xsl:with-param name="processed-names" select="$processed-names"/>
+        </xsl:call-template>
+</xsl:for-each>
+<xsl:for-each select="../Class[@class= $class-name]/Attribute[@name != 'name']">
+        <xsl:call-template name="annotated-constructor-argument">
+            <xsl:with-param name="property-name" select="@name"/>
+            <xsl:with-param name="processed-names" select="$processed-names"/>
+        </xsl:call-template>
+</xsl:for-each>
+<xsl:if test="../Element[@type = $class-name and @class]">
+	<xsl:call-template name="annotated-constructor-arguments">
+		<xsl:with-param name="class-name" select="@class" />
+		<xsl:with-param name="processed-names" select="$processed-names | Attribute[@name != 'name']" />
+	</xsl:call-template>
+</xsl:if>
+<xsl:if test="../Class[@class = $class-name and @superclass]">
+	<xsl:call-template name="annotated-constructor-arguments">
+		<xsl:with-param name="class-name" select="@superclass" />
+		<xsl:with-param name="processed-names" select="$processed-names | Attribute[@name != 'name']" />
+	</xsl:call-template>
+</xsl:if>
+</xsl:template>
+
+<xsl:template name="annotated-constructor-argument">
+<xsl:param name="property-name"/>
+<xsl:param name="processed-names"/>
+    <xsl:if test="not($processed-names[@name = $property-name])">
+        , @ConstructorParameter(propertyName = "<xsl:value-of select="$property-name"/>") 
+        <xsl:call-template name="attribute-type"/><xsl:text> </xsl:text><xsl:value-of select="$property-name"/>
+    </xsl:if>
+</xsl:template>
+
+<xsl:template name="annotated-constructor-setters">
+<xsl:param name="class-name"/>
+<xsl:for-each select="../Element[@type = $class-name]/Attribute">
+    <xsl:if test="@name != 'name'">
+        set<xsl:call-template name="name-initcap"/>(<xsl:value-of select="@name"/>);
+    </xsl:if>
+</xsl:for-each>
+<xsl:for-each select="../Class[@class= $class-name]/Attribute">
+    <xsl:if test="@name != 'name'">
+        set<xsl:call-template name="name-initcap"/>(<xsl:value-of select="@name"/>);
+    </xsl:if>
+</xsl:for-each>
+<xsl:if test="../Element[@type = $class-name and @class]">
+    <xsl:call-template name="annotated-constructor-setters">
+        <xsl:with-param name="class-name" select="@class" />
+    </xsl:call-template>
+</xsl:if>
+<xsl:if test="../Class[@class = $class-name and @superclass]">
+    <xsl:call-template name="annotated-constructor-setters">
+        <xsl:with-param name="class-name" select="@superclass" />
+    </xsl:call-template>
+</xsl:if>
+</xsl:template>
+
 <!-- Returns the correct superclass for the current Element element -->
 <xsl:template name="superclass-of-element">
   <xsl:choose>
@@ -120,6 +211,10 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
     public <xsl:value-of select="@class"/>() {
     setName("New <xsl:value-of select="@class"/>");
     }
+    
+    <xsl:call-template name="annotated-constructor">
+        <xsl:with-param name="class-name" select="@class"/>
+    </xsl:call-template>
     
     /**
      * Creates a new <xsl:value-of select="@class"/> with all
