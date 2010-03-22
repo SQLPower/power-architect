@@ -118,7 +118,7 @@ public class RevisionListPanel {
 
             boolean filterChange = fromVersion.update() || toVersion.update();
 
-            int difference = session.getLocalRevisionNo() - currentVersion;
+            int difference = session.getUpdater().getRevision() - currentVersion;
             if (difference > 0) currentVersion += difference;
             
             String message = null;            
@@ -251,7 +251,7 @@ public class RevisionListPanel {
                 "pref, 2dlu, default:grow"));                                 
         
                
-        int currentRevision = session.getLocalRevisionNo();
+        int currentRevision = session.getUpdater().getRevision();
         long from = currentRevision - 100;
         if (from <= 0) from = 1;
         fromVersion = new JLongField(from);        

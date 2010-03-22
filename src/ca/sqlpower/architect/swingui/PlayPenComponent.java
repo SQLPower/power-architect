@@ -260,7 +260,7 @@ implements Selectable {
         return r;
     }
 
-    @Transient @Accessor
+    @Transient @Accessor(isInteresting=true)
     public Dimension getSize() {
         return new Dimension(bounds.width, bounds.height);
     }
@@ -275,7 +275,7 @@ implements Selectable {
         return getLocation();
     }
 
-    @Transient @Accessor
+    @Transient @Accessor(isInteresting=true)
     public Point getLocation() {
         return getLocation(null);
     }
@@ -409,7 +409,7 @@ implements Selectable {
         owner.repaint(x1, y1, (x2 - x1), (y2 - y1));
     }
     
-    @Accessor
+    @Accessor(isInteresting=true)
     public boolean isOpaque() {
         return opaque;
     }
@@ -422,7 +422,7 @@ implements Selectable {
         }
     }
 
-    @Accessor
+    @Accessor(isInteresting=true)
     public Color getBackgroundColor() {
         if (backgroundColor == null) {
             return getPlayPen().getBackground();
@@ -437,7 +437,7 @@ implements Selectable {
         firePropertyChange("backgroundColor", oldColor, backgroundColor);
     }
 
-    @Accessor
+    @Accessor(isInteresting=true)
     public Color getForegroundColor() {
         if (foregroundColor == null && getPlayPen() != null) {
             return getPlayPen().getForeground();
@@ -503,7 +503,7 @@ implements Selectable {
         return getUI().getPreferredSize();
     }
 
-    @Accessor
+    @Accessor(isInteresting=true)
     public abstract Object getModel();
     
     /**
@@ -582,6 +582,7 @@ implements Selectable {
         throw new IllegalArgumentException("This class does not allow children");
     }
     
+    @Override
     @Accessor
     public PlayPenContentPane getParent() {
         return (PlayPenContentPane) super.getParent();

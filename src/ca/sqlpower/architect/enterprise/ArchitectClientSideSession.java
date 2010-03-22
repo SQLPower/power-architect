@@ -119,14 +119,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
 	
 	private DataSourceCollection <JDBCDataSource> dataSourceCollection;
 	
-	// -
-
-    /**
-     * The revision this project is currently at. This will be updated as
-     * changes come in from the server.
-     */
-	int currentRevision = 0;
-	
 	public ArchitectClientSideSession(ArchitectSessionContext context, 
 			String name, ProjectLocation projectLocation) throws SQLObjectException {
 		super(context, name);
@@ -368,7 +360,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                 transactions.add(transaction);
                 
             }
-                                 
+            
             return transactions;
             
         } finally {
@@ -470,11 +462,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             httpClient.getConnectionManager().shutdown();
         }   
 	}
-	
-	public int getLocalRevisionNo() {
-	    return currentRevision;
-	}
-	
+
 	/**
      * Gets a list of DiffChunks representing the differences between the two revisions from the server.
      */
