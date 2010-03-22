@@ -403,8 +403,8 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 
 	@Mutator
 	public void setFkConnectionPoint(Point p) {
-	    Point oldValue = new Point(fkConnectionPoint);	    
-		fkConnectionPoint = new Point(p);		
+	    Point oldValue = new Point(fkConnectionPoint);
+	    fkConnectionPoint = new Point(p);
 		firePropertyChange("fkConnectionPoint", oldValue, new Point(p));
 	}
 
@@ -415,7 +415,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
             /* (non-Javadoc)
              * @see ca.sqlpower.architect.swingui.PlayPenComponentListener#componentResized(ca.sqlpower.architect.swingui.PlayPenComponentEvent)
              */
-            if (evt.getPropertyName().equals("bounds")) {
+            if (evt.getPropertyName().equals("bounds") && isMagicEnabled()) {
                 logger.debug("Component "+((PlayPenComponent)(evt.getSource())).getName()+" changed size"); //$NON-NLS-1$ //$NON-NLS-2$
                 if (((PlayPenComponent)(evt.getSource())) == pkTable) {
                     setPkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(true, getPkConnectionPoint())); // true == PK
@@ -428,8 +428,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
                 Rectangle newVal = (Rectangle) evt.getNewValue();
                 if(oldVal.x != newVal.x || oldVal.y != newVal.y) {
                     logger.debug("Component "+((PlayPenComponent)(evt.getSource())).getName()+" moved"); //$NON-NLS-1$ //$NON-NLS-2$
-                    if (((PlayPenComponent)(evt.getSource())) == pkTable || ((PlayPenComponent)(evt.getSource())) == fkTable
-                            && isMagicEnabled()) {
+                    if (((PlayPenComponent)(evt.getSource())) == pkTable || ((PlayPenComponent)(evt.getSource())) == fkTable) {
                         ((BasicRelationshipUI) getUI()).revalidate();
                     }
                 }

@@ -181,14 +181,20 @@ implements Selectable {
             return;
         } else {
             Rectangle r = new Rectangle(bounds);
-            if (isMagicEnabled()) {                
+            if (isMagicEnabled()) { 
+                // This temporary disabling of magic is under the
+                // assumption that this method properly revalidates
+                // the component in one pass, and does not rely 
+                // on recursive calls due to magical side effects
+                setMagicEnabled(false);
                 PlayPenComponentUI ui = getUI();
                 if (ui != null) {
                     ui.revalidate();
                     Dimension ps = ui.getPreferredSize();
                     if (ps != null) setSize(ps);
                 }            
-                if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$            
+                if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$
+                setMagicEnabled(true);
             }
             pp.zoomRect(r);
             pp.repaint(r);
