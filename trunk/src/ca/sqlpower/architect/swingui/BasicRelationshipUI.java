@@ -985,7 +985,7 @@ public class BasicRelationshipUI extends RelationshipUI implements java.io.Seria
 	 * correct.  A more sophisticated implementation is warranted when
 	 * time allows.
 	 */
-	public boolean isOrientationLegal() {	    
+	public boolean isOrientationLegal() {
 	    Point fkConnectionPoint = relationship.getFkConnectionPoint();
 	    Point pkConnectionPoint = relationship.getPkConnectionPoint();
 	    
