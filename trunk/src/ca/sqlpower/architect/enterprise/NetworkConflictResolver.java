@@ -299,10 +299,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         for (PersistedSPObject obj : listener.getPersistedObjects()) {
             outboundObjectsToAdd.add(obj);
         }
-        for (String uuid : listener.getPersistedProperties().keySet()) {
-            for (PersistedSPOProperty prop : listener.getPersistedProperties().asMap().get(uuid)) {
-                outboundPropertiesToChange.put(uuid, prop);
-            }
+        for (PersistedSPOProperty prop : listener.getPersistedProperties().values()) {
+            outboundPropertiesToChange.put(prop.getUUID(), prop);
         }
         for (RemovedObjectEntry rem : listener.getObjectsToRemove()) {
             outboundObjectsToRemove.add(rem);
