@@ -70,7 +70,7 @@ public class ProjectSettings extends AbstractSPObject {
         setName("Project Settings");
     }
 
-    @Accessor
+    @Accessor(isInteresting=true)
     public boolean isSavingEntireSource() {
         return savingEntireSource;        
     }
@@ -82,7 +82,7 @@ public class ProjectSettings extends AbstractSPObject {
         firePropertyChange("savingEntireSource", oldValue, savingEntireSource);
     }
 
-    @Accessor
+    @Accessor(isInteresting=true)
     public boolean isDisplayRelationshipLabel() {
         return displayRelationshipLabel;
     }
@@ -94,7 +94,7 @@ public class ProjectSettings extends AbstractSPObject {
         firePropertyChange("displayRelationshipLabel", oldValue, displayRelationshipLabel);
     }
 
-    @Accessor
+    @Accessor(isInteresting=true)
     public boolean isRelationshipLinesDirect() {
         return relationshipLinesDirect;
     }
@@ -106,7 +106,7 @@ public class ProjectSettings extends AbstractSPObject {
         firePropertyChange("relationshipLinesDirect", oldValue, relationshipLinesDirect);
     }
 
-    @Accessor
+    @Accessor(isInteresting=true)
     public boolean isUsingLogicalNames() {
         return usingLogicalNames;
     }
@@ -118,7 +118,7 @@ public class ProjectSettings extends AbstractSPObject {
         firePropertyChange("usingLogicalNames", oldValue, usingLogicalNames);
     }
 
-    @Accessor
+    @Accessor(isInteresting=true)
     public boolean isShowPkTag() {
         return showPkTag;
     }
@@ -130,7 +130,7 @@ public class ProjectSettings extends AbstractSPObject {
         firePropertyChange("showPkTag", oldValue, showPkTag);
     }
 
-    @Accessor
+    @Accessor(isInteresting=true)
     public boolean isShowFkTag() {
         return showFkTag;
     }
@@ -142,7 +142,7 @@ public class ProjectSettings extends AbstractSPObject {
         firePropertyChange("showFkTag", oldValue, showFkTag);
     }
 
-    @Accessor
+    @Accessor(isInteresting=true)
     public boolean isShowAkTag() {
         return showAkTag;
     }
@@ -154,7 +154,7 @@ public class ProjectSettings extends AbstractSPObject {
         firePropertyChange("showAkTag", oldValue, showAkTag);
     }
 
-    @Accessor
+    @Accessor(isInteresting=true)
     public ColumnVisibility getColumnVisibility() {
         return columnVisibility;
     }

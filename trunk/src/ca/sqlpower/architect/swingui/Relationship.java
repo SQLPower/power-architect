@@ -366,12 +366,12 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 		return fkTable;
 	}
 
-	@Accessor
+	@Accessor(isInteresting=true)
 	public Point getPkConnectionPoint() {
 		return new Point(pkConnectionPoint);
 	}
 
-	@Accessor
+	@Accessor(isInteresting=true)
 	public Point getFkConnectionPoint() {
 		return new Point(fkConnectionPoint);
 	}
@@ -382,7 +382,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
      * value is a bitmask of the constants
      * (PARENT|CHILD)_FACES_(LEFT|RIGHT|TOP|BOTTOM).
      */
-	@Accessor
+	@Accessor(isInteresting=true)
 	public int getOrientation() {
 	    return orientation;
 	}
