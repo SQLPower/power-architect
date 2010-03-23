@@ -527,6 +527,28 @@
 			</xslt>
 		</target>
 	
+    <!-- Build MondrianNewValueMaker -->
+        <target name="mondrianNewValueMaker">
+            <delete file="regress/ca/sqlpower/architect/util/MondrianNewValueMaker.java"></delete>
+            <xslt 
+                style="src/ca/sqlpower/architect/olap/xml-to-new-value-maker.xsl"
+                in="src/ca/sqlpower/architect/olap/Mondrian.xml"
+                out="regress/ca/sqlpower/architect/util/MondrianNewValueMaker.java"
+                classpathref="docbookclasspath">
+            </xslt>
+        </target>
+	
+    <!-- Build Mondrian persistence tests -->
+        <target name="mondrianPersistenceTests">
+            <delete file="regress/ca/sqlpower/architect/olap/MondrianModelTest.java"></delete>
+            <xslt 
+                style="src/ca/sqlpower/architect/olap/xml-to-persister-tests.xsl"
+                in="src/ca/sqlpower/architect/olap/Mondrian.xml"
+                out="regress/ca/sqlpower/architect/olap/MondrianModelTest.java"
+                classpathref="docbookclasspath">
+            </xslt>
+        </target>
+	
 	<!-- Build MondrianXMLReader -->
 		<target name="mondrianParser">
 			<delete file="src/ca/sqlpower/architect/olap/MondrianXMLReader.java"></delete>

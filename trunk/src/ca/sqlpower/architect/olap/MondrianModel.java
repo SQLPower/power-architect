@@ -1198,7 +1198,9 @@ public static class Cube extends OLAPObject {
             fireChildRemoved(Relation.class, oldval, overallPosition);
         }
         fact = newval;
-        fact.setParent(this);
+        if (fact != null) {
+            fact.setParent(this);
+        }
         fireChildAdded(Relation.class, fact, overallPosition);
 	}
 
@@ -1786,7 +1788,9 @@ public static class VirtualCube extends OLAPObject {
             fireChildRemoved(CubeUsages.class, oldval, overallPosition);
         }
         cubeUsage = newval;
-        cubeUsage.setParent(this);
+        if (cubeUsage != null) {
+            cubeUsage.setParent(this);
+        }
         fireChildAdded(CubeUsages.class, cubeUsage, overallPosition);
 	}
 
@@ -2714,11 +2718,11 @@ public static class VirtualCubeDimension extends CubeDimension {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -3122,11 +3126,11 @@ public static class DimensionUsage extends CubeDimension {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -3859,7 +3863,9 @@ public static class Hierarchy extends OLAPObject {
             fireChildRemoved(RelationOrJoin.class, oldval, overallPosition);
         }
         relation = newval;
-        relation.setParent(this);
+        if (relation != null) {
+            relation.setParent(this);
+        }
         fireChildAdded(RelationOrJoin.class, relation, overallPosition);
 	}
 
@@ -4642,7 +4648,9 @@ public static class Level extends OLAPObject {
             fireChildRemoved(KeyExpression.class, oldval, overallPosition);
         }
         keyExp = newval;
-        keyExp.setParent(this);
+        if (keyExp != null) {
+            keyExp.setParent(this);
+        }
         fireChildAdded(KeyExpression.class, keyExp, overallPosition);
 	}
 
@@ -4668,7 +4676,9 @@ public static class Level extends OLAPObject {
             fireChildRemoved(NameExpression.class, oldval, overallPosition);
         }
         nameExp = newval;
-        nameExp.setParent(this);
+        if (nameExp != null) {
+            nameExp.setParent(this);
+        }
         fireChildAdded(NameExpression.class, nameExp, overallPosition);
 	}
 
@@ -4693,7 +4703,9 @@ public static class Level extends OLAPObject {
             fireChildRemoved(OrdinalExpression.class, oldval, overallPosition);
         }
         ordinalExp = newval;
-        ordinalExp.setParent(this);
+        if (ordinalExp != null) {
+            ordinalExp.setParent(this);
+        }
         fireChildAdded(OrdinalExpression.class, ordinalExp, overallPosition);
 	}
 
@@ -4719,7 +4731,9 @@ public static class Level extends OLAPObject {
             fireChildRemoved(ParentExpression.class, oldval, overallPosition);
         }
         parentExp = newval;
-        parentExp.setParent(this);
+        if (parentExp != null) {
+            parentExp.setParent(this);
+        }
         fireChildAdded(ParentExpression.class, parentExp, overallPosition);
 	}
 
@@ -4742,7 +4756,9 @@ public static class Level extends OLAPObject {
             fireChildRemoved(Closure.class, oldval, overallPosition);
         }
         closure = newval;
-        closure.setParent(this);
+        if (closure != null) {
+            closure.setParent(this);
+        }
         fireChildAdded(Closure.class, closure, overallPosition);
 	}
 
@@ -5100,7 +5116,9 @@ public static class Closure extends OLAPObject {
             fireChildRemoved(Table.class, oldval, overallPosition);
         }
         table = newval;
-        table.setParent(this);
+        if (table != null) {
+            table.setParent(this);
+        }
         fireChildAdded(Table.class, table, overallPosition);
 	}
 
@@ -5747,7 +5765,9 @@ public static class Measure extends OLAPObject {
             fireChildRemoved(MeasureExpression.class, oldval, overallPosition);
         }
         measureExp = newval;
-        measureExp.setParent(this);
+        if (measureExp != null) {
+            measureExp.setParent(this);
+        }
         fireChildAdded(MeasureExpression.class, measureExp, overallPosition);
 	}
 
@@ -6158,7 +6178,9 @@ public static class CalculatedMember extends OLAPObject {
             fireChildRemoved(Formula.class, oldval, overallPosition);
         }
         formulaElement = newval;
-        formulaElement.setParent(this);
+        if (formulaElement != null) {
+            formulaElement.setParent(this);
+        }
         fireChildAdded(Formula.class, formulaElement, overallPosition);
 	}
 
@@ -6701,7 +6723,9 @@ public static class NamedSet extends OLAPObject {
             fireChildRemoved(Formula.class, oldval, overallPosition);
         }
         formulaElement = newval;
-        formulaElement.setParent(this);
+        if (formulaElement != null) {
+            formulaElement.setParent(this);
+        }
         fireChildAdded(Formula.class, formulaElement, overallPosition);
 	}
 
@@ -7292,11 +7316,11 @@ public abstract static class Relation extends RelationOrJoin {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -7916,7 +7940,9 @@ public static class Join extends RelationOrJoin {
             fireChildRemoved(RelationOrJoin.class, oldval, overallPosition);
         }
         left = newval;
-        left.setParent(this);
+        if (left != null) {
+            left.setParent(this);
+        }
         fireChildAdded(RelationOrJoin.class, left, overallPosition);
 	}
 
@@ -7939,7 +7965,9 @@ public static class Join extends RelationOrJoin {
             fireChildRemoved(RelationOrJoin.class, oldval, overallPosition);
         }
         right = newval;
-        right.setParent(this);
+        if (right != null) {
+            right.setParent(this);
+        }
         fireChildAdded(RelationOrJoin.class, right, overallPosition);
 	}
 
@@ -8211,7 +8239,9 @@ public static class Table extends Relation {
             fireChildRemoved(SQL.class, oldval, overallPosition);
         }
         filter = newval;
-        filter.setParent(this);
+        if (filter != null) {
+            filter.setParent(this);
+        }
         fireChildAdded(SQL.class, filter, overallPosition);
 	}
 
@@ -8573,7 +8603,9 @@ public static class InlineTable extends Relation {
             fireChildRemoved(ColumnDefs.class, oldval, overallPosition);
         }
         columnDefs = newval;
-        columnDefs.setParent(this);
+        if (columnDefs != null) {
+            columnDefs.setParent(this);
+        }
         fireChildAdded(ColumnDefs.class, columnDefs, overallPosition);
 	}
 
@@ -8596,7 +8628,9 @@ public static class InlineTable extends Relation {
             fireChildRemoved(Rows.class, oldval, overallPosition);
         }
         rows = newval;
-        rows.setParent(this);
+        if (rows != null) {
+            rows.setParent(this);
+        }
         fireChildAdded(Rows.class, rows, overallPosition);
 	}
 
@@ -9745,7 +9779,9 @@ public abstract static class AggTable extends OLAPObject {
             fireChildRemoved(AggFactCount.class, oldval, overallPosition);
         }
         factcount = newval;
-        factcount.setParent(this);
+        if (factcount != null) {
+            factcount.setParent(this);
+        }
         fireChildAdded(AggFactCount.class, factcount, overallPosition);
 	}
 
@@ -10265,11 +10301,11 @@ public static class AggName extends AggTable {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -10961,11 +10997,11 @@ public static class AggFactCount extends AggColumnName {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -11083,11 +11119,11 @@ public static class AggIgnoreColumn extends AggColumnName {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -11868,11 +11904,11 @@ public static class Column extends Expression {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -12199,11 +12235,11 @@ public static class KeyExpression extends ExpressionView {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -12317,11 +12353,11 @@ public static class ParentExpression extends ExpressionView {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -12435,11 +12471,11 @@ public static class OrdinalExpression extends ExpressionView {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -12553,11 +12589,11 @@ public static class NameExpression extends ExpressionView {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -12671,11 +12707,11 @@ public static class CaptionExpression extends ExpressionView {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -12789,11 +12825,11 @@ public static class MeasureExpression extends ExpressionView {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
@@ -12981,7 +13017,9 @@ public static class Role extends OLAPObject {
             fireChildRemoved(Union.class, oldval, overallPosition);
         }
         union = newval;
-        union.setParent(this);
+        if (union != null) {
+            union.setParent(this);
+        }
         fireChildAdded(Union.class, union, overallPosition);
 	}
 
@@ -13889,11 +13927,11 @@ public static class DimensionGrant extends Grant {
         
     @NonProperty
     public List<SPObject> getChildren() {
-        return Collections.emptyList();
+        return super.getChildren();
     }
     
     public boolean allowsChildren() {
-        return false;
+        return super.allowsChildren();
     }
     
     /**
