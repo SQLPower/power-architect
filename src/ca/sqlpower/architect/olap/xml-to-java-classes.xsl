@@ -306,7 +306,9 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
             fireChildRemoved(<xsl:call-template name="attribute-type"/>.class, oldval, overallPosition);
         }
         <xsl:value-of select="@name"/> = newval;
-        <xsl:value-of select="@name"/>.setParent(this);
+        if (<xsl:value-of select="@name"/> != null) {
+            <xsl:value-of select="@name"/>.setParent(this);
+        }
         fireChildAdded(<xsl:call-template name="attribute-type"/>.class, <xsl:value-of select="@name"/>, overallPosition);
 	}
 </xsl:template>
@@ -496,11 +498,19 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         
     @NonProperty
     public List&lt;SPObject&gt; getChildren() {
-        return Collections.emptyList();
+        return <xsl:choose>
+        <xsl:when test="name() = 'Element' and @class">super.getChildren();</xsl:when>
+        <xsl:when test="name() = 'Class' and @superclass">super.getChildren();</xsl:when>
+        <xsl:otherwise>Collections.emptyList();</xsl:otherwise>
+    </xsl:choose>
     }
     
     public boolean allowsChildren() {
-        return false;
+        return <xsl:choose>
+        <xsl:when test="name() = 'Element' and @class">super.allowsChildren();</xsl:when>
+        <xsl:when test="name() = 'Class' and @superclass">super.allowsChildren();</xsl:when>
+        <xsl:otherwise>false;</xsl:otherwise>
+    </xsl:choose>
     }
     
     /**

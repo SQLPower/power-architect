@@ -23,6 +23,7 @@ import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ProjectSettings;
 import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
@@ -46,12 +47,15 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
 
     private final ArchitectProject valueMakerProject;
     
+    private final MondrianNewValueMaker mondrianValueMaker;
+    
     public ArchitectNewValueMaker(SPObject root) {
         this(root, new PlDotIni());
     }
     
     public ArchitectNewValueMaker(final SPObject root, DataSourceCollection<SPDataSource> dsCollection) {
         super(root, dsCollection);
+        mondrianValueMaker = new MondrianNewValueMaker(root, dsCollection);
         valueMakerProject = (ArchitectProject) makeNewValue(ArchitectProject.class, null, null);
         valueMakerProject.setPlayPenContentPane(new PlayPenContentPane());
     }    
@@ -118,6 +122,8 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             return session;
         } else if (valueType == OLAPRootObject.class) {
             return ((ArchitectProject) makeNewValue(ArchitectProject.class, null, null)).getOlapRootObject();
+        } else if (OLAPObject.class.isAssignableFrom(valueType)) {
+            return mondrianValueMaker.makeNewValue(valueType, oldVal, propName);
         } else {
             return super.makeNewValue(valueType, oldVal, propName);
         }
