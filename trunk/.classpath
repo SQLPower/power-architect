@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="regress"/>
 	<classpathentry kind="src" path="jdbc_drivers"/>
 	<classpathentry kind="src" path="ext-tools-home/resgen/src"/>
 	<classpathentry kind="src" path="example_code"/>
 	<classpathentry kind="src" path="generated"/>
-	<classpathentry kind="src" path="src/main/java"/>
-	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/sqlpower_library"/>
 	<classpathentry kind="lib" path="buildlib/ant.jar"/>

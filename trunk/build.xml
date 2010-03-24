@@ -15,13 +15,7 @@
 	<property file="build.properties" />
 
 	<!-- The directory where the Java source files are -->
-	<property name="src" value="src/main/java"/>
-	
-	<!-- The directory where resources are located (images, sounds, etc) -->
-	<property name="resources" value="src/main/resources"/>
-	
-	<!-- The directory where the Java source files are -->
-	<property name="src.apt" value="${sqlpower.library.home}/src/apt/java"/>
+	<property name="src" value="src"/>
 	
 	<!-- The directory with all the JAR files that are required
 	     by the Architect at runtime -->
@@ -405,7 +399,6 @@
 	<!-- Compiles the application source files -->
 	<target name="compile" depends="init, copyfiles, build.sqlpower.library, copy.sqlpower.library">
 	   	<mkdir dir="${build_tmp}"/>
-		<javac srcdir="${src.apt}" destdir="${build}" classpathref="compile.classpath" debug="true"/>
         <javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true"/>
 		<apt srcdir="${src}"
             destdir="${build_tmp}"
@@ -420,13 +413,13 @@
             <fileset dir="${build_tmp}"/>
         </move>
         <copy todir="${build}">
-            <fileset dir="${resources}">
+            <fileset dir="${src}">
                 <include name="**/*.png"/>
                 <include name="xsltStylesheets/**"/>
             </fileset>
         </copy>
         <copy todir="${build}/">
-            <fileset dir="${resources}">
+            <fileset dir="src">
                 <include name="**/messages*.properties"/>
             </fileset>
 	    </copy>
@@ -452,7 +445,7 @@
 	<target name="copyfiles" depends="init, architect.version.properties"
 		description="Copies non-source files that need to be in the architect.jar">
         <copy todir="${build}">
-			<fileset dir="${resources}/">
+			<fileset dir="src/">
 				<include name="**"/>
 				<exclude name="**/*.java"/>
 				<exclude name="**/*.html"/>
@@ -525,11 +518,11 @@
 
 	<!-- Build MondrianModel -->
 		<target name="mondrianModel">
-			<delete file="${src}/ca/sqlpower/architect/olap/MondrianModel.java"></delete>
+			<delete file="src/ca/sqlpower/architect/olap/MondrianModel.java"></delete>
 			<xslt 
-				style="${src}/ca/sqlpower/architect/olap/xml-to-java-classes.xsl"
-				in="${src}/ca/sqlpower/architect/olap/Mondrian.xml"
-				out="${src}/ca/sqlpower/architect/olap/MondrianModel.java"
+				style="src/ca/sqlpower/architect/olap/xml-to-java-classes.xsl"
+				in="src/ca/sqlpower/architect/olap/Mondrian.xml"
+				out="src/ca/sqlpower/architect/olap/MondrianModel.java"
 				classpathref="docbookclasspath">
 			</xslt>
 		</target>
@@ -538,8 +531,8 @@
         <target name="mondrianNewValueMaker">
             <delete file="regress/ca/sqlpower/architect/util/MondrianNewValueMaker.java"></delete>
             <xslt 
-                style="${src}/ca/sqlpower/architect/olap/xml-to-new-value-maker.xsl"
-                in="${src}/ca/sqlpower/architect/olap/Mondrian.xml"
+                style="src/ca/sqlpower/architect/olap/xml-to-new-value-maker.xsl"
+                in="src/ca/sqlpower/architect/olap/Mondrian.xml"
                 out="regress/ca/sqlpower/architect/util/MondrianNewValueMaker.java"
                 classpathref="docbookclasspath">
             </xslt>
@@ -549,8 +542,8 @@
         <target name="mondrianPersistenceTests">
             <delete file="regress/ca/sqlpower/architect/olap/MondrianModelTest.java"></delete>
             <xslt 
-                style="${src}/ca/sqlpower/architect/olap/xml-to-persister-tests.xsl"
-                in="${src}/ca/sqlpower/architect/olap/Mondrian.xml"
+                style="src/ca/sqlpower/architect/olap/xml-to-persister-tests.xsl"
+                in="src/ca/sqlpower/architect/olap/Mondrian.xml"
                 out="regress/ca/sqlpower/architect/olap/MondrianModelTest.java"
                 classpathref="docbookclasspath">
             </xslt>
@@ -558,22 +551,22 @@
 	
 	<!-- Build MondrianXMLReader -->
 		<target name="mondrianParser">
-			<delete file="${src}/ca/sqlpower/architect/olap/MondrianXMLReader.java"></delete>
+			<delete file="src/ca/sqlpower/architect/olap/MondrianXMLReader.java"></delete>
 			<xslt 
-				style="${src}/ca/sqlpower/architect/olap/xml-to-parser.xsl"
-				in="${src}/ca/sqlpower/architect/olap/Mondrian.xml"
-				out="${src}/ca/sqlpower/architect/olap/MondrianXMLReader.java"
+				style="src/ca/sqlpower/architect/olap/xml-to-parser.xsl"
+				in="src/ca/sqlpower/architect/olap/Mondrian.xml"
+				out="src/ca/sqlpower/architect/olap/MondrianXMLReader.java"
 				classpathref="docbookclasspath">
 			</xslt>
 		</target>
 	
 	<!-- Build MondrianXMLWriter -->
 	<target name="mondrianFormatter">
-		<delete file="${src}/ca/sqlpower/architect/olap/MondrianXMLWriter.java"></delete>
+		<delete file="src/ca/sqlpower/architect/olap/MondrianXMLWriter.java"></delete>
 		<xslt 
-			style="${src}/ca/sqlpower/architect/olap/xml-to-formatter.xsl"
-			in="${src}/ca/sqlpower/architect/olap/Mondrian.xml"
-			out="${src}/ca/sqlpower/architect/olap/MondrianXMLWriter.java"
+			style="src/ca/sqlpower/architect/olap/xml-to-formatter.xsl"
+			in="src/ca/sqlpower/architect/olap/Mondrian.xml"
+			out="src/ca/sqlpower/architect/olap/MondrianXMLWriter.java"
 			classpathref="docbookclasspath">
 		</xslt>
 	</target>
@@ -634,9 +627,9 @@
 			</fileset>
 		</copy>
 
-		<mkdir dir="${build}/help/${resources}/icons"/>
-		<copy todir="${build}/help/${resources}/icons" overwrite="true">
-			<fileset dir="${resources}/icons">
+		<mkdir dir="${build}/help/src/icons"/>
+		<copy todir="${build}/help/src/icons" overwrite="true">
+			<fileset dir="src/icons">
 				<include name="*.gif"/>
 				<include name="*.png"/>
 			</fileset>
@@ -666,9 +659,9 @@
 				<include name="*.png"/>
 			</fileset>
 		</copy>
-		<mkdir dir="${build}/ca/sqlpower/architect/doc/${resources}/icons" />
-		<copy todir="${build}/ca/sqlpower/architect/doc/${resources}/icons" overwrite="true">
-			<fileset dir="${resources}/icons">
+		<mkdir dir="${build}/ca/sqlpower/architect/doc/src/icons" />
+		<copy todir="${build}/ca/sqlpower/architect/doc/src/icons" overwrite="true">
+			<fileset dir="src/icons">
 				<include name="*.gif"/>
 				<include name="*.png"/>
 			</fileset>
@@ -771,7 +764,7 @@
 					supporturl="http://www.sqlpower.ca/forum"
 					customprocname="false"
 					stayalive="false"
-					icon="${resources}/icons/architect.ico">
+					icon="src/icons/architect.ico">
 				<jre minVersion="1.5.0"
 					 maxHeapSize="600"
 				/>
@@ -800,7 +793,7 @@
     	
 		<copy todir="${staging.dir}/jdbc">
 		    <fileset dir="jdbc_drivers" includes="*.jar"/>
-			<fileset dir="${src}" includes="default_database_types.ini"/>
+			<fileset dir="src" includes="default_database_types.ini"/>
 	    </copy>
     	<copy todir="${staging.dir}/doc" file="doc/ReleaseNotes.txt"/>
 
@@ -948,7 +941,7 @@
 					<langpack iso3="eng"/>
 				</locale>
 				<resources>
-					<res id="Installer.image" src="../src/main/resources/icons/architect.png"/>
+					<res id="Installer.image" src="../src/icons/architect.png"/>
 					<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
 					<res id="LicencePanel.licence" src="../LICENSE" />
 					<res src="RegistrySpec.xml" id="RegistrySpec.xml"/>
@@ -986,7 +979,7 @@
 						<fileset dir="../staging/" targetdir="$INSTALL_PATH">
 							<include name="LICENSE"/>
 						</fileset>
-						<fileset dir="../src/main/resources/icons" targetdir="$INSTALL_PATH">
+						<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 							<include name="*.ico"/>
 						</fileset>
 					</pack>
@@ -1029,7 +1022,7 @@
 						<langpack iso3="eng"/>
 					</locale>
 					<resources>
-						<res id="Installer.image" src="../src/main/resources/icons/architect.png"/>
+						<res id="Installer.image" src="../src/icons/architect.png"/>
 						<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
 						<res id="LicencePanel.licence" src="../LICENSE" />
 						<res src="RegistrySpec.xml" id="RegistrySpec.xml"/>
@@ -1068,7 +1061,7 @@
 							<fileset dir="../staging/" targetdir="$INSTALL_PATH">
 								<include name="LICENSE"/>
 							</fileset>
-							<fileset dir="../src/main/resources/icons" targetdir="$INSTALL_PATH">
+							<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 								<include name="*.ico"/>
 							</fileset>
 							<fileset dir="../staging/" targetdir="$INSTALL_PATH/uninstaller">
@@ -1103,7 +1096,7 @@
 					supporturl="http://www.sqlpower.ca/forum"
 					customprocname="false"
 					stayalive="false"
-					icon="${resources}/icons/architect.ico">
+					icon="src/icons/architect.ico">
 				<singleInstance
 					mutexName="SQL Power Architect Installer"
 					windowTitle="SQL Power Architect Installer"
@@ -1127,7 +1120,7 @@
 					supporturl="http://www.sqlpower.ca/forum"
 					customprocname="false"
 					stayalive="false"
-					icon="${resources}/icons/architect.ico">
+					icon="src/icons/architect.ico">
 				<singleInstance
 					mutexName="SQL Power Architect Installer"
 					windowTitle="SQL Power Architect Installer"
@@ -1157,7 +1150,7 @@
            name="Power Architect"
            version="${app.version}"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
-           icon="${resources}/icons/Power Architect.icns"
+           icon="src/icons/Power Architect.icns"
            jvmversion="1.5+"
            shortname="Architect"
            stubfile="osx_packaging_utils/PowerArchitectStub"
@@ -1183,7 +1176,7 @@
            name="Power Architect JDBC"
            version="${app.version}.jdbc"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
-           icon="${resources}/icons/Power Architect.icns"
+           icon="src/icons/Power Architect.icns"
            jvmversion="1.5+"
            shortname="Architect"
            stubfile="osx_packaging_utils/PowerArchitectStub"
@@ -1365,8 +1358,8 @@
 			<tarfileset dir="."
 				prefix="architect-src-only-${app.version}"
 				includes="${src}/**/*.java,
-					  ${resources}/**/*.png,
-					  ${resources}/**/*.gif,
+					  ${src}/**/*.png,
+					  ${src}/**/*.gif,
 					  regress/**/*.java,
 					  build.xml,
 					  build.properties.example,
@@ -1500,15 +1493,17 @@
 	
 	<target name="build.sqlpower.library" depends="check.sqlpower.library.dir" if="buildSQLPowerLibrary">
 		<echo message="Attempting to build sqlpower-library project..."/>
-		<ant inheritall="false" dir="${sqlpower.library.home}" target="clean">
+		<ant dir="${sqlpower.library.home}" target="clean">
+			<property name="build" value="${sqlpower.library.home}/build"/>
 		</ant>
-		<ant inheritall="false" dir="${sqlpower.library.home}" target="jar">
+		<ant dir="${sqlpower.library.home}" target="jar">
+			<property name="build" value="${sqlpower.library.home}/build"/>
+			<property name="dist.dir" value="${sqlpower.library.home}/dist"/>
 		</ant>
 	</target>
 	
 	<target name="copy.sqlpower.library" depends="check.sqlpower.library.dir">
 		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${lib}"/>
-	    <copy file="${sqlpower.library.home}/dist/sqlpower_library-tests.jar" todir="${build.tests}"/>
 	</target>
 	
 	<target name="architect.version.properties" depends="init">
