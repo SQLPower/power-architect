@@ -45,8 +45,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.enterprise.TransactionInformation;
+import ca.sqlpower.enterprise.client.ClientSideSession;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**
@@ -56,7 +56,7 @@ public class RevisionsTable extends JTable {
     
     private static final String[] HEADERS = {"Version", "Time Created", "Author", "Description"};
     
-    private ArchitectClientSideSession session;
+    private ClientSideSession session;
     
     private List<TransactionInformation> transactions = new ArrayList<TransactionInformation>();
     
@@ -123,7 +123,7 @@ public class RevisionsTable extends JTable {
         }
      }
     
-    public RevisionsTable(ArchitectClientSideSession session, long fromRevision, long toRevision) {
+    public RevisionsTable(ClientSideSession session, long fromRevision, long toRevision) {
         super();
         
         this.session = session;      
