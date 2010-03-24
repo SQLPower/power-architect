@@ -45,7 +45,15 @@ public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
             while ((line = reader.readLine()) != null) {
                 buffer.append(line).append("\n");
             }
-            JSONObject message = new JSONObject(buffer.toString());
+            return handleResponse(buffer.toString());
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    public JSONMessage handleResponse(String json) {
+        try {
+            JSONObject message = new JSONObject(json);
             
             // Does the response contain data? If so, return it. Communication
             // with the resource has been successful.
@@ -59,15 +67,15 @@ public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
                     // Does the response contain an exception? If so, reconstruct, and then
                     // re-throw it. There has been an exception on the server.
                     if (message.getString("responseKind").equals("exceptionStackTrace")) {
-             
+
                         JSONArray stackTraceStrings = new JSONArray(message.getString("data"));
                         StringBuffer stackTraceMessage = new StringBuffer();
                         for (int i = 0; i < stackTraceStrings.length(); i++) {
                             stackTraceMessage.append("\n").append(stackTraceStrings.get(i));
                         }
-                    
+
                         throw new Exception(stackTraceMessage.toString());
-                    
+
                     } else {
                         // This exception represents a(n epic) client-server miscommunication
                         throw new Exception("Unable to parse response ");

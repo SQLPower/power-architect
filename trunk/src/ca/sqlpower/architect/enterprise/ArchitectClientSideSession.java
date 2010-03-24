@@ -59,6 +59,7 @@ import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.diff.DiffInfo;
 import ca.sqlpower.diff.SimpleDiffChunkJSONConverter;
 import ca.sqlpower.enterprise.TransactionInformation;
+import ca.sqlpower.enterprise.client.ClientSideSession;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
@@ -76,7 +77,7 @@ import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
-public class ArchitectClientSideSession extends ArchitectSessionImpl {	
+public class ArchitectClientSideSession extends ArchitectSessionImpl implements ClientSideSession {	
 	
 	private static Logger logger = Logger.getLogger(ArchitectClientSideSession.class);
 	private static CookieStore cookieStore = new BasicCookieStore();
@@ -323,21 +324,11 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
     	}
     }
 	
-	/**
-     * Requests the server for the transaction list. 
-     * 
-     * @return A list of TransactionInformation containing all the information about revisions of this project.
-     * @throws IOException
-     * @throws URISyntaxException
-     * @throws JSONException
-     * @throws ParseException
-     */
     public List<TransactionInformation> getTransactionList(long fromVersion, long toVersion)
     throws IOException, URISyntaxException, JSONException, ParseException {
         
         SPServerInfo serviceInfo = projectLocation.getServiceInfo();
         HttpClient httpClient = createHttpClient(serviceInfo);
-        List<TransactionInformation> transactions = new ArrayList<TransactionInformation>();
         
         try {
             
@@ -346,22 +337,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
                     "/project/" + projectLocation.getUUID() + "/revision_list",
                     "versions=" + fromVersion + ":" + toVersion,
                     new JSONResponseHandler());
-            JSONArray jsonArray = new JSONArray(message.getBody());
             
-            for (int i = 0; i < jsonArray.length(); i++) {
-                
-                JSONObject json = jsonArray.getJSONObject(i);
-                TransactionInformation transaction = new TransactionInformation(
-                        json.getLong("number"),                     
-                        TransactionInformation.DATE_FORMAT.parse(json.getString("time")),
-                        json.getString("author"),
-                        json.getString("description"),
-                        json.getString("simpleDescription"));
-                transactions.add(transaction);
-                
-            }
-            
-            return transactions;
+            return decodeJSONRevisionList(message.getBody());
             
         } finally {
             httpClient.getConnectionManager().shutdown();
@@ -484,6 +461,27 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl {
             httpClient.getConnectionManager().shutdown();
         }
         
+	}
+	
+	public static List<TransactionInformation> decodeJSONRevisionList(String json) 
+	throws JSONException, ParseException {
+        JSONArray jsonArray = new JSONArray(json);
+        List<TransactionInformation> transactions = new ArrayList<TransactionInformation>();
+        
+        for (int i = 0; i < jsonArray.length(); i++) {
+            
+            JSONObject jsonItem = jsonArray.getJSONObject(i);
+            TransactionInformation transaction = new TransactionInformation(
+                    jsonItem.getLong("number"),                     
+                    TransactionInformation.DATE_FORMAT.parse(jsonItem.getString("time")),
+                    jsonItem.getString("author"),
+                    jsonItem.getString("description"),
+                    jsonItem.getString("simpleDescription"));
+            transactions.add(transaction);
+            
+        }
+        
+        return transactions;
 	}
 	
 	public static void deleteServerWorkspace(ProjectLocation projectLocation) throws URISyntaxException, ClientProtocolException, IOException {
