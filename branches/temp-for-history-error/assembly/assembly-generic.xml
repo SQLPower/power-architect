@@ -1,0 +1,46 @@
+<assembly>
+  <id>generic</id>
+  <formats>
+    <format>tar.gz</format>
+  </formats>
+  <fileSets>
+    <fileSet>
+      <includes>
+        <include>LICENSE</include>
+        <include>LEGAL</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>doc</directory>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>README.generic</include>
+        <include>ReleaseNotes</include>
+        <include>INSTALL</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>staging</directory>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>architect.jar</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>jdbc_drivers</directory>
+      <outputDirectory>jdbc</outputDirectory>
+      <includes>
+        <include>*.jar</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+  
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>lib/</outputDirectory>
+      <outputFileNameMapping>
+        ${artifact.artifactId}-${artifact.version}.${artifact.extension}
+      </outputFileNameMapping>
+    </dependencySet>
+  </dependencySets>
+</assembly>
