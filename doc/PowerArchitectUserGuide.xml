@@ -409,77 +409,77 @@
 
         <para><inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Database16.png"
+              <imagedata fileref="src/main/resources/ca/sqlpower/architect/swingui/dbtree/icons/Database16.png"
                          format="PNG" />
             </imageobject>
           </inlinemediaobject> Database</para>
 
         <para><inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Catalog16.png"
+              <imagedata fileref="src/main/resources/ca/sqlpower/architect/swingui/dbtree/icons/Catalog16.png"
                          format="PNG" />
             </imageobject>
           </inlinemediaobject> Catalogue</para>
 
         <para><inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Schema16.png"
+              <imagedata fileref="src/main/resources/ca/sqlpower/architect/swingui/dbtree/icons/Schema16.png"
                          format="PNG" />
             </imageobject>
           </inlinemediaobject> Schema</para>
 
         <para><inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Owner16.png"
+              <imagedata fileref="src/main/resources/ca/sqlpower/architect/swingui/dbtree/icons/Owner16.png"
                          format="PNG" />
             </imageobject>
           </inlinemediaobject> Owner</para>
 
         <para><inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Table16.png"
+              <imagedata fileref="src/main/resources/ca/sqlpower/architect/swingui/dbtree/icons/Table16.png"
                          format="PNG" />
             </imageobject>
           </inlinemediaobject> Table</para>
 
         <para><inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Column16.png"
+              <imagedata fileref="src/main/resources/ca/sqlpower/architect/swingui/dbtree/icons/Column16.png"
                          format="PNG" />
             </imageobject>
           </inlinemediaobject> Column</para>
 
         <para><inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Index_key16.png"
+              <imagedata fileref="src/main/resources/ca/sqlpower/architect/swingui/dbtree/icons/Index_key16.png"
                          format="PNG" />
             </imageobject>
           </inlinemediaobject> Primary Key</para>
 
         <para><inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/ExportedKey16.png"
+              <imagedata fileref="src/main/resources/ca/sqlpower/architect/swingui/dbtree/icons/ExportedKey16.png"
                          format="PNG" />
             </imageobject>
           </inlinemediaobject> Exported Key</para>
 
         <para><inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/ImportedKey16.png"
+              <imagedata fileref="src/main/resources/ca/sqlpower/architect/swingui/dbtree/icons/ImportedKey16.png"
                          format="PNG" />
             </imageobject>
           </inlinemediaobject> Imported Key</para>
 
         <para><inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Index16.png"
+              <imagedata fileref="src/main/resources/ca/sqlpower/architect/swingui/dbtree/icons/Index16.png"
                          format="PNG" />
             </imageobject>
           </inlinemediaobject> Index</para>
 
         <para><inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/ca/sqlpower/architect/swingui/dbtree/icons/Index_unique16.png"
+              <imagedata fileref="src/main/resources/ca/sqlpower/architect/swingui/dbtree/icons/Index_unique16.png"
                          format="PNG" />
             </imageobject>
           </inlinemediaobject> Unique Index</para>
@@ -777,7 +777,7 @@
           <listitem>
             <para>Click <inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="src/icons/new_table16.png" format="PNG" />
+                  <imagedata fileref="src/main/resources/icons/new_table16.png" format="PNG" />
                 </imageobject>
               </inlinemediaobject> in the side toolbar. The cursor changes to
             a +.</para>
@@ -886,7 +886,7 @@
           <listitem>
             <para>Click a table in the playpen, then click <inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="src/icons/edit_column16.png"
+                  <imagedata fileref="src/main/resources/icons/edit_column16.png"
                              format="PNG" />
                 </imageobject>
               </inlinemediaobject> in the side toolbar.</para>
@@ -969,7 +969,7 @@
           <listitem>
             <para>Click <inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="src/icons/new_column16.png" format="PNG" />
+                  <imagedata fileref="src/main/resources/icons/new_column16.png" format="PNG" />
                 </imageobject>
               </inlinemediaobject> in the side toolbar. The Column Properties
             dialog box appears.</para>
@@ -1168,7 +1168,7 @@
           <listitem>
             <para>Click a column, then click <inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="src/icons/edit_column16.png"
+                  <imagedata fileref="src/main/resources/icons/edit_column16.png"
                              format="PNG" />
                 </imageobject>
               </inlinemediaobject> in the side toolbar.</para>
@@ -1410,7 +1410,7 @@
                 <para>To define an identifying relationship, click
                 <inlinemediaobject>
                     <imageobject>
-                      <imagedata fileref="src/icons/new_id_relationship16.png"
+                      <imagedata fileref="src/main/resources/icons/new_id_relationship16.png"
                                  format="PNG" />
                     </imageobject>
                   </inlinemediaobject> in the side toolbar, or press R. The
@@ -1421,7 +1421,7 @@
                 <para>To define a non-identifying relationship, click
                 <inlinemediaobject>
                     <imageobject>
-                      <imagedata fileref="src/icons/new_nonid_relationship16.png"
+                      <imagedata fileref="src/main/resources/icons/new_nonid_relationship16.png"
                                  format="PNG" />
                     </imageobject>
                   </inlinemediaobject> in the side toolbar, or press SHIFT+R.
@@ -1509,7 +1509,7 @@
             <para>Click a relationship link in the playpen, then click
             <inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="src/icons/edit_relationship16.png"
+                  <imagedata fileref="src/main/resources/icons/edit_relationship16.png"
                              format="PNG" />
                 </imageobject>
               </inlinemediaobject> in the side toolbar. The Relationship
@@ -1829,7 +1829,7 @@
           <listitem>
             <para>Select a table in the playpen, then click <inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="src/icons/new_index16.png" format="PNG" />
+                  <imagedata fileref="src/main/resources/icons/new_index16.png" format="PNG" />
                 </imageobject>
               </inlinemediaobject> in the side toolbar. The Index Properties
             dialog box appears.</para>
@@ -2083,14 +2083,14 @@
 
         <para>To undo an action, click <inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/icons/undo_arrow16.png" format="PNG" />
+              <imagedata fileref="src/main/resources/icons/undo_arrow16.png" format="PNG" />
             </imageobject>
           </inlinemediaobject> in the top toolbar. You can also select Edit »
         Undo or press CTRL+Z.</para>
 
         <para>To redo an action, click <inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/icons/redo_arrow16.png" format="PNG" />
+              <imagedata fileref="src/main/resources/icons/redo_arrow16.png" format="PNG" />
             </imageobject>
           </inlinemediaobject> in the top toolbar. You can also select Edit »
         Redo or press CTRL+Y.</para>
@@ -2129,7 +2129,7 @@
         the playpen, select one or more objects in the playpen, then click
         <inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/icons/delete16.png" format="PNG" />
+              <imagedata fileref="src/main/resources/icons/delete16.png" format="PNG" />
             </imageobject>
           </inlinemediaobject> in the side toolbar.</para>
 
@@ -2196,7 +2196,7 @@
         <para>To automatically arrange tables, select several tables in the
         playpen, then click <inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/icons/auto_layout16.png" format="PNG" />
+              <imagedata fileref="src/main/resources/icons/auto_layout16.png" format="PNG" />
             </imageobject>
           </inlinemediaobject> in the top toolbar.</para>
 
@@ -2229,7 +2229,7 @@
           <listitem>
             <para><inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="src/icons/zoom_in16.png" format="PNG" />
+                  <imagedata fileref="src/main/resources/icons/zoom_in16.png" format="PNG" />
                 </imageobject>
               </inlinemediaobject> Zoom in</para>
           </listitem>
@@ -2237,7 +2237,7 @@
           <listitem>
             <para><inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="src/icons/zoom_out16.png" format="PNG" />
+                  <imagedata fileref="src/main/resources/icons/zoom_out16.png" format="PNG" />
                 </imageobject>
               </inlinemediaobject> Zoom out</para>
           </listitem>
@@ -2245,7 +2245,7 @@
           <listitem>
             <para><inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="src/icons/zoom_reset16.png" format="PNG" />
+                  <imagedata fileref="src/main/resources/icons/zoom_reset16.png" format="PNG" />
                 </imageobject>
               </inlinemediaobject> Reset the zoom to the default level</para>
           </listitem>
@@ -2253,7 +2253,7 @@
           <listitem>
             <para><inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="src/icons/zoom_fit16.png" format="PNG" />
+                  <imagedata fileref="src/main/resources/icons/zoom_fit16.png" format="PNG" />
                 </imageobject>
               </inlinemediaobject> Zoom to fit</para>
           </listitem>
@@ -2312,7 +2312,7 @@
         the Playpen Database in the Database Tree and clicking on 'Zoom to
         fit' <inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/icons/zoom_fit16.png" format="PNG" />
+              <imagedata fileref="src/main/resources/icons/zoom_fit16.png" format="PNG" />
             </imageobject>
           </inlinemediaobject>in the Playpen Zoom tools on the right
         side.</para>
@@ -2425,7 +2425,7 @@
           <listitem>
             <para>Click on <inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="../sqlpower_library/src/ca/sqlpower/swingui/olap/cubeAdd.png"
+                  <imagedata fileref="../sqlpower_library/src/main/resources/ca/sqlpower/swingui/olap/cubeAdd.png"
                              format="PNG" width="" />
                 </imageobject>
               </inlinemediaobject> to create a new cube. You can also press
@@ -2546,7 +2546,7 @@
           <listitem>
             <para>Click on<inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="../sqlpower_library/src/ca/sqlpower/swingui/olap/measureAdd.png"
+                  <imagedata fileref="../sqlpower_library/src/main/resources/ca/sqlpower/swingui/olap/measureAdd.png"
                              format="PNG" width="" />
                 </imageobject>
               </inlinemediaobject> to add a measure to the cube.</para>
@@ -2631,7 +2631,7 @@
           <listitem>
             <para>Click on<inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="../sqlpower_library/src/ca/sqlpower/swingui/olap/formulaAdd.png"
+                  <imagedata fileref="../sqlpower_library/src/main/resources/ca/sqlpower/swingui/olap/formulaAdd.png"
                              format="PNG" width="" />
                 </imageobject>
               </inlinemediaobject> to add a calculated member to the
@@ -2740,7 +2740,7 @@
           <listitem>
             <para>Click on <inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="../sqlpower_library/src/ca/sqlpower/swingui/olap/dimensionAdd.png"
+                  <imagedata fileref="../sqlpower_library/src/main/resources/ca/sqlpower/swingui/olap/dimensionAdd.png"
                              format="PNG" width="" />
                 </imageobject>
               </inlinemediaobject> to create a new dimension.</para>
@@ -2819,7 +2819,7 @@
           <listitem>
             <para>Click on <inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="../sqlpower_library/src/ca/sqlpower/swingui/olap/dimensionUsageAdd.png"
+                  <imagedata fileref="../sqlpower_library/src/main/resources/ca/sqlpower/swingui/olap/dimensionUsageAdd.png"
                              format="PNG" width="" />
                 </imageobject>
               </inlinemediaobject> to create a new dimension usage</para>
@@ -4468,7 +4468,7 @@
       <listitem>
         <para>Click <inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/icons/fwdSQL16.png" format="PNG" />
+              <imagedata fileref="src/main/resources/icons/fwdSQL16.png" format="PNG" />
             </imageobject>
           </inlinemediaobject> on the top toolbar, or select Tools » Forward
         Engineering. The Forward Engineer SQL Script dialog box
@@ -4594,7 +4594,7 @@
         <listitem>
           <para>Click <inlinemediaobject>
               <imageobject>
-                <imagedata fileref="src/icons/compare_DM16.png" format="PNG" />
+                <imagedata fileref="src/main/resources/icons/compare_DM16.png" format="PNG" />
               </imageobject>
             </inlinemediaobject> on the top toolbar, or select Tools » Compare
           DM. The Compare Data Models dialog box appears.</para>
@@ -4806,7 +4806,7 @@
           <listitem>
             <para>Click <inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="src/icons/Table_profiled16.png"
+                  <imagedata fileref="src/main/resources/icons/Table_profiled16.png"
                              format="PNG" />
                 </imageobject>
               </inlinemediaobject> in the top toolbar.</para>
@@ -4847,7 +4847,7 @@
         <para>Note: To create a new profile of the same table, select the
         table in the Table Profiles window and click <inlinemediaobject>
             <imageobject>
-              <imagedata fileref="src/icons/arrow_refresh16.png" format="PNG" />
+              <imagedata fileref="src/main/resources/icons/arrow_refresh16.png" format="PNG" />
             </imageobject>
           </inlinemediaobject> . The previous profile will be retained as
         well. (Power*Architect will connect to the source database to create
@@ -4978,7 +4978,7 @@
           <listitem>
             <para>To delete a profile, click <inlinemediaobject>
                 <imageobject>
-                  <imagedata fileref="src/icons/delete16.png" format="PNG" />
+                  <imagedata fileref="src/main/resources/icons/delete16.png" format="PNG" />
                 </imageobject>
               </inlinemediaobject> beside the profile or press delete.</para>
           </listitem>
