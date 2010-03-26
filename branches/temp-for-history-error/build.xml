@@ -67,6 +67,9 @@
 	    <fileset dir="lib">
 	        <include name="*.jar"/>
 	    </fileset>
+    	<fileset dir="${sqlpower.library.home}/dist">
+    	    <include name="sqlpower_library-tests.jar"/>
+    	</fileset>
 	</path>
 	
 	<!-- When the build runs on a Mac, we can create the .dmg disk image
@@ -845,7 +848,6 @@
 	<path id="test.classpath"
 		description="All the run-time dependencies of the Architect code, including the compiles Architect code itself">
 		<pathelement location="${build}"/>
-		<pathelement location="${sqlpower.library.home}/build/tests"/>
 		<fileset dir="lib">
 			<include name="*.jar"/>
 		</fileset>
@@ -1493,17 +1495,16 @@
 	
 	<target name="build.sqlpower.library" depends="check.sqlpower.library.dir" if="buildSQLPowerLibrary">
 		<echo message="Attempting to build sqlpower-library project..."/>
-		<ant dir="${sqlpower.library.home}" target="clean">
-			<property name="build" value="${sqlpower.library.home}/build"/>
+		<ant inheritall="false" dir="${sqlpower.library.home}" target="clean">
 		</ant>
-		<ant dir="${sqlpower.library.home}" target="jar">
-			<property name="build" value="${sqlpower.library.home}/build"/>
-			<property name="dist.dir" value="${sqlpower.library.home}/dist"/>
+		<ant inheritall="false" dir="${sqlpower.library.home}" target="jar">
 		</ant>
 	</target>
 	
 	<target name="copy.sqlpower.library" depends="check.sqlpower.library.dir">
 		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${lib}"/>
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library-apt.jar" todir="${lib}"/>
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library-tests.jar" todir="buildlib"/>
 	</target>
 	
 	<target name="architect.version.properties" depends="init">
