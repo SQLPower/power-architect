@@ -135,12 +135,12 @@ public class CompareSQL implements Monitorable {
 
 		boolean sourceValid = true;
 		boolean targetValid = true;
-		this.sourceTableSet = new TreeSet<SQLTable>(nameComparator);
+		this.useUUID = useUUID;
+		this.sourceTableSet = new TreeSet<SQLTable>(getObjectComparator());
 		this.sourceTableSet.addAll(sourceTables);
-		this.targetTableSet = new TreeSet<SQLTable>(nameComparator);
+		this.targetTableSet = new TreeSet<SQLTable>(getObjectComparator());
 		this.targetTableSet.addAll(targetTables);
 		this.suppressSimilarities = suppressSimilarities;
-		this.useUUID = useUUID;
 
 
 		if (sourceTableSet.size() != sourceTables.size()){
