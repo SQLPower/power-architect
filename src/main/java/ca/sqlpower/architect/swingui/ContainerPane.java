@@ -234,7 +234,8 @@ implements DragSourceListener, LayoutNode {
                 Iterator<ContainerPane<?, ?> > it = pp.getSelectedContainers().iterator();
                 logger.debug("event point: " + p); //$NON-NLS-1$
                 logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
-                pp.draggingTablePanes = true;
+                pp.setDraggingTablePanes(true);
+                startedDragging();
 
                 while (it.hasNext()) {
                     // create FloatingContainerPaneListener for each selected item
@@ -255,7 +256,7 @@ implements DragSourceListener, LayoutNode {
             }
         } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
             setSelected(pp.rubberBand.intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
-        } 
+        }
     }
 
 

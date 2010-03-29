@@ -606,13 +606,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * shutting down running threads, and so on.
      */
     public boolean close() {
-        return close(true);
-    }
-    
-    private boolean close(boolean promptForSave) {
      // IMPORTANT NOTE: If the GUI hasn't been initialized, frame will be null.
-
-        if (promptForSave) {
+        
+        if (!delegateSession.isEnterpriseSession()) {
+            // Only prompt to save if it is not an enterprise session
             if (getProjectLoader().isSaveInProgress()) {
                 // project save is in progress, don't allow exit
                 JOptionPane.showMessageDialog(frame,
@@ -624,9 +621,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             if (!promptForUnsavedModifications()) {
                 return false;
             }
-        }
-        
-        if (delegateSession.isEnterpriseSession()) {
+        } else {
             getEnterpriseSession().putPref("zoom", playPen.getZoom());
         }
         
@@ -1186,7 +1181,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 dialog.setAlwaysOnTop(true);
                 dialog.setVisible(true);
                 
-                close(false);
+                close();
 
                 ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) newSession).getDelegateSession())
                     .getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {

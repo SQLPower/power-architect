@@ -50,7 +50,6 @@ import ca.sqlpower.object.annotation.Transient;
 public class PlayPenContentPane extends AbstractSPObject {
 	private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
 	
-	
 	public static final List<Class<? extends SPObject>> allowedChildTypes = 
 	    Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
 	            Arrays.asList(TablePane.class, Relationship.class, UsageComponent.class,
@@ -66,14 +65,6 @@ public class PlayPenContentPane extends AbstractSPObject {
 	 * to the filtered listener that is created in addComponentPropertyListener
 	 */
 	private HashMap<SPListener, SPListener> componentListeners = new HashMap<SPListener, SPListener>();
-
-	/**
-	 * This boolean becomes true when a table pane has begun moving, 
-	 * and will remain true until doneDragging() is called by the
-	 * PlayPen's mouseReleased() method. This allows for location
-	 * changes to be wrapped in a transaction.
-	 */
-	private boolean waitingToPersistLocation = false;
 	
 	@Constructor
 	public PlayPenContentPane() {
@@ -364,27 +355,6 @@ public class PlayPenContentPane extends AbstractSPObject {
     
     public void removeComponentPropertyListener(SPListener listener) {
         componentListeners.remove(listener);
-    }
-
-    @NonBound
-    public boolean isWaitingToPersistLocation() {
-        return waitingToPersistLocation;
-    }
-
-    public void startedDragging() {
-        waitingToPersistLocation = true;
-        begin("Started moving table pane");
-    }
-    
-    /**
-     * Called by PlayPen on its mouseReleased event to notify a component that
-     * it may complete its location-change transaction if it has been waiting to.
-     */
-    public void doneDragging() {
-        if (waitingToPersistLocation) {
-            waitingToPersistLocation = false;
-            commit();
-        }
     }
     
     @NonBound

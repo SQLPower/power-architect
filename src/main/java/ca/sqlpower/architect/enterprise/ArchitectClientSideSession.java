@@ -59,7 +59,7 @@ import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.diff.DiffInfo;
 import ca.sqlpower.diff.SimpleDiffChunkJSONConverter;
 import ca.sqlpower.enterprise.TransactionInformation;
-import ca.sqlpower.enterprise.client.ClientSideSession;
+import ca.sqlpower.enterprise.client.RevisionController;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
@@ -77,7 +77,7 @@ import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
-public class ArchitectClientSideSession extends ArchitectSessionImpl implements ClientSideSession {	
+public class ArchitectClientSideSession extends ArchitectSessionImpl implements RevisionController {	
 	
 	private static Logger logger = Logger.getLogger(ArchitectClientSideSession.class);
 	private static CookieStore cookieStore = new BasicCookieStore();
@@ -867,5 +867,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
      */
     public String getPref(String prefName, String def) {
         return prefs.get(projectLocation.getUUID() + "." + prefName, def);
+    }
+
+    public int getCurrentRevisionNumber() {
+        return updater.getRevision();
     }
 }

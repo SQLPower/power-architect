@@ -248,8 +248,7 @@ public class RevisionListPanel {
         
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
                 "default:grow, 5dlu, pref",
-                "pref, 2dlu, default:grow"));                                 
-        
+                "pref, 2dlu, default:grow"));
                
         int currentRevision = session.getUpdater().getRevision();
         long from = currentRevision - 100;

@@ -1575,12 +1575,13 @@ public class PlayPen extends JPanel
 				}
 			}
 
-			session.getPlayPen().startCompoundEdit("Drag to Playpen"); //$NON-NLS-1$						
+			session.getPlayPen().startCompoundEdit("Drag to Playpen"); //$NON-NLS-1$
 			
 			// Filter out objects that would lose ETL lineage against the user's will.
 			ImportSafetyChecker checker = new ImportSafetyChecker(session);
 			sqlObjects = checker.filterImportedItems(sqlObjects);		
 			
+			session.getPlayPen().getPlayPenContentPane().begin("Drag to Playpen");
 			try {
 
 				// reset iterator
@@ -1641,9 +1642,14 @@ public class PlayPen extends JPanel
 						logger.error("Unknown object dropped in PlayPen: "+someData); //$NON-NLS-1$
 					}
 				}
+				session.getPlayPen().getPlayPenContentPane().commit();
 			} catch (SQLObjectException e) {
+			    session.getPlayPen().getPlayPenContentPane().rollback(e.getMessage());
 				ASUtils.showExceptionDialog(session,
                     "Unexpected Exception During Import", e); //$NON-NLS-1$
+			} catch (Throwable e) {
+			    session.getPlayPen().getPlayPenContentPane().rollback(e.getMessage());
+			    throw new RuntimeException(e);
 			} finally {
 				session.getArchitectFrame().getContentPane().setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 				session.getPlayPen().endCompoundEdit("Ending multi-select"); //$NON-NLS-1$
@@ -2083,27 +2089,38 @@ public class PlayPen extends JPanel
 			
 			Transferable t = dtde.getTransferable();
 			PlayPen playpen = (PlayPen) dtde.getDropTargetContext().getComponent();
+			PlayPenContentPane cp = playpen.getPlayPenContentPane();
 			try {
-			    Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));
-			    if (playpen.addTransferable(t, dropLoc, TransferStyles.REVERSE_ENGINEER)){
+			    Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));			    
+			    cp.begin("Reverse engineering database");
+			    if (playpen.addTransferable(t, dropLoc, TransferStyles.REVERSE_ENGINEER)){			        
 			        dtde.acceptDrop(DnDConstants.ACTION_COPY);
 			        dtde.dropComplete(true);
+			        cp.commit();
 			    } else {
 			        dtde.rejectDrop();
+			        cp.rollback("Reverse engineer unsuccessful");
 			    }
 
 			} catch (UnsupportedFlavorException ufe) {
 			    logger.error(ufe);
 			    dtde.rejectDrop();
+			    cp.rollback("Reverse engineer unsuccessful");
 			} catch (IOException ioe) {
 			    logger.error(ioe);
 			    dtde.rejectDrop();
+			    cp.rollback("Reverse engineer unsuccessful");
 			} catch (InvalidDnDOperationException ex) {
 			    logger.error(ex);
 			    dtde.rejectDrop();
+			    cp.rollback("Reverse engineer unsuccessful");
 			} catch (SQLObjectException ex) {
 			    logger.error(ex);
 			    dtde.rejectDrop();
+			    cp.rollback("Reverse engineer unsuccessful");
+			} catch (Throwable ex) {
+			    cp.rollback("Reverse engineer unsuccessful");
+			    throw new RuntimeException(ex);
 			}
 		}
 
@@ -2385,9 +2402,16 @@ public class PlayPen extends JPanel
 		}
 
 		public void mouseReleased(MouseEvent evt) {
-			draggingTablePanes = false;
+		   	if (draggingTablePanes) {
+		   	    draggingTablePanes = false;
+	            Point p = evt.getPoint();
+	            unzoomPoint(p);
+	            PlayPenComponent c = contentPane.getComponentAt(p);
+	            if (c != null && c.isMoving()) {
+	                c.doneDragging();
+	            }
+		   	}
             selectionInProgress = false;
-            contentPane.doneDragging();
 
 			if (rubberBand != null && evt.getButton() == MouseEvent.BUTTON1) {
 			    Rectangle dirtyRegion = rubberBand;
