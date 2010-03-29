@@ -19,13 +19,18 @@
 	
 	<!-- The directory where resources are located (images, sounds, etc) -->
 	<property name="resources" value="src/main/resources"/>
-	
-	<!-- The directory where the Java source files are -->
-	<property name="src.apt" value="${sqlpower.library.home}/src/apt/java"/>
-	
+
 	<!-- The directory with all the JAR files that are required
 	     by the Architect at runtime -->
 	<property name="lib" value="lib"/>
+	
+	<!-- The directory with all the JAR files that are required
+		     by the Architect at compile time -->
+	<property name="buildlib" value="buildlib"/>
+	
+	<!-- The directory with all the JDBC JAR files that are required
+			     by the Architect at test time -->
+	<property name="jdbclib" value="jdbc_drivers"/>
 	
 	<!-- The target build directory for compiled classes, docs,
 	     resources, and more. The contents of this dir will eventually
@@ -68,15 +73,42 @@
 	
 	<property name="only.copy.sqlpower.library" value="false"/>
 	
-    <path id="apt.classpath">
-	    <pathelement location="${build}"/>
-	    <fileset dir="lib">
-	        <include name="*.jar"/>
-	    </fileset>
-    	<fileset dir="${sqlpower.library.home}/dist">
-    	    <include name="sqlpower_library-tests.jar"/>
-    	</fileset>
+	<path id="runtime.classpath"
+			description="All the runtime dependencies of the Architect code">
+		<fileset dir="${lib}">
+			<include name="*.jar"/>
+		</fileset>
+		<pathelement location="${generated}"/>
 	</path>
+
+	<path id="compile.classpath"
+			description="All the compile dependencies of the Architect">
+		<path refid="runtime.classpath"/>
+		<fileset dir="${buildlib}">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+	
+	
+	<path id="apt.classpath"
+			description="All the APT generation dependencies of the Architect">
+		<path refid="compile.classpath"/>
+		<pathelement location="${build}"/>
+	</path>
+
+	
+	<path id="test.classpath"
+			description="All the test-time dependencies of the Wabit code, 
+						including the compiles Wabit code itself">
+		
+		<path refid="compile.classpath" />
+		<pathelement location="${build}"/>
+		<fileset dir="${jdbclib}">
+			<include name="*.jar"/>
+		</fileset>
+		
+	</path>
+	
 	
 	<!-- When the build runs on a Mac, we can create the .dmg disk image
 	     using the native hdiutil program.  Otherwise, we just make a .tar.gz.
@@ -386,6 +418,8 @@
 		<!-- Output all System.out and System.err messages -->
 	   <junit printsummary="on" showoutput="no">
 	   	   <sysproperty key="ca.sqlpower.architect.test.dir" value="${build.tests}"/>
+			<sysproperty key="ca.sqlpower.headless" value="true"/>
+	   		   	
 	       <classpath>
 	       		<path refid="test.classpath"/>
 	       		<path path="${build.tests}"/>
@@ -407,9 +441,11 @@
 	
 	<!-- Compiles the application source files -->
 	<target name="compile" depends="init, copyfiles, build.sqlpower.library, copy.sqlpower.library">
-	   	<mkdir dir="${build_tmp}"/>
-		<javac srcdir="${src.apt}" destdir="${build}" classpathref="compile.classpath" debug="true"/>
-        <javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true"/>
+	   	
+		<mkdir dir="${build_tmp}"/>
+
+		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true"/>
+		
 		<apt srcdir="${src}"
             destdir="${build_tmp}"
             classpathref="apt.classpath"
@@ -418,21 +454,18 @@
             factory="ca.sqlpower.object.annotation.SPAnnotationProcessorFactory"
             preprocessdir="${generated}">
         </apt>
-        <delete dir="${build}"/>
-        <move todir="${build}">
+        
+		<delete dir="${build}"/>
+        
+		<move todir="${build}">
             <fileset dir="${build_tmp}"/>
         </move>
-        <copy todir="${build}">
+        
+		<copy todir="${build}" flatten="false">
             <fileset dir="${resources}">
-                <include name="**/*.png"/>
-                <include name="xsltStylesheets/**"/>
+                <include name="**/*"/>
             </fileset>
         </copy>
-        <copy todir="${build}/">
-            <fileset dir="${resources}">
-                <include name="**/messages*.properties"/>
-            </fileset>
-	    </copy>
 	</target>
 	
 	<target name="compile-tests" depends="compile"
@@ -468,7 +501,7 @@
 		<copy file="${dist.dir}/architect.version.properties" todir="${build}/ca/sqlpower/architect"/>
 			
 		<!-- copies the template log4j config file into the build dir -->
-		<copy tofile="${build}/log4j.properties"
+		<copy overwrite="no" tofile="${build}/log4j.properties"
 			file="${resources}/log4j.properties.example"/>
     </target>
 
@@ -733,7 +766,7 @@
     	<mkdir dir="${staging.dir}/doc"/>
 
     	<copy todir="${staging.dir}/lib">
-    	    <fileset dir="lib" includes="*.jar"/>
+    	    <fileset dir="${lib}" includes="*.jar"/>
     		<fileset dir="${build}" includes="architecthelp.jar" />
     	</copy>
 
@@ -838,30 +871,6 @@
 	<target name="dist-clean" depends="clean">
 		<delete dir="${dist.base}" />
 	</target>
-
-	<path id="compile.classpath"
-		description="All the build-time dependencies of the Architect code">
-		<fileset dir="lib">
-			<include name="*.jar"/>
-		</fileset>
-		<fileset dir="buildlib">
-			<include name="*.jar"/>
-		</fileset>
-		<fileset dir="ext-tools-home/resgen/lib">
-			<include name="*.jar"/>
-		</fileset>
-	</path>
-
-	<path id="test.classpath"
-		description="All the run-time dependencies of the Architect code, including the compiles Architect code itself">
-		<pathelement location="${build}"/>
-		<fileset dir="lib">
-			<include name="*.jar"/>
-		</fileset>
-		<fileset dir="buildlib">
-			<include name="*.jar"/>
-		</fileset>
-	</path>
 
 	<target name="javadoc" 
 		description="Generate the Javadoc documentation for the Architect API in the dist directory"
@@ -1510,8 +1519,8 @@
 	
 	<target name="copy.sqlpower.library" depends="check.sqlpower.library.dir">
 		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${lib}"/>
-	    <copy file="${sqlpower.library.home}/dist/sqlpower_library-tests.jar" todir="${build.tests}"/>
-		<copy file="${sqlpower.library.home}/dist/sqlpower_library-apt.jar" todir="${lib}"/>
+	    <copy file="${sqlpower.library.home}/dist/sqlpower_library-tests.jar" todir="${buildlib}"/>
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library-apt.jar" todir="${buildlib}"/>
 	</target>
 	
 	<target name="architect.version.properties" depends="init">

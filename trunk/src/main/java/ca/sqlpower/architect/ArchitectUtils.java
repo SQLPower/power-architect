@@ -245,15 +245,24 @@ public class ArchitectUtils {
             } else {
                 message = "file \n\n\""+plDotIniPath+"\"\n\n does not exist";
             }
-            int choice = JOptionPane.showOptionDialog(null,   // blocking wait
-                    "The " + projectName + " keeps its list of database connections" +
-                    "\nin a file called PL.INI.  Your PL.INI "+message+"." +
-                    "\n\nYou can browse for an existing PL.INI file on your system" +
-                    "\nor allow the " + projectName + " to create a new one in your home directory." +
-                    "\n\nHint: If you are a Power*Loader Suite user, you should browse for" +
-                    "\nan existing PL.INI in your Power*Loader installation directory.",
-                    "Missing PL.INI", 0, JOptionPane.INFORMATION_MESSAGE, null, options, null);
-            File newPlIniFile;
+            
+            final int choice;
+            Boolean isHeadless = Boolean.valueOf(
+                    System.getProperty("ca.sqlpower.headless", "false"));
+            if (isHeadless) {
+                choice = 1;
+            } else {
+                choice = JOptionPane.showOptionDialog(null,   // blocking wait
+                        "The " + projectName + " keeps its list of database connections" +
+                        "\nin a file called PL.INI.  Your PL.INI "+message+"." +
+                        "\n\nYou can browse for an existing PL.INI file on your system" +
+                        "\nor allow the " + projectName + " to create a new one in your home directory." +
+                        "\n\nHint: If you are a Power*Loader Suite user, you should browse for" +
+                        "\nan existing PL.INI in your Power*Loader installation directory.",
+                        "Missing PL.INI", 0, JOptionPane.INFORMATION_MESSAGE, null, options, null);
+            }
+            
+            final File newPlIniFile;
             if (choice == JOptionPane.CLOSED_OPTION) {
                 throw new SQLObjectException("Can't start without a pl.ini file");
             } else if (choice == 0) {
