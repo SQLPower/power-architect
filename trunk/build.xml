@@ -469,7 +469,7 @@
 			
 		<!-- copies the template log4j config file into the build dir -->
 		<copy tofile="${build}/log4j.properties"
-			file="src/log4j.properties.example"/>
+			file="${resources}/log4j.properties.example"/>
     </target>
 
 	<!-- This target is used to make an architect library jar to embed
