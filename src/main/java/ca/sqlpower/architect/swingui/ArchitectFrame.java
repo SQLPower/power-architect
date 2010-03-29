@@ -118,7 +118,9 @@ import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.action.enterprise.RefreshProjectAction;
+import ca.sqlpower.architect.swingui.enterprise.ProjectSecurityPanel;
 import ca.sqlpower.architect.swingui.enterprise.RevisionListPanel;
+import ca.sqlpower.architect.swingui.enterprise.SecurityPanel;
 import ca.sqlpower.architect.swingui.enterprise.ServerProjectsManagerPanel;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
@@ -137,27 +139,27 @@ import ca.sqlpower.swingui.enterprise.client.SPServerInfoManagerPanel;
  */
 public class ArchitectFrame extends JFrame {
 
-	private static Logger logger = Logger.getLogger(ArchitectFrame.class);
+    private static Logger logger = Logger.getLogger(ArchitectFrame.class);
 
-	public static final double ZOOM_STEP = 0.25;
+    public static final double ZOOM_STEP = 0.25;
 
-	private ArchitectSwingSession session = null;
-	private JToolBar projectBar = null;
-	private JToolBar ppBar = null;
-	private JMenuBar menuBar = null;
-	JSplitPane splitPane = null;
-	private PlayPen playpen = null;
-	private JScrollPane playpenScrollPane;
-	DBTree dbTree = null;
-	private Navigator navigatorDialog;
-	private CompareDMDialog comapareDMDialog = null;
-	private int oldWidth;
+    private ArchitectSwingSession session = null;
+    private JToolBar projectBar = null;
+    private JToolBar ppBar = null;
+    private JMenuBar menuBar = null;
+    JSplitPane splitPane = null;
+    private PlayPen playpen = null;
+    private JScrollPane playpenScrollPane;
+    DBTree dbTree = null;
+    private Navigator navigatorDialog;
+    private CompareDMDialog comapareDMDialog = null;
+    private int oldWidth;
     private int oldHeight;
-	private int prefWidth;
-	private int prefHeight;
+    private int prefWidth;
+    private int prefHeight;
 
     private JMenu connectionsMenu;
-	private ArchitectLayout autoLayout;
+    private ArchitectLayout autoLayout;
     private UndoAction undoAction;
     private RedoAction redoAction;
     
@@ -221,7 +223,7 @@ public class ArchitectFrame extends JFrame {
             session.getContext().closeAll();
         }
     };
-
+    
     private Action openServerManagerAction = new AbstractAction("Configure Server Connections...") {
         public void actionPerformed(ActionEvent e) {
             
@@ -239,14 +241,17 @@ public class ArchitectFrame extends JFrame {
                 public void actionPerformed(ActionEvent e) {
                     SPServerInfo si = sim.getSelectedServer();
                     if (si != null) {
+                        
+                        ((ArchitectSwingSessionContextImpl) session.getContext()).createSecuritySession(si);
+                        
                         final JDialog dialog = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Projects");
                         Action closeAction = new AbstractAction("Close") {
                             public void actionPerformed(ActionEvent e) {
                                 dialog.dispose();
                                 
-                                if (!((JButton) e.getSource()).getAction().getValue(Action.NAME).equals("Close")) {
-                                    d.dispose();
-                                }
+//                                if (!((JButton) e.getSource()).getAction().getValue(Action.NAME).equals("Close")) {
+//                                    d.dispose();
+//                                }
                             }
                         };
                         ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(si, session.getContext(),
@@ -311,6 +316,49 @@ public class ArchitectFrame extends JFrame {
         }
     };
     
+    private Action openSecurityManagerPanelAction = new AbstractAction("Users & Groups...") {
+        public void actionPerformed(ActionEvent e) {
+            
+            final JDialog d = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Security Manager");
+            Action closeAction = new AbstractAction("Close") {
+                public void actionPerformed(ActionEvent e) {
+                    d.dispose();
+                }
+            };
+            
+            SecurityPanel spm = new SecurityPanel(((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getProjectLocation().getServiceInfo(), closeAction);
+            d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            d.setContentPane(spm.getPanel());
+            
+            SPSUtils.makeJDialogCancellable(d, null);
+            d.pack();
+            d.setLocationRelativeTo(ArchitectFrame.this);
+            d.setVisible(true);
+        }
+    };
+    
+    private Action openProjectSecurityPanelAction = new AbstractAction("Project Settings...") {
+        public void actionPerformed(ActionEvent e) {
+            
+            final JDialog d = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Security Manager");
+            Action closeAction = new AbstractAction("Close") {
+                public void actionPerformed(ActionEvent e) {
+                    d.dispose();
+                }
+            };
+            
+            ProjectSecurityPanel spm = new ProjectSecurityPanel(((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getSystemWorkspace(), 
+                    session.getWorkspace(), d, closeAction);
+            d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            d.setContentPane(spm.getPanel());
+            
+            SPSUtils.makeJDialogCancellable(d, null);
+            d.pack();
+            d.setLocationRelativeTo(ArchitectFrame.this);
+            d.setVisible(true);
+        }
+    };
+    
     private Action openRevisionListAction = new AbstractAction("Revisions...") {                       
         public void actionPerformed(ActionEvent e) {
             
@@ -347,16 +395,16 @@ public class ArchitectFrame extends JFrame {
      * 
      * @throws SQLObjectException
      */
-	ArchitectFrame(ArchitectSwingSession architectSession, Rectangle bounds) throws SQLObjectException {
+    ArchitectFrame(ArchitectSwingSession architectSession, Rectangle bounds) throws SQLObjectException {
 
         session = architectSession;
         ArchitectSwingSessionContext context = session.getContext();
         
         setTitle(session.getName()+" - SQL Power Architect"); //$NON-NLS-1$
         setIconImage(ASUtils.getFrameIconImage());
-	    
+        
         // close is handled by a window listener
-	    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         
         playpen = session.getPlayPen();
         dbTree = session.getSourceDatabases();
@@ -433,7 +481,7 @@ public class ArchitectFrame extends JFrame {
         });
         
         refreshProjectAction = new RefreshProjectAction(session);
-	}
+    }
 
     /**
      * A separate initialization method for setting up the actions in the ArchitectFrame.
@@ -755,11 +803,19 @@ public class ArchitectFrame extends JFrame {
         });
         menuBar.add(olapMenu);
 
+        // Enterprise stuff ...
         JMenu enterpriseMenu = new JMenu("Enterprise");
         enterpriseMenu.add(openServerManagerAction);
         enterpriseMenu.add(openProjectManagerAction);
         openRevisionListAction.setEnabled(session.isEnterpriseSession());
         enterpriseMenu.add(openRevisionListAction);
+        
+        JMenu securityMenu = new JMenu("Security");
+        securityMenu.setEnabled(session.isEnterpriseSession());
+        securityMenu.add(openSecurityManagerPanelAction);
+        securityMenu.add(openProjectSecurityPanelAction);
+        
+        enterpriseMenu.add(securityMenu);
         enterpriseMenu.add(refreshProjectAction);
         menuBar.add(enterpriseMenu);
         
@@ -847,55 +903,55 @@ public class ArchitectFrame extends JFrame {
         session.getContext().createSession(session);
     }
 
-	public SwingUIProjectLoader getProject() {
-		return session.getProjectLoader();
-	}
+    public SwingUIProjectLoader getProject() {
+        return session.getProjectLoader();
+    }
 
-	/**
+    /**
      * @deprecated This method should no longer be used (references to a session should be
      * passed around in preference to references to an ArchitectFrame).
      */
-	public ArchitectSwingSession getArchitectSession() {
-		return session;
-	}
+    public ArchitectSwingSession getArchitectSession() {
+        return session;
+    }
 
-	/**
-	 * Determine if either create relationship action is currently active.
-	 */
-	public boolean createRelationshipIsActive () {
-		if (createIdentifyingRelationshipAction.isActive()) return true;
-		if (createNonIdentifyingRelationshipAction.isActive()) return true;
-		return false;
-	}
+    /**
+     * Determine if either create relationship action is currently active.
+     */
+    public boolean createRelationshipIsActive () {
+        if (createIdentifyingRelationshipAction.isActive()) return true;
+        if (createNonIdentifyingRelationshipAction.isActive()) return true;
+        return false;
+    }
 
-	class ArchitectFrameWindowListener extends WindowAdapter {
-		public void windowClosing(WindowEvent e) {
-			session.close();
-		}
-	}
+    class ArchitectFrameWindowListener extends WindowAdapter {
+        public void windowClosing(WindowEvent e) {
+            session.close();
+        }
+    }
 
     /**
      * Saves this frame's settings as user prefs.  Settings are frame location,
      * divider location, that kind of stuff.
      */
-	public void saveSettings() throws SQLObjectException {
+    public void saveSettings() throws SQLObjectException {
 
-	    CoreUserSettings us = session.getUserSettings();
+        CoreUserSettings us = session.getUserSettings();
 
         /* These are saved directly in java.util.Preferences.
          * XXX Eventually we should save almost everything there, except
          * the PL.INI contents that must be shared with other non-Java programs.
          */
-	    Preferences prefs = session.getContext().getPrefs();
-		prefs.putInt(ArchitectSwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
-		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_X, getLocation().x);
-		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_Y, getLocation().y);
-		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_WIDTH, prefWidth);
-		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_HEIGHT, prefHeight);
+        Preferences prefs = session.getContext().getPrefs();
+        prefs.putInt(ArchitectSwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
+        prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_X, getLocation().x);
+        prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_Y, getLocation().y);
+        prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_WIDTH, prefWidth);
+        prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_HEIGHT, prefHeight);
         prefs.putBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN,
                 us.getSwingSettings().getBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, true));
 
-		us.write();
+        us.write();
         prefs.put(ArchitectSession.PREFS_PL_INI_PATH, session.getContext().getPlDotIniPath());
         
         prefs.put(DefaultColumnUserSettings.DEFAULT_COLUMN_NAME, SQLColumn.getDefaultName());
@@ -907,36 +963,36 @@ public class ArchitectFrame extends JFrame {
         prefs.putBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_AUTOINC, SQLColumn.isDefaultAutoInc());
         prefs.put(DefaultColumnUserSettings.DEFAULT_COLUMN_REMARKS, SQLColumn.getDefaultRemarks());
         prefs.put(DefaultColumnUserSettings.DEFAULT_COLUMN_DEFAULT_VALUE, SQLColumn.getDefaultForDefaultValue());
-		try {
-		    if (!session.isEnterpriseSession())
-		        session.getDataSources().write(new File(session.getContext().getPlDotIniPath()));
+        try {
+            if (!session.isEnterpriseSession())
+                session.getDataSources().write(new File(session.getContext().getPlDotIniPath()));
         } catch (IOException e) {
             logger.error("Couldn't save PL.INI file!", e); //$NON-NLS-1$
         }
-	}
-	
-	/**
-	 * Disables/Re-enables the option to 'save' and 'save as'
-	 */
-	public void setEnableSaveOption(boolean isEnable) {
-	        saveProjectAction.setEnabled(isEnable);
+    }
+    
+    /**
+     * Disables/Re-enables the option to 'save' and 'save as'
+     */
+    public void setEnableSaveOption(boolean isEnable) {
+            saveProjectAction.setEnabled(isEnable);
             saveProjectAsAction.setEnabled(isEnable);
-	}
+    }
 
-	/**
-	 * Creates an ArchitectFrame and sets it visible.  This method is
-	 * an acceptable way to launch the Architect application.
-	 */
+    /**
+     * Creates an ArchitectFrame and sets it visible.  This method is
+     * an acceptable way to launch the Architect application.
+     */
     @SuppressWarnings("deprecation") //$NON-NLS-1$
-	public static void main(final String args[]) throws SQLObjectException {
-		try {
+    public static void main(final String args[]) throws SQLObjectException {
+        try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             logger.error("Unable to set native look and feel. Continuing with default.", e);
         }
         
         SwingUtilities.invokeLater(new Runnable() {
-		    public void run() {
+            public void run() {
                 try {
                     
                     // this is one of only two valid uses of the getContext() method.
@@ -966,33 +1022,33 @@ public class ArchitectFrame extends JFrame {
                     //everything else blew up.
                     ASUtils.showExceptionDialog(null, Messages.getString("ArchitectFrame.architectLaunchFailureMessage"), e); //$NON-NLS-1$
                 }
-		    }
-		});
-	}
+            }
+        });
+    }
 
-	public AutoLayoutAction getAutoLayoutAction() {
-		return autoLayoutAction;
-	}
+    public AutoLayoutAction getAutoLayoutAction() {
+        return autoLayoutAction;
+    }
 
-	public JToolBar getProjectToolBar() {
-		return projectBar;
-	}
+    public JToolBar getProjectToolBar() {
+        return projectBar;
+    }
 
-	public JToolBar getPlayPenToolBar() {
-		return ppBar;
-	}
+    public JToolBar getPlayPenToolBar() {
+        return ppBar;
+    }
 
-	public NotifyingUndoManager getUndoManager() {
-		return session.getUndoManager();
-	}
+    public NotifyingUndoManager getUndoManager() {
+        return session.getUndoManager();
+    }
 
-	public Action getNewProjectAction() {
-		return newProjectAction;
-	}
+    public Action getNewProjectAction() {
+        return newProjectAction;
+    }
 
-	public void setNewProjectAction(Action newProjectAction) {
-		this.newProjectAction = newProjectAction;
-	}
+    public void setNewProjectAction(Action newProjectAction) {
+        this.newProjectAction = newProjectAction;
+    }
 
     public ZoomToFitAction getZoomToFitAction() {
         return zoomToFitAction;

@@ -91,6 +91,8 @@ implements Selectable {
             }
             return true;
         }
+        
+        public boolean updateException(NetworkConflictResolver resolver) {return false;}
     };
     
     protected PlayPenComponent(String name) {

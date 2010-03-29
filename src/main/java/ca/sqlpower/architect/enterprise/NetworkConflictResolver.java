@@ -242,6 +242,15 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                            } catch (Exception e) {
                                // TODO: Discard corrupt workspace and start again from scratch.
                                interrupt();
+                               
+                               List<UpdateListener> listenersToRemove = new ArrayList<UpdateListener>();
+                               for (UpdateListener listener : updateListeners) {
+                                   if (listener.updateException(NetworkConflictResolver.this)) {
+                                       listenersToRemove.add(listener);
+                                   }
+                               }
+                               updateListeners.removeAll(listenersToRemove);
+                               
                                throw new RuntimeException("Update from server failed! Unable to decode the message: ", e);
                            } finally {
                                synchronized (NetworkConflictResolver.this) {
@@ -442,5 +451,6 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
          * listener list and should not receive any more calls
          */
         public boolean updatePerformed(NetworkConflictResolver resolver);
+        public boolean updateException(NetworkConflictResolver resolver);
     }
 }

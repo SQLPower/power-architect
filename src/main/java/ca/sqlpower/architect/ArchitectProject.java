@@ -29,6 +29,8 @@ import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
+import ca.sqlpower.enterprise.client.Group;
+import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
@@ -65,7 +67,7 @@ public class ArchitectProject extends AbstractSPObject {
     public static List<Class<? extends SPObject>> allowedChildTypes = 
         Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
                 Arrays.asList(SQLObjectRoot.class, PlayPenContentPane.class, ProfileManager.class, 
-                OLAPRootObject.class, ProjectSettings.class, KettleSettings.class)));
+                OLAPRootObject.class, ProjectSettings.class, KettleSettings.class, User.class, Group.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -75,6 +77,9 @@ public class ArchitectProject extends AbstractSPObject {
     private ProfileManager profileManager;
     private PlayPenContentPane playPenContentPane;
     private ProjectSettings projectSettings;
+    
+    private List<User> users = new ArrayList<User>();
+    private List<Group> groups = new ArrayList<Group>();
     
     /**
      * This OLAP object contains the OLAP session.
@@ -219,6 +224,20 @@ public class ArchitectProject extends AbstractSPObject {
 
     @Override
     protected boolean removeChildImpl(SPObject child) {
+        if (child instanceof User) {
+            int index = users.indexOf((User) child);
+            users.remove((User) child);
+            fireChildRemoved(User.class, child, index);
+            child.setParent(null);
+            return true;
+        } else if (child instanceof Group) {
+            int index = users.indexOf((Group) child);
+            groups.remove((Group) child);
+            fireChildRemoved(Group.class, child, index);
+            child.setParent(null);
+            return true;
+        } 
+        
         return false;
     }        
     
@@ -267,6 +286,8 @@ public class ArchitectProject extends AbstractSPObject {
         allChildren.add(olapRootObject);
         allChildren.add(projectSettings);
         allChildren.add(kettleSettings);
+        allChildren.addAll(users);
+        allChildren.addAll(groups);
         return allChildren;
     }
     
@@ -289,11 +310,28 @@ public class ArchitectProject extends AbstractSPObject {
             setPlayPenContentPane((PlayPenContentPane) child);
         } else if (child instanceof ProjectSettings) {
             setProjectSettings((ProjectSettings) child);            
+        } else if (child instanceof User) {
+            addUser((User) child, index);
+        } else if (child instanceof Group) {
+            addGroup((Group) child, index);
         } else {
             throw new IllegalArgumentException("Cannot add child of type " + 
                     child.getClass() + " to the project once it has been created.");
         }
     }
+
+    private void addUser(User user, int index) {
+        users.add(index, user);
+        user.setParent(this);
+        fireChildAdded(User.class, user, index);
+    }
+    
+    private void addGroup(Group group, int index) {
+        groups.add(index, group);
+        group.setParent(this);
+        fireChildAdded(Group.class, group, index);
+    }
+
 
     /**
      * This method sets the given content pane as the project's content pane.
