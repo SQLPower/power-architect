@@ -435,7 +435,12 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     }
     
     public static interface UpdateListener {
-        // true indicates that the updater should be removed from the list.
+        /**
+         * Fired when an update from the server has been performed on the client
+         * @param resolver The NetworkConflictResolver that received the update 
+         * @return true if the listener should be removed from
+         * listener list and should not receive any more calls
+         */
         public boolean updatePerformed(NetworkConflictResolver resolver);
     }
 }

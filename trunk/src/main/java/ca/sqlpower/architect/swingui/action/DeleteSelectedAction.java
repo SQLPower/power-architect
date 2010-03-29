@@ -116,6 +116,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
             }
         }
 
+        playpen.getPlayPenContentPane().begin("Delete");
         try {
             playpen.startCompoundEdit("Delete"); //$NON-NLS-1$
 
@@ -150,15 +151,20 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                             Messages.getString("DeleteSelectedAction.couldNotDeleteColumnDialogTitle"), //$NON-NLS-1$
                             JOptionPane.YES_NO_OPTION);
                     if (decision == JOptionPane.NO_OPTION) {
+                        playpen.getPlayPenContentPane().commit();
                         return;
                     }
                 } catch (IllegalArgumentException e) {
+                    playpen.getPlayPenContentPane().rollback(e.toString());
                     throw new RuntimeException(e);
                 } catch (ObjectDependentException e) {
+                    playpen.getPlayPenContentPane().rollback(e.toString());
                     throw new RuntimeException(e);
-                } 
+                } catch (Throwable e) {
+                    playpen.getPlayPenContentPane().rollback(e.toString());
+                }
             }
-            
+            playpen.getPlayPenContentPane().commit();
         } finally {
             playpen.endCompoundEdit("Ending multi-select"); //$NON-NLS-1$
             playpen.setIgnoreTreeSelection(false);

@@ -464,7 +464,8 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 			this.movingPk = movePk;
 			this.startingPk = new Point(r.getPkConnectionPoint().x, r.getPkConnectionPoint().y);
 			this.startingFk = new Point(r.getFkConnectionPoint().x, r.getFkConnectionPoint().y);
-			r.getModel().begin("Reposition relationship");
+			r.getPlayPen().startCompoundEdit("Dragging relationship");
+			r.startedDragging();
 			r.getPlayPen().addMouseMotionListener(this);
 			r.getPlayPen().addMouseListener(this);
 			r.getPlayPen().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
@@ -521,20 +522,13 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 		 * instance's creator saved a reference).
 		 */
 		public void mouseReleased(MouseEvent e) {
-		    if (!r.getPkConnectionPoint().equals(startingPk)) {
-		        r.firePropertyChange("pkConnectionPoint", startingPk, r.getPkConnectionPoint());
+		    if (r.isMoving()) {
+		        r.doneDragging();
 		    }
-		    if (!r.getFkConnectionPoint().equals(startingFk)) {
-		        r.firePropertyChange("fkConnectionPoint", startingFk, r.getFkConnectionPoint());
-		    }
-			cleanup();
-		}
-
-		protected void cleanup() {
+		    r.getPlayPen().endCompoundEdit("Done dragging relationship");
 			r.getPlayPen().removeMouseMotionListener(this);
 			r.getPlayPen().removeMouseListener(this);
 			r.getPlayPen().setCursor(null);
-			r.getModel().commit();
 		}
 	}
 
@@ -697,7 +691,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
         } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
             // relationship is non-rectangular so we can't use getBounds for intersection testing
             setSelected(intersects(pp.rubberBand),SelectionEvent.SINGLE_SELECT);
-        } 
+        }
     }
 
     @Transient @Mutator

@@ -34,11 +34,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
+import ca.sqlpower.architect.enterprise.NetworkConflictResolver.UpdateListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.object.AbstractSPObject;
@@ -76,6 +79,19 @@ implements Selectable {
     protected boolean selected;
 
     protected boolean componentPreviouslySelected;
+    
+    /**
+     * This listens for updates in case the user is dragging a table     
+     * the same time an update comes in.
+     */
+    private final UpdateListener updateWhileMovingListener = new UpdateListener() {       
+        public boolean updatePerformed(NetworkConflictResolver resolver) {
+            if (isMoving) {
+                doneDragging(false);
+            }
+            return true;
+        }
+    };
     
     protected PlayPenComponent(String name) {
         setName(name);
@@ -124,7 +140,7 @@ implements Selectable {
     @Transient @Accessor
     public PlayPen getPlayPen() {
         if (getParent() == null) return null;
-        return ((PlayPenContentPane) getParent()).getPlayPen();
+        return getParent().getPlayPen();
     }
     
     @Transient @Accessor
@@ -224,13 +240,6 @@ implements Selectable {
         if (logger.isDebugEnabled()) {
             logger.debug("Updating bounds on "+getName() //$NON-NLS-1$
                     +" to ["+r.x+","+r.y+","+r.width+","+r.height+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-        }
-
-        if (this instanceof TablePane && !getParent().isWaitingToPersistLocation()) {  
-            PlayPen pp = getParent().getPlayPen();
-            if (pp != null  && pp.isDraggingTablePanes()) {
-                getParent().startedDragging();
-            }
         }
 
         bounds.setBounds(r.x,r.y,r.width,r.height);            
@@ -515,6 +524,11 @@ implements Selectable {
 
     private final List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
 
+    /**
+     * Keeps track of whether this component is being dragged or not.
+     */
+    private boolean isMoving = false;
+
     public final void addSelectionListener(SelectionListener l) {
         logger.info("" + this + " is adding " + l);
         selectionListeners.add(l);
@@ -567,6 +581,50 @@ implements Selectable {
             selected = isSelected;
             fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT, multiSelectType));
             repaint();
+        }
+    }
+    
+    @NonBound
+    public boolean isMoving() {
+        return isMoving;
+    }
+    
+    /**
+     * Initiate a drag, which begins a transaction for this object
+     * and sets up an update listener to listen for conflicts while dragging
+     */
+    public void startedDragging() {
+        if (!isMoving) {
+            isMoving = true;
+            if (getPlayPen().getSession().isEnterpriseSession()) {
+                getPlayPen().getSession().getEnterpriseSession().getUpdater().addListener(updateWhileMovingListener);
+            }
+            begin("Dragging " + this);
+        } else {
+            throw new IllegalStateException("Component is already in the middle of a drag");
+        }
+    }
+    
+    public void doneDragging() {
+        doneDragging(true);
+    }
+    
+    /**
+     * Completes the drag on this component by ending the transaction.
+     * @param ok If false, this component will rollback instead of commit.
+     * Used by the update conflict listener to rollback the drag.
+     */
+    public void doneDragging(boolean ok) {
+        if (isMoving) {
+            isMoving = false;
+            if (ok) {
+                commit();
+            } else {
+                rollback("Update received while dragging");
+                JOptionPane.showMessageDialog(getPlayPen(), "There was an update while you were dragging");
+            }
+        } else {
+            throw new IllegalStateException("Component is not in the middle of a drag");
         }
     }
     
