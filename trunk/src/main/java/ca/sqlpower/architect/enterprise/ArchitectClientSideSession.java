@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.prefs.Preferences;
@@ -120,6 +121,15 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	
 	private DataSourceCollection <JDBCDataSource> dataSourceCollection;
 	
+	/**
+	 * Used to store sessions which hold nothing but security info.
+	 */
+	public static Map<String, ArchitectClientSideSession> securitySessions;
+    static {
+        securitySessions = new HashMap<String, ArchitectClientSideSession>();
+    }
+	
+	
 	public ArchitectClientSideSession(ArchitectSessionContext context, 
 			String name, ProjectLocation projectLocation) throws SQLObjectException {
 		super(context, name);
@@ -162,6 +172,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 
 	// -
 	
+	public static Map<String, ArchitectClientSideSession> getSecuritySessions() {
+        return securitySessions;
+    }
+	
 	@Override
     public boolean close() {
     	if (getDDLGenerator() != null) {
@@ -191,8 +205,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 			}
 		}
 		
+		updater.interrupt();
         outboundHttpClient.getConnectionManager().shutdown();
-        updater.interrupt();
         
         if (dataSourceCollection != null) {
             dataSourceCollectionUpdater.detach(dataSourceCollection);
@@ -265,12 +279,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	}
 	
 	public ArchitectProject getSystemWorkspace() {
-		for (ArchitectSession session : this.getContext().getSessions()) {
-			if (session.getWorkspace().getUUID().equals("system")) {
-				return session.getWorkspace();
-			}
-		}
-		return null;
+		return getSecuritySessions().get(getProjectLocation().getServiceInfo().getServerAddress()).getWorkspace();
 	}
 	
 

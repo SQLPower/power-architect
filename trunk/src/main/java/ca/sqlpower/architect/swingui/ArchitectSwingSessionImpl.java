@@ -1189,6 +1189,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                        dialog.dispose();
                        return true; // true indicates that the listener should be removed
                     }
+                    
+                    public boolean updateException(NetworkConflictResolver resolver) {return false;}
                 });
                 
                 ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) newSession).getDelegateSession()).startUpdaterThread();

@@ -137,6 +137,10 @@ public class ServerProjectsManagerPanel {
                                         dialog.dispose();
                                         return true;
                                     }
+
+                                    public boolean updateException(NetworkConflictResolver resolver) {
+                                        return false;
+                                    }
                                 });
                                 
                                 ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) newSession).getDelegateSession()).startUpdaterThread();
@@ -211,6 +215,8 @@ public class ServerProjectsManagerPanel {
         this.context = context;
         this.closeAction = closeAction;
         
+        ArchitectClientSideSession.getCookieStore().clear();
+        
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
                 "pref:grow, 5dlu, pref", 
                 "pref, pref, pref"));
@@ -256,6 +262,8 @@ public class ServerProjectsManagerPanel {
         this.dialogOwner = dialogOwner;
         this.context = context;
         this.closeAction = closeAction;
+        
+        ArchitectClientSideSession.getCookieStore().clear();
         
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
                 "pref:grow, 5dlu, pref:grow, 5dlu, pref", 
@@ -353,6 +361,9 @@ public class ServerProjectsManagerPanel {
         SPServerInfo serviceInfo = getSelectedServerInfo();
         if (serviceInfo != null) {
             try {
+                
+                ((ArchitectSwingSessionContextImpl) context).createSecuritySession(serviceInfo);
+                
                 // Sorts the project locations alphabetically
                 List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo);
                 Collections.sort(projects, new Comparator<ProjectLocation>() {
@@ -375,7 +386,7 @@ public class ServerProjectsManagerPanel {
                 // XXX: Having an exception thrown whenever the server cannot be found seems a little
                 //      extreme, but it can be useful for debugging.
                 
-                //throw new RuntimeException("There has been a problem retrieving projects from the selected server", ex);
+                throw new RuntimeException("There has been a problem retrieving projects from the selected server", ex);
             }
             
             refreshPanel();

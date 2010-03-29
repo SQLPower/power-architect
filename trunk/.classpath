@@ -48,5 +48,7 @@
 	<classpathentry kind="lib" path="lib/httpclient-4.0.jar"/>
 	<classpathentry kind="lib" path="lib/httpcore-4.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/jmdns-2.1.jar"/>
+	<classpathentry kind="lib" path="lib/spring-security-core-2.0.5.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/commons-codec-20041127.091804.jar"/>
 	<classpathentry kind="output" path="eclipse-bin"/>
 </classpath>

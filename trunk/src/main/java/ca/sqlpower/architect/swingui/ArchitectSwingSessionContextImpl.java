@@ -45,6 +45,7 @@ import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
+import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
 import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.SPServerInfoManager;
@@ -235,8 +236,8 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     
     public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, boolean initGUI, boolean autoStartUpdater) throws SQLObjectException {
 
-        ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);
-        ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
+        final ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);
+        final ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
         
         if (autoStartUpdater) {
             clientSession.startUpdaterThread();
@@ -249,10 +250,43 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             swingSession.initGUI();
         }
         
+        clientSession.getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
+            
+            public boolean updatePerformed(NetworkConflictResolver resolver) {
+                // don't remove this listener on an update
+                return false;
+            }
+            
+            public boolean updateException(NetworkConflictResolver resolver) {
+                ((ArchitectSwingSessionImpl) swingSession).refresh();
+                return true; // remove listener after exception
+            }
+        });
+        
         return swingSession;
     }
+
     
-    
+    public ArchitectClientSideSession createSecuritySession(SPServerInfo serverInfo) {
+        ArchitectClientSideSession session = null;
+        
+        if (ArchitectClientSideSession.getSecuritySessions().get(serverInfo.getServerAddress()) == null) {
+            ProjectLocation securityLocation = new ProjectLocation("system", "system", serverInfo);
+            ArchitectClientSideSession newSecuritySession = null;
+            try {
+                newSecuritySession = new ArchitectClientSideSession(this, serverInfo.getServerAddress(), securityLocation);
+            } catch (SQLObjectException e) {
+                throw new RuntimeException("Unable to create security session!!!", e);
+            }
+            newSecuritySession.startUpdaterThread();
+            ArchitectClientSideSession.getSecuritySessions().put(serverInfo.getServerAddress(), newSecuritySession);
+            session = newSecuritySession;
+        } else {
+            session = ArchitectClientSideSession.getSecuritySessions().get(serverInfo.getServerAddress());
+        }
+        
+        return session;
+    }
     
     /**
      * This is the one createSession() implementation to which all other
@@ -302,6 +336,21 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         new SessionLifecycleListener<ArchitectSession>() {
         public void sessionClosing(SessionLifecycleEvent<ArchitectSession> e) {
             getSessions().remove(e.getSource());
+            
+            boolean closeSecuritySessions = true;
+            for (ArchitectSession session : getSessions()) {
+                if (session.isEnterpriseSession()) {
+                    closeSecuritySessions = false;
+                }
+            }
+            
+            if (closeSecuritySessions) {
+                for (ArchitectSession session : ArchitectClientSideSession.getSecuritySessions().values()) {
+                    session.close();
+                }
+                ArchitectClientSideSession.getSecuritySessions().clear();
+            }
+            
             if (getSessions().isEmpty() && exitAfterAllSessionsClosed) {
                 System.exit(0);
             }
@@ -356,7 +405,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             new ArrayList<ArchitectSession>(getSessions());
         
         for (ArchitectSession s : doomedSessions) {
-            ((ArchitectSwingSession) s).close();
+            if (s instanceof ArchitectSwingSession) {
+                ((ArchitectSwingSession) s).close();
+            } else {
+                s.close();
+            }
         }
     }
 
