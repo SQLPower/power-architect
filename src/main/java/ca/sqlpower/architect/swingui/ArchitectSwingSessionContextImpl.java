@@ -267,20 +267,32 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     }
 
     
-    public ArchitectClientSideSession createSecuritySession(SPServerInfo serverInfo) {
+    public ArchitectClientSideSession createSecuritySession(final SPServerInfo serverInfo) {
         ArchitectClientSideSession session = null;
         
         if (ArchitectClientSideSession.getSecuritySessions().get(serverInfo.getServerAddress()) == null) {
             ProjectLocation securityLocation = new ProjectLocation("system", "system", serverInfo);
-            ArchitectClientSideSession newSecuritySession = null;
+             
             try {
-                newSecuritySession = new ArchitectClientSideSession(this, serverInfo.getServerAddress(), securityLocation);
+                final ArchitectClientSideSession newSecuritySession = new ArchitectClientSideSession(this, serverInfo.getServerAddress(), securityLocation);
+            
+                newSecuritySession.getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
+                    public boolean updatePerformed(NetworkConflictResolver resolver) {return false;}
+                
+                    public boolean updateException(NetworkConflictResolver resolver) {
+                        newSecuritySession.close();
+                        ArchitectClientSideSession.getSecuritySessions().remove(serverInfo.getServerAddress());
+                        createSecuritySession(serverInfo);
+                        return true;
+                    }
+                });
+            
+                newSecuritySession.startUpdaterThread();
+                ArchitectClientSideSession.getSecuritySessions().put(serverInfo.getServerAddress(), newSecuritySession);
+                session = newSecuritySession;
             } catch (SQLObjectException e) {
                 throw new RuntimeException("Unable to create security session!!!", e);
             }
-            newSecuritySession.startUpdaterThread();
-            ArchitectClientSideSession.getSecuritySessions().put(serverInfo.getServerAddress(), newSecuritySession);
-            session = newSecuritySession;
         } else {
             session = ArchitectClientSideSession.getSecuritySessions().get(serverInfo.getServerAddress());
         }
