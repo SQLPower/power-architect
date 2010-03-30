@@ -176,8 +176,8 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         
         for (User user : users) {
             // can pass in null, it will just be empty
-            final PrivilegesEditorPanel specific = new PrivilegesEditorPanel(specificGrantsForUsers.get(user), user, workspace.getUUID(), null);
-            final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrantsForUsers.get(user), user, workspace.getUUID(), null);
+            final PrivilegesEditorPanel specific = new PrivilegesEditorPanel(specificGrantsForUsers.get(user), user, workspace.getUUID(), null, securityWorkspace);
+            final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrantsForUsers.get(user), user, workspace.getUUID(), null, securityWorkspace);
             
             panels.add(specific);
             panels.add(global);
@@ -282,8 +282,8 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         
         for (Group group : groups) {
             // can pass in null, it will just be empty
-            final PrivilegesEditorPanel specific = new PrivilegesEditorPanel(specificGrantsForGroups.get(group), group, workspace.getUUID(), null);
-            final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrantsForGroups.get(group), group, workspace.getUUID(), null);
+            final PrivilegesEditorPanel specific = new PrivilegesEditorPanel(specificGrantsForGroups.get(group), group, workspace.getUUID(), null, securityWorkspace);
+            final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrantsForGroups.get(group), group, workspace.getUUID(), null, securityWorkspace);
             
             panels.add(specific);
             panels.add(global);
