@@ -129,17 +129,17 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
                 
                 boolean doesNotRequireSave = false;
                 if (grant != null) {
-                    if (!((getCreateModifyPrivilege().isSelected() != (grant.isCreatePrivilege() && grant.isModifyPrivilege())) 
-                            || (getViewPrivilege().isSelected() != grant.isExecutePrivilege())
-                            || (getDeletePrivilege().isSelected() != grant.isDeletePrivilege())
-                            || (getGrantPrivilege().isSelected() != grant.isGrantPrivilege()))) {
+                    if ((getCreateModifyPrivilege().isSelected() == (grant.isCreatePrivilege() && grant.isModifyPrivilege())) 
+                            && (getViewPrivilege().isSelected() == grant.isExecutePrivilege())
+                            && (getDeletePrivilege().isSelected() == grant.isDeletePrivilege())
+                            && (getGrantPrivilege().isSelected() == grant.isGrantPrivilege())) {
                         doesNotRequireSave = true;
                     }
                 } else {
-                    if (((getCreateModifyPrivilege().isSelected() != false) 
-                            && (getViewPrivilege().isSelected() != false)
-                            && (getDeletePrivilege().isSelected() != false)
-                            && (getGrantPrivilege().isSelected() != false))) {
+                    if ((getCreateModifyPrivilege().isSelected() == false) 
+                            && (getViewPrivilege().isSelected() == false)
+                            && (getDeletePrivilege().isSelected() == false)
+                            && (getGrantPrivilege().isSelected() == false)) {
                         doesNotRequireSave = true;
                     }
                 }

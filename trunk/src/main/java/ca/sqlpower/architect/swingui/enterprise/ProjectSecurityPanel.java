@@ -19,12 +19,13 @@
 
 package ca.sqlpower.architect.swingui.enterprise;
 
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,7 @@ import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
+import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -69,6 +71,8 @@ public class ProjectSecurityPanel implements DataEntryPanel{
     
     private final Dialog parent;
     
+    private final Dimension buttonDim = new Dimension(16, 16);
+    
     public ProjectSecurityPanel(ArchitectProject securityWorkspace, ArchitectProject workspace, Dialog parent, Action closeAction) {
         this.securityWorkspace = securityWorkspace;
         this.workspace = workspace;
@@ -76,15 +80,13 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         this.parent = parent;
         
         panelLabel = new JLabel("Permissions for '" + workspace.getName() + "'");
-        panelLabel.setFont(new Font(panelLabel.getFont().getFontName(), Font.BOLD, 18));
+        panelLabel.setFont(new Font(panelLabel.getFont().getFontName(), Font.BOLD, panelLabel.getFont().getSize() + 1));
         
         panel = new JPanel();
         createPanel();
     }
     
     private void createPanel() {
-        final Dimension buttonDim = new Dimension(16, 16);
-        
         Map<User, Grant> globalGrantsForUsers = new HashMap<User, Grant>();
         Map<Group, Grant> globalGrantsForGroups = new HashMap<Group, Grant>();
         Map<User, Grant> specificGrantsForUsers = new HashMap<User, Grant>();
@@ -112,31 +114,85 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             }
         }
         
-        // XXX To be persisted
         if (users == null)  {
             users = new ArrayList<User>();
             users.addAll(specificGrantsForUsers.keySet());
+            Collections.sort(users, new Comparator<User>() {
+                public int compare(User o1, User o2) {
+                    return o1.getName().toUpperCase().compareTo(o2.getName().toUpperCase());
+                }
+            });
         }
         if (groups == null) {
             groups = new ArrayList<Group>();
             groups.addAll(specificGrantsForGroups.keySet());
+            Collections.sort(groups, new Comparator<Group>() {
+                public int compare(Group o1, Group o2) {
+                    return o1.getName().toUpperCase().compareTo(o2.getName().toUpperCase());
+                }
+            });
         }
         
         CellConstraints cc = new CellConstraints();
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
-                "pref:grow, 5dlu, pref, 5dlu, pref, 5dlu, pref, 5dlu, pref, 5dlu, pref"));
+                "pref:grow", "pref:grow, 5dlu, pref:grow, pref:grow, 5dlu, pref:grow, pref:grow, 5dlu, pref:grow"));
         
+        builder.add(panelLabel, cc.xy(1,1));
+        
+        JLabel userPermissions = new JLabel("User Permissions");
+        userPermissions.setFont(new Font(userPermissions.getFont().getFontName(), Font.BOLD, userPermissions.getFont().getSize()));
+        builder.add(userPermissions, cc.xy(1, 3));
+        
+        JPanel userListPanel = createUserListPanel(specificGrantsForUsers, globalGrantsForUsers);
+        
+        builder.add(userListPanel, cc.xy(1, 4));
+        
+        JLabel groupPermissions = new JLabel("Group Permissions");
+        groupPermissions.setFont(userPermissions.getFont());
+        builder.add(groupPermissions, cc.xy(1, 6));
+        
+        builder.add(createGroupListPanel(specificGrantsForGroups, globalGrantsForGroups), cc.xy(1, 7));
+        
+        JButton okButton = new JButton(new AbstractAction("OK") {
+            public void actionPerformed(ActionEvent e) {
+                applyChanges();
+                closeAction.actionPerformed(e);
+            }
+        });
+        
+        JButton cancelButton = new JButton(new AbstractAction("Cancel") {
+            public void actionPerformed(ActionEvent e) {
+                for (DataEntryPanel p : panels) {
+                    p.discardChanges();
+                }
+                closeAction.actionPerformed(e);
+            }
+        });
+        
+        ButtonBarBuilder buttonBuilder = ButtonBarBuilder.createLeftToRightBuilder();
+        buttonBuilder.addGlue();
+        buttonBuilder.addGridded(okButton);
+        buttonBuilder.addRelatedGap();
+        buttonBuilder.addGridded(cancelButton);
+        buttonBuilder.setDefaultButtonBarGapBorder();
+        
+        builder.add(buttonBuilder.getPanel(), cc.xy(1, 9));
+        builder.setDefaultDialogBorder();
+        
+        panel.removeAll();
+        panel.add(builder.getPanel());
+        panel.revalidate();
+    }
+    
+    private JPanel createUserListPanel(Map<User, Grant> specificGrantsForUsers, Map<User, Grant> globalGrantsForUsers) {
+        CellConstraints cc = new CellConstraints();
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
+                "pref:grow, 5dlu, pref, 5dlu, pref, 5dlu, pref, 5dlu, pref, 5dlu, pref"));
         int lineNo = 0;
         builder.appendRow(builder.getDefaultRowSpec());
         lineNo++;
-        JLabel userPermissions = new JLabel("User Permissions");
-        userPermissions.setFont(new Font(userPermissions.getFont().getFontName(), Font.BOLD, userPermissions.getFont().getSize()+1));
-        builder.add(userPermissions, cc.xy(1, lineNo));
-        
-        builder.appendRow(builder.getDefaultRowSpec());
-        lineNo++;
         builder.add(new JLabel("User Name"), cc.xy(1, lineNo));
-        builder.add(new JLabel("Create/Modify"), cc.xy(3, lineNo));
+        builder.add(new JLabel("Modify"), cc.xy(3, lineNo));
         builder.add(new JLabel("View"), cc.xy(5, lineNo));
         builder.add(new JLabel("Delete"), cc.xy(7, lineNo));
         builder.add(new JLabel("Grant"), cc.xy(9, lineNo));
@@ -153,14 +209,16 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                 
                 Object[] messages = new Object[] {"Select Users to Add", new JScrollPane(userList)};
 
-                String[] options = { "Accept", "Cancel",};
+                String[] options = { "OK", "Cancel"};
                 int option = JOptionPane.showOptionDialog(getPanel(), messages, "", JOptionPane.DEFAULT_OPTION, 
                                 JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
                 
                 if (option == 0) {
                     int [] selected = userList.getSelectedIndices();
                     for (int i = 0; i < selected.length; i++) {
-                        users.add(availableUsers.get(selected[i]));
+                        User user = availableUsers.get(selected[i]);
+                        user.addGrant(new Grant(workspace.getUUID(), null, false, false, false, false, false));
+                        users.add(user);
                     }
                     panel.removeAll();
                     createPanel();
@@ -235,16 +293,19 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             
         }
         
-        builder.appendRow(builder.getDefaultRowSpec());
-        lineNo++;
-        JLabel groupPermissions = new JLabel("Group Permissions");
-        groupPermissions.setFont(userPermissions.getFont());
-        builder.add(groupPermissions, cc.xy(1, lineNo));
-        
+        return builder.getPanel();
+    }
+    
+    private JPanel createGroupListPanel(Map<Group, Grant> specificGrantsForGroups, Map<Group, Grant> globalGrantsForGroups) {
+        CellConstraints cc = new CellConstraints();
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
+                "pref:grow, 5dlu, pref, 5dlu, pref, 5dlu, pref, 5dlu, pref, 5dlu, pref"));
+        int lineNo = 0;
+
         builder.appendRow(builder.getDefaultRowSpec());
         lineNo++;
         builder.add(new JLabel("Group Name"), cc.xy(1, lineNo));
-        builder.add(new JLabel("Create/Modify"), cc.xy(3, lineNo));
+        builder.add(new JLabel("Modify"), cc.xy(3, lineNo));
         builder.add(new JLabel("View"), cc.xy(5, lineNo));
         builder.add(new JLabel("Delete"), cc.xy(7, lineNo));
         builder.add(new JLabel("Grant"), cc.xy(9, lineNo));
@@ -261,14 +322,16 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                 
                 Object[] messages = new Object[] {"Select Groups to Add", new JScrollPane(groupList)};
 
-                String[] options = { "Accept", "Cancel",};
+                String[] options = { "OK", "Cancel",};
                 int option = JOptionPane.showOptionDialog(getPanel(), messages, "", JOptionPane.DEFAULT_OPTION, 
                                 JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
                 
                 if (option == 0) {
                     int [] selected = groupList.getSelectedIndices();
                     for (int i = 0; i < selected.length; i++) {
-                        groups.add(availableGroups.get(selected[i]));
+                        Group group = availableGroups.get(selected[i]);
+                        group.addGrant(new Grant(workspace.getUUID(), null, false, false, false, false, false));
+                        groups.add(group);
                     }
                     panel.removeAll();
                     createPanel();
@@ -334,39 +397,13 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             builder.add(removeGroupButton, cc.xy(11, lineNo));
         }
         
-        JButton applyButton = new JButton(new AbstractAction("Save") {
-            public void actionPerformed(ActionEvent e) {
-                applyChanges();
-                closeAction.actionPerformed(e);
-            }
-        });
-        
-        JButton cancelButton = new JButton(new AbstractAction("Cancel") {
-            public void actionPerformed(ActionEvent e) {
-                for (DataEntryPanel p : panels) {
-                    p.discardChanges();
-                }
-                closeAction.actionPerformed(e);
-            }
-        });
-        
-        builder.appendRow(builder.getDefaultRowSpec());
-        lineNo++;
-        builder.add(applyButton, cc.xy(7, lineNo));
-        builder.add(cancelButton, cc.xy(9, lineNo));
-        
-        panel.removeAll();
-        panel.setLayout(new BorderLayout());
-        panel.add(panelLabel, BorderLayout.NORTH);
-        panel.add(new JScrollPane(builder.getPanel()), BorderLayout.CENTER);
-        panel.revalidate();
+        return builder.getPanel();
     }
     
     public boolean applyChanges() {
         for (DataEntryPanel p : panels) {
             p.applyChanges();
         }
-        
         return true;
     }
 

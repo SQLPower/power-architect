@@ -368,7 +368,7 @@ public class ServerProjectsManagerPanel {
                 List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo);
                 Collections.sort(projects, new Comparator<ProjectLocation>() {
                     public int compare(ProjectLocation proj1, ProjectLocation proj2) {
-                        return proj1.getName().compareTo(proj2.getName());
+                        return proj1.getName().toUpperCase().compareTo(proj2.getName().toUpperCase());
                     }
                 });
                 

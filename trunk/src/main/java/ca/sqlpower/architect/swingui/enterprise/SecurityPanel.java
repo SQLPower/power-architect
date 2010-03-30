@@ -365,29 +365,12 @@ public class SecurityPanel {
     }
     
     private Group createGroupFromPrompter() {
-        JTextField nameField = new JTextField(15);
-        
-        JPanel namePanel = new JPanel(new BorderLayout());
-        namePanel.add(new JLabel("Group Name"), BorderLayout.WEST);
-        namePanel.add(nameField, BorderLayout.EAST);
-        
-        Object[] messages = new Object[] {new JLabel("Specify the Group's Name."), namePanel};
-
-        String[] options = { "Accept", "Cancel"};
-        int option = JOptionPane.showOptionDialog(getPanel(), messages, "Specify the Group's Name", JOptionPane.DEFAULT_OPTION, 
-                        JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-        
-        if (nameField.getText().equals("") 
-                || nameField.getText() == null) { 
+        Object input = JOptionPane.showInputDialog(getPanel(), "Enter a name for the group.");
+        if (input != null && !input.equals("")) {
+            return new Group((String) input);
+        } else {
             return null;
         }
-        
-        Group group = null; 
-        if (option == 0) {
-            group = new Group(nameField.getText());
-        }
-        
-        return group;
     }
     
     private boolean promptForUnsavedChanges() {
