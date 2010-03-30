@@ -270,12 +270,12 @@ public class SecurityPanel {
                 if (privilegesEditorPanel != null) {
                     throw new IllegalStateException("Multiple grants for this workspace found!");
                 }
-                privilegesEditorPanel = new PrivilegesEditorPanel(grant, groupOrUser, null, ArchitectProject.class.getName());
+                privilegesEditorPanel = new PrivilegesEditorPanel(grant, groupOrUser, null, ArchitectProject.class.getName(), securityWorkspace);
             }
         }
         
         if (privilegesEditorPanel == null) {
-            privilegesEditorPanel = new PrivilegesEditorPanel(null, groupOrUser, null, ArchitectProject.class.getName());
+            privilegesEditorPanel = new PrivilegesEditorPanel(null, groupOrUser, null, ArchitectProject.class.getName(), securityWorkspace);
         }
         
         currentGroupOrUserEditPanel = groupOrUserEditPanel;
