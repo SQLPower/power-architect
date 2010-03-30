@@ -254,7 +254,7 @@ public class SecurityPanel {
         tree.expandPath(new TreePath(groupsNode.getPath()));
     }
     
-    private void createEditPanel(SPObject groupOrUser) {
+    private void createEditPanel(final SPObject groupOrUser) {
         DataEntryPanel groupOrUserEditPanel;
         if (groupOrUser instanceof Group) {
             groupOrUserEditPanel = new GroupEditorPanel((Group) groupOrUser);
@@ -287,6 +287,9 @@ public class SecurityPanel {
                 currentGroupOrUserEditPanel.applyChanges();
                 currentPrivilegesEditPanel.applyChanges();
                 refreshTree();
+                // So that the privileges editor panel gains a ref to whatever grant may 
+                // have been created, and will not try to keep adding the same grant.
+                createEditPanel(groupOrUser); 
             }
         });
         
@@ -316,6 +319,8 @@ public class SecurityPanel {
     
         lowPanel.removeAll();
         lowPanel.add(bottomBuilder.getPanel());
+        
+        panel.revalidate();
     }
     
     private User createUserFromPrompter() {
@@ -366,7 +371,7 @@ public class SecurityPanel {
         namePanel.add(new JLabel("Group Name"), BorderLayout.WEST);
         namePanel.add(nameField, BorderLayout.EAST);
         
-        Object[] messages = new Object[] {"Specify the Group's Name.", namePanel};
+        Object[] messages = new Object[] {new JLabel("Specify the Group's Name."), namePanel};
 
         String[] options = { "Accept", "Cancel"};
         int option = JOptionPane.showOptionDialog(getPanel(), messages, "Specify the Group's Name", JOptionPane.DEFAULT_OPTION, 
