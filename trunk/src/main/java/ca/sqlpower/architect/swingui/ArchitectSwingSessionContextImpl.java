@@ -250,19 +250,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             swingSession.initGUI();
         }
         
-        clientSession.getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
-            
-            public boolean updatePerformed(NetworkConflictResolver resolver) {
-                // don't remove this listener on an update
-                return false;
-            }
-            
-            public boolean updateException(NetworkConflictResolver resolver) {
-                ((ArchitectSwingSessionImpl) swingSession).refresh();
-                return true; // remove listener after exception
-            }
-        });
-        
         return swingSession;
     }
 
