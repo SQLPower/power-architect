@@ -173,6 +173,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
         Map<OLAPSession, String> sessionDbMap = new HashMap<OLAPSession, String>();
         
         try {
+            getSession().getUndoManager().setLoading(true);
             if (uin.markSupported()) {
                 uin.mark(Integer.MAX_VALUE);
             } else {
@@ -196,6 +197,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
             super.load(in, dataSources);
         }
         finally {
+            getSession().getUndoManager().setLoading(false);
             uin.forceClose();
         }
         

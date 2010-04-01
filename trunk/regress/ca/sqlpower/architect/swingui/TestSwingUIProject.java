@@ -662,8 +662,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("secondaryChangeMode");
 
+		session.getUndoManager().setLoading(true);
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
+		session.getUndoManager().setLoading(false);
 		
 		// need to set sourceColumn manually because it has to exist in the database.
 		{
@@ -731,8 +733,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         Set<String> propertiesToIgnore = getPropertiesToIgnore();
         propertiesToIgnore.add("undoEventListeners");
 
+        session.getUndoManager().setLoading(true);
         Map<String,Object> oldDescription =
             TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
+        session.getUndoManager().setLoading(false);
         
         File tmp = File.createTempFile("test", ".architect");
         if (deleteOnExit) {
@@ -792,8 +796,11 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("undoEventListeners");
         propertiesToIgnore.add("primaryKeyIndex");
 
+        session.getUndoManager().setLoading(true);
         Map<String,Object> oldDescription =
             TestUtils.setAllInterestingProperties(index, propertiesToIgnore);
+        session.getUndoManager().setLoading(false);
+        
         propertiesToIgnore.remove("primaryKeyIndex");
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream,ENCODING);
@@ -846,8 +853,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
         assertSame(index, table.getPrimaryKeyIndex());
 
+        session.getUndoManager().setLoading(true);
         Map<String,Object> oldDescription =
             TestUtils.setAllInterestingProperties(index, propertiesToIgnore);
+        session.getUndoManager().setLoading(false);
         
         assertSame(index, table.getPrimaryKeyIndex());
         
@@ -887,8 +896,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         Set<String> propertiesToIgnore = getPropertiesToIgnore();
         propertiesToIgnore.add("undoEventListeners");
 
+        session.getUndoManager().setLoading(true);
         Map<String,Object> oldDescription =
             TestUtils.setAllInterestingProperties(index, propertiesToIgnore);
+        session.getUndoManager().setLoading(false);
         
         File tmp = File.createTempFile("test", ".architect");
         if (deleteOnExit) {

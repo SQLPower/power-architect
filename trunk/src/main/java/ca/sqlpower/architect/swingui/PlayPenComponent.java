@@ -93,6 +93,10 @@ implements Selectable {
         }
         
         public boolean updateException(NetworkConflictResolver resolver) {return false;}
+
+        public void preUpdatePerformed(NetworkConflictResolver resolver) {
+            //do nothing
+        }
     };
     
     protected PlayPenComponent(String name) {

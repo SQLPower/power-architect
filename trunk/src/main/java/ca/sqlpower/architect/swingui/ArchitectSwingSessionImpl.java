@@ -1191,6 +1191,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                     }
                     
                     public boolean updateException(NetworkConflictResolver resolver) {return false;}
+
+                    public void preUpdatePerformed(NetworkConflictResolver resolver) {
+                        //do nothing
+                    }
                 });
                 
                 ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) newSession).getDelegateSession()).startUpdaterThread();

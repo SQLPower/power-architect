@@ -22,6 +22,7 @@ package ca.sqlpower.architect.undo;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 import ca.sqlpower.sqlobject.undo.SQLObjectUndoManager;
 
@@ -39,7 +40,10 @@ public class ArchitectUndoManager extends SQLObjectUndoManager implements Notify
      */
     public ArchitectUndoManager(PlayPen playPen) throws SQLObjectException {
         super(playPen.getSession().getTargetDatabase());
-        playPen.getSession().getRootObject().addSPListener(new SQLObjectUndoableEventAdapter(false));
+        SQLObjectRoot rootObject = playPen.getSession().getRootObject();
+        final SQLObjectUndoableEventAdapter undoListener = new SQLObjectUndoableEventAdapter(false);
+        rootObject.addSPListener(undoListener);
+        undoListener.attachToObject(rootObject);
         if (playPen != null) {
             playPen.addUndoEventListener(eventAdapter);
         }
