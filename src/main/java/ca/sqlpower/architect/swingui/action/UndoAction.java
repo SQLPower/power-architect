@@ -70,7 +70,7 @@ public class UndoAction extends AbstractArchitectAction {
         }
 	}
 
-	private void updateSettingsFromManager() {
+	public void updateSettingsFromManager() {
 		putValue(SHORT_DESCRIPTION, manager.getUndoPresentationName());
 		setEnabled(manager.canUndo());
 	}

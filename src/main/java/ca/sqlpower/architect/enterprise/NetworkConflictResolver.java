@@ -282,6 +282,9 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     private void decodeMessage(String jsonArray, int newRevision) {
         try {
             if (currentRevision < newRevision) {
+                for (UpdateListener listener : updateListeners) {
+                    listener.preUpdatePerformed(NetworkConflictResolver.this);
+                }
                 // Now we can apply the update ...
                 jsonDecoder.decode(jsonArray);
                 currentRevision = newRevision;
@@ -452,5 +455,16 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
          */
         public boolean updatePerformed(NetworkConflictResolver resolver);
         public boolean updateException(NetworkConflictResolver resolver);
+
+        /**
+         * Called just before an update will be performed by the
+         * {@link NetworkConflictResolver}. This gives objects the chance to be
+         * aware of incoming changes from the server if necessary.
+         * 
+         * @param resolver
+         *            The {@link NetworkConflictResolver} that received the
+         *            update.
+         */
+        public void preUpdatePerformed(NetworkConflictResolver resolver);
     }
 }

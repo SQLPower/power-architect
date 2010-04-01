@@ -27,7 +27,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -36,9 +35,7 @@ import java.util.prefs.Preferences;
 
 import javax.swing.ImageIcon;
 
-import org.apache.http.client.ClientProtocolException;
 import org.apache.log4j.Logger;
-import org.json.JSONException;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
@@ -220,24 +217,29 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         return createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.defaultNewProjectName"), true, openingSession); //$NON-NLS-1$
     }
     
-    public ArchitectSwingSession createNewServerSession(SPServerInfo serverInfo, boolean initGUI) throws SQLObjectException, ClientProtocolException, URISyntaxException, IOException, JSONException {
-        ProjectLocation projectLocation = ArchitectClientSideSession.createNewServerSession(serverInfo, "New_Project");
-        ArchitectSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);   
-        ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
-        getSessions().add(swingSession);
-        swingSession.addSessionLifecycleListener(sessionLifecycleListener);
-           
-        if (initGUI) {
-            swingSession.initGUI();
-        }
-        
-        return swingSession;
-    }
-    
     public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, boolean initGUI, boolean autoStartUpdater) throws SQLObjectException {
 
         final ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);
-        final ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
+        final ArchitectSwingSessionImpl swingSession = new ArchitectSwingSessionImpl(this, clientSession);
+        clientSession.getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
+            
+            public void preUpdatePerformed(NetworkConflictResolver resolver) {
+                swingSession.getUndoManager().setLoading(true);
+            }
+        
+            public boolean updatePerformed(NetworkConflictResolver resolver) {
+                //On the first update from the server we must discard all edits
+                //as it is equivalent to loading from a file and undoing does not
+                //make sense.
+                swingSession.getUndoManager().setLoading(false);
+                return true;
+            }
+        
+            public boolean updateException(NetworkConflictResolver resolver) {
+                swingSession.getUndoManager().setLoading(false);
+                return true;
+            }
+        });
         
         if (autoStartUpdater) {
             clientSession.startUpdaterThread();
@@ -271,6 +273,10 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
                         ArchitectClientSideSession.getSecuritySessions().remove(serverInfo.getServerAddress());
                         createSecuritySession(serverInfo);
                         return true;
+                    }
+
+                    public void preUpdatePerformed(NetworkConflictResolver resolver) {
+                        //do nothing
                     }
                 });
             
