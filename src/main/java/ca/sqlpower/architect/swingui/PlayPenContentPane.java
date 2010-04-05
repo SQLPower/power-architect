@@ -32,10 +32,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectProject;
-import ca.sqlpower.architect.swingui.olap.CubePane;
-import ca.sqlpower.architect.swingui.olap.DimensionPane;
-import ca.sqlpower.architect.swingui.olap.UsageComponent;
-import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPChildEvent;
@@ -50,10 +46,10 @@ import ca.sqlpower.object.annotation.Transient;
 public class PlayPenContentPane extends AbstractSPObject {
 	private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
 	
-	public static final List<Class<? extends SPObject>> allowedChildTypes = 
+	@SuppressWarnings("unchecked")
+    public static final List<Class<? extends SPObject>> allowedChildTypes = 
 	    Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-	            Arrays.asList(TablePane.class, Relationship.class, UsageComponent.class,
-	                    CubePane.class, DimensionPane.class, VirtualCubePane.class)));		
+	            Arrays.asList(PlayPenComponent.class)));		
 	
 	protected PlayPen playPen;
 	private List<PlayPenComponent> children = new ArrayList<PlayPenComponent>();
@@ -246,9 +242,6 @@ public class PlayPenContentPane extends AbstractSPObject {
 	}
 
 	protected void addChildImpl(SPObject child, int pos) {
-	    if (child instanceof Relationship) {
-	        pos += children.size();
-	    }
 	    add((PlayPenComponent) child, pos);
 	}
 
