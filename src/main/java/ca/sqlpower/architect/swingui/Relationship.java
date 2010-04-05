@@ -125,7 +125,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
      * @param contentPane The content pane this copy will live in
      */
 	Relationship(Relationship r, PlayPenContentPane contentPane) {
-	    super(r.getName());
+	    super(r, contentPane);
 		setParent(contentPane);
 		this.model = r.model;
 		setName(r.getName());

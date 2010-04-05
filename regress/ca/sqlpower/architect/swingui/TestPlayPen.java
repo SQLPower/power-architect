@@ -609,6 +609,8 @@ public class TestPlayPen extends TestCase {
 	private boolean isPropertyInstanceMutable(PropertyDescriptor property) {
         if (property.getPropertyType() == String.class) {
             return false;
+        } else if (Enum.class.isAssignableFrom(property.getPropertyType())) {
+            return false;
         } else if (property.getPropertyType() == Boolean.class || property.getPropertyType() == Boolean.TYPE) {
             return false;
         } else if (property.getPropertyType() == Double.class || property.getPropertyType() == Double.TYPE) {

@@ -100,6 +100,7 @@ import ca.sqlpower.architect.swingui.action.ExportPlaypenToPDFAction;
 import ca.sqlpower.architect.swingui.action.FocusToChildOrParentTableAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
 import ca.sqlpower.architect.swingui.action.InsertIndexAction;
+import ca.sqlpower.architect.swingui.action.InvadersAction;
 import ca.sqlpower.architect.swingui.action.KettleJobAction;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PasteSelectedAction;
@@ -507,7 +508,16 @@ public class ArchitectFrame extends JFrame {
                 SPSUtils.createIcon("new_project",Messages.getString("ArchitectFrame.newProjectActionIconDescription"),sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) { //$NON-NLS-1$ //$NON-NLS-2$
             public void actionPerformed(ActionEvent e) {
                 try {
-                    createNewProject();
+                    ArchitectSwingSession newSession = createNewProject();
+                    if ((e.getModifiers() & ActionEvent.SHIFT_MASK) != 0) {
+                        ArchitectFrame newFrame = newSession.getArchitectFrame();
+                        JMenuBar mb = newFrame.menuBar;
+                        for (int i = 0; i < mb.getMenuCount(); i++) {
+                            if ("TOOLS_MENU".equals(mb.getMenu(i).getName())) {
+                                mb.getMenu(i).add(new InvadersAction(newSession));
+                            }
+                        }
+                    }
                 } catch (Exception ex) {
                     ASUtils.showExceptionDialog(session, Messages.getString("ArchitectFrame.projectCreationFailed"), ex); //$NON-NLS-1$
                     logger.error("Got exception while creating new project", ex); //$NON-NLS-1$
@@ -821,6 +831,7 @@ public class ArchitectFrame extends JFrame {
         menuBar.add(enterpriseMenu);
         
         JMenu toolsMenu = new JMenu(Messages.getString("ArchitectFrame.toolsMenu")); //$NON-NLS-1$
+        toolsMenu.setName("TOOLS_MENU");
         toolsMenu.setMnemonic('t');
         toolsMenu.add(exportDDLAction);
         toolsMenu.add(compareDMAction);
@@ -899,9 +910,11 @@ public class ArchitectFrame extends JFrame {
     /**
      * Creates a new project in the same session context as this one, 
      * and opens it in a new ArchitectFrame instance.
+     * 
+     * @return the new session that contains the new project. 
      */
-    private void createNewProject() throws SQLObjectException {
-        session.getContext().createSession(session);
+    private ArchitectSwingSession createNewProject() throws SQLObjectException {
+        return session.getContext().createSession(session);
     }
 
     public SwingUIProjectLoader getProject() {

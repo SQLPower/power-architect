@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
@@ -141,6 +142,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 		this.model = tp.getModel();
 		this.margin = (Insets) tp.margin.clone();
 		this.columnHighlight = new HashMap<SQLColumn,List<Color>>(tp.columnHighlight);
+        setMinimumSize(tp.getMinimumSize());
 
 		for (SQLColumn c : tp.getSelectedItems()) {
 		    selectItem(c);
@@ -173,6 +175,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	        @ConstructorParameter(propertyName="parent") PlayPenContentPane parent) {
         super(m.getName());
         setModel(m);
+        setMinimumSize(new Dimension(100, 0));
         this.hiddenColumns = new HashSet<SQLColumn>();
         setInsertionPoint(ITEM_INDEX_NONE);
 	    setParent(parent);
@@ -1227,4 +1230,5 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             return new SQLObjectSelection(new ArrayList<SQLObject>(getSelectedItems()));
         }
     }
+
 }

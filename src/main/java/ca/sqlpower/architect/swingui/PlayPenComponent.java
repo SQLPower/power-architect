@@ -63,6 +63,7 @@ implements Selectable {
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
     
     private Rectangle bounds = new Rectangle();
+    private Dimension minimumSize = new Dimension();
     protected Color backgroundColor;
     protected Color foregroundColor;
     private Insets insets = new Insets(0,0,0,0);
@@ -133,6 +134,9 @@ implements Selectable {
             insets = new Insets(
                     copyMe.insets.top, copyMe.insets.left,
                     copyMe.insets.bottom, copyMe.insets.right);
+        }
+        if (copyMe.minimumSize != null) {
+            minimumSize = new Dimension(copyMe.minimumSize);
         }
         opaque = copyMe.opaque;
         setParent(parent);
@@ -262,6 +266,31 @@ implements Selectable {
         return getBounds(null);
     }
 
+    /**
+     * Returns a copy of this component's minimum size. Modifications to the
+     * returned object have no effect on this component.
+     */
+    @Accessor
+    public Dimension getMinimumSize() {
+        return new Dimension(minimumSize);
+    }
+
+    /**
+     * Sets this component's minimum size. Minimum size may not take effect
+     * until the next time this component is validated (which also often happens
+     * to play pen components when they are being painted).
+     * 
+     * @param minimumSize
+     *            The new minimum size this component should take on. Only a
+     *            copy of the given Dimension object is stored.
+     */
+    @Mutator
+    public void setMinimumSize(Dimension minimumSize) {
+        Dimension oldMinimumSize = this.minimumSize;
+        this.minimumSize = new Dimension(minimumSize);
+        firePropertyChange("minimumSize", oldMinimumSize, new Dimension(minimumSize));
+    }
+    
     /**
      * Sets the given rectangle to be identical to this component's bounding box.
      * 
