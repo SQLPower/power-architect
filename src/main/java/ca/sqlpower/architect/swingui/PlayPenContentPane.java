@@ -221,7 +221,7 @@ public class PlayPenContentPane extends AbstractSPObject {
 	    else if (relations.contains(c)) targetList = relations;
 	    else return false;
 	    
-	    int i = targetList.indexOf(c);
+	    int i = getChildren().indexOf(c);
 	    targetList.remove(c);
 	    fireChildRemoved(c.getClass(), c, i);
 	    return true;
