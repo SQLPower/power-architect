@@ -1708,13 +1708,13 @@ public class PlayPen extends JPanel
 	 */
 	public void childAdded(SPChildEvent e) {
 		logger.debug("SQLObject children got inserted: "+e); //$NON-NLS-1$
+		SPObject child = e.getChild();
+		addHierarchyListeners(child);
 		
 		if (!contentPane.isMagicEnabled() || !e.getSource().isMagicEnabled()) return;
 		
 		childAdded = true;
 		boolean fireEvent = false;
-		SPObject child = e.getChild();
-		addHierarchyListeners(child);
 		try {
             if (child instanceof SQLTable
                     || (child instanceof SQLRelationship
@@ -1748,12 +1748,12 @@ public class PlayPen extends JPanel
 	 */
 	public void childRemoved(SPChildEvent e) {
 		logger.debug("SQLObject children got removed: "+e); //$NON-NLS-1$
+		SPObject child = e.getChild();
+		removeHierarchyListeners(child);
 		
 		if (!contentPane.isMagicEnabled() || !e.getSource().isMagicEnabled()) return;
 		
 		boolean foundRemovedComponent = false;
-		SPObject child = e.getChild();
-		removeHierarchyListeners(child);
 
 		if (child instanceof SQLTable) {
 		    for (int j = 0; j < contentPane.getComponentCount(); j++) {
