@@ -91,11 +91,6 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 	 */
 	protected final Color selectedColor = new Color(204, 204, 255);
 
-	/**
-	 * Doesn't return a preferredSize with width less than this.
-	 */
-	protected final int minimumWidth = 100;
-
 	public static PlayPenComponentUI createUI(PlayPenComponent c) {
         return new BasicTablePaneUI();
     }
@@ -198,13 +193,13 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			y += GAP + BOX_LINE_THICKNESS + tp.getMargin().top;
 
 			// print columns
-			Iterator colNameIt = tablePane.getItems().iterator();
+			Iterator<SQLColumn> colNameIt = tablePane.getItems().iterator();
 			int i = 0;
 			int hwidth = width-tp.getMargin().right-tp.getMargin().left-BOX_LINE_THICKNESS*2;
 			boolean stillNeedPKLine = true;
 			Color currentColor = null;
 			while (colNameIt.hasNext()) {
-			    SQLColumn col = (SQLColumn) colNameIt.next();
+			    SQLColumn col = colNameIt.next();
 			    
 			    // Don't draw the column if it's hidden
 			    if (tp.hiddenColumns.contains(col)) {
@@ -328,7 +323,7 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			FontMetrics metrics = c.getFontMetrics(font);
 			int fontHeight = metrics.getHeight();
 			height = insets.top + fontHeight + GAP + c.getMargin().top + PK_GAP + cols*fontHeight + BOX_LINE_THICKNESS*2 + c.getMargin().bottom + insets.bottom;
-			width = minimumWidth;
+			width = c.getMinimumSize().width;
 			logger.debug("starting width is: " + width); //$NON-NLS-1$
 			List<String> itemsToCheck = new ArrayList<String>();
 			for (SQLColumn col : table.getColumns()) {

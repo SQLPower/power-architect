@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Point;
@@ -190,6 +191,8 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends P
 	private boolean isPropertyInstanceMutable(PropertyDescriptor property) {
 	    if (property.getPropertyType() == String.class) {
             return false;
+	    } else if (property.getPropertyType().isAssignableFrom(Enum.class)) {
+	        return false;
         } else if (property.getPropertyType() == Boolean.class || property.getPropertyType() == Boolean.TYPE) {
             return false;
         } else if (property.getPropertyType() == Integer.class || property.getPropertyType() == Integer.TYPE) {
@@ -199,6 +202,8 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends P
         } else if (property.getPropertyType() == Font.class) {
             return false;
         } else if (property.getPropertyType() == Point.class) {
+            return true;
+        } else if (property.getPropertyType() == Dimension.class) {
             return true;
         } else if (property.getPropertyType() == Insets.class) {
             return true;
@@ -296,6 +301,11 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends P
 	    } else if (property.getPropertyType() == SQLTable.class) {
 	        newVal = new SQLTable();
 	        ((SQLTable)newVal).initFolders(true);
+	    } else if (property.getPropertyType() == Dimension.class) {
+	        newVal = new Dimension();
+	        if (oldVal != null) {
+	            ((Dimension) newVal).width = ((Dimension) oldVal).width + 1;
+	        }
 	    } else {
 	        throw new RuntimeException("This test case lacks a value for "
 	        + property.getName() + " (type "
