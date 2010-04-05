@@ -162,6 +162,7 @@ public class TestArchitectUndoManager extends TestCase {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         session = context.createSession();
         pp = new PlayPen(session);
+        undoManager = new ArchitectUndoManager(pp);
         SQLDatabase db = session.getTargetDatabase();
         fkTable = new SQLTable(db,true);
         fkTable.setName("child");
@@ -171,16 +172,6 @@ public class TestArchitectUndoManager extends TestCase {
         pkTable.setName("parent");
         tp2 = new TablePane(pkTable,pp.getContentPane());
         pp.addTablePane(tp2,new Point(1,1));
-        undoManager = new ArchitectUndoManager(pp);
-        final PropertyChangeListener l = undoManager.getEventAdapter();
-        pp.getPlayPenContentPane().addComponentPropertyListener(
-                new String[] {"bounds", "fkConnectionPoint", "pkConnectionPoint"},
-                new AbstractSPListener() {
-                    public void propertyChanged(PropertyChangeEvent evt) {
-                        l.propertyChange(evt);
-                    }
-                }
-        );
         pkTable.addColumn(new SQLColumn());
         pkTable.addColumn(new SQLColumn());
         pkTable.addToPK(pkTable.getColumn(0));

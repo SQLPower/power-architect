@@ -38,6 +38,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 
 import sun.font.FontManager;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -46,6 +47,7 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
+import ca.sqlpower.util.SQLPowerUtils;
 
 public class TestPlayPen extends TestCase {
 	ArchitectFrame af;
@@ -89,8 +91,14 @@ public class TestPlayPen extends TestCase {
 
 		TablePane tp = new TablePane(t, pp.getContentPane());
 
+		
+		final SPObject root = SQLPowerUtils.getAncestorList(ppdb).get(0);
+		root.setMagicEnabled(false);
+        root.begin("Testing transaction");
 		ppdb.addChild(t);
 		pp.addTablePane(tp, new Point(99,98));
+		root.commit();
+		root.setMagicEnabled(true);
 
 		// this isn't the point of the test, but adding the tablepane has to work!
 		assertNotNull(ppdb.getTableByName("test_me"));

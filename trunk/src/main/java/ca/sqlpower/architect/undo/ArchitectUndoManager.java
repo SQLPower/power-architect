@@ -19,7 +19,11 @@
 
 package ca.sqlpower.architect.undo;
 
+import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
@@ -44,6 +48,34 @@ public class ArchitectUndoManager extends SQLObjectUndoManager implements Notify
         final SQLObjectUndoableEventAdapter undoListener = new SQLObjectUndoableEventAdapter(false);
         rootObject.addSPListener(undoListener);
         undoListener.attachToObject(rootObject);
+        final ArchitectProject workspace = playPen.getSession().getWorkspace();
+        playPen.getContentPane().addSPListener(eventAdapter);
+        eventAdapter.attachToObject(playPen.getContentPane());
+        workspace.addSPListener(new AbstractSPListener() {
+
+            /**
+             * The current play pen content pane. This is assigned from the
+             * ArchitectProject to ensure if the way the content pane is defined
+             * in the project is changed this will be changed as well.
+             */
+            private PlayPenContentPane lastPPCP = 
+                workspace.getPlayPenContentPane();
+            
+            @Override
+            public void childAdded(SPChildEvent e) {
+                if (e.getChild() != null && e.getChild().equals(workspace.getPlayPenContentPane())) {
+                    lastPPCP = workspace.getPlayPenContentPane();
+                    lastPPCP.addSPListener(eventAdapter);
+                }
+            }
+            
+            @Override
+            public void childRemoved(SPChildEvent e) {
+                if (e.getChild().equals(lastPPCP)) {
+                    lastPPCP.removeSPListener(eventAdapter);
+                }
+            }
+        });
         if (playPen != null) {
             playPen.addUndoEventListener(eventAdapter);
         }
