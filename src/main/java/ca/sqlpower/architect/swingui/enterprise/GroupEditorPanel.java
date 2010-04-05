@@ -37,11 +37,13 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.GroupMember;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.swingui.DataEntryPanel;
 
+import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -64,6 +66,10 @@ public class GroupEditorPanel implements DataEntryPanel {
     private final JScrollPane availableUsersScrollPane;
     
     private final ArchitectProject securityWorkspace;
+    
+    private final PrivilegesEditorPanel privilegesEditorPanel;
+    
+    private final Action closeAction;
     
     private final Action addAction = new AbstractAction(">") {
         public void actionPerformed(ActionEvent e) {
@@ -111,9 +117,26 @@ public class GroupEditorPanel implements DataEntryPanel {
         public void removeUpdate(DocumentEvent e)  { hasUnsavedChanges = true; }
     };
     
-    public GroupEditorPanel(Group baseGroup) {
+    private final Action okAction = new AbstractAction("OK") {
+        public void actionPerformed(ActionEvent e) {
+            applyChanges();
+        }
+    };
+    
+    private final Action cancelAction = new AbstractAction("Cancel") {
+        public void actionPerformed(ActionEvent e) {
+            discardChanges();
+            closeAction.actionPerformed(e);
+        }
+    };
+    
+    private final String username;
+    
+    public GroupEditorPanel(Group baseGroup, String username, Action closeAction) {
         this.group = baseGroup;
         this.securityWorkspace = (ArchitectProject) group.getParent();
+        this.username = username;
+        this.closeAction = closeAction;
         
         final Dimension prefButtonDimension = new Dimension(25, 25);
         final Dimension prefScrollPaneDimension = new Dimension(250, 300);
@@ -133,6 +156,23 @@ public class GroupEditorPanel implements DataEntryPanel {
         currentUsersList = new JList(new DefaultListModel());
         currentUsersScrollPane = new JScrollPane(currentUsersList);
         currentUsersScrollPane.setPreferredSize(prefScrollPaneDimension);
+        
+        Grant globalGrant = null;
+        for (Grant grant : baseGroup.getChildren(Grant.class)) {
+            if (grant.getType() != null && grant.getType().equals(ArchitectProject.class.getName())) {
+                if (globalGrant != null) {
+                    throw new IllegalStateException("Multiple grants for Architect Project found");
+                }
+                
+                globalGrant = grant;
+            }
+        }
+
+        if (globalGrant != null) {
+            privilegesEditorPanel = new PrivilegesEditorPanel(globalGrant, baseGroup, null, ArchitectProject.class.getName(), username, securityWorkspace);
+        } else {
+            privilegesEditorPanel = new PrivilegesEditorPanel(null, baseGroup, null, ArchitectProject.class.getName(), username, securityWorkspace);
+        }
         
         JButton addButton = new JButton(addAction);
         addButton.setPreferredSize(prefButtonDimension);
@@ -158,13 +198,28 @@ public class GroupEditorPanel implements DataEntryPanel {
         centrePanelBuilder.add(buttonPanelBuilder.getPanel(), cc.xy(3, 2));
         centrePanelBuilder.add(currentUsersScrollPane, cc.xy(5, 2));
         
-        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref", "pref, pref:grow"));
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow", "pref, 3dlu, pref:grow, 5dlu, pref"));
         builder.add(upperPanelBuilder.getPanel(), cc.xy(1, 1)); 
-        builder.add(centrePanelBuilder.getPanel(), cc.xy(1, 2));
+        builder.add(centrePanelBuilder.getPanel(), cc.xy(1, 3));
+        
+        DefaultFormBuilder bottomBuilder = new DefaultFormBuilder(new FormLayout("pref:grow, 5dlu, pref:grow", "pref, 3dlu, pref"));
+        bottomBuilder.add(new JLabel("System Privileges"), cc.xy(1, 1));
+        bottomBuilder.add(privilegesEditorPanel.getPanel(), cc.xy(1, 3));
+        
+        ButtonBarBuilder bbb = ButtonBarBuilder.createLeftToRightBuilder();
+        bbb.addGlue();
+        bbb.addGridded(new JButton(okAction));
+        bbb.addRelatedGap();
+        bbb.addGridded(new JButton(cancelAction));
+        
+        bottomBuilder.add(bbb.getPanel(), cc.xy(3, 3));
+        builder.add(bottomBuilder.getPanel(), cc.xy(1, 5));
+        builder.setDefaultDialogBorder();
         
         panel = builder.getPanel();
         
         fillUserLists();
+        disableIfNecessary();
     }
     
     private void fillUserLists() {
@@ -199,6 +254,8 @@ public class GroupEditorPanel implements DataEntryPanel {
     }
 
     public boolean applyChanges() {
+        privilegesEditorPanel.applyChanges();
+        
         try {
             if (hasUnsavedChanges()) {
                 securityWorkspace.begin("Applying changes to the security model");
@@ -256,10 +313,56 @@ public class GroupEditorPanel implements DataEntryPanel {
     }
 
     public void discardChanges() {
+        privilegesEditorPanel.discardChanges();
         hasUnsavedChanges = false;
     }
 
+    public void disableIfNecessary() {
+        User user = null;
+        List<Grant> grantsForUser = new ArrayList<Grant>();
+        for (User aUser : securityWorkspace.getChildren(User.class)) {
+            if (aUser.getUsername().equals(username)) {
+                user = aUser;
+            }
+        }
+        
+        if (user == null) throw new IllegalStateException("User cannot possibly be null");
+    
+        for (Grant g : user.getChildren(Grant.class)) {
+            grantsForUser.add(g);
+        }
+        
+        for (Group g : securityWorkspace.getChildren(Group.class)) {
+            for (GroupMember gm : g.getChildren(GroupMember.class)) {
+                if (gm.getUser().getUUID().equals(user.getUsername())) {
+                    for (Grant gr : g.getChildren(Grant.class)) {
+                        grantsForUser.add(gr);
+                    }
+                }
+            }
+        }
+        
+        boolean disableModifyGroup = true;
+        
+        for (Grant g : grantsForUser) {
+            if ((g.getSubject() != null && g.getSubject().equals(group.getUUID())) 
+                    || (g.getType() != null && g.getType().equals(Group.class.getName()))) {
+                if (g.isModifyPrivilege()) {
+                    disableModifyGroup = false;
+                }
+            }
+        }
+        
+        if (disableModifyGroup) {
+            nameTextField.setEnabled(false);
+            currentUsersList.setEnabled(false);
+            availableUsersList.setEnabled(false);
+            removeAction.setEnabled(false);
+            addAction.setEnabled(false);
+        }
+    }
+    
     public boolean hasUnsavedChanges() {
-        return hasUnsavedChanges;
+        return hasUnsavedChanges || privilegesEditorPanel.hasUnsavedChanges();
     }
 }

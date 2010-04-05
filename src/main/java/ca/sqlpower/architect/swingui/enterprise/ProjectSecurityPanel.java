@@ -19,13 +19,15 @@
 
 package ca.sqlpower.architect.swingui.enterprise;
 
-import java.awt.Dialog;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EventObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,12 +42,20 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
+import ca.sqlpower.enterprise.client.GroupMember;
 import ca.sqlpower.enterprise.client.User;
-import ca.sqlpower.object.ObjectDependentException;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -60,111 +70,63 @@ public class ProjectSecurityPanel implements DataEntryPanel{
     
     private final Action closeAction;
     private final ArchitectProject securityWorkspace;
-    private final ArchitectProject workspace;
+    private final SPObject subject;
+    private final String type;
     
-    private List<PrivilegesEditorPanel> panels;
+    private final String username;
     
-    private List<User> users;
-    private List<Group> groups;
+    private GroupOrUserTableModel userModel;
+    private GroupOrUserTableModel groupModel;
     
     private boolean hasUnsavedChanges = false;
     
-    private final Dialog parent;
-    
-    private final Dimension buttonDim = new Dimension(16, 16);
-    
-    public ProjectSecurityPanel(ArchitectProject securityWorkspace, ArchitectProject workspace, Dialog parent, Action closeAction) {
+    public ProjectSecurityPanel(ArchitectProject securityWorkspace, SPObject subject, String type, String username, Action closeAction) {
         this.securityWorkspace = securityWorkspace;
-        this.workspace = workspace;
+        this.subject = subject;
+        this.type = type;
+        this.username = username;
         this.closeAction = closeAction;
-        this.parent = parent;
         
-        panelLabel = new JLabel("Permissions for '" + workspace.getName() + "'");
+        panelLabel = new JLabel("Permissions for '" + (subject != null? subject.getName() : type) + "'");
         panelLabel.setFont(new Font(panelLabel.getFont().getFontName(), Font.BOLD, panelLabel.getFont().getSize() + 1));
         
         panel = new JPanel();
-        createPanel();
+        refreshPanel();
     }
     
-    private void createPanel() {
-        Map<User, Grant> globalGrantsForUsers = new HashMap<User, Grant>();
-        Map<Group, Grant> globalGrantsForGroups = new HashMap<Group, Grant>();
-        Map<User, Grant> specificGrantsForUsers = new HashMap<User, Grant>();
-        Map<Group, Grant> specificGrantsForGroups = new HashMap<Group, Grant>();
+    private void refreshPanel() {
         
-        // Populate maps ...
-        for (User user : securityWorkspace.getChildren(User.class)) {
-            for (Grant grant : user.getChildren(Grant.class)) {
-                if (grant.getType() != null && grant.getType().equals(ArchitectProject.class.getName())) {
-                    globalGrantsForUsers.put(user, grant);
-                }
-                if (grant.getSubject() != null && grant.getSubject().equals(workspace.getUUID())) {
-                    specificGrantsForUsers.put(user, grant);
-                }
-            }
-        }
-        for (Group group : securityWorkspace.getChildren(Group.class)) {
-            for (Grant grant : group.getChildren(Grant.class)) {
-                if (grant.getType() != null && grant.getType().equals(ArchitectProject.class.getName())) {
-                    globalGrantsForGroups.put(group, grant);
-                }
-                if (grant.getSubject() != null && grant.getSubject().equals(workspace.getUUID())) {
-                    specificGrantsForGroups.put(group, grant);
-                }
-            }
-        }
-        
-        if (users == null)  {
-            users = new ArrayList<User>();
-            users.addAll(specificGrantsForUsers.keySet());
-            Collections.sort(users, new Comparator<User>() {
-                public int compare(User o1, User o2) {
-                    return o1.getName().toUpperCase().compareTo(o2.getName().toUpperCase());
-                }
-            });
-        }
-        if (groups == null) {
-            groups = new ArrayList<Group>();
-            groups.addAll(specificGrantsForGroups.keySet());
-            Collections.sort(groups, new Comparator<Group>() {
-                public int compare(Group o1, Group o2) {
-                    return o1.getName().toUpperCase().compareTo(o2.getName().toUpperCase());
-                }
-            });
-        }
+        userModel = new GroupOrUserTableModel(User.class);
+        groupModel = new GroupOrUserTableModel(Group.class);
         
         CellConstraints cc = new CellConstraints();
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
                 "pref:grow", "pref:grow, 5dlu, pref:grow, pref:grow, 5dlu, pref:grow, pref:grow, 5dlu, pref:grow"));
-        
         builder.add(panelLabel, cc.xy(1,1));
         
+        // User list and headers
         JLabel userPermissions = new JLabel("User Permissions");
         userPermissions.setFont(new Font(userPermissions.getFont().getFontName(), Font.BOLD, userPermissions.getFont().getSize()));
         builder.add(userPermissions, cc.xy(1, 3));
+        builder.add(userModel.getPanel(), cc.xy(1, 4));
         
-        JPanel userListPanel = createUserListPanel(specificGrantsForUsers, globalGrantsForUsers);
-        
-        builder.add(userListPanel, cc.xy(1, 4));
-        
+        // Group list and headers
         JLabel groupPermissions = new JLabel("Group Permissions");
         groupPermissions.setFont(userPermissions.getFont());
         builder.add(groupPermissions, cc.xy(1, 6));
-        
-        builder.add(createGroupListPanel(specificGrantsForGroups, globalGrantsForGroups), cc.xy(1, 7));
+        builder.add(groupModel.getPanel(), cc.xy(1, 7));
         
         JButton okButton = new JButton(new AbstractAction("OK") {
             public void actionPerformed(ActionEvent e) {
-                applyChanges();
+                userModel.applyChanges();
+                groupModel.applyChanges();
                 closeAction.actionPerformed(e);
             }
         });
-        
         JButton cancelButton = new JButton(new AbstractAction("Cancel") {
             public void actionPerformed(ActionEvent e) {
-                for (DataEntryPanel p : panels) {
-                    p.discardChanges();
-                }
+                userModel.discardChanges();
+                groupModel.discardChanges();
                 closeAction.actionPerformed(e);
             }
         });
@@ -182,228 +144,10 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         panel.removeAll();
         panel.add(builder.getPanel());
         panel.revalidate();
-    }
-    
-    private JPanel createUserListPanel(Map<User, Grant> specificGrantsForUsers, Map<User, Grant> globalGrantsForUsers) {
-        CellConstraints cc = new CellConstraints();
-        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
-                "pref:grow, 5dlu, pref, 5dlu, pref, 5dlu, pref, 5dlu, pref, 5dlu, pref"));
-        int lineNo = 0;
-        builder.appendRow(builder.getDefaultRowSpec());
-        lineNo++;
-        builder.add(new JLabel("User Name"), cc.xy(1, lineNo));
-        builder.add(new JLabel("Modify"), cc.xy(3, lineNo));
-        builder.add(new JLabel("View"), cc.xy(5, lineNo));
-        builder.add(new JLabel("Delete"), cc.xy(7, lineNo));
-        builder.add(new JLabel("Grant"), cc.xy(9, lineNo));
-        
-        JButton addUserButton = new JButton(new AbstractAction("+") {
-            public void actionPerformed(ActionEvent e) {
-                List<User> availableUsers = securityWorkspace.getChildren(User.class);
-                availableUsers.removeAll(users);
-                
-                JList userList = new JList(new DefaultListModel());
-                for (User u : availableUsers) {
-                    ((DefaultListModel) userList.getModel()).addElement(u);
-                }
-                
-                Object[] messages = new Object[] {"Select Users to Add", new JScrollPane(userList)};
-
-                String[] options = { "OK", "Cancel"};
-                int option = JOptionPane.showOptionDialog(getPanel(), messages, "", JOptionPane.DEFAULT_OPTION, 
-                                JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-                
-                if (option == 0) {
-                    int [] selected = userList.getSelectedIndices();
-                    for (int i = 0; i < selected.length; i++) {
-                        User user = availableUsers.get(selected[i]);
-                        user.addGrant(new Grant(workspace.getUUID(), null, false, false, false, false, false));
-                        users.add(user);
-                    }
-                    panel.removeAll();
-                    createPanel();
-                    parent.pack();
-                }
-            }
-        });
-        
-        addUserButton.setPreferredSize(buttonDim);
-        builder.add(addUserButton, cc.xy(11, lineNo));
-        
-        panels = new ArrayList<PrivilegesEditorPanel>();
-        
-        for (User user : users) {
-            // can pass in null, it will just be empty
-            final PrivilegesEditorPanel specific = new PrivilegesEditorPanel(specificGrantsForUsers.get(user), user, workspace.getUUID(), null, securityWorkspace);
-            final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrantsForUsers.get(user), user, workspace.getUUID(), null, securityWorkspace);
-            
-            panels.add(specific);
-            panels.add(global);
-            
-            global.getCreateModifyPrivilege().setEnabled(false);
-            global.getDeletePrivilege().setEnabled(false);
-            global.getViewPrivilege().setEnabled(false);
-            global.getGrantPrivilege().setEnabled(false);
-            
-            global.getCreateModifyPrivilege().setText(null);
-            global.getDeletePrivilege().setText(null);
-            global.getViewPrivilege().setText(null);
-            global.getGrantPrivilege().setText(null);
-            
-            specific.getCreateModifyPrivilege().setText(null);
-            specific.getDeletePrivilege().setText(null);
-            specific.getViewPrivilege().setText(null);
-            specific.getGrantPrivilege().setText(null);
-            
-            builder.appendRow(builder.getDefaultRowSpec());
-            lineNo++;
-            builder.add(new JLabel(user.getName()), cc.xy(1, lineNo));
-            builder.add(global.getCreateModifyPrivilege().isSelected() ? global.getCreateModifyPrivilege() : specific.getCreateModifyPrivilege(), cc.xy(3, lineNo));
-            builder.add(global.getViewPrivilege().isSelected() ? global.getViewPrivilege() : specific.getViewPrivilege(), cc.xy(5, lineNo));
-            builder.add(global.getDeletePrivilege().isSelected() ? global.getDeletePrivilege() : specific.getDeletePrivilege(), cc.xy(7, lineNo));
-            builder.add(global.getGrantPrivilege().isSelected() ? global.getGrantPrivilege() : specific.getGrantPrivilege(), cc.xy(9, lineNo));
-        
-            final User u = user;
-            JButton removeUserButton = new JButton(new AbstractAction("-") {
-                public void actionPerformed(ActionEvent e) {
-                    
-                    specific.discardChanges();
-                    if (specific.getGrant() != null) {
-                        try {
-                            u.removeChild(specific.getGrant());
-                        } catch (IllegalArgumentException e1) {
-                            throw new RuntimeException("unable to remove grant", e1);
-                        } catch (ObjectDependentException e1) {
-                            throw new RuntimeException("unable to remove grant", e1);
-                        }
-                    }
-                    
-                    panels.remove(specific);
-                    panels.remove(global);
-                    
-                    users.remove(u);
-                    panel.removeAll();
-                    createPanel();
-                    parent.pack();
-                }
-            });
-            
-            removeUserButton.setPreferredSize(buttonDim);
-            builder.add(removeUserButton, cc.xy(11, lineNo));
-            
-        }
-        
-        return builder.getPanel();
-    }
-    
-    private JPanel createGroupListPanel(Map<Group, Grant> specificGrantsForGroups, Map<Group, Grant> globalGrantsForGroups) {
-        CellConstraints cc = new CellConstraints();
-        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
-                "pref:grow, 5dlu, pref, 5dlu, pref, 5dlu, pref, 5dlu, pref, 5dlu, pref"));
-        int lineNo = 0;
-
-        builder.appendRow(builder.getDefaultRowSpec());
-        lineNo++;
-        builder.add(new JLabel("Group Name"), cc.xy(1, lineNo));
-        builder.add(new JLabel("Modify"), cc.xy(3, lineNo));
-        builder.add(new JLabel("View"), cc.xy(5, lineNo));
-        builder.add(new JLabel("Delete"), cc.xy(7, lineNo));
-        builder.add(new JLabel("Grant"), cc.xy(9, lineNo));
-        
-        JButton addGroupButton = new JButton(new AbstractAction("+") {
-            public void actionPerformed(ActionEvent e) {
-                List<Group> availableGroups = securityWorkspace.getChildren(Group.class);
-                availableGroups.removeAll(groups);
-                
-                JList groupList = new JList(new DefaultListModel());
-                for (Group g : availableGroups) {
-                    ((DefaultListModel) groupList.getModel()).addElement(g);
-                }
-                
-                Object[] messages = new Object[] {"Select Groups to Add", new JScrollPane(groupList)};
-
-                String[] options = { "OK", "Cancel",};
-                int option = JOptionPane.showOptionDialog(getPanel(), messages, "", JOptionPane.DEFAULT_OPTION, 
-                                JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-                
-                if (option == 0) {
-                    int [] selected = groupList.getSelectedIndices();
-                    for (int i = 0; i < selected.length; i++) {
-                        Group group = availableGroups.get(selected[i]);
-                        group.addGrant(new Grant(workspace.getUUID(), null, false, false, false, false, false));
-                        groups.add(group);
-                    }
-                    panel.removeAll();
-                    createPanel();
-                    parent.pack();
-                }
-            }
-        });
-        
-        addGroupButton.setPreferredSize(buttonDim);
-        builder.add(addGroupButton, cc.xy(11, lineNo));
-        
-        for (Group group : groups) {
-            // can pass in null, it will just be empty
-            final PrivilegesEditorPanel specific = new PrivilegesEditorPanel(specificGrantsForGroups.get(group), group, workspace.getUUID(), null, securityWorkspace);
-            final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrantsForGroups.get(group), group, workspace.getUUID(), null, securityWorkspace);
-            
-            panels.add(specific);
-            panels.add(global);
-            
-            global.getCreateModifyPrivilege().setEnabled(false);
-            global.getDeletePrivilege().setEnabled(false);
-            global.getViewPrivilege().setEnabled(false);
-            global.getGrantPrivilege().setEnabled(false);
-            
-            global.getCreateModifyPrivilege().setText(null);
-            global.getDeletePrivilege().setText(null);
-            global.getViewPrivilege().setText(null);
-            global.getGrantPrivilege().setText(null);
-            
-            specific.getCreateModifyPrivilege().setText(null);
-            specific.getDeletePrivilege().setText(null);
-            specific.getViewPrivilege().setText(null);
-            specific.getGrantPrivilege().setText(null);
-            
-            builder.appendRow(builder.getDefaultRowSpec());
-            lineNo++;
-            builder.add(new JLabel(group.getName()), cc.xy(1, lineNo));
-            builder.add(global.getCreateModifyPrivilege().isSelected() ? global.getCreateModifyPrivilege() : specific.getCreateModifyPrivilege(), cc.xy(3, lineNo));
-            builder.add(global.getViewPrivilege().isSelected() ? global.getViewPrivilege() : specific.getViewPrivilege(), cc.xy(5, lineNo));
-            builder.add(global.getDeletePrivilege().isSelected() ? global.getDeletePrivilege() : specific.getDeletePrivilege(), cc.xy(7, lineNo));
-            builder.add(global.getGrantPrivilege().isSelected() ? global.getGrantPrivilege() : specific.getGrantPrivilege(), cc.xy(9, lineNo));
-        
-            final Group g = group;
-            JButton removeGroupButton = new JButton(new AbstractAction("-") {
-                public void actionPerformed(ActionEvent e) {
-                    
-                    specific.getCreateModifyPrivilege().setSelected(false);
-                    specific.getDeletePrivilege().setSelected(false);
-                    specific.getViewPrivilege().setSelected(false);
-                    specific.getGrantPrivilege().setSelected(false);
-                    specific.applyChanges();
-                    panels.remove(specific);
-                    panels.remove(global);
-                    
-                    groups.remove(g);
-                    panel.removeAll();
-                    createPanel();
-                    parent.pack();
-                }
-            });
-            
-            removeGroupButton.setPreferredSize(buttonDim);
-            builder.add(removeGroupButton, cc.xy(11, lineNo));
-        }
-        
-        return builder.getPanel();
+        disableIfNecessary();
     }
     
     public boolean applyChanges() {
-        for (DataEntryPanel p : panels) {
-            p.applyChanges();
-        }
         return true;
     }
 
@@ -415,8 +159,387 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         return panel;
     }
 
-
     public boolean hasUnsavedChanges() {
         return hasUnsavedChanges;
+    }
+    
+    public void disableIfNecessary() {
+        User user = null;
+        List<Grant> grantsForUser = new ArrayList<Grant>();
+        for (User aUser : securityWorkspace.getChildren(User.class)) {
+            if (aUser.getUsername().equals(username)) {
+                user = aUser;
+            }
+        }
+        
+        if (user == null) throw new IllegalStateException("User cannot possibly be null");
+    
+        for (Grant g : user.getChildren(Grant.class)) {
+            grantsForUser.add(g);
+        }
+        
+        for (Group g : securityWorkspace.getChildren(Group.class)) {
+            for (GroupMember gm : g.getChildren(GroupMember.class)) {
+                if (gm.getUser().getUUID().equals(user.getUsername())) {
+                    for (Grant gr : g.getChildren(Grant.class)) {
+                        grantsForUser.add(gr);
+                    }
+                }
+            }
+        }
+        
+        boolean disable = true;
+        for (Grant g : grantsForUser) {
+            if ((g.getSubject() != null && subject != null && g.getSubject().equals(subject.getUUID())) 
+                    || (g.getType() != null && g.getType().equals(type))) {
+                if (g.isGrantPrivilege()) {
+                    disable = false;
+                }
+            }
+        }
+
+        if (disable) {
+            for (Component [] componentArray : userModel.getComponents()) {
+                for (Component component : componentArray) {
+                    component.setEnabled(false);
+                }
+            }
+            for (Component [] componentArray : groupModel.getComponents()) {
+                for (Component component : componentArray) {
+                    component.setEnabled(false);
+                }
+            }
+        }
+    }
+    
+    private class RowCellRenderer implements TableCellRenderer {
+        private GroupOrUserTableModel model;
+        
+        public RowCellRenderer(GroupOrUserTableModel model) {
+            this.model = model;
+        }
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            return (Component) model.getValueAt(row, column);
+        }
+    }
+    
+    private class RowCellEditor implements TableCellEditor {
+
+        private GroupOrUserTableModel model;
+        
+        public RowCellEditor(GroupOrUserTableModel model) {
+            this.model = model;
+        }
+        
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            return (Component) model.getValueAt(row, column);
+        }
+
+        public void addCellEditorListener(CellEditorListener l) {
+        }
+
+        public void cancelCellEditing() {
+        }
+
+        public Object getCellEditorValue() {
+            return null;
+        }
+
+        public boolean isCellEditable(EventObject anEvent) {
+            return true;
+        }
+
+        public void removeCellEditorListener(CellEditorListener l) {
+        }
+
+        public boolean shouldSelectCell(EventObject anEvent) {
+            return true;
+        }
+
+        public boolean stopCellEditing() {
+            return true;
+        }
+        
+    }
+    
+    private class GroupOrUserTableModel implements TableModel, DataEntryPanel {
+
+        private final Component[] headerRow;
+        private final List<Component[]> rows;
+        private final int numColumns = 7;
+        private final List<DataEntryPanel> panels;
+        
+        private final List<SPObject> objectsWithSpecificGrants;
+        private final List<SPObject> objectsWithoutSpecificGrants;
+        private final List<SPObject> objectsWithGlobalGrants;
+        private final List<SPObject> objectsWithoutGlobalGrants;
+        
+        public GroupOrUserTableModel(final Class<? extends SPObject> groupOrUserClass) {
+            panels = new ArrayList<DataEntryPanel>();
+            rows = new ArrayList<Component[]>();
+            objectsWithoutSpecificGrants = new ArrayList<SPObject>();
+            objectsWithSpecificGrants = new ArrayList<SPObject>();
+            objectsWithGlobalGrants = new ArrayList<SPObject>();
+            objectsWithoutGlobalGrants = new ArrayList<SPObject>();
+            
+            Map<SPObject, Grant> specificGrants = new HashMap<SPObject, Grant>();
+            Map<SPObject, Grant> globalGrants = new HashMap<SPObject, Grant>();
+            
+            for (SPObject object : securityWorkspace.getChildren(groupOrUserClass)) {
+                for (Grant grant : object.getChildren(Grant.class)) {
+                    if (grant.getType() != null && grant.getType().equals(type)) {
+                        globalGrants.put(object, grant);
+                    }
+                    if (subject != null) {
+                        if (grant.getSubject() != null && grant.getSubject().equals(subject.getUUID())) {
+                            specificGrants.put(object, grant);
+                        }
+                    }
+                }
+            }
+            
+            for (SPObject obj : securityWorkspace.getChildren(groupOrUserClass)) {
+                objectsWithoutSpecificGrants.add(obj);
+                objectsWithoutGlobalGrants.add(obj);
+            }
+            for (SPObject obj : specificGrants.keySet()) {
+                objectsWithSpecificGrants.add(obj);
+            }
+            for (SPObject obj : globalGrants.keySet()) {
+                objectsWithGlobalGrants.add(obj);
+            }
+            objectsWithoutSpecificGrants.removeAll(objectsWithSpecificGrants);
+            objectsWithoutGlobalGrants.removeAll(objectsWithGlobalGrants);
+            
+            Comparator<SPObject> comparator = new Comparator<SPObject>() {
+                public int compare(SPObject o1, SPObject o2) {
+                    return o1.getName().toUpperCase().compareTo(o2.getName().toUpperCase());
+                }
+            };
+            
+            Collections.sort(objectsWithSpecificGrants, comparator);
+            Collections.sort(objectsWithoutSpecificGrants, comparator);
+            Collections.sort(objectsWithGlobalGrants, comparator);
+            Collections.sort(objectsWithoutGlobalGrants, comparator);
+            
+            headerRow = new Component[numColumns];
+            headerRow[0] = new JLabel("Name");
+            headerRow[1] = new JLabel("View");
+            headerRow[2] = new JLabel("Create");
+            headerRow[3] = new JLabel("Modify");
+            headerRow[4] = new JLabel("Delete");
+            headerRow[5] = new JLabel("Grant");
+            headerRow[6] = new JButton(new AbstractAction("+") {
+                public void actionPerformed(ActionEvent e) {
+                    
+                    JList list = new JList(new DefaultListModel());
+                    DefaultListModel model = (DefaultListModel) list.getModel();
+                    for (SPObject obj : (subject != null ? objectsWithoutSpecificGrants : objectsWithoutGlobalGrants)) {
+                        model.addElement(obj);
+                    }
+                    
+                    Object [] message = new Object[] {
+                            "Select " + groupOrUserClass.getSimpleName() + "s to add", 
+                            new JScrollPane(list)
+                    };
+                    Object [] selections = new Object[] {
+                            "OK", "Cancel"
+                    };
+                    
+                    Object selection = JOptionPane.showOptionDialog(getPanel(), message, "", JOptionPane.DEFAULT_OPTION, 
+                            JOptionPane.INFORMATION_MESSAGE, null, selections, selections[0]);
+                    
+                    if (((Integer) selection).intValue() == 0) {
+                        
+                        int [] selectedIndices = list.getSelectedIndices();
+                        for (int i = 0; i < selectedIndices.length; i++) {
+                            SPObject obj = (SPObject) model.get(selectedIndices[i]);
+                            if (subject != null) {
+                                obj.addChild(new Grant(subject.getUUID(), null, false, false, false, false, false),
+                                        obj.getChildren(Grant.class).size());
+                            } else {
+                                obj.addChild(new Grant(null, type, false, false, false, false, false),
+                                        obj.getChildren(Grant.class).size());
+                            }
+                        }
+                        
+                        refreshPanel();
+                    }
+                }
+            });
+            rows.add(headerRow);
+            
+            if (subject != null) {
+                for (final SPObject object : objectsWithSpecificGrants) {
+                    // can pass in null, it will just be empty
+                    final PrivilegesEditorPanel specific = new PrivilegesEditorPanel(specificGrants.get(object), object, subject.getUUID(), null, username, securityWorkspace);
+                    final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrants.get(object), object, subject.getUUID(), null, username, securityWorkspace);
+                    
+                    panels.add(specific);
+                    panels.add(global);
+                    
+                    global.getCreatePrivilege().setEnabled(false);
+                    global.getModifyPrivilege().setEnabled(false);
+                    global.getDeletePrivilege().setEnabled(false);
+                    global.getViewPrivilege().setEnabled(false);
+                    global.getGrantPrivilege().setEnabled(false);
+                    
+                    global.getCreatePrivilege().setText(null);
+                    global.getModifyPrivilege().setText(null);
+                    global.getDeletePrivilege().setText(null);
+                    global.getViewPrivilege().setText(null);
+                    global.getGrantPrivilege().setText(null);
+                    
+                    specific.getCreatePrivilege().setText(null);
+                    specific.getModifyPrivilege().setText(null);
+                    specific.getDeletePrivilege().setText(null);
+                    specific.getViewPrivilege().setText(null);
+                    specific.getGrantPrivilege().setText(null);
+                    
+                    JButton removeButton = new JButton(new AbstractAction("-") {
+                        public void actionPerformed(ActionEvent e) {
+                            try {
+                                object.removeChild(specific.getGrant());
+                            } catch (Exception ex) {
+                                throw new RuntimeException("Unable to remove grant from object", ex);
+                            }
+                            
+                            refreshPanel();
+                        }
+                    });
+                    
+                    Component [] rowComponents = new Component[numColumns]; 
+                    rowComponents[0] = new JLabel(object.getName());
+                    rowComponents[1] = global.getViewPrivilege().isSelected() ? global.getViewPrivilege() : specific.getViewPrivilege();
+                    rowComponents[2] = global.getCreatePrivilege().isSelected() ? global.getCreatePrivilege() : specific.getCreatePrivilege();
+                    rowComponents[3] = global.getModifyPrivilege().isSelected() ? global.getModifyPrivilege() : specific.getModifyPrivilege();
+                    rowComponents[4] = global.getDeletePrivilege().isSelected() ? global.getDeletePrivilege() : specific.getDeletePrivilege();
+                    rowComponents[5] = global.getGrantPrivilege().isSelected() ? global.getGrantPrivilege() : specific.getGrantPrivilege();
+                    rowComponents[6] = removeButton;
+                    
+                    for (Component component : rowComponents) component.setBackground(Color.white);
+                    
+                    rows.add(rowComponents);
+                }
+            } else {
+                for (final SPObject object : objectsWithGlobalGrants) {
+                    // can pass in null, it will just be empty
+                    final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrants.get(object), object, null, type, username, securityWorkspace);
+                    
+                    panels.add(global);
+                    
+                    global.getCreatePrivilege().setText(null);
+                    global.getModifyPrivilege().setText(null);
+                    global.getDeletePrivilege().setText(null);
+                    global.getViewPrivilege().setText(null);
+                    global.getGrantPrivilege().setText(null);
+                    
+                    JButton removeButton = new JButton(new AbstractAction("-") {
+                        public void actionPerformed(ActionEvent e) {
+                            try {
+                                object.removeChild(global.getGrant());
+                            } catch (Exception ex) {
+                                throw new RuntimeException("Unable to remove grant from object", ex);
+                            }
+                            
+                            refreshPanel();
+                        }
+                    });
+                    
+                    Component [] rowComponents = new Component[numColumns]; 
+                    rowComponents[0] = new JLabel(object.getName());
+                    rowComponents[1] = global.getViewPrivilege();
+                    rowComponents[2] = global.getCreatePrivilege();
+                    rowComponents[3] = global.getModifyPrivilege();
+                    rowComponents[4] = global.getDeletePrivilege();
+                    rowComponents[5] = global.getGrantPrivilege();
+                    rowComponents[6] = removeButton;
+                    
+                    for (Component component : rowComponents) component.setBackground(Color.white);
+                    
+                    rows.add(rowComponents);
+                }
+            }
+        }
+        
+        public Class<?> getColumnClass(int columnIndex) {
+            return headerRow[columnIndex].getClass();
+        }
+
+        public int getColumnCount() {
+            return numColumns;
+        }
+
+        public int getRowCount() {
+            return rows.size();
+        }
+
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            return rows.get(rowIndex)[columnIndex];
+        }
+
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return true;
+        }
+        
+        public List<Component[]> getComponents() {
+            return rows;
+        }
+
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {}
+        public void addTableModelListener(TableModelListener l) {}
+        public void removeTableModelListener(TableModelListener l) {}
+        public String getColumnName(int columnIndex) {return null;}
+
+        public void discardChanges() {
+            for (DataEntryPanel dep : panels) {
+                dep.discardChanges();
+            }
+        }
+
+        public JComponent getPanel() {
+            JTable table = new JTable(this);
+            table.setTableHeader(null);
+            
+            for (int i = 0; i < table.getColumnCount(); i++) {
+                TableColumn col = table.getColumnModel().getColumn(i);
+                col.setCellRenderer(new RowCellRenderer(this));
+                col.setCellEditor(new RowCellEditor(this));
+            }
+            
+            table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+            table.getColumnModel().getColumn(6).setPreferredWidth(table.getRowHeight());
+            
+            JScrollPane scrollpane = new JScrollPane(table);
+            scrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            scrollpane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            
+            int preferredHeight = table.getRowHeight() * 7;
+            int preferredWidth = scrollpane.getVerticalScrollBar().getWidth();
+            for (int i = 0; i < table.getColumnCount(); i++) {
+                preferredWidth += table.getColumnModel().getColumn(i).getWidth();
+            }
+            
+            scrollpane.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
+            
+            return scrollpane;
+        }
+
+        public boolean applyChanges() {
+            boolean success = true;
+            
+            for (DataEntryPanel dep : panels) {
+                if (!dep.applyChanges()) {
+                    success = false;
+                }
+            }
+            
+            return success;
+        }
+        
+        public boolean hasUnsavedChanges() {
+            // TODO Auto-generated method stub
+            return false;
+        }
     }
 }
