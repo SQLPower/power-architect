@@ -65,6 +65,7 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.UserSettings;
@@ -326,9 +327,9 @@ public class ArchitectFrame extends JFrame {
                 }
             };
             
-            SecurityPanel spm = new SecurityPanel(((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getProjectLocation().getServiceInfo(), closeAction);
+            SecurityPanel spm = new SecurityPanel(((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getProjectLocation().getServiceInfo(), closeAction, d);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            d.setContentPane(spm.getPanel());
+            d.setContentPane(spm.getSplitPane());
             
             SPSUtils.makeJDialogCancellable(d, null);
             d.pack();
@@ -348,7 +349,7 @@ public class ArchitectFrame extends JFrame {
             };
             
             ProjectSecurityPanel spm = new ProjectSecurityPanel(((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getSystemWorkspace(), 
-                    session.getWorkspace(), d, closeAction);
+                    session.getWorkspace(), ArchitectProject.class.getName(), ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getProjectLocation().getServiceInfo().getUsername(), closeAction);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(spm.getPanel());
             

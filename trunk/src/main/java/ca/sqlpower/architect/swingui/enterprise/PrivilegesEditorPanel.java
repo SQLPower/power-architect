@@ -20,6 +20,8 @@
 package ca.sqlpower.architect.swingui.enterprise;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -29,6 +31,7 @@ import javax.swing.JPanel;
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
+import ca.sqlpower.enterprise.client.GroupMember;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.swingui.DataEntryPanel;
@@ -50,33 +53,41 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
         }
     };
     
-    private final JCheckBox createModifyPrivilege = new JCheckBox(checkAction);
     private final JCheckBox viewPrivilege = new JCheckBox(checkAction);
+    private final JCheckBox createPrivilege = new JCheckBox(checkAction);
+    private final JCheckBox modifyPrivilege = new JCheckBox(checkAction);
     private final JCheckBox deletePrivilege = new JCheckBox(checkAction);
     private final JCheckBox grantPrivilege = new JCheckBox(checkAction);
     
     private final String subject;
-    private final String target;
+    private final String type;
+    private final String username;
     
     private final ArchitectProject securityWorkspace;
     
     private boolean hasUnsavedChanges = false;
     
-    public PrivilegesEditorPanel(Grant baseGrant, SPObject baseGroupOrUser, String subject, String target, ArchitectProject securityWorkspace) {
+    public PrivilegesEditorPanel(Grant baseGrant, SPObject baseGroupOrUser, String subject, String type, String username, ArchitectProject securityWorkspace) {
         this.securityWorkspace = securityWorkspace;
         this.grant = baseGrant;
         this.groupOrUser = baseGroupOrUser;
         this.subject = subject;
-        this.target = target;
+        this.type = type;
+        this.username = username;
         
-        createModifyPrivilege.setText("Create/Modify");
+        createPrivilege.setText("Create");
+        modifyPrivilege.setText("Modify");
         deletePrivilege.setText("Delete");
         viewPrivilege.setText("View");
         grantPrivilege.setText("Grant");
         
         if (grant != null) {
-            if (grant.isCreatePrivilege() && grant.isModifyPrivilege()) {
-                createModifyPrivilege.setSelected(true);
+            if (grant.isCreatePrivilege()) {
+                createPrivilege.setSelected(true);
+            }
+            
+            if (grant.isModifyPrivilege()) {
+                modifyPrivilege.setSelected(true);
             }
             
             if (grant.isExecutePrivilege()) {
@@ -94,17 +105,24 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
 
         CellConstraints cc = new CellConstraints();
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
-                "pref, 5dlu, pref, 5dlu, pref, 5dlu, pref", "pref"));
-        builder.add(createModifyPrivilege, cc.xy(1, 1));
-        builder.add(viewPrivilege, cc.xy(3, 1));
-        builder.add(deletePrivilege, cc.xy(5, 1));
-        builder.add(grantPrivilege, cc.xy(7, 1));
+                "pref, 5dlu, pref, 5dlu, pref,", "pref:grow, 3dlu, pref:grow"));
+        builder.add(viewPrivilege, cc.xy(1, 1));
+        builder.add(createPrivilege, cc.xy(3, 1));
+        builder.add(modifyPrivilege, cc.xy(5, 1));
+        builder.add(deletePrivilege, cc.xy(1, 3));
+        builder.add(grantPrivilege, cc.xy(3, 3));
         
         panel = builder.getPanel();
+        
+        disableIfNecessary();
     }
     
-    public JCheckBox getCreateModifyPrivilege() {
-        return createModifyPrivilege;
+    public JCheckBox getCreatePrivilege() {
+        return createPrivilege;
+    }
+    
+    public JCheckBox getModifyPrivilege() {
+        return modifyPrivilege;
     }
     
     public JCheckBox getDeletePrivilege() {
@@ -129,14 +147,16 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
                 
                 boolean doesNotRequireSave = false;
                 if (grant != null) {
-                    if ((getCreateModifyPrivilege().isSelected() == (grant.isCreatePrivilege() && grant.isModifyPrivilege())) 
+                    if ((getCreatePrivilege().isSelected() == grant.isCreatePrivilege())
+                            && (getModifyPrivilege().isSelected() == grant.isModifyPrivilege())
                             && (getViewPrivilege().isSelected() == grant.isExecutePrivilege())
                             && (getDeletePrivilege().isSelected() == grant.isDeletePrivilege())
                             && (getGrantPrivilege().isSelected() == grant.isGrantPrivilege())) {
                         doesNotRequireSave = true;
                     }
                 } else {
-                    if ((getCreateModifyPrivilege().isSelected() == false) 
+                    if ((getCreatePrivilege().isSelected() == false) 
+                            && (getModifyPrivilege().isSelected() == false)
                             && (getViewPrivilege().isSelected() == false)
                             && (getDeletePrivilege().isSelected() == false)
                             && (getGrantPrivilege().isSelected() == false)) {
@@ -146,9 +166,9 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
                 
                 if (!doesNotRequireSave) {
                     Grant newGrant = new Grant(
-                            subject, target,
-                            createModifyPrivilege.isSelected(), 
-                            createModifyPrivilege.isSelected(),
+                            subject, type,
+                            createPrivilege.isSelected(), 
+                            modifyPrivilege.isSelected(),
                             deletePrivilege.isSelected(), 
                             viewPrivilege.isSelected(), 
                             grantPrivilege.isSelected());
@@ -180,6 +200,51 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
         }
     }
 
+    public void disableIfNecessary() {
+        User user = null;
+        List<Grant> grantsForUser = new ArrayList<Grant>();
+        for (User aUser : securityWorkspace.getChildren(User.class)) {
+            if (aUser.getUsername().equals(username)) {
+                user = aUser;
+            }
+        }
+        
+        if (user == null) throw new IllegalStateException("User cannot possibly be null");
+    
+        for (Grant g : user.getChildren(Grant.class)) {
+            grantsForUser.add(g);
+        }
+        
+        for (Group g : securityWorkspace.getChildren(Group.class)) {
+            for (GroupMember gm : g.getChildren(GroupMember.class)) {
+                if (gm.getUser().getUUID().equals(user.getUsername())) {
+                    for (Grant gr : g.getChildren(Grant.class)) {
+                        grantsForUser.add(gr);
+                    }
+                }
+            }
+        }
+        
+        boolean disable = true;
+        
+        for (Grant g : grantsForUser) {
+            if ((g.getSubject() != null && g.getSubject().equals(subject)) 
+                    || (g.getType() != null && g.getType().equals(type))) {
+                if (g.isGrantPrivilege()) {
+                    disable = false;
+                }
+            }
+        }
+        
+        if (disable) {
+            getCreatePrivilege().setEnabled(false);
+            getModifyPrivilege().setEnabled(false);
+            getDeletePrivilege().setEnabled(false);
+            getViewPrivilege().setEnabled(false);
+            getGrantPrivilege().setEnabled(false);
+        }
+    }
+    
     public Grant getGrant() {
         return grant;
     }

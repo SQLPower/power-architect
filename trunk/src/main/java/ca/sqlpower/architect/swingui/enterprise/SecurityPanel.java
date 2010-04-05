@@ -20,6 +20,7 @@
 package ca.sqlpower.architect.swingui.enterprise;
 
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -32,14 +33,14 @@ import java.util.NoSuchElementException;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
@@ -52,17 +53,13 @@ import org.apache.commons.codec.binary.Hex;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
-import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.swingui.DataEntryPanel;
-
-import com.jgoodies.forms.builder.DefaultFormBuilder;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
+import ca.sqlpower.swingui.SPSUtils;
 
 public class SecurityPanel {
 
@@ -74,18 +71,17 @@ public class SecurityPanel {
     private final DefaultMutableTreeNode groupsNode = new DefaultMutableTreeNode("Groups");
     
     private final JPanel panel;
+    private final JSplitPane splitpane;
     
-    private final JPanel midPanel; // contains editor for group or user
-    private final JPanel lowPanel; // contains editor for privileges and apply/cancel buttons
+    private final JPanel rightSidePanel;
     private final JScrollPane treePane;
 
     private final ArchitectProject securityWorkspace;
+    
+    private final String username;
 
     private DataEntryPanel currentGroupOrUserEditPanel;
-    private DataEntryPanel currentPrivilegesEditPanel;
     private DefaultMutableTreeNode selectionForEditors;
-    
-    private final JPopupMenu popupMenu;
     
     private final TreeSelectionListener treeListener = new TreeSelectionListener() {
         public void valueChanged(TreeSelectionEvent e) {
@@ -115,6 +111,33 @@ public class SecurityPanel {
 
         private void maybeShowPopup(MouseEvent e) {
             if (e.isPopupTrigger()) {
+                
+                final TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+                
+                DefaultMutableTreeNode node;
+                try {
+                    node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                    tree.setSelectionPath(path);
+                } catch (Exception ex) {
+                    node = null;
+                }
+                
+                JPopupMenu popupMenu = new JPopupMenu();
+                if (node != null) {
+                    SPObject obj;
+                    try {
+                        obj = (SPObject) node.getUserObject();
+                    } catch (Exception ex) {
+                        obj = null;
+                    }
+                    popupMenu.add(new EditAction(path));
+                    popupMenu.add(new EditSecuritySettingsAction(path));
+                    if (obj != null) popupMenu.add(new DeleteAction(obj));
+                    popupMenu.addSeparator();
+                } 
+
+                popupMenu.add(newUserAction);
+                popupMenu.add(newGroupAction);
                 popupMenu.show(e.getComponent(), e.getX(), e.getY());
             }
         }
@@ -123,18 +146,13 @@ public class SecurityPanel {
     private final Action newUserAction = new AbstractAction("New User...") {
         public void actionPerformed(ActionEvent e) {
             if (promptForUnsavedChanges()) {
-                
                 User user = createUserFromPrompter();
-
                 if (user != null) {
                     securityWorkspace.addChild(user, securityWorkspace.getChildren(User.class).size());
-                    
                     refreshTree();
-                    
                     Enumeration<DefaultMutableTreeNode> userNodes = usersNode.children();
                     while (userNodes.hasMoreElements()) {
                         DefaultMutableTreeNode dmtn = userNodes.nextElement();
-                        
                         if (((User) dmtn.getUserObject()).getUUID().equals(user.getUUID())) {
                             tree.setSelectionPath(new TreePath(dmtn.getPath()));
                         }
@@ -148,16 +166,12 @@ public class SecurityPanel {
         public void actionPerformed(ActionEvent e) {
             if (promptForUnsavedChanges()) {
                Group group = createGroupFromPrompter();
-
                 if (group != null) {
                     securityWorkspace.addChild(group, securityWorkspace.getChildren(Group.class).size());
-                    
                     refreshTree();
-                    
                     Enumeration<DefaultMutableTreeNode> userNodes = groupsNode.children();
                     while (userNodes.hasMoreElements()) {
                         DefaultMutableTreeNode dmtn = userNodes.nextElement();
-                        
                         if (((Group) dmtn.getUserObject()).getUUID().equals(group.getUUID())) {
                             tree.setSelectionPath(new TreePath(dmtn.getPath()));
                         }
@@ -191,11 +205,14 @@ public class SecurityPanel {
     };
 
     private final MessageDigest digester;
+    private final Dialog dialog;
     
-    public SecurityPanel(SPServerInfo serverInfo, Action closeAction) {
+    public SecurityPanel(SPServerInfo serverInfo, Action closeAction, Dialog d) {
         this.closeAction = closeAction;
         this.securityWorkspace = ArchitectClientSideSession.getSecuritySessions()
                 .get(serverInfo.getServerAddress()).getWorkspace();
+        this.username = serverInfo.getUsername();
+        this.dialog = d;
         
         try {
             digester = MessageDigest.getInstance("SHA-256");
@@ -206,33 +223,22 @@ public class SecurityPanel {
         rootNode.add(usersNode);
         rootNode.add(groupsNode);
         
-        midPanel = new JPanel();
-        lowPanel = new JPanel();
+        rightSidePanel = new JPanel();
         
         tree = new JTree(rootNode);
         tree.addTreeSelectionListener(treeListener);
         treePane = new JScrollPane(tree);
-        treePane.setPreferredSize(new Dimension(250, 550));
+        treePane.setPreferredSize(new Dimension(200, treePane.getPreferredSize().height));
         
-        popupMenu = new JPopupMenu();
-        popupMenu.add(newUserAction);
-        popupMenu.add(newGroupAction);
-        popupMenu.add(deleteAction);
         tree.addMouseListener(popupListener);
 
-        JPanel rightSidePanel = new JPanel();
-        rightSidePanel.setLayout(new BorderLayout());
-        rightSidePanel.add(midPanel, BorderLayout.CENTER);
-        rightSidePanel.add(lowPanel, BorderLayout.SOUTH);
+        splitpane = new JSplitPane();
+        splitpane.setRightComponent(rightSidePanel);
+        splitpane.setLeftComponent(treePane);
         
-        CellConstraints cc = new CellConstraints();
-        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
-                "pref:grow, pref:grow", "pref"));
-        builder.add(treePane, cc.xywh(1, 1, 1, 1));
-        builder.add(rightSidePanel, cc.xy(2, 1));
+        panel = new JPanel();
+        panel.add(splitpane);
         
-        panel = builder.getPanel();
-
         refreshTree();
         
         try {
@@ -257,70 +263,20 @@ public class SecurityPanel {
     private void createEditPanel(final SPObject groupOrUser) {
         DataEntryPanel groupOrUserEditPanel;
         if (groupOrUser instanceof Group) {
-            groupOrUserEditPanel = new GroupEditorPanel((Group) groupOrUser);
+            groupOrUserEditPanel = new GroupEditorPanel((Group) groupOrUser, username, closeAction);
         } else if (groupOrUser instanceof User) {
-            groupOrUserEditPanel = new UserEditorPanel((User) groupOrUser);
+            groupOrUserEditPanel = new UserEditorPanel((User) groupOrUser, username, closeAction);
         } else {
-            throw new IllegalStateException("Argument must be instance of group or user");
+            throw new IllegalStateException("Argument must be instance of Group or User");
         }
-        
-        PrivilegesEditorPanel privilegesEditorPanel = null;
-        for (Grant grant : groupOrUser.getChildren(Grant.class)) {
-            if (grant.getType() != null && grant.getType().equals(ArchitectProject.class.getName())) {
-                if (privilegesEditorPanel != null) {
-                    throw new IllegalStateException("Multiple grants for this workspace found!");
-                }
-                privilegesEditorPanel = new PrivilegesEditorPanel(grant, groupOrUser, null, ArchitectProject.class.getName(), securityWorkspace);
-            }
-        }
-        
-        if (privilegesEditorPanel == null) {
-            privilegesEditorPanel = new PrivilegesEditorPanel(null, groupOrUser, null, ArchitectProject.class.getName(), securityWorkspace);
-        }
-        
+
         currentGroupOrUserEditPanel = groupOrUserEditPanel;
-        currentPrivilegesEditPanel = privilegesEditorPanel;
-        currentPrivilegesEditPanel.getPanel().setBorder(BorderFactory.createTitledBorder("System Privileges"));
         
-        JButton applyButton = new JButton(new AbstractAction("Apply") {
-            public void actionPerformed(ActionEvent e) {
-                currentGroupOrUserEditPanel.applyChanges();
-                currentPrivilegesEditPanel.applyChanges();
-                refreshTree();
-                // So that the privileges editor panel gains a ref to whatever grant may 
-                // have been created, and will not try to keep adding the same grant.
-                createEditPanel(groupOrUser); 
-            }
-        });
-        
-        JButton cancelButton = new JButton(new AbstractAction("Cancel") {
-            public void actionPerformed(ActionEvent e) {
-                if (promptForUnsavedChanges()) {
-                    currentGroupOrUserEditPanel.discardChanges();
-                    currentPrivilegesEditPanel.discardChanges();
-                    closeAction.actionPerformed(e);
-                }
-            }
-        });
-        
-        CellConstraints cc = new CellConstraints();
-        DefaultFormBuilder bottomBuilder = new DefaultFormBuilder(new FormLayout(
-                "pref, 3dlu, pref, 3dlu, pref", "pref"));
-        bottomBuilder.add(privilegesEditorPanel.getPanel(), cc.xy(1, 1));
-        bottomBuilder.add(applyButton, cc.xy(3,1));
-        bottomBuilder.add(cancelButton, cc.xy(5,1));
-        
-        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
-                "pref", "pref"));
-        builder.add(groupOrUserEditPanel.getPanel(), cc.xy(1, 1));
-        
-        midPanel.removeAll();
-        midPanel.add(builder.getPanel());
-    
-        lowPanel.removeAll();
-        lowPanel.add(bottomBuilder.getPanel());
+        rightSidePanel.removeAll();
+        rightSidePanel.add(groupOrUserEditPanel.getPanel());
         
         panel.revalidate();
+        dialog.pack();
     }
     
     private User createUserFromPrompter() {
@@ -340,7 +296,8 @@ public class SecurityPanel {
                 namePanel, passPanel};
 
         String[] options = { "Accept", "Cancel",};
-        int option = JOptionPane.showOptionDialog(getPanel(), messages, "Specify the User's Name and Password", JOptionPane.DEFAULT_OPTION, 
+        int option = JOptionPane.showOptionDialog(getPanel(), messages, 
+                "Specify the User's Name and Password", JOptionPane.DEFAULT_OPTION, 
                         JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
         
         if (nameField.getText().equals("") 
@@ -374,8 +331,8 @@ public class SecurityPanel {
     }
     
     private boolean promptForUnsavedChanges() {
-        if ((currentGroupOrUserEditPanel != null && currentPrivilegesEditPanel != null) &&
-                (currentGroupOrUserEditPanel.hasUnsavedChanges() || currentPrivilegesEditPanel.hasUnsavedChanges())) {
+        if (currentGroupOrUserEditPanel != null &&
+                (currentGroupOrUserEditPanel.hasUnsavedChanges())) {
             
             int option = JOptionPane.showConfirmDialog(getPanel(), 
                     "You have not saved all of your changes,\n" +
@@ -384,7 +341,6 @@ public class SecurityPanel {
             
             if (option == JOptionPane.YES_OPTION) {
                 currentGroupOrUserEditPanel.applyChanges();
-                currentPrivilegesEditPanel.applyChanges();
                 return true;
             }
             
@@ -422,7 +378,99 @@ public class SecurityPanel {
         return false;
     }
     
+    public JSplitPane getSplitPane() {
+        return splitpane;
+    }
+    
     public JPanel getPanel() {
         return panel;
+    }
+    
+    private class EditAction extends AbstractAction {
+        private final TreePath path;
+        
+        public EditAction(TreePath path) {
+            super("Edit");
+            this.path = path;
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+            tree.setSelectionPath(path);
+        }
+    }
+    
+    private class EditSecuritySettingsAction extends AbstractAction {
+        private final TreePath path;
+        
+        public EditSecuritySettingsAction(TreePath path) {
+            super("Manage Security Settings...");
+            this.path = path;
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+            
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+            SPObject object;
+            
+            try {
+                object = (SPObject) node.getUserObject();
+            } catch (Exception ex) {
+                object = null;
+            }
+            
+            Class objectClass = null;
+            if (object != null) {
+                objectClass = object.getClass();
+            } else {
+                if (node.getUserObject().equals("Users")) {
+                    objectClass = User.class;
+                }
+                if (node.getUserObject().equals("Groups")) {
+                    objectClass = Group.class;
+                }
+            }
+            
+            
+            final JDialog d = SPSUtils.makeOwnedDialog(panel, "Security Manager");
+            
+            Action closeAction = new AbstractAction("Close") {
+                public void actionPerformed(ActionEvent e) {
+                    d.dispose();
+                }
+            };
+                
+            ProjectSecurityPanel spm = new ProjectSecurityPanel(securityWorkspace, 
+                    object, objectClass.getName(), username, closeAction);
+            d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            d.setContentPane(spm.getPanel());
+                
+            SPSUtils.makeJDialogCancellable(d, null);
+            d.pack();
+            d.setLocationRelativeTo(panel);
+            d.setVisible(true);
+        }
+    }
+    
+    private class DeleteAction extends AbstractAction {
+        private final SPObject obj;
+        
+        public DeleteAction(SPObject obj) {
+            super("Delete");
+            this.obj = obj;
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+            if (promptForUnsavedChanges()) {
+                if (promptForDelete(obj)) {
+                    try {
+                        securityWorkspace.removeChild(obj);
+                    } catch (Exception ex) {
+                        throw new RuntimeException("Unable to delete: ", ex);
+                    }
+                    refreshTree();
+                    tree.setSelectionPath(new TreePath(usersNode.getFirstChild()));
+                }
+            }
+        }
     }
 }

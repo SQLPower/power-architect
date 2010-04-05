@@ -21,8 +21,6 @@ package ca.sqlpower.architect.swingui.enterprise;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,20 +31,19 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.apache.commons.codec.binary.Hex;
-
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.GroupMember;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.swingui.DataEntryPanel;
 
+import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -59,12 +56,10 @@ public class UserEditorPanel implements DataEntryPanel{
     private final JPanel panel;
 
     private final JLabel usernameLabel;
-    private final JLabel passwordLabel;
     private final JLabel fullnameLabel;
     private final JLabel emailLabel;
     
     private final JTextField usernameField;
-    private final JTextField passwordField;
     private final JTextField fullnameField;
     private final JTextField emailField;
     
@@ -76,7 +71,11 @@ public class UserEditorPanel implements DataEntryPanel{
     private final JLabel availableGroupsLabel;
     private final JScrollPane availableGroupsScrollPane;
     
-    private final MessageDigest digester;
+    private final String username;
+    
+    private final PrivilegesEditorPanel privilegesEditorPanel;
+
+    private final Action closeAction;
     
     private final Action addAction = new AbstractAction(">") {
         public void actionPerformed(ActionEvent e) {
@@ -116,6 +115,19 @@ public class UserEditorPanel implements DataEntryPanel{
         }
     };
     
+    private final Action okAction = new AbstractAction("OK") {
+        public void actionPerformed(ActionEvent e) {
+            applyChanges();
+        }
+    };
+    
+    private final Action cancelAction = new AbstractAction("Cancel") {
+        public void actionPerformed(ActionEvent e) {
+            discardChanges();
+            closeAction.actionPerformed(e);
+        }
+    };
+    
     private boolean hasUnsavedChanges = false;
     
     private final DocumentListener textFieldListener = new DocumentListener() {
@@ -124,27 +136,19 @@ public class UserEditorPanel implements DataEntryPanel{
         public void removeUpdate(DocumentEvent e)  { hasUnsavedChanges = true; }
     };
     
-    public UserEditorPanel(User baseUser) {
+    public UserEditorPanel(User baseUser, String username, Action closeAction) {
         this.user = baseUser;
         this.securityWorkspace = (ArchitectProject) user.getParent();
+        this.username = username;
+        this.closeAction = closeAction;
         
         final Dimension prefButtonDimension = new Dimension(25, 25);
         final Dimension prefScrollPaneDimension = new Dimension(250, 300);
 
-        try {
-            digester = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-        
         usernameLabel = new JLabel("User Name");
         usernameField = new JTextField(25);
         usernameField.setText(user.getUsername());
         usernameField.getDocument().addDocumentListener(textFieldListener);
-        
-        passwordLabel = new JLabel("Password");
-        passwordField = new JPasswordField(25);
-        passwordField.getDocument().addDocumentListener(textFieldListener);
         
         fullnameLabel = new JLabel("Full Name");
         fullnameField = new JTextField(25);
@@ -166,6 +170,25 @@ public class UserEditorPanel implements DataEntryPanel{
         currentGroupsScrollPane = new JScrollPane(currentGroupsList);
         currentGroupsScrollPane.setPreferredSize(prefScrollPaneDimension);
         
+        Grant globalGrant = null;
+        for (Grant grant : user.getChildren(Grant.class)) {
+            if (grant.getType() != null && grant.getType().equals(ArchitectProject.class.getName())) {
+                if (globalGrant != null) {
+                    throw new IllegalStateException("Multiple grants for Architect Project found");
+                }
+                
+                globalGrant = grant;
+            }
+        }
+
+        if (globalGrant != null) {
+            privilegesEditorPanel = new PrivilegesEditorPanel(
+                    globalGrant, user, null, ArchitectProject.class.getName(), username, securityWorkspace);
+        } else {
+            privilegesEditorPanel = new PrivilegesEditorPanel(
+                    null, user, null, ArchitectProject.class.getName(), username, securityWorkspace);
+        }
+        
         JButton addButton = new JButton(addAction);
         addButton.setPreferredSize(prefButtonDimension);
         JButton removeButton = new JButton(removeAction);
@@ -176,8 +199,6 @@ public class UserEditorPanel implements DataEntryPanel{
                 "pref, 5dlu, pref", "pref, pref, pref, pref, 5dlu"));
         upperPanelBuilder.add(usernameLabel, cc.xy(1, 1));
         upperPanelBuilder.add(usernameField, cc.xyw(3, 1, 1));
-        upperPanelBuilder.add(passwordLabel, cc.xy(1, 2));
-        upperPanelBuilder.add(passwordField, cc.xyw(3, 2, 1));
         upperPanelBuilder.add(fullnameLabel, cc.xy(1, 3));
         upperPanelBuilder.add(fullnameField, cc.xyw(3, 3, 1));
         upperPanelBuilder.add(emailLabel, cc.xy(1, 4));
@@ -196,13 +217,28 @@ public class UserEditorPanel implements DataEntryPanel{
         centrePanelBuilder.add(buttonPanelBuilder.getPanel(), cc.xy(3, 2));
         centrePanelBuilder.add(currentGroupsScrollPane, cc.xy(5, 2));
         
-        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref", "pref, pref:grow"));
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow", "pref, 3dlu, pref:grow, 5dlu, pref"));
         builder.add(upperPanelBuilder.getPanel(), cc.xy(1, 1)); 
-        builder.add(centrePanelBuilder.getPanel(), cc.xy(1, 2));
+        builder.add(centrePanelBuilder.getPanel(), cc.xy(1, 3));
+        
+        DefaultFormBuilder bottomBuilder = new DefaultFormBuilder(new FormLayout("pref:grow, 5dlu, pref:grow", "pref, 3dlu, pref"));
+        bottomBuilder.add(new JLabel("System Privileges"), cc.xy(1, 1));
+        bottomBuilder.add(privilegesEditorPanel.getPanel(), cc.xy(1, 3));
+        
+        ButtonBarBuilder bbb = ButtonBarBuilder.createLeftToRightBuilder();
+        bbb.addGlue();
+        bbb.addGridded(new JButton(okAction));
+        bbb.addRelatedGap();
+        bbb.addGridded(new JButton(cancelAction));
+        
+        bottomBuilder.add(bbb.getPanel(), cc.xy(3, 3));
+        builder.add(bottomBuilder.getPanel(), cc.xy(1, 5));
+        builder.setDefaultDialogBorder();
         
         panel = builder.getPanel();
         
         fillGroupLists();
+        disableIfNecessary();
     }
     
     private void fillGroupLists() {
@@ -236,16 +272,14 @@ public class UserEditorPanel implements DataEntryPanel{
     }
 
     public boolean applyChanges() {
+        privilegesEditorPanel.applyChanges();
+        
         try {
             if (hasUnsavedChanges()) {
                 securityWorkspace.begin("Applying changes to the security model");
                 
                 if (!usernameField.getText().equals(user.getUsername())) {
                     user.setName(usernameField.getText());
-                }
-                if (!passwordField.getText().equals("") && !passwordField.getText().equals(user.getPassword())) {
-                    String password = new String(Hex.encodeHex(digester.digest(passwordField.getText().getBytes("UTF-8"))));
-                    user.setPassword(password);
                 }
                 if (!fullnameField.getText().equals(user.getFullName())) {
                     user.setFullName(fullnameField.getText());
@@ -313,11 +347,55 @@ public class UserEditorPanel implements DataEntryPanel{
         }
     }
 
+    public void disableIfNecessary() {
+        User user = null;
+        List<Grant> grantsForUser = new ArrayList<Grant>();
+        for (User aUser : securityWorkspace.getChildren(User.class)) {
+            if (aUser.getUsername().equals(username)) {
+                user = aUser;
+            }
+        }
+        
+        if (user == null) throw new IllegalStateException("User cannot possibly be null");
+    
+        for (Grant g : user.getChildren(Grant.class)) {
+            grantsForUser.add(g);
+        }
+        
+        for (Group g : securityWorkspace.getChildren(Group.class)) {
+            for (GroupMember gm : g.getChildren(GroupMember.class)) {
+                if (gm.getUser().getUUID().equals(user.getUsername())) {
+                    for (Grant gr : g.getChildren(Grant.class)) {
+                        grantsForUser.add(gr);
+                    }
+                }
+            }
+        }
+        
+        boolean disableModifyUser = true;
+        
+        for (Grant g : grantsForUser) {
+            if ((g.getSubject() != null && g.getSubject().equals(user.getUUID())) 
+                    || (g.getType() != null && g.getType().equals(User.class.getName()))) {
+                if (g.isModifyPrivilege()) {
+                    disableModifyUser = false;
+                }
+            }
+        }
+        
+        if (disableModifyUser) {
+            usernameField.setEnabled(false);
+            fullnameField.setEnabled(false);
+            emailField.setEnabled(false);
+        }
+    }
+    
     public void discardChanges() {
+        privilegesEditorPanel.discardChanges();
         hasUnsavedChanges = false;
     }
 
     public boolean hasUnsavedChanges() {
-        return hasUnsavedChanges;
+        return hasUnsavedChanges || privilegesEditorPanel.hasUnsavedChanges();
     }
 }
