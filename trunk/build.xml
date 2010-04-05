@@ -857,15 +857,15 @@
 		</java>
 	</target>
 
-	<target name="clean" depends="init">
-		<delete dir="${build}"/>
-		<delete dir="${build.tests}"/>
-		<delete dir="${build.examples}"/>
-		<delete><fileset dir="${dist.dir}" includes="lib,SQL Power Architect.app,architect.jar"/></delete>
-		<delete dir="webstart/lib"/>
-		<delete dir="${staging.dir}"/>
-		<delete dir="${generated}/ca"/>
-		<delete><fileset dir="." includes="mycoverage.db*"/></delete>
+	<target name="clean">
+		<delete dir="${build}" failonerror="false"/>
+		<delete dir="${build.tests}" failonerror="false"/>
+		<delete dir="${build.examples}" failonerror="false"/>
+		<delete failonerror="false"><fileset dir="${dist.dir}" includes="lib,SQL Power Architect.app,architect.jar"/></delete>
+		<delete dir="webstart/lib" failonerror="false"/>
+		<delete dir="${staging.dir}" failonerror="false"/>
+		<delete dir="${generated}/ca" failonerror="false"/>
+		<delete failonerror="false"><fileset dir="." includes="mycoverage.db*"/></delete>
 	</target>
 
 	<target name="dist-clean" depends="clean">
