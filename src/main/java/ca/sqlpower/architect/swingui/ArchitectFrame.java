@@ -256,7 +256,7 @@ public class ArchitectFrame extends JFrame {
 //                                }
                             }
                         };
-                        ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(si, session.getContext(),
+                        ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(si, session, session.getContext(),
                                 ArchitectFrame.this, closeAction);
                         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
                         dialog.setContentPane(spm.getPanel());
@@ -275,7 +275,7 @@ public class ArchitectFrame extends JFrame {
                 public void actionPerformed(ActionEvent e) {
                     String msg = "Unable to connect to server";
                     try {
-                        List l = ArchitectClientSideSession.getWorkspaceNames(sim.getSelectedServer());
+                        List l = ArchitectClientSideSession.getWorkspaceNames(sim.getSelectedServer(), session);
                         if (l != null) {
                             msg = "Successfuly connected to server";
                         }
@@ -306,7 +306,7 @@ public class ArchitectFrame extends JFrame {
                 }
             };
             
-            ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(session.getContext(),
+            ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(session, session.getContext(),
                     ArchitectFrame.this, closeAction);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(spm.getPanel());
@@ -328,6 +328,7 @@ public class ArchitectFrame extends JFrame {
                 }
             };
             
+            ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getSystemSession().getUpdater().setPromptSession(session);
             SecurityPanel spm = new SecurityPanel(((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getProjectLocation().getServiceInfo(), closeAction, d);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(spm.getSplitPane());
@@ -349,6 +350,7 @@ public class ArchitectFrame extends JFrame {
                 }
             };
             
+            ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getSystemSession().getUpdater().setPromptSession(session);
             ProjectSecurityPanel spm = new ProjectSecurityPanel(((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getSystemWorkspace(), 
                     session.getWorkspace(), ArchitectProject.class.getName(), ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getProjectLocation().getServiceInfo().getUsername(), closeAction);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);

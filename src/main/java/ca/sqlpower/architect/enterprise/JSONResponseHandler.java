@@ -26,6 +26,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ResponseHandler;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.security.AccessDeniedException;
 
 public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
 
@@ -36,7 +37,11 @@ public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
 
     public JSONMessage handleResponse(HttpResponse response) {
         try {
-                            
+            
+            if (response.getStatusLine().getStatusCode() == 401) {
+                throw new AccessDeniedException("Access Denied");
+            }
+            
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(response.getEntity().getContent()));
             StringBuffer buffer = new StringBuffer();
@@ -46,6 +51,8 @@ public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
                 buffer.append(line).append("\n");
             }
             return handleResponse(buffer.toString());
+        } catch (AccessDeniedException e) {
+            throw e;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -73,9 +80,9 @@ public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
                         for (int i = 0; i < stackTraceStrings.length(); i++) {
                             stackTraceMessage.append("\n").append(stackTraceStrings.get(i));
                         }
-
+                        
                         throw new Exception(stackTraceMessage.toString());
-
+                        
                     } else {
                         // This exception represents a(n epic) client-server miscommunication
                         throw new Exception("Unable to parse response ");

@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
@@ -43,6 +43,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.security.AccessDeniedException;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
@@ -282,6 +283,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		return getSecuritySessions().get(getProjectLocation().getServiceInfo().getServerAddress()).getWorkspace();
 	}
 	
+	public ArchitectClientSideSession getSystemSession() {
+	    return getSecuritySessions().get(getProjectLocation().getServiceInfo().getServerAddress());
+	}
 
 	@Override
 	public void runInForeground(Runnable runner) {
@@ -312,7 +316,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	
 	// -
 	
-	public static List<ProjectLocation> getWorkspaceNames(SPServerInfo serviceInfo) 
+	public static List<ProjectLocation> getWorkspaceNames(SPServerInfo serviceInfo, ArchitectSession session) 
 	throws IOException, URISyntaxException, JSONException {
     	HttpClient httpClient = createHttpClient(serviceInfo);
     	try {
@@ -328,6 +332,14 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
     					serviceInfo));
     		}
     		return workspaces;
+    	} catch (AccessDeniedException e) {
+    	    session.createUserPrompter("You do not have sufficient privileges to perform that action.\n" +
+                    "Please hit the refresh button to re-synchonize with the server.", 
+                       UserPromptType.MESSAGE, 
+                       UserPromptOptions.OK, 
+                       UserPromptResponse.OK, 
+                       "OK", "OK").promptUser("");
+    	    return Collections.emptyList();
     	} finally {
     		httpClient.getConnectionManager().shutdown();
     	}
@@ -355,7 +367,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         
     }
 
-    public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo, String name)
+    public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo, String name, ArchitectSession session)
     throws URISyntaxException, ClientProtocolException, IOException, JSONException {
         
     	HttpClient httpClient = createHttpClient(serviceInfo);
@@ -367,6 +379,13 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
     					response.getString("uuid"),
     					response.getString("name"),
     					serviceInfo);
+    	} catch (AccessDeniedException e) {
+    	    session.createUserPrompter("You do not have sufficient privileges to create a new workspace.", 
+                       UserPromptType.MESSAGE, 
+                       UserPromptOptions.OK, 
+                       UserPromptResponse.OK, 
+                       "OK", "OK").promptUser("");
+    	    return null;
     	} finally {
     		httpClient.getConnectionManager().shutdown();
     	}
@@ -493,15 +512,20 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         return transactions;
 	}
 	
-	public static void deleteServerWorkspace(ProjectLocation projectLocation) throws URISyntaxException, ClientProtocolException, IOException {
+	public static void deleteServerWorkspace(ProjectLocation projectLocation, ArchitectSession session) throws URISyntaxException, ClientProtocolException, IOException {
     	SPServerInfo serviceInfo = projectLocation.getServiceInfo();
     	HttpClient httpClient = createHttpClient(serviceInfo);
     	
     	try {
     		executeServerRequest(httpClient, projectLocation.getServiceInfo(),
     				"/jcr/" + projectLocation.getUUID() + "/delete", 
-    				new BasicResponseHandler());
-    		
+    				new JSONResponseHandler());
+    	} catch (AccessDeniedException e) { 
+    	    session.createUserPrompter("You do not have sufficient privileges to delete the selected workspace.", 
+                       UserPromptType.MESSAGE, 
+                       UserPromptOptions.OK, 
+                       UserPromptResponse.OK, 
+                       "OK", "OK").promptUser(""); 
     	} finally {
     		httpClient.getConnectionManager().shutdown();
     	}

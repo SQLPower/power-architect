@@ -32,7 +32,9 @@ import org.apache.http.entity.StringEntity;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.security.AccessDeniedException;
 
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.dao.MessageSender;
 import ca.sqlpower.dao.PersistedObjectEntry;
 import ca.sqlpower.dao.PersistedPropertiesEntry;
@@ -46,8 +48,10 @@ import ca.sqlpower.dao.SPPersister.DataType;
 import ca.sqlpower.dao.json.SPJSONMessageDecoder;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.object.SPObject;
-import ca.sqlpower.util.SPSession;
 import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
 import com.enterprisedt.util.debug.Logger;
 import com.google.common.collect.LinkedListMultimap;
@@ -61,7 +65,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     
     private SPPersisterListener listener;
     private SessionPersisterSuperConverter converter;
-    private final SPSession session;
+    private ArchitectSession session;
+    private ArchitectSession promptSession;
     
     private int currentRevision = 0;
     
@@ -98,7 +103,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
             SPJSONMessageDecoder jsonDecoder, 
             HttpClient inboundHttpClient, 
             HttpClient outboundHttpClient,
-            SPSession session) 
+            ArchitectSession session) 
     {
         super("updater-" + projectLocation.getUUID());
         
@@ -109,6 +114,14 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         this.session = session;
         
         contextRelativePath = "/project/" + projectLocation.getUUID();
+    }
+    
+    public void setPromptSession(ArchitectSession promptSession) {
+        this.promptSession = promptSession;
+    }
+    
+    public ArchitectSession getPromptSession() {
+        return promptSession;
     }
     
     public void setListener(SPPersisterListener listener) {
@@ -133,8 +146,30 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         } else {
             postingJSON.set(true);
         }
-        // Try to send json message ... 
-        JSONMessage response = postJsonArray(messageBuffer.toString());
+        // Try to send json message ...
+        JSONMessage response = null;
+        try {
+            response = postJsonArray(messageBuffer.toString());
+        } catch (AccessDeniedException e) {
+            List<UpdateListener> listenersToRemove = new ArrayList<UpdateListener>();
+            for (UpdateListener listener : updateListeners) {
+                if (listener.updateException(NetworkConflictResolver.this)) {
+                    listenersToRemove.add(listener);
+                }
+            }
+            updateListeners.removeAll(listenersToRemove);
+            if (promptSession != null) {
+                promptSession.createUserPrompter("You do not have sufficient privileges to perform that action.\n" +
+                        "Please hit the refresh button to synchonize with the server.", 
+                        UserPromptType.MESSAGE, 
+                        UserPromptOptions.OK, 
+                        UserPromptResponse.OK, 
+                        "OK", "OK").promptUser("");
+            } else {
+                throw e;
+            }
+            return;
+        }
         if (response.isSuccessful()) {
             // Sent json message without conflict. 
             try {
@@ -239,10 +274,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                                if (!postingJSON.get()) {
                                    decodeMessage(json.getString("data"), json.getInt("currentRevision"));
                                }
-                           } catch (Exception e) {
-                               // TODO: Discard corrupt workspace and start again from scratch.
+                           } catch (AccessDeniedException ade) {
                                interrupt();
-                               
                                List<UpdateListener> listenersToRemove = new ArrayList<UpdateListener>();
                                for (UpdateListener listener : updateListeners) {
                                    if (listener.updateException(NetworkConflictResolver.this)) {
@@ -250,7 +283,26 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                                    }
                                }
                                updateListeners.removeAll(listenersToRemove);
-                               
+                               if (promptSession != null) {
+                                   promptSession.createUserPrompter("You do not have sufficient privileges to perform that action.\n" +
+                                           "Please hit the refresh button to synchonize with the server.", 
+                                           UserPromptType.MESSAGE, 
+                                           UserPromptOptions.OK, 
+                                           UserPromptResponse.OK, 
+                                           "OK", "OK").promptUser("");
+                               } else {
+                                   throw ade;
+                               }
+                           } catch (Exception e) {
+                               // TODO: Discard corrupt workspace and start again from scratch.
+                               interrupt();
+                               List<UpdateListener> listenersToRemove = new ArrayList<UpdateListener>();
+                               for (UpdateListener listener : updateListeners) {
+                                   if (listener.updateException(NetworkConflictResolver.this)) {
+                                       listenersToRemove.add(listener);
+                                   }
+                               }
+                               updateListeners.removeAll(listenersToRemove);
                                throw new RuntimeException("Update from server failed! Unable to decode the message: ", e);
                            } finally {
                                synchronized (NetworkConflictResolver.this) {
@@ -415,6 +467,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
             postRequest.setHeader("Content-Type", "application/json");
             HttpUriRequest request = postRequest;
             return outboundHttpClient.execute(request, new JSONResponseHandler());
+        } catch (AccessDeniedException ade) {
+            throw new AccessDeniedException("Access Denied");
         } catch (Exception ex) {
             throw new RuntimeException("Unable to post json to server: " + jsonArray + "\n"+ ex.getMessage());
         }
@@ -433,6 +487,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                     "oldRevisionNo=" + currentRevision, null);
             HttpUriRequest request = new HttpGet(uri);
             return client.execute(request, new JSONResponseHandler());
+        } catch (AccessDeniedException ade) {
+            throw new AccessDeniedException("Access Denied");
         } catch (Exception ex) {
             throw new RuntimeException("Unable to get json from server: " + ex.getMessage());
         }
@@ -440,6 +496,10 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     
     public int getRevision() {
         return currentRevision;
+    }
+    
+    public void setSession(ArchitectSession session) {
+        this.session = session;
     }
 
     public void addListener(UpdateListener listener) {
