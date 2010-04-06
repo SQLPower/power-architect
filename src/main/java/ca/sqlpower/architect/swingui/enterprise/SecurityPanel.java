@@ -52,6 +52,7 @@ import javax.swing.tree.TreePath;
 import org.apache.commons.codec.binary.Hex;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.SPServerInfo;
@@ -206,13 +207,15 @@ public class SecurityPanel {
 
     private final MessageDigest digester;
     private final Dialog dialog;
+    private final ArchitectSession session;
     
-    public SecurityPanel(SPServerInfo serverInfo, Action closeAction, Dialog d) {
+    public SecurityPanel(SPServerInfo serverInfo, Action closeAction, Dialog d, ArchitectSession session) {
         this.closeAction = closeAction;
         this.securityWorkspace = ArchitectClientSideSession.getSecuritySessions()
                 .get(serverInfo.getServerAddress()).getWorkspace();
         this.username = serverInfo.getUsername();
         this.dialog = d;
+        this.session = session;
         
         try {
             digester = MessageDigest.getInstance("SHA-256");
@@ -265,7 +268,7 @@ public class SecurityPanel {
         if (groupOrUser instanceof Group) {
             groupOrUserEditPanel = new GroupEditorPanel((Group) groupOrUser, username, closeAction);
         } else if (groupOrUser instanceof User) {
-            groupOrUserEditPanel = new UserEditorPanel((User) groupOrUser, username, closeAction);
+            groupOrUserEditPanel = new UserEditorPanel((User) groupOrUser, username, closeAction, dialog, session);
         } else {
             throw new IllegalStateException("Argument must be instance of Group or User");
         }
@@ -440,7 +443,7 @@ public class SecurityPanel {
             };
                 
             ProjectSecurityPanel spm = new ProjectSecurityPanel(securityWorkspace, 
-                    object, objectClass.getName(), username, closeAction);
+                    object, objectClass.getName(), username, d, closeAction);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(spm.getPanel());
                 

@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui.enterprise;
 
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.net.URI;
@@ -31,6 +32,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -49,6 +51,7 @@ import org.apache.http.entity.StringEntity;
 import org.json.JSONObject;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.JSONResponseHandler;
 import ca.sqlpower.enterprise.client.Grant;
@@ -57,6 +60,9 @@ import ca.sqlpower.enterprise.client.GroupMember;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -130,66 +136,6 @@ public class UserEditorPanel implements DataEntryPanel{
         }
     };
     
-    private final Action changePasswordAction = new AbstractAction("Change Password") {
-        public void actionPerformed(ActionEvent e) {
-            try {
-                JTextField oldPasswordField = new JPasswordField(21);
-                JTextField newPasswordField = new JPasswordField(21);
-                JTextField newPasswordFiled2 = new JPasswordField(21);
-                
-                Object [] messages = {
-                        "Enter the old password",
-                        oldPasswordField, 
-                        "Enter a new password", 
-                        newPasswordField, 
-                        newPasswordFiled2};
-                String[] options = { 
-                        "OK", 
-                        "Cancel"};
-                
-                int option = JOptionPane.showOptionDialog(getPanel(), messages, 
-                        "Change " + user.getUsername() + "'s password", JOptionPane.DEFAULT_OPTION, 
-                                JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-                
-                if (option == 0) {
-                    if (newPasswordField.getText().equals(newPasswordFiled2.getText())) {
-                        SPServerInfo serviceInfo = ((ArchitectClientSideSession) securityWorkspace.getSession())
-                        .getProjectLocation().getServiceInfo();
-                        
-                        HttpClient client = ArchitectClientSideSession.createHttpClient(serviceInfo);
-                        
-                        MessageDigest digester;
-                        try {
-                            digester = MessageDigest.getInstance("SHA-256");
-                        } catch (NoSuchAlgorithmException e1) {
-                            throw new RuntimeException(e1);
-                        }
-                        
-                        JSONObject json = new JSONObject();
-                        json.put("username", user.getUsername());
-                        json.put("oldPassword", new String(Hex.encodeHex(digester.digest(oldPasswordField.getText().getBytes()))));
-                        json.put("newPassword", new String(Hex.encodeHex(digester.digest(newPasswordField.getText().getBytes()))));
-                        
-                        URI serverURI = new URI("http", null, 
-                                serviceInfo.getServerAddress(), 
-                                serviceInfo.getPort(),
-                                serviceInfo.getPath() + "/project/system/change_password", 
-                                null, null);
-                        HttpPost postRequest = new HttpPost(serverURI);
-                        postRequest.setEntity(new StringEntity(json.toString())); 
-                        postRequest.setHeader("Content-Type", "application/json");
-                        HttpUriRequest request = postRequest;
-                        client.execute(request, new JSONResponseHandler());
-                    } else {
-                        JOptionPane.showMessageDialog(getPanel(), "The the passwords you entered were not the same");
-                    }
-                }
-            } catch (Exception x) {
-                throw new RuntimeException(x);
-            }
-        }
-    };
-    
     private final Action okAction = new AbstractAction("OK") {
         public void actionPerformed(ActionEvent e) {
             applyChanges();
@@ -211,11 +157,14 @@ public class UserEditorPanel implements DataEntryPanel{
         public void removeUpdate(DocumentEvent e)  { hasUnsavedChanges = true; }
     };
     
-    public UserEditorPanel(User baseUser, String username, Action closeAction) {
+    private final ArchitectSession session;
+    
+    public UserEditorPanel(User baseUser, String username, Action closeAction, final Dialog d, final ArchitectSession session) {
         this.user = baseUser;
         this.securityWorkspace = (ArchitectProject) user.getParent();
         this.username = username;
         this.closeAction = closeAction;
+        this.session = session;
         
         final Dimension prefButtonDimension = new Dimension(25, 25);
         final Dimension prefScrollPaneDimension = new Dimension(250, 300);
@@ -281,7 +230,87 @@ public class UserEditorPanel implements DataEntryPanel{
 
         ButtonBarBuilder passwordBuilder = ButtonBarBuilder.createLeftToRightBuilder();
         passwordBuilder.addGlue();
-        passwordBuilder.addGridded(new JButton(changePasswordAction));
+        passwordBuilder.addGridded(new JButton(new AbstractAction("Change Password") {
+            public void actionPerformed(ActionEvent e) {
+
+                final JDialog dialog = new JDialog(d);
+                    
+                final JTextField oldPasswordField = new JPasswordField(21);
+                final JTextField newPasswordField = new JPasswordField(21);
+                final JTextField newPasswordFiled2 = new JPasswordField(21);
+                
+                CellConstraints cc = new CellConstraints();
+                DefaultFormBuilder dialogBuilder = new DefaultFormBuilder(new FormLayout(
+                        "pref:grow", "pref, pref, pref, pref, pref, pref, pref"));
+                dialogBuilder.add(new JLabel("Enter your old password"), cc.xy(1, 1));
+                dialogBuilder.add(oldPasswordField, cc.xy(1, 2));
+                dialogBuilder.add(new JLabel("Enter your new password"), cc.xy(1, 3));
+                dialogBuilder.add(newPasswordField, cc.xy(1, 4));
+                dialogBuilder.add(new JLabel("Confirm your password"), cc.xy(1, 5));
+                dialogBuilder.add(newPasswordFiled2, cc.xy(1, 6));
+                
+                ButtonBarBuilder bbb = ButtonBarBuilder.createLeftToRightBuilder();
+                bbb.addGlue();
+                bbb.addGridded(new JButton(new AbstractAction("OK") {
+                    public void actionPerformed(ActionEvent e) {
+                        if (newPasswordField.getText().equals(newPasswordFiled2.getText())) {
+                            SPServerInfo serviceInfo = ((ArchitectClientSideSession) securityWorkspace.getSession())
+                            .getProjectLocation().getServiceInfo();
+                            
+                            HttpClient client = ArchitectClientSideSession.createHttpClient(serviceInfo);
+                            
+                            MessageDigest digester;
+                            try {
+                                digester = MessageDigest.getInstance("SHA-256");
+                            } catch (NoSuchAlgorithmException e1) {
+                                throw new RuntimeException(e1);
+                            }
+                            
+                            try {
+                                JSONObject json = new JSONObject();
+                                json.put("username", user.getUsername());
+                                json.put("oldPassword", new String(Hex.encodeHex(digester.digest(oldPasswordField.getText().getBytes()))));
+                                json.put("newPassword", new String(Hex.encodeHex(digester.digest(newPasswordField.getText().getBytes()))));
+                                
+                                URI serverURI = new URI("http", null, 
+                                        serviceInfo.getServerAddress(), 
+                                        serviceInfo.getPort(),
+                                        serviceInfo.getPath() + "/project/system/change_password", 
+                                        null, null);
+                                HttpPost postRequest = new HttpPost(serverURI);
+                                postRequest.setEntity(new StringEntity(json.toString())); 
+                                postRequest.setHeader("Content-Type", "application/json");
+                                HttpUriRequest request = postRequest;
+                                client.execute(request, new JSONResponseHandler());
+                                dialog.dispose();
+                            } catch (Exception x) {
+                                session.createUserPrompter("The password you have entered is incorrect.", 
+                                        UserPromptType.MESSAGE, 
+                                        UserPromptOptions.OK, 
+                                        UserPromptResponse.OK, 
+                                        "OK", "OK").promptUser("");
+                            }
+                        } else {
+                            JOptionPane.showMessageDialog(getPanel(), "The the passwords you entered were not the same");
+                        }
+                    }
+                }));
+                bbb.addRelatedGap();
+                bbb.addGridded(new JButton(new AbstractAction("Cancel") {
+                    public void actionPerformed(ActionEvent e) {
+                        dialog.dispose();
+                    }
+                }));
+                bbb.setDefaultButtonBarGapBorder();
+                
+                dialogBuilder.add(bbb.getPanel(), cc.xy(1, 7));
+                dialogBuilder.setDefaultDialogBorder();
+                dialog.setContentPane(dialogBuilder.getPanel());
+                dialog.pack();
+                dialog.setLocationRelativeTo(d);
+                dialog.setVisible(true);
+            }
+            }));
         
         DefaultFormBuilder buttonPanelBuilder = new DefaultFormBuilder(new FormLayout(
                 "pref", "pref:grow, pref, 5dlu, pref, pref:grow"));
@@ -454,6 +483,10 @@ public class UserEditorPanel implements DataEntryPanel{
         
         boolean disableModifyUser = true;
         boolean disableModifyGroups = true;
+
+        if (username.equals(user.getUsername())) {
+            disableModifyUser = false;
+        }
         
         for (Grant g : grantsForUser) {
             if ((g.getSubject() != null && g.getSubject().equals(user.getUUID())) 

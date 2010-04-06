@@ -21,6 +21,7 @@ package ca.sqlpower.architect.swingui.enterprise;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -80,12 +81,15 @@ public class ProjectSecurityPanel implements DataEntryPanel{
     
     private boolean hasUnsavedChanges = false;
     
-    public ProjectSecurityPanel(ArchitectProject securityWorkspace, SPObject subject, String type, String username, Action closeAction) {
+    private final Dialog d;
+    
+    public ProjectSecurityPanel(ArchitectProject securityWorkspace, SPObject subject, String type, String username, Dialog d, Action closeAction) {
         this.securityWorkspace = securityWorkspace;
         this.subject = subject;
         this.type = type;
         this.username = username;
         this.closeAction = closeAction;
+        this.d = d;
         
         panelLabel = new JLabel("Permissions for '" + (subject != null? subject.getName() : type.substring(type.lastIndexOf(".") + 1)) + "'");
         panelLabel.setFont(new Font(panelLabel.getFont().getFontName(), Font.BOLD, panelLabel.getFont().getSize() + 1));
@@ -347,7 +351,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                             "OK", "Cancel"
                     };
                     
-                    Object selection = JOptionPane.showOptionDialog(getPanel(), message, "", JOptionPane.DEFAULT_OPTION, 
+                    Object selection = JOptionPane.showOptionDialog(d, message, "", JOptionPane.DEFAULT_OPTION, 
                             JOptionPane.INFORMATION_MESSAGE, null, selections, selections[0]);
                     
                     if (((Integer) selection).intValue() == 0) {
