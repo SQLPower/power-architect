@@ -221,17 +221,17 @@ public class UserEditorPanel implements DataEntryPanel{
         final Dimension prefScrollPaneDimension = new Dimension(250, 300);
 
         usernameLabel = new JLabel("User Name");
-        usernameField = new JTextField(25);
+        usernameField = new JTextField();
         usernameField.setText(user.getUsername());
         usernameField.getDocument().addDocumentListener(textFieldListener);
         
         fullnameLabel = new JLabel("Full Name");
-        fullnameField = new JTextField(25);
+        fullnameField = new JTextField();
         fullnameField.setText(user.getFullName());
         fullnameField.getDocument().addDocumentListener(textFieldListener);
         
         emailLabel = new JLabel("Email");
-        emailField = new JTextField(25);
+        emailField = new JTextField();
         emailField.setText(user.getEmail());
         emailField.getDocument().addDocumentListener(textFieldListener);
         
@@ -271,14 +271,17 @@ public class UserEditorPanel implements DataEntryPanel{
         
         CellConstraints cc = new CellConstraints();
         DefaultFormBuilder upperPanelBuilder = new DefaultFormBuilder(new FormLayout(
-                "pref, 5dlu, pref", "pref, pref, pref, pref, pref, 5dlu"));
+                "pref, 5dlu, pref:grow", "pref, pref, pref, pref, pref, 5dlu"));
         upperPanelBuilder.add(usernameLabel, cc.xy(1, 1));
         upperPanelBuilder.add(usernameField, cc.xyw(3, 1, 1));
         upperPanelBuilder.add(fullnameLabel, cc.xy(1, 3));
         upperPanelBuilder.add(fullnameField, cc.xyw(3, 3, 1));
         upperPanelBuilder.add(emailLabel, cc.xy(1, 4));
         upperPanelBuilder.add(emailField, cc.xy(3, 4));
-        upperPanelBuilder.add(new JButton(changePasswordAction), cc.xy(3, 5));
+
+        ButtonBarBuilder passwordBuilder = ButtonBarBuilder.createLeftToRightBuilder();
+        passwordBuilder.addGlue();
+        passwordBuilder.addGridded(new JButton(changePasswordAction));
         
         DefaultFormBuilder buttonPanelBuilder = new DefaultFormBuilder(new FormLayout(
                 "pref", "pref:grow, pref, 5dlu, pref, pref:grow"));
@@ -293,9 +296,10 @@ public class UserEditorPanel implements DataEntryPanel{
         centrePanelBuilder.add(buttonPanelBuilder.getPanel(), cc.xy(3, 2));
         centrePanelBuilder.add(currentGroupsScrollPane, cc.xy(5, 2));
         
-        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow", "pref, 3dlu, pref:grow, 5dlu, pref"));
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow", "pref, pref, 3dlu, pref:grow, 5dlu, pref"));
         builder.add(upperPanelBuilder.getPanel(), cc.xy(1, 1)); 
-        builder.add(centrePanelBuilder.getPanel(), cc.xy(1, 3));
+        builder.add(passwordBuilder.getPanel(), cc.xy(1, 2));
+        builder.add(centrePanelBuilder.getPanel(), cc.xy(1, 4));
         
         DefaultFormBuilder bottomBuilder = new DefaultFormBuilder(new FormLayout("pref:grow, 5dlu, pref:grow", "pref, 3dlu, pref"));
         bottomBuilder.add(new JLabel("System Privileges"), cc.xy(1, 1));
@@ -308,7 +312,7 @@ public class UserEditorPanel implements DataEntryPanel{
         bbb.addGridded(new JButton(cancelAction));
         
         bottomBuilder.add(bbb.getPanel(), cc.xy(3, 3));
-        builder.add(bottomBuilder.getPanel(), cc.xy(1, 5));
+        builder.add(bottomBuilder.getPanel(), cc.xy(1, 6));
         builder.setDefaultDialogBorder();
         
         panel = builder.getPanel();

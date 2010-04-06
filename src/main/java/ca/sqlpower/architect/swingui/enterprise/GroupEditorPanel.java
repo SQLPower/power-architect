@@ -181,7 +181,7 @@ public class GroupEditorPanel implements DataEntryPanel {
         
         CellConstraints cc = new CellConstraints();
         DefaultFormBuilder upperPanelBuilder = new DefaultFormBuilder(new FormLayout(
-                "pref, 5dlu, pref", "pref, 5dlu"));
+                "pref, 5dlu, pref:grow", "pref, 5dlu"));
         upperPanelBuilder.add(nameLabel, cc.xy(1, 1));
         upperPanelBuilder.add(nameTextField, cc.xyw(3, 1, 1));
         
