@@ -221,6 +221,8 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
         final ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);
         final ArchitectSwingSessionImpl swingSession = new ArchitectSwingSessionImpl(this, clientSession);
+        clientSession.getUpdater().setPromptSession(swingSession);
+        
         clientSession.getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
             
             public void preUpdatePerformed(NetworkConflictResolver resolver) {

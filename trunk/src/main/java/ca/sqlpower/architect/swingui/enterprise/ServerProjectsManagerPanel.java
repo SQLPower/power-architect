@@ -59,6 +59,7 @@ public class ServerProjectsManagerPanel {
 
     private final Component dialogOwner;
     private final ArchitectSessionContext context;
+    private final ArchitectSession session;
     
     private final JPanel panel;
     private final Action closeAction;
@@ -80,7 +81,7 @@ public class ServerProjectsManagerPanel {
                 
                 if (name != null) {
                     try {
-                        ArchitectClientSideSession.createNewServerSession(getSelectedServerInfo(), name);
+                        ArchitectClientSideSession.createNewServerSession(getSelectedServerInfo(), name, session);
                     } catch (Exception ex) {
                         throw new RuntimeException("Unable to create new project", ex);
                     }
@@ -191,7 +192,7 @@ public class ServerProjectsManagerPanel {
                             if (obj instanceof ProjectLocation) {
                                 ProjectLocation location = (ProjectLocation) obj;
                                 try {
-                                    ArchitectClientSideSession.deleteServerWorkspace(location);
+                                    ArchitectClientSideSession.deleteServerWorkspace(location, session);
                                 } catch (Exception ex) {
                                     throw new RuntimeException("Unable to delete project", ex);
                                 }
@@ -210,12 +211,14 @@ public class ServerProjectsManagerPanel {
 
     public ServerProjectsManagerPanel(
             SPServerInfo serverInfo,
+            ArchitectSession session,
             ArchitectSessionContext context, 
             Component dialogOwner, 
             Action closeAction) 
     {
         this.serverInfo = serverInfo;
         this.dialogOwner = dialogOwner;
+        this.session = session;
         this.context = context;
         this.closeAction = closeAction;
         
@@ -259,10 +262,12 @@ public class ServerProjectsManagerPanel {
     }
     
     public ServerProjectsManagerPanel(
+            ArchitectSession session,
             ArchitectSessionContext context, 
             Component dialogOwner, 
             Action closeAction) 
     {
+        this.session = session;
         this.dialogOwner = dialogOwner;
         this.context = context;
         this.closeAction = closeAction;
@@ -369,7 +374,7 @@ public class ServerProjectsManagerPanel {
                 ((ArchitectSwingSessionContextImpl) context).createSecuritySession(serviceInfo);
                 
                 // Sorts the project locations alphabetically
-                List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo);
+                List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo, session);
                 Collections.sort(projects, new Comparator<ProjectLocation>() {
                     public int compare(ProjectLocation proj1, ProjectLocation proj2) {
                         return proj1.getName().toUpperCase().compareTo(proj2.getName().toUpperCase());

@@ -188,6 +188,7 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
                         ((Group) groupOrUser).addGrant(newGrant);
                     }
                     securityWorkspace.commit();
+                    grant = newGrant;
                 }
             }
             

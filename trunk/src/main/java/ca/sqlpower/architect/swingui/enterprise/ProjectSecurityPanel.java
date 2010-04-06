@@ -87,7 +87,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         this.username = username;
         this.closeAction = closeAction;
         
-        panelLabel = new JLabel("Permissions for '" + (subject != null? subject.getName() : type) + "'");
+        panelLabel = new JLabel("Permissions for '" + (subject != null? subject.getName() : type.substring(type.lastIndexOf(".") + 1)) + "'");
         panelLabel.setFont(new Font(panelLabel.getFont().getFontName(), Font.BOLD, panelLabel.getFont().getSize() + 1));
         
         panel = new JPanel();
@@ -123,6 +123,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                 closeAction.actionPerformed(e);
             }
         });
+        
         JButton cancelButton = new JButton(new AbstractAction("Cancel") {
             public void actionPerformed(ActionEvent e) {
                 userModel.discardChanges();

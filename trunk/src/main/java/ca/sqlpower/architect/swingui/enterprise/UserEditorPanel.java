@@ -373,6 +373,7 @@ public class UserEditorPanel implements DataEntryPanel{
         }
         
         boolean disableModifyUser = true;
+        boolean disableModifyGroups = true;
         
         for (Grant g : grantsForUser) {
             if ((g.getSubject() != null && g.getSubject().equals(user.getUUID())) 
@@ -381,12 +382,25 @@ public class UserEditorPanel implements DataEntryPanel{
                     disableModifyUser = false;
                 }
             }
+            
+            if (g.getType() != null && g.getType().equals(Group.class.getName())) {
+                if (g.isModifyPrivilege()) {
+                    disableModifyGroups = false;
+                }
+            }
         }
         
         if (disableModifyUser) {
             usernameField.setEnabled(false);
             fullnameField.setEnabled(false);
             emailField.setEnabled(false);
+        }
+        
+        if (disableModifyGroups) {
+            addAction.setEnabled(false);
+            removeAction.setEnabled(false);
+            currentGroupsList.setEnabled(false);
+            availableGroupsList.setEnabled(false);
         }
     }
     
