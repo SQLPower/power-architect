@@ -373,8 +373,8 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             if (subject != null) {
                 for (final SPObject object : objectsWithSpecificGrants) {
                     // can pass in null, it will just be empty
-                    final PrivilegesEditorPanel specific = new PrivilegesEditorPanel(specificGrants.get(object), object, subject.getUUID(), null, username, securityWorkspace);
-                    final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrants.get(object), object, subject.getUUID(), null, username, securityWorkspace);
+                    final PrivilegesEditorPanel specific = new PrivilegesEditorPanel(specificGrants.get(object), object, subject.getUUID(), ArchitectProject.class.getName(), username, securityWorkspace);
+                    final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrants.get(object), object, subject.getUUID(), ArchitectProject.class.getName(), username, securityWorkspace);
                     
                     panels.add(specific);
                     panels.add(global);

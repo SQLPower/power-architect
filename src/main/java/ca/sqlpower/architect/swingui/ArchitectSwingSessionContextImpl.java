@@ -36,6 +36,7 @@ import java.util.prefs.Preferences;
 import javax.swing.ImageIcon;
 
 import org.apache.log4j.Logger;
+import org.springframework.security.AccessDeniedException;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
@@ -285,6 +286,8 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
                 newSecuritySession.startUpdaterThread();
                 ArchitectClientSideSession.getSecuritySessions().put(serverInfo.getServerAddress(), newSecuritySession);
                 session = newSecuritySession;
+            } catch (AccessDeniedException e) {
+                throw e;
             } catch (SQLObjectException e) {
                 throw new RuntimeException("Unable to create security session!!!", e);
             }

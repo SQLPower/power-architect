@@ -42,6 +42,8 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
+import org.springframework.security.AccessDeniedException;
+
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
@@ -50,6 +52,9 @@ import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl;
 import ca.sqlpower.enterprise.client.SPServerInfo;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -371,19 +376,32 @@ public class ServerProjectsManagerPanel {
         if (serviceInfo != null) {
             try {
                 
-                ((ArchitectSwingSessionContextImpl) context).createSecuritySession(serviceInfo);
+                boolean accessible = true;
                 
-                // Sorts the project locations alphabetically
-                List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo, session);
-                Collections.sort(projects, new Comparator<ProjectLocation>() {
-                    public int compare(ProjectLocation proj1, ProjectLocation proj2) {
-                        return proj1.getName().toUpperCase().compareTo(proj2.getName().toUpperCase());
-                    }
-                });
+                try {
+                    ((ArchitectSwingSessionContextImpl) session.getContext()).createSecuritySession(serviceInfo);
+                } catch (AccessDeniedException ex) {
+                    session.createUserPrompter("Unable to login to server.", 
+                            UserPromptType.MESSAGE, 
+                            UserPromptOptions.OK, 
+                            UserPromptResponse.OK, 
+                            "OK", "OK").promptUser("");
+                    accessible = false;
+                }
                 
-                for (ProjectLocation pl : projects) {
-                    model.addElement(pl);
-                } 
+                if (accessible) {
+                    // Sorts the project locations alphabetically
+                    List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo, session);
+                    Collections.sort(projects, new Comparator<ProjectLocation>() {
+                        public int compare(ProjectLocation proj1, ProjectLocation proj2) {
+                            return proj1.getName().toUpperCase().compareTo(proj2.getName().toUpperCase());
+                        }
+                    });
+                    
+                    for (ProjectLocation pl : projects) {
+                        model.addElement(pl);
+                    } 
+                }
                 
                 connected = true;
             } catch (Exception ex) {
