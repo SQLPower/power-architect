@@ -30,6 +30,7 @@ import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.AbstractPlacer;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.olap.OSUtils;
@@ -49,17 +50,25 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        VirtualCube vCube = new VirtualCube();
+        PlayPenContentPane pane = playpen.getContentPane();
+        pane.begin("Creating VirtualCube and VirtualCubePane");
+        try {
+            VirtualCube vCube = new VirtualCube();
 
-        int count = 1;
-        while (!OLAPUtil.isNameUnique(schema, VirtualCube.class, "New Virtual Cube " + count)) {
-            count++;
+            int count = 1;
+            while (!OLAPUtil.isNameUnique(schema, VirtualCube.class, "New Virtual Cube " + count)) {
+                count++;
+            }
+            vCube.setName("New Virtual Cube " + count);
+
+            VirtualCubePane cp = new VirtualCubePane(vCube, playpen.getContentPane());
+            VirtualCubePlacer cubePlacer = new VirtualCubePlacer(cp);
+            cubePlacer.dirtyup();
+            pane.commit();
+        } catch (Throwable ex) {
+            pane.rollback("Error creating Cube: " + ex.toString());
+            throw new RuntimeException(ex);
         }
-        vCube.setName("New Virtual Cube " + count);
-        
-        VirtualCubePane cp = new VirtualCubePane(vCube, playpen.getContentPane());
-        VirtualCubePlacer cubePlacer = new VirtualCubePlacer(cp);
-        cubePlacer.dirtyup();
     }
 
     private class VirtualCubePlacer extends AbstractPlacer {

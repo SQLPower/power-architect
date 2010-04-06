@@ -58,6 +58,9 @@ import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.NonBound;
+import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
@@ -144,6 +147,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
     }
     
     @Override
+    @Transient @Accessor
     public OLAPPaneUI<T, C> getUI() {
         return (OLAPPaneUI<T, C>) super.getUI();
     }
@@ -278,7 +282,8 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                 Iterator<ContainerPane<?, ?> > it = pp.getSelectedContainers().iterator();
                 logger.debug("event point: " + p); //$NON-NLS-1$
                 logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
-                pp.setDraggingTablePanes(true);
+                pp.setDraggingContainerPanes(true);
+                startedDragging();
 
                 while (it.hasNext()) {
                     // create FloatingContainerPaneListener for each selected item
@@ -335,6 +340,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      *            The section to check
      * @return true if section is currently selected.
      */
+    @NonBound
     public boolean isSectionSelected(PaneSection<? extends C> sect) {
         return selectedSections.contains(sect);
     }
@@ -343,6 +349,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * Returns a list of the sections that are currently in the selection that
      * also currently exist in the model.
      */
+    @NonBound
     public List<PaneSection<? extends C>> getSelectedSections() {
         List<PaneSection<? extends C>> selectedSects = new ArrayList<PaneSection<? extends C>>();
         for (PaneSection<? extends C> sect : getSections()) {
@@ -361,6 +368,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * will be in the returned list and none of its items will. This is consistent
      * with other multi-select GUIs we looked at.
      */
+    @NonBound
     public List<PlayPenCoordinate<T, C>> getSelectedCoordinates() {
         List<PlayPenCoordinate<T, C>> selection = new ArrayList<PlayPenCoordinate<T,C>>();
         for (PaneSection<? extends C> sect : getSections()) {
@@ -393,6 +401,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
     }
     
     @Override
+    @NonBound
     public JPopupMenu getPopup(Point p) {
         PlayPenCoordinate<T, C> pointToPPCoordinate = getUI().pointToPPCoordinate(p);
         List<OLAPObject> itemsFromPoint = getItemsFromCoordinates((List) Collections.singletonList(pointToPPCoordinate));
@@ -594,6 +603,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * @return A list of OLAPObjects that correspond to the given
      *         PlayPenCoordinates.
      */
+    @NonBound
     protected List<OLAPObject> getItemsFromCoordinates(List<PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject>> coords) {
         List<OLAPObject> items = new ArrayList<OLAPObject>();
         for (PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject> coord : coords) {
@@ -685,6 +695,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * the coordinate might be one item index beyond the last item in
      * the section.
      */
+    @Transient @Accessor
     public PlayPenCoordinate<T, C> getInsertionPoint() {
         return insertionPoint;
     }
@@ -693,10 +704,11 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * Returns all the UsageComponents in the play pen that this pane
      * is the "pane2" for. This is part of the LayoutNode interface.
      */
+    @NonBound
     public final List<LayoutEdge> getInboundEdges() {
         List<LayoutEdge> edges = new ArrayList<LayoutEdge>();
         
-        for (PlayPenComponent ppc : getPlayPen().getPlayPenComponents()) {
+        for (PlayPenComponent ppc : getPlayPen().getContentPane().getChildren()) {
             if (ppc instanceof UsageComponent) {
                 UsageComponent uc = (UsageComponent) ppc;
                 if (uc.getPane2() == this) {
@@ -712,10 +724,11 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * Returns all the UsageComponents in the play pen that this pane
      * is the "pane1" for. This is part of the LayoutNode interface.
      */
+    @NonBound
     public final List<LayoutEdge> getOutboundEdges() {
         List<LayoutEdge> edges = new ArrayList<LayoutEdge>();
         
-        for (PlayPenComponent ppc : getPlayPen().getPlayPenComponents()) {
+        for (PlayPenComponent ppc : getPlayPen().getContentPane().getChildren()) {
             if (ppc instanceof UsageComponent) {
                 UsageComponent uc = (UsageComponent) ppc;
                 if (uc.getPane1() == this) {

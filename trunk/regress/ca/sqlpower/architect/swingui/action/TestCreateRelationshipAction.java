@@ -25,11 +25,12 @@ import java.util.List;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
+import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestCreateRelationshipAction extends TestCase {
@@ -64,9 +65,9 @@ public class TestCreateRelationshipAction extends TestCase {
 	 * Test method for 'ca.sqlpower.architect.swingui.action.CreateRelationshipAction.doCreateRelationship(SQLTable, SQLTable, PlayPen, boolean)'
 	 */
 	public void testDoCreateRelationshipIdentifying() throws SQLObjectException {
-		assertEquals("Oops started out with relationships",0,pp.getRelationships().size());
+		assertEquals("Oops started out with relationships",0,pp.getContentPane().getChildren(Relationship.class).size());
 		CreateRelationshipAction.doCreateRelationship(pkTable,fkTable,pp,true);
-		assertEquals("Wrong number of relationships created",1,pp.getRelationships().size());
+		assertEquals("Wrong number of relationships created",1,pp.getContentPane().getChildren(Relationship.class).size());
 		assertEquals("Did the relationship create the columns in the fkTable",2,fkTable.getColumns().size());
 		List<SQLColumn> columns = fkTable.getColumns();
 		assertTrue("Is the first column a key column?",columns.get(0).isPrimaryKey());
@@ -79,9 +80,9 @@ public class TestCreateRelationshipAction extends TestCase {
 	 * Test method for 'ca.sqlpower.architect.swingui.action.CreateRelationshipAction.doCreateRelationship(SQLTable, SQLTable, PlayPen, boolean)'
 	 */
 	public void testDoCreateRelationshipNonIdentifying() throws SQLObjectException {
-		assertEquals("Oops started out with relationships",0,pp.getRelationships().size());
+		assertEquals("Oops started out with relationships",0,pp.getContentPane().getChildren(Relationship.class).size());
 		CreateRelationshipAction.doCreateRelationship(pkTable,fkTable,pp,false);
-		assertEquals("Wrong number of relationships created",1,pp.getRelationships().size());
+		assertEquals("Wrong number of relationships created",1,pp.getContentPane().getChildren(Relationship.class).size());
 		assertEquals("Did the relationship create the columns in the fkTable",2,fkTable.getColumns().size());
 		List<SQLColumn> columns = fkTable.getColumns();
 		assertFalse("Is the first column a key column?",columns.get(0).isPrimaryKey());
@@ -94,9 +95,9 @@ public class TestCreateRelationshipAction extends TestCase {
 	public void testDoCreateRelationshipHicjackColumn() throws SQLObjectException {
 		fkTable.addColumn(new SQLColumn());
 		fkTable.getColumn(0).setName("pk1");
-		assertEquals("Oops started out with relationships",0,pp.getRelationships().size());
+		assertEquals("Oops started out with relationships",0,pp.getContentPane().getChildren(Relationship.class).size());
 		CreateRelationshipAction.doCreateRelationship(pkTable,fkTable,pp,true);
-		assertEquals("Wrong number of relationships created",1,pp.getRelationships().size());
+		assertEquals("Wrong number of relationships created",1,pp.getContentPane().getChildren(Relationship.class).size());
 		assertEquals("Did the relationship create the columns in the fkTable",2,fkTable.getColumns().size());
 		List<SQLColumn> columns = fkTable.getColumns();
 		assertEquals("Do we only have two columns in the fk table",2,columns.size());

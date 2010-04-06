@@ -23,9 +23,9 @@ import java.sql.DatabaseMetaData;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLType;
 

@@ -148,8 +148,7 @@ public class TestPlayPen extends TestCase {
 		int relCount = 0;
 		int tabCount = 0;
 		int otherCount = 0;
-		for (int i = 0; i < pp.getPlayPenContentPane().getComponentCount(); i++) {
-			PlayPenComponent ppc = pp.getPlayPenContentPane().getComponent(i);
+		for (PlayPenComponent ppc : pp.getContentPane().getChildren()) {			
 			if (ppc instanceof Relationship) {
 				relCount++;
 			} else if (ppc instanceof TablePane) {
@@ -194,8 +193,7 @@ public class TestPlayPen extends TestCase {
         int relCount = 0;
         int tabCount = 0;
         int otherCount = 0;
-        for (int i = 0; i < pp.getPlayPenContentPane().getComponentCount(); i++) {
-            PlayPenComponent ppc = pp.getPlayPenContentPane().getComponent(i);
+        for (PlayPenComponent ppc : pp.getContentPane().getChildren()) {
             if (ppc instanceof Relationship) {
                 relCount++;
             } else if (ppc instanceof TablePane) {
@@ -237,8 +235,7 @@ public class TestPlayPen extends TestCase {
         int relCount = 0;
         int tabCount = 0;
         int otherCount = 0;
-        for (int i = 0; i < pp.getPlayPenContentPane().getComponentCount(); i++) {
-            PlayPenComponent ppc = pp.getPlayPenContentPane().getComponent(i);
+        for (PlayPenComponent ppc : pp.getContentPane().getChildren()) {            
             if (ppc instanceof Relationship) {
                 relCount++;
             } else if (ppc instanceof TablePane) {

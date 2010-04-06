@@ -123,7 +123,7 @@ public class AutoLayoutAction extends AbstractArchitectAction {
 
     private static List<LayoutNode> extractLayoutNodes(PlayPen pp) {
         List<LayoutNode> nodes = new ArrayList<LayoutNode>();
-        for (PlayPenComponent ppc : pp.getPlayPenComponents()) {
+        for (PlayPenComponent ppc : pp.getContentPane().getChildren()) {
             if (ppc instanceof LayoutNode) {
                 nodes.add((LayoutNode) ppc);
             }
@@ -133,7 +133,7 @@ public class AutoLayoutAction extends AbstractArchitectAction {
 
     private static List<LayoutEdge> extractLayoutEdges(PlayPen pp) {
         List<LayoutEdge> edges = new ArrayList<LayoutEdge>();
-        for (PlayPenComponent ppc : pp.getPlayPenComponents()) {
+        for (PlayPenComponent ppc : pp.getContentPane().getChildren()) {
             if (ppc instanceof LayoutEdge) {
                 edges.add((LayoutEdge) ppc);
             }

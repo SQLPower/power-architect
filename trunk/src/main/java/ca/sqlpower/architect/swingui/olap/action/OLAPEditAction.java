@@ -32,6 +32,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.SchemaEditPanel;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 /**
@@ -50,29 +51,37 @@ public class OLAPEditAction extends AbstractArchitectAction {
         newSchema = olapSession == null; 
     }
 
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e) {                
         Schema schema;
-        if (newSchema) {
-            schema = new Schema();
-            schema.setName("New OLAP Schema");
-            session.getOLAPRootObject().addChild(olapSession = new OLAPSession(schema));
-        } else {
-            schema = olapSession.getSchema();
-        }
-        
-        OLAPEditSession editSession = session.getOLAPEditSession(olapSession);
-        
-        final JFrame frame = editSession.getFrame();
-        frame.setLocationRelativeTo(session.getArchitectFrame());
-        frame.setVisible(true);
-        
-        if (newSchema) {
-            try {
+        session.getWorkspace().begin("Opening OLAP schema");
+        try {
+            if (newSchema) {
+                schema = new Schema();
+                schema.setName("New OLAP Schema");
+                session.getOLAPRootObject().addChild(olapSession = new OLAPSession(schema));
+            } else {
+                schema = olapSession.getSchema();
+            }
+
+            OLAPEditSession editSession = session.getOLAPEditSession(olapSession);
+
+            final JFrame frame = editSession.getFrame();
+            frame.setLocationRelativeTo(session.getArchitectFrame());
+            frame.setVisible(true);     
+
+            if (newSchema) {            
                 final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(session, schema);
 
                 Callable<Boolean> okCall = new Callable<Boolean>() {
                     public Boolean call() throws Exception {
-                        return schemaEditPanel.applyChanges();
+                        try {
+                            boolean ok = schemaEditPanel.applyChanges();                                
+                            session.getWorkspace().commit();
+                            return ok;
+                        } catch (Throwable e) {
+                            session.getWorkspace().rollback("Error applying changes: " + e.toString());
+                            throw new RuntimeException(e);
+                        }
                     }
                 };
 
@@ -80,6 +89,7 @@ public class OLAPEditAction extends AbstractArchitectAction {
                     public Boolean call() throws Exception {
                         frame.dispose();
                         session.getOLAPRootObject().removeOLAPSession(olapSession);
+                        session.getWorkspace().rollback("New OLAP session cancelled");
                         return true;
                     }
                 };
@@ -93,12 +103,16 @@ public class OLAPEditAction extends AbstractArchitectAction {
                         cancelCall);
                 schemaEditDialog.setLocationRelativeTo(frame);
                 schemaEditDialog.setVisible(true);
-            } catch (Exception ex) {
-                ASUtils.showExceptionDialogNoReport(
-                        session.getArchitectFrame(),
-                        "Failed to get list of databases.",
-                        ex);
             }
+        } catch (SQLObjectException ex) {
+            session.getWorkspace().rollback("Error opening OLAP schema: " + ex.toString());
+            ASUtils.showExceptionDialogNoReport(
+                    session.getArchitectFrame(),
+                    "Failed to get list of databases.",
+                    ex);
+        } catch (Throwable ex) {
+            session.getWorkspace().rollback("Error opening OLAP schema: " + ex.toString());
+            throw new RuntimeException(ex);
         }
     }
 }

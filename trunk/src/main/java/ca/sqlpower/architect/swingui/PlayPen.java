@@ -260,8 +260,7 @@ public class PlayPen extends JPanel
 	public Dimension getUsedArea() {
 	    Rectangle cbounds = null;
 	    int minx = 0, miny = 0, maxx = 0, maxy = 0;
-	    for (int i = 0; i < contentPane.getComponentCount(); i++) {
-	        PlayPenComponent c = contentPane.getComponent(i);
+	    for (PlayPenComponent c : contentPane.getChildren()) {
 	        cbounds = c.getBounds(cbounds);
 	        minx = Math.min(cbounds.x, minx);
 	        miny = Math.min(cbounds.y, miny);
@@ -309,7 +308,7 @@ public class PlayPen extends JPanel
 	    int minX = 0;
 	    int minY = 0;
 
-	    for (PlayPenComponent ppc : getPlayPenComponents()) {
+	    for (PlayPenComponent ppc : contentPane.getChildren()) {
 	        minX = Math.min(minX, ppc.getX());
 	        minY = Math.min(minY, ppc.getY());
 	    }       
@@ -317,7 +316,7 @@ public class PlayPen extends JPanel
 	    //Readjusts the playPen's components, since minX and min <= 0,
 	    //the adjustments of subtracting minX and/or minY makes sense.
 	    if ( minX < 0 || minY < 0 ) {           
-	        for (PlayPenComponent ppc : getPlayPenComponents()) {
+	        for (PlayPenComponent ppc : contentPane.getChildren()) {
 	            ppc.setLocation(ppc.getX()-minX, ppc.getY()-minY);
 	        }
 
@@ -399,9 +398,18 @@ public class PlayPen extends JPanel
 	    g2.scale(zoom, zoom);
 	    AffineTransform zoomedOrigin = g2.getTransform();
 
+	    List<PlayPenComponent> relationshipsLast = new ArrayList<PlayPenComponent>();
+	    List<Relationship> relations = contentPane.getChildren(Relationship.class);
+	    List<UsageComponent> usages = contentPane.getChildren(UsageComponent.class);
+	    relationshipsLast.addAll(contentPane.getChildren());
+	    relationshipsLast.removeAll(relations);
+	    relationshipsLast.addAll(relations);
+	    relationshipsLast.removeAll(usages);	  
+	    relationshipsLast.addAll(usages);
+	    
 	    // counting down so visual z-order matches click detection z-order
-	    for (int i = contentPane.getComponentCount() - 1; i >= 0; i--) {
-	        PlayPenComponent c = contentPane.getComponent(i);
+	    for (int i = relationshipsLast.size() - 1; i >= 0; i--) {
+	        PlayPenComponent c = relationshipsLast.get(i);
 	        c.getBounds(bounds);
 	        //expanding width and height by 1 as lines have 0 width or height when vertical/horizontal
 	        if ( g2.hitClip(bounds.x, bounds.y, bounds.width + 1, bounds.height + 1)) {
@@ -536,7 +544,7 @@ public class PlayPen extends JPanel
      * playpen, so it can make a good choice about leaving a group of things selected
      * or deselecting everything except the TablePane that was clicked on.
      */
-	protected boolean draggingTablePanes = false;
+	protected boolean draggingContainerPanes = false;
 
 	private boolean selectionInProgress = false;
 	
@@ -593,6 +601,14 @@ public class PlayPen extends JPanel
 	 */
 	private boolean ignoreTreeSelection = false;
 	
+	public PlayPen(ArchitectSwingSession session) {
+	    this(session, session.getTargetDatabase());
+	}
+	
+	public PlayPen(ArchitectSwingSession session, SPObject modelContainer) {
+	    this(session, new PlayPenContentPane(modelContainer));
+	}
+	
 	/**
      * Creates a play pen with reasonable defaults.  If you are creating
      * this PlayPen for temporary use (as opposed to creating a session's
@@ -601,8 +617,10 @@ public class PlayPen extends JPanel
      * 
      * @param session
      *            The session this play pen belongs to. Null is not allowed.
+     * @param modelContainer This is the top-level object of 
+     * the model that this PlayPen will represent (ie: SQLDatabase, OLAPSession)     
      */
-	public PlayPen(ArchitectSwingSession session) {
+	public PlayPen(ArchitectSwingSession session, PlayPenContentPane ppcp) {
         if (session == null) throw new NullPointerException("A null session is not allowed here."); //$NON-NLS-1$
 		this.session = session;		
 		setDatabase(session.getTargetDatabase());
@@ -613,7 +631,8 @@ public class PlayPen extends JPanel
 		}
         viewportPosition = new Point(0, 0);
 		this.setBackground(java.awt.Color.white);
-		contentPane = new PlayPenContentPane(this);
+		contentPane = ppcp;
+		contentPane.setPlayPen(this);
 		this.setName("Play Pen"); //$NON-NLS-1$
 		this.setMinimumSize(new Dimension(1,1));
 		dt = new DropTarget(this, new PlayPenDropListener());
@@ -657,32 +676,32 @@ public class PlayPen extends JPanel
 		
 		// XXX this should be done by making PlayPenComponent cloneable.
 		// it's silly that playpen has to know about every subclass of ppc
-		logger.debug("Copying " + pp.getContentPane().getComponentCount() + " components...");
-		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
-			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
-			if (ppc instanceof TablePane) {
-				TablePane tp = (TablePane) ppc;
-				addImpl(new TablePane(tp, contentPane), ppc.getPreferredLocation(), i);
-			} else if (ppc instanceof Relationship) {
-				Relationship rel = (Relationship) ppc;
-				addImpl(new Relationship(rel, contentPane), ppc.getPreferredLocation(), i);
-            } else if (ppc instanceof CubePane) {
-                CubePane cp = (CubePane) ppc;
-                addImpl(new CubePane(cp, contentPane), ppc.getPreferredLocation(), i);
-            } else if (ppc instanceof DimensionPane) {
-                DimensionPane dp = (DimensionPane) ppc;
-                addImpl(new DimensionPane(dp, contentPane), ppc.getPreferredLocation(), i);
-            } else if (ppc instanceof VirtualCubePane) {
-                VirtualCubePane vcp = (VirtualCubePane) ppc;
-                addImpl(new VirtualCubePane(vcp, contentPane), ppc.getPreferredLocation(), i);
-            } else if (ppc instanceof UsageComponent) {
-                UsageComponent uc = (UsageComponent) ppc;
-                getContentPane().add(new UsageComponent(uc, contentPane), i);
-			} else {
-			    throw new UnsupportedOperationException(
-			            "I don't know how to copy PlayPenComponent type " +
-			            ppc.getClass().getName());
-			}
+		logger.debug("Copying " + pp.getContentPane().getChildren().size() + " components...");
+		for (int i = 0; i < pp.getContentPane().getChildren().size(); i++) {
+		    PlayPenComponent ppc = pp.getContentPane().getChildren().get(i);
+		    PlayPenContentPane contentPane = (PlayPenContentPane) this.contentPane;
+		    if (ppc instanceof TablePane) {
+		        TablePane tp = (TablePane) ppc;
+		        addImpl(new TablePane(tp, contentPane), ppc.getPreferredLocation(), i);
+		    } else if (ppc instanceof Relationship) {
+		        Relationship rel = (Relationship) ppc;
+		        addImpl(new Relationship(rel, contentPane), ppc.getPreferredLocation(), i);			    
+		    } else if (ppc instanceof CubePane) {
+		        CubePane cp = (CubePane) ppc;
+		        addImpl(new CubePane(cp, contentPane), ppc.getPreferredLocation(), i);
+		    } else if (ppc instanceof DimensionPane) {
+		        DimensionPane dp = (DimensionPane) ppc;
+		        addImpl(new DimensionPane(dp, contentPane), ppc.getPreferredLocation(), i);
+		    } else if (ppc instanceof VirtualCubePane) {
+		        VirtualCubePane vcp = (VirtualCubePane) ppc;
+		        addImpl(new VirtualCubePane(vcp, contentPane), ppc.getPreferredLocation(), i);
+		    } else if (ppc instanceof UsageComponent) {
+		        UsageComponent uc = (UsageComponent) ppc;
+		        contentPane.addChild(new UsageComponent(uc, contentPane), i);
+		    } else {
+		        throw new UnsupportedOperationException(
+		                "I don't know how to copy PlayPenComponent type " + ppc.getClass().getName());
+		    }
 		}		
 		this.setSize(this.getPreferredSize());
 	}
@@ -698,13 +717,13 @@ public class PlayPen extends JPanel
      * @param index ignored for now, but would normally specify the
      * index of insertion for c in the child list.
      */
-    protected void addImpl(PlayPenComponent c, Object constraints, int index) {
-        if (c instanceof Relationship) {
-            contentPane.add(c, contentPane.getFirstRelationIndex());
+    protected void addImpl(PlayPenComponent c, Object constraints, int index) {        
+        if (c instanceof Relationship || c instanceof UsageComponent) {
+            contentPane.addChild(c, 0);
         } else if (c instanceof ContainerPane) {
             if (constraints instanceof Point) {
                 c.setLocation((Point) constraints);
-                contentPane.add(c, 0);
+                contentPane.addChild(c, 0);
             } else {
                 throw new IllegalArgumentException("Constraints must be a Point"); //$NON-NLS-1$
             }
@@ -1143,8 +1162,7 @@ public class PlayPen extends JPanel
 	 * model, or null if no such PlayPenComponent is in the play pen 
 	 */
 	public PlayPenComponent findPPComponent(Object model) {
-	    for (int i = 0; i < contentPane.getComponentCount(); i++) {
-            PlayPenComponent ppc = contentPane.getComponent(i);
+	    for (PlayPenComponent ppc : contentPane.getChildren()) {            
             if (ppc.getModel() == model) {
                 return ppc;
             }
@@ -1169,8 +1187,7 @@ public class PlayPen extends JPanel
 	 */
 	public TablePane findTablePaneByName(String name) {
 		name = name.toLowerCase();
-		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
-			PlayPenComponent c = contentPane.getComponent(i);
+		for (PlayPenComponent c : contentPane.getChildren()) {			
 			if (c instanceof TablePane
 				&& ((TablePane) c).getModel().getName().toLowerCase().equals(name)) {
 				return (TablePane) c;
@@ -1190,44 +1207,6 @@ public class PlayPen extends JPanel
 		return (Relationship) findPPComponent(r);
 	}
 
-	/**
-	 * Returns a list of the Relationship gui components in this
-	 * playpen.
-	 */
-	public List<Relationship> getRelationships() {
-		LinkedList<Relationship> relationships = new LinkedList<Relationship>();
-		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
-			if (contentPane.getComponent(i) instanceof Relationship) {
-				relationships.add((Relationship) contentPane.getComponent(i));
-			}
-		}
-		return relationships;
-	}
-
-	/**
-	 * Returns a list of the TablePane components in this playpen.
-	 */
-	public List<TablePane> getTablePanes() {
-		LinkedList<TablePane> tablePanes = new LinkedList<TablePane>();
-		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
-			if (contentPane.getComponent(i) instanceof TablePane) {
-				tablePanes.add((TablePane) contentPane.getComponent(i));
-			}
-		}
-		return tablePanes;
-	}
-	
-	/**
-	 * Returns a list of the playpen components in this playpen.
-	 */
-	public List<PlayPenComponent> getPlayPenComponents() {
-	    LinkedList<PlayPenComponent> ppcs = new LinkedList<PlayPenComponent>();
-	    for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
-	        ppcs.add(contentPane.getComponent(i));
-        }
-	    return ppcs;
-	}
-
     /**
      * Returns the already in use table names. Useful for
      * deleting tables so it can be removed from this list as well.
@@ -1241,7 +1220,7 @@ public class PlayPen extends JPanel
 	 * PlayPenContentPane.
 	 */
 	public int getPPComponentCount() {
-		return contentPane.getComponentCount();
+		return contentPane.getChildren().size();
 	}
 
 	/**
@@ -1327,6 +1306,12 @@ public class PlayPen extends JPanel
      * @throws SQLObjectException
      */
     private void createRelationshipsFromPP(SQLTable source, SQLTable newTable, boolean isPrimaryKeyTableNew, boolean isAlreadyOnPlaypen, int suffix) throws SQLObjectException {
+        PlayPenContentPane contentPane;
+        if (this.contentPane instanceof PlayPenContentPane) {
+            contentPane = (PlayPenContentPane) this.contentPane;
+        } else {
+            throw new IllegalStateException("Must have a PlayPenContent to make releationships: this PlayPen has " + this.contentPane.getClass().getName());
+        }
         // create exported relationships if the importing tables exist in pp
 		Iterator<SQLRelationship> sourceKeys = null;
         if (isPrimaryKeyTableNew) {
@@ -1391,7 +1376,7 @@ public class PlayPen extends JPanel
 				    newRel.attachRelationship(oldTable,newTable,false);
 				}
 				
-				addImpl(new Relationship(newRel, getContentPane()),null,getPPComponentCount());
+				addImpl(new Relationship(newRel, contentPane),null,getPPComponentCount());
 
 				Iterator<? extends SQLObject> mappings = r.getChildren().iterator();
 				while (mappings.hasNext()) {
@@ -1581,7 +1566,7 @@ public class PlayPen extends JPanel
 			ImportSafetyChecker checker = new ImportSafetyChecker(session);
 			sqlObjects = checker.filterImportedItems(sqlObjects);		
 			
-			session.getPlayPen().getPlayPenContentPane().begin("Drag to Playpen");
+			session.getPlayPen().getContentPane().begin("Drag to Playpen");
 			try {
 
 				// reset iterator
@@ -1642,13 +1627,13 @@ public class PlayPen extends JPanel
 						logger.error("Unknown object dropped in PlayPen: "+someData); //$NON-NLS-1$
 					}
 				}
-				session.getPlayPen().getPlayPenContentPane().commit();
+				session.getPlayPen().getContentPane().commit();
 			} catch (SQLObjectException e) {
-			    session.getPlayPen().getPlayPenContentPane().rollback(e.getMessage());
+			    session.getPlayPen().getContentPane().rollback(e.getMessage());
 				ASUtils.showExceptionDialog(session,
                     "Unexpected Exception During Import", e); //$NON-NLS-1$
 			} catch (Throwable e) {
-			    session.getPlayPen().getPlayPenContentPane().rollback(e.getMessage());
+			    session.getPlayPen().getContentPane().rollback(e.getMessage());
 			    throw new RuntimeException(e);
 			} finally {
 				session.getArchitectFrame().getContentPane().setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
@@ -1708,13 +1693,10 @@ public class PlayPen extends JPanel
 	 */
 	public void childAdded(SPChildEvent e) {
 		logger.debug("SQLObject children got inserted: "+e); //$NON-NLS-1$
-		SPObject child = e.getChild();
-		addHierarchyListeners(child);
-		
-		if (!contentPane.isMagicEnabled() || !e.getSource().isMagicEnabled()) return;
-		
 		childAdded = true;
 		boolean fireEvent = false;
+		SPObject child = e.getChild();
+		addHierarchyListeners(child);
 		try {
             if (child instanceof SQLTable
                     || (child instanceof SQLRelationship
@@ -1724,9 +1706,9 @@ public class PlayPen extends JPanel
                 PlayPenComponent ppc = removedComponents.get(child.getUUID());
                 if (ppc != null) {
                     if (ppc instanceof Relationship) {
-                        contentPane.add(ppc, contentPane.getComponentCount());
+                        contentPane.addChild(ppc, 0);
                     } else {
-                        contentPane.add(ppc, contentPane.getFirstRelationIndex());
+                        contentPane.addChild(ppc, 0);
                     }
 
                 }
@@ -1748,36 +1730,39 @@ public class PlayPen extends JPanel
 	 */
 	public void childRemoved(SPChildEvent e) {
 		logger.debug("SQLObject children got removed: "+e); //$NON-NLS-1$
+		boolean foundRemovedComponent = false;
 		SPObject child = e.getChild();
 		removeHierarchyListeners(child);
-		
-		if (!contentPane.isMagicEnabled() || !e.getSource().isMagicEnabled()) return;
-		
-		boolean foundRemovedComponent = false;
 
-		if (child instanceof SQLTable) {
-		    for (int j = 0; j < contentPane.getComponentCount(); j++) {
-		        if (contentPane.getComponent(j) instanceof TablePane) {
-		            TablePane tp = (TablePane) contentPane.getComponent(j);
-		            if (tp.getModel() == child) {
-		                removedComponents.put(tp.getModel().getUUID(), contentPane.getComponent(j));
-		                contentPane.remove(j);
-		                foundRemovedComponent = true;
+		try {
+		    if (child instanceof SQLTable) {
+		        for (int i = 0; i < contentPane.getChildren().size(); i++) {
+		            PlayPenComponent c = contentPane.getChildren().get(i);
+		            if (c instanceof TablePane) {
+		                TablePane tp = (TablePane) c;
+		                if (tp.getModel() == child) {
+		                    removedComponents.put(tp.getModel().getUUID(), c);
+		                    contentPane.removeChild(c);
+		                    foundRemovedComponent = true;
+		                }
+		            }
+		        }
+		    } else if (child instanceof SQLRelationship || child instanceof SQLImportedKey) {		        
+		        for (int i = 0; i < contentPane.getChildren().size(); i++) {
+		            PlayPenComponent c = contentPane.getChildren().get(i);
+		            if (c instanceof Relationship) {
+		                Relationship r = (Relationship) c;
+		                if (r.getModel() == child || (child instanceof SQLImportedKey && r.getModel() == ((SQLImportedKey) child).getRelationship())) {
+		                    r.setSelected(false,SelectionEvent.SINGLE_SELECT);
+		                    removedComponents.put(r.getModel().getUUID(), c);
+		                    contentPane.removeChild(c);
+		                    foundRemovedComponent = true;
+		                }
 		            }
 		        }
 		    }
-		} else if (child instanceof SQLRelationship || child instanceof SQLImportedKey) {
-		    for (int j = 0; j < contentPane.getComponentCount(); j++) {
-		        if (contentPane.getComponent(j) instanceof Relationship) {
-		            Relationship r = (Relationship) contentPane.getComponent(j);
-		            if (r.getModel() == child || (child instanceof SQLImportedKey && r.getModel() == ((SQLImportedKey) child).getRelationship())) {
-		                r.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		                removedComponents.put(r.getModel().getUUID(), contentPane.getComponent(j));
-		                contentPane.remove(j);
-		                foundRemovedComponent = true;
-		            }
-		        }
-		    }
+		} catch (ObjectDependentException ex) {
+		    throw new RuntimeException(ex);
 		}
 
 		if (foundRemovedComponent) {
@@ -1850,9 +1835,9 @@ public class PlayPen extends JPanel
 	 */
 	public void selectNone() {
 	 	session.getSourceDatabases().clearSelection();
- 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
- 			if (contentPane.getComponent(i) instanceof Selectable) {
- 				Selectable s = (Selectable) contentPane.getComponent(i);
+ 		for (PlayPenComponent c : contentPane.getChildren()) {
+ 			if (c instanceof Selectable) {
+ 				Selectable s = (Selectable) c;
  				s.setSelected(false,SelectionEvent.SINGLE_SELECT);
  			}
  		}
@@ -1865,9 +1850,9 @@ public class PlayPen extends JPanel
 	 * Selects all selectable items in the PlayPen.
 	 */
 	public void selectAll() {
- 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
- 			if (contentPane.getComponent(i) instanceof Selectable) { 			    
- 				Selectable s = (Selectable) contentPane.getComponent(i);
+ 		for (PlayPenComponent c : contentPane.getChildren()) {
+ 			if (c instanceof Selectable) { 			    
+ 				Selectable s = (Selectable) c;
  				s.setSelected(true,SelectionEvent.SINGLE_SELECT);
  			}
  		}
@@ -1884,9 +1869,9 @@ public class PlayPen extends JPanel
 		// cache of which children are selected, but the need would
 		// have to be demonstrated first.
 		ArrayList selected = new ArrayList();
- 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
- 			if (contentPane.getComponent(i) instanceof Selectable) {
-				Selectable s = (Selectable) contentPane.getComponent(i);
+ 		for (PlayPenComponent c : contentPane.getChildren()) {
+ 			if (c instanceof Selectable) {
+				Selectable s = (Selectable) c;
 				if (s.isSelected()) {
 					selected.add(s);
 				}
@@ -1900,13 +1885,10 @@ public class PlayPen extends JPanel
 	 */
 	public List <ContainerPane<?, ?> > getSelectedContainers() {
 		ArrayList <ContainerPane<?, ?> > selected = new ArrayList<ContainerPane<?, ?> >();
- 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
- 			if (contentPane.getComponent(i) instanceof ContainerPane) {
- 			   ContainerPane<?, ?> tp = (ContainerPane<?, ?> ) contentPane.getComponent(i);
-				if (tp.isSelected()) {
-					selected.add(tp);
-				}
-			}
+ 		for (ContainerPane<?, ?> tp : contentPane.getChildren(ContainerPane.class)) {
+ 		    if (tp.isSelected()) {
+ 		        selected.add(tp);
+ 		    }
 		}
 		return Collections.unmodifiableList(selected);
 	}
@@ -1916,13 +1898,10 @@ public class PlayPen extends JPanel
 	 */
 	public List <Relationship>getSelectedRelationShips() {
 		ArrayList<Relationship> selected = new ArrayList<Relationship>();
- 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
- 			if (contentPane.getComponent(i) instanceof Relationship) {
- 				Relationship r = (Relationship) contentPane.getComponent(i);
- 				if (r.isSelected()) {
-					selected.add(r);
-				}
-			}
+ 		for (Relationship r : contentPane.getChildren(Relationship.class)) {
+ 		    if (r.isSelected()) {
+ 		        selected.add(r);
+ 		    }
 		}
 		return Collections.unmodifiableList(selected);
 	}
@@ -2095,7 +2074,7 @@ public class PlayPen extends JPanel
 			
 			Transferable t = dtde.getTransferable();
 			PlayPen playpen = (PlayPen) dtde.getDropTargetContext().getComponent();
-			PlayPenContentPane cp = playpen.getPlayPenContentPane();
+			PlayPenContentPane cp = playpen.getContentPane();
 			try {
 			    Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));			    
 			    cp.begin("Reverse engineering database");
@@ -2285,7 +2264,7 @@ public class PlayPen extends JPanel
                 return;
             }
 
-			if (draggingTablePanes) {
+			if (draggingContainerPanes) {
 				logger.debug(
 						"TablePaneDragGestureListener: ignoring drag event " + //$NON-NLS-1$
 						"because draggingTablePanes is true"); //$NON-NLS-1$
@@ -2408,16 +2387,15 @@ public class PlayPen extends JPanel
 		}
 
 		public void mouseReleased(MouseEvent evt) {
-		   	if (draggingTablePanes) {
-		   	    draggingTablePanes = false;
-	            Point p = evt.getPoint();
-	            unzoomPoint(p);
-	            PlayPenComponent c = contentPane.getComponentAt(p);
-	            if (c != null && c.isMoving()) {
-	                c.doneDragging();
-	            }
-		   	}
+		   	
+		    draggingContainerPanes = false;
             selectionInProgress = false;
+            
+            for (PlayPenComponent ppc : contentPane.getChildren()) {
+                if (ppc.isBeingDragged()) {
+                    ppc.doneDragging();
+                }
+             }
 
 			if (rubberBand != null && evt.getButton() == MouseEvent.BUTTON1) {
 			    Rectangle dirtyRegion = rubberBand;
@@ -2454,8 +2432,7 @@ public class PlayPen extends JPanel
 
 				mouseMode = MouseModeType.RUBBERBAND_MOVE;
 				// update selected items
-				for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
-					PlayPenComponent c = contentPane.getComponent(i);
+				for (PlayPenComponent c : contentPane.getChildren()) {					 
 					c.handleMouseEvent(evt);
 				}
 
@@ -2534,11 +2511,11 @@ public class PlayPen extends JPanel
     }
 
     public boolean isDraggingTablePanes() {
-        return draggingTablePanes;
+        return draggingContainerPanes;
     }
 
-    public void setDraggingTablePanes(boolean draggingTablePanes) {
-        this.draggingTablePanes = draggingTablePanes;
+    public void setDraggingContainerPanes(boolean draggingContainerPanes) {
+        this.draggingContainerPanes = draggingContainerPanes;
     }
 
 	// ---------- Floating Table Listener ------------
@@ -2678,12 +2655,12 @@ public class PlayPen extends JPanel
 
 		public void actionPerformed(ActionEvent e) {
 			for (PlayPenComponent c : pp.getSelectedItems()) {
-				pp.contentPane.remove(c);
-				if (c instanceof Relationship) {
-					pp.contentPane.add(c,pp.contentPane.getFirstRelationIndex());
-				} else {
-					pp.contentPane.add(c, 0);
-				}
+			    try {
+			        pp.contentPane.removeChild(c);
+			    } catch (ObjectDependentException ex) {
+			        throw new RuntimeException(ex);
+			    }
+				pp.contentPane.addChild(c, 0);				
 			}
 			pp.repaint();
 		}
@@ -2699,13 +2676,13 @@ public class PlayPen extends JPanel
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			for (PlayPenComponent c : pp.getSelectedItems()) {
-				pp.contentPane.remove(c);
-				if (c instanceof Relationship) {
-					pp.contentPane.add(c,pp.contentPane.getComponentCount());
-				} else {
-					pp.contentPane.add(c, pp.contentPane.getFirstRelationIndex());
-				}
+		    for (PlayPenComponent c : pp.getSelectedItems()) {
+		        try {
+		            pp.contentPane.removeChild(c);
+		        } catch (ObjectDependentException ex) {
+		            throw new RuntimeException(ex);
+		        }
+		        pp.contentPane.addChild(c, pp.contentPane.getChildren().size());
 			}
 			pp.repaint();
 		}
@@ -3233,12 +3210,6 @@ public class PlayPen extends JPanel
         extraSelections.add(parent);
     }
 
-    
-
-	public PlayPenContentPane getPlayPenContentPane() {
-		return contentPane;
-	}
-
 	public void setMouseMode(MouseModeType mouseMode) {
 		this.mouseMode = mouseMode;
 	}
@@ -3314,7 +3285,7 @@ public class PlayPen extends JPanel
     }
     
     public void updateTablePanes() {
-        for (TablePane tp : getTablePanes()) {
+        for (TablePane tp : contentPane.getChildren(TablePane.class)) {
             tp.updateHiddenColumns();
             tp.updateNameDisplay();
             tp.revalidate();

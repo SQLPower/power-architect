@@ -273,7 +273,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     public void setShowPkTag(boolean showPkTag) {
         this.showPkTag = showPkTag;
-        for (TablePane tp : getPlayPen().getTablePanes()) {
+        for (TablePane tp : getPlayPen().getContentPane().getChildren(TablePane.class)) {
             tp.revalidate();
         }
     }
@@ -284,7 +284,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     public void setShowFkTag(boolean showFkTag) {
         this.showFkTag = showFkTag;
-        for (TablePane tp : getPlayPen().getTablePanes()) {
+        for (TablePane tp : getPlayPen().getContentPane().getChildren(TablePane.class)) {
             tp.revalidate();
         }
     }
@@ -295,7 +295,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     public void setShowAkTag(boolean showAkTag) {
         this.showAkTag = showAkTag;
-        for (TablePane tp : getPlayPen().getTablePanes()) {
+        for (TablePane tp : getPlayPen().getContentPane().getChildren(TablePane.class)) {
             tp.revalidate();
         }
     }

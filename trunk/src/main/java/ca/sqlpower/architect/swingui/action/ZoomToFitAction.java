@@ -114,8 +114,8 @@ public class ZoomToFitAction extends AbstractArchitectAction {
         List<PlayPenComponent> fitThese = playpen.getSelectedItems();
         if (fitThese.isEmpty()) {
             fitThese = new ArrayList<PlayPenComponent>();
-            for (int i = 0; i < playpen.getContentPane().getComponentCount(); i++) {
-                fitThese.add(playpen.getContentPane().getComponent(i));
+            for (PlayPenComponent c : playpen.getContentPane().getChildren()) {
+                fitThese.add(c);
             }
         }
         

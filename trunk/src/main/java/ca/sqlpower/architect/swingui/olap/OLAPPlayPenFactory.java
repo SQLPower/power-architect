@@ -38,7 +38,9 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
@@ -47,6 +49,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenComponentLocationEdit;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
 import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
@@ -55,6 +58,7 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -78,8 +82,19 @@ public class OLAPPlayPenFactory {
         if (oSession == null) {
             throw new NullPointerException("Null oSession");
         }
+         
+        ArchitectProject project = session.getWorkspace();
+        OLAPSession olapSession = oSession.getOlapSession();        
+        PlayPenContentPane contentPane = project.getOlapContentPane(olapSession);
+        PlayPen pp;
         
-        PlayPen pp = new PlayPen(session);
+        if (contentPane != null) {
+            pp = new PlayPen(session, contentPane);            
+        } else {
+            pp = new PlayPen(session, olapSession);
+            project.addOLAPContentPane(pp.getContentPane());            
+        }
+        
         OLAPModelListener ppcl = new OLAPModelListener(pp, oSession);
         pp.addPlayPenLifecycleListener(ppcl);
         
@@ -259,18 +274,22 @@ public class OLAPPlayPenFactory {
             if (compInfo != null) {
                 PlayPenComponent ppc = compInfo.getComponent();
                 int oldIndex = compInfo.getIndex();
-                pp.getContentPane().add(ppc, oldIndex);
+                pp.getContentPane().addChild(ppc, oldIndex);
             }
         }
 
         public void childRemoved(SPChildEvent e) {
             SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
             // Go through the list backwards when removing to eliminate problems.
-            for (int j = pp.getContentPane().getComponentCount() - 1; j >= 0; j--) {
-                PlayPenComponent ppc = pp.getContentPane().getComponent(j);
+            for (int j = pp.getContentPane().getChildren().size() - 1; j >= 0; j--) {
+                PlayPenComponent ppc = pp.getContentPane().getChildren().get(j);
                 if (ppc.getModel() == e.getChild()) {
                     ppc.setSelected(false, SelectionEvent.SINGLE_SELECT);
-                    pp.getContentPane().remove(j);
+                    try {
+                        pp.getContentPane().removeChild(ppc);
+                    } catch (ObjectDependentException ex) {
+                        throw new RuntimeException(ex);
+                    }
                     removedPPCs.put((OLAPObject) e.getChild(), new RemovedComponentInfo(ppc, j));
                     logger.debug("Put dead component in map: " + e.getChild().getName() + " -> " + ppc + " @ " + j);
                 }

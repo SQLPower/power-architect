@@ -19,7 +19,7 @@
 
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Point;
+import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,11 +44,11 @@ import ca.sqlpower.sqlobject.undo.PropertyChangeEdit;
  */
 public class PlayPenComponentLocationEdit extends AbstractUndoableEdit {
 
-    private final Map<PlayPenComponent, Point> initialBounds =
-        new HashMap<PlayPenComponent, Point>();
+    private final Map<PlayPenComponent, Rectangle> initialBounds =
+        new HashMap<PlayPenComponent, Rectangle>();
 
-    private final Map<PlayPenComponent, Point> finalBounds =
-        new HashMap<PlayPenComponent, Point>();
+    private final Map<PlayPenComponent, Rectangle> finalBounds =
+        new HashMap<PlayPenComponent, Rectangle>();
     
     @Override
     public boolean addEdit(UndoableEdit anEdit) {
@@ -63,9 +63,9 @@ public class PlayPenComponentLocationEdit extends AbstractUndoableEdit {
                     && PlayPenComponent.isLocationChange(evt)) {
                 PlayPenComponent ppc = (PlayPenComponent) pce.getSource();
                 if (!initialBounds.containsKey(pce.getSource())) {
-                    initialBounds.put(ppc, new Point((Point) pce.getOldValue()));
+                    initialBounds.put(ppc, new Rectangle((Rectangle) pce.getOldValue()));
                 }
-                finalBounds.put(ppc, new Point((Point) pce.getNewValue()));
+                finalBounds.put(ppc, new Rectangle((Rectangle) pce.getNewValue()));
                 anEdit.die();
                 return true;
             }
@@ -77,16 +77,16 @@ public class PlayPenComponentLocationEdit extends AbstractUndoableEdit {
     @Override
     public void undo() throws CannotUndoException {
         super.undo();
-        for (Map.Entry<PlayPenComponent, Point> entry : initialBounds.entrySet()) {
-            entry.getKey().setLocation(entry.getValue());
+        for (Map.Entry<PlayPenComponent, Rectangle> entry : initialBounds.entrySet()) {
+            entry.getKey().setBounds(entry.getValue());
         }
     }
     
     @Override
     public void redo() throws CannotRedoException {
         super.redo();
-        for (Map.Entry<PlayPenComponent, Point> entry : finalBounds.entrySet()) {
-            entry.getKey().setLocation(entry.getValue());
+        for (Map.Entry<PlayPenComponent, Rectangle> entry : finalBounds.entrySet()) {
+            entry.getKey().setBounds(entry.getValue());
         }
     }
     

@@ -77,7 +77,7 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
         
         SQLPowerUtils.listenToHierarchy(pp.getSession().getTargetDatabase(), this);
 
-        pp.getPlayPenContentPane().addComponentPropertyListener(this);
+        pp.getContentPane().addComponentPropertyListener(this);
         
         navigationPanel = new JPanel() {
             @Override
@@ -232,6 +232,6 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
      */
     public void cleanup() {
         SQLPowerUtils.unlistenToHierarchy(pp.getSession().getTargetDatabase(), this);
-        pp.getPlayPenContentPane().removeComponentPropertyListener(this);
+        pp.getContentPane().removeComponentPropertyListener(this);
     }
 }

@@ -297,7 +297,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         undoManager = new ArchitectUndoManager(playPen);
         final PropertyChangeListener undoListener = undoManager.getEventAdapter();
         
-        playPen.getPlayPenContentPane().addComponentPropertyListener(
+        playPen.getContentPane().addComponentPropertyListener(
                 new String[] {
                         "bounds",
                         "pkConnectionPoint",
@@ -315,7 +315,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 }
         );
         
-        delegateSession.getWorkspace().setPlayPenContentPane(playPen.getPlayPenContentPane());
+        delegateSession.getWorkspace().setPlayPenContentPane(playPen.getContentPane());
 
         lifecycleListeners = new ArrayList<SessionLifecycleListener<ArchitectSession>>();
 
@@ -736,7 +736,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
          */
         public ProjectModificationWatcher(PlayPen pp) {
             SQLPowerUtils.listenToHierarchy(getTargetDatabase(), this);
-            PlayPenContentPane ppcp = pp.contentPane;
+            PlayPenContentPane ppcp = pp.getContentPane();
             ppcp.addComponentPropertyListener(this);
         }
 

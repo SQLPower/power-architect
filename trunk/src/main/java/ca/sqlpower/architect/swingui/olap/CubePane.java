@@ -34,11 +34,13 @@ import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
-import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -46,9 +48,8 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
 
     @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(CubePane.class);
-    
-    @Constructor
-    public CubePane(@ConstructorParameter(propertyName="model") Cube model) {
+
+    public CubePane(Cube model) {
         super(model.getName());
         this.model = model;
         
@@ -83,13 +84,16 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
         updateUI();
     }
     
-    public CubePane(Cube model, PlayPenContentPane parent) {
+    @Constructor
+    public CubePane(@ConstructorParameter(propertyName="model") Cube model,
+            @ConstructorParameter(propertyName="parent") PlayPenContentPane parent) {
         this(model);
         setParent(parent);
         updateUI();
     }
     
     @Override
+    @Transient @Accessor
     protected List<OLAPObject> getItems() {
         return model.getChildren(OLAPObject.class);
     }
@@ -154,16 +158,16 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
             newItem = new DimensionUsage((DimensionUsage) item);
 
             Dimension refDimension = OLAPUtil.findReferencedDimension((DimensionUsage) item);
-            PlayPenContentPane contentPane = getParent();
+            PlayPenContentPane contentPane = (PlayPenContentPane) getParent();
             DimensionPane dimensionPane = null;
-            for (int i = 0; i < contentPane.getComponentCount(); i++) {
-                if (contentPane.getComponent(i).getModel() == refDimension) {
-                    dimensionPane = (DimensionPane) contentPane.getComponent(i);
+            for (PlayPenComponent c : contentPane.getChildren()) {
+                if (c.getModel() == refDimension) {
+                    dimensionPane = (DimensionPane) c;
                     break;
                 }
             }
             UsageComponent uc = new UsageComponent(contentPane, newItem, dimensionPane, this);
-            contentPane.add(uc, contentPane.getComponentCount());
+            contentPane.addChild(uc, contentPane.getChildren().size());
         }
         logger.debug(" Dragging and dropping item of type " + item.getClass().getName());
         try {
@@ -183,16 +187,6 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
     
     @Override
     public void pasteData(Transferable t) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    public List<? extends SPObject> getDependencies() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public void removeDependency(SPObject dependency) {
         // TODO Auto-generated method stub
         
     }

@@ -54,7 +54,7 @@ public class CreateCubeUsageAction extends CreateUsageAction<CubePane, VirtualCu
             cu.setCubeName(cp.getModel().getName());
             vcp.getModel().getCubeUsage().addCubeUsage(cu);
             UsageComponent uc = new UsageComponent(playpen.getContentPane(), cu, cp, vcp);
-            playpen.getContentPane().add(uc, playpen.getContentPane().getComponentCount());
+            playpen.getContentPane().addChild(uc, playpen.getContentPane().getChildren().size());
         } else {
             String errorMsg = "Cube Usage \"" + cp.getModel().getName() + "\" alreadys exists in \"" +
                     vcp.getModel().getName() + "\"\nCube Usage was not created.";

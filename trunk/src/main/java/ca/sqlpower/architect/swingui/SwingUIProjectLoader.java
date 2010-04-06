@@ -27,6 +27,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -573,7 +574,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
             OLAPPane<?, ?> pane2 = olapPaneLoadIdMap.get(attributes.getValue("pane2-ref")); //$NON-NLS-1$
             UsageComponent usageComp = new UsageComponent(pp.getContentPane(), model, pane1, pane2);
             
-            pp.getContentPane().add(usageComp, pp.getContentPane().getComponentCount());
+            pp.getContentPane().addChild(usageComp, pp.getContentPane().getChildren().size());
             return usageComp;
         }
     }
@@ -1038,7 +1039,8 @@ public class SwingUIProjectLoader extends ProjectLoader {
     }
     
     private void savePlayPenComponents(PrintWriter out, PlayPen pp) {
-        List<PlayPenComponent> ppcs = pp.getPlayPenComponents();
+        List<PlayPenComponent> ppcs = new ArrayList<PlayPenComponent>(); 
+        ppcs.addAll(pp.getContentPane().getChildren());
         Collections.reverse(ppcs);
         
         // save the container panes.

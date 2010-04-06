@@ -63,7 +63,8 @@ public class TestPlayPenContentPane extends PersistedSPObjectTest {
 		pp.addTablePane(tp2, new Point(-10,0));
 		SQLRelationship sqlrel = new SQLRelationship();
 		sqlrel.attachRelationship(t1, t2, false);
-		ppcp = new PlayPenContentPane(pp);
+		ppcp = new PlayPenContentPane();
+		ppcp.setPlayPen(pp);
 		rel1 = new Relationship(sqlrel,pp.getContentPane());
 		rel2 = new Relationship(sqlrel,pp.getContentPane());
 		rel3 = new Relationship(sqlrel,pp.getContentPane());
@@ -73,40 +74,6 @@ public class TestPlayPenContentPane extends PersistedSPObjectTest {
 		
 		session.getWorkspace().setPlayPenContentPane(ppcp);
 		getRootObject().addChild(session.getWorkspace(), 0);
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.swingui.PlayPenContentPane.getFirstRelationIndex()'
-	 */
-	public void testGetFirstRelationIndex() {
-		assertEquals("The children list is not size 0",0,ppcp.getFirstRelationIndex());
-		ppcp.add(rel1,0);
-		assertEquals("The relation was added as a non-relation",0,ppcp.getFirstRelationIndex());
-		ppcp.add(rel2,0);
-		ppcp.add(tp1,0);
-		assertEquals("There should be 1 non relations in the list",1,ppcp.getFirstRelationIndex());
-		ppcp.remove(tp1);
-		assertEquals("There should be 0 non relations in the list",0,ppcp.getFirstRelationIndex());
-		ppcp.remove(rel2);
-		assertEquals("Removing a relation should not effect the index of the first relation",0,ppcp.getFirstRelationIndex());
-		
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.swingui.PlayPenContentPane.getComponentCount()'
-	 */
-	public void testGetComponentCount() {
-
-		assertEquals("The children list is not size 0",0,ppcp.getComponentCount());
-		ppcp.add(rel1,0);
-		assertEquals("The relation was not added to the list properly",1,ppcp.getComponentCount());
-		ppcp.add(rel2,0);
-		ppcp.add(tp1,0);
-		assertEquals("There should be 3 components in the list",3,ppcp.getComponentCount());
-		ppcp.remove(tp1);
-		assertEquals("Removing a non relationship gives an incorrect component count",2,ppcp.getComponentCount());
-		ppcp.remove(rel2);
-		assertEquals("Removing a relation gives an incorrect component count",1,ppcp.getComponentCount());
 	}
 
     @Override

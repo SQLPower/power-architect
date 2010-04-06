@@ -22,10 +22,13 @@ package ca.sqlpower.architect;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
@@ -66,8 +69,10 @@ public class ArchitectProject extends AbstractSPObject {
     @SuppressWarnings("unchecked")
     public static List<Class<? extends SPObject>> allowedChildTypes = 
         Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Arrays.asList(SQLObjectRoot.class, PlayPenContentPane.class, ProfileManager.class, 
-                OLAPRootObject.class, ProjectSettings.class, KettleSettings.class, User.class, Group.class)));
+                Arrays.asList(SQLObjectRoot.class, OLAPRootObject.class, 
+                        PlayPenContentPane.class, ProfileManager.class, 
+                        ProjectSettings.class, KettleSettings.class, 
+                        User.class, Group.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -85,6 +90,13 @@ public class ArchitectProject extends AbstractSPObject {
      * This OLAP object contains the OLAP session.
      */
     private final OLAPRootObject olapRootObject;
+    
+    private final List<PlayPenContentPane> olapContentPaneList = new ArrayList<PlayPenContentPane>();
+    
+    /**
+     * The OLAP content panes (one for each OLAPSession)
+     */
+    private final Map<OLAPSession, PlayPenContentPane> olapContentPaneMap = new HashMap<OLAPSession, PlayPenContentPane>();
     
     /**
      * The current integrity watcher on the project.
@@ -224,7 +236,9 @@ public class ArchitectProject extends AbstractSPObject {
 
     @Override
     protected boolean removeChildImpl(SPObject child) {
-        if (child instanceof User) {
+        if (child instanceof PlayPenContentPane) {
+            return removeOLAPContentPane((PlayPenContentPane) child);
+        } else if (child instanceof User) {
             int index = users.indexOf((User) child);
             users.remove((User) child);
             fireChildRemoved(User.class, child, index);
@@ -236,8 +250,7 @@ public class ArchitectProject extends AbstractSPObject {
             fireChildRemoved(Group.class, child, index);
             child.setParent(null);
             return true;
-        } 
-        
+        }
         return false;
     }        
     
@@ -275,15 +288,16 @@ public class ArchitectProject extends AbstractSPObject {
     @NonProperty
     public List<SPObject> getChildren() {
         List<SPObject> allChildren = new ArrayList<SPObject>();
-        // When changing this, verify you maintain the order specified by allowedChildTypes
+        // When changing this, ensure you maintain the order specified by allowedChildTypes
         allChildren.add(rootObject);
+        allChildren.add(olapRootObject);
         if (playPenContentPane != null) {
             allChildren.add(playPenContentPane);
         }
+        allChildren.addAll(olapContentPaneList);
         if (profileManager != null) {
             allChildren.add(profileManager);
         }
-        allChildren.add(olapRootObject);
         allChildren.add(projectSettings);
         allChildren.add(kettleSettings);
         allChildren.addAll(users);
@@ -307,7 +321,12 @@ public class ArchitectProject extends AbstractSPObject {
         if (child instanceof ProfileManager) {
             setProfileManager((ProfileManager) child);
         } else if (child instanceof PlayPenContentPane) {
-            setPlayPenContentPane((PlayPenContentPane) child);
+            PlayPenContentPane pane = (PlayPenContentPane) child;
+            if (index == 0) {
+                setPlayPenContentPane(pane);
+            } else {
+                addOLAPContentPane(pane);
+            }            
         } else if (child instanceof ProjectSettings) {
             setProjectSettings((ProjectSettings) child);            
         } else if (child instanceof User) {
@@ -390,4 +409,41 @@ public class ArchitectProject extends AbstractSPObject {
     public KettleSettings getKettleSettings() {
         return kettleSettings;
     }
+    
+    @NonProperty
+    public List<PlayPenContentPane> getOlapContentPanes() {
+        return Collections.unmodifiableList(olapContentPaneList);
+    }
+    
+    @NonBound
+    public PlayPenContentPane getOlapContentPane(OLAPSession session) {
+        return olapContentPaneMap.get(session);
+    }
+    
+    public void addOLAPContentPane(PlayPenContentPane olapContentPane) {
+        if (!(olapContentPane.getModelContainer() instanceof OLAPSession)) {
+            throw new IllegalArgumentException(
+                    "PlayPenContentPane is not modelling an OLAPSession");
+        }
+        olapContentPaneList.add(olapContentPane);
+        olapContentPaneMap.put((OLAPSession) olapContentPane.getModelContainer(), olapContentPane);
+        int index = olapContentPaneList.indexOf(olapContentPane);
+        if (playPenContentPane != null) index++;
+        olapContentPane.setParent(this);
+        fireChildAdded(PlayPenContentPane.class, olapContentPane, index);        
+    }
+    
+    public boolean removeOLAPContentPane(PlayPenContentPane olapContentPane) {
+        int index = olapContentPaneList.indexOf(olapContentPane);
+        if (!olapContentPaneList.remove(olapContentPane)) return false;
+        if (olapContentPaneMap.remove(olapContentPane.getModelContainer()) == null) {
+            throw new IllegalStateException("Tried removing OLAP PlayPenContentPane from " + 
+                    " project mapping but could not find it from its OLAPSession");
+        }
+        if (playPenContentPane != null) index++;
+        fireChildRemoved(PlayPenContentPane.class, olapContentPane, index);
+        olapContentPane.setParent(null);
+        return true;
+    }
+    
 }
