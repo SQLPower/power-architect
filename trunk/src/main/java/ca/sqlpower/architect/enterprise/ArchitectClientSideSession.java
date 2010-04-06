@@ -226,10 +226,17 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
             new ResponseHandler<DataSourceCollection<JDBCDataSource>>() {
             public DataSourceCollection<JDBCDataSource> handleResponse(HttpResponse response)
                     throws ClientProtocolException, IOException {
+                
+                if (response.getStatusLine().getStatusCode() == 401) {
+                    throw new AccessDeniedException("Access Denied");
+                }
+
                 if (response.getStatusLine().getStatusCode() != 200) {
                     throw new IOException(
                             "Server error while reading data sources: " + response.getStatusLine());
                 }
+                
+                
                 PlDotIni plIni;
                 try {
 					plIni = new PlDotIni(
@@ -247,6 +254,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         
         try {
             dataSourceCollection = executeServerRequest(outboundHttpClient, projectLocation.getServiceInfo(), "/data-sources/", plIniHandler);
+        } catch (AccessDeniedException e) {
+            throw e;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -333,8 +342,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
     		}
     		return workspaces;
     	} catch (AccessDeniedException e) {
-    	    session.createUserPrompter("You do not have sufficient privileges to perform that action.\n" +
-                    "Please hit the refresh button to re-synchonize with the server.", 
+    	    session.createUserPrompter("Unable to locate server.", 
                        UserPromptType.MESSAGE, 
                        UserPromptOptions.OK, 
                        UserPromptResponse.OK, 
