@@ -289,7 +289,7 @@ public class TestArchitectUndoManager extends TestCase {
         pp.addTablePane(tp, new Point());
         ArchitectUndoManager undoManager = new ArchitectUndoManager(pp);
         final PropertyChangeListener l = undoManager.getEventAdapter();
-        pp.getPlayPenContentPane().addComponentPropertyListener("bounds", new AbstractSPListener() {
+        pp.getContentPane().addComponentPropertyListener("bounds", new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
                 l.propertyChange(evt);
             }
@@ -329,7 +329,7 @@ public class TestArchitectUndoManager extends TestCase {
         location2 = tp2.getLocation();
         ArchitectUndoManager undoManager = new ArchitectUndoManager(pp);
         final PropertyChangeListener l = undoManager.getEventAdapter();
-        pp.getPlayPenContentPane().addComponentPropertyListener(new AbstractSPListener() {
+        pp.getContentPane().addComponentPropertyListener(new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
                 if (evt.getPropertyName().equals("bounds") && PlayPenComponent.isLocationChange(evt)) {
                     l.propertyChange(evt);
@@ -365,7 +365,7 @@ public class TestArchitectUndoManager extends TestCase {
         
         final SPListener undoListener = manager.getEventAdapter();
         
-        pp.getPlayPenContentPane().addComponentPropertyListener(new AbstractSPListener() {
+        pp.getContentPane().addComponentPropertyListener(new AbstractSPListener() {
             private List<String> filter = Arrays.asList(new String[] {
                     "bounds",
                     "connectionPoints",
@@ -490,7 +490,7 @@ public class TestArchitectUndoManager extends TestCase {
         
         undoManager = new ArchitectUndoManager(pp);
         final PropertyChangeListener l = undoManager.getEventAdapter();
-        pp.getPlayPenContentPane().addComponentPropertyListener(new AbstractSPListener() {
+        pp.getContentPane().addComponentPropertyListener(new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
                 if (evt.getPropertyName().equals("bounds") && PlayPenComponent.isLocationChange(evt) || 
                         evt.getPropertyName().equals("connectionPoints")) {
@@ -521,7 +521,7 @@ public class TestArchitectUndoManager extends TestCase {
         assertEquals("Oops started out with relationships", 0, pkTable.getExportedKeys().size());
         assertEquals("Oops started out with relationships", 0, fkTable.getImportedKeys().size());
         CreateRelationshipAction.doCreateRelationship(pkTable, fkTable, pp, false);
-        assertEquals("Wrong number of relationships created", 1, pp.getRelationships().size());
+        assertEquals("Wrong number of relationships created", 1, pp.getContentPane().getChildren(Relationship.class).size());
         assertEquals("Did the relationship create the columns in the fkTable", 2, fkTable.getColumns().size());
         assertFalse("First column should not be in PK", fkTable.getColumns().get(0).isPrimaryKey());
         assertFalse("Second column should not be in PK", fkTable.getColumns().get(1).isPrimaryKey());
@@ -550,7 +550,7 @@ public class TestArchitectUndoManager extends TestCase {
         System.out.println("==REDOING==");
         undoManager.redo();
         
-        assertEquals("Wrong number of relationships created", 1, pp.getRelationships().size());
+        assertEquals("Wrong number of relationships created", 1, pp.getContentPane().getChildren(Relationship.class).size());
         assertEquals("key didn't get re-added to pktable", 1, pkTable.getExportedKeys().size());
         assertEquals("key didn't get re-added to fktable", 1, fkTable.getImportedKeys().size());
         

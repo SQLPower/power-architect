@@ -1128,7 +1128,7 @@ public class BasicRelationshipUI extends RelationshipUI implements java.io.Seria
                 if (outOfBounds[count%2]) {
                     collided = true;
                 } else {
-                    for (Relationship r : playPen.getRelationships()) {
+                    for (Relationship r : playPen.getContentPane().getChildren(Relationship.class)) {
                         // skips this relationship and any that is not connected
                         // to the current table pane
                         if (r == relationship || (r.getPkTable() != table && r.getFkTable() != table)) continue;

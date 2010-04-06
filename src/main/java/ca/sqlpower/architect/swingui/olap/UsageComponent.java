@@ -22,6 +22,7 @@ package ca.sqlpower.architect.swingui.olap;
 import java.awt.Color;
 import java.awt.Window;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JDialog;
@@ -37,10 +38,13 @@ import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
@@ -147,6 +151,7 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
     }
 
     @Override
+    @Transient @Accessor
     public UsageComponentUI getUI() {
         return (UsageComponentUI) super.getUI();
     }
@@ -154,6 +159,7 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
     /**
      * Returns one of the panes that this usage component connects together.
      */
+    @Accessor
     public OLAPPane<?, ?> getPane1() {
         return pane1;
     }
@@ -161,6 +167,7 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
     /**
      * Returns one of the panes that this usage component connects together.
      */
+    @Accessor
     public OLAPPane<?, ?> getPane2() {
         return pane2;
     }
@@ -173,26 +180,41 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
 
         public void childRemoved(SPChildEvent evt) {
             if (evt.getChild() == pane1 || evt.getChild() == pane2) {
-                getPlayPen().getContentPane().remove(UsageComponent.this);
+                try {
+                    getPlayPen().getContentPane().removeChild(UsageComponent.this);
+                } catch (ObjectDependentException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
-
+    
+    @Transient @Accessor
     public LayoutNode getHeadNode() {
-        return pane2;
+        return getPane2();
     }
-
+    
+    @Transient @Accessor
     public LayoutNode getTailNode() {
-        return pane1;
+        return getPane1();
     }
-
-    public List<? extends SPObject> getDependencies() {
-        // TODO Auto-generated method stub
-        return null;
+    
+    public List<SPObject> getDependencies() {
+        List<SPObject> dependsOn = new ArrayList<SPObject>();
+        dependsOn.add(pane1);
+        dependsOn.add(pane2);
+        dependsOn.add(model);
+        return dependsOn;
     }
-
+    
     public void removeDependency(SPObject dependency) {
-        // TODO Auto-generated method stub
-        
+        if (getDependencies().contains(dependency)) {
+            try {
+                getParent().removeChild(this);
+            } catch (ObjectDependentException e) {
+                throw new RuntimeException(e);
+            }
+            setParent(null);
+        }
     }
 }

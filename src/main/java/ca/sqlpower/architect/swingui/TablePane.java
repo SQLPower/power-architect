@@ -19,7 +19,6 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
@@ -61,6 +60,7 @@ import ca.sqlpower.architect.InsertionPointWatcher;
 import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.swingui.action.EditSpecificIndexAction;
+import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
@@ -174,11 +174,10 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	public TablePane(@ConstructorParameter(propertyName="model") SQLTable m, 
 	        @ConstructorParameter(propertyName="parent") PlayPenContentPane parent) {
         super(m.getName());
+        setParent(parent);
         setModel(m);
-        setMinimumSize(new Dimension(100, 0));
         this.hiddenColumns = new HashSet<SQLColumn>();
-        setInsertionPoint(ITEM_INDEX_NONE);
-	    setParent(parent);
+        setInsertionPoint(ITEM_INDEX_NONE);	    
 		updateUI();
 	}
 	
@@ -370,6 +369,13 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 		}
 
 		SQLPowerUtils.listenToHierarchy(model, columnListener);
+		getParent().addSPListener(new AbstractSPListener() {
+		   public void childRemoved(SPChildEvent e) {
+		       if (e.getChild() == TablePane.this) {
+		           destroy();
+		       }
+		   }
+		});
 	}
 
 	@Override
@@ -1230,5 +1236,4 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             return new SQLObjectSelection(new ArrayList<SQLObject>(getSelectedItems()));
         }
     }
-
 }

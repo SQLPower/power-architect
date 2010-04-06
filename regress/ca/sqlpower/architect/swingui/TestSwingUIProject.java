@@ -393,8 +393,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SwingUIProjectLoader p2 = new SwingUIProjectLoader(session2);
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
         p2.load(byteArrayInputStream, plIni);
-        List<TablePane> projectTablePanes = session2.getPlayPen().getTablePanes();
-        List<TablePane> p2TablePanes = session2.getPlayPen().getTablePanes();
+        List<TablePane> projectTablePanes = session2.getPlayPen().getContentPane().getChildren(TablePane.class);
+        List<TablePane> p2TablePanes = session2.getPlayPen().getContentPane().getChildren(TablePane.class);
         assertEquals(projectTablePanes.size(),p2TablePanes.size());
         for (int i=0; i<projectTablePanes.size();i++){
             TablePane tp1 = projectTablePanes.get(i);

@@ -76,7 +76,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
         monitor.setStarted(true);
         JFileChooser chooser = new JFileChooser(session.getRecentMenu().getMostRecentFile());
         chooser.addChoosableFileFilter(SPSUtils.PDF_FILE_FILTER);
-        monitor.setJobSize(playpen.getPlayPenContentPane().getComponentCount());
+        monitor.setJobSize(playpen.getContentPane().getChildren().size());
         
         File file = null;
         while (true) {
@@ -150,9 +150,8 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
             // ensure a margin
             g.translate(OUTSIDE_PADDING, OUTSIDE_PADDING);
             PlayPenContentPane contentPane = pp.getContentPane();
-            int j=0;
-            for (int i = contentPane.getComponentCount() - 1; i >= 0; i--) {
-                PlayPenComponent ppc = contentPane.getComponent(i);
+            for (int i = 0; i < contentPane.getChildren().size(); i++) {
+                PlayPenComponent ppc = contentPane.getChildren().get(i);
                 if (logger.isDebugEnabled()) {
                     logger.debug("Painting component " + ppc);
                 }
@@ -161,8 +160,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                 ppc.paint(g);
                 g.setFont(gFont);
                 g.translate(-ppc.getLocation().x, -ppc.getLocation().y);
-                monitor.setProgress(j);
-                j++;
+                monitor.setProgress(i);
             }
             pp.paintComponent(g);
             g.dispose();

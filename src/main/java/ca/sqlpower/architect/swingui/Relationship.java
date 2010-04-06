@@ -522,9 +522,6 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 		 * instance's creator saved a reference).
 		 */
 		public void mouseReleased(MouseEvent e) {
-		    if (r.isMoving()) {
-		        r.doneDragging();
-		    }
 		    r.getPlayPen().endCompoundEdit("Done dragging relationship");
 			r.getPlayPen().removeMouseMotionListener(this);
 			r.getPlayPen().removeMouseListener(this);

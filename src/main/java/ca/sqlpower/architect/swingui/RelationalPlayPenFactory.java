@@ -127,7 +127,7 @@ public class RelationalPlayPenFactory {
                 mi.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent evt) {
                         JOptionPane.showMessageDialog(pp, new JScrollPane(new JList(new java.util.Vector<Relationship>(
-                                pp.getRelationships()))));
+                                pp.getContentPane().getChildren(Relationship.class)))));
                     }
                 });
                 menu.add(mi);
@@ -137,8 +137,7 @@ public class RelationalPlayPenFactory {
                 mi.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent evt) {
                         StringBuffer componentList = new StringBuffer();
-                        for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
-                            PlayPenComponent c = pp.getContentPane().getComponent(i);
+                        for (PlayPenComponent c : pp.getContentPane().getChildren()) {                            
                             componentList.append(c).append("[" + c.getModel() + "]\n"); //$NON-NLS-1$ //$NON-NLS-2$
                         }
                         JOptionPane.showMessageDialog(pp, new JScrollPane(new JTextArea(componentList.toString())));

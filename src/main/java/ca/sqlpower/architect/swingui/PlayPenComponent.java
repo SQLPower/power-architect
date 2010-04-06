@@ -45,6 +45,7 @@ import ca.sqlpower.architect.enterprise.NetworkConflictResolver.UpdateListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Mutator;
@@ -57,8 +58,8 @@ import ca.sqlpower.object.annotation.Transient;
  */
 public abstract class PlayPenComponent extends AbstractSPObject
 implements Selectable {
-
-    private static final Logger logger = Logger.getLogger(PlayPenComponent.class);
+    
+    private static final Logger logger = Logger.getLogger(PlayPenComponent.class);    
 
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
     
@@ -82,12 +83,17 @@ implements Selectable {
     protected boolean componentPreviouslySelected;
     
     /**
+     * Keeps track of whether this component is being dragged or not.
+     */
+    private boolean isBeingDragged = false;
+    
+    /**
      * This listens for updates in case the user is dragging a table     
      * the same time an update comes in.
      */
     private final UpdateListener updateWhileMovingListener = new UpdateListener() {       
         public boolean updatePerformed(NetworkConflictResolver resolver) {
-            if (isMoving) {
+            if (isBeingDragged) {
                 doneDragging(false);
             }
             return true;
@@ -559,11 +565,6 @@ implements Selectable {
 
     private final List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
 
-    /**
-     * Keeps track of whether this component is being dragged or not.
-     */
-    private boolean isMoving = false;
-
     public final void addSelectionListener(SelectionListener l) {
         logger.info("" + this + " is adding " + l);
         selectionListeners.add(l);
@@ -620,8 +621,8 @@ implements Selectable {
     }
     
     @NonBound
-    public boolean isMoving() {
-        return isMoving;
+    public boolean isBeingDragged() {
+        return isBeingDragged;
     }
     
     /**
@@ -629,8 +630,8 @@ implements Selectable {
      * and sets up an update listener to listen for conflicts while dragging
      */
     public void startedDragging() {
-        if (!isMoving) {
-            isMoving = true;
+        if (!isBeingDragged) {
+            isBeingDragged = true;
             if (getPlayPen().getSession().isEnterpriseSession()) {
                 getPlayPen().getSession().getEnterpriseSession().getUpdater().addListener(updateWhileMovingListener);
             }
@@ -650,8 +651,8 @@ implements Selectable {
      * Used by the update conflict listener to rollback the drag.
      */
     public void doneDragging(boolean ok) {
-        if (isMoving) {
-            isMoving = false;
+        if (isBeingDragged) {
+            isBeingDragged = false;
             if (ok) {
                 commit();
             } else {
@@ -699,13 +700,12 @@ implements Selectable {
     }
 
     public void removeDependency(SPObject dependency) {
-        if (dependency != getModel()) {
-            throw new IllegalArgumentException("This component is not dependant on " + dependency);
-        }
-        try {       
-            getParent().removeChild(this);
-        } catch (Exception e) {
-            throw new RuntimeException("Error removing PlayPenComponent due to dependency removal", e);
+        if (dependency == getModel()) {
+            try {       
+                getParent().removeChild(this);
+            } catch (ObjectDependentException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

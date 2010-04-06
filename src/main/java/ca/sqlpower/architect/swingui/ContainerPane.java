@@ -234,7 +234,7 @@ implements DragSourceListener, LayoutNode {
                 Iterator<ContainerPane<?, ?> > it = pp.getSelectedContainers().iterator();
                 logger.debug("event point: " + p); //$NON-NLS-1$
                 logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
-                pp.setDraggingTablePanes(true);
+                pp.setDraggingContainerPanes(true);
                 startedDragging();
 
                 while (it.hasNext()) {

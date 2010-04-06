@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -47,6 +48,7 @@ import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.olap.action.ExportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
@@ -137,6 +139,8 @@ public class OLAPSchemaManager {
      * manager belongs to.
      */
     private final List<OLAPSession> olapSessions;
+    
+    private final HashMap<OLAPSession, PlayPenContentPane> olapContentPanes;
 
     /**
      * Creates a new schema manager with the default set of action buttons.
@@ -144,6 +148,15 @@ public class OLAPSchemaManager {
     public OLAPSchemaManager(ArchitectSwingSession session) {
         this.session = session;
         olapSessions = session.getOLAPRootObject().getChildren();
+        olapContentPanes = new HashMap<OLAPSession, PlayPenContentPane>();
+        for (PlayPenContentPane olapCP : session.getWorkspace().getOlapContentPanes()) {
+            if (olapSessions.contains(olapCP.getModelContainer())) {
+                olapContentPanes.put((OLAPSession) olapCP.getModelContainer(), olapCP);
+            } else {
+                throw new IllegalStateException(
+                        "OLAPSessions listed under content panes do not match those under OLAP root");
+            }
+        }
     }
 
     /**
@@ -346,6 +359,10 @@ public class OLAPSchemaManager {
             return null;
         }
         return (OLAPSession) olapSessions.get(selectedRow);
+    }
+    
+    public PlayPenContentPane getContentPane(OLAPSession session) {
+        return olapContentPanes.get(session);
     }
 
 }

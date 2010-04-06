@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.PlayPen.CancelableListener;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
@@ -132,8 +133,14 @@ implements ActionListener, SelectionListener, CancelableListener {
         }
         
         if (pane2 != null && pane1 != null) {
+            PlayPenContentPane cp = playpen.getContentPane();
             try {
+                cp.begin("Creating usage");
                 createUsage(pane1, pane2);
+                cp.commit();
+            } catch (Throwable ex) {
+                cp.rollback("Exception occurred while creating usage: " + ex.toString());
+                throw new RuntimeException(ex);
             } finally {
                 reset();
             }

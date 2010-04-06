@@ -25,10 +25,12 @@ import java.io.IOException;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
+import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 
 public class TestFruchtermanReingoldForceLayout extends TestCase {
@@ -50,7 +52,7 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 		tp = new TablePane(table1,pp.getContentPane());
 		pp.addTablePane(tp,new Point(10,10));
 		layout = new FruchtermanReingoldForceLayout();
-		frame = new Rectangle(new Point(),layout.getNewArea(pp.getTablePanes()));
+		frame = new Rectangle(new Point(),layout.getNewArea(pp.getContentPane().getChildren(TablePane.class)));
 	}
 	
 	public void testMagnitude() {
@@ -60,21 +62,23 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 
 	public void testIsDoneNoElem() throws SQLObjectException {
 		final ArchitectSwingSession session = context.createSession();
-        PlayPen p = new PlayPen(session);
-		layout.setup(p.getTablePanes(),p.getRelationships(),frame);
+        PlayPenContentPane pane = new PlayPen(session).getContentPane();
+		layout.setup(pane.getChildren(TablePane.class),pane.getChildren(Relationship.class),frame);
 		assertTrue(layout.isDone());
 	}
 	
 	public void testIsDoneOneElem() {
-		layout.setup(pp.getTablePanes(),pp.getRelationships(),frame);
+	    PlayPenContentPane pane = pp.getContentPane();
+		layout.setup(pane.getChildren(TablePane.class), pane.getChildren(Relationship.class),frame);
 		assertTrue(layout.isDone());
 	}
 	
 	public void testDone() throws SQLObjectException {
+	    PlayPenContentPane pane = pp.getContentPane();
 		SQLTable sqlTable2 = new SQLTable(db,true);
-		TablePane t2 =new TablePane(sqlTable2,pp.getContentPane());
+		TablePane t2 =new TablePane(sqlTable2,pane);
 		pp.addTablePane(t2,new Point(23,243));
-		layout.setup(pp.getTablePanes(),pp.getRelationships(),frame);
+		layout.setup(pane.getChildren(TablePane.class),pane.getChildren(Relationship.class),frame);
 		assertFalse(layout.isDone());
 		layout.done();
 		assertTrue(layout.isDone());

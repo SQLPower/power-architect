@@ -69,7 +69,7 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
             du.setSource(dimension.getName());
             cube.addChild(du);
             UsageComponent uc = new UsageComponent(playpen.getContentPane(), du, dp, cp);
-            playpen.getContentPane().add(uc, playpen.getContentPane().getComponentCount());
+            playpen.getContentPane().addChild(uc, playpen.getContentPane().getChildren().size());
             
             try {
                 final DataEntryPanel mep = new DimensionUsageEditPanel(du);

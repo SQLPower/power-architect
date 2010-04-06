@@ -35,9 +35,9 @@ import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
-import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -85,6 +85,7 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
     }
     
     @Override
+    @NonBound
     protected List<OLAPObject> getItems() {
         // Return the children and all the cubeUsages.
         List<OLAPObject> items = new ArrayList<OLAPObject>();
@@ -154,15 +155,4 @@ public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
         // TODO Auto-generated method stub
         
     }
-
-    public List<? extends SPObject> getDependencies() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public void removeDependency(SPObject dependency) {
-        // TODO Auto-generated method stub
-        
-    }
-    
 }

@@ -231,7 +231,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         loadedSession.getProjectLoader().load(new ByteArrayInputStream(out.toByteArray()), new PlDotIni());
         assertEquals(newValueForStraightLines, loadedSession.getRelationshipLinesDirect());
         
-        for (Relationship r : loadedSession.getPlayPen().getRelationships()) {
+        for (Relationship r : loadedSession.getPlayPen().getContentPane().getChildren(Relationship.class)) {
             assertEquals(newValueForStraightLines, r.isStraightLine());
         }
     }

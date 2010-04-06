@@ -54,11 +54,11 @@ public class DnDOLAPTransferable implements Transferable, java.io.Serializable {
      * @param node The SQLObject you want the path to
      */
     public DnDOLAPTransferable(PlayPen pp, List<PlayPenCoordinate<? extends OLAPObject,? extends OLAPObject>> selectedCoordinates) {
-        PlayPenContentPane ppcp = pp.getContentPane();
+        PlayPenContentPane contentPane = pp.getContentPane();
         StringBuilder name = new StringBuilder();
         coords = new ArrayList<List<Integer>>();
-        for (int i = 0; i < ppcp.getComponentCount(); i++) {
-            PlayPenComponent ppc = ppcp.getComponent(i);
+        for (int i = 0; i < contentPane.getChildren().size(); i++) {
+            PlayPenComponent ppc = contentPane.getChildren().get(i);
             // XXX n*m is bad -- use a Map<Pane,PlayPenCoordinate>
             for (PlayPenCoordinate<?, ?> ppco : selectedCoordinates) {
                 OLAPPane<?, ?> pane = ppco.getPane();
@@ -125,7 +125,7 @@ public class DnDOLAPTransferable implements Transferable, java.io.Serializable {
 	        int sectIndex = coord.get(1);
 	        int itemIndex = coord.get(2);
 	        OLAPPane<OLAPObject,OLAPObject> ppc = (OLAPPane<OLAPObject,OLAPObject>)
-	                pp.getPlayPenContentPane().getComponent(paneIndex);
+	                pp.getContentPane().getChildren().get(paneIndex);
 	        PaneSection<? extends OLAPObject> s = ppc.getSections().get(sectIndex);
 	        OLAPObject item;
 	        if (itemIndex >= 0) {

@@ -30,6 +30,7 @@ import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.AbstractPlacer;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.olap.CubeEditPanel;
@@ -49,17 +50,25 @@ public class CreateCubeAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        Cube cube = new Cube();
-        
-        int count = 1;
-        while (!OLAPUtil.isNameUnique(schema, Cube.class, "New Cube " + count)) {
-            count++;
+        PlayPenContentPane pane = playpen.getContentPane();
+        pane.begin("Creating a Cube and its CubePane");
+        try {
+            Cube cube = new Cube();
+
+            int count = 1;
+            while (!OLAPUtil.isNameUnique(schema, Cube.class, "New Cube " + count)) {
+                count++;
+            }
+            cube.setName("New Cube " + count);
+
+            CubePane cp = new CubePane(cube, pane);
+            CubePlacer cubePlacer = new CubePlacer(cp);
+            cubePlacer.dirtyup();
+            pane.commit();
+        } catch (Throwable ex) {
+            pane.rollback("Error creating Cube: " + ex.toString());
+            throw new RuntimeException(ex);
         }
-        cube.setName("New Cube " + count);
-        
-        CubePane cp = new CubePane(cube, playpen.getContentPane());
-        CubePlacer cubePlacer = new CubePlacer(cp);
-        cubePlacer.dirtyup();
     }
 
     private class CubePlacer extends AbstractPlacer {

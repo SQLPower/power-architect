@@ -19,7 +19,6 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -32,241 +31,196 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.Transient;
+import ca.sqlpower.sqlobject.SQLDatabase;
 
 public class PlayPenContentPane extends AbstractSPObject {
 	private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
 	
 	@SuppressWarnings("unchecked")
-    public static final List<Class<? extends SPObject>> allowedChildTypes = 
+	public static final List<Class<? extends SPObject>> allowedChildTypes = 
 	    Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-	            Arrays.asList(PlayPenComponent.class)));		
-	
-	protected PlayPen playPen;
-	private List<PlayPenComponent> children = new ArrayList<PlayPenComponent>();
-	private List<Relationship> relations = new ArrayList<Relationship>();
-	
-	/**
-	 * Maps component listeners by the listener that was passed in 
-	 * (and will be passed in again  on removeComponentPropertyListener calls) 
-	 * to the filtered listener that is created in addComponentPropertyListener
-	 */
-	private HashMap<SPListener, SPListener> componentListeners = new HashMap<SPListener, SPListener>();
+	            Arrays.asList(PlayPenComponent.class)));       
+
+    private PlayPen playPen;
+	private List<PlayPenComponent> components = new ArrayList<PlayPenComponent>();
+    
+    private SPObject modelContainer;
+    
+    /**
+     * Maps component listeners by the listener that was passed in 
+     * (and will be passed in again  on removeComponentPropertyListener calls) 
+     * to the filtered listener that is created in addComponentPropertyListener
+     */
+    private HashMap<SPListener, SPListener> componentListeners = new HashMap<SPListener, SPListener>();
+    
+    private final SPListener modelContainerListener = new AbstractSPListener() {
+        public void childRemoved(SPChildEvent e) {
+            if (e.getChild() == modelContainer && e.getSource().isMagicEnabled()) {
+                try {
+                    getParent().removeChild(PlayPenContentPane.this);                    
+                } catch (ObjectDependentException ex) {
+                    throw new RuntimeException(ex);
+                }
+                e.getSource().removeSPListener(this);
+            }            
+        }
+    };
 	
 	@Constructor
+	public PlayPenContentPane(@ConstructorParameter(propertyName="modelContainer") SPObject modelContainer) {
+	    this("PlayPenContentPane");
+	    setModelContainer(modelContainer);
+	}
+	
 	public PlayPenContentPane() {
-	    this(null);	    
+	    this("PlayPenContentPane");
 	}
 	
-	public PlayPenContentPane(PlayPen owner) {
+	public PlayPenContentPane(String name) {
 	    super();
-	    setPlayPen(owner);
+	    setName(name);
 	}
 	
-	/**
-	 * Returns the PlayPen that this content pane belongs to.
-	 */
-	@Transient @Accessor
-	public PlayPen getPlayPen() {
-		return playPen;
+	@Accessor
+	public SPObject getModelContainer() {
+	    return modelContainer;
 	}
-
-	@Transient @Mutator
-	public void setPlayPen(PlayPen owner) {
-	    if (playPen != null) {
-	        throw new IllegalStateException("Cannot change PlayPen once it is already set!");
+	
+	@Mutator
+	public void setModelContainer(SPObject modelContainer) {
+	    if (this.modelContainer != null) throw new IllegalStateException(
+	            "Cannot set the model container once it is already set!");
+	    if (!(modelContainer instanceof SQLDatabase || modelContainer instanceof OLAPSession)) {
+	        throw new IllegalArgumentException("modelContainer must either be a SQLDatabase or OLAPSession");
 	    }
-	    this.playPen = owner;
-	    if (owner != null) {
-	        owner.addPropertyChangeListener("zoom", new ZoomFixer()); //$NON-NLS-1$
-	        firePropertyChange("playPen", null, owner);
-	    }
+	    this.modelContainer = modelContainer;
+	    modelContainer.getParent().addSPListener(modelContainerListener);
+	    firePropertyChange("modelContainer", null, modelContainer);
 	}
-	
-	public boolean contains(Point p) {
-		return contains(p.x, p.y);
-	}
-
-	public boolean contains(int x, int y) {
-		return true;
-	}
-
-	/**
-	 * Returns true.
-	 */
-	@NonBound
-	public boolean isValidateRoot() {
-		logger.debug("isValidateRoot returning true"); //$NON-NLS-1$
-		return true;
-	}
-
-	/**
-	 * Looks for tooltip text in the component under the pointer,
-	 * respecting the current zoom level.
-	 */
-	@Transient @Accessor
-	public String getToolTipText(MouseEvent e) {
-		String text = null;
-		PlayPenComponent c = getComponentAt(e.getPoint());
-		if (c != null) {
-			text = c.getToolTipText();
-		}
-		logger.debug("Checking for tooltip component at "+e.getPoint()+" is "+c+". tooltipText is "+text); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		return text;
-	}
-
-	/**
-	 *  Allows you to return the component that is at point p.  Since relations are always last 
-	 *  If a non-relationship is at the same point it gets picked first. 
-	 */
-	@NonBound
-	public PlayPenComponent getComponentAt(Point p) {
-		for (PlayPenComponent ppc : children) {
-			if (ppc.contains(p)) {
-				return ppc;
-			}
-		}
-		for (Relationship ppc : relations) {
-			if (ppc.contains(p)) {
-				return (PlayPenComponent) ppc;
-			}
-		}
-		return null;
-	}
-
-
-	/**
-	 * Get the index of the first relation
-	 */
-	@NonBound
-	public int getFirstRelationIndex() {
-		return children.size();
-	}
-	
-	/**
-	 * get the total number of components
-	 */
-	@NonBound
-	public int getComponentCount() {
-		return children.size()+relations.size();
-	}
-
-	/**
-	 * Get a component at position i.  
-	 * 
-	 * Note: All relations are at the end of the list 
-	 */
-	@NonBound
-	public PlayPenComponent getComponent(int i) {
-		if (i < children.size()){
-			return children.get(i);
-		} else {
-			return relations.get(i-children.size());
-		}
-		
-	}
-
-	/**
-	 * Add a new component to the content pane.  
-	 * 
-	 * Note relations must be added after <code>getFirstrelaationIndex</code> and all others before
-	 */
-	public void add(PlayPenComponent c, int i) {
-	    c.setParent(this);
-		if (c instanceof Relationship) {
-			relations.add(i-children.size(),(Relationship)c);
-		} else {
-			children.add(i,c);
-		}
-		c.addSelectionListener(getPlayPen());
-		fireChildAdded(c.getClass(), c, i);
-		c.revalidate();
-	}
-
-	
-	/**
-	 * removes the component at index j
-	 */
-	public void remove(int j) {
-		PlayPenComponent c;
-		if (j < children.size()) {
-			 c= children.get(j);
-		} else {
-			c = relations.get(j-children.size());
-		}
-		
-		Rectangle r = c.getBounds();
-		c.removeSelectionListener(getPlayPen());
-		if (j < children.size()) {
-			children.remove(j);
-		} else {
-			relations.remove(j-children.size());
-		}
-		fireChildRemoved(c.getClass(), c, j);
-		getPlayPen().repaint(r);
-	}
-	
-	public boolean remove(PlayPenComponent c) {
-	    List<? extends PlayPenComponent> targetList;
-	    if (children.contains(c)) targetList = children;
-	    else if (relations.contains(c)) targetList = relations;
-	    else return false;
-	    
-	    int i = getChildren().indexOf(c);
-	    targetList.remove(c);
-	    fireChildRemoved(c.getClass(), c, i);
-	    return true;
-	    
-	}
-
-	/**
-	 * Fixes table pane sizes after the play pen's zoom changes (because
-	 * fonts render at different sizes in different zoom levels).
-	 */
-	private class ZoomFixer implements PropertyChangeListener {
-		public void propertyChange(PropertyChangeEvent evt) {
-			for (PlayPenComponent ppc : children) {
-				// only table panes will need validation because they have text
-				if (! (ppc instanceof Relationship)) ppc.revalidate();
-			}
-		}
-	}
-
-	protected void addChildImpl(SPObject child, int pos) {
-	    add((PlayPenComponent) child, pos);
-	}
-
-    @Override
-    protected boolean removeChildImpl(SPObject child) {
-        return remove((PlayPenComponent) child);
+    
+    /**
+     * Returns the PlayPen that this content pane belongs to.
+     */
+    @Transient @Accessor
+    public PlayPen getPlayPen() {
+        return playPen;
     }
 
-    @Accessor
-    public ArchitectProject getParent() {
-        return (ArchitectProject) super.getParent();
+    @Transient @Mutator
+    public void setPlayPen(PlayPen owner) {
+        if (playPen != null) {
+            throw new IllegalStateException("Cannot change PlayPen once it is already set!");
+        }
+        this.playPen = owner;
+        setPlayPenListeningToComponents();
+        if (owner != null) {
+            owner.addPropertyChangeListener("zoom", new ZoomFixer()); //$NON-NLS-1$
+            firePropertyChange("playPen", null, owner);
+        }
     }
     
-    public boolean allowsChildren() {
+    public boolean contains(Point p) {
+        return contains(p.x, p.y);
+    }
+
+    public boolean contains(int x, int y) {
+        return true;
+    }
+
+    /**
+     * Returns true.
+     */
+    @NonBound
+    public boolean isValidateRoot() {
+        logger.debug("isValidateRoot returning true"); //$NON-NLS-1$
+        return true;
+    }
+
+    /**
+     * Looks for tooltip text in the component under the pointer,
+     * respecting the current zoom level.
+     */
+    @Transient @Accessor
+    public String getToolTipText(MouseEvent e) {
+        String text = null;
+        PlayPenComponent c = getComponentAt(e.getPoint());
+        if (c != null) {
+            text = c.getToolTipText();
+        }
+        logger.debug("Checking for tooltip component at "+e.getPoint()+" is "+c+". tooltipText is "+text); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        return text;
+    }
+
+    /**
+     *  Allows you to return the component that is at point p.  Since relations are always last 
+     *  If a non-relationship is at the same point it gets picked first. 
+     */
+    @NonBound
+    public PlayPenComponent getComponentAt(Point p) {
+        for (PlayPenComponent ppc : getChildren(PlayPenComponent.class)) {
+            if (ppc.contains(p)) {
+                return ppc;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Fixes table pane sizes after the play pen's zoom changes (because
+     * fonts render at different sizes in different zoom levels).
+     */
+    private class ZoomFixer implements PropertyChangeListener {
+        public void propertyChange(PropertyChangeEvent evt) {
+            for (PlayPenComponent ppc : getChildren()) {
+                // only table panes will need validation because they have text             
+                if (!(ppc instanceof Relationship)) ppc.revalidate();
+            }
+        }
+    }
+    
+    protected void addChildImpl(SPObject child, int pos) {      
+        components.add(pos, (PlayPenComponent) child);
+        child.setParent(this);
+        PlayPenComponent ppc = (PlayPenComponent) child;
+        if (getPlayPen() != null) {
+            ppc.addSelectionListener(getPlayPen());
+        }
+        fireChildAdded(child.getClass(), ppc, pos);
+        ppc.revalidate();
+    }
+
+    @Override
+    protected boolean removeChildImpl(SPObject child) {        
+        int i = components.indexOf(child);
+        if (!components.remove(child)) return false;
+        fireChildRemoved(child.getClass(), child, i);
+        child.setParent(null);
         return true;
     }
 
     public int childPositionOffset(Class<? extends SPObject> childType) {
-        if (Relationship.class.isAssignableFrom(childType)) {
-            return children.size();
-        } else if (PlayPenComponent.class.isAssignableFrom(childType)) {
-            return 0;
-        } else {
-            throw new IllegalArgumentException("Not an allowed child type");
+        int offset = 0;
+        for (Class<? extends SPObject> type : allowedChildTypes) {
+            if (type.isAssignableFrom(childType)) {
+                return offset;
+            } else {
+                offset += getChildren(type).size();
+            }
         }
+        throw new IllegalArgumentException();
     }
 
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
@@ -274,10 +228,16 @@ public class PlayPenContentPane extends AbstractSPObject {
     }
     
     public List<? extends PlayPenComponent> getChildren() {
-        List<PlayPenComponent> childrenList = new ArrayList<PlayPenComponent>();
-        childrenList.addAll(children);
-        childrenList.addAll(relations);
-        return childrenList;
+        return Collections.unmodifiableList(components);
+    }
+    
+    @Accessor
+    public ArchitectProject getParent() {
+        return (ArchitectProject) super.getParent();
+    }
+    
+    public boolean allowsChildren() {
+        return true;
     }
 
     @NonBound
@@ -358,6 +318,14 @@ public class PlayPenContentPane extends AbstractSPObject {
     @NonBound
     public void setComponentListeners(HashMap<SPListener, SPListener> componentListeners) {
         this.componentListeners = componentListeners;
+    }
+
+    private void setPlayPenListeningToComponents() {
+        for (PlayPenComponent ppc : getChildren()) {
+            // In case it already had it
+            ppc.removeSelectionListener(getPlayPen());
+            ppc.addSelectionListener(getPlayPen());
+        }
     }
     
 }
