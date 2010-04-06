@@ -105,9 +105,9 @@ public class SecurityPanel {
     private final MouseListener popupListener = new MouseListener() {
         public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
         public void mousePressed(MouseEvent e)  { maybeShowPopup(e); }
-        public void mouseClicked(MouseEvent e) {}
-        public void mouseEntered(MouseEvent e) {}
-        public void mouseExited(MouseEvent e) {}
+        public void mouseClicked(MouseEvent e)  { maybeShowPopup(e); }
+        public void mouseEntered(MouseEvent e)  { maybeShowPopup(e); }
+        public void mouseExited(MouseEvent e)   { maybeShowPopup(e); }
 
         private void maybeShowPopup(MouseEvent e) {
             if (e.isPopupTrigger()) {
