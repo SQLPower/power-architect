@@ -21,6 +21,9 @@ package ca.sqlpower.architect.swingui.enterprise;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.net.URI;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,16 +33,28 @@ import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.apache.commons.codec.binary.Hex;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
+import org.json.JSONObject;
+
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
+import ca.sqlpower.architect.enterprise.JSONResponseHandler;
 import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.GroupMember;
+import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -111,6 +126,66 @@ public class UserEditorPanel implements DataEntryPanel{
             for (Object object : selection) {
                 currentGroupsModel.removeElement(object);
                 availableGroupsModel.addElement(object);
+            }
+        }
+    };
+    
+    private final Action changePasswordAction = new AbstractAction("Change Password") {
+        public void actionPerformed(ActionEvent e) {
+            try {
+                JTextField oldPasswordField = new JPasswordField(21);
+                JTextField newPasswordField = new JPasswordField(21);
+                JTextField newPasswordFiled2 = new JPasswordField(21);
+                
+                Object [] messages = {
+                        "Enter the old password",
+                        oldPasswordField, 
+                        "Enter a new password", 
+                        newPasswordField, 
+                        newPasswordFiled2};
+                String[] options = { 
+                        "OK", 
+                        "Cancel"};
+                
+                int option = JOptionPane.showOptionDialog(getPanel(), messages, 
+                        "Change " + user.getUsername() + "'s password", JOptionPane.DEFAULT_OPTION, 
+                                JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+                
+                if (option == 0) {
+                    if (newPasswordField.getText().equals(newPasswordFiled2.getText())) {
+                        SPServerInfo serviceInfo = ((ArchitectClientSideSession) securityWorkspace.getSession())
+                        .getProjectLocation().getServiceInfo();
+                        
+                        HttpClient client = ArchitectClientSideSession.createHttpClient(serviceInfo);
+                        
+                        MessageDigest digester;
+                        try {
+                            digester = MessageDigest.getInstance("SHA-256");
+                        } catch (NoSuchAlgorithmException e1) {
+                            throw new RuntimeException(e1);
+                        }
+                        
+                        JSONObject json = new JSONObject();
+                        json.put("username", user.getUsername());
+                        json.put("oldPassword", new String(Hex.encodeHex(digester.digest(oldPasswordField.getText().getBytes()))));
+                        json.put("newPassword", new String(Hex.encodeHex(digester.digest(newPasswordField.getText().getBytes()))));
+                        
+                        URI serverURI = new URI("http", null, 
+                                serviceInfo.getServerAddress(), 
+                                serviceInfo.getPort(),
+                                serviceInfo.getPath() + "/project/system/change_password", 
+                                null, null);
+                        HttpPost postRequest = new HttpPost(serverURI);
+                        postRequest.setEntity(new StringEntity(json.toString())); 
+                        postRequest.setHeader("Content-Type", "application/json");
+                        HttpUriRequest request = postRequest;
+                        client.execute(request, new JSONResponseHandler());
+                    } else {
+                        JOptionPane.showMessageDialog(getPanel(), "The the passwords you entered were not the same");
+                    }
+                }
+            } catch (Exception x) {
+                throw new RuntimeException(x);
             }
         }
     };
@@ -196,13 +271,14 @@ public class UserEditorPanel implements DataEntryPanel{
         
         CellConstraints cc = new CellConstraints();
         DefaultFormBuilder upperPanelBuilder = new DefaultFormBuilder(new FormLayout(
-                "pref, 5dlu, pref", "pref, pref, pref, pref, 5dlu"));
+                "pref, 5dlu, pref", "pref, pref, pref, pref, pref, 5dlu"));
         upperPanelBuilder.add(usernameLabel, cc.xy(1, 1));
         upperPanelBuilder.add(usernameField, cc.xyw(3, 1, 1));
         upperPanelBuilder.add(fullnameLabel, cc.xy(1, 3));
         upperPanelBuilder.add(fullnameField, cc.xyw(3, 3, 1));
         upperPanelBuilder.add(emailLabel, cc.xy(1, 4));
         upperPanelBuilder.add(emailField, cc.xy(3, 4));
+        upperPanelBuilder.add(new JButton(changePasswordAction), cc.xy(3, 5));
         
         DefaultFormBuilder buttonPanelBuilder = new DefaultFormBuilder(new FormLayout(
                 "pref", "pref:grow, pref, 5dlu, pref, pref:grow"));
@@ -348,23 +424,23 @@ public class UserEditorPanel implements DataEntryPanel{
     }
 
     public void disableIfNecessary() {
-        User user = null;
+        User creatingUser = null;
         List<Grant> grantsForUser = new ArrayList<Grant>();
         for (User aUser : securityWorkspace.getChildren(User.class)) {
             if (aUser.getUsername().equals(username)) {
-                user = aUser;
+                creatingUser = aUser;
             }
         }
         
-        if (user == null) throw new IllegalStateException("User cannot possibly be null");
+        if (creatingUser == null) throw new IllegalStateException("User cannot possibly be null");
     
-        for (Grant g : user.getChildren(Grant.class)) {
+        for (Grant g : creatingUser.getChildren(Grant.class)) {
             grantsForUser.add(g);
         }
         
         for (Group g : securityWorkspace.getChildren(Group.class)) {
             for (GroupMember gm : g.getChildren(GroupMember.class)) {
-                if (gm.getUser().getUUID().equals(user.getUsername())) {
+                if (gm.getUser().getUUID().equals(creatingUser.getUsername())) {
                     for (Grant gr : g.getChildren(Grant.class)) {
                         grantsForUser.add(gr);
                     }

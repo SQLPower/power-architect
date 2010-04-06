@@ -295,7 +295,7 @@ public class SecurityPanel {
                 "Specify the User's Name and Password.",
                 namePanel, passPanel};
 
-        String[] options = { "Accept", "Cancel",};
+        String[] options = { "OK", "Cancel",};
         int option = JOptionPane.showOptionDialog(getPanel(), messages, 
                 "Specify the User's Name and Password", JOptionPane.DEFAULT_OPTION, 
                         JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
