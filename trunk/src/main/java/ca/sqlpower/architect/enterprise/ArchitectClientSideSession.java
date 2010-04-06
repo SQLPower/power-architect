@@ -8,7 +8,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -342,12 +341,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
     		}
     		return workspaces;
     	} catch (AccessDeniedException e) {
-    	    session.createUserPrompter("Unable to locate server.", 
-                       UserPromptType.MESSAGE, 
-                       UserPromptOptions.OK, 
-                       UserPromptResponse.OK, 
-                       "OK", "OK").promptUser("");
-    	    return Collections.emptyList();
+    	    throw e;
     	} finally {
     		httpClient.getConnectionManager().shutdown();
     	}

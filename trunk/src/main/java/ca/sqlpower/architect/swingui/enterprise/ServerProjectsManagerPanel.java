@@ -42,8 +42,6 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
-import org.springframework.security.AccessDeniedException;
-
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
@@ -340,6 +338,10 @@ public class ServerProjectsManagerPanel {
         panel = builder.getPanel();
     }
     
+    public boolean isConnected() {
+        return connected;
+    }
+    
     public JPanel getPanel() {
         return panel;
     }
@@ -363,7 +365,6 @@ public class ServerProjectsManagerPanel {
             newAction.setEnabled(false);
             openAction.setEnabled(false);
             deleteAction.setEnabled(false);
-            
             projects.setEnabled(false);
         }
     }
@@ -376,44 +377,30 @@ public class ServerProjectsManagerPanel {
         if (serviceInfo != null) {
             try {
                 
-                boolean accessible = true;
+                ((ArchitectSwingSessionContextImpl) session.getContext()).createSecuritySession(serviceInfo);
                 
-                try {
-                    ((ArchitectSwingSessionContextImpl) session.getContext()).createSecuritySession(serviceInfo);
-                } catch (AccessDeniedException ex) {
-                    session.createUserPrompter("Unable to login to server.", 
-                            UserPromptType.MESSAGE, 
-                            UserPromptOptions.OK, 
-                            UserPromptResponse.OK, 
-                            "OK", "OK").promptUser("");
-                    accessible = false;
-                }
+                // Sorts the project locations alphabetically
+                List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo, session);
+                Collections.sort(projects, new Comparator<ProjectLocation>() {
+                    public int compare(ProjectLocation proj1, ProjectLocation proj2) {
+                        return proj1.getName().toUpperCase().compareTo(proj2.getName().toUpperCase());
+                    }
+                });
                 
-                if (accessible) {
-                    // Sorts the project locations alphabetically
-                    List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo, session);
-                    Collections.sort(projects, new Comparator<ProjectLocation>() {
-                        public int compare(ProjectLocation proj1, ProjectLocation proj2) {
-                            return proj1.getName().toUpperCase().compareTo(proj2.getName().toUpperCase());
-                        }
-                    });
-                    
-                    for (ProjectLocation pl : projects) {
-                        model.addElement(pl);
-                    } 
+                for (ProjectLocation pl : projects) {
+                    model.addElement(pl);
                 }
                 
                 connected = true;
             } catch (Exception ex) {
                 model.removeAllElements();
                 model.addElement("Unable to get projects from server");
-                
                 connected = false;
-                
-                // XXX: Having an exception thrown whenever the server cannot be found seems a little
-                //      extreme, but it can be useful for debugging.
-                
-                throw new RuntimeException("There has been a problem retrieving projects from the selected server", ex);
+                session.createUserPrompter("Server Unavailable", 
+                        UserPromptType.MESSAGE, 
+                        UserPromptOptions.OK, 
+                        UserPromptResponse.OK, 
+                        "OK", "OK").promptUser("");
             }
             
             refreshPanel();

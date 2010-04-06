@@ -64,7 +64,6 @@ import javax.swing.event.MenuListener;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
-import org.springframework.security.AccessDeniedException;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
@@ -135,9 +134,6 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.enterprise.client.SPServerInfoManagerPanel;
-import ca.sqlpower.util.UserPrompter.UserPromptOptions;
-import ca.sqlpower.util.UserPrompter.UserPromptResponse;
-import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
 /**
  * The Main Window for the Architect Application; contains a main() method that is
@@ -250,37 +246,25 @@ public class ArchitectFrame extends JFrame {
                         
                         boolean accessible = true;
                         
-                        try {
-                            ((ArchitectSwingSessionContextImpl) session.getContext()).createSecuritySession(si);
-                        } catch (AccessDeniedException ex) {
-                            session.createUserPrompter("Unable to login to server.", 
-                                    UserPromptType.MESSAGE, 
-                                    UserPromptOptions.OK, 
-                                    UserPromptResponse.OK, 
-                                    "OK", "OK").promptUser("");
-                            accessible = false;
-                        }
-                        
                         if (accessible) {
                             final JDialog dialog = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Projects");
                             Action closeAction = new AbstractAction("Close") {
                                 public void actionPerformed(ActionEvent e) {
                                     dialog.dispose();
-                                    
-//                                if (!((JButton) e.getSource()).getAction().getValue(Action.NAME).equals("Close")) {
-//                                    d.dispose();
-//                                }
                                 }
                             };
+                            
                             ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(si, session, session.getContext(),
                                     ArchitectFrame.this, closeAction);
-                            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                            dialog.setContentPane(spm.getPanel());
-                            
-                            SPSUtils.makeJDialogCancellable(dialog, null);
-                            dialog.pack();
-                            dialog.setLocationRelativeTo(ArchitectFrame.this);
-                            dialog.setVisible(true);
+                            if (spm.isConnected()) {
+                                dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                                dialog.setContentPane(spm.getPanel());
+                                
+                                SPSUtils.makeJDialogCancellable(dialog, null);
+                                dialog.pack();
+                                dialog.setLocationRelativeTo(ArchitectFrame.this);
+                                dialog.setVisible(true);
+                            }
                         }
                     } else {
                         JOptionPane.showMessageDialog(ArchitectFrame.this, "Please select a server", "", JOptionPane.INFORMATION_MESSAGE);
