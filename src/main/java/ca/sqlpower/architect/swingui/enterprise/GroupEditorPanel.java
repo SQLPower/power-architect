@@ -27,6 +27,7 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -37,13 +38,12 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.swingui.action.enterprise.RefreshProjectAction;
 import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.GroupMember;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.swingui.DataEntryPanel;
-import ca.sqlpower.swingui.LessthanGreaterthanIcon;
-import ca.sqlpower.swingui.LessthanGreaterthanIcon.Type;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -52,6 +52,9 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class GroupEditorPanel implements DataEntryPanel {
 
+    private static final ImageIcon RIGHT_ARROW = new ImageIcon(RefreshProjectAction.class.getResource("/icons/arrow-right.png"));
+    private static final ImageIcon LEFT_ARROW = new ImageIcon(RefreshProjectAction.class.getResource("/icons/arrow-left.png"));
+    
     private final Group group;
     
     private final JPanel panel;
@@ -176,9 +179,9 @@ public class GroupEditorPanel implements DataEntryPanel {
         }
         
         JButton addButton = new JButton(addAction);
-        addButton.setIcon(new LessthanGreaterthanIcon(Type.GREATERTHAN));
+        addButton.setIcon(RIGHT_ARROW);
         JButton removeButton = new JButton(removeAction);
-        removeButton.setIcon(new LessthanGreaterthanIcon(Type.LESSTHAN));
+        removeButton.setIcon(LEFT_ARROW);
         
         CellConstraints cc = new CellConstraints();
         DefaultFormBuilder upperPanelBuilder = new DefaultFormBuilder(new FormLayout(

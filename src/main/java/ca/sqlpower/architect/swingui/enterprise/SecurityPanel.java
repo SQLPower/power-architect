@@ -62,7 +62,7 @@ import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
 
 public class SecurityPanel {
-
+    
     private final Action closeAction;
     
     private final JTree tree;
