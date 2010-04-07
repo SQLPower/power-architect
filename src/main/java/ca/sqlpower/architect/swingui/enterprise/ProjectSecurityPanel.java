@@ -229,6 +229,11 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             this.model = model;
         }
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            
+            if (column == 0) {
+                table.setToolTipText(((JLabel) model.getValueAt(row, column)).getText());
+            }
+            
             return (Component) model.getValueAt(row, column);
         }
     }
