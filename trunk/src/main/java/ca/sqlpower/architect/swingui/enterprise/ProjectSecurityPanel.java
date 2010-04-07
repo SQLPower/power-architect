@@ -379,6 +379,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             });
             addButton.setIcon(ADD_ICON);
             addButton.setBorderPainted(false);
+            addButton.setContentAreaFilled(false);
             
             headerRow[6] = addButton;
             rows.add(headerRow);
@@ -423,6 +424,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                     });
                     removeButton.setIcon(REMOVE_ICON);
                     removeButton.setBorderPainted(false);
+                    removeButton.setContentAreaFilled(false);
                     
                     Component [] rowComponents = new Component[numColumns]; 
                     rowComponents[0] = new JLabel(object.getName());
@@ -463,6 +465,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                     });
                     removeButton.setIcon(REMOVE_ICON);
                     removeButton.setBorderPainted(false);
+                    removeButton.setContentAreaFilled(false);
                     
                     Component [] rowComponents = new Component[numColumns]; 
                     rowComponents[0] = new JLabel(object.getName());
@@ -525,8 +528,9 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                 col.setCellEditor(new RowCellEditor(this));
             }
             
-            //table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
             table.getColumnModel().getColumn(6).setPreferredWidth(table.getRowHeight());
+            table.setShowHorizontalLines(false);
+            table.setShowVerticalLines(false);
             
             JScrollPane scrollpane = new JScrollPane(table);
             scrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -539,7 +543,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             }
             
             scrollpane.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
-            scrollpane.setBackground(Color.WHITE);
+            scrollpane.getViewport().setBackground(Color.WHITE);
             
             return scrollpane;
         }
