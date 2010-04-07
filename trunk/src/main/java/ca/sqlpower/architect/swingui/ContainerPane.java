@@ -325,6 +325,7 @@ implements DragSourceListener, LayoutNode {
     /**
      * Returns a list of the items to be displayed with the model.  
      */
+    @Transient @Accessor
     protected abstract List<C> getItems();
     
     /**

@@ -32,6 +32,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
@@ -52,10 +53,29 @@ public class PlayPenContentPane extends AbstractSPObject {
 	@SuppressWarnings("unchecked")
 	public static final List<Class<? extends SPObject>> allowedChildTypes = 
 	    Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-	            Arrays.asList(PlayPenComponent.class)));       
+	            Arrays.asList(PlayPenComponent.class)));  
+	
+	/**
+	 * A list of component types that are dependent on other components (see dependentComponents)
+	 */
+	private static final List<Class<? extends PlayPenComponent>> dependentComponentTypes = 
+	    Collections.unmodifiableList(new ArrayList<Class<? extends PlayPenComponent>>(
+	            Arrays.asList(Relationship.class, UsageComponent.class))); 
 
     private PlayPen playPen;
+    
+    /**
+     * The list of components not dependent on any other components.
+     * They are first in the children list.
+     */
 	private List<PlayPenComponent> components = new ArrayList<PlayPenComponent>();
+	
+	/**
+	 * These components are dependent on the first list of components.
+	 * They come after that list in terms of the overall children list.
+	 * Currently stores Relationships and UsageComponents
+	 */
+	private List<PlayPenComponent> dependentComponents = new ArrayList<PlayPenComponent>();  
     
     private SPObject modelContainer;
     
@@ -177,6 +197,19 @@ public class PlayPenContentPane extends AbstractSPObject {
         }
         return null;
     }
+    
+    @NonBound
+    public int getFirstDependentComponentIndex() {
+        return components.size();
+    }
+    
+    @NonBound
+    public boolean isDependentComponentType(Class<? extends PlayPenComponent> componentType) {
+        for (Class<? extends PlayPenComponent> dependentType : dependentComponentTypes) {
+            if (dependentType.isAssignableFrom(componentType)) return true;
+        }
+        return false;
+    }
 
     /**
      * Fixes table pane sizes after the play pen's zoom changes (because
@@ -191,23 +224,34 @@ public class PlayPenContentPane extends AbstractSPObject {
         }
     }
     
-    protected void addChildImpl(SPObject child, int pos) {      
-        components.add(pos, (PlayPenComponent) child);
-        child.setParent(this);
+    protected void addChildImpl(SPObject child, int pos) {
         PlayPenComponent ppc = (PlayPenComponent) child;
+        if (dependentComponentTypes.contains(ppc.getClass())) {        
+            dependentComponents.add(pos - components.size(), ppc);
+        } else {
+            components.add(pos, ppc);
+        }
+        ppc.setParent(this);        
         if (getPlayPen() != null) {
             ppc.addSelectionListener(getPlayPen());
         }
-        fireChildAdded(child.getClass(), ppc, pos);
+        fireChildAdded(ppc.getClass(), ppc, pos);
         ppc.revalidate();
     }
 
     @Override
-    protected boolean removeChildImpl(SPObject child) {        
-        int i = components.indexOf(child);
-        if (!components.remove(child)) return false;
-        fireChildRemoved(child.getClass(), child, i);
+    protected boolean removeChildImpl(SPObject child) {
+        int index = getChildren().indexOf(child);
+        boolean removed;
+        if (dependentComponentTypes.contains(child.getClass())) {
+            removed = dependentComponents.remove(child);
+        } else {
+            removed = components.remove(child);
+        }        
+        if (!removed) return false;
+        fireChildRemoved(child.getClass(), child, index);
         child.setParent(null);
+        playPen.repaint();
         return true;
     }
 
@@ -228,7 +272,10 @@ public class PlayPenContentPane extends AbstractSPObject {
     }
     
     public List<? extends PlayPenComponent> getChildren() {
-        return Collections.unmodifiableList(components);
+        List<PlayPenComponent> children = new ArrayList<PlayPenComponent>();
+        children.addAll(components);
+        children.addAll(dependentComponents);
+        return children;
     }
     
     @Accessor
