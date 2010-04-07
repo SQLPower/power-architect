@@ -77,7 +77,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
     private final Action closeAction;
     private final ArchitectProject securityWorkspace;
     private final SPObject subject;
-    private final String type;
+    private final Class type;
     
     private final String username;
     
@@ -88,7 +88,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
     
     private final Dialog d;
     
-    public ProjectSecurityPanel(ArchitectProject securityWorkspace, SPObject subject, String type, String username, Dialog d, Action closeAction) {
+    public ProjectSecurityPanel(ArchitectProject securityWorkspace, SPObject subject, Class type, String username, Dialog d, Action closeAction) {
         this.securityWorkspace = securityWorkspace;
         this.subject = subject;
         this.type = type;
@@ -96,7 +96,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         this.closeAction = closeAction;
         this.d = d;
         
-        panelLabel = new JLabel("Permissions for '" + (subject != null? subject.getName() : type.substring(type.lastIndexOf(".") + 1)) + "'");
+        panelLabel = new JLabel("Permissions for '" + (subject != null? subject.getName() : type.getSimpleName()) + "'");
         panelLabel.setFont(new Font(panelLabel.getFont().getFontName(), Font.BOLD, panelLabel.getFont().getSize() + 1));
         
         panel = new JPanel();
@@ -190,7 +190,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         
         for (Group g : securityWorkspace.getChildren(Group.class)) {
             for (GroupMember gm : g.getChildren(GroupMember.class)) {
-                if (gm.getUser().getUUID().equals(user.getUsername())) {
+                if (gm.getUser().getUUID().equals(user.getUUID())) {
                     for (Grant gr : g.getChildren(Grant.class)) {
                         grantsForUser.add(gr);
                     }
@@ -201,13 +201,13 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         boolean disable = true;
         for (Grant g : grantsForUser) {
             if ((g.getSubject() != null && subject != null && g.getSubject().equals(subject.getUUID())) 
-                    || (g.getType() != null && g.getType().equals(type))) {
+                    || (g.getType() != null && g.getType().equals(type.getName()))) {
                 if (g.isGrantPrivilege()) {
                     disable = false;
                 }
             }
         }
-
+        
         if (disable) {
             for (Component [] componentArray : userModel.getComponents()) {
                 for (Component component : componentArray) {
@@ -297,7 +297,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             
             for (SPObject object : securityWorkspace.getChildren(groupOrUserClass)) {
                 for (Grant grant : object.getChildren(Grant.class)) {
-                    if (grant.getType() != null && grant.getType().equals(type)) {
+                    if (grant.getType() != null && grant.getType().equals(type.getName())) {
                         globalGrants.put(object, grant);
                     }
                     if (subject != null) {
@@ -368,7 +368,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                                 obj.addChild(new Grant(subject.getUUID(), null, false, false, false, false, false),
                                         obj.getChildren(Grant.class).size());
                             } else {
-                                obj.addChild(new Grant(null, type, false, false, false, false, false),
+                                obj.addChild(new Grant(null, type.getName(), false, false, false, false, false),
                                         obj.getChildren(Grant.class).size());
                             }
                         }
@@ -387,8 +387,8 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             if (subject != null) {
                 for (final SPObject object : objectsWithSpecificGrants) {
                     // can pass in null, it will just be empty
-                    final PrivilegesEditorPanel specific = new PrivilegesEditorPanel(specificGrants.get(object), object, subject.getUUID(), ArchitectProject.class.getName(), username, securityWorkspace);
-                    final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrants.get(object), object, subject.getUUID(), ArchitectProject.class.getName(), username, securityWorkspace);
+                    final PrivilegesEditorPanel specific = new PrivilegesEditorPanel(specificGrants.get(object), object, subject.getUUID(), type.getName(), username, securityWorkspace);
+                    final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrants.get(object), object, subject.getUUID(), type.getName(), username, securityWorkspace);
                     
                     panels.add(specific);
                     panels.add(global);
@@ -442,7 +442,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             } else {
                 for (final SPObject object : objectsWithGlobalGrants) {
                     // can pass in null, it will just be empty
-                    final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrants.get(object), object, null, type, username, securityWorkspace);
+                    final PrivilegesEditorPanel global = new PrivilegesEditorPanel(globalGrants.get(object), object, null, type.getName(), username, securityWorkspace);
                     
                     panels.add(global);
                     

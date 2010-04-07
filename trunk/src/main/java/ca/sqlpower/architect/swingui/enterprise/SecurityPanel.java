@@ -418,8 +418,8 @@ public class SecurityPanel {
                 }
             };
                 
-            ProjectSecurityPanel spm = new ProjectSecurityPanel(securityWorkspace, 
-                    object, objectClass.getName(), username, d, closeAction);
+            ProjectSecurityPanel spm = new ProjectSecurityPanel(
+                    securityWorkspace, object, objectClass, username, d, closeAction);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(spm.getPanel());
                 
