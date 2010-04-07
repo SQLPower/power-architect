@@ -682,19 +682,19 @@ public class PlayPen extends JPanel
 		    PlayPenContentPane contentPane = (PlayPenContentPane) this.contentPane;
 		    if (ppc instanceof TablePane) {
 		        TablePane tp = (TablePane) ppc;
-		        addImpl(new TablePane(tp, contentPane), ppc.getPreferredLocation(), i);
+		        addImpl(new TablePane(tp, contentPane), ppc.getPreferredLocation());
 		    } else if (ppc instanceof Relationship) {
 		        Relationship rel = (Relationship) ppc;
-		        addImpl(new Relationship(rel, contentPane), ppc.getPreferredLocation(), i);			    
+		        addImpl(new Relationship(rel, contentPane), ppc.getPreferredLocation());			    
 		    } else if (ppc instanceof CubePane) {
 		        CubePane cp = (CubePane) ppc;
-		        addImpl(new CubePane(cp, contentPane), ppc.getPreferredLocation(), i);
+		        addImpl(new CubePane(cp, contentPane), ppc.getPreferredLocation());
 		    } else if (ppc instanceof DimensionPane) {
 		        DimensionPane dp = (DimensionPane) ppc;
-		        addImpl(new DimensionPane(dp, contentPane), ppc.getPreferredLocation(), i);
+		        addImpl(new DimensionPane(dp, contentPane), ppc.getPreferredLocation());
 		    } else if (ppc instanceof VirtualCubePane) {
 		        VirtualCubePane vcp = (VirtualCubePane) ppc;
-		        addImpl(new VirtualCubePane(vcp, contentPane), ppc.getPreferredLocation(), i);
+		        addImpl(new VirtualCubePane(vcp, contentPane), ppc.getPreferredLocation());
 		    } else if (ppc instanceof UsageComponent) {
 		        UsageComponent uc = (UsageComponent) ppc;
 		        contentPane.addChild(new UsageComponent(uc, contentPane), i);
@@ -717,9 +717,9 @@ public class PlayPen extends JPanel
      * @param index ignored for now, but would normally specify the
      * index of insertion for c in the child list.
      */
-    protected void addImpl(PlayPenComponent c, Object constraints, int index) {        
+    protected void addImpl(PlayPenComponent c, Object constraints) {        
         if (c instanceof Relationship || c instanceof UsageComponent) {
-            contentPane.addChild(c, 0);
+            contentPane.addChild(c, contentPane.getFirstDependentComponentIndex());
         } else if (c instanceof ContainerPane) {
             if (constraints instanceof Point) {
                 c.setLocation((Point) constraints);
@@ -1114,7 +1114,7 @@ public class PlayPen extends JPanel
 	}
 
 	public void addRelationship(Relationship r) {
-		addImpl(r, null, getPPComponentCount());
+		addImpl(r, null);
 	}
 
     /**
@@ -1124,7 +1124,7 @@ public class PlayPen extends JPanel
      * @param point
      */
     public void addTablePane(TablePane tp, Point point) {
-        addImpl(tp, point, getPPComponentCount());
+        addImpl(tp, point);
     }
 
     /**
@@ -1140,7 +1140,7 @@ public class PlayPen extends JPanel
      *            they connect) then this argument can be null.
      */
     public void addPlayPenComponent(PlayPenComponent ppc, Point point) {
-        addImpl(ppc, point, getPPComponentCount());
+        addImpl(ppc, point);
     }
 
 	/**
@@ -1272,7 +1272,7 @@ public class PlayPen extends JPanel
 
 		TablePane tp = new TablePane(newTable, getContentPane());
 		logger.info("adding table "+newTable); //$NON-NLS-1$
-		addImpl(tp, preferredLocation, getPPComponentCount());
+		addImpl(tp, preferredLocation);
 		tp.revalidate();
 
 		if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.REVERSE_ENGINEER) {
@@ -1376,7 +1376,7 @@ public class PlayPen extends JPanel
 				    newRel.attachRelationship(oldTable,newTable,false);
 				}
 				
-				addImpl(new Relationship(newRel, contentPane),null,getPPComponentCount());
+				addImpl(new Relationship(newRel, contentPane), null);
 
 				Iterator<? extends SQLObject> mappings = r.getChildren().iterator();
 				while (mappings.hasNext()) {
@@ -1693,10 +1693,13 @@ public class PlayPen extends JPanel
 	 */
 	public void childAdded(SPChildEvent e) {
 		logger.debug("SQLObject children got inserted: "+e); //$NON-NLS-1$
-		childAdded = true;
-		boolean fireEvent = false;
 		SPObject child = e.getChild();
-		addHierarchyListeners(child);
+        addHierarchyListeners(child);
+        
+        if (!contentPane.isMagicEnabled() || !e.getSource().isMagicEnabled()) return;
+        
+        childAdded = true;
+        boolean fireEvent = false;
 		try {
             if (child instanceof SQLTable
                     || (child instanceof SQLRelationship
@@ -1705,8 +1708,8 @@ public class PlayPen extends JPanel
 
                 PlayPenComponent ppc = removedComponents.get(child.getUUID());
                 if (ppc != null) {
-                    if (ppc instanceof Relationship) {
-                        contentPane.addChild(ppc, 0);
+                    if (contentPane.isDependentComponentType(ppc.getClass())) {
+                        contentPane.addChild(ppc, contentPane.getFirstDependentComponentIndex());
                     } else {
                         contentPane.addChild(ppc, 0);
                     }
@@ -1730,9 +1733,12 @@ public class PlayPen extends JPanel
 	 */
 	public void childRemoved(SPChildEvent e) {
 		logger.debug("SQLObject children got removed: "+e); //$NON-NLS-1$
-		boolean foundRemovedComponent = false;
 		SPObject child = e.getChild();
 		removeHierarchyListeners(child);
+		
+		if (!contentPane.isMagicEnabled() || !e.getSource().isMagicEnabled()) return;
+		
+		boolean foundRemovedComponent = false;
 
 		try {
 		    if (child instanceof SQLTable) {
