@@ -218,7 +218,7 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
         
         for (Group g : securityWorkspace.getChildren(Group.class)) {
             for (GroupMember gm : g.getChildren(GroupMember.class)) {
-                if (gm.getUser().getUUID().equals(user.getUsername())) {
+                if (gm.getUser().getUUID().equals(user.getUUID())) {
                     for (Grant gr : g.getChildren(Grant.class)) {
                         grantsForUser.add(gr);
                     }
