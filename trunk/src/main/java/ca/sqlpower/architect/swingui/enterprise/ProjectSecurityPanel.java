@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -52,6 +53,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.swingui.action.enterprise.RefreshProjectAction;
 import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.GroupMember;
@@ -66,6 +68,9 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class ProjectSecurityPanel implements DataEntryPanel{
 
+    private static final ImageIcon ADD_ICON = new ImageIcon(RefreshProjectAction.class.getResource("/icons/famfamfam/add.png"));
+    private static final ImageIcon REMOVE_ICON = new ImageIcon(RefreshProjectAction.class.getResource("/icons/famfamfam/delete.png"));
+    
     private final JPanel panel;
     private final JLabel panelLabel;
     
@@ -105,7 +110,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         
         CellConstraints cc = new CellConstraints();
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
-                "pref:grow", "pref:grow, 5dlu, pref:grow, pref:grow, 5dlu, pref:grow, pref:grow, 5dlu, pref:grow"));
+                "pref", "pref:grow, 5dlu, pref:grow, pref:grow, 5dlu, pref:grow, pref:grow, 5dlu, pref:grow"));
         builder.add(panelLabel, cc.xy(1,1));
         
         // User list and headers
@@ -334,7 +339,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             headerRow[3] = new JLabel("Modify");
             headerRow[4] = new JLabel("Delete");
             headerRow[5] = new JLabel("Grant");
-            headerRow[6] = new JButton(new AbstractAction("+") {
+            JButton addButton = new JButton(new AbstractAction() {
                 public void actionPerformed(ActionEvent e) {
                     
                     JList list = new JList(new DefaultListModel());
@@ -372,6 +377,10 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                     }
                 }
             });
+            addButton.setIcon(ADD_ICON);
+            addButton.setBorderPainted(false);
+            
+            headerRow[6] = addButton;
             rows.add(headerRow);
             
             if (subject != null) {
@@ -401,7 +410,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                     specific.getViewPrivilege().setText(null);
                     specific.getGrantPrivilege().setText(null);
                     
-                    JButton removeButton = new JButton(new AbstractAction("-") {
+                    JButton removeButton = new JButton(new AbstractAction() {
                         public void actionPerformed(ActionEvent e) {
                             try {
                                 object.removeChild(specific.getGrant());
@@ -412,6 +421,8 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                             refreshPanel();
                         }
                     });
+                    removeButton.setIcon(REMOVE_ICON);
+                    removeButton.setBorderPainted(false);
                     
                     Component [] rowComponents = new Component[numColumns]; 
                     rowComponents[0] = new JLabel(object.getName());
@@ -439,7 +450,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                     global.getViewPrivilege().setText(null);
                     global.getGrantPrivilege().setText(null);
                     
-                    JButton removeButton = new JButton(new AbstractAction("-") {
+                    JButton removeButton = new JButton(new AbstractAction() {
                         public void actionPerformed(ActionEvent e) {
                             try {
                                 object.removeChild(global.getGrant());
@@ -450,6 +461,8 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                             refreshPanel();
                         }
                     });
+                    removeButton.setIcon(REMOVE_ICON);
+                    removeButton.setBorderPainted(false);
                     
                     Component [] rowComponents = new Component[numColumns]; 
                     rowComponents[0] = new JLabel(object.getName());
@@ -512,7 +525,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                 col.setCellEditor(new RowCellEditor(this));
             }
             
-            table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+            //table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
             table.getColumnModel().getColumn(6).setPreferredWidth(table.getRowHeight());
             
             JScrollPane scrollpane = new JScrollPane(table);
@@ -526,6 +539,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             }
             
             scrollpane.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
+            scrollpane.setBackground(Color.WHITE);
             
             return scrollpane;
         }

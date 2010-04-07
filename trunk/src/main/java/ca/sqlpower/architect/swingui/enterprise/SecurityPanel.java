@@ -57,7 +57,6 @@ import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.User;
-import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
@@ -182,29 +181,6 @@ public class SecurityPanel {
         }
     };
     
-    private final Action deleteAction = new AbstractAction("Delete") {
-        public void actionPerformed(ActionEvent e) {
-            if (promptForUnsavedChanges()) {
-                DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
-                if (dmtn != null && dmtn.isLeaf() && dmtn != groupsNode && dmtn != usersNode) {
-
-                    if (promptForDelete((SPObject) dmtn.getUserObject())) {
-                        try {
-                            securityWorkspace.removeChild((SPObject) dmtn.getUserObject());
-                        } catch (IllegalArgumentException e1) {
-                            throw new RuntimeException("Unable to delete: ", e1);
-                        } catch (ObjectDependentException e1) {
-                            throw new RuntimeException("Unable to delete: ", e1);
-                        }
-                        
-                        refreshTree();
-                        tree.setSelectionPath(new TreePath(usersNode.getFirstChild()));
-                    }
-                }
-            }
-        }
-    };
-
     private final MessageDigest digester;
     private final Dialog dialog;
     private final ArchitectSession session;

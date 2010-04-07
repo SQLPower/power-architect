@@ -60,6 +60,8 @@ import ca.sqlpower.enterprise.client.GroupMember;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.LessthanGreaterthanIcon;
+import ca.sqlpower.swingui.LessthanGreaterthanIcon.Type;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
@@ -79,6 +81,7 @@ public class UserEditorPanel implements DataEntryPanel{
     private final JLabel usernameLabel;
     private final JLabel fullnameLabel;
     private final JLabel emailLabel;
+    private final JButton passwordButton;
     
     private final JTextField usernameField;
     private final JTextField fullnameField;
@@ -98,7 +101,7 @@ public class UserEditorPanel implements DataEntryPanel{
 
     private final Action closeAction;
     
-    private final Action addAction = new AbstractAction(">") {
+    private final Action addAction = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
             Object[] selection = availableGroupsList.getSelectedValues();
             
@@ -117,7 +120,7 @@ public class UserEditorPanel implements DataEntryPanel{
         }
     };
     
-    private final Action removeAction = new AbstractAction("<") {
+    private final Action removeAction = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
             Object[] selection = currentGroupsList.getSelectedValues();
             
@@ -157,16 +160,12 @@ public class UserEditorPanel implements DataEntryPanel{
         public void removeUpdate(DocumentEvent e)  { hasUnsavedChanges = true; }
     };
     
-    private final ArchitectSession session;
-    
     public UserEditorPanel(User baseUser, String username, Action closeAction, final Dialog d, final ArchitectSession session) {
         this.user = baseUser;
         this.securityWorkspace = (ArchitectProject) user.getParent();
         this.username = username;
         this.closeAction = closeAction;
-        this.session = session;
         
-        final Dimension prefButtonDimension = new Dimension(25, 25);
         final Dimension prefScrollPaneDimension = new Dimension(250, 300);
 
         usernameLabel = new JLabel("User Name");
@@ -214,9 +213,9 @@ public class UserEditorPanel implements DataEntryPanel{
         }
         
         JButton addButton = new JButton(addAction);
-        addButton.setPreferredSize(prefButtonDimension);
+        addButton.setIcon(new LessthanGreaterthanIcon(Type.GREATERTHAN));
         JButton removeButton = new JButton(removeAction);
-        removeButton.setPreferredSize(prefButtonDimension);
+        removeButton.setIcon(new LessthanGreaterthanIcon(Type.LESSTHAN));
         
         CellConstraints cc = new CellConstraints();
         DefaultFormBuilder upperPanelBuilder = new DefaultFormBuilder(new FormLayout(
@@ -228,9 +227,7 @@ public class UserEditorPanel implements DataEntryPanel{
         upperPanelBuilder.add(emailLabel, cc.xy(1, 4));
         upperPanelBuilder.add(emailField, cc.xy(3, 4));
 
-        ButtonBarBuilder passwordBuilder = ButtonBarBuilder.createLeftToRightBuilder();
-        passwordBuilder.addGlue();
-        passwordBuilder.addGridded(new JButton(new AbstractAction("Change Password") {
+        passwordButton =  new JButton(new AbstractAction("Change Password") {
             public void actionPerformed(ActionEvent e) {
 
                 final JDialog dialog = new JDialog(d);
@@ -310,8 +307,12 @@ public class UserEditorPanel implements DataEntryPanel{
                 dialog.setLocationRelativeTo(d);
                 dialog.setVisible(true);
             }
-            }));
+        });
         
+        ButtonBarBuilder passwordBuilder = ButtonBarBuilder.createLeftToRightBuilder();
+        passwordBuilder.addGlue();
+        passwordBuilder.addGridded(passwordButton);
+            
         DefaultFormBuilder buttonPanelBuilder = new DefaultFormBuilder(new FormLayout(
                 "pref", "pref:grow, pref, 5dlu, pref, pref:grow"));
         buttonPanelBuilder.add(addButton, cc.xy(1,2));
@@ -507,6 +508,7 @@ public class UserEditorPanel implements DataEntryPanel{
             usernameField.setEnabled(false);
             fullnameField.setEnabled(false);
             emailField.setEnabled(false);
+            passwordButton.setEnabled(false);
         }
         
         if (disableModifyGroups) {

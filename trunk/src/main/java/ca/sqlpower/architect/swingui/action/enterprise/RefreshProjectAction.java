@@ -30,7 +30,6 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl;
 
 public class RefreshProjectAction extends AbstractAction {
 
-    //TODO: Find/Create this image!
     private static final ImageIcon REFRESH_ICON = new ImageIcon(RefreshProjectAction.class.getResource("/icons/arrow_refresh16.png"));
     
     final ArchitectSession session;
