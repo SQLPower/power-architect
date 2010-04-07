@@ -42,6 +42,8 @@ import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.GroupMember;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.LessthanGreaterthanIcon;
+import ca.sqlpower.swingui.LessthanGreaterthanIcon.Type;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -71,7 +73,7 @@ public class GroupEditorPanel implements DataEntryPanel {
     
     private final Action closeAction;
     
-    private final Action addAction = new AbstractAction(">") {
+    private final Action addAction = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
             Object[] selection = availableUsersList.getSelectedValues();
             
@@ -90,7 +92,7 @@ public class GroupEditorPanel implements DataEntryPanel {
         }
     };
     
-    private final Action removeAction = new AbstractAction("<") {
+    private final Action removeAction = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
             Object[] selection = currentUsersList.getSelectedValues();
             
@@ -138,7 +140,6 @@ public class GroupEditorPanel implements DataEntryPanel {
         this.username = username;
         this.closeAction = closeAction;
         
-        final Dimension prefButtonDimension = new Dimension(25, 25);
         final Dimension prefScrollPaneDimension = new Dimension(250, 300);
 
         nameLabel = new JLabel("Group Name");
@@ -175,9 +176,9 @@ public class GroupEditorPanel implements DataEntryPanel {
         }
         
         JButton addButton = new JButton(addAction);
-        addButton.setPreferredSize(prefButtonDimension);
+        addButton.setIcon(new LessthanGreaterthanIcon(Type.GREATERTHAN));
         JButton removeButton = new JButton(removeAction);
-        removeButton.setPreferredSize(prefButtonDimension);
+        removeButton.setIcon(new LessthanGreaterthanIcon(Type.LESSTHAN));
         
         CellConstraints cc = new CellConstraints();
         DefaultFormBuilder upperPanelBuilder = new DefaultFormBuilder(new FormLayout(

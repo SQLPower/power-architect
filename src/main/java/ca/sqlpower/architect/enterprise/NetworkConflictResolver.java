@@ -159,7 +159,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
             }
             updateListeners.removeAll(listenersToRemove);
             if (promptSession != null) {
-                promptSession.createUserPrompter("You do not have sufficient privileges to perform that action.\n" +
+                promptSession.createUserPrompter(
+                        "You do not have sufficient privileges to perform that action. " +
                         "Please hit the refresh button to synchonize with the server.", 
                         UserPromptType.MESSAGE, 
                         UserPromptOptions.OK, 
@@ -284,7 +285,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                                }
                                updateListeners.removeAll(listenersToRemove);
                                if (promptSession != null) {
-                                   promptSession.createUserPrompter("You do not have sufficient privileges to perform that action.\n" +
+                                   promptSession.createUserPrompter(
+                                           "You do not have sufficient privileges to perform that action. " +
                                            "Please hit the refresh button to synchonize with the server.", 
                                            UserPromptType.MESSAGE, 
                                            UserPromptOptions.OK, 
