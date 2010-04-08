@@ -283,6 +283,11 @@ public class PlayPenContentPane extends AbstractSPObject {
         return (ArchitectProject) super.getParent();
     }
     
+    @Mutator
+    public void setParent(ArchitectProject parent) {
+        super.setParent(parent);
+    }
+    
     public boolean allowsChildren() {
         return true;
     }

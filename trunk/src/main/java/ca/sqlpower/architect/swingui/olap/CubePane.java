@@ -37,6 +37,7 @@ import ca.sqlpower.architect.swingui.ContainerPaneUI;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
@@ -48,6 +49,8 @@ public class CubePane extends OLAPPane<Cube, OLAPObject> {
 
     @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(CubePane.class);
+    
+    public static final List<Class<? extends SPObject>> allowedChildTypes = PlayPenComponent.allowedChildTypes;
 
     public CubePane(Cube model) {
         super(model.getName());

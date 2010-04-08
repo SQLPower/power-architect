@@ -54,6 +54,8 @@ import ca.sqlpower.swingui.DataEntryPanelBuilder;
  */
 public class UsageComponent extends PlayPenComponent implements LayoutEdge {
 
+    public static final List<Class<? extends SPObject>> allowedChildTypes = PlayPenComponent.allowedChildTypes;
+    
     private final OLAPObject model;
     private final OLAPPane<?, ?> pane1;
     private final OLAPPane<?, ?> pane2;
@@ -89,6 +91,7 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
         this.pane2 = pane2;
         setOpaque(false);
         setForegroundColor(Color.BLACK);
+        setBackgroundColor(Color.BLACK);
         updateUI();
         parent.addSPListener(olapPanesWatcher);
     }
