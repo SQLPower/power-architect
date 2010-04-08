@@ -26,14 +26,20 @@ import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.olap.MondrianModel.Cube;
+import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
+import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.profile.ProfileSettings;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.olap.CubePane;
+import ca.sqlpower.architect.swingui.olap.DimensionPane;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.PlDotIni;
@@ -103,9 +109,13 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             }
             getRootObject().addChild(project, 0);
             return project;
+        } else if (ProfileManager.class.isAssignableFrom(valueType)) {
+            ProfileManagerImpl profileManager = new ProfileManagerImpl();
+            valueMakerProject.setProfileManager(profileManager);            
+            return profileManager;
         } else if (valueType == PlayPenContentPane.class) {
             PlayPenContentPane pane = new PlayPenContentPane();
-            ((ArchitectProject) makeNewValue(ArchitectProject.class, null, null)).setPlayPenContentPane(pane);
+            ((ArchitectProject) makeNewValue(ArchitectProject.class, null, null)).setPlayPenContentPane(pane);            
             return pane;
         } else if (valueType == PlayPenComponent.class) {            
             return makeNewValue(TablePane.class, null, null);
@@ -114,6 +124,22 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             TablePane tp = new TablePane((SQLTable) super.makeNewValue(SQLTable.class, null, null), p);            
             p.addChild(tp, p.getChildren(TablePane.class).size());
             return tp;
+        } else if (valueType == DimensionPane.class) {
+            PlayPenContentPane contentPane = makeOlapContentPane();
+            Schema schema = ((OLAPSession) contentPane.getModelContainer()).getSchema();
+            Dimension dimension = new Dimension();
+            schema.addDimension(dimension);
+            DimensionPane dPane = new DimensionPane(dimension, contentPane);
+            contentPane.addChild(dPane, 0);
+            return dPane;
+        } else if (valueType == CubePane.class) {
+            PlayPenContentPane contentPane = makeOlapContentPane();
+            Schema schema = ((OLAPSession) contentPane.getModelContainer()).getSchema();
+            Cube cube = new Cube();
+            schema.addCube(cube);
+            CubePane cPane = new CubePane(cube, contentPane);
+            contentPane.addChild(cPane, 0);
+            return cPane;
         } else if (valueType == OLAPSession.class) {
             OLAPSession session = new OLAPSession(new Schema());
             OLAPRootObject root = new OLAPRootObject();
@@ -127,6 +153,15 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
         } else {
             return super.makeNewValue(valueType, oldVal, propName);
         }
+    }
+    
+    private PlayPenContentPane makeOlapContentPane() {
+        OLAPSession session = new OLAPSession(new Schema());
+        valueMakerProject.getOlapRootObject().addChild(session);            
+        PlayPenContentPane contentPane = new PlayPenContentPane(session);
+        contentPane.setParent(valueMakerProject);
+        valueMakerProject.addOLAPContentPane(contentPane); 
+        return contentPane;
     }
 
 }

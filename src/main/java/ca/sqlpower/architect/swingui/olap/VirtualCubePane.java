@@ -33,8 +33,10 @@ import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.NonBound;
@@ -42,6 +44,8 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class VirtualCubePane extends OLAPPane<VirtualCube, OLAPObject> {
+    
+    public static final List<Class<? extends SPObject>> allowedChildTypes = PlayPenComponent.allowedChildTypes;
 
     public VirtualCubePane(VirtualCubePane copyMe, PlayPenContentPane parent) {
         super(copyMe, parent);

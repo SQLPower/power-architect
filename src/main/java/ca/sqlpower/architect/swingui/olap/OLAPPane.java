@@ -59,6 +59,7 @@ import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -119,7 +120,8 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
     
     /**
      * Returns this pane's list of sections.
-     */
+     */   
+    @Transient @Accessor
     public List<PaneSection<? extends C>> getSections() {
         return sections;
     }
@@ -683,6 +685,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
      * @param newIP The new insertion point. Null is allowed, and means
      * there shouldn't be a visible insertion point.
      */
+    @Transient @Mutator
     public void setInsertionPoint(PlayPenCoordinate<T, C> newIP) {
         PlayPenCoordinate<T, C> oldIP = insertionPoint;
         insertionPoint = newIP;

@@ -103,6 +103,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         userSettings = context.getUserSettings();
         sourceDatabases = new DBTree(this);
         playpen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
+        delegateSession.getWorkspace().setPlayPenContentPane(playpen.getContentPane());
         undoManager = new ArchitectUndoManager(playpen);
         olapRootObject = new OLAPRootObject();
         

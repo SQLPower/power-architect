@@ -31,10 +31,12 @@ import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.MondrianModel.Level;
 import ca.sqlpower.architect.swingui.ContainerPaneUI;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.NonBound;
@@ -50,6 +52,8 @@ import ca.sqlpower.util.TransactionEvent;
 public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
     
     private static final Logger logger = Logger.getLogger(DimensionPane.class);
+    
+    public static final List<Class<? extends SPObject>> allowedChildTypes = PlayPenComponent.allowedChildTypes;
 
     private class HierarchyWatcher implements SPListener {
 
@@ -145,7 +149,6 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
     }
     
     @Override
-    @NonBound
     protected List<OLAPObject> getItems() {
         List<OLAPObject> oos = new ArrayList<OLAPObject>();
         for (Hierarchy h : model.getHierarchies()) {
@@ -225,6 +228,7 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
     /**
      * Returns a list of levels which are selected.
      */
+    @NonBound
     public List<Level> getSelectedLevels() {
         List<Level> selectedItems = new ArrayList<Level>();
         for (int i=0; i < getItems().size(); i++) {
@@ -236,6 +240,7 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
     }
     
     @Override
+    @NonBound
     protected List<OLAPObject> getItemsFromCoordinates(
             List<PlayPenCoordinate<? extends OLAPObject, ? extends OLAPObject>> coords) {
         List<OLAPObject> items = new ArrayList<OLAPObject>();
