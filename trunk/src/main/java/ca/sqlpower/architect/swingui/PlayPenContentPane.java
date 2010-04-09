@@ -284,8 +284,13 @@ public class PlayPenContentPane extends AbstractSPObject {
     }
     
     @Mutator
-    public void setParent(ArchitectProject parent) {
-        super.setParent(parent);
+    public void setParent(SPObject parent) {
+        if (parent instanceof ArchitectProject || parent == null) {
+            super.setParent(parent);
+        } else {
+            throw new IllegalArgumentException("Parent of PlayPenContentPane must be " +
+            		"ArchitectProject, not " + parent.getClass().getSimpleName());
+        }
     }
     
     public boolean allowsChildren() {
