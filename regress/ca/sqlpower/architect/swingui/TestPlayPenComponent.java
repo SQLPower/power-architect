@@ -123,6 +123,8 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends P
 	    copyIgnoreProperties.add("preferredSize");
 	    copyIgnoreProperties.add("selected");
 	    copyIgnoreProperties.add("session");
+	    copyIgnoreProperties.add("workspaceContainer");
+	    copyIgnoreProperties.add("runnableDispatcher");
 	    copyIgnoreProperties.add("size");
 	    copyIgnoreProperties.add("toolTipText");
 	    copyIgnoreProperties.add("width");

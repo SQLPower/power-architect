@@ -58,11 +58,11 @@ public class ArchitectProjectTest extends PersistedSPObjectTest {
     }
     
     /**
-     * Minor test to ensure the child position offset does allow children that
-     * are subclasses of child types it allows.
+     * Tests the architect project's ability to add children subclassing the things in its allowedChildTypes.
+     * Fails if childPositionOffset throws an IllegalArgumentException.
      */
     public void testChildPositionOffset() throws Exception {
-        assertEquals(1, objectUnderTest.childPositionOffset(ProfileManagerImpl.class));
+       objectUnderTest.childPositionOffset(ProfileManagerImpl.class);
     }
 
     @Override

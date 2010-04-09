@@ -52,7 +52,7 @@ public class ArchitectSessionPersisterTest extends DatabaseConnectedTestCase {
         session = new ArchitectSessionImpl(new TestingArchitectSessionContext(), "test");
         SessionPersisterSuperConverter converter = new ArchitectPersisterSuperConverter(getPLIni(), session.getWorkspace());
         persister = new ArchitectSessionPersister("test", session.getWorkspace(), converter);
-        persister.setSession(session);
+        persister.setWorkspaceContainer(session);
     }
 
     /**
