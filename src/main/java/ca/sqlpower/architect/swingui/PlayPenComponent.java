@@ -683,8 +683,13 @@ implements Selectable {
     }
     
     @Mutator 
-    public void setParent(PlayPenContentPane parent) {
-        super.setParent(parent);
+    public void setParent(SPObject parent) {
+        if (parent instanceof PlayPenContentPane || parent == null) {
+            super.setParent(parent);
+        } else {
+            throw new IllegalArgumentException("Parent of PlayPenComponent must be " +
+            		"PlayPenContentPane, not " + parent.getClass().getSimpleName());
+        }
     }
     
     public List<? extends SPObject> getChildren() {

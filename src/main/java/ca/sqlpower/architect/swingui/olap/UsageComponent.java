@@ -184,10 +184,12 @@ public class UsageComponent extends PlayPenComponent implements LayoutEdge {
         public void childRemoved(SPChildEvent evt) {
             if (evt.getChild() == pane1 || evt.getChild() == pane2) {
                 try {
-                    getPlayPen().getContentPane().removeChild(UsageComponent.this);
+                    getParent().removeChild(UsageComponent.this);
                 } catch (ObjectDependentException e) {
                     throw new RuntimeException(e);
                 }
+            } else if (evt.getChild() == UsageComponent.this) {
+                getParent().removeSPListener(this);
             }
         }
     }
