@@ -53,9 +53,9 @@ public class OLAPEditAction extends AbstractArchitectAction {
 
     public void actionPerformed(ActionEvent e) {                
         Schema schema;
-        session.getWorkspace().begin("Opening OLAP schema");
         try {
             if (newSchema) {
+                session.getWorkspace().begin("Opening OLAP schema");
                 schema = new Schema();
                 schema.setName("New OLAP Schema");
                 session.getOLAPRootObject().addChild(olapSession = new OLAPSession(schema));
