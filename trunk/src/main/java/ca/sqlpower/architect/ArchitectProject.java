@@ -50,7 +50,9 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.util.RunnableDispatcher;
 import ca.sqlpower.util.SessionNotFoundException;
+import ca.sqlpower.util.WorkspaceContainer;
 
 /**
  * 
@@ -264,6 +266,16 @@ public class ArchitectProject extends AbstractSPObject {
         }
     }
 
+    @Override @Transient @Accessor
+    public WorkspaceContainer getWorkspaceContainer() {
+        return getSession();
+    }
+    
+    @Override @Transient @Accessor
+    public RunnableDispatcher getRunnableDispatcher() {
+        return getSession();
+    }
+    
     public boolean allowsChildren() {
         return true;
     }

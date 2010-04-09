@@ -30,10 +30,11 @@ import ca.sqlpower.sqlobject.SQLDatabaseMapping;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
-import ca.sqlpower.util.SPSession;
+import ca.sqlpower.util.RunnableDispatcher;
 import ca.sqlpower.util.UserPrompterFactory;
+import ca.sqlpower.util.WorkspaceContainer;
 
-public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMapping, SPSession {
+public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMapping, WorkspaceContainer, RunnableDispatcher {
 
     public static final String PREFS_PL_INI_PATH = "PL.INI.PATH";
     

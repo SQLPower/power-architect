@@ -204,7 +204,7 @@ public class RevisionListPanel {
                         new SessionPersisterSuperConverter(
                                 revisionSession.getDataSources(), revisionSession.getWorkspace()));
 
-                sessionPersister.setSession(revisionSession);
+                sessionPersister.setWorkspaceContainer(revisionSession);
 
                 SPJSONMessageDecoder decoder = new SPJSONMessageDecoder(sessionPersister);           
 

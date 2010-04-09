@@ -237,6 +237,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("magicEnabled");
         propertiesToIgnore.add("childrenInaccessibleReason");
         propertiesToIgnore.add("session");
+        propertiesToIgnore.add("workspaceContainer");
+        propertiesToIgnore.add("runnableDispatcher");
         propertiesToIgnore.add("foregroundThread");
         propertiesToIgnore.add("backgroundThread");
         return propertiesToIgnore;

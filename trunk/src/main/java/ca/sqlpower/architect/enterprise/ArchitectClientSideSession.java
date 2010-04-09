@@ -157,7 +157,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		
 		sessionPersister = new ArchitectSessionPersister("inbound-" + projectLocation.getUUID(), getWorkspace(), 
 		        new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
-		sessionPersister.setSession(this);
+		sessionPersister.setWorkspaceContainer(this);
 		
 		jsonMessageDecoder = new SPJSONMessageDecoder(sessionPersister);
 		

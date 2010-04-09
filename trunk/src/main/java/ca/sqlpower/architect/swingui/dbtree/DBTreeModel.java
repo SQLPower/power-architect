@@ -244,7 +244,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         public void childAdded(SPChildEvent e) {
             if (!SQLPowerUtils.getAncestorList(e.getSource()).contains(root) && !e.getSource().equals(root)) return;
             
-            if (!root.getSession().isForegroundThread()) 
+            if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Adding a child " + e.getChild() + " to " + e.getSource() + 
                         " not on the foreground thread.");
             if (logger.isDebugEnabled()) {
@@ -289,7 +289,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         public void childRemoved(SPChildEvent e) {
             if (!SQLPowerUtils.getAncestorList(e.getSource()).contains(root) && !e.getSource().equals(root)) return;
             
-            if (!root.getSession().isForegroundThread()) 
+            if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Removing a child " + e.getChild() + " to " + e.getSource() + 
                         " not on the foreground thread.");
             if (logger.isDebugEnabled()) {
@@ -314,7 +314,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 
         public void transactionEnded(TransactionEvent e) {
-            if (!root.getSession().isForegroundThread()) 
+            if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Transaction ended for " + e.getSource() + 
                         " while not on the foreground thread.");
             if (transactionCount == 0) {
@@ -339,7 +339,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 
         public void transactionRollback(TransactionEvent e) {
-            if (!root.getSession().isForegroundThread()) 
+            if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Transaction rolled back for " + e.getSource() + 
                         " while not on the foreground thread.");
             transactionCount = 0;
@@ -347,7 +347,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 
         public void transactionStarted(TransactionEvent e) {
-            if (!root.getSession().isForegroundThread()) 
+            if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Transaction started for " + e.getSource() + 
                         " while not on the foreground thread.");
             transactionCount++;
@@ -357,7 +357,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             if (!SQLPowerUtils.getAncestorList(((SPObject) e.getSource())).contains(root) && !e.getSource().equals(root)) return;
             
             
-            if (!root.getSession().isForegroundThread()) 
+            if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Changing the property" + e.getPropertyName() + " on " + e.getSource() + 
                         " not on the foreground thread.");
             logger.debug("dbObjectChanged. source="+e.getSource()); //$NON-NLS-1$
