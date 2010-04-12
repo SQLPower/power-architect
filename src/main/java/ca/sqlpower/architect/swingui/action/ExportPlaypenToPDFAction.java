@@ -54,6 +54,18 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
     private static int OUTSIDE_PADDING = 10;
 
     /**
+     * A snapshot of the play pen. This play pen will look exactly like the play
+     * pen the last time this action was called. This play pen will also be 
+     * disconnected from the model in terms of listeners so it cannot change
+     * the model, just draw it.
+     * 
+     * <p>
+     * Note that the play pen this variable is pointing at may change during
+     * export if the play pen is exported again while it is currently exporting.
+     */
+    private PlayPen playPen;
+
+    /**
      * Creates an action that exports the session's relational playpen to a PDF
      * file.
      * 
@@ -108,6 +120,12 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
         logger.debug("Saving to file: " + file.getName() + "(" + file.getPath() + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     
         properties.put(FILE_KEY,file);
+        
+        playPen = new PlayPen(session, playpen);
+        
+        // don't need this playpen to be interactive or respond to SQLObject changes
+        playPen.destroy();
+        
         return true;
     }
     
@@ -119,10 +137,10 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
     @Override
     public void doStuff(MonitorableImpl monitor, Map<String, Object> properties) {
         logger.debug("Creating PDF of playpen: " + playpen);
-        PlayPen pp = new PlayPen(session, playpen);
         
-        // don't need this playpen to be interactive or respond to SQLObject changes
-        pp.destroy();
+        //This is the current play pen snapshot at the time of starting the worker
+        //thread. This way the play pen doesn't change while it is printing.
+        PlayPen pp = playPen;
         
         /* We translate the graphics to (OUTSIDE_PADDING, OUTSIDE_PADDING) 
          * so nothing is drawn right on the edge of the document. So
