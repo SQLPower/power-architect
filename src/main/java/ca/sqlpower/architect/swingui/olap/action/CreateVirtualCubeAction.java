@@ -87,25 +87,28 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
 
         @Override
         public DataEntryPanel place(Point p) throws SQLObjectException {
-            schema.begin("Create a virtual cube");
-            schema.addVirtualCube(vcp.getModel());
             
-            playpen.selectNone();
-            playpen.addPlayPenComponent(vcp, p);
-            vcp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+            try {
+                session.getWorkspace().begin("Create a virtual cube");
+                schema.addVirtualCube(vcp.getModel());            
+                playpen.selectNone();
+                playpen.addPlayPenComponent(vcp, p);
+                vcp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+                session.getWorkspace().commit();
+            } catch (Throwable e) {
+                session.getWorkspace().rollback("Error occurred: " + e.toString());
+                throw new RuntimeException(e);
+            }
 
             VirtualCubeEditPanel editPanel = new VirtualCubeEditPanel(vcp.getModel()) {
                 @Override
                 public void discardChanges() {
                     schema.removeVirtualCube(vcp.getModel());
-                    schema.commit();
                 }
                 
                 @Override
                 public boolean applyChanges() {
-                    boolean applied = super.applyChanges();
-                    schema.commit();
-                    return applied;
+                    return super.applyChanges();
                 }
             };
             return editPanel;

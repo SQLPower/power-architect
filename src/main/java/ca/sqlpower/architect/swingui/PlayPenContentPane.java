@@ -251,7 +251,9 @@ public class PlayPenContentPane extends AbstractSPObject {
         if (!removed) return false;
         fireChildRemoved(child.getClass(), child, index);
         child.setParent(null);
-        playPen.repaint();
+        if (playPen != null) {
+            playPen.repaint();
+        }
         return true;
     }
 

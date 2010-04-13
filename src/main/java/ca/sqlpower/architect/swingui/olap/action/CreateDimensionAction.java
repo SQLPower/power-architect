@@ -81,24 +81,27 @@ public class CreateDimensionAction extends AbstractArchitectAction {
 
         @Override
         public DataEntryPanel place(Point p) throws SQLObjectException {
-            schema.begin("Create a dimension");
-            schema.addDimension(dp.getModel());
-            playpen.selectNone();
-            playpen.addPlayPenComponent(dp, p);
-            dp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+            try {
+                session.getWorkspace().begin("Create a dimension");
+                schema.addDimension(dp.getModel());
+                playpen.selectNone();
+                playpen.addPlayPenComponent(dp, p);
+                dp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+                session.getWorkspace().commit();
+            } catch (Throwable e) {
+                session.getWorkspace().rollback("Error occurred: " + e.toString());
+                throw new RuntimeException(e);
+            }
 
             DimensionEditPanel editPanel = new DimensionEditPanel(dp.getModel()) {
                 @Override
                 public void discardChanges() {
                     schema.removeDimension(dp.getModel());
-                    schema.commit();
                 }
                 
                 @Override
                 public boolean applyChanges() {
-                    boolean applied = super.applyChanges();
-                    schema.commit();
-                    return applied;
+                    return super.applyChanges();
                 }
             };
             return editPanel;
