@@ -268,6 +268,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                    
                    // Request an update from the server using the current revision number.
                    JSONMessage message = getJsonArray(inboundHttpClient);
+                   // The updater may have been interrupted/closed while waiting for an update.
+                   if (this.isInterrupted() || cancelled) break;
                    final JSONObject json = new JSONObject(message.getBody());
                    session.runInForeground(new Runnable() {
                        public void run() {
