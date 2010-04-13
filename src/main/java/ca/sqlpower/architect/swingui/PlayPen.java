@@ -134,7 +134,6 @@ import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.sqlobject.undo.CompoundEventListener;
@@ -1349,15 +1348,8 @@ public class PlayPen extends JPanel
 			if (tablePane != null) {
 				logger.info("FOUND IT!"); //$NON-NLS-1$
 
-				SQLRelationship newRel = new SQLRelationship(r);
-				
-				for (ColumnMapping child : newRel.getChildren(ColumnMapping.class)) {
-				    try {
-				        newRel.removeChild(child);
-				    } catch (ObjectDependentException e) {
-				        throw new RuntimeException(e);
-				    }
-				}
+				SQLRelationship newRel = new SQLRelationship();
+				newRel.updateToMatch(r, true);
 				
 				SQLTable oldTable;
 				

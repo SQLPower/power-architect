@@ -113,19 +113,14 @@ public class ImportSchemaAction extends AbstractArchitectAction {
                     final JFrame frame = editSession.getFrame();
                     frame.setLocationRelativeTo(session.getArchitectFrame());
                     frame.setVisible(true);
+                    
+                    session.getWorkspace().commit();
                 
                     final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(session, loadedSchema);
 
                     Callable<Boolean> okCall = new Callable<Boolean>() {
                         public Boolean call() throws Exception {
-                            try {
-                                boolean ok = schemaEditPanel.applyChanges();                            
-                                session.getWorkspace().commit();                            
-                                return ok;
-                            } catch (Throwable e) {
-                                session.getWorkspace().rollback("Error applying changes: " + e.toString());
-                                throw new RuntimeException(e);
-                            }
+                                return schemaEditPanel.applyChanges();
                         }
                     };
 
@@ -133,7 +128,6 @@ public class ImportSchemaAction extends AbstractArchitectAction {
                         public Boolean call() throws Exception {
                             frame.dispose();
                             session.getOLAPRootObject().removeOLAPSession(osession);
-                            session.getWorkspace().rollback("Schema importing cancelled");
                             return true;
                         }
                     };
