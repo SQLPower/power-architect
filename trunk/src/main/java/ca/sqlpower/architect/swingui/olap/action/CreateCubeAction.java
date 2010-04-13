@@ -87,24 +87,27 @@ public class CreateCubeAction extends AbstractArchitectAction {
 
         @Override
         public DataEntryPanel place(Point p) throws SQLObjectException {
-            schema.begin("Create Cube");
-            schema.addCube(cp.getModel());
-            playpen.selectNone();
-            playpen.addPlayPenComponent(cp, p);
-            cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+            try {
+                session.getWorkspace().begin("Create Cube");
+                schema.addCube(cp.getModel());
+                playpen.selectNone();
+                playpen.addPlayPenComponent(cp, p);
+                cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+                session.getWorkspace().commit();
+            } catch (Throwable e) {
+                session.getWorkspace().rollback("Exception occured: " + e.toString());
+                throw new RuntimeException(e);
+            }
 
             CubeEditPanel editPanel = new CubeEditPanel(cp.getModel(), cp.getPlayPen(), cp.getPlayPen().getSession()) {
                 @Override
                 public void discardChanges() {
                     schema.removeCube(cp.getModel());
-                    schema.commit();
                 }
                 
                 @Override
                 public boolean applyChanges() {
-                    boolean applied = super.applyChanges();
-                    schema.commit();
-                    return applied;
+                    return super.applyChanges();
                 }
             };
             return editPanel;

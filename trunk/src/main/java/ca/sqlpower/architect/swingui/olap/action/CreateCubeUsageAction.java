@@ -49,12 +49,19 @@ public class CreateCubeUsageAction extends CreateUsageAction<CubePane, VirtualCu
 
     @Override
     protected void createUsage(CubePane cp, VirtualCubePane vcp) {
-        if (OLAPUtil.isNameUnique(vcp.getModel(), CubeUsage.class, cp.getModel().getName())) {
-            CubeUsage cu = new CubeUsage();
-            cu.setCubeName(cp.getModel().getName());
-            vcp.getModel().getCubeUsage().addCubeUsage(cu);
-            UsageComponent uc = new UsageComponent(playpen.getContentPane(), cu, cp, vcp);
-            playpen.getContentPane().addChild(uc, playpen.getContentPane().getChildren().size());
+        if (OLAPUtil.isNameUnique(vcp.getModel(), CubeUsage.class, cp.getModel().getName())) {            
+            try {
+                session.getWorkspace().begin("Creating cube usage");
+                CubeUsage cu = new CubeUsage();
+                cu.setCubeName(cp.getModel().getName());
+                vcp.getModel().getCubeUsage().addCubeUsage(cu);
+                UsageComponent uc = new UsageComponent(playpen.getContentPane(), cu, cp, vcp);
+                playpen.getContentPane().addChild(uc, playpen.getContentPane().getChildren().size());
+                session.getWorkspace().commit();
+            } catch (Throwable e) {
+                session.getWorkspace().rollback("Error occurred: " + e.toString());
+                throw new RuntimeException(e);
+            }
         } else {
             String errorMsg = "Cube Usage \"" + cp.getModel().getName() + "\" alreadys exists in \"" +
                     vcp.getModel().getName() + "\"\nCube Usage was not created.";

@@ -63,27 +63,30 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
         final Dimension dimension = dp.getModel();
         final Cube cube = cp.getModel();
         if (OLAPUtil.isNameUnique(cp.getModel(), DimensionUsage.class, dimension.getName())) {
-            cube.begin("Create dimension usage");
+            session.getWorkspace().begin("Create dimension usage"); 
             final DimensionUsage du = new DimensionUsage();
-            du.setName(dimension.getName());
-            du.setSource(dimension.getName());
-            cube.addChild(du);
-            UsageComponent uc = new UsageComponent(playpen.getContentPane(), du, dp, cp);
-            playpen.getContentPane().addChild(uc, playpen.getContentPane().getChildren().size());
+            try {
+                du.setName(dimension.getName());
+                du.setSource(dimension.getName());
+                cube.addChild(du);
+                UsageComponent uc = new UsageComponent(playpen.getContentPane(), du, dp, cp);
+                playpen.getContentPane().addChild(uc, playpen.getContentPane().getChildren().size());
+                session.getWorkspace().commit();
+            } catch (Throwable e) {
+                session.getWorkspace().rollback("Error occurred: " + e.toString());
+                throw new RuntimeException(e);
+            }
             
             try {
                 final DataEntryPanel mep = new DimensionUsageEditPanel(du);
                 Callable<Boolean> okCall = new Callable<Boolean>() {
                     public Boolean call() throws Exception {
-                        boolean applied = mep.applyChanges();
-                        cube.commit();
-                        return applied;
+                        return mep.applyChanges();
                     }
                 };
                 Callable<Boolean> cancelCall = new Callable<Boolean>() {
                     public Boolean call() throws Exception {
                         du.getParent().removeChild(du);
-                        cube.commit();
                         return true;
                     }
                 };

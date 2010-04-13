@@ -271,7 +271,7 @@ public class OLAPPlayPenFactory {
             SQLPowerUtils.listenToHierarchy(e.getChild(), this);
             RemovedComponentInfo compInfo = removedPPCs.get(e.getChild());
             logger.debug("OLAP Child was added. Previously removed component: " + compInfo);
-            if (compInfo != null) {
+            if (compInfo != null && pp.getContentPane().isMagicEnabled() && e.getSource().isMagicEnabled()) {
                 PlayPenComponent ppc = compInfo.getComponent();
                 int oldIndex = compInfo.getIndex();
                 pp.getContentPane().addChild(ppc, oldIndex);
@@ -281,19 +281,21 @@ public class OLAPPlayPenFactory {
         public void childRemoved(SPChildEvent e) {
             SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
             // Go through the list backwards when removing to eliminate problems.
-            for (int j = pp.getContentPane().getChildren().size() - 1; j >= 0; j--) {
-                PlayPenComponent ppc = pp.getContentPane().getChildren().get(j);
-                if (ppc.getModel() == e.getChild()) {
-                    ppc.setSelected(false, SelectionEvent.SINGLE_SELECT);
-                    try {
-                        pp.getContentPane().removeChild(ppc);
-                    } catch (ObjectDependentException ex) {
-                        throw new RuntimeException(ex);
+            if (pp.getContentPane().isMagicEnabled() && e.getSource().isMagicEnabled()) {
+                for (int j = pp.getContentPane().getChildren().size() - 1; j >= 0; j--) {
+                    PlayPenComponent ppc = pp.getContentPane().getChildren().get(j);
+                    if (ppc.getModel() == e.getChild()) {
+                        ppc.setSelected(false, SelectionEvent.SINGLE_SELECT);
+                        try {
+                            pp.getContentPane().removeChild(ppc);
+                        } catch (ObjectDependentException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                        removedPPCs.put((OLAPObject) e.getChild(), new RemovedComponentInfo(ppc, j));
+                        logger.debug("Put dead component in map: " + e.getChild().getName() + " -> " + ppc + " @ " + j);
                     }
-                    removedPPCs.put((OLAPObject) e.getChild(), new RemovedComponentInfo(ppc, j));
-                    logger.debug("Put dead component in map: " + e.getChild().getName() + " -> " + ppc + " @ " + j);
-                }
-            } 
+                } 
+            }
         }
 
         /**
