@@ -81,6 +81,8 @@ import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLTypePhysicalProperties;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.util.ExceptionReport;
 import ca.sqlpower.util.SQLPowerUtils;
@@ -1456,7 +1458,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
                     ioo.println(out, "</folder>");
                     ioo.println(out, indicesFolder);
                 }
-                if ( ! (child instanceof SQLRelationship)) {
+                if (!((child instanceof SQLRelationship)
+                        || (child instanceof UserDefinedSQLType)
+                        || (child instanceof SQLTypePhysicalProperties))) {
                     saveSQLObject(out, child);
                 }
                 lastChild = child;

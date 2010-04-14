@@ -663,7 +663,15 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("parentTable");
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("secondaryChangeMode");
-
+		propertiesToIgnore.add("constraintType");
+		propertiesToIgnore.add("checkConstraint");
+		propertiesToIgnore.add("enumeration");
+		propertiesToIgnore.add("precisionType");
+		propertiesToIgnore.add("scaleType");
+		propertiesToIgnore.add("platform");
+		
+		propertiesToIgnore.add("childrenWithoutPopulating");
+		
 		session.getUndoManager().setLoading(true);
 		Map<String,Object> oldDescription =
 			TestUtils.setAllInterestingProperties(target, propertiesToIgnore);
