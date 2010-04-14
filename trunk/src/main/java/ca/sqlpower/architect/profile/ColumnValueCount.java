@@ -59,9 +59,17 @@ public class ColumnValueCount extends AbstractSPObject {
     public ColumnValueCount(@ConstructorParameter(propertyName="value") Object value, 
             @ConstructorParameter(propertyName="count") int count, 
             @ConstructorParameter(propertyName="percent") double percent) {
+        setName("New Column Value Count");
         this.value = value;
         this.count = count;
         this.percent = percent;
+    }
+    
+    public ColumnValueCount(ColumnValueCount cvcToCopy) {
+        setName(cvcToCopy.getName());
+        this.value = cvcToCopy.value;
+        this.count = cvcToCopy.count;
+        this.percent = cvcToCopy.percent;
     }
     
     @Accessor

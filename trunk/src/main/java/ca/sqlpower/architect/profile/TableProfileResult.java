@@ -89,7 +89,23 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
     public TableProfileResult(@ConstructorParameter(propertyName="profiledObject") SQLTable profiledObject, 
             @ConstructorParameter(propertyName="settings") ProfileSettings settings) {
         super(profiledObject);
+        setName("New Table Profile");
         setSettings(settings);
+    }
+
+    /**
+     * This is a deep-copy copy constructor. (ie: all of the descendants will be
+     * copied as well). However, the progress monitor will be shared between the
+     * results.
+     */
+    public TableProfileResult(TableProfileResult tprToCopy) {
+        super(tprToCopy);
+        setName("New Table Profile");
+        this.rowCount = tprToCopy.rowCount;
+        this.progressMonitor = tprToCopy.progressMonitor;
+        for (ColumnProfileResult cpr : tprToCopy.getColumnProfileResults()) {
+            addColumnProfileResult(new ColumnProfileResult(cpr));
+        }
     }
 
     /**

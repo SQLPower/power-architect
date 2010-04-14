@@ -170,7 +170,7 @@ public class DataMoverPanel {
         try {
             if (treeRoot == null) {
                 treeRoot = new SQLObjectRoot();
-                ArchitectProject treeProject = new ArchitectProject(treeRoot, new OLAPRootObject(), new KettleSettings());
+                ArchitectProject treeProject = new ArchitectProject(treeRoot, new OLAPRootObject(), new KettleSettings(), null);
                 treeProject.setSession(session);
                 treeRoot.begin("Setting up database trees in data mover panel.");
             } else {

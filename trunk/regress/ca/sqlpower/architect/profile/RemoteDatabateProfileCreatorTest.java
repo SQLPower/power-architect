@@ -38,6 +38,8 @@ import java.sql.Statement;
 import java.util.Collection;
 
 import junit.framework.TestCase;
+import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.StubArchitectSession;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
@@ -91,7 +93,25 @@ public class RemoteDatabateProfileCreatorTest extends TestCase {
             RemoteDatabaseProfileCreator rdpc = new RemoteDatabaseProfileCreator(new ProfileSettings());
             SQLDatabase db = new SQLDatabase(ds);
             SQLTable table = db.getTableByName("test_table");
+
+            final ArchitectProject project = new ArchitectProject();
+            StubArchitectSession session = new StubArchitectSession() {
+                @Override
+                public ArchitectProject getWorkspace() {
+                    return project;
+                }
+                @Override
+                public void runInForeground(Runnable runner) {
+                    runner.run();
+                }
+            };
+            project.setSession(session);
+            ProfileManager profileManager = new ProfileManagerImpl();
+            project.setProfileManager(profileManager);
             TableProfileResult tpr = new TableProfileResult(table, new ProfileSettings());
+            profileManager.addChild(tpr, 0);
+            project.getRootObject().addDatabase(db, 0);
+            
             rdpc.doProfile(tpr);
             Collection<ColumnProfileResult> cprCollection = tpr.getColumnProfileResult(table.getColumn(0));
             assertEquals(1, cprCollection.size());
