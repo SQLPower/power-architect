@@ -2072,38 +2072,27 @@ public class PlayPen extends JPanel
 			
 			Transferable t = dtde.getTransferable();
 			PlayPen playpen = (PlayPen) dtde.getDropTargetContext().getComponent();
-			PlayPenContentPane cp = playpen.getContentPane();
 			try {
-			    Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));			    
-			    cp.begin("Reverse engineering database");
+			    Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));
 			    if (playpen.addTransferable(t, dropLoc, TransferStyles.REVERSE_ENGINEER)){			        
 			        dtde.acceptDrop(DnDConstants.ACTION_COPY);
 			        dtde.dropComplete(true);
-			        cp.commit();
 			    } else {
 			        dtde.rejectDrop();
-			        cp.rollback("Reverse engineer unsuccessful");
 			    }
 
 			} catch (UnsupportedFlavorException ufe) {
 			    logger.error(ufe);
 			    dtde.rejectDrop();
-			    cp.rollback("Reverse engineer unsuccessful");
 			} catch (IOException ioe) {
 			    logger.error(ioe);
 			    dtde.rejectDrop();
-			    cp.rollback("Reverse engineer unsuccessful");
 			} catch (InvalidDnDOperationException ex) {
 			    logger.error(ex);
 			    dtde.rejectDrop();
-			    cp.rollback("Reverse engineer unsuccessful");
 			} catch (SQLObjectException ex) {
 			    logger.error(ex);
 			    dtde.rejectDrop();
-			    cp.rollback("Reverse engineer unsuccessful");
-			} catch (Throwable ex) {
-			    cp.rollback("Reverse engineer unsuccessful");
-			    throw new RuntimeException(ex);
 			}
 		}
 
@@ -2175,39 +2164,56 @@ public class PlayPen extends JPanel
      * @throws UnsupportedFlavorException 
      * @throws SQLObjectException 
      */
-	private boolean addTransferable(Transferable t, Point dropPoint, TransferStyles transferStyle) throws UnsupportedFlavorException, IOException, SQLObjectException {
-	    if (t.isDataFlavorSupported(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR)) {
-            SQLObject[] paths = (SQLObject[]) t.getTransferData(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR);
-            // turn into a Collection of SQLObjects to make this more generic
-            List<SQLObject> sqlObjects = new ArrayList<SQLObject>();
-            for (Object oo : paths) {
-                if (oo instanceof SQLObject) {
-                    sqlObjects.add((SQLObject) oo);
-                } else {
-                    logger.error("Unknown object dropped in PlayPen: "+oo); //$NON-NLS-1$
-                }
-            }
-
-            // null: no next task is chained off this
-            addObjects(sqlObjects, dropPoint, null, transferStyle);
-	        return true;
-	    } else if (t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-	        String[] stringPieces = ((String) t.getTransferData(DataFlavor.stringFlavor)).split("[\n\r\t]+");
-	        List<SQLObject> sqlObjects = new ArrayList<SQLObject>();
-	        for (String s : stringPieces) {
-	            if (s.length() > 0) {
-	                SQLTable newTable = new SQLTable();
-	                newTable.setName(s);
-	                newTable.initFolders(true);
-	                sqlObjects.add(newTable);
-	            }
-	        }
+	private boolean addTransferable(Transferable t, Point dropPoint, TransferStyles transferStyle)
+	throws UnsupportedFlavorException, IOException, SQLObjectException {
+	    
+	    if (t.isDataFlavorSupported(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR)
+	            || t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
 	        
-	        addObjects(sqlObjects, dropPoint, null, transferStyle);
-	        return true;
-	    } else {
-	        return false;
+	        contentPane.begin("Adding transferrable to play pen");
+	        try {
+
+	            if (t.isDataFlavorSupported(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR)) {
+	                SQLObject[] paths = (SQLObject[]) t.getTransferData(
+	                        SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR);
+	                // turn into a Collection of SQLObjects to make this more generic
+	                List<SQLObject> sqlObjects = new ArrayList<SQLObject>();
+	                for (Object oo : paths) {
+	                    if (oo instanceof SQLObject) {
+	                        sqlObjects.add((SQLObject) oo);
+	                    } else {
+	                        logger.error("Unknown object dropped in PlayPen: "+oo); //$NON-NLS-1$
+	                    }
+	                }
+
+	                // null: no next task is chained off this
+	                addObjects(sqlObjects, dropPoint, null, transferStyle);
+	                contentPane.commit();
+	                return true;
+	            } else {
+	                String[] stringPieces = 
+	                    ((String) t.getTransferData(DataFlavor.stringFlavor)).split("[\n\r\t]+");
+	                List<SQLObject> sqlObjects = new ArrayList<SQLObject>();
+	                for (String s : stringPieces) {
+	                    if (s.length() > 0) {
+	                        SQLTable newTable = new SQLTable();
+	                        newTable.setName(s);
+	                        newTable.initFolders(true);
+	                        sqlObjects.add(newTable);
+	                    }
+	                }
+
+	                addObjects(sqlObjects, dropPoint, null, transferStyle);
+	                contentPane.commit();
+	                return true;
+	            }
+	        } catch (Throwable e) {
+	            contentPane.rollback("Error occurred: " + e.toString());
+	            throw new RuntimeException(e);
+	        }
 	    }
+	    
+	    return false;
 	}
 	
 	/**
