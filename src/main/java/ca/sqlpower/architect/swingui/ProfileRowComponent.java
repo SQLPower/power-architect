@@ -31,6 +31,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -58,6 +59,8 @@ import ca.sqlpower.architect.profile.event.ProfileResultListener;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
@@ -382,6 +385,29 @@ public class ProfileRowComponent extends JPanel implements Selectable {
             cancelButton.setVisible(true);
         }
     };
+    
+    /**
+     * Listens for changes to the result's start time so it can set the status
+     * label correctly when the profiler has started profiling.
+     */
+    private final SPListener profileStartedListener = new AbstractSPListener() {
+        
+        @Override
+        public void propertyChanged(PropertyChangeEvent evt) {
+            if (evt.getPropertyName().equals("createStartTime") && result.getException() == null) {
+                if (result.getCreateStartTime() >= 0) {
+                    statusLabel.setText(result.toString());
+                    statusLabel.setForeground(null);
+                } else {
+                    statusLabel.setText("Waiting to be profiled...");
+                    statusLabel.setForeground(null);
+                }
+            } else if (evt.getPropertyName().equals("exception")) {
+                statusLabel.setText("Failed: " + result.getException().getMessage());
+                statusLabel.setForeground(Color.RED);
+            }
+        }
+    };
 
     /**
      * Creates a profile row component that visualizes the given profile
@@ -465,6 +491,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         pw.start();
         
         result.addProfileResultListener(profileResultListener);
+        result.addSPListener(profileStartedListener);
         
         add(progressBar, ComponentType.PROGRESS_BAR);
         statusLabel.setVisible(false);

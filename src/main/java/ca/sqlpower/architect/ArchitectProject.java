@@ -113,7 +113,7 @@ public class ArchitectProject extends AbstractSPObject {
      * @throws SQLObjectException
      */
     public ArchitectProject() throws SQLObjectException {
-        this(new SQLObjectRoot(), new OLAPRootObject(), new KettleSettings());
+        this(new SQLObjectRoot(), new OLAPRootObject(), new KettleSettings(), null);
         SQLDatabase targetDatabase = new SQLDatabase();
         targetDatabase.setPlayPenDatabase(true);
         rootObject.addChild(targetDatabase, 0);
@@ -126,12 +126,21 @@ public class ArchitectProject extends AbstractSPObject {
      * @param rootObject
      *            The root object that holds all of the source databases for the
      *            current project.
+     * @param olapRootObject
+     *            The root object of OLAP projects. All OLAP projects will be
+     *            contained under this node.
+     * @param kettleSettings
+     *            The settings to create Kettle jobs for this project.
+     * @param profileManager
+     *            The default profile manager for this project. This may be null
+     *            if it is set later or the profile manager is not used.
      */
     @Constructor
     public ArchitectProject(
             @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject,
             @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="olapRootObject") OLAPRootObject olapRootObject,
-            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="kettleSettings") KettleSettings kettleSettings) 
+            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="kettleSettings") KettleSettings kettleSettings,
+            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="profileManager") ProfileManager profileManager) 
             throws SQLObjectException {
         this.rootObject = rootObject;
         rootObject.setParent(this);
@@ -141,6 +150,9 @@ public class ArchitectProject extends AbstractSPObject {
         projectSettings.setParent(this);
         this.kettleSettings = kettleSettings;
         kettleSettings.setParent(this);
+        if (profileManager != null) {
+            setProfileManager(profileManager);
+        }
         setName("Architect Project");
     }
 

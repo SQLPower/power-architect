@@ -76,6 +76,15 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
         if (profiledObject == null) throw new NullPointerException("The profiled object has to be non-null");
         this.profiledObject = profiledObject;
     }
+    
+    public AbstractProfileResult(AbstractProfileResult<T> profileToCopy) {
+        this(profileToCopy.getProfiledObject());
+        this.createStartTime = profileToCopy.createStartTime;
+        this.createEndTime = profileToCopy.createEndTime;
+        this.ex = profileToCopy.ex;
+        //These settings come from the profile manager
+        this.settings = profileToCopy.settings;
+    }
 
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.profile.ProfileResultInterface#getProfiledObject()
@@ -132,7 +141,7 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.profile.ProfileResultInterface#getException()
      */
-    @Transient @Accessor
+    @Accessor
     public Exception getException() {
         return ex;
     }
@@ -141,7 +150,7 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
      * If an exception is encountered while populating this profile result,
      * it should be stored here for later inspection by client code.
      */
-    @Transient @Mutator
+    @Mutator
     public void setException(Exception ex) {
         Exception oldEx = this.ex;
         this.ex = ex;

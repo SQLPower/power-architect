@@ -64,7 +64,7 @@ public class TestProfileCSV extends TestProfileBase {
             rdr.readLine();
         }
         assertNotNull(line = rdr.readLine());   // third results line, column t1_c4
-        assertTrue("Incorrect line: " + line, line.endsWith("\"32,345.7\",\"\""));
+        assertTrue("Incorrect line: " + line, line.endsWith("\"32345.6789\",\"\""));
     }
 
 }

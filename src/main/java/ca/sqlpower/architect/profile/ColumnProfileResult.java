@@ -64,7 +64,28 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     public ColumnProfileResult(@ConstructorParameter(propertyName="profiledObject") SQLColumn profiledObject, 
             @ConstructorParameter(propertyName="parentResult") TableProfileResult parentResult) {
         super(profiledObject);
+        setName("New Column Profile");
         this.parentResult = parentResult;
+    }
+    
+    /**
+     * Deep-copy copy constructor.
+     */
+    public ColumnProfileResult(ColumnProfileResult cprToCopy) {
+        super(cprToCopy);
+        setName("New Column Profile");
+        this.avgLength = cprToCopy.avgLength;
+        this.avgValue = cprToCopy.avgValue;
+        this.distinctValueCount = cprToCopy.distinctValueCount;
+        this.maxLength = cprToCopy.maxLength;
+        this.minLength = cprToCopy.minLength;
+        this.minValue = cprToCopy.minValue;
+        this.nullCount = cprToCopy.nullCount;
+        this.parentResult = cprToCopy.getParentResult();
+        for (int i = 0; i < cprToCopy.getValueCount().size(); i++) {
+            ColumnValueCount cvc = cprToCopy.getValueCount().get(i);
+            this.addColumnValueCount(new ColumnValueCount(cvc), i);
+        }
     }
 
     @Accessor
@@ -204,6 +225,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     
     private void addColumnValueCount(ColumnValueCount value, int index) {
         topTen.add(value);
+        value.setParent(this);
         fireChildAdded(ColumnValueCount.class, value, index);
     }
     

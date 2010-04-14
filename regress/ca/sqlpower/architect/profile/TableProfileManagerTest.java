@@ -130,6 +130,7 @@ public class TableProfileManagerTest extends TestProfileBase {
     public void testAsynchCreateProfiles() throws Exception {
         SQLTable garbageTable = new SQLTable();
         garbageTable.setName("Not profilable");
+        mydb.addTable(garbageTable);
         List<SQLTable> tables = Arrays.asList(t1, garbageTable, t2, t3);
         
         int oldCount = pm.getResults().size();

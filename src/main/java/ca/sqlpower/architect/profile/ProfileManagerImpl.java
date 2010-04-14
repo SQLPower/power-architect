@@ -223,6 +223,9 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
      */
     private void addResults(List<TableProfileResult> newResults) {
         results.addAll(newResults);
+        for (TableProfileResult tpr : newResults) {
+            tpr.setParent(this);
+        }
         fireProfilesAdded(newResults);
         for (TableProfileResult newResult : newResults) {
             SQLTable table = newResult.getProfiledObject();

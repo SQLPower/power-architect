@@ -25,6 +25,7 @@ import java.util.List;
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
+import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.dao.PersistedSPOProperty;
 import ca.sqlpower.dao.PersistedSPObject;
 import ca.sqlpower.dao.SPSessionPersister;
@@ -54,6 +55,17 @@ public class ArchitectSessionPersister extends SPSessionPersister {
         ArchitectProject architectProject = (ArchitectProject) root;
         architectProject.getRootObject().setUUID(rootObjectUUID);
         persistedRootObject.setLoaded(true);
+        
+        String profileManagerUUID = (String) AbstractSPPersisterHelper.findPropertyAndRemove(
+                pso.getUUID(), "profileManager", persistedProperties);
+        
+        //Null for system projects.
+        if (profileManagerUUID != null) {
+            PersistedSPObject persistedProfileManager = AbstractSPPersisterHelper.findPersistedSPObject(
+                    pso.getUUID(), ProfileManagerImpl.class.getName(), profileManagerUUID, persistedObjects);
+            architectProject.getProfileManager().setUUID(profileManagerUUID);
+            persistedProfileManager.setLoaded(true);
+        }
         
         String olapRootObjectUUID = (String) AbstractSPPersisterHelper.findPropertyAndRemove(
                 pso.getUUID(), "olapRootObject", persistedProperties);
