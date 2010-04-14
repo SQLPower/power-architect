@@ -501,6 +501,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		    return ((FolderNode) parent).getChildren().size();
         } else if (parent instanceof SQLTable) {
             return foldersInTables.get((SQLTable) parent).size();
+        } else if (parent instanceof SQLColumn) {
+            return 0;
         }
 		
 		SQLObject sqlParent = (SQLObject) parent;
@@ -516,6 +518,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.isLeaf("+parent+"): returning "+!((SQLObject) parent).allowsChildren()); //$NON-NLS-1$ //$NON-NLS-2$
 		if (parent instanceof FolderNode) {
 		    return false;
+		} else if (parent instanceof SQLColumn) {
+		    return true;
 		}
 		return !((SQLObject) parent).allowsChildren();
 	}
