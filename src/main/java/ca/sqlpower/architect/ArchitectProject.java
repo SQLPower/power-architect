@@ -50,6 +50,7 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.util.RunnableDispatcher;
 import ca.sqlpower.util.SessionNotFoundException;
 import ca.sqlpower.util.WorkspaceContainer;
@@ -74,7 +75,7 @@ public class ArchitectProject extends AbstractSPObject {
                 Arrays.asList(SQLObjectRoot.class, OLAPRootObject.class, 
                         PlayPenContentPane.class, ProfileManager.class, 
                         ProjectSettings.class, KettleSettings.class, 
-                        User.class, Group.class)));
+                        User.class, Group.class, UserDefinedSQLType.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -87,6 +88,7 @@ public class ArchitectProject extends AbstractSPObject {
     
     private List<User> users = new ArrayList<User>();
     private List<Group> groups = new ArrayList<Group>();
+    private final List<UserDefinedSQLType> sqlTypes = new ArrayList<UserDefinedSQLType>();
     
     /**
      * This OLAP object contains the OLAP session.
@@ -264,6 +266,12 @@ public class ArchitectProject extends AbstractSPObject {
             fireChildRemoved(Group.class, child, index);
             child.setParent(null);
             return true;
+        } else if (child instanceof UserDefinedSQLType) {
+            int index = sqlTypes.indexOf((UserDefinedSQLType) child);
+            sqlTypes.remove((UserDefinedSQLType) child);
+            fireChildRemoved(UserDefinedSQLType.class, child, index);
+            child.setParent(null);
+            return true;
         }
         return false;
     }        
@@ -326,6 +334,7 @@ public class ArchitectProject extends AbstractSPObject {
         allChildren.add(kettleSettings);
         allChildren.addAll(users);
         allChildren.addAll(groups);
+        allChildren.addAll(sqlTypes);
         return allChildren;
     }
     
@@ -357,10 +366,18 @@ public class ArchitectProject extends AbstractSPObject {
             addUser((User) child, index);
         } else if (child instanceof Group) {
             addGroup((Group) child, index);
+        } else if (child instanceof UserDefinedSQLType) {
+            addSQLType((UserDefinedSQLType) child, index);
         } else {
             throw new IllegalArgumentException("Cannot add child of type " + 
                     child.getClass() + " to the project once it has been created.");
         }
+    }
+
+    private void addSQLType(UserDefinedSQLType sqlType, int index) {
+        sqlTypes.add(index, sqlType);
+        sqlType.setParent(this);
+        fireChildAdded(UserDefinedSQLType.class, sqlType, index);
     }
 
     private void addUser(User user, int index) {
@@ -469,5 +486,4 @@ public class ArchitectProject extends AbstractSPObject {
         olapContentPane.setParent(null);
         return true;
     }
-    
 }
