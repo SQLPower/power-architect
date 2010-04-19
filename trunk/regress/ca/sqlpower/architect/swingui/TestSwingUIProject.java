@@ -39,8 +39,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.apache.tools.ant.filters.StringInputStream;
 
 import ca.sqlpower.ArchitectTestCase;
@@ -1069,7 +1067,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
     
     public void testLoadCoversPlayPen()throws Exception{
         BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.DEBUG);
+//        Logger.getRootLogger().setLevel(Level.DEBUG);
         testLoad();
         
         PlayPen oldPP = project.getSession().getPlayPen();
