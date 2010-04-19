@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -70,12 +71,10 @@ public class ArchitectProject extends AbstractSPObject {
      * Defines an absolute ordering of the child types of this class.
      */
     @SuppressWarnings("unchecked")
-    public static final List<Class<? extends SPObject>> allowedChildTypes = 
-        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Arrays.asList(SQLObjectRoot.class, OLAPRootObject.class, 
-                        PlayPenContentPane.class, ProfileManager.class, 
-                        ProjectSettings.class, KettleSettings.class, 
-                        User.class, Group.class, UserDefinedSQLType.class)));
+    public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
+            .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(SQLObjectRoot.class,
+                    OLAPRootObject.class, PlayPenContentPane.class, ProfileManager.class, ProjectSettings.class,
+                    KettleSettings.class, User.class, Group.class, DomainCategory.class, UserDefinedSQLType.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -89,6 +88,7 @@ public class ArchitectProject extends AbstractSPObject {
     private List<User> users = new ArrayList<User>();
     private List<Group> groups = new ArrayList<Group>();
     private final List<UserDefinedSQLType> sqlTypes = new ArrayList<UserDefinedSQLType>();
+    private final List<DomainCategory> domainCategories = new ArrayList<DomainCategory>();
     
     /**
      * This OLAP object contains the OLAP session.
@@ -272,6 +272,12 @@ public class ArchitectProject extends AbstractSPObject {
             fireChildRemoved(UserDefinedSQLType.class, child, index);
             child.setParent(null);
             return true;
+        } else if (child instanceof DomainCategory) {
+            int index = domainCategories.indexOf((DomainCategory) child);
+            domainCategories.remove((DomainCategory) child);
+            fireChildRemoved(DomainCategory.class, child, index);
+            child.setParent(null);
+            return true;
         }
         return false;
     }        
@@ -334,6 +340,7 @@ public class ArchitectProject extends AbstractSPObject {
         allChildren.add(kettleSettings);
         allChildren.addAll(users);
         allChildren.addAll(groups);
+        allChildren.addAll(domainCategories);
         allChildren.addAll(sqlTypes);
         return allChildren;
     }
@@ -368,6 +375,8 @@ public class ArchitectProject extends AbstractSPObject {
             addGroup((Group) child, index);
         } else if (child instanceof UserDefinedSQLType) {
             addSQLType((UserDefinedSQLType) child, index);
+        } else if (child instanceof DomainCategory) {
+            addDomainCategory((DomainCategory) child, index);
         } else {
             throw new IllegalArgumentException("Cannot add child of type " + 
                     child.getClass() + " to the project once it has been created.");
@@ -378,6 +387,12 @@ public class ArchitectProject extends AbstractSPObject {
         sqlTypes.add(index, sqlType);
         sqlType.setParent(this);
         fireChildAdded(UserDefinedSQLType.class, sqlType, index);
+    }
+    
+    private void addDomainCategory(DomainCategory domainCategory, int index) {
+        domainCategories.add(index, domainCategory);
+        domainCategory.setParent(this);
+        fireChildAdded(DomainCategory.class, domainCategory, index);
     }
 
     private void addUser(User user, int index) {
