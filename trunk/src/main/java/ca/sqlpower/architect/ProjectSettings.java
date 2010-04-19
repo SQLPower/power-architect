@@ -40,7 +40,7 @@ import ca.sqlpower.object.annotation.Mutator;
 
 public class ProjectSettings extends AbstractSPObject {
     
-    public static List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
+    public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
     
     private boolean savingEntireSource = false;
     
