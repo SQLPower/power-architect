@@ -39,7 +39,7 @@ public class ColumnValueCount extends AbstractSPObject {
      * Defines an absolute ordering of the child types of this class.
      */
     @SuppressWarnings("unchecked")
-    public static List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
+    public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
     
     private Object value;
     private int count;

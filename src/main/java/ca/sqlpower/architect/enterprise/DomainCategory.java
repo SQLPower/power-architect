@@ -20,7 +20,6 @@
 package ca.sqlpower.architect.enterprise;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,8 +36,8 @@ import ca.sqlpower.sqlobject.UserDefinedSQLType;
  */
 public class DomainCategory extends AbstractSPObject {
 
-    public static List<Class<? extends SPObject>> allowedChildTypes = Collections
-            .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(UserDefinedSQLType.class)));
+    public static final List<Class<? extends SPObject>> allowedChildTypes =
+        Collections.<Class<? extends SPObject>>singletonList(UserDefinedSQLType.class);
 
     /**
      * A {@link List} of {@link UserDefinedSQLType}s available under this category

@@ -41,7 +41,7 @@ public class ProfileSettings extends AbstractSPObject {
     /**
      * Defines an absolute ordering of the child types of this class.
      */
-    public static List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
+    public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
     
     private boolean findingMin = true;
 
