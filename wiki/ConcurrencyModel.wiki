@@ -34,3 +34,9 @@ Here are the requirements we have to satisfy (or at least balance) in SQL Power 
 
 
 = Ideas =
+
+  # Let the session be an ExecutorService, and do all object model manipulations by passing Runnables or Callables into it
+    * Compatible with both the Swing and Servlet threading models
+    * Easy migration for existing SPSwingWorkers (could even allow an equivalent API such as BackgroundTask with setup() runBackground() and cleanup() and accept Runnable, Callable, or BackgroundJob tasks)
+
+  # Think about the Actors model? (This is probably too much to be considered an incremental change, and may even be impossible to reconcile with the Swing thread model)
