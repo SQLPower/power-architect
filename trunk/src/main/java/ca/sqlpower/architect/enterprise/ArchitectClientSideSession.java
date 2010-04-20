@@ -72,6 +72,7 @@ import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SpecificDataSourceCollection;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.SQLPowerUtils;
@@ -906,5 +907,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 
     public int getCurrentRevisionNumber() {
         return updater.getRevision();
+    }
+    
+    @Override
+    public List<UserDefinedSQLType> getSQLTypes() {
+        return getSystemWorkspace().getSqlTypes();
     }
 }

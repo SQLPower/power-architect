@@ -51,6 +51,7 @@ import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
@@ -434,6 +435,11 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public ProjectSettings getProjectSettings() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public List<UserDefinedSQLType> getSQLTypes() {
         // TODO Auto-generated method stub
         return null;
     }

@@ -35,6 +35,7 @@ import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.DefaultUserPrompterFactory;
@@ -251,5 +252,8 @@ public class ArchitectSessionImpl implements ArchitectSession {
         return context.getPlDotIni();
     }
 
+    public List<UserDefinedSQLType> getSQLTypes() {
+        return getDataSources().getSQLTypes();
+    }
 }
 
