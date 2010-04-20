@@ -501,4 +501,13 @@ public class ArchitectProject extends AbstractSPObject {
         olapContentPane.setParent(null);
         return true;
     }
+    
+    /**
+     * Returns the list of all child {@link UserDefinedSQLType} for this
+     * {@link ArchitectProject}
+     */
+    @NonProperty
+    public List<UserDefinedSQLType> getSqlTypes() {
+        return sqlTypes;
+    }
 }

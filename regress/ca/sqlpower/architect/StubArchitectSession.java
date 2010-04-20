@@ -30,6 +30,7 @@ import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
@@ -160,6 +161,11 @@ public class StubArchitectSession implements ArchitectSession {
     }
 
     public DataSourceCollection<JDBCDataSource> getDataSources() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public List<UserDefinedSQLType> getSQLTypes() {
         // TODO Auto-generated method stub
         return null;
     }

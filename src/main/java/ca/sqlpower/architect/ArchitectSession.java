@@ -29,6 +29,7 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLDatabaseMapping;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.RunnableDispatcher;
 import ca.sqlpower.util.UserPrompterFactory;
@@ -134,4 +135,8 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
      */
     public boolean close();
     
+    /**
+     * Returns a list of {@link UserDefinedSQLType} defined in this session.
+     */
+    public List<UserDefinedSQLType> getSQLTypes();
 }

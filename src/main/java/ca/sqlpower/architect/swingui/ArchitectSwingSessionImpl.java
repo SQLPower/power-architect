@@ -86,6 +86,7 @@ import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.swingui.ModalDialogUserPrompter;
 import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
@@ -1207,5 +1208,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     public ArchitectSession getDelegateSession() {
         return delegateSession;
+    }
+
+    public List<UserDefinedSQLType> getSQLTypes() {
+        return delegateSession.getSQLTypes();
     }
 }
