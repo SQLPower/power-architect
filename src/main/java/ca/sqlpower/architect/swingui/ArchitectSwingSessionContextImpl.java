@@ -172,6 +172,10 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
             if (showGUI) {
                 session.initGUI();
+                if (externalLifecycleListener != null) {
+                    externalLifecycleListener.sessionOpening(
+                            new SessionLifecycleEvent<ArchitectSwingSession>(session));
+                }
             }
         
             return session;
@@ -253,6 +257,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         
         if (initGUI) {
             swingSession.initGUI();
+            
+            if (externalLifecycleListener != null) {
+                externalLifecycleListener.sessionOpening(
+                        new SessionLifecycleEvent<ArchitectSwingSession>(swingSession));
+            }
         }
         
         return swingSession;
@@ -329,7 +338,12 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         if (showGUI) {
             logger.debug("Creating the Architect frame..."); //$NON-NLS-1$
             session.initGUI(openingSession);
-        
+
+            if (externalLifecycleListener != null) {
+                externalLifecycleListener.sessionOpening(
+                        new SessionLifecycleEvent<ArchitectSwingSession>(session));
+            }
+            
             if (openingSession == null && getSessions().size() == 1) {
                 showWelcomeScreen(session.getArchitectFrame());
             }
@@ -365,8 +379,21 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
                 System.exit(0);
             }
         }
+
+        public void sessionOpening(SessionLifecycleEvent<ArchitectSession> e) {
+        }
     };
 
+    /**
+     * Provides a way for architect enterprise to have at the sessions as they are
+     * created and distroyed.
+     */
+    private SessionLifecycleListener<ArchitectSwingSession> externalLifecycleListener = null;
+    
+    public void setExternalLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> externalLifecycleListener) {
+        this.externalLifecycleListener = externalLifecycleListener;
+    }
+    
     /**
      * Defaults to false, which is required by the interface spec.
      */

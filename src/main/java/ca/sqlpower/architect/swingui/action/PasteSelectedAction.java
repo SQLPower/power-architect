@@ -63,6 +63,9 @@ public class PasteSelectedAction extends AbstractArchitectAction {
             public void sessionClosing(SessionLifecycleEvent<ArchitectSession> e) {
                 session.getPlayPen().removeFocusListener(focusListener);
             }
+
+            public void sessionOpening(SessionLifecycleEvent<ArchitectSession> e) {
+            }
         };
         session.addSessionLifecycleListener(lifecycleListener);
     }

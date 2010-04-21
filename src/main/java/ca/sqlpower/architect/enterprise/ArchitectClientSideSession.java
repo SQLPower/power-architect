@@ -279,6 +279,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 			public void sessionClosing(SessionLifecycleEvent<ArchitectSession> e) {
 				SQLPowerUtils.unlistenToHierarchy(getWorkspace(), listener);
 			}
+
+            public void sessionOpening(SessionLifecycleEvent<ArchitectSession> e) {
+            }
 		});
 	}
 	
