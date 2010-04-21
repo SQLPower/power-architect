@@ -168,6 +168,9 @@ public class OLAPEditSession implements SPListener {
             public void sessionClosing(SessionLifecycleEvent<ArchitectSession> e) {
                 close();
             }
+
+            public void sessionOpening(SessionLifecycleEvent<ArchitectSession> e) {
+            }
         });
         //Don't initialize GUI here for cases where the Architect's frame has not been created (like loading).
     }

@@ -818,7 +818,7 @@ public class ArchitectFrame extends JFrame {
         menuBar.add(olapMenu);
 
         // Enterprise stuff ...
-        JMenu enterpriseMenu = new JMenu("Enterprise");
+        enterpriseMenu = new JMenu("Enterprise");
         enterpriseMenu.add(openServerManagerAction);
         enterpriseMenu.add(openProjectManagerAction);
         openRevisionListAction.setEnabled(session.isEnterpriseSession());
@@ -900,6 +900,12 @@ public class ArchitectFrame extends JFrame {
         return menuBar;        
     }
    
+    private JMenu enterpriseMenu;
+    
+    public JMenu getEnterpriseMenu() {
+        return enterpriseMenu;
+    }
+    
     private JMenu buildOLAPEditMenu() {
         JMenu menu = new JMenu(Messages.getString("ArchitectFrame.editSchemaMenu")); //$NON-NLS-1$
         menu.add(new JMenuItem(new OLAPEditAction(session, null)));
