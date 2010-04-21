@@ -36,7 +36,24 @@ Here are the requirements we have to satisfy (or at least balance) in SQL Power 
 = Ideas =
 
   # Let the session be an ExecutorService, and do all object model manipulations by passing Runnables or Callables into it
-    * Compatible with both the Swing and Servlet threading models
-    * Easy migration for existing SPSwingWorkers (could even allow an equivalent API such as BackgroundTask with setup() runBackground() and cleanup() and accept Runnable, Callable, or BackgroundJob tasks)
-
-  # Think about the Actors model? (This is probably too much to be considered an incremental change, and may even be impossible to reconcile with the Swing thread model)
+    * Advantages:
+      * Compatible with both the Swing and Servlet threading models
+      * Easy migration for existing SPSwingWorkers (could even allow an equivalent API such as BackgroundTask with setup() runBackground() and cleanup() and accept Runnable, Callable, or BackgroundJob tasks)
+      * Advantage: no explicit use of threads or locking by client code
+    * Disadvantages:
+      * For simplicity and completeness, would have to migrate all SPSwingWorkers in all apps to this new model
+  # Use an AWT-style tree lock, but use read-write locks rather than exclusive locks
+    * Advantages:
+      * Allows fine-grained locking by clients who are only interested in a subset of the model
+      * Compatible with Swing and Servlet threading models
+    * Disadvantages:
+      * client code must explicitly make the proper locks
+      * deadlocks possible unless order of lock acquisition is carefully controlled
+  # Mutli-version Concurrency Control
+    * Advantages:
+      * Better than read-write locks, because writers won't block readers and readers won't block anything
+      * Simple concurrency model for use by clients
+    * Disadvantages:
+      * Probably too complex to implement in the available time: how can we make long-lived model objects that support listeners versionable?
+  # Think about the Actors model?
+    * This is probably too much to be considered an incremental change, and may even be impossible to reconcile with the Swing thread model
