@@ -20,9 +20,11 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
 import java.beans.PropertyChangeEvent;
+import java.util.HashMap;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -38,13 +40,14 @@ import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
 import ca.sqlpower.swingui.ColorCellRenderer;
 import ca.sqlpower.swingui.ColourScheme;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
 
-public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel {
+public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPListener {
     
     private static final Logger logger = Logger.getLogger(TableEditPanel.class);
 
@@ -52,6 +55,7 @@ public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel
      * The frame which this table edit panel resides in.
      */
     private JDialog editDialog;
+    private JPanel panel;
 	protected SQLTable table;
 	JTextField logicalName;
 	JTextField physicalName;
@@ -65,43 +69,49 @@ public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel
 	private final ArchitectSwingSession session;
 	private final TablePane tp;
 	
+	final HashMap<String, PropertyChangeEvent> propertyConflicts = new HashMap<String, PropertyChangeEvent>();
+	
+	final HashMap<String, JComponent> propertyFields = new HashMap<String, JComponent>();
+
+	
 	public TableEditPanel(ArchitectSwingSession session, SQLTable t) {
-		super(new FormLayout());
+		this.panel = new JPanel(new FormLayout());
 		this.session = session;
 		this.tp = session.getPlayPen().findTablePane(t);
-        add(new JLabel(Messages.getString("TableEditPanel.tableLogicalNameLabel"))); //$NON-NLS-1$
-        add(logicalName = new JTextField("", 30)); //$NON-NLS-1$
-        add(new JLabel(Messages.getString("TableEditPanel.tablePhysicalNameLabel"))); //$NON-NLS-1$
-        add(physicalName = new JTextField("", 30)); //$NON-NLS-1$
-		add(new JLabel(Messages.getString("TableEditPanel.primaryKeyNameLabel"))); //$NON-NLS-1$
-		add(pkName = new JTextField("", 30)); //$NON-NLS-1$
-		add(new JLabel(Messages.getString("TableEditPanel.remarksLabel"))); //$NON-NLS-1$
-		add(new JScrollPane(remarks = new JTextArea(4, 30)));
+		if (tp != null) tp.addSPListener(this);
+        panel.add(new JLabel(Messages.getString("TableEditPanel.tableLogicalNameLabel"))); //$NON-NLS-1$
+        panel.add(logicalName = new JTextField("", 30)); //$NON-NLS-1$        
+        panel.add(new JLabel(Messages.getString("TableEditPanel.tablePhysicalNameLabel"))); //$NON-NLS-1$
+        panel.add(physicalName = new JTextField("", 30)); //$NON-NLS-1$
+		panel.add(new JLabel(Messages.getString("TableEditPanel.primaryKeyNameLabel"))); //$NON-NLS-1$
+		panel.add(pkName = new JTextField("", 30)); //$NON-NLS-1$
+		panel.add(new JLabel(Messages.getString("TableEditPanel.remarksLabel"))); //$NON-NLS-1$
+		panel.add(new JScrollPane(remarks = new JTextArea(4, 30)));
 		remarks.setLineWrap(true);
 		remarks.setWrapStyleWord(true);
 		
-		add(new JLabel(Messages.getString("TableEditPanel.tableColourLabel"))); //$NON-NLS-1$
+		panel.add(new JLabel(Messages.getString("TableEditPanel.tableColourLabel"))); //$NON-NLS-1$		
 		ColorCellRenderer renderer = new ColorCellRenderer(40, 20);
 		bgColor = new JComboBox(ColourScheme.BACKGROUND_COLOURS);
         bgColor.setRenderer(renderer);
         bgColor.addItem(new Color(240, 240, 240));
-		add(bgColor);
+		panel.add(bgColor);
 		
-		add(new JLabel(Messages.getString("TableEditPanel.textColourLabel"))); //$NON-NLS-1$
+		panel.add(new JLabel(Messages.getString("TableEditPanel.textColourLabel"))); //$NON-NLS-1$
 		fgColor = new JComboBox(ColourScheme.FOREGROUND_COLOURS);
         fgColor.setRenderer(renderer);
         fgColor.addItem(Color.BLACK);
-        add(fgColor);
+        panel.add(fgColor);
         
-        add(new JLabel(Messages.getString("TableEditPanel.dashedLinesLabel"))); //$NON-NLS-1$
-        add(dashed = new JCheckBox());
-        add(new JLabel(Messages.getString("TableEditPanel.roundedCornersLabel"))); //$NON-NLS-1$
-        add(rounded = new JCheckBox());        
+        panel.add(new JLabel(Messages.getString("TableEditPanel.dashedLinesLabel"))); //$NON-NLS-1$
+        panel.add(dashed = new JCheckBox());
+        panel.add(new JLabel(Messages.getString("TableEditPanel.roundedCornersLabel"))); //$NON-NLS-1$
+        panel.add(rounded = new JCheckBox());
         
 		editTable(t);
 	}
 
-	private void editTable(SQLTable t) {
+    private void editTable(SQLTable t) {
 		table = t;
 		logicalName.setText(t.getName());
 		physicalName.setText(t.getPhysicalName());
@@ -112,7 +122,7 @@ public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel
                 pkName.setText(t.getPrimaryKeyName());
                 pkName.setEnabled(true);
             }
-            SQLPowerUtils.listenToHierarchy(session.getRootObject(), this);
+            SQLPowerUtils.listenToHierarchy(session.getRootObject(), this);            
         } catch (SQLObjectException e) {
             throw new SQLObjectRuntimeException(e);
         }
@@ -130,6 +140,7 @@ public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
 	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
+	    if (tp != null) tp.removeSPListener(this);
 		table.begin(Messages.getString("TableEditPanel.compoundEditName"));		 //$NON-NLS-1$
         try {	
 		    StringBuffer warnings = new StringBuffer();
@@ -177,7 +188,7 @@ public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel
                 }
                 return true;
             } else {
-                JOptionPane.showMessageDialog(this,warnings.toString());
+                JOptionPane.showMessageDialog(panel,warnings.toString());
                 //this is done so we can go back to this dialog after the error message
                 return false;
             }            
@@ -190,10 +201,11 @@ public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel
 
 	public void discardChanges() {
 	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
+	    if (tp != null) tp.removeSPListener(this);
 	}
 	
 	public JPanel getPanel() {
-		return this;
+		return panel;
 	}
 	
 	 /**
@@ -261,6 +273,7 @@ public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel
         logger.debug("SQLObject children got removed: " + e); //$NON-NLS-1$
         if (table.equals(e.getChild())) {
             SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
+            tp.removeSPListener(this);
             if (editDialog != null) {
                 editDialog.dispose();
             }
@@ -268,7 +281,34 @@ public class TableEditPanel extends JPanel implements SPListener, DataEntryPanel
     }
 
     public void propertyChanged(PropertyChangeEvent e) {
-        // no-op
+        String property = e.getPropertyName();
+        
+        boolean foundError = false;
+        
+        if (e.getSource() == table) {
+            if (property.equals("name")) {
+                foundError = DataEntryPanelChangeUtil.incomingChange(logicalName, e);
+            } else if (property.equals("physicalName")) {
+                foundError = DataEntryPanelChangeUtil.incomingChange(physicalName, e);
+            } else if (property.equals("pkName")) {
+                foundError = DataEntryPanelChangeUtil.incomingChange(pkName, e);
+            } else if (property.equals("remarks")) {   
+                foundError = DataEntryPanelChangeUtil.incomingChange(remarks, e);
+            }
+        } else if (e.getSource() == tp) {
+            if (property.equals("backgroundColor")) {
+                foundError = DataEntryPanelChangeUtil.incomingChange(bgColor, e);
+            } else if (property.equals("foregroundColor")) {
+                foundError = DataEntryPanelChangeUtil.incomingChange(fgColor, e);
+            } else if (property.equals("rounded")) {
+                foundError = DataEntryPanelChangeUtil.incomingChange(rounded, e);
+            } else if (property.equals("dashed")) {
+                foundError = DataEntryPanelChangeUtil.incomingChange(dashed, e);
+            }
+        }
+        if (foundError) {
+            setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+        }
     }
     
     public void transactionStarted(TransactionEvent e) {

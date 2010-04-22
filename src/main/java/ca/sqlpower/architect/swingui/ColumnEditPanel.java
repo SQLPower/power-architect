@@ -27,6 +27,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.beans.PropertyChangeEvent;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,9 +69,11 @@ import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLType;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
+import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -81,7 +84,7 @@ import com.jgoodies.forms.layout.RowSpec;
  * of one or more columns. The user interface is slightly different in multi-column
  * edit mode.
  */
-public class ColumnEditPanel implements ActionListener, DataEntryPanel {
+public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements ActionListener, SPListener {
     
     private static final Logger logger = Logger.getLogger(ColumnEditPanel.class);
 
@@ -90,7 +93,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
     /**
      * The column we're editing.
      */
-    private final Collection<SQLColumn> columns;
+    private final List<SQLColumn> columns;
     
     private final JPanel panel;
 
@@ -150,7 +153,6 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
 
     private final ArchitectSession session;
 
-    
     public ColumnEditPanel(SQLColumn col, ArchitectSwingSession session) throws SQLObjectException {
         this(Collections.singleton(col), session);
     }
@@ -166,7 +168,14 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         if (cols == null || cols.isEmpty()) {
             throw new NullPointerException("Null or empty collection of columns is not allowed"); //$NON-NLS-1$
         }
-        columns = new ArrayList<SQLColumn>(cols);
+        columns = new ArrayList<SQLColumn>(cols);              
+        
+//        if (columns.get(0).getParent() != null) {
+//            columns.get(0).getParent().getPrimaryKeyIndex().addSPListener(this);
+//            for (SQLColumn col : columns) {
+//                col.addSPListener(this);
+//            }
+//        }
         
         FormLayout layout = new FormLayout(
                 "pref, pref:grow, 4dlu, pref, pref:grow",
@@ -287,7 +296,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
         }
-        panel.add(colInPK = new JCheckBox(Messages.getString("ColumnEditPanel.inPrimaryKey")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
+        panel.add(colInPK = new JCheckBox(Messages.getString("ColumnEditPanel.inPrimaryKey")), cc.xyw(2, row++, 4)); //$NON-NLS-1$        
         componentEnabledMap.put(colInPK, cb);
         colInPK.addActionListener(this);
         colInPK.addActionListener(checkboxEnabler);
@@ -425,6 +434,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         colPhysicalName.selectAll();
         
         SQLPowerUtils.listenToHierarchy(session.getRootObject(), obsolesenceListener);
+        SQLPowerUtils.listenToHierarchy(session.getRootObject(), this);
         panel.addAncestorListener(cleanupListener);
     }
 
@@ -717,6 +727,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      * enter on a text field.
      */
     public boolean applyChanges() {
+        SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
         List<String> errors = updateModel();
         if (!errors.isEmpty()) {
             JOptionPane.showMessageDialog(panel, errors.toString());
@@ -730,7 +741,7 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
      * Does nothing. The column's properties will not have been modified.
      */
     public void discardChanges() {
-        // nothing to do
+        SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
     }
 
     /* docs inherit from interface */
@@ -881,10 +892,75 @@ public class ColumnEditPanel implements ActionListener, DataEntryPanel {
         public void ancestorMoved(AncestorEvent event) { /* don't care */ }
 
         public void ancestorRemoved(AncestorEvent event) {
-            SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), obsolesenceListener);
+            SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), obsolesenceListener);            
         }
     };
-    
+
+    public void childAdded(SPChildEvent e) {
+        try {
+            if (e.getSource() == columns.get(0).getParent().getPrimaryKeyIndex()) {
+                // The column that was added may not be the one at index 0, but
+                // e.getChild() is a copied column, and it doesn't matter
+                // so long as a change is flagged, which it will be.
+                propertyChanged(new PropertyChangeEvent(columns.get(0), "inPK", false, true));
+            }
+        } catch (SQLObjectException ex) {            
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public void childRemoved(SPChildEvent e) {
+        try {
+            if (e.getSource() == columns.get(0).getParent().getPrimaryKeyIndex()) {
+                propertyChanged(new PropertyChangeEvent(columns.get(0), "inPK", true, false));
+            }
+        } catch (SQLObjectException ex) {            
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public void propertyChanged(PropertyChangeEvent e) {
+        if (columns.contains(e.getSource())) {
+            String property = e.getPropertyName();
+            if (property.equals("name")) {
+                DataEntryPanelChangeUtil.incomingChange(colLogicalName, e);
+            } else if (property.equals("physicalName")) {                
+                DataEntryPanelChangeUtil.incomingChange(colPhysicalName, e);
+            } else if (property.equals("type")) {
+                DataEntryPanelChangeUtil.incomingChange(colType, e);
+            } else if (property.equals("precision")) {
+                DataEntryPanelChangeUtil.incomingChange(colPrec, e);
+            } else if (property.equals("scale")) {                            
+                DataEntryPanelChangeUtil.incomingChange(colScale, e);
+            } else if (property.equals("inPK")) {
+                DataEntryPanelChangeUtil.incomingChange(colInPK, e);
+            } else if (property.equals("isNullable")) {                                        
+                DataEntryPanelChangeUtil.incomingChange(colNullable, e);
+            } else if (property.equals("autoIncrement")) {
+                DataEntryPanelChangeUtil.incomingChange(colAutoInc, e);
+            } else if (property.equals("autoIncrementSequenceName")) {
+                DataEntryPanelChangeUtil.incomingChange(colAutoIncSequenceName, e);
+            } else if (property.equals("remarks")) {
+                DataEntryPanelChangeUtil.incomingChange(colRemarks, e);
+            } else if (property.equals("defaultValue")) { 
+                DataEntryPanelChangeUtil.incomingChange(colDefaultValue, e);
+            } else return;
+            setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+        }       
+    }
+
+    public void transactionEnded(TransactionEvent e) {
+        //no-op
+    }
+
+    public void transactionRollback(TransactionEvent e) {
+        //no-op
+    }
+
+    public void transactionStarted(TransactionEvent e) {
+        //no-op
+    }
+
 
 
 }

@@ -105,9 +105,8 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 	private void makeDialog(SQLRelationship sqr) {
 		logger.debug("making edit relationship dialog"); //$NON-NLS-1$
 		
-        RelationshipEditPanel editPanel = new RelationshipEditPanel(session);
-		editPanel.setRelationship(sqr);
-
+		Relationship r = session.getPlayPen().getSelectedRelationShips().get(0);
+        RelationshipEditPanel editPanel = new RelationshipEditPanel(r);
         ColumnMappingPanel mappingPanel = new ColumnMappingPanel(session, sqr);
         
         TabbedDataEntryPanel panel = new TabbedDataEntryPanel();
