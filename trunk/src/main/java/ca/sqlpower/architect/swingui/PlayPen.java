@@ -1214,6 +1214,16 @@ public class PlayPen extends JPanel
         return tableNames;
     }
     
+    /**
+     * Reconstructs the set of table names by going through all the tables.
+     */
+    public void resetTableNames() {
+        tableNames.clear();
+        for (TablePane tp : contentPane.getChildren(TablePane.class)) {
+            tableNames.add(tp.getModel().getName().toLowerCase());
+        }
+    }
+    
 	/**
 	 * Returns the number of components in this PlayPen's
 	 * PlayPenContentPane.
@@ -1564,6 +1574,7 @@ public class PlayPen extends JPanel
 				// reset iterator
 				Iterator<SQLObject> soIt = sqlObjects.iterator();
 
+				resetTableNames();
 				while (soIt.hasNext() && !isCancelled()) {
 					SQLObject someData = soIt.next();
 					DuplicateProperties duplicateProperties = ASUtils.createDuplicateProperties(getSession(), someData);
