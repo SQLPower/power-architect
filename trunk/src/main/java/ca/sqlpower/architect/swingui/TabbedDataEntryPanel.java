@@ -26,7 +26,10 @@ import javax.swing.JTabbedPane;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
+import ca.sqlpower.swingui.ChangeListeningDataEntryPanel.ErrorTextListener;
 
 /**
  * The TabbedDataEntryPanel aggregates one or more DataEntryPanel
@@ -35,7 +38,7 @@ import ca.sqlpower.swingui.DataEntryPanel;
  * that "do the right thing" by broadcasting the corresponding request
  * to all the panels being managed by the current instance.
  */
-public class TabbedDataEntryPanel implements DataEntryPanel {
+public class TabbedDataEntryPanel extends ChangeListeningDataEntryPanel implements ErrorTextListener {
 
     private static final Logger logger = Logger.getLogger(TabbedDataEntryPanel.class);
     
@@ -61,6 +64,9 @@ public class TabbedDataEntryPanel implements DataEntryPanel {
     public void addTab(String name, DataEntryPanel panel) {
         tabbedPane.addTab(name, panel.getPanel());
         panels.add(panel);
+        if (panel instanceof ChangeListeningDataEntryPanel) {
+            ((ChangeListeningDataEntryPanel) panel).addErrorTextListener(this);
+        }
     }
     
     /**
@@ -103,6 +109,23 @@ public class TabbedDataEntryPanel implements DataEntryPanel {
             }
         }
         return false;
+    }
+
+    public void textChanged(String s) {
+        setErrorText(s);
+        
+        // Set the background color of error tabs.
+        for (DataEntryPanel p : panels) {
+            if (p instanceof ChangeListeningDataEntryPanel) {
+                String errorText = ((ChangeListeningDataEntryPanel) p).getErrorText();
+                if (errorText != null && !errorText.equals("")) {
+                    int index = tabbedPane.indexOfComponent(p.getPanel());
+                    if (index >= 0) {
+                        tabbedPane.setBackgroundAt(index, DataEntryPanelChangeUtil.DARK_NONCONFLICTING_COLOR);
+                    }
+                }
+            }
+        }
     }
 
 }

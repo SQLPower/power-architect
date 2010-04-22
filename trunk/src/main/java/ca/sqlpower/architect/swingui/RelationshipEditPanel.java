@@ -20,7 +20,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
-import java.util.List;
+import java.beans.PropertyChangeEvent;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -36,23 +36,24 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
 import ca.sqlpower.swingui.ColorCellRenderer;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class RelationshipEditPanel extends AbstractPoolingSPListener implements DataEntryPanel {
+public class RelationshipEditPanel extends ChangeListeningDataEntryPanel implements SPListener {
 
 	private static final Logger logger = Logger.getLogger(RelationshipEditPanel.class);
 
@@ -111,21 +112,14 @@ public class RelationshipEditPanel extends AbstractPoolingSPListener implements 
     private JRadioButton deleteNoAction;
     private JRadioButton deleteSetDefault;
     
-    private JComboBox relationLineColor;
-
-    private ArchitectSession session;
+    private Relationship relationshipLine;
+    private JComboBox relationLineColor;    
+    private Color color;  
     
-    private Color color;
-
-    private List<Relationship> relationshipLines;
-    
-	public RelationshipEditPanel(ArchitectSwingSession session) {
-	    this.session = session;
+	public RelationshipEditPanel(Relationship r) {
         
-        relationshipLines = session.getPlayPen().getSelectedRelationShips();
-        //Since now can only select one relationship to edit at the same time,
-        //so the number of selected relationships is only 1. 
-        this.color = relationshipLines.get(0).getForegroundColor();
+	    relationshipLine = r;
+        this.color = relationshipLine.getForegroundColor();
         
         FormLayout layout = new FormLayout("pref, 4dlu, pref:grow, 4dlu, pref, 4dlu, pref:grow, 4dlu, pref"); //$NON-NLS-1$
         layout.setColumnGroups(new int[][] { { 3, 7 } });
@@ -238,6 +232,8 @@ public class RelationshipEditPanel extends AbstractPoolingSPListener implements 
         deleteRuleGroup.add(deleteSetDefault);
         fb.nextLine();
         
+        setRelationship(r.getModel());
+        
         //TODO  Doesn't work!
         relationshipName.selectAll();
         
@@ -246,7 +242,7 @@ public class RelationshipEditPanel extends AbstractPoolingSPListener implements 
 	}
 
 
-	public void setRelationship(SQLRelationship r) {
+	private void setRelationship(SQLRelationship r) {
 		this.relationship = r;
 		relationshipName.setText(r.getName());
 		pkLabelTextField.setText(r.getTextForParentLabel());
@@ -310,15 +306,24 @@ public class RelationshipEditPanel extends AbstractPoolingSPListener implements 
             deleteSetNull.setSelected(true);
         }
 
-		relationshipName.selectAll();
-		
-		SQLPowerUtils.listenToHierarchy(session.getRootObject(), this);
+		relationshipName.selectAll();		
+		addListeners();
+	}
+	
+	private void addListeners() {
+	    SQLPowerUtils.listenToHierarchy(relationship.getParent(), this);
+        relationshipLine.addSPListener(this);    
+	}
+	
+	private void removeListeners() {
+	    SQLPowerUtils.unlistenToHierarchy(relationship.getParent(), this);
+        relationshipLine.removeSPListener(this); 
 	}
 
 	// ------------------ ARCHITECT PANEL INTERFACE ---------------------
 	
 	public boolean applyChanges() {
-	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
+	    removeListeners();
 		try {
 		    relationship.begin(Messages.getString("RelationshipEditPanel.modifyRelationshipProperties")); //$NON-NLS-1$
 			relationship.setName(relationshipName.getText());
@@ -332,61 +337,14 @@ public class RelationshipEditPanel extends AbstractPoolingSPListener implements 
 			} catch (SQLObjectException ex) {
 				logger.warn("Call to setIdentifying failed. Continuing with other properties.", ex); //$NON-NLS-1$
 			}
+					
+			relationshipLine.setForegroundColor((Color)relationLineColor.getSelectedItem());
 			
-			for(Relationship r: relationshipLines) {
-			    // set the color of relationship lines
-                r.setForegroundColor((Color)relationLineColor.getSelectedItem());
-            }
-			
-			if (pkTypeZeroOne.isSelected()) {
-				relationship.setPkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE);
-			} else if (pkTypeZeroToMany.isSelected()) {
-				relationship.setPkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE | SQLRelationship.MANY);
-			} else if (pkTypeOneToMany.isSelected()) {
-				relationship.setPkCardinality(SQLRelationship.ONE | SQLRelationship.MANY);
-			} else if (pkTypeOne.isSelected()) {
-				relationship.setPkCardinality(SQLRelationship.ONE);
-			}
-			
-			if (fkTypeZeroOne.isSelected()) {
-				relationship.setFkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE);
-			} else if (fkTypeZeroToMany.isSelected()) {
-				relationship.setFkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE | SQLRelationship.MANY);
-			} else if (fkTypeOneToMany.isSelected()) {
-				relationship.setFkCardinality(SQLRelationship.ONE | SQLRelationship.MANY);
-			}
-            
-            if (notDeferrable.isSelected()) {
-                relationship.setDeferrability(Deferrability.NOT_DEFERRABLE);
-            } else if (initiallyDeferred.isSelected()) {
-                relationship.setDeferrability(Deferrability.INITIALLY_DEFERRED);
-            } else if (initiallyImmediate.isSelected()) {
-                relationship.setDeferrability(Deferrability.INITIALLY_IMMEDIATE);
-            }
-            
-            if (updateCascade.isSelected()) {
-                relationship.setUpdateRule(UpdateDeleteRule.CASCADE);
-            } else if (updateNoAction.isSelected()) {
-                relationship.setUpdateRule(UpdateDeleteRule.NO_ACTION);
-            } else if (updateRestrict.isSelected()) {
-                relationship.setUpdateRule(UpdateDeleteRule.RESTRICT);
-            } else if (updateSetDefault.isSelected()) {
-                relationship.setUpdateRule(UpdateDeleteRule.SET_DEFAULT);
-            } else if (updateSetNull.isSelected()) {
-                relationship.setUpdateRule(UpdateDeleteRule.SET_NULL);
-            }
-
-            if (deleteCascade.isSelected()) {
-                relationship.setDeleteRule(UpdateDeleteRule.CASCADE);
-            } else if (deleteNoAction.isSelected()) {
-                relationship.setDeleteRule(UpdateDeleteRule.NO_ACTION);
-            } else if (deleteRestrict.isSelected()) {
-                relationship.setDeleteRule(UpdateDeleteRule.RESTRICT);
-            } else if (deleteSetDefault.isSelected()) {
-                relationship.setDeleteRule(UpdateDeleteRule.SET_DEFAULT);
-            } else if (deleteSetNull.isSelected()) {
-                relationship.setDeleteRule(UpdateDeleteRule.SET_NULL);
-            }
+			relationship.setPkCardinality(getSelectedPKCardinality());
+			relationship.setFkCardinality(getSelectedFKCardinality());
+			relationship.setDeferrability(getSelectedDeferrability());            
+            relationship.setUpdateRule(getSelectedUpdateRule());
+            relationship.setDeleteRule(getSelectedDeleteRule());
             
             relationship.commit();
 		} catch (Exception e) {
@@ -397,7 +355,7 @@ public class RelationshipEditPanel extends AbstractPoolingSPListener implements 
 	}
 
 	public void discardChanges() {
-	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
+	    removeListeners();
 	}
 
 	public JPanel getPanel() {
@@ -408,28 +366,13 @@ public class RelationshipEditPanel extends AbstractPoolingSPListener implements 
         return true;
     }
 
-    /**
-     * Checks to see if its respective relationship is removed from
-     * playpen. If yes, exit the editing dialog window.
-     */
-    public void childRemovedImpl(SPChildEvent e) {
-        logger.debug("SQLObject child was removed: "+e); //$NON-NLS-1$
-        
-        if (relationship.equals(e.getChild())) {
-            SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
-            if (editDialog != null) {
-                editDialog.dispose();
-            }
-        }
-    }
-
     public void setEditDialog(JDialog editDialog) {
         this.editDialog = editDialog;
     }
     
     Action customColour = new AbstractAction("Custom...") {
         public void actionPerformed(ActionEvent arg0) {
-            Color colour = ArchitectSwingSessionImpl.getCustomColour(relationshipLines.get(0).getForegroundColor(), panel);
+            Color colour = ArchitectSwingSessionImpl.getCustomColour(relationshipLine.getForegroundColor(), panel);
             if (colour != null) {
                 if (!containsColor(Relationship.SUGGESTED_COLOURS, colour)) {
                     relationLineColor.addItem(colour);
@@ -457,4 +400,127 @@ public class RelationshipEditPanel extends AbstractPoolingSPListener implements 
 	    }
 	    return contains;
 	}
+
+	private int getSelectedPKCardinality() {
+	    if (pkTypeZeroOne.isSelected()) {
+	        return SQLRelationship.ZERO | SQLRelationship.ONE;
+	    } else if (pkTypeZeroToMany.isSelected()) {
+	        return SQLRelationship.ZERO | SQLRelationship.ONE | SQLRelationship.MANY;
+	    } else if (pkTypeOneToMany.isSelected()) {
+	        return SQLRelationship.ONE | SQLRelationship.MANY;
+	    } else if (pkTypeOne.isSelected()) {
+	        return SQLRelationship.ONE;
+	    } else throw new IllegalStateException("No PK cardinality selected");
+	}
+
+	private int getSelectedFKCardinality() {
+	    if (fkTypeZeroOne.isSelected()) {
+	        return SQLRelationship.ZERO | SQLRelationship.ONE;
+	    } else if (fkTypeZeroToMany.isSelected()) {
+	        return SQLRelationship.ZERO | SQLRelationship.ONE | SQLRelationship.MANY;
+	    } else if (fkTypeOneToMany.isSelected()) {
+	        return SQLRelationship.ONE | SQLRelationship.MANY;        
+	    } else throw new IllegalStateException("No FK cardinality selected");
+	}
+
+	private Deferrability getSelectedDeferrability() {
+	    if (notDeferrable.isSelected()) {
+	        return Deferrability.NOT_DEFERRABLE;
+	    } else if (initiallyDeferred.isSelected()) {
+	        return Deferrability.INITIALLY_DEFERRED;
+	    } else if (initiallyImmediate.isSelected()) {
+	        return Deferrability.INITIALLY_IMMEDIATE;
+	    } else throw new IllegalStateException("No deferrability selected");
+	}
+
+	private UpdateDeleteRule getSelectedUpdateRule() {
+	    if (updateCascade.isSelected()) {
+	        return UpdateDeleteRule.CASCADE;
+	    } else if (updateNoAction.isSelected()) {
+	        return UpdateDeleteRule.NO_ACTION;
+	    } else if (updateRestrict.isSelected()) {
+	        return UpdateDeleteRule.RESTRICT;
+	    } else if (updateSetDefault.isSelected()) {
+	        return UpdateDeleteRule.SET_DEFAULT;
+	    } else if (updateSetNull.isSelected()) {
+	        return UpdateDeleteRule.SET_NULL;
+	    } else throw new IllegalStateException("No update rule selected");
+	}
+
+	private UpdateDeleteRule getSelectedDeleteRule() {
+	    if (deleteCascade.isSelected()) {
+	        return UpdateDeleteRule.CASCADE;
+	    } else if (deleteNoAction.isSelected()) {
+	        return UpdateDeleteRule.NO_ACTION;
+	    } else if (deleteRestrict.isSelected()) {
+	        return UpdateDeleteRule.RESTRICT;
+	    } else if (deleteSetDefault.isSelected()) {
+	        return UpdateDeleteRule.SET_DEFAULT;
+	    } else if (deleteSetNull.isSelected()) {
+	        return UpdateDeleteRule.SET_NULL;
+	    } else throw new IllegalStateException("No delete rule selected");
+	}
+
+    /**
+     * Checks to see if its respective relationship is removed from
+     * playpen. If yes, exit the editing dialog window.
+     */
+    public void childRemoved(SPChildEvent e) {
+        logger.debug("SQLObject child was removed: "+e); //$NON-NLS-1$        
+        if (relationship.equals(e.getChild())) {
+            removeListeners();
+            if (editDialog != null) {
+                editDialog.dispose();
+            }
+        }
+    }
+    
+    public void childAdded(SPChildEvent e) {
+        // no-op
+    }
+
+    public void propertyChanged(PropertyChangeEvent e) {
+        String property = e.getPropertyName();
+        boolean error = false;
+        if (e.getSource() == relationship) {
+            if (property.equals("name")) {
+                error = DataEntryPanelChangeUtil.incomingChange(relationshipName, e);
+            } else if (property.equals("textForParentLabel")) {
+                error = DataEntryPanelChangeUtil.incomingChange(pkLabelTextField, e);                
+            } else if (property.equals("textForChildLabel")) {
+                error = DataEntryPanelChangeUtil.incomingChange(fkLabelTextField, e);
+            } else if (property.equals("identifying")) {
+                error = DataEntryPanelChangeUtil.incomingChange(identifyingGroup, identifyingButton.isSelected(), e);
+            } else if (property.equals("pkCardinality")) {
+                error = DataEntryPanelChangeUtil.incomingChange(pkTypeGroup, getSelectedPKCardinality(), e);
+            } else if (property.equals("fkCardinality")) {
+                error = DataEntryPanelChangeUtil.incomingChange(fkTypeGroup, getSelectedFKCardinality(), e);
+            } else if (property.equals("deferrability")) {
+                error = DataEntryPanelChangeUtil.incomingChange(deferrabilityGroup, getSelectedDeferrability(), e);
+            } else if (property.equals("updateRule")) {
+                error = DataEntryPanelChangeUtil.incomingChange(updateRuleGroup, getSelectedUpdateRule(), e);
+            } else if (property.equals("deleteRule")) {
+                error = DataEntryPanelChangeUtil.incomingChange(deleteRuleGroup, getSelectedDeleteRule(), e);
+            }
+        } else if (e.getSource() == relationshipLine) {
+            if (property.equals("foregroundColor")) {
+                error = DataEntryPanelChangeUtil.incomingChange(relationLineColor, e);
+            }
+        }
+        if (error) {
+            setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+        }
+    }
+
+    public void transactionEnded(TransactionEvent e) {
+        // no-op
+    }
+
+    public void transactionRollback(TransactionEvent e) {
+        // no-op
+    }
+
+    public void transactionStarted(TransactionEvent e) {
+        // no-op
+    }
 }

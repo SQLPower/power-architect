@@ -92,7 +92,7 @@ public class CreateTableAction extends AbstractArchitectAction {
                 session.getWorkspace().rollback("Error creating table and table pane");
                 throw new RuntimeException(t);
             }
-            DataEntryPanel editPanel = null;            
+            DataEntryPanel editPanel = null;
             playpen.selectNone();
             tp.setSelected(true, SelectionEvent.SINGLE_SELECT);
 

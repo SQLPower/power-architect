@@ -20,6 +20,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,20 +35,25 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import ca.sqlpower.object.ObjectDependentException;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
+import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class IndexEditPanel extends JPanel implements DataEntryPanel {
+public class IndexEditPanel extends ChangeListeningDataEntryPanel implements SPListener {
     protected SQLIndex index;
 
     protected SQLTable parent;
@@ -66,10 +72,12 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
 
     IndexColumnTable columnsTable;
 
+    private JPanel panel;
+    
     /**
      * This session that contains this index panel.
      */
-    ArchitectSwingSession session;
+    ArchitectSwingSession session;    
 
     /**
      * Identifier for the default index type.
@@ -77,22 +85,20 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     private static String DEFAULT_INDEX_TYPE = Messages.getString("IndexEditPanel.defaultIndexType"); //$NON-NLS-1$
 
     public IndexEditPanel(SQLIndex index, ArchitectSwingSession session) throws SQLObjectException {
-        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref", //$NON-NLS-1$
-                "pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu")); //$NON-NLS-1$
-        this.session = session;
-        createGUI(index, index.getParent(), session);
+        this(index, index.getParent(), session);
     }
 
     public IndexEditPanel(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws SQLObjectException {
-        super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref", //$NON-NLS-1$
+        panel = new JPanel(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref", //$NON-NLS-1$
                 "pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu")); //$NON-NLS-1$
         this.session = session;
+        SQLPowerUtils.listenToHierarchy(index, this);
         createGUI(index, parent, session);
     }
 
     private void createGUI(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws SQLObjectException {
         this.parent = parent;
-        PanelBuilder pb = new PanelBuilder((FormLayout) this.getLayout(), this);
+        PanelBuilder pb = new PanelBuilder((FormLayout) panel.getLayout(), panel);
         CellConstraints cc = new CellConstraints();
         pb.add(new JLabel(Messages.getString("IndexEditPanel.indexName")), cc.xy(1, 1)); //$NON-NLS-1$
         pb.add(name = new JTextField("", 30), cc.xyw(3, 1, 4)); //$NON-NLS-1$
@@ -236,9 +242,9 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
      * returns true if saved, false otherwise
      */
     public boolean applyChanges() {
+        SQLPowerUtils.unlistenToHierarchy(index, this);
         columnsTable.cleanUp();
-        columnsTable.finalizeIndex();
-        
+        columnsTable.finalizeIndex();        
         // if this was done on the index, listeners would only start listening after the index has
         // been added to its parent and compound edit would not work. Compound edits belong to the parent. 
         parent.begin(Messages.getString("IndexEditPanel.compoundEditName")); //$NON-NLS-1$
@@ -286,7 +292,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                 index.cleanUpIfChildless();
                 return true;
             } else {
-                JOptionPane.showMessageDialog(this, warnings.toString());
+                JOptionPane.showMessageDialog(panel, warnings.toString());
                 //this is done so we can go back to this dialog after the error message
                 return false;
             }
@@ -302,10 +308,11 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     }
 
     public void discardChanges() {
+        SQLPowerUtils.unlistenToHierarchy(index, this);
     }
 
     public JPanel getPanel() {
-        return this;
+        return panel;
     }
 
     public String getNameText() {
@@ -319,5 +326,63 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     public boolean hasUnsavedChanges() {
         // TODO return whether this panel has been changed
         return true;
+    }
+
+    public void childAdded(SPChildEvent e) {
+        // XXX Make this actually check for a conflict or not.
+        if (e.getSource() == index) {
+            columnsTable.getTable().setBackground(DataEntryPanelChangeUtil.NONCONFLICTING_COLOR);
+            setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+        }
+    }
+
+    public void childRemoved(SPChildEvent e) {
+        // XXX Make this actually check for a conflict or not.
+        if (e.getSource() == index) {
+            columnsTable.getTable().setBackground(DataEntryPanelChangeUtil.NONCONFLICTING_COLOR);
+            setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+        }     
+    }
+
+    public void propertyChanged(PropertyChangeEvent e) {
+        String property = e.getPropertyName();
+        boolean error = false;
+        if (e.getSource() == index) {            
+            if (property.equals("name")) {
+                error = DataEntryPanelChangeUtil.incomingChange(name, e);
+            } else if (property.equals("unique")) {
+                error = DataEntryPanelChangeUtil.incomingChange(unique, e);
+            } else if (property.equals("clustered")) {
+                error = DataEntryPanelChangeUtil.incomingChange(clustered, e);
+            } else if (property.equals("type")) {
+                Object oldValue = e.getOldValue();
+                Object newValue = e.getNewValue();
+                if (oldValue == null || oldValue.equals("")) oldValue = "Platform Default";
+                if (newValue == null || oldValue.equals("")) newValue = "Platform Default"; 
+                error = DataEntryPanelChangeUtil.incomingChange(indexType, new PropertyChangeEvent(
+                        e.getSource(), e.getPropertyName(), oldValue, newValue));
+            }
+        } else if (e.getSource() instanceof Column) {            
+            if (property.equals("ascendingOrDescending")) {
+                // XXX Make this find the appropriate checkbox and highlight that.
+                columnsTable.getTable().setBackground(DataEntryPanelChangeUtil.NONCONFLICTING_COLOR);
+                error = true;
+            }
+        }
+        if (error) {
+            setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+        }
+    }
+
+    public void transactionEnded(TransactionEvent e) {
+        // no-op
+    }
+
+    public void transactionRollback(TransactionEvent e) {
+        // no-op
+    }
+
+    public void transactionStarted(TransactionEvent e) {
+        // no-op
     }
 }

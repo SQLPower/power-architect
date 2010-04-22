@@ -231,7 +231,7 @@ public class PlayPenContentPane extends AbstractSPObject {
         } else {
             components.add(pos, ppc);
         }
-        ppc.setParent(this);        
+        ppc.setParent(this);
         if (getPlayPen() != null) {
             ppc.addSelectionListener(getPlayPen());
         }

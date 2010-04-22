@@ -28,6 +28,7 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,13 +40,18 @@ import javax.swing.JScrollPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.object.ObjectDependentException;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
+import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
+import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
 /**
  * The ColumnMappingPanel presents a GUI for viewing and modifying
@@ -57,7 +63,7 @@ import ca.sqlpower.swingui.DataEntryPanel;
  * new Relationship, throw it at this editor, then examine its mappings
  * to build up any kind of mapping you want.
  */
-public class ColumnMappingPanel implements DataEntryPanel {
+public class ColumnMappingPanel extends ChangeListeningDataEntryPanel implements SPListener {
 
     private static final Logger logger = Logger.getLogger(ColumnMappingPanel.class);
     
@@ -296,6 +302,8 @@ public class ColumnMappingPanel implements DataEntryPanel {
      * The panel that contains the GUI.
      */
     private final CustomPanel panel = new CustomPanel();
+    
+    private final JScrollPane scrollPane;
 
     /**
      * Tracks whether or not any edits have been made on this panel.
@@ -324,6 +332,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
         PlayPen pp = new PlayPen(session);
         lhsTable = new TablePane(r.getPkTable(), pp.getContentPane());
         rhsTable = new TablePane(r.getFkTable(), pp.getContentPane());
+        SQLPowerUtils.listenToHierarchy(lhsTable.getModel().getParent(), this);
         
         // The playpen constructor hooks the playpen in as a hierarchy listener
         // on the entire SQLObject tree.  Since we're not even using the playpen,
@@ -332,10 +341,11 @@ public class ColumnMappingPanel implements DataEntryPanel {
         
         lhsTable.setLocation(1, 1);
         rhsTable.setLocation(lhsTable.getWidth() + gap, 1);
-        updateMappingsFromRelationship();
+        updateMappingsFromRelationship();        
         MouseHandler mouseHandler = new MouseHandler();
         panel.addMouseListener(mouseHandler);
         panel.addMouseMotionListener(mouseHandler);
+        scrollPane = new JScrollPane(panel);
         
         colourOtherRelationships();
     }
@@ -365,7 +375,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
      * Updates the ColumnMapping children in {@link #r} to match those in this
      * panel's internal representation of the mappings.
      */
-    public void updateRelationshipFromMappings() throws SQLObjectException {
+    private void updateRelationshipFromMappings() throws SQLObjectException {
         try {
             r.begin("Modify Column Mappings"); //$NON-NLS-1$
             logger.debug("Removing all mappings from relationship..."); //$NON-NLS-1$
@@ -390,7 +400,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
      * Updates this panel's internal representation of the mappings to
      * match those in {@link #r}.
      */
-    public void updateMappingsFromRelationship() {
+    private void updateMappingsFromRelationship() {
         mappings = new HashMap<SQLColumn, SQLColumn>();
         for (SQLRelationship.ColumnMapping cm : r.getChildren(
                 SQLRelationship.ColumnMapping.class)) {
@@ -415,7 +425,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
     }
 
     public JComponent getPanel() {
-        return new JScrollPane(panel);
+        return scrollPane;
     }
 
     public boolean hasUnsavedChanges() {
@@ -427,7 +437,82 @@ public class ColumnMappingPanel implements DataEntryPanel {
      * during the creation of this instance.
      */
     private void cleanup() {
+        SQLPowerUtils.unlistenToHierarchy(lhsTable.getModel().getParent(), this);
         lhsTable.destroy();
         rhsTable.destroy();
+    }
+
+    public void childAdded(SPChildEvent e) {
+        panel.repaint();
+        if (e.getSource() instanceof SQLTable && 
+                (e.getChild() instanceof SQLRelationship || e.getChild() instanceof SQLImportedKey)) {
+            TablePane tp;
+            if (lhsTable.getModel() == e.getSource()) tp = rhsTable;
+            else if (rhsTable.getModel() == e.getSource()) tp = lhsTable;
+            else return;
+            updateMappingsFromRelationship();
+            tp.setBackgroundColor(DataEntryPanelChangeUtil.NONCONFLICTING_COLOR);
+            setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+        } else if (e.getChild() instanceof ColumnMapping) {
+            ColumnMapping cm = (ColumnMapping) e.getChild();
+            for (TablePane tp : new TablePane[] {lhsTable, rhsTable}) {                    
+                for (SQLColumn c : new SQLColumn[] {cm.getPkColumn(), cm.getFkColumn()}) {
+                    try {
+                        if (tp.getModel().getColumns().contains(c)) {
+                            updateMappingsFromRelationship();
+                            tp.addColumnHighlight(c, DataEntryPanelChangeUtil.DARK_NONCONFLICTING_COLOR);
+                            setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+                        }
+                    } catch (SQLObjectException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            }
+        }
+    }
+
+    public void childRemoved(SPChildEvent e) {
+        panel.repaint();
+        if (e.getSource() instanceof SQLTable && 
+                (e.getChild() instanceof SQLRelationship || e.getChild() instanceof SQLImportedKey)) {
+            TablePane tp;
+            if (lhsTable.getModel() == e.getSource()) tp = rhsTable;
+            else if (rhsTable.getModel() == e.getSource()) tp = lhsTable;
+            else return;
+            updateMappingsFromRelationship();
+            tp.setBackgroundColor(DataEntryPanelChangeUtil.NONCONFLICTING_COLOR);
+            setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+        } else if (e.getChild() instanceof ColumnMapping) {
+            ColumnMapping cm = (ColumnMapping) e.getChild();
+            for (TablePane tp : new TablePane[] {lhsTable, rhsTable}) {                    
+                for (SQLColumn c : new SQLColumn[] {cm.getPkColumn(), cm.getFkColumn()}) {
+                    try {
+                        if (tp.getModel().getColumns().contains(c)) {
+                            updateMappingsFromRelationship();
+                            tp.addColumnHighlight(c, DataEntryPanelChangeUtil.DARK_NONCONFLICTING_COLOR);
+                            setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+                        }
+                    } catch (SQLObjectException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            }
+        }
+    }
+
+    public void propertyChanged(PropertyChangeEvent e) {
+        panel.repaint();      
+    }
+
+    public void transactionEnded(TransactionEvent e) {
+        // no-op
+    }
+
+    public void transactionRollback(TransactionEvent e) {
+        // no-op
+    }
+
+    public void transactionStarted(TransactionEvent e) {
+        // no-op
     }
 }
