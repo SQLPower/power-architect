@@ -196,7 +196,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 
                 //If the preconditions failed which caused the persist to fail don't try to 
                 //push the persist forward again.
-                if (!response.isSuccessful() && new Integer(412).equals(response.getStatusCode())) {
+                if (!response.isSuccessful() && response.getStatusCode() == 412) {
                     logger.info("Friendly error occurred, " + response);
                     if (promptSession != null) {
                         promptSession.createUserPrompter(
@@ -282,14 +282,22 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                        synchronized (this) {
                            wait();
                        }
-                   }
-                   
-                   updating = true;
-                   
-                   // Request an update from the server using the current revision number.
+                   }                   
+                   updating = true;                   
+                   // Request an update from the server using the current revision number.                   
                    JSONMessage message = getJsonArray(inboundHttpClient);
-                   // The updater may have been interrupted/closed while waiting for an update.
+                   
+                   // Status 410 (Gone) means the workspace was deleted                   
+                   if (message.getStatusCode() == 410) {
+                       for (UpdateListener listener : updateListeners) {
+                           listener.workspaceDeleted();                           
+                       }
+                       updateListeners.clear();
+                       interrupt();
+                   }                   
+                   // The updater may have been interrupted/closed/deleted while waiting for an update.
                    if (this.isInterrupted() || cancelled) break;
+                   
                    final JSONObject json = new JSONObject(message.getBody());
                    session.runInForeground(new Runnable() {
                        public void run() {
@@ -539,6 +547,13 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
          */
         public boolean updatePerformed(NetworkConflictResolver resolver);
         public boolean updateException(NetworkConflictResolver resolver);
+        
+        /**
+         * Notifies listeners that the workspace was deleted.
+         * Swing sessions should listen for this to disable the enterprise session.
+         * The listener is removed after this method is called.
+         */
+        public void workspaceDeleted();
 
         /**
          * Called just before an update will be performed by the

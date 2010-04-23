@@ -1196,6 +1196,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                     public void preUpdatePerformed(NetworkConflictResolver resolver) {
                         //do nothing
                     }
+                    
+                    public void workspaceDeleted() {
+                        // do nothing
+                    }
                 });
                 
                 ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) newSession).getDelegateSession()).startUpdaterThread();

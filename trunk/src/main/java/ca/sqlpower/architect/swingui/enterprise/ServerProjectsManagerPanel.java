@@ -149,6 +149,10 @@ public class ServerProjectsManagerPanel {
                                     public void preUpdatePerformed(NetworkConflictResolver resolver) {
                                         //do nothing
                                     }
+
+                                    public void workspaceDeleted() {
+                                        refreshInfoList();
+                                    }
                                 });
                                 
                                 ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) newSession).getDelegateSession()).startUpdaterThread();
