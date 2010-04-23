@@ -143,87 +143,107 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     private void flush(boolean reflush) {
         if (postingJSON.get() && !reflush) {
             return;
-        } else {
-            postingJSON.set(true);
         }
-        // Try to send json message ...
-        JSONMessage response = null;
         try {
-            response = postJsonArray(messageBuffer.toString());
-        } catch (AccessDeniedException e) {
-            List<UpdateListener> listenersToRemove = new ArrayList<UpdateListener>();
-            for (UpdateListener listener : updateListeners) {
-                if (listener.updateException(NetworkConflictResolver.this)) {
-                    listenersToRemove.add(listener);
+            postingJSON.set(true);
+            // Try to send json message ...
+            JSONMessage response = null;
+            try {
+                response = postJsonArray(messageBuffer.toString());
+            } catch (AccessDeniedException e) {
+                List<UpdateListener> listenersToRemove = new ArrayList<UpdateListener>();
+                for (UpdateListener listener : updateListeners) {
+                    if (listener.updateException(NetworkConflictResolver.this)) {
+                        listenersToRemove.add(listener);
+                    }
                 }
+                updateListeners.removeAll(listenersToRemove);
+                if (promptSession != null) {
+                    promptSession.createUserPrompter(
+                            "You do not have sufficient privileges to perform that action. " +
+                            "Please hit the refresh button to synchonize with the server.", 
+                            UserPromptType.MESSAGE, 
+                            UserPromptOptions.OK, 
+                            UserPromptResponse.OK, 
+                            "OK", "OK").promptUser("");
+                } else {
+                    throw e;
+                }
+                return;
             }
-            updateListeners.removeAll(listenersToRemove);
-            if (promptSession != null) {
-                promptSession.createUserPrompter(
-                        "You do not have sufficient privileges to perform that action. " +
-                        "Please hit the refresh button to synchonize with the server.", 
-                        UserPromptType.MESSAGE, 
-                        UserPromptOptions.OK, 
-                        UserPromptResponse.OK, 
-                        "OK", "OK").promptUser("");
-            } else {
-                throw e;
-            }
-            return;
-        }
-        if (response.isSuccessful()) {
-            // Sent json message without conflict. 
-            try {
-                currentRevision = (new JSONObject(response.getBody())).getInt("currentRevision");
-            } catch (JSONException e) {
-                throw new RuntimeException("Could not update current revision" + e.getMessage());
-            }
-            // Prepare for next send ...
-            clear(reflush);
-        } else {
-            // Did not successfully post json, we must update ourselves, and then try again if we can. 
-            if (!reflush) {
-                // These lists should reflect the state of the workspace at the time of the conflict.
-                // The workspace could be updated several times before a successful post is made.
-                fillOutboundPersistedLists();
-            }
-            // Try to rollback our changes
-            try {
-                session.getWorkspace().rollback("Hello this is a rollback");
-            } catch (Exception e) {
-                throw new RuntimeException("Reflush failed on rollback", e);
-            }
-            String json;
-            int newRev;
-            try {
-                JSONObject jsonObject = new JSONObject(response.getBody());
-                json = jsonObject.getString("data");
-                newRev = jsonObject.getInt("currentRevision");
-            } catch (Exception e) {
-                throw new RuntimeException("Reflush failed on getJson", e);
-            }
-            // Try to create inboundPersistedLists for comparison with the outbound. These will be used
-            // for special case collision detection.
-            fillInboundPersistedLists(json);
-            // Try to apply update
-            decodeMessage(json, newRev);
-            // We need an additional step here for checking for special case conflicts
-            if (detectConflict()) {
-                throw new RuntimeException("There is a conflict between our state and the server's, our changes will be lost");
-            } else {
-                // Try to return the persisted objects to their state pre-update.
+            if (response.isSuccessful()) {
+                // Sent json message without conflict. 
                 try {
-                    SPSessionPersister.redoForSession(session.getWorkspace(), 
-                            outboundObjectsToAdd, outboundPropertiesToChange, 
-                            outboundObjectsToRemove, converter);
-                    // We want to re-send our changes, but only if we were able to restore them
-                    flush(true);
-                } catch (Exception ex) {
-                    throw new RuntimeException("Reflush failed on rollforward", ex);
+                    currentRevision = (new JSONObject(response.getBody())).getInt("currentRevision");
+                } catch (JSONException e) {
+                    throw new RuntimeException("Could not update current revision" + e.getMessage());
+                }
+                // Prepare for next send ...
+                clear(reflush);
+            } else {
+                // Did not successfully post json, we must update ourselves, and then try again if we can. 
+                if (!reflush) {
+                    // These lists should reflect the state of the workspace at the time of the conflict.
+                    // The workspace could be updated several times before a successful post is made.
+                    fillOutboundPersistedLists();
+                }
+                // Try to rollback our changes
+                try {
+                    session.getWorkspace().rollback("Hello this is a rollback");
+                } catch (Exception e) {
+                    throw new RuntimeException("Reflush failed on rollback", e);
+                }
+                
+                //If the preconditions failed which caused the persist to fail don't try to 
+                //push the persist forward again.
+                if (!response.isSuccessful() && new Integer(412).equals(response.getStatusCode())) {
+                    logger.info("Friendly error occurred, " + response);
+                    if (promptSession != null) {
+                        promptSession.createUserPrompter(
+                                response.getBody(), 
+                                UserPromptType.MESSAGE, 
+                                UserPromptOptions.OK, 
+                                UserPromptResponse.OK, 
+                                "OK", "OK").promptUser("");
+                    } else {
+                        logger.warn("Missing a prompt session! Message was " + response);
+                    }
+                    return;
+                }
+                
+                String json;
+                int newRev;
+                try {
+                    JSONObject jsonObject = new JSONObject(response.getBody());
+                    json = jsonObject.getString("data");
+                    newRev = jsonObject.getInt("currentRevision");
+                } catch (Exception e) {
+                    throw new RuntimeException("Reflush failed on getJson", e);
+                }
+                // Try to create inboundPersistedLists for comparison with the outbound. These will be used
+                // for special case collision detection.
+                fillInboundPersistedLists(json);
+                // Try to apply update
+                decodeMessage(json, newRev);
+                // We need an additional step here for checking for special case conflicts
+                if (detectConflict()) {
+                    throw new RuntimeException("There is a conflict between our state and the server's, our changes will be lost");
+                } else {
+                    // Try to return the persisted objects to their state pre-update.
+                    try {
+                        SPSessionPersister.redoForSession(session.getWorkspace(), 
+                                outboundObjectsToAdd, outboundPropertiesToChange, 
+                                outboundObjectsToRemove, converter);
+                        // We want to re-send our changes, but only if we were able to restore them
+                        flush(true);
+                    } catch (Exception ex) {
+                        throw new RuntimeException("Reflush failed on rollforward", ex);
+                    }
                 }
             }
+        } finally {
+            postingJSON.set(false);
         }
-        postingJSON.set(false);
     }
 
     public void clear() {

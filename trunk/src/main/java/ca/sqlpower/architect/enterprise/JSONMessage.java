@@ -19,13 +19,47 @@
 
 package ca.sqlpower.architect.enterprise;
 
+/**
+ * A class that holds JSON and other response values for a response from a
+ * server.
+ */
 public class JSONMessage {
     private final String message;
     private final boolean successful;
     
+    /**
+     * The status code of the response if it had one. If the response is just
+     * text this may be null.
+     */
+    private final Integer statusCode;
+
+    /**
+     * @param message
+     *            The body of the response from the server. This may be but is
+     *            not limited to: an error message, exception, or JSON of
+     *            persist calls.
+     * @param successful
+     *            True if the response was successful, false otherwise.
+     */
     public JSONMessage(String message, boolean successful) {
+        this(message, successful, null);
+    }
+
+    /**
+     * @param message
+     *            The body of the response from the server. This may be but is
+     *            not limited to: an error message, exception, or JSON of
+     *            persist calls.
+     * @param successful
+     *            True if the response was successful, false otherwise.
+     * @param statusCode
+     *            The code that was returned in the response if the response
+     *            contained one.
+     */
+    public JSONMessage(String message, boolean successful, Integer statusCode) {
         this.message = message;
         this.successful = successful;
+        this.statusCode = statusCode;
     }
     
     public String getBody() {
@@ -34,5 +68,9 @@ public class JSONMessage {
     
     public boolean isSuccessful() {
         return successful;
+    }
+
+    public Integer getStatusCode() {
+        return statusCode;
     }
 }
