@@ -104,6 +104,10 @@ implements Selectable {
         public void preUpdatePerformed(NetworkConflictResolver resolver) {
             //do nothing
         }
+        
+        public void workspaceDeleted() {
+            // do nothing
+        }
     };
     
     protected PlayPenComponent(String name) {

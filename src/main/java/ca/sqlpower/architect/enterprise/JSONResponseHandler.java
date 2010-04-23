@@ -38,7 +38,8 @@ public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
     public JSONMessage handleResponse(HttpResponse response) {
         try {
             
-            if (response.getStatusLine().getStatusCode() == 401) {
+            int status = response.getStatusLine().getStatusCode();
+            if (status == 401) {
                 throw new AccessDeniedException("Access Denied");
             }
             
@@ -50,13 +51,7 @@ public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
             while ((line = reader.readLine()) != null) {
                 buffer.append(line).append("\n");
             }
-            
-            if (response.getStatusLine().getStatusCode() == 412) {
-                JSONObject message = new JSONObject(buffer.toString());
-                return new JSONMessage(message.getString("data"), false, 412);
-            }
-            
-            return handleResponse(buffer.toString());
+            return handleResponse(buffer.toString(), status);
         } catch (AccessDeniedException e) {
             throw e;
         } catch (Exception ex) {
@@ -64,18 +59,18 @@ public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
         }
     }
     
-    public JSONMessage handleResponse(String json) {
+    public JSONMessage handleResponse(String json, int status) {
         try {
             JSONObject message = new JSONObject(json);
             
             // Does the response contain data? If so, return it. Communication
             // with the resource has been successful.
             if (message.getString("responseKind").equals("data")) {    
-                return new JSONMessage(message.getString("data"), true);
+                return new JSONMessage(message.getString("data"), status);
             } else {
                 // Has the request been unsuccessful?
                 if (message.getString("responseKind").equals("unsuccessful")) {
-                    return new JSONMessage(message.getString("data"), false);
+                    return new JSONMessage(message.getString("data"), status);
                 } else {
                     // Does the response contain an exception? If so, reconstruct, and then
                     // re-throw it. There has been an exception on the server.

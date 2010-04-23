@@ -34,6 +34,8 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 import org.springframework.security.AccessDeniedException;
@@ -230,21 +232,59 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         
         clientSession.getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
             
+            boolean loading = true;
+            
             public void preUpdatePerformed(NetworkConflictResolver resolver) {
-                swingSession.getUndoManager().setLoading(true);
+                if (loading) {
+                    swingSession.getUndoManager().setLoading(true);
+                }
             }
         
             public boolean updatePerformed(NetworkConflictResolver resolver) {
                 //On the first update from the server we must discard all edits
                 //as it is equivalent to loading from a file and undoing does not
                 //make sense.
-                swingSession.getUndoManager().setLoading(false);
-                return true;
+                if (loading) {
+                    swingSession.getUndoManager().setLoading(false);
+                    loading = false;
+                }
+                return false;
             }
         
-            public boolean updateException(NetworkConflictResolver resolver) {
-                swingSession.getUndoManager().setLoading(false);
-                return true;
+            public boolean updateException(NetworkConflictResolver resolver) {                
+                if (loading) {
+                    swingSession.getUndoManager().setLoading(false);
+                    loading = false;
+                }
+                return false;
+            }
+            
+            public void workspaceDeleted() {
+                int response = JOptionPane.showConfirmDialog(swingSession.getArchitectFrame(),
+                        "This project has been deleted from the server. " +
+                        "\nWould you like to save it to a file before it closes?",
+                        "Workspace deleted...", JOptionPane.YES_NO_OPTION);
+                if (response == JOptionPane.YES_OPTION) {
+                    swingSession.saveOrSaveAs(true, false);
+                }                
+                exitAfterAllSessionsClosed = false;
+                swingSession.close();
+                exitAfterAllSessionsClosed = true;
+                if (getSessions().size() == 0) {
+                    try {
+                        SwingUtilities.invokeAndWait(new Runnable() {
+                            public void run() {
+                                try {
+                                    createSession();
+                                } catch (Exception e) {
+                                    throw new RuntimeException("Error occurred when trying to open new project", e);
+                                }
+                            }
+                        });
+                    }  catch (Exception e) {
+                        throw new RuntimeException("Error occurred when trying to open new project", e);
+                    }
+                }
             }
         });
         
@@ -289,6 +329,10 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
                     public void preUpdatePerformed(NetworkConflictResolver resolver) {
                         //do nothing
+                    }
+                    
+                    public void workspaceDeleted() {
+                        // do nothing
                     }
                 });
             
