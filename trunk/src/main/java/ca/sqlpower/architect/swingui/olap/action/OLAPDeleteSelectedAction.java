@@ -79,7 +79,8 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
         } else if (itemsToDelete.size() < 1) {
             JOptionPane.showMessageDialog(playpen, "No items to delete!");
             return;
-        }   
+        }
+        playpen.getContentPane().begin("Deleting selected OLAP objects");
         try {
             playpen.startCompoundEdit("OLAP Delete");
             for (OLAPObject oo : itemsToDelete) {
@@ -91,6 +92,10 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
                     }
                 }
             }
+            playpen.getContentPane().commit();
+        } catch (Throwable e) {
+            playpen.getContentPane().rollback("Error: " + e.toString());
+            throw new RuntimeException(e);
         } finally {
             playpen.endCompoundEdit("OLAP Delete End");
         }
