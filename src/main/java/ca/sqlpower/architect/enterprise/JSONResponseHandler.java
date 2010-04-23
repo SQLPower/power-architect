@@ -50,6 +50,12 @@ public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
             while ((line = reader.readLine()) != null) {
                 buffer.append(line).append("\n");
             }
+            
+            if (response.getStatusLine().getStatusCode() == 412) {
+                JSONObject message = new JSONObject(buffer.toString());
+                return new JSONMessage(message.getString("data"), false, 412);
+            }
+            
             return handleResponse(buffer.toString());
         } catch (AccessDeniedException e) {
             throw e;
