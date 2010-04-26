@@ -1321,7 +1321,7 @@
 		</tar>
 	</target>
 
-	<target name="osx_jdbc_tgz" depends="osx_jdbc_dist" if="isNotMac">
+	<target name="osx_jdbc_tgz" depends="osx_jdbc_dist" if="isNotWindows">
 		<exec executable="tar" dir="${staging.dir}">
 			<arg value="-cpzf" />
 			<arg value="../${dist.dir}/Architect-OSX-${app.version}.tar.gz"/>
