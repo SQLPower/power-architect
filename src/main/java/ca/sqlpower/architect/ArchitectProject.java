@@ -202,8 +202,7 @@ public class ArchitectProject extends AbstractSPObject implements MappedSPTree {
         }
         setName("Architect Project");
         projectMap = new HashMap<String, SPObject>();
-        projectMap.put(uuid, this);
-        addSPListener(projectMapListener);
+        projectMapListener.childAdded(new SPChildEvent(this, null, this, 0, null));
     }
 
     /**
