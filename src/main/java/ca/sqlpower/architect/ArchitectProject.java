@@ -35,8 +35,12 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.User;
+import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.object.MappedSPTree;
 import ca.sqlpower.object.ObjectDependentException;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
@@ -65,7 +69,7 @@ import ca.sqlpower.util.WorkspaceContainer;
  *
  */
 
-public class ArchitectProject extends AbstractSPObject {
+public class ArchitectProject extends AbstractSPObject implements MappedSPTree {
     
     /**
      * Defines an absolute ordering of the child types of this class.
@@ -75,6 +79,47 @@ public class ArchitectProject extends AbstractSPObject {
             .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(SQLObjectRoot.class,
                     OLAPRootObject.class, PlayPenContentPane.class, ProfileManager.class, ProjectSettings.class,
                     KettleSettings.class, User.class, Group.class, DomainCategory.class, UserDefinedSQLType.class)));
+    
+    /**
+     * A hash map mapping all the descendants of this project.
+     * It must be kept up to date by listening to all its descendant nodes
+     * for child added and child removed events.
+     */
+    private final HashMap<String, SPObject> projectMap;
+    
+    /**
+     * The listener used to keep the projectMap up to date.
+     */
+    private final SPListener projectMapListener = new AbstractSPListener() {
+        public void childAdded(SPChildEvent e) {
+            populateTreeMap(e.getChild());            
+        }      
+
+        public void childRemoved(SPChildEvent e) {           
+            unpopulateTreeMap(e.getChild());                  
+        }
+        
+        private void populateTreeMap(SPObject addedChild) {            
+            if (projectMap.put(addedChild.getUUID(), addedChild) != null) {
+                throw new IllegalStateException("Object added under project with same UUID!");
+            }
+            addedChild.addSPListener(this);
+            for (SPObject o : addedChild.getChildren()) {
+                populateTreeMap(o);
+            }
+        }
+        
+        private void unpopulateTreeMap(SPObject removedChild) {
+            if (projectMap.remove(removedChild.getUUID()) != removedChild) {
+                throw new IllegalStateException("Inconsistent project map: " +
+                		"removed child's entry in map was either null, or different object.");
+            }
+            removedChild.removeSPListener(this);
+            for (SPObject o : removedChild.getChildren()) {
+                unpopulateTreeMap(o);
+            }
+        }
+    };
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -156,6 +201,9 @@ public class ArchitectProject extends AbstractSPObject {
             setProfileManager(profileManager);
         }
         setName("Architect Project");
+        projectMap = new HashMap<String, SPObject>();
+        projectMap.put(uuid, this);
+        addSPListener(projectMapListener);
     }
 
     /**
@@ -509,5 +557,20 @@ public class ArchitectProject extends AbstractSPObject {
     @NonProperty
     public List<UserDefinedSQLType> getSqlTypes() {
         return sqlTypes;
+    }
+
+    @NonBound
+    public SPObject getObjectInTree(String uuid) {
+        return projectMap.get(uuid);
+    }
+    
+    /**
+     * Locates the SPObject which has the given UUID, under this project,
+     * returning null if the item is not found. Throws ClassCastException
+     * if in item is found, but it is not of the expected type.
+     */
+    @NonBound
+    public <T extends SPObject> T getObjectInTree(String uuid, Class<T> expectedType) {
+        return expectedType.cast(getObjectInTree(uuid));
     }
 }

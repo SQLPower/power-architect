@@ -58,4 +58,8 @@ public class JSONMessage {
     public boolean isSuccessful() {
         return (statusCode >= 200 && statusCode < 300);
     }
+    
+    public String toString() {
+        return "Message (" + statusCode + "): " + message;
+    }
 }
