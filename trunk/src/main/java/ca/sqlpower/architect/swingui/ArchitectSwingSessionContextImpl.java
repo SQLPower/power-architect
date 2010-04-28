@@ -323,7 +323,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
                     public boolean updateException(NetworkConflictResolver resolver) {
                         newSecuritySession.close();
                         ArchitectClientSideSession.getSecuritySessions().remove(serverInfo.getServerAddress());
-                        createSecuritySession(serverInfo);
+                        //If you try to create a new security session here because creating the first
+                        //one failed the same error message can continue to repeat. 
+                        //TODO May want to warn the user with a nicer dialog.
                         return true;
                     }
 
