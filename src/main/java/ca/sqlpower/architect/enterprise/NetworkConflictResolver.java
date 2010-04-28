@@ -382,7 +382,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 updateListeners.removeAll(listenersToRemove);
             } 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to decode the message: " + jsonArray, e);
+            throw new RuntimeException("Failed to decode the message from the server.", e);
         }
     }
     
