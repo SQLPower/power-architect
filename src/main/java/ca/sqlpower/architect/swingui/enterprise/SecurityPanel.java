@@ -54,6 +54,8 @@ import org.apache.commons.codec.binary.Hex;
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
+import ca.sqlpower.architect.enterprise.DomainCategory;
+import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.User;
@@ -148,14 +150,24 @@ public class SecurityPanel {
             if (promptForUnsavedChanges()) {
                 User user = createUserFromPrompter();
                 if (user != null) {
-                    securityWorkspace.addChild(user, securityWorkspace.getChildren(User.class).size());
-                    refreshTree();
-                    Enumeration<DefaultMutableTreeNode> userNodes = usersNode.children();
-                    while (userNodes.hasMoreElements()) {
-                        DefaultMutableTreeNode dmtn = userNodes.nextElement();
-                        if (((User) dmtn.getUserObject()).getUUID().equals(user.getUUID())) {
-                            tree.setSelectionPath(new TreePath(dmtn.getPath()));
+                    try {
+                        securityWorkspace.begin("");
+                        securityWorkspace.addChild(user, securityWorkspace.getChildren(User.class).size());
+                        DomainCategory category = new DomainCategory(user.getName() + "'s Domains");
+                        user.addGrant(new Grant(category.getUUID(), null, true, true, true, true, true));
+                        securityWorkspace.addChild(category, securityWorkspace.getChildren(DomainCategory.class).size());
+                        securityWorkspace.commit();
+                        
+                        refreshTree();
+                        Enumeration<DefaultMutableTreeNode> userNodes = usersNode.children();
+                        while (userNodes.hasMoreElements()) {
+                            DefaultMutableTreeNode dmtn = userNodes.nextElement();
+                            if (((User) dmtn.getUserObject()).getUUID().equals(user.getUUID())) {
+                                tree.setSelectionPath(new TreePath(dmtn.getPath()));
+                            }
                         }
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
                     }
                 }
             }
