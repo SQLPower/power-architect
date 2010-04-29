@@ -275,7 +275,6 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         final ArchitectSwingSession session = context.createSession(false);
         SQLDatabase db = new SQLDatabase();
         session.setSourceDatabaseList(Collections.singletonList(db));
-        session.getRootObject().addChild(session.getTargetDatabase());
         assertEquals(session.getRootObject(), session.getTargetDatabase().getParent());
         
         final SQLTable sourceTable = new SQLTable(db, true);

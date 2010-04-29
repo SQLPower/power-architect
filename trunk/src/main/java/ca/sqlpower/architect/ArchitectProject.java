@@ -99,13 +99,22 @@ public class ArchitectProject extends AbstractSPObject implements MappedSPTree {
             unpopulateTreeMap(e.getChild());                  
         }
         
-        private void populateTreeMap(SPObject addedChild) {            
+        private void populateTreeMap(SPObject addedChild) {
             if (projectMap.put(addedChild.getUUID(), addedChild) != null) {
                 throw new IllegalStateException("Object added under project with same UUID!");
             }
             addedChild.addSPListener(this);
-            for (SPObject o : addedChild.getChildren()) {
-                populateTreeMap(o);
+            //Be careful here. If calling getChildren adds children to the object this
+            //listener will get called twice, once because the listener is now on the parent
+            //and again for the loop.
+            if (addedChild instanceof SQLObject) {
+                for (SPObject o : ((SQLObject) addedChild).getChildrenWithoutPopulating()) {
+                    populateTreeMap(o);
+                }
+            } else {
+                for (SPObject o : addedChild.getChildren()) {
+                    populateTreeMap(o);
+                }
             }
         }
         
@@ -115,8 +124,17 @@ public class ArchitectProject extends AbstractSPObject implements MappedSPTree {
                 		"removed child's entry in map was either null, or different object.");
             }
             removedChild.removeSPListener(this);
-            for (SPObject o : removedChild.getChildren()) {
-                unpopulateTreeMap(o);
+            
+            //Removing a listener should not cause a SQLObject to populate but we need to
+            //remove the listener from all descendants and clear the map .
+            if (removedChild instanceof SQLObject) {
+                for (SPObject o : ((SQLObject) removedChild).getChildrenWithoutPopulating()) {
+                    unpopulateTreeMap(o);
+                }
+            } else {
+                for (SPObject o : removedChild.getChildren()) {
+                    unpopulateTreeMap(o);
+                }
             }
         }
     };

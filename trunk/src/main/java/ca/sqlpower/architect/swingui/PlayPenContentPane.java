@@ -235,6 +235,9 @@ public class PlayPenContentPane extends AbstractSPObject {
         if (getPlayPen() != null) {
             ppc.addSelectionListener(getPlayPen());
         }
+        if (ppc instanceof TablePane) {
+            ((TablePane) ppc).connect();
+        }
         fireChildAdded(ppc.getClass(), ppc, pos);
         ppc.revalidate();
     }

@@ -101,6 +101,18 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
      * A special column index that represents the gap between the PK line and the first non-PK column.
      */
     public static final int COLUMN_INDEX_START_OF_NON_PK = -4;
+    
+    /**
+     * This listener will disconnect this pane from the model if the pane is removed from the
+     * container.
+     */
+    private final AbstractSPListener containerPaneListener = new AbstractSPListener() {
+        public void childRemoved(SPChildEvent e) {
+            if (e.getChild() == TablePane.this) {
+                destroy();
+            }
+        }
+     };
 
 	/**
 	 * This is the column index at which to the insertion point is
@@ -206,6 +218,26 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
 	// ---------------------- utility methods ----------------------
 
+    /**
+     * You must call this method when you are adding a TablePane component after
+     * the parent is defined. It will register the necessary listeners to all
+     * necessary parties.
+     * <p>
+     * TODO : When there are multiple {@link PlayPenContentPane}s each
+     * {@link PlayPenComponent} will need to be able to re-connect to its model
+     * when it is added back into its parent content pane. At this point the
+     * interface will need a connect method and this will be implementing that
+     * connect method.
+     */
+    public void connect() {
+        //Disconnect first in case the object is already connected. This ensures
+        //a listener isn't addd twice.
+        destroy();
+        
+        SQLPowerUtils.listenToHierarchy(model, columnListener);
+        getParent().addSPListener(containerPaneListener);
+    }
+
 	/**
 	 * You must call this method when you are done with a TablePane
 	 * component.  It unregisters this instance (and its UI delegate)
@@ -218,6 +250,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	 */
 	public void destroy() {
 	    SQLPowerUtils.unlistenToHierarchy(model, columnListener);
+	    getParent().removeSPListener(containerPaneListener);
 	}
 
 	// -------------------- sqlobject event support ---------------------
@@ -368,14 +401,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			logger.error("Error getting children on new model", e); //$NON-NLS-1$
 		}
 
-		SQLPowerUtils.listenToHierarchy(model, columnListener);
-		getParent().addSPListener(new AbstractSPListener() {
-		   public void childRemoved(SPChildEvent e) {
-		       if (e.getChild() == TablePane.this) {
-		           destroy();
-		       }
-		   }
-		});
+		connect();
 	}
 
 	@Override

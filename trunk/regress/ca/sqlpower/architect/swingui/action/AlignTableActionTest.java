@@ -92,7 +92,6 @@ public class AlignTableActionTest extends TestCase {
     }
     
     public void testSelectSomeAlignTableHori(){
-        pp.addTablePane(tp3,new Point(21,43));
         List<SQLObject> selections = new ArrayList<SQLObject>();
         selections.add(t1);
         selections.add(t3);
@@ -110,7 +109,6 @@ public class AlignTableActionTest extends TestCase {
     }
     
     public void testSelectSomeAlignTableVert(){
-        pp.addTablePane(tp3,new Point(21,43));
         List<SQLObject> selections = new ArrayList<SQLObject>();
         selections.add(t1);
         selections.add(t3);
