@@ -39,6 +39,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -60,6 +61,7 @@ import ca.sqlpower.enterprise.client.GroupMember;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -569,5 +571,30 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             // TODO Auto-generated method stub
             return false;
         }
+    }
+    
+    public static Action createShowAction(final ArchitectProject securityWorkspace, final SPObject subject, final Class type,
+            final String username, final JPanel panel) {
+       return new AbstractAction("Manage Security Settings...") {
+                public void actionPerformed(ActionEvent e) {
+                    final JDialog d = SPSUtils.makeOwnedDialog(panel, "Security Manager");
+                    
+                    Action closeAction = new AbstractAction("Close") {
+                        public void actionPerformed(ActionEvent e) {
+                            d.dispose();
+                        }
+                    };
+                        
+                    ProjectSecurityPanel spm = new ProjectSecurityPanel(
+                            securityWorkspace, subject, type, username, d, closeAction);
+                    d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                    d.setContentPane(spm.getPanel());
+                        
+                    SPSUtils.makeJDialogCancellable(d, null);
+                    d.pack();
+                    d.setLocationRelativeTo(panel);
+                    d.setVisible(true);
+                }
+            };
     }
 }

@@ -62,6 +62,7 @@ import ca.sqlpower.diff.SimpleDiffChunkJSONConverter;
 import ca.sqlpower.enterprise.TransactionInformation;
 import ca.sqlpower.enterprise.client.RevisionController;
 import ca.sqlpower.enterprise.client.SPServerInfo;
+import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
@@ -283,6 +284,17 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
             public void sessionOpening(SessionLifecycleEvent<ArchitectSession> e) {
             }
 		});
+	}
+	
+	public User getUser() {
+	    String username = getProjectLocation().getServiceInfo().getUsername();
+	    User currentUser = null;
+        for (User user : getSystemWorkspace().getChildren(User.class)) {
+            if (user.getUsername().equals(username)) {
+                currentUser = user;
+            }
+        }
+	    return currentUser;
 	}
 	
 	public void persistProjectToServer() throws SPPersistenceException {
