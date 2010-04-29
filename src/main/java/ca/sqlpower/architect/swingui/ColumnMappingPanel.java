@@ -332,6 +332,8 @@ public class ColumnMappingPanel extends ChangeListeningDataEntryPanel implements
         PlayPen pp = new PlayPen(session);
         lhsTable = new TablePane(r.getPkTable(), pp.getContentPane());
         rhsTable = new TablePane(r.getFkTable(), pp.getContentPane());
+        pp.getContentPane().addChild(lhsTable, 0);
+        pp.getContentPane().addChild(rhsTable, 0);
         SQLPowerUtils.listenToHierarchy(lhsTable.getModel().getParent(), this);
         
         // The playpen constructor hooks the playpen in as a hierarchy listener
@@ -415,13 +417,21 @@ public class ColumnMappingPanel extends ChangeListeningDataEntryPanel implements
         } catch (SQLObjectException e) {
             throw new RuntimeException(e);
         } finally {
-            cleanup();
+            try {
+                cleanup();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
         return true;
     }
 
     public void discardChanges() {
-        cleanup();
+        try {
+            cleanup();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public JComponent getPanel() {
@@ -435,11 +445,13 @@ public class ColumnMappingPanel extends ChangeListeningDataEntryPanel implements
     /**
      * Detaches listeners from the SQLTable and SQLRelationship that were added
      * during the creation of this instance.
+     * @throws ObjectDependentException 
+     * @throws IllegalArgumentException 
      */
-    private void cleanup() {
+    private void cleanup() throws IllegalArgumentException, ObjectDependentException {
         SQLPowerUtils.unlistenToHierarchy(lhsTable.getModel().getParent(), this);
-        lhsTable.destroy();
-        rhsTable.destroy();
+        lhsTable.getParent().removeChild(lhsTable);
+        rhsTable.getParent().removeChild(rhsTable);
     }
 
     public void childAdded(SPChildEvent e) {

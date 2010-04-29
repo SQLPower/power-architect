@@ -229,18 +229,6 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	        }
 	    }
 
-        /**
-         * List to hold all of the events. The events are to be pooled during a
-         * transaction and only acted upon when the transaction is complete.
-         * This gives methods like populate the ability to fire multiple child
-         * events but not cause the tree model to get the children of the
-         * objects it is looking at which would cause populate to start over
-         * again when it is already in the middle of populating.
-         */
-	    private List<TreeEventWithType> allEvents = new ArrayList<TreeEventWithType>();
-	    
-	    private int transactionCount = 0;
-	    
         public void childAdded(SPChildEvent e) {
             if (!SQLPowerUtils.getAncestorList(e.getSource()).contains(root) && !e.getSource().equals(root)) return;
             
@@ -258,11 +246,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             
             Set<TreeModelEvent> events = createTreeEvents(e);
             for (TreeModelEvent evt : events) {
-                if (transactionCount > 0) {
-                    allEvents.add(new TreeEventWithType(evt, EventType.INSERT));
-                } else {
-                    fireTreeNodesInserted(evt);
-                }
+                fireTreeNodesInserted(evt);
             }
 
             if (e.getChild() instanceof SQLTable && foldersInTables.get(e.getChild()) == null) {
@@ -275,11 +259,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 }
                 final TreeModelEvent evt = new TreeModelEvent(table, getPathToNode(table), 
                         positions, folderList.toArray());
-                if (transactionCount > 0) {
-                    allEvents.add(new TreeEventWithType(evt, EventType.INSERT));
-                } else {
-                    fireTreeNodesInserted(evt);
-                }
+                fireTreeNodesInserted(evt);
             } else {
                 setupTreeForNode((SQLObject) e.getChild());
             }
@@ -305,11 +285,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             
             Set<TreeModelEvent> events = createTreeEvents(e);
             for (TreeModelEvent evt : events) {
-                if (transactionCount > 0) {
-                    allEvents.add(new TreeEventWithType(evt, EventType.REMOVE));
-                } else {
-                    fireTreeNodesRemoved(evt);
-                }
+                fireTreeNodesRemoved(evt);
             }
         }
 
@@ -317,40 +293,18 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Transaction ended for " + e.getSource() + 
                         " while not on the foreground thread.");
-            if (transactionCount == 0) {
-                throw new IllegalStateException("Transaction ended outside of a transaction.");
-            }
-            transactionCount--;
-            if (transactionCount == 0) {
-                List<TreeEventWithType> currentEvents = new ArrayList<TreeEventWithType>(allEvents);
-                for (TreeEventWithType evt : currentEvents) {
-                    if (evt.getType() == EventType.INSERT) {
-                        fireTreeNodesInserted(evt.getEvt());
-                    } else if (evt.getType() == EventType.REMOVE) {
-                        fireTreeNodesRemoved(evt.getEvt());
-                    } else if (evt.getType() == EventType.CHANGE) {
-                        fireTreeNodesChanged(evt.getEvt());
-                    } else {
-                        throw new IllegalStateException("Unknown event type " + evt.getType());
-                    }
-                }
-                allEvents.clear();
-            }
         }
 
         public void transactionRollback(TransactionEvent e) {
             if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Transaction rolled back for " + e.getSource() + 
                         " while not on the foreground thread.");
-            transactionCount = 0;
-            allEvents.clear();
         }
 
         public void transactionStarted(TransactionEvent e) {
             if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Transaction started for " + e.getSource() + 
                         " while not on the foreground thread.");
-            transactionCount++;
         }
 
         public void propertyChanged(PropertyChangeEvent e) {
@@ -405,11 +359,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 logger.info("Changing a UUID. This should only be done during load.");
             } else {
                 final TreeModelEvent evt = new TreeModelEvent(this, getPathToNode(source));
-                if (transactionCount > 0) {
-                    allEvents.add(new TreeEventWithType(evt, EventType.CHANGE));
-                } else {
-                    fireTreeNodesChanged(evt);
-                }
+                fireTreeNodesChanged(evt);
             }
         }
 	    
