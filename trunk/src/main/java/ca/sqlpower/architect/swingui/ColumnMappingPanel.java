@@ -413,15 +413,10 @@ public class ColumnMappingPanel extends ChangeListeningDataEntryPanel implements
     
     public boolean applyChanges() {
         try {
+            cleanup();
             updateRelationshipFromMappings();
-        } catch (SQLObjectException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        } finally {
-            try {
-                cleanup();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
         }
         return true;
     }
