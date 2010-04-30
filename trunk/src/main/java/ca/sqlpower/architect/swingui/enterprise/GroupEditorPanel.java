@@ -122,13 +122,13 @@ public class GroupEditorPanel implements DataEntryPanel {
         public void removeUpdate(DocumentEvent e)  { hasUnsavedChanges = true; }
     };
     
-    private final Action okAction = new AbstractAction("OK") {
+    private final Action okAction = new AbstractAction("Apply") {
         public void actionPerformed(ActionEvent e) {
             applyChanges();
         }
     };
     
-    private final Action cancelAction = new AbstractAction("Cancel") {
+    private final Action cancelAction = new AbstractAction("Close") {
         public void actionPerformed(ActionEvent e) {
             discardChanges();
             closeAction.actionPerformed(e);
