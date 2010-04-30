@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect;
 
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -97,6 +98,12 @@ public class ArchitectProject extends AbstractSPObject implements MappedSPTree {
 
         public void childRemoved(SPChildEvent e) {           
             unpopulateTreeMap(e.getChild());                  
+        }
+        
+        public void propertyChanged(PropertyChangeEvent e) {
+            if (e.getPropertyName().toUpperCase().equals("UUID")) {
+                projectMap.put((String) e.getNewValue(), projectMap.remove(e.getOldValue()));
+            }
         }
         
         private void populateTreeMap(SPObject addedChild) {
