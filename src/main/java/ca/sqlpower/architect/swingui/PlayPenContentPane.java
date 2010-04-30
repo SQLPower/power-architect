@@ -204,7 +204,7 @@ public class PlayPenContentPane extends AbstractSPObject {
     }
     
     @NonBound
-    public boolean isDependentComponentType(Class<? extends PlayPenComponent> componentType) {
+    public static boolean isDependentComponentType(Class<? extends PlayPenComponent> componentType) {
         for (Class<? extends PlayPenComponent> dependentType : dependentComponentTypes) {
             if (dependentType.isAssignableFrom(componentType)) return true;
         }

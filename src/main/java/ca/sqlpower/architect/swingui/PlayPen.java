@@ -1711,7 +1711,7 @@ public class PlayPen extends JPanel
 
                 PlayPenComponent ppc = removedComponents.get(child.getUUID());
                 if (ppc != null) {
-                    if (contentPane.isDependentComponentType(ppc.getClass())) {
+                    if (PlayPenContentPane.isDependentComponentType(ppc.getClass())) {
                         contentPane.addChild(ppc, contentPane.getFirstDependentComponentIndex());
                     } else {
                         contentPane.addChild(ppc, 0);
