@@ -163,7 +163,7 @@ public class KettleSettings extends AbstractSPObject {
     }
 
     public List<? extends SPObject> getDependencies() {
-        return null;
+        return Collections.emptyList();
     }
 
     public void removeDependency(SPObject dependency) {
