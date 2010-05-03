@@ -170,4 +170,13 @@ public class StubArchitectSession implements ArchitectSession {
         return null;
     }
 
+    public UserDefinedSQLType findSQLTypeByUUID(String uuid) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    public UserDefinedSQLType findSQLTypeByJDBCType(int type) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }
