@@ -26,7 +26,6 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -60,9 +59,9 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.CommonCloseAction;
@@ -72,7 +71,7 @@ import ca.sqlpower.swingui.SPSUtils;
 
 /**
  * SearchReplace is a GUI facility for searching for named items in the
- * SQlObject hierarchy, and optionally renaming them.
+ * SQLObject hierarchy, and optionally renaming them.
  *
  * @author fuerth
  * @version $Id$
@@ -88,9 +87,9 @@ public class SearchReplace {
      */
     private class SearchResultsTableModel implements TableModel {
 
-        private List results;
+        private List<? extends SQLObject> results;
 
-        public SearchResultsTableModel(List results) {
+        public SearchResultsTableModel(List<? extends SQLObject> results) {
             this.results = results;
         }
 
@@ -112,17 +111,17 @@ public class SearchReplace {
             }
         }
 
-        public Class getColumnClass(int columnIndex) {
+        public Class<?> getColumnClass(int columnIndex) {
             return String.class;
         }
 
         public boolean isCellEditable(int rowIndex, int columnIndex) {
-            SQLObject obj = (SQLObject) results.get(rowIndex);
+            SQLObject obj = results.get(rowIndex);
             return columnIndex == 1 && (obj instanceof SQLTable || obj instanceof SQLColumn || obj instanceof SQLRelationship);
         }
 
         public Object getValueAt(int rowIndex, int columnIndex) {
-            SQLObject obj = (SQLObject) results.get(rowIndex);
+            SQLObject obj = results.get(rowIndex);
             if (columnIndex == 0) {
                 if (obj instanceof SQLColumn) {
                     return Messages.getString("SearchReplace.columnOfTable",((SQLColumn) obj).getParent().getName()); //$NON-NLS-1$
@@ -151,7 +150,7 @@ public class SearchReplace {
             }
         }
 
-        private ArrayList listeners = new ArrayList();
+        private ArrayList<TableModelListener> listeners = new ArrayList<TableModelListener>();
 
         public void addTableModelListener(TableModelListener l) {
             listeners.add(l);
@@ -162,9 +161,8 @@ public class SearchReplace {
         }
 
         private void fireEvent(TableModelEvent evt) {
-            Iterator it = listeners.iterator();
-            while (it.hasNext()) {
-                ((TableModelListener) it.next()).tableChanged(evt);
+            for (int i = listeners.size() - 1; i >= 0; i--) {
+                listeners.get(i).tableChanged(evt);
             }
         }
     }
@@ -220,7 +218,7 @@ public class SearchReplace {
                     showResults(d, pp);
                 } catch (SQLObjectException ex) {
                     ASUtils.showExceptionDialogNoReport(
-                        Messages.getString("SearchReplace.problemDuringSearch"), ex); //$NON-NLS-1$
+                        d, Messages.getString("SearchReplace.problemDuringSearch"), ex); //$NON-NLS-1$
                 }
             }
         });
@@ -269,7 +267,7 @@ public class SearchReplace {
 
     public void showResults(final JDialog parent, final PlayPen pp) throws SQLObjectException {
     	try {
-	        final List results = doSearch(pp.getSession().getTargetDatabase());
+	        final List<SQLObject> results = doSearch(pp.getSession().getTargetDatabase());
 
             // The PlayPen Database is more of an implementation detail, so we don't count it as a hit
             results.remove(pp.getSession().getTargetDatabase());
@@ -308,7 +306,7 @@ public class SearchReplace {
                     pp.selectNone();
 	                
                     for (int row : rows) {
-	                    SQLObject searchObj = (SQLObject) results.get(row);
+	                    SQLObject searchObj = results.get(row);
 	                    SQLTable searchTable = null;
 	                    SQLColumn searchColumn = null;
 	                    SQLRelationship searchRelationship = null;
@@ -386,8 +384,8 @@ public class SearchReplace {
         }
     }
 
-    public List doSearch(SQLObject start) throws SQLObjectException {
-        List results = new ArrayList();
+    public List<SQLObject> doSearch(SQLObject start) throws SQLObjectException {
+        List<SQLObject> results = new ArrayList<SQLObject>();
         String pat;
         if (substringMatch.isSelected() || exactMatch.isSelected()) {
             String p = searchExpression.getText();
@@ -414,23 +412,21 @@ public class SearchReplace {
         }
 
         Pattern searchPattern = Pattern.compile(pat, patternFlags);
-        return recursiveSearch(start, searchPattern, results);
+        recursiveSearch(start, searchPattern, results);
+        return results;
     }
 
-    private List recursiveSearch(SQLObject obj, Pattern searchPattern, List appendTo) throws SQLObjectException {
+    private void recursiveSearch(SQLObject obj, Pattern searchPattern, List<? super SQLObject> appendTo) throws SQLObjectException {
         if (logger.isDebugEnabled()) logger.debug("Matching \""+obj.getName()+"\" against /"+searchPattern.pattern()+"/"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         if (searchPattern.matcher(obj.getName()).matches() && searchTypeMatches(obj)) {
             appendTo.add(obj);
         }
-        List children = obj.getChildren();
+        List<? extends SQLObject> children = obj.getChildren();
         if (children != null) {
-            Iterator it = children.iterator();
-            while (it.hasNext()) {
-                SQLObject so = (SQLObject) it.next();
+            for (SQLObject so : children) {
                 recursiveSearch(so, searchPattern, appendTo);
             }
         }
-        return appendTo;
     }
 
     /**
