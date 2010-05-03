@@ -88,8 +88,10 @@ public class SearchReplace {
     private class SearchResultsTableModel implements TableModel {
 
         private List<? extends SQLObject> results;
+        private final SearchAspect aspect;
 
-        public SearchResultsTableModel(List<? extends SQLObject> results) {
+        public SearchResultsTableModel(SearchAspect aspect, List<? extends SQLObject> results) {
+            this.aspect = aspect;
             this.results = results;
         }
 
@@ -105,7 +107,7 @@ public class SearchReplace {
             if (columnIndex == 0) {
                 return Messages.getString("SearchReplace.typeResultColumnHeader"); //$NON-NLS-1$
             } else if (columnIndex == 1) {
-                return Messages.getString("SearchReplace.nameResultColumnHeader"); //$NON-NLS-1$
+                return aspect.getColumnHeading();
             } else {
                 return Messages.getString("SearchReplace.invalidResultColumnIndex")+columnIndex; //$NON-NLS-1$
             }
@@ -117,7 +119,9 @@ public class SearchReplace {
 
         public boolean isCellEditable(int rowIndex, int columnIndex) {
             SQLObject obj = results.get(rowIndex);
-            return columnIndex == 1 && (obj instanceof SQLTable || obj instanceof SQLColumn || obj instanceof SQLRelationship);
+            return columnIndex == 1
+                && aspect.isEditable()
+                && (obj instanceof SQLTable || obj instanceof SQLColumn || obj instanceof SQLRelationship);
         }
 
         public Object getValueAt(int rowIndex, int columnIndex) {
@@ -130,7 +134,7 @@ public class SearchReplace {
                     return className.substring(className.lastIndexOf('.') + 4);  // the +4 is to skip over ".SQL"
                 }
             } else if (columnIndex == 1) {
-                return obj.getName();
+                return aspect.getSearchableText(obj);
             } else {
                 return Messages.getString("SearchReplace.invalidColumnIndex", String.valueOf(columnIndex)); //$NON-NLS-1$
             }
@@ -139,13 +143,7 @@ public class SearchReplace {
         public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
             SQLObject obj = (SQLObject) results.get(rowIndex);
             if (columnIndex == 1) {
-                if (obj instanceof SQLTable) {
-                    ((SQLTable) obj).setName((String) aValue);
-                } else if (obj instanceof SQLColumn) {
-                    ((SQLColumn) obj).setName((String) aValue);
-                } else if (obj instanceof SQLRelationship) {
-                    ((SQLRelationship) obj).setName((String) aValue);
-                }
+                aspect.setText(obj, (String) aValue);
                 fireEvent(new TableModelEvent(this, rowIndex, rowIndex, columnIndex, TableModelEvent.UPDATE));
             }
         }
@@ -166,6 +164,79 @@ public class SearchReplace {
             }
         }
     }
+
+    /**
+     * Enumeration of the possible aspects of a SQLObject that we can search.
+     * Each enum constant includes a method that extracts the appropriate
+     * searchable text from a given SQLObject.
+     */
+    private enum SearchAspect {
+        LOGICAL_NAME {
+            String getSearchableText(SQLObject obj) {
+                return obj.getName();
+            }
+            @Override
+            public void setText(SQLObject obj, String text) {
+                obj.setName(text);
+            }
+            @Override
+            public String getColumnHeading() {
+                return "Logical Name";
+            }
+            @Override
+            public boolean isEditable() {
+                return true;
+            }
+        },
+        PHYSICAL_NAME {
+            String getSearchableText(SQLObject obj) {
+                return obj.getPhysicalName();
+            }
+            @Override
+            public void setText(SQLObject obj, String text) {
+                obj.setPhysicalName(text);
+            }
+            @Override
+            public String getColumnHeading() {
+                return "Physical Name";
+            }
+            @Override
+            public boolean isEditable() {
+                return true;
+            }
+        };
+        
+        /**
+         * Returns the text that should be searched or displayed when this
+         * aspect is applied to the given object.
+         */
+        abstract String getSearchableText(SQLObject obj);
+
+        /**
+         * Returns the column heading that should appear above the text returned
+         * by this aspect.
+         */
+        abstract String getColumnHeading();
+
+        /**
+         * Tells whether or not this aspect can apply new text to a given
+         * SQLObject. Generally, apsects that return the exact value of a
+         * property can edit that property, but those that return a computed or
+         * compound result (such as "Logical And Physical Names" or
+         * "Name of any child") cannot apply edits.
+         */
+        abstract boolean isEditable();
+
+        /**
+         * Replaces the text in the given SQLObject that corresponds with this
+         * aspect. Only works if {@link #isEditable()} returns true for this
+         * aspect.
+         * 
+         * @throws UnsupportedOperationException if this aspect is not editable.
+         */
+        abstract void setText(SQLObject obj, String text);
+    }
+    
     private JRadioButton substringMatch;
     private JRadioButton exactMatch;
     private JRadioButton regexMatch;
@@ -175,6 +246,9 @@ public class SearchReplace {
     private JRadioButton columnSearch;
     private JRadioButton allSearch;
 
+    private JRadioButton logicalAspect;
+    private JRadioButton physicalAspect;
+    
     private JTextField searchExpression;
     private JCheckBox caseInsensitive;
 
@@ -193,6 +267,15 @@ public class SearchReplace {
         matchTypePanel.add(regexMatch);
         substringMatch.setSelected(true);
 
+        ButtonGroup searchAspect = new ButtonGroup();
+        searchAspect.add(logicalAspect = new JRadioButton("Logical Name"));
+        searchAspect.add(physicalAspect = new JRadioButton("Physical Name"));
+        JPanel searchAspectPanel = new JPanel(new GridLayout(1, 3)); // 3 columns so it lines up with matchTypePanel
+        searchAspectPanel.add(logicalAspect);
+        searchAspectPanel.add(physicalAspect);
+        searchAspectPanel.add(new JLabel()); // filler
+        logicalAspect.setSelected(true);
+        
         ButtonGroup searchType = new ButtonGroup();
         searchType.add(tableSearch = new JRadioButton(Messages.getString("SearchReplace.tablesSearchOption"))); //$NON-NLS-1$
         searchType.add(relationshipSearch = new JRadioButton(Messages.getString("SearchReplace.relationshipsSearchOption"))); //$NON-NLS-1$
@@ -245,6 +328,9 @@ public class SearchReplace {
         cp.add(new JLabel(Messages.getString("SearchReplace.lookForLabel"))); //$NON-NLS-1$
         cp.add(searchTypePanel);
 
+        cp.add(new JLabel(Messages.getString("SearchReplace.byLabel"))); //$NON-NLS-1$
+        cp.add(searchAspectPanel);
+
         cp.add(new JLabel(Messages.getString("SearchReplace.namedLabel"))); //$NON-NLS-1$
         cp.add(searchExpression);
 
@@ -267,7 +353,16 @@ public class SearchReplace {
 
     public void showResults(final JDialog parent, final PlayPen pp) throws SQLObjectException {
     	try {
-	        final List<SQLObject> results = doSearch(pp.getSession().getTargetDatabase());
+            SearchAspect aspect;
+            if (logicalAspect.isSelected()) {
+                aspect = SearchAspect.LOGICAL_NAME;
+            } else if (physicalAspect.isSelected()) {
+                aspect = SearchAspect.PHYSICAL_NAME;
+            } else {
+                throw new IllegalStateException("Don't know which search aspect to choose");
+            }
+            
+	        final List<SQLObject> results = doSearch(pp.getSession().getTargetDatabase(), aspect);
 
             // The PlayPen Database is more of an implementation detail, so we don't count it as a hit
             results.remove(pp.getSession().getTargetDatabase());
@@ -275,7 +370,7 @@ public class SearchReplace {
 	        // XXX This JDialog has three buttons so we cannot use
 	        // ArchitectPanelBuilder to create it...
 	        final JDialog d = new JDialog(parent, Messages.getString("SearchReplace.resultsDialogTitle")); //$NON-NLS-1$
-	        final JTable t = new JTable(new SearchResultsTableModel(results));
+	        final JTable t = new JTable(new SearchResultsTableModel(aspect, results));
 
 	        final JButton renameButton = new JButton(Messages.getString("SearchReplace.renameSelectedButton")); //$NON-NLS-1$
 	        renameButton.setEnabled(false);
@@ -384,7 +479,7 @@ public class SearchReplace {
         }
     }
 
-    public List<SQLObject> doSearch(SQLObject start) throws SQLObjectException {
+    public List<SQLObject> doSearch(SQLObject start, SearchAspect aspect) throws SQLObjectException {
         List<SQLObject> results = new ArrayList<SQLObject>();
         String pat;
         if (substringMatch.isSelected() || exactMatch.isSelected()) {
@@ -412,19 +507,20 @@ public class SearchReplace {
         }
 
         Pattern searchPattern = Pattern.compile(pat, patternFlags);
-        recursiveSearch(start, searchPattern, results);
+        recursiveSearch(start, searchPattern, aspect, results);
         return results;
     }
 
-    private void recursiveSearch(SQLObject obj, Pattern searchPattern, List<? super SQLObject> appendTo) throws SQLObjectException {
+    private void recursiveSearch(SQLObject obj, Pattern searchPattern, SearchAspect aspect, List<? super SQLObject> appendTo) throws SQLObjectException {
         if (logger.isDebugEnabled()) logger.debug("Matching \""+obj.getName()+"\" against /"+searchPattern.pattern()+"/"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        if (searchPattern.matcher(obj.getName()).matches() && searchTypeMatches(obj)) {
+        
+        if (searchPattern.matcher(aspect.getSearchableText(obj)).matches() && searchTypeMatches(obj)) {
             appendTo.add(obj);
         }
         List<? extends SQLObject> children = obj.getChildren();
         if (children != null) {
             for (SQLObject so : children) {
-                recursiveSearch(so, searchPattern, appendTo);
+                recursiveSearch(so, searchPattern, aspect, appendTo);
             }
         }
     }
