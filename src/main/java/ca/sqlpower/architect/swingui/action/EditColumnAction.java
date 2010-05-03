@@ -108,7 +108,11 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			if (!addToTable) {
                 column = st.getColumn(colIdx);
 			} else {
-                column = new SQLColumn();
+			    if (session.getSQLTypes().size() > 0) {
+			        column = new SQLColumn(session.getSQLTypes().get(0));
+			    } else {
+			        column = new SQLColumn();
+			    }
                 
                 // XXX it sucks to do this here, but the column can't determine its correct
                 //     sequence name until it has a parent. By then, it will be too late.

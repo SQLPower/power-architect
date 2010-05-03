@@ -27,7 +27,7 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLType;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 
 public class TestColumnEditPanel extends TestCase {
 	SQLDatabase db;
@@ -80,22 +80,24 @@ public class TestColumnEditPanel extends TestCase {
 	    assertFalse("The column we plan to edit should not be in PK",
                 col3.isPrimaryKey());
 
+	    col3.getUserDefinedSQLType().setUpstreamType(session.getSQLTypes().get(0));
 	    panel = new ColumnEditPanel(col3, session);
         
 		assertEquals("Wrong column logical name",col3.getName(),panel.getColLogicalName().getText());
-		assertEquals("Wrong Precision",col3.getPrecision(),((Integer) (panel.getColPrec().getValue())).intValue());
-		assertEquals("Wrong type",col3.getType(),((SQLType)(panel.getColType().getSelectedItem())).getType());
+		assertEquals("Wrong Precision",col3.getPrecision(),((Integer) panel.getColPrec().getValue()).intValue());
+		assertEquals("Wrong type",col3.getType(),((UserDefinedSQLType)panel.getColType().getSelectedItem()).getType().intValue());
 		assertEquals("Wrong Scale",col3.getScale(),((Integer) (panel.getColScale().getValue())).intValue());
 		assertEquals(col3.isAutoIncrement(), panel.getColAutoInc().getModel().isSelected());
 		assertEquals(col3.isPrimaryKey(), panel.getColInPK().getModel().isSelected());
 		assertEquals(col3.getNullable() == DatabaseMetaData.columnNullable, panel.getColNullable().getModel().isSelected());
 		assertEquals("None Specified",panel.getSourceLabel().getText());
 
+		col2.getUserDefinedSQLType().setUpstreamType(session.getSQLTypes().get(1));
         panel = new ColumnEditPanel(col2, session);
 
         assertEquals("Wrong column logical name",col2.getName(),panel.getColLogicalName().getText());
-        assertEquals("Wrong Precision",col2.getPrecision(),((Integer) (panel.getColPrec().getValue())).intValue());
-        assertEquals("Wrong type",col2.getType(),((SQLType)(panel.getColType().getSelectedItem())).getType());
+        assertEquals("Wrong Precision",col2.getPrecision(),((Integer) panel.getColPrec().getValue()).intValue());
+        assertEquals("Wrong type",col2.getType(),((UserDefinedSQLType)panel.getColType().getSelectedItem()).getType().intValue());
         assertEquals("Wrong Scale",col2.getScale(),((Integer) (panel.getColScale().getValue())).intValue());
         assertEquals(col2.isAutoIncrement(), panel.getColAutoInc().getModel().isSelected());
         assertEquals(col2.isPrimaryKey(), panel.getColInPK().getModel().isSelected());
@@ -107,8 +109,8 @@ public class TestColumnEditPanel extends TestCase {
 
 		panel.getColPhysicalName().setText("CHANGED");
 		panel.getColLogicalName().setText("Easier Use Column Name");
+		panel.getColType().setSelectedIndex(1);
 		panel.getColPrec().setValue(new Integer(1234));
-		panel.getColType().setSelectedIndex(5);
 		panel.getColScale().setValue(new Integer(5432));
 		
 		
@@ -121,7 +123,7 @@ public class TestColumnEditPanel extends TestCase {
 		assertEquals("Wrong column physical name","CHANGED",col2.getPhysicalName());
 		assertEquals("Wrong column logical name","Easier Use Column Name",col2.getName());
 		assertEquals("Wrong Precision",1234,col2.getPrecision());
-		assertEquals("Wrong type",16,col2.getType());
+		assertEquals("Wrong type",2,col2.getType());
 		assertEquals("Wrong Scale",5432,col2.getScale());
 		assertTrue(col2.isAutoIncrement());
 		assertTrue(col2.isPrimaryKey());
@@ -135,7 +137,6 @@ public class TestColumnEditPanel extends TestCase {
 		panel.getColPhysicalName().setText("CHANGED");
 		panel.getColLogicalName().setText("Easier Use Column Name");
 		panel.getColPrec().setValue(new Integer(1234));
-		panel.getColType().setSelectedIndex(5);
 		panel.getColScale().setValue(new Integer(5432));
 		panel.getColAutoInc().getModel().setSelected(true);	
 		panel.getColInPK().getModel().setSelected(true);
@@ -145,7 +146,6 @@ public class TestColumnEditPanel extends TestCase {
 		assertEquals("Wrong column physical name","Physical Name 2",col2.getPhysicalName());
 		assertEquals("Wrong column logical name","Column 2",col2.getName());
 		assertEquals("Wrong Precision",3,col2.getPrecision());
-		assertEquals("Wrong type",2,col2.getType());
 		assertEquals("Wrong Scale",4,col2.getScale());
 		assertFalse(col2.isAutoIncrement());
 		assertFalse(col2.isPrimaryKey());

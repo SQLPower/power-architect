@@ -27,6 +27,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
@@ -68,7 +70,9 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
-import ca.sqlpower.sqlobject.SQLType;
+import ca.sqlpower.sqlobject.SQLTypePhysicalProperties;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
 import ca.sqlpower.swingui.SPSUtils;
@@ -257,7 +261,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
         }
-        panel.add(colType = new JComboBox(SQLType.getTypes()), cc.xyw(2, row++, 4));
+        panel.add(colType = new JComboBox(session.getSQLTypes().toArray()), cc.xyw(2, row++, 4));
         componentEnabledMap.put(colType, cb);
         colType.setSelectedItem(null);
         colType.addActionListener(this);
@@ -436,6 +440,14 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         SQLPowerUtils.listenToHierarchy(session.getRootObject(), obsolesenceListener);
         SQLPowerUtils.listenToHierarchy(session.getRootObject(), this);
         panel.addAncestorListener(cleanupListener);
+        colType.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getItem() instanceof UserDefinedSQLType) {
+                    UserDefinedSQLType sqlType = (UserDefinedSQLType) e.getItem();
+                    updateSQLTypeComponents(sqlType);
+                }
+            }
+        });
     }
 
     private Component makeTitle(String string) {
@@ -481,10 +493,10 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         
         updateComponent(colLogicalName, col.getName());
         updateComponent(colPhysicalName, col.getPhysicalName());
-        updateComponent(colType, SQLType.getType(col.getType()));
+        updateComponent(colType, col.getUserDefinedSQLType().getUpstreamType());
         
-        updateComponent(colScale, Integer.valueOf(col.getScale()));
-        updateComponent(colPrec, Integer.valueOf(col.getPrecision()));
+        updateComponent(colScale, col.getScale(), col.getScaleType());
+        updateComponent(colPrec, col.getPrecision(), col.getPrecisionType());
         
         updateComponent(colNullable, col.getNullable() == DatabaseMetaData.columnNullable);
         
@@ -538,15 +550,16 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     }
     
     /** Subroutine of {@link #updateComponents(SQLColumn)}. */
-    private void updateComponent(JSpinner comp, Integer expectedValue) {
+    private void updateComponent(JSpinner comp, int expectedValue, PropertyType propertyType) {
         boolean unvisited = comp.getValue().equals(Integer.valueOf(0));
         if (componentEnabledMap.get(comp).isSelected() &&
-                (unvisited || comp.getValue().equals(expectedValue))) {
+                (unvisited || comp.getValue().equals(expectedValue)) &&
+                    propertyType != PropertyType.NOT_APPLICABLE) {
             comp.setValue(expectedValue);
         } else {
-            comp.setValue(Integer.valueOf(0));
             componentEnabledMap.get(comp).setSelected(false);
         }
+        comp.setEnabled(propertyType == PropertyType.VARIABLE);
     }
     
     /** Subroutine of {@link #updateComponents(SQLColumn)}. */
@@ -667,7 +680,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     column.setPhysicalName(colPhysicalName.getText());
                 }                
                 if (componentEnabledMap.get(colType).isSelected()) {
-                    column.setType(((SQLType) colType.getSelectedItem()).getType());
+                    column.getUserDefinedSQLType().setUpstreamType((UserDefinedSQLType) colType.getSelectedItem());
                 }
                 
                 if (componentEnabledMap.get(colScale).isSelected()) {
@@ -961,6 +974,22 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         //no-op
     }
 
-
-
+    /**
+     * If a user chooses a new Type to base the column on, then the UI
+     * components for other properties like precision, scale, default value,
+     * nullability, and autoincrement need to change to match that of the new
+     * type. But the SQLColumn object itself must not change at that point, so
+     * that it is simple to cancel any changes if the user chooses to click the
+     * 'Cancel' button.
+     * 
+     * @param sqlType
+     */
+    private void updateSQLTypeComponents(UserDefinedSQLType sqlType) {
+        SQLTypePhysicalProperties properties = sqlType.getDefaultPhysicalProperties();
+        updateComponent(colScale, properties.getScale(), properties.getScaleType());
+        updateComponent(colPrec, properties.getPrecision(), properties.getPrecisionType());
+        updateComponent(colNullable, sqlType.getNullability() == DatabaseMetaData.columnNullable);
+        updateComponent(colDefaultValue, properties.getDefaultValue());
+        updateComponent(colAutoInc, sqlType.getAutoIncrement());
+    }
 }
