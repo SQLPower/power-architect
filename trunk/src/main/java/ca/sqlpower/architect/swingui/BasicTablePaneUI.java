@@ -294,7 +294,7 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
         } else {
             displayName.append(col.getPhysicalName()).append(": ");
         }
-        displayName.append(ddlg.getColumnDataTypeName(col));
+        displayName.append(col.getTypeName());
         displayName.append(getColumnTag(col));
         return displayName.toString();
     }

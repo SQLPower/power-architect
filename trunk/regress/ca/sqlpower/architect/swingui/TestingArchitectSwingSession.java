@@ -22,7 +22,9 @@ import java.awt.Color;
 import java.awt.Window;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,7 +53,9 @@ import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
@@ -89,6 +93,8 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private boolean usingLogicalNames = false;
     
     private ColumnVisibility choice = ColumnVisibility.ALL;
+    private UserDefinedSQLType testType1;
+    private UserDefinedSQLType testType2;
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws SQLObjectException {
         this.context = context;
@@ -122,6 +128,27 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         kettleJob = new KettleJob(this);
         
         printSettings = new PrintSettings();
+        
+        testType1 = new UserDefinedSQLType();
+        String platform = SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM;
+        testType1.setName("Test Type 1");
+        testType1.setPrecision(platform, 1);
+        testType1.setScale(platform, 1);
+        testType1.setType(1);
+        testType1.setNullability(DatabaseMetaData.columnNoNulls);
+        testType1.setAutoIncrement(false);
+        testType1.setPrecisionType(platform, PropertyType.VARIABLE);
+        testType1.setScaleType(platform, PropertyType.VARIABLE);
+        
+        testType2 = new UserDefinedSQLType();
+        testType2.setName("Test Type 2");
+        testType2.setPrecision(platform, 1);
+        testType2.setScale(platform, 1);
+        testType2.setType(2);
+        testType2.setNullability(DatabaseMetaData.columnNoNulls);
+        testType2.setAutoIncrement(false);
+        testType2.setPrecisionType(platform, PropertyType.VARIABLE);
+        testType2.setScaleType(platform, PropertyType.VARIABLE);
     }
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context, SwingUIProjectLoader project) throws SQLObjectException {
@@ -440,7 +467,9 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public List<UserDefinedSQLType> getSQLTypes() {
-        // TODO Auto-generated method stub
-        return null;
+        List<UserDefinedSQLType> list = new ArrayList<UserDefinedSQLType>();
+        list.add(testType1);
+        list.add(testType2);
+        return list;
     }
 }

@@ -19,8 +19,11 @@
 package ca.sqlpower.architect.ddl;
 
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import junit.framework.TestCase;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
+
 import java.sql.Types;
 import java.util.List;
 
@@ -33,9 +36,17 @@ public class MySqlDDLGeneratorTest extends TestCase {
 		tbl.setPhysicalName("test_table");
 		tbl.setRemarks("Test single ' quotes");
 		SQLColumn id = new SQLColumn(tbl, "id", Types.INTEGER, 0, 0);
+		UserDefinedSQLType idUpstreamType = new UserDefinedSQLType();
+		idUpstreamType.setName("INTEGER");
+		idUpstreamType.setScaleType("GENERIC", PropertyType.NOT_APPLICABLE);
+        id.getUserDefinedSQLType().setUpstreamType(idUpstreamType);
 		id.setRemarks("The row's primary key");
 		tbl.addColumn(id);
 		SQLColumn name = new SQLColumn(tbl, "name", Types.VARCHAR, 50, 0);
+		UserDefinedSQLType nameUpstreamType = new UserDefinedSQLType();
+		nameUpstreamType.setName("VARCHAR");
+		nameUpstreamType.setScaleType("GENERIC", PropertyType.NOT_APPLICABLE);
+        name.getUserDefinedSQLType().setUpstreamType(nameUpstreamType);
 		name.setRemarks("The person's name");
 		tbl.addColumn(name);
 		ddl.addTable(tbl);
