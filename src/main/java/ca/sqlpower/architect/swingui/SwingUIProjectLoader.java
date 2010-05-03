@@ -198,8 +198,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
             in.reset();
             
             super.load(in, dataSources);
-        }
-        finally {
+        } finally {
             getSession().getUndoManager().setLoading(false);
             uin.forceClose();
         }
@@ -1306,6 +1305,10 @@ public class SwingUIProjectLoader extends ProjectLoader {
             SQLColumn sourceCol = ((SQLColumn) o).getSourceColumn();
             if (sourceCol != null) {
                 propNames.put("source-column-ref", sqlObjectSaveIdMap.get(sourceCol)); //$NON-NLS-1$
+            }
+            UserDefinedSQLType userDefinedSQLType = ((SQLColumn) o).getUserDefinedSQLType();
+            if (userDefinedSQLType.getUpstreamType() != null) {
+                propNames.put("userDefinedTypeUUID", userDefinedSQLType.getUpstreamType().getUUID());
             }
             propNames.put("type", new Integer(((SQLColumn) o).getType())); //$NON-NLS-1$
             propNames.put("sourceDataTypeName", ((SQLColumn) o).getSourceDataTypeName()); //$NON-NLS-1$

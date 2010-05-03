@@ -62,6 +62,7 @@ import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
@@ -709,6 +710,22 @@ public class ProjectLoader {
             if (sourceId != null) {
                 col.setSourceColumn((SQLColumn) sqlObjectLoadIdMap.get(sourceId));
             }
+            
+            String sqlTypeUUID = attributes.getValue("userDefinedTypeUUID");
+            UserDefinedSQLType sqlType;
+            
+            // If sqlTypeUUID isn't in the file, probably because it's from an older version...
+            if (sqlTypeUUID == null) {
+                String type = attributes.getValue("type");
+                int jdbcType = Integer.valueOf(type);
+                sqlType = session.findSQLTypeByJDBCType(jdbcType);
+            } else {
+                sqlType = session.findSQLTypeByUUID(sqlTypeUUID);
+            }
+            
+            // TODO: Handle gracefully if sqlType is null, in which case, the
+            // user is probably loading a project from another user or server.
+            col.getUserDefinedSQLType().setUpstreamType(sqlType);
             
             LoadSQLObjectAttributes(col, attributes);
 

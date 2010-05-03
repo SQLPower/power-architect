@@ -255,5 +255,25 @@ public class ArchitectSessionImpl implements ArchitectSession {
     public List<UserDefinedSQLType> getSQLTypes() {
         return getDataSources().getSQLTypes();
     }
+    
+    public UserDefinedSQLType findSQLTypeByUUID(String uuid) {
+        List<UserDefinedSQLType> types = getSQLTypes();
+        for (UserDefinedSQLType type : types) {
+            if (type.getUUID().equals(uuid)) {
+                return type;
+            }
+        }
+        return null;
+    }
+    
+    public UserDefinedSQLType findSQLTypeByJDBCType(int jdbcType) {
+        List<UserDefinedSQLType> types = getSQLTypes();
+        for (UserDefinedSQLType type : types) {
+            if (type.getType() == jdbcType) {
+                return type;
+            }
+        }
+        return null;
+    }
 }
 

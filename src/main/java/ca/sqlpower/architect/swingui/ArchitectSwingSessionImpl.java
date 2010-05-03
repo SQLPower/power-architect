@@ -1217,4 +1217,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public List<UserDefinedSQLType> getSQLTypes() {
         return delegateSession.getSQLTypes();
     }
+    
+    public UserDefinedSQLType findSQLTypeByUUID(String uuid) {
+        return delegateSession.findSQLTypeByUUID(uuid);
+    }
+    
+    public UserDefinedSQLType findSQLTypeByJDBCType(int type) {
+        return delegateSession.findSQLTypeByJDBCType(type);
+    }
 }

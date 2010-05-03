@@ -472,4 +472,24 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         list.add(testType2);
         return list;
     }
+    
+    public UserDefinedSQLType findSQLTypeByUUID(String uuid) {
+        if (testType1.getUUID().equals(uuid)) {
+            return testType1;
+        } else if (testType2.getUUID().equals(uuid)) {
+            return testType2;
+        } else {
+            return null;
+        }
+    }
+    
+    public UserDefinedSQLType findSQLTypeByJDBCType(int type) {
+        if (testType1.getType() == type) {
+            return testType1;
+        } else if (testType2.getType() == type) {
+            return testType2;
+        } else {
+            return null;
+        }
+    }
 }

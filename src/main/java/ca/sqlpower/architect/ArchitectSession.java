@@ -19,6 +19,7 @@
 package ca.sqlpower.architect;
 
 import java.beans.PropertyChangeListener;
+import java.sql.Types;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
@@ -139,4 +140,27 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
      * Returns a list of {@link UserDefinedSQLType} defined in this session.
      */
     public List<UserDefinedSQLType> getSQLTypes();
+    
+    /**
+     * Searches the session for a {@link UserDefinedSQLType} with the given
+     * UUID.
+     * 
+     * @param uuid
+     *            The UUID of the desired {@link UserDefinedSQLType}.
+     * @return Returns a {@link UserDefinedSQLType} with the given UUID if it
+     *         exists in this session. If not, then it will return null.
+     */
+    public UserDefinedSQLType findSQLTypeByUUID(String uuid);
+    
+    /**
+     * Searches the session for a {@link UserDefinedSQLType} with the given int
+     * that represents a value from {@link java.sql.Types}.
+     * 
+     * @param uuid
+     *            The {@link Types} value of the {@link UserDefinedSQLType}
+     *            desired.
+     * @return Returns a {@link UserDefinedSQLType} with the given type if one
+     *         exists in this session. If not, then it will return null.
+     */
+    public UserDefinedSQLType findSQLTypeByJDBCType(int type);
 }
