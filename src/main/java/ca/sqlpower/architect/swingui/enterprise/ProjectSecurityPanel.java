@@ -574,7 +574,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
     }
     
     public static Action createShowAction(final ArchitectProject securityWorkspace, final SPObject subject, final Class type,
-            final String username, final JPanel panel) {
+            final String username, final JComponent panel) {
        return new AbstractAction("Manage Security Settings...") {
                 public void actionPerformed(ActionEvent e) {
                     final JDialog d = SPSUtils.makeOwnedDialog(panel, "Security Manager");
