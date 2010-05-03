@@ -135,8 +135,8 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         testType1.setPrecision(platform, 1);
         testType1.setScale(platform, 1);
         testType1.setType(1);
-        testType1.setNullability(DatabaseMetaData.columnNoNulls);
-        testType1.setAutoIncrement(false);
+        testType1.setMyNullability(DatabaseMetaData.columnNoNulls);
+        testType1.setMyAutoIncrement(false);
         testType1.setPrecisionType(platform, PropertyType.VARIABLE);
         testType1.setScaleType(platform, PropertyType.VARIABLE);
         
@@ -145,8 +145,8 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         testType2.setPrecision(platform, 1);
         testType2.setScale(platform, 1);
         testType2.setType(2);
-        testType2.setNullability(DatabaseMetaData.columnNoNulls);
-        testType2.setAutoIncrement(false);
+        testType2.setMyNullability(DatabaseMetaData.columnNoNulls);
+        testType2.setMyAutoIncrement(false);
         testType2.setPrecisionType(platform, PropertyType.VARIABLE);
         testType2.setScaleType(platform, PropertyType.VARIABLE);
     }
